@@ -737,18 +737,35 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     return mPathResolverCache;
   }
 
+  /**
+   * Get the {@link FuseStreamFactory} instance member that is for creating {@link FuseFileStream}.
+   * @return the {@link FuseStreamFactory} instance member
+   */
   public FuseStreamFactory getFuseStreamFactory() {
     return mFuseStreamFactory;
   }
 
+  /**
+   * Set the {@link FuseStreamFactory} instance member that is for creating {@link FuseFileStream}.
+   * @param fuseStreamFactory the {@link FuseStreamFactory} instance
+   *                          for creating {@link FuseFileStream}
+   */
   public void setFuseStreamFactory(FuseStreamFactory fuseStreamFactory) {
-    this.mFuseStreamFactory = fuseStreamFactory;
+    mFuseStreamFactory = fuseStreamFactory;
   }
 
+  /**
+   * Get the file system on which FuseFileSystem is based.
+   * @return the file system on which FuseFileSystem is based
+   */
   public FileSystem getFileSystem() {
     return mFileSystem;
   }
 
+  /**
+   * Get the file system authority policy.
+   * @return the file system authority policy
+   */
   public AuthPolicy getAuthPolicy() {
     return mAuthPolicy;
   }

@@ -1,14 +1,17 @@
 package alluxio.fuse.file;
 
 import static jnr.constants.platform.OpenFlags.O_ACCMODE;
+
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.lock.FuseReadWriteLockManager;
-import javax.annotation.concurrent.ThreadSafe;
+
 import jnr.constants.platform.OpenFlags;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Factory for {@link FuseFileInStream}.

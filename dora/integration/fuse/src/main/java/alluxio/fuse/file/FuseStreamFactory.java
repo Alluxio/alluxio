@@ -1,8 +1,7 @@
 package alluxio.fuse.file;
 
 import alluxio.AlluxioURI;
-import alluxio.fuse.file.FuseFileInStream;
-import alluxio.fuse.file.FuseFileStream;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

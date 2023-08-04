@@ -11,19 +11,7 @@
 
 package alluxio.fuse.file;
 
-import static jnr.constants.platform.OpenFlags.O_ACCMODE;
-
-import alluxio.AlluxioURI;
-import alluxio.client.file.FileSystem;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.fuse.auth.AuthPolicy;
-import alluxio.fuse.lock.FuseReadWriteLockManager;
-
-import jnr.constants.platform.OpenFlags;
-
 import java.nio.ByteBuffer;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This interface should be implemented by all fuse file streams.

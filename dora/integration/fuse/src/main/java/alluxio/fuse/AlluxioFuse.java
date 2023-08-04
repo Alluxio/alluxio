@@ -123,8 +123,15 @@ public class AlluxioFuse {
       .addOption(HELP_OPTION);
 
   // prevent instantiation
-  protected AlluxioFuse() {}
+  protected AlluxioFuse() {
+  }
 
+  /**
+   * Startup the FUSE process.
+   *
+   * @param args process arguments
+   * @throws ParseException
+   */
   public void start(String[] args) throws ParseException {
     CommandLine cli = PARSER.parse(OPTIONS, args);
 
@@ -193,6 +200,14 @@ public class AlluxioFuse {
     alluxioFuse.start(args);
   }
 
+  /**
+   * Create a FuseFileSystem instance.
+   *
+   * @param fsContext   the context of the file system on which FuseFileSystem based on
+   * @param fs          the file system on which FuseFileSystem based on
+   * @param fuseOptions the fuse options
+   * @return a FuseFileSystem instance
+   */
   public FuseUmountable createFuseFileSystem(FileSystemContext fsContext, FileSystem fs,
                                              FuseOptions fuseOptions) {
     AlluxioConfiguration conf = fsContext.getClusterConf();
@@ -221,20 +236,26 @@ public class AlluxioFuse {
     }
   }
 
-
+  /**
+   * Preprocess the instance of {@link AlluxioJniFuseFileSystem} before mounting.
+   *
+   * @param jniFuseFileSystem the instance of {@link AlluxioJniFuseFileSystem}
+   */
   public void preprocess(AlluxioJniFuseFileSystem jniFuseFileSystem) {
   }
 
   /**
    * Launches Fuse application.
    *
-   * @param fsContext file system context for Fuse client to communicate to servers
+   * @param fuseFs      the fuse file system
+   * @param fsContext   file system context for Fuse client to communicate to servers
    * @param fuseOptions Fuse options
-   * @param blocking whether the Fuse application is blocking or not
+   * @param blocking    whether the Fuse application is blocking or not
    * @return the Fuse application handler for future Fuse umount operation
    */
   public static FuseUmountable launchFuse(FuseUmountable fuseFs,
-       FileSystemContext fsContext, FuseOptions fuseOptions, boolean blocking) {
+                                          FileSystemContext fsContext, FuseOptions fuseOptions,
+                                          boolean blocking) {
     AlluxioConfiguration conf = fsContext.getClusterConf();
     validateFuseConfAndOptions(conf, fuseOptions);
 
@@ -248,8 +269,10 @@ public class AlluxioFuse {
       try {
         LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
             mountPoint, String.join(",", fuseOptions.getFuseMountOptions()));
-        ((AlluxioJniFuseFileSystem) fuseFs).mount(blocking, debugEnabled,
-            fuseOptions.getFuseMountOptions());
+        if (fuseFs instanceof AlluxioJniFuseFileSystem) {
+          ((AlluxioJniFuseFileSystem) fuseFs).mount(blocking, debugEnabled,
+              fuseOptions.getFuseMountOptions());
+        }
         return fuseFs;
       } catch (RuntimeException e) {
         fuseFs.umount(true);
@@ -257,8 +280,10 @@ public class AlluxioFuse {
       }
     } else {
       try {
-        ((AlluxioJnrFuseFileSystem) fuseFs).mount(mountPath, blocking, debugEnabled,
-            fuseOptions.getFuseMountOptions().stream().map(a -> "-o" + a).toArray(String[]::new));
+        if (fuseFs instanceof AlluxioJnrFuseFileSystem) {
+          ((AlluxioJnrFuseFileSystem) fuseFs).mount(mountPath, blocking, debugEnabled,
+              fuseOptions.getFuseMountOptions().stream().map(a -> "-o" + a).toArray(String[]::new));
+        }
         return fuseFs;
       } catch (Throwable t) {
         // only try to umount file system when exception occurred.
@@ -273,7 +298,7 @@ public class AlluxioFuse {
   /**
    * Updates Alluxio configuration according to command line input.
    *
-   * @param cli the command line inputs
+   * @param cli  the command line inputs
    * @param conf the modifiable configuration to update
    */
   protected static void setConfigurationFromInput(CommandLine cli, InstancedConfiguration conf) {
