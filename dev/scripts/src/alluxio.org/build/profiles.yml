@@ -87,6 +87,10 @@ profiles:
         - bin/alluxio-stop.sh
         - bin/alluxio-workers.sh
         - bin/launch-process
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Darwin-aarch64
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Darwin-x86_64
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Linux-aarch64
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Linux-x86_64
         - conf/alluxio-env.sh.template
         - conf/alluxio-site.properties.template
         - conf/core-site.xml.template
@@ -127,6 +131,7 @@ profiles:
         - underFSStorage
       fileList:
         - bin/alluxio
+        - bin/alluxio-bash
         - bin/alluxio-common.sh
         - bin/alluxio-masters.sh
         - bin/alluxio-monitor.sh
@@ -135,6 +140,10 @@ profiles:
         - bin/alluxio-stop.sh
         - bin/alluxio-workers.sh
         - bin/launch-process
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Darwin-aarch64
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Darwin-x86_64
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Linux-aarch64
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Linux-x86_64
         - conf/alluxio-env.sh.template
         - conf/alluxio-site.properties.template
         - conf/core-site.xml.template
