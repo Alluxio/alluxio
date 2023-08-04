@@ -51,7 +51,7 @@ public class UfsUrl {
     // If ufsPath is not equal to rootDir.
     if (!ufsPath.equals(rootDir)) {
       Preconditions.checkArgument(rootDirArray.length <= 2 || rootDirArray.length == 0, "Invalid alluxio.dora.client.ufs.root value %s", rootDir);
-      // rootDir is like "/tmp"
+      // No "://" in root dir, assume it is a local file system path and the scheme should be "file://"
       if (rootDirArray.length == 1) {
         rootScheme = "file";
         rootAuthority = "";
