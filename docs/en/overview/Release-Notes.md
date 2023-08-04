@@ -85,7 +85,6 @@ Jiahao Liu ([LiuJiahao0001](https://github.com/liujiahao0001){:target="_blank"})
 Pan Liu ([liupan664021](https://github.com/liupan664021){:target="_blank"}), 
 Shuai Wuyue ([shuaiwuyue](https://github.com/shuaiwuyue/){:target="_blank"}), 
 XiChen ([xichen01](https://github.com/xichen01){:target="_blank"}),
-XiChen ([xichen01](https://github.com/xichen01){:target="_blank"}),
 Xuanlin Guan ([XuanlinGuan](https://github.com/XuanlinGuan){:target="_blank"}), 
 Yuedong Wu ([lunarwhite](https://github.com/lunarwhite){:target="_blank"}), 
 [adol001](https://github.com/adol001){:target="_blank"}, 
