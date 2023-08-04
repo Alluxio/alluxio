@@ -1106,6 +1106,11 @@
           <artifactId>templating-maven-plugin</artifactId>
           <version>1.0.0</version>
         </plugin>
+        <plugin>
+          <groupId>com.github.ekryd.sortpom</groupId>
+          <artifactId>sortpom-maven-plugin</artifactId>
+          <version>3.0.1</version>
+        </plugin>
         <!-- REST Documentation plugin -->
         <plugin>
           <groupId>com.github.kongchen</groupId>
@@ -1408,6 +1413,45 @@
             <configuration>
               <executable>${build.path}/version/write_version.sh</executable>
               <arguments>${project.version}</arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.github.ekryd.sortpom</groupId>
+        <artifactId>sortpom-maven-plugin</artifactId>
+        <configuration>
+          <encoding>${project.build.sourceEncoding}</encoding>
+          <expandEmptyElements>false</expandEmptyElements>
+          <keepBlankLines>true</keepBlankLines>
+          <lineSeparator>\n</lineSeparator>
+          <sortOrderFile>build/sortpom/alluxio_pom.xml</sortOrderFile>
+          <sortDependencies>scope,groupId,artifactId</sortDependencies>
+          <sortProperties>true</sortProperties>
+        </configuration>
+        <executions>
+          <execution>
+            <!-- validate if a pom file is sorted, fail the build if it is not sorted -->
+            <id>default-cli</id>
+            <goals>
+              <goal>verify</goal>
+            </goals>
+            <phase>validate</phase>
+            <configuration>
+              <verifyFail>stop</verifyFail>
+              <verifyFailOn>strict</verifyFailOn>
+              <violationFilename>target/sortpom_reports/violation.xml</violationFilename>
+            </configuration>
+          </execution>
+          <execution>
+            <!-- sort a pom file in place, note this will modify the pom file -->
+            <id>manual-sort</id>
+            <goals>
+              <goal>sort</goal>
+            </goals>
+            <configuration>
+              <createBackupFile>true</createBackupFile>
             </configuration>
           </execution>
         </executions>
