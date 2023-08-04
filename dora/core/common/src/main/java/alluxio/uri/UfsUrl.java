@@ -37,7 +37,7 @@ public class UfsUrl {
 
   public static UfsUrl createInstance(String ufsPath) {
     Preconditions.checkArgument(ufs != null && !ufsPath.isEmpty(),
-        "ufsPath is empty, please input a non-empty ufsPath.");
+        "ufsPath is null or empty");
     // TODO(Tony Sun): remove it in the future.
     String rootDir = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
 
