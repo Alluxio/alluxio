@@ -43,7 +43,7 @@ Alluxio 2.8.1 further improves the Alluxio metrics for better monitoring the All
 * Fix max reservoir metric initialization ([8a7ee7d](https://github.com/Alluxio/alluxio/commit/8a7ee7d8f3afed5fd272360baa5ce16c10fae5a9){:target="_blank"})
 * Expose RockDB metrics as Alluxio metrics ([89f9087](https://github.com/Alluxio/alluxio/commit/89f90873531a63fe4237fd7df178afd2fd0c8558){:target="_blank"})
 
-## Improvements
+## Improvements and Bugfixes Since 2.8.0
 
 ### General Improvements
 * Create automatic backup when shutting down Alluxio master ([eaf803c](https://github.com/Alluxio/alluxio/commit/eaf803c96a5971e7ad214fa3e39f4613cdb87160){:target="_blank"})
