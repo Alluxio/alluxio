@@ -142,7 +142,7 @@ If a metadata sync is triggered by a getStatus call for inode type NONE, the pre
 
 ## Acknowledgements
 
-We want to thank the community for their valuable contributions to the Alluxio 2.9.3 release. Especially, we would like to thank:
+We want to thank the community for their valuable contributions to the Alluxio 2.9.2 release. Especially, we would like to thank:
 
 Deepak Shivamurthy ([deepak-shivamurthy](https://github.com/deepak-shivamurthy){:target="_blank"}),
 Haoning Sun ([Haoning-Sun](https://github.com/Haoning-Sun){:target="_blank"}),
