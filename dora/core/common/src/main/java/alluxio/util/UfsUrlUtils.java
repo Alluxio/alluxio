@@ -16,7 +16,9 @@ import com.google.common.base.Preconditions;
 public final class UfsUrlUtils {
 
   public static final String PATH_SEPARATOR = "/";
+  
   private UfsUrlUtils() {}  // prevent instantiation
+  
   public static String concatStringPath(String pathA, String pathB) {
     Preconditions.checkNotNull(pathA);
     Preconditions.checkNotNull(pathB);
