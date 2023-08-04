@@ -58,8 +58,6 @@ l-shen ([ljl1988com](https://github.com/ljl1988com){:target="_blank"}),
 Lei Qian ([qian0817](https://github.com/qian0817){:target="_blank"}),
 [striverpan](https://github.com/striverpan){:target="_blank"},
 XiChen ([xichen01](https://github.com/xichen01){:target="_blank"}),
-Yaolong Liu ([codings-dan](https://github.com/codings-dan){:target="_blank"}),
-
-([](){:target="_blank"})
+Yaolong Liu ([codings-dan](https://github.com/codings-dan){:target="_blank"})
 
 Enjoy the new release and look forward to hearing your feedback on our [Community Slack Channel](https://alluxio.io/slack).
