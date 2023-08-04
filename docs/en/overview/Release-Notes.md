@@ -199,7 +199,7 @@ Another default configuration change will delegate the journal backup operation 
 
 ## Acknowledgements
 
-We want to thank the community for their valuable contributions to the Alluxio 2.9.3 release. Especially, we would like to thank:
+We want to thank the community for their valuable contributions to the Alluxio 2.9.0 release. Especially, we would like to thank:
 
 Bob Bai ([bobbai00](https://github.com/bobbai00){:target="_blank"}),
 Haoning Sun ([Haoning-Sun](https://github.com/Haoning-Sun){:target="_blank"}),
