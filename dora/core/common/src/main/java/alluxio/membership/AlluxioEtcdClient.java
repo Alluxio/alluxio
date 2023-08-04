@@ -129,10 +129,10 @@ public class AlluxioEtcdClient {
   @FunctionalInterface
   protected interface EtcdUtilCallable<V> {
     /**
-     * The task where RPC happens.
+     * The task where logics to communicate with etcd happens.
      *
-     * @return RPC result
-     * @throws IOException when any exception defined in gRPC happens
+     * @return Etcd gRPC call result
+     * @throws Exception
      */
     V call() throws Exception;
   }
@@ -213,9 +213,8 @@ public class AlluxioEtcdClient {
         () -> {
           CompletableFuture<LeaseGrantResponse> leaseGrantFut =
               getEtcdClient().getLeaseClient().grant(ttlInSec, timeout, timeUnit);
-          long leaseId;
           LeaseGrantResponse resp = leaseGrantFut.get(timeout, timeUnit);
-          leaseId = resp.getID();
+          long leaseId = resp.getID();
           Lease lease = new Lease(leaseId, ttlInSec);
           return lease;
         });
@@ -243,7 +242,6 @@ public class AlluxioEtcdClient {
           try {
             CompletableFuture<LeaseRevokeResponse> leaseRevokeFut =
                 getEtcdClient().getLeaseClient().revoke(lease.mLeaseId);
-            long leaseId;
             LeaseRevokeResponse resp = leaseRevokeFut.get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
             return null;
           } catch (ExecutionException | InterruptedException | TimeoutException ex) {
