@@ -157,9 +157,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       return mDelegatedFileSystem.getStatus(ufsPath, options);
     }
     try {
-      // TODO(Jiacheng Liu): implement getPathConf(ufsPath) and use the merged options in the call
-      //  GetStatusPOptions mergedOptions = FileSystemOptionsUtils.getStatusDefaults(
-      //    mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      // TODO(Jiacheng Liu): use path conf if that is still needed
       return mDoraClient.getStatus(ufsPath.asString(), options);
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {

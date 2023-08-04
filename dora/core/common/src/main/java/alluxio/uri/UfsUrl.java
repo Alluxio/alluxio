@@ -39,8 +39,8 @@ public class UfsUrl {
   }
 
   public static UfsUrl createInstance(String ufsPath) {
-    Preconditions.checkArgument(!ufsPath.isEmpty(),
-        "ufsPath is empty, please input a non-empty ufsPath.");
+    Preconditions.checkArgument(ufsPath != null && !ufsPath.isEmpty(),
+        "ufsPath is null or empty");
     // TODO(Tony Sun): remove it in the future.
     String rootDir = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
 
@@ -48,14 +48,14 @@ public class UfsUrl {
     String rootScheme;
     String rootAuthority;
     String rootPath;
+    // rootDir = "hdfs:///" -> rootDirArray = ["hdfs", "/"]
+    // Please make sure the rootDir is not only contain scheme, like "s3://".
+    String[] rootDirArray = rootDir.split(SCHEME_SEPARATOR);
     // If ufsPath is not equal to rootDir.
     if (!ufsPath.equals(rootDir)) {
-      // rootDir = "hdfs:///" -> rootDirArray = ["hdfs", "/"]
-      // Please make sure the rootDir is not only contain scheme, like "s3://".
-      String[] rootDirArray = rootDir.split(SCHEME_SEPARATOR);
-      Preconditions.checkArgument(rootDirArray.length <= 2, "Invalid Alluxio rootDir, "
-          + "please check alluxio configuration first.");
-      // rootDir is like "/tmp"
+      Preconditions.checkArgument(rootDirArray.length <= 2 || rootDirArray.length == 0,
+          "Invalid alluxio.dora.client.ufs.root value %s", rootDir);
+      // No "://" in root dir, assume it is a local file system path, the scheme should be "file://"
       if (rootDirArray.length == 1) {
         rootScheme = "file";
         rootAuthority = "";
@@ -91,7 +91,7 @@ public class UfsUrl {
     int schemeIndex = ufsPath.indexOf(SCHEME_SEPARATOR);
     Preconditions.checkArgument(schemeIndex == ufsPath.lastIndexOf(SCHEME_SEPARATOR),
         "There are multiple schemes, the input may contain more than one path, "
-            + "current UfsUrl only support inputting one path each time.");
+            + "Alluxio only supports inputting one path each time.");
     // schemeIndex == -1 -> ufsPath has no scheme.
     // schemeIndex != -1 -> ufsPath has a scheme.
     if (schemeIndex == -1)  {
@@ -275,7 +275,7 @@ public class UfsUrl {
   }
 
   public UfsUrl join(String suffix) {
-    if (suffix.isEmpty()) {
+    if (suffix == null || suffix.isEmpty()) {
       return new UfsUrl(mProto);
     }
     String[] suffixArray = suffix.split("/");
