@@ -112,7 +112,7 @@ Richard ([Sucran](https://github.com/Sucran){:target="_blank"}),
 XiChen ([xichen01](https://github.com/xichen01){:target="_blank"}), 
 [l-shen](https://github.com/l-shen), 
 Lei Qian ([qian0817](https://github.com/qian0817){:target="_blank"}), and
-Weize Xu
+Xu Weize ([xwzbupt](https://github.com/xwzbupt){:target="_blank"})
 
 We also want to especially thank [Fei Peng](https://github.com/lucaspeng12138){:target="_blank"} from the Tencent team, who provided invaluable insights with release testing.
 
