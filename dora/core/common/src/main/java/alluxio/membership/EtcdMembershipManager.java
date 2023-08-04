@@ -16,9 +16,9 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.wire.WorkerInfo;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
-import com.google.common.annotations.VisibleForTesting;
 import io.etcd.jetcd.KeyValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

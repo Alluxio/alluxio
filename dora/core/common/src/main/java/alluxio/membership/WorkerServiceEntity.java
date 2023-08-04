@@ -100,12 +100,14 @@ public class WorkerServiceEntity extends ServiceEntity {
 
   /**
    * Convert from a json string to a WorkerServiceEntity object.
+   * @param jsonStr
+   * @return WorkerServiceEntity
    * @throws JsonSyntaxException
    */
   public static WorkerServiceEntity fromJson(String jsonStr) throws JsonSyntaxException {
     Gson gson = new GsonBuilder()
         .excludeFieldsWithoutExposeAnnotation()
         .create();
-   return gson.fromJson(jsonStr, WorkerServiceEntity.class);
+    return gson.fromJson(jsonStr, WorkerServiceEntity.class);
   }
 }

@@ -2,6 +2,7 @@ package alluxio.membership;
 
 import alluxio.wire.WorkerNetAddress;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public final class ServiceEntityTest {
@@ -14,6 +15,6 @@ public final class ServiceEntityTest {
         .setDomainSocketPath("/var/lib/domain.sock"));
     String str = ServiceEntity.toJson(entity);
     ServiceEntity deserialized = WorkerServiceEntity.fromJson(str);
-    assert(deserialized.equals(entity));
+    Assert.assertEquals(deserialized, entity);
   }
 }

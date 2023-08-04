@@ -62,7 +62,7 @@ public class GrpcSecurityTest {
   @Test
   public void testServerUnsupportedAuthentication() {
     mThrown.expect(RuntimeException.class);
-    mThrown.expectMessage(new StringStartsWith(false, 
+    mThrown.expectMessage(new StringStartsWith(false,
         "No factory could create a UserState with authType: " + AuthType.KERBEROS.name()));
     createServer(AuthType.KERBEROS);
   }
