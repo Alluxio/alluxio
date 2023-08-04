@@ -20,7 +20,6 @@ import static org.junit.Assert.fail;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.FileSystemOptions;
@@ -37,10 +36,6 @@ import alluxio.jnifuse.LibFuse;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 import alluxio.underfs.s3a.S3AUnderFileSystemFactory;
-import alluxio.util.CommonUtils;
-import alluxio.util.OSUtils;
-import alluxio.util.ShellUtils;
-import alluxio.util.WaitForOptions;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -50,12 +45,10 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.UUID;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Isolation tests for {@link alluxio.fuse.AlluxioJniFuseFileSystem} with local UFS.
@@ -63,7 +56,6 @@ import java.util.concurrent.TimeoutException;
  */
 @Ignore("Failed to unmount because of Permission Denied")
 public class FuseEndToEndTest {
-  private static final int WAIT_TIMEOUT_MS = 60 * Constants.SECOND_MS;
   private static final String TEST_S3A_PATH_CONF = "alluxio.test.s3a.path";
   private static final String MOUNT_POINT = AlluxioTestDirectory
       .createTemporaryDirectory("ufs").toString();
@@ -93,15 +85,15 @@ public class FuseEndToEndTest {
     AlluxioJniFuseFileSystem fuseFileSystem = new AlluxioJniFuseFileSystem(context, fileSystem,
         FuseOptions.create(Configuration.global(), fileSystemOptions, false));
     fuseFileSystem.mount(false, false, new HashSet<>());
-    if (!waitForFuseMounted()) {
-      umountFromShellIfMounted();
+    if (!FuseUtils.waitForFuseMounted(MOUNT_POINT)) {
+      FuseUtils.umountFromShellIfMounted(MOUNT_POINT);
       fail("Could not setup FUSE mount point");
     }
   }
 
   @AfterClass
   public static void afterClass() throws Exception {
-    umountFromShellIfMounted();
+    FuseUtils.umountFromShellIfMounted(MOUNT_POINT);
   }
 
   @Test
@@ -175,42 +167,5 @@ public class FuseEndToEndTest {
     File file = new File(srcFile);
     new FileOutputStream(srcFile).close();
     assertTrue(file.renameTo(new File(dstFile)));
-  }
-
-  private static void umountFromShellIfMounted() throws IOException {
-    if (fuseMounted()) {
-      ShellUtils.execCommand("umount", MOUNT_POINT);
-    }
-  }
-
-  private static boolean fuseMounted() throws IOException {
-    String result = ShellUtils.execCommand("mount");
-    return result.contains(MOUNT_POINT);
-  }
-
-  /**
-   * Waits for the Alluxio-Fuse to be mounted.
-   *
-   * @return true if Alluxio-Fuse mounted successfully in the given timeout, false otherwise
-   */
-  private static boolean waitForFuseMounted() {
-    if (OSUtils.isLinux() || OSUtils.isMacOS()) {
-      try {
-        CommonUtils.waitFor("Alluxio-Fuse mounted on local filesystem", () -> {
-          try {
-            return fuseMounted();
-          } catch (IOException e) {
-            return false;
-          }
-        }, WaitForOptions.defaults().setTimeoutMs(WAIT_TIMEOUT_MS));
-        return true;
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        return false;
-      } catch (TimeoutException te) {
-        return false;
-      }
-    }
-    return false;
   }
 }

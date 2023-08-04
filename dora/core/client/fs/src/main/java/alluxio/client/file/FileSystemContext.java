@@ -447,11 +447,7 @@ public class FileSystemContext implements Closeable {
     mBlockMasterClientPool = new BlockMasterClientPool(mMasterClientContext);
     mBlockWorkerClientPoolMap = new ConcurrentHashMap<>();
     mUriValidationEnabled = ctx.getUriValidationEnabled();
-    try {
-      mMembershipManager = MembershipManager.Factory.create(getClusterConf());
-    } catch (IOException ex) {
-      LOG.error("Failed to set membership manager.", ex);
-    }
+    mMembershipManager = MembershipManager.Factory.create(getClusterConf());
   }
 
   /**

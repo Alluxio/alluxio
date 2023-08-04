@@ -18,7 +18,6 @@ import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.resource.CloseableResource;
-import alluxio.scheduler.job.WorkerProvider;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
