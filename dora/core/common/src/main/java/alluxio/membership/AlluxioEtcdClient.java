@@ -47,9 +47,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nullable;
@@ -239,14 +237,10 @@ public class AlluxioEtcdClient {
         String.format("Revoking Lease:%s", lease.toString()),
         new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
         () -> {
-          try {
-            CompletableFuture<LeaseRevokeResponse> leaseRevokeFut =
-                getEtcdClient().getLeaseClient().revoke(lease.mLeaseId);
-            LeaseRevokeResponse resp = leaseRevokeFut.get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
-            return null;
-          } catch (ExecutionException | InterruptedException | TimeoutException ex) {
-            throw new IOException("Error revoking lease:" + lease.toString(), ex);
-          }
+          CompletableFuture<LeaseRevokeResponse> leaseRevokeFut =
+              getEtcdClient().getLeaseClient().revoke(lease.mLeaseId);
+          leaseRevokeFut.get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
+          return null;
         });
   }
 
@@ -486,16 +480,12 @@ public class AlluxioEtcdClient {
         new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
         () -> {
           boolean exist = false;
-          try {
-            CompletableFuture<GetResponse> getResponse =
-                getEtcdClient().getKVClient().get(
-                    ByteSequence.from(path, StandardCharsets.UTF_8));
-            List<KeyValue> kvs = getResponse.get(
-                DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS).getKvs();
-            exist = !kvs.isEmpty();
-          } catch (ExecutionException | InterruptedException | TimeoutException ex) {
-            throw new IOException("Error getting path:" + path, ex);
-          }
+          CompletableFuture<GetResponse> getResponse =
+              getEtcdClient().getKVClient().get(
+                  ByteSequence.from(path, StandardCharsets.UTF_8));
+          List<KeyValue> kvs = getResponse.get(
+              DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS).getKvs();
+          exist = !kvs.isEmpty();
           return exist;
         });
   }
@@ -511,16 +501,11 @@ public class AlluxioEtcdClient {
             path, (!value.isPresent() ? "null" : value.get().length)),
         new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
         () -> {
-          try {
-            mClient.getKVClient().put(
-                    ByteSequence.from(path, StandardCharsets.UTF_8),
-                    ByteSequence.from(value.get()))
-                .get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
-            return null;
-          } catch (ExecutionException | InterruptedException | TimeoutException ex) {
-            String errMsg = String.format("Error createForPath:%s", path);
-            throw new IOException(errMsg, ex);
-          }
+          mClient.getKVClient().put(
+                  ByteSequence.from(path, StandardCharsets.UTF_8),
+                  ByteSequence.from(value.get()))
+              .get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
+          return null;
         });
   }
 
@@ -535,16 +520,11 @@ public class AlluxioEtcdClient {
         String.format("Delete for path:%s", path),
         new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
         () -> {
-          try {
-            mClient.getKVClient().delete(
-                    ByteSequence.from(path, StandardCharsets.UTF_8),
-                    DeleteOption.newBuilder().isPrefix(recursive).build())
-                .get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
-            return null;
-          } catch (ExecutionException | InterruptedException | TimeoutException ex) {
-            String errMsg = String.format("Error deleteForPath:%s", path);
-            throw new IOException(errMsg, ex);
-          }
+          mClient.getKVClient().delete(
+                  ByteSequence.from(path, StandardCharsets.UTF_8),
+                  DeleteOption.newBuilder().isPrefix(recursive).build())
+              .get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
+          return null;
         });
   }
 
