@@ -30,13 +30,12 @@
   </properties>
 
   <dependencies>
-    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-job-common</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <!-- Internal test dependencies -->
+
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>

@@ -30,12 +30,9 @@
 
   <dependencies>
     <dependency>
-      <!-- External dependencies -->
       <groupId>com.beust</groupId>
       <artifactId>jcommander</artifactId>
     </dependency>
-
-    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client-hdfs</artifactId>

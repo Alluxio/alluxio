@@ -39,14 +39,12 @@
       <version>${project.version}</version>
     </dependency>
 
-    <!-- Internal dependencies -->
     <!-- This should include all Alluxio client implementations -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client-hdfs</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <!-- External dependencies -->
     <!-- Have hadoop-client dependency in provided scope by default -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>

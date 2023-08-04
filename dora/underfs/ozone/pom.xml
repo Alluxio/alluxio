@@ -47,14 +47,13 @@
       <artifactId>ozone-client</artifactId>
       <version>${ufs.ozone.version}</version>
     </dependency>
-    <!-- Internal dependencies -->
+
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
-    <!-- External dependencies -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>

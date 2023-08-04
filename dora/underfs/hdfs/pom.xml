@@ -31,14 +31,11 @@
   </properties>
 
   <dependencies>
-    <!-- External dependencies -->
     <!-- Hadoop dependencies are included in individual profiles -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
     </dependency>
-
-    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -46,7 +43,6 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>

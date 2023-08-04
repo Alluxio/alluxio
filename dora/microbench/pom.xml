@@ -47,7 +47,6 @@
       <artifactId>alluxio-core-client-fs</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <!-- internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-server-common</artifactId>
@@ -81,8 +80,6 @@
       <artifactId>jmh-core</artifactId>
       <version>${jmh.version}</version>
     </dependency>
-
-    <!-- external dependencies -->
     <dependency>
       <groupId>site.ycsb</groupId>
       <artifactId>core</artifactId>

@@ -36,7 +36,6 @@
   </modules>
 
   <dependencies>
-    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
