@@ -48,8 +48,8 @@ public class UfsUrl {
       scheme = "";
     } else {
       scheme = ufsPath.substring(start, schemeSplitIndex);
+      start += scheme.length() + SCHEME_SEPARATOR.length();
     }
-    start += scheme.length() + SCHEME_SEPARATOR.length();
 
     int authSplitIndex = ufsPath.indexOf(PATH_SEPARATOR, start);
     if (authSplitIndex == -1) {

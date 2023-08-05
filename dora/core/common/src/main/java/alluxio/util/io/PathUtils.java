@@ -12,6 +12,7 @@
 package alluxio.util.io;
 
 import static alluxio.uri.UfsUrl.PATH_SEPARATOR;
+
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -470,6 +471,15 @@ public final class PathUtils {
     return paths;
   }
 
+  /**
+   * Returns the path of concatenating two String paths, handle the shash between them.
+   * pathA = "/a/b/", pathB = "/c/d/", return "/a/b/c/d/"
+   * pathA = "/a/b", pathB = "c/d", return "/a/b/c/d"
+   *
+   * @param pathA path A to be concatenated
+   * @param pathB path B to be concatenated
+   * @return a String of path
+   */
   public static String concatStringPath(String pathA, String pathB) {
     Preconditions.checkArgument(pathA != null && !pathA.isEmpty());
     Preconditions.checkArgument(pathB != null && !pathB.isEmpty());
