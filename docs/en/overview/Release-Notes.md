@@ -59,7 +59,7 @@ December 7, 2021
 
 ## Acknowledgements
 
-We want to thank the community for their valuable contributions to the Alluxio 2.9.3 release. Especially, we would like to thank:
+We want to thank the community for their valuable contributions to the Alluxio 2.7.1 release. Especially, we would like to thank:
 
 Kevin Cai ([kevincai](https://github.com/kevincai){:target="_blank"}), 
 Liwei Wang ([jffree](https://github.com/jffree){:target="_blank"}),
