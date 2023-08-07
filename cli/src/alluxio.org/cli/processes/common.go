@@ -27,42 +27,29 @@ import (
 	"alluxio.org/log"
 )
 
-func getMasters() ([]string, error) {
-	mastersFilePath := filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioConfDir.EnvVar), "masters")
-	mastersFile, err := ioutil.ReadFile(mastersFilePath)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "Error reading master hostnames at %v", mastersFilePath)
-	}
+var cliPath = filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
 
-	var mastersList []string
-	for _, line := range strings.Split(string(mastersFile), "\n") {
+func getNodes(isMasters bool) ([]string, error) {
+	var FilePath string
+	if isMasters {
+		FilePath = filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioConfDir.EnvVar), "masters")
+	} else {
+		FilePath = filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioConfDir.EnvVar), "workers")
+	}
+	File, err := ioutil.ReadFile(FilePath)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "Error reading hostnames at %v", FilePath)
+	}
+	var nodesList []string
+	for _, line := range strings.Split(string(File), "\n") {
 		if strings.HasPrefix(strings.TrimSpace(line), "#") {
 			continue
 		}
 		if strings.TrimSpace(line) != "" {
-			mastersList = append(mastersList, line)
+			nodesList = append(nodesList, line)
 		}
 	}
-	return mastersList, nil
-}
-
-func getWorkers() ([]string, error) {
-	workersFilePath := filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioConfDir.EnvVar), "workers")
-	workersFile, err := ioutil.ReadFile(workersFilePath)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "Error reading worker hostnames at %v", workersFilePath)
-	}
-
-	var workersList []string
-	for _, line := range strings.Split(string(workersFile), "\n") {
-		if strings.HasPrefix(strings.TrimSpace(line), "#") {
-			continue
-		}
-		if strings.TrimSpace(line) != "" {
-			workersList = append(workersList, line)
-		}
-	}
-	return workersList, nil
+	return nodesList, nil
 }
 
 func getPrivateKey() (ssh.Signer, error) {

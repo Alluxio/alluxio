@@ -12,8 +12,6 @@
 package processes
 
 import (
-	"path"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -51,11 +49,11 @@ func (p *ProxiesProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 
 func (p *ProxiesProcess) Start(cmd *env.StartProcessCommand) error {
 	// get list of all masters and workers, stored at allList
-	masters, err := getMasters()
+	masters, err := getNodes(true)
 	if err != nil {
 		log.Logger.Fatalf("Cannot get masters, error: %s", err)
 	}
-	workers, err := getWorkers()
+	workers, err := getNodes(false)
 	if err != nil {
 		log.Logger.Fatalf("Cannot get workers, error: %s", err)
 	}
@@ -68,7 +66,6 @@ func (p *ProxiesProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 
 	// generate command
-	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
 	arguments := "process start proxy"
 	if cmd.AsyncStart {
 		arguments = arguments + " -a"
@@ -105,11 +102,11 @@ func (p *ProxiesProcess) Start(cmd *env.StartProcessCommand) error {
 
 func (p *ProxiesProcess) Stop(cmd *env.StopProcessCommand) error {
 	// get list of all masters and workers, stored at allList
-	masters, err := getMasters()
+	masters, err := getNodes(true)
 	if err != nil {
 		log.Logger.Fatalf("Cannot get masters, error: %s", err)
 	}
-	workers, err := getWorkers()
+	workers, err := getNodes(false)
 	if err != nil {
 		log.Logger.Fatalf("Cannot get workers, error: %s", err)
 	}
@@ -122,7 +119,6 @@ func (p *ProxiesProcess) Stop(cmd *env.StopProcessCommand) error {
 	}
 
 	// generate command
-	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
 	arguments := "process stop proxy"
 	if cmd.SoftKill {
 		arguments = arguments + " -s"

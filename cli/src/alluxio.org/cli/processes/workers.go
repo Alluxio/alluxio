@@ -12,8 +12,6 @@
 package processes
 
 import (
-	"path"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -51,7 +49,7 @@ func (p *WorkersProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 
 func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 	// get list of all workers, stored at workersList
-	workers, err := getWorkers()
+	workers, err := getNodes(false)
 	if err != nil {
 		log.Logger.Fatalf("Cannot get workers, error: %s", err)
 	}
@@ -63,7 +61,6 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 
 	// generate command
-	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
 	arguments := "process start worker"
 	if cmd.AsyncStart {
 		arguments = arguments + " -a"
@@ -100,7 +97,7 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 
 func (p *WorkersProcess) Stop(cmd *env.StopProcessCommand) error {
 	// get list of all workers, stored at workersList
-	workers, err := getWorkers()
+	workers, err := getNodes(false)
 	if err != nil {
 		log.Logger.Fatalf("Cannot get workers, error: %s", err)
 	}
@@ -112,7 +109,6 @@ func (p *WorkersProcess) Stop(cmd *env.StopProcessCommand) error {
 	}
 
 	// generate command
-	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
 	arguments := "process stop worker"
 	if cmd.SoftKill {
 		arguments = arguments + " -s"

@@ -12,8 +12,6 @@
 package processes
 
 import (
-	"path"
-
 	"alluxio.org/cli/env"
 	"alluxio.org/log"
 	"github.com/spf13/cobra"
@@ -50,7 +48,7 @@ func (p *JobMastersProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 
 func (p *JobMastersProcess) Start(cmd *env.StartProcessCommand) error {
 	// get list of all masters, stored at mastersList
-	masters, err := getMasters()
+	masters, err := getNodes(true)
 	if err != nil {
 		log.Logger.Fatalf("Cannot get masters, error: %s", err)
 	}
@@ -62,7 +60,6 @@ func (p *JobMastersProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 
 	// generate command
-	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
 	arguments := "process start job_master"
 	if cmd.AsyncStart {
 		arguments = arguments + " -a"
@@ -99,7 +96,7 @@ func (p *JobMastersProcess) Start(cmd *env.StartProcessCommand) error {
 
 func (p *JobMastersProcess) Stop(cmd *env.StopProcessCommand) error {
 	// get list of all masters, stored at mastersList
-	masters, err := getMasters()
+	masters, err := getNodes(true)
 	if err != nil {
 		log.Logger.Fatalf("Cannot get masters, error: %s", err)
 	}
@@ -111,7 +108,6 @@ func (p *JobMastersProcess) Stop(cmd *env.StopProcessCommand) error {
 	}
 
 	// generate command
-	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
 	arguments := "process stop job_master"
 	if cmd.SoftKill {
 		arguments = arguments + " -s"
