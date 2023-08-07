@@ -127,7 +127,7 @@ Impact of sudden network partitions and node crashes within the Alluxio HA clust
 
 ## Acknowledgements
 
-We want to thank the community for their valuable contributions to the Alluxio 2.9.3 release. Especially, we would like to thank:
+We want to thank the community for their valuable contributions to the Alluxio 2.7.0 release. Especially, we would like to thank:
 
 Baolong Mao ([maobaolong](https://github.com/maobaolong){:target="_blank"}),
 Bing Zheng ([bzheng888](https://github.com/bzheng888){:target="_blank"}),
