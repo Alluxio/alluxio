@@ -23,50 +23,64 @@ import alluxio.uri.UfsUrl;
 
 import org.junit.Test;
 
+/**
+ * Unit tests for {@link UfsUrl}.
+ */
 public class UfsUrlTest {
 
+  /**
+   * Tests the {@link UfsUrl#createInstance(String)} constructor for basic Alluxio paths.
+   */
   @Test
   public void basicUfsUrl() {
-    UfsUrl ufsUrl = UfsUrl.createInstance("alluxio://localhost:19998/xy z/a b c");
-    assertEquals("localhost:19998", ufsUrl.getAuthority().get().toString());
+    // deprecate it.
+    UfsUrl ufsUrl = UfsUrl.createInstance("abc://localhost:19998/xy z/a b c");
+
     assertTrue(ufsUrl.getAuthority().isPresent());
+    assertEquals("localhost:19998", ufsUrl.getAuthority().get().toString());
     SingleMasterAuthority authority = (SingleMasterAuthority) ufsUrl.getAuthority().get();
     assertEquals("localhost", authority.getHost());
     assertEquals(19998, authority.getPort());
 
+    assertEquals(2, ufsUrl.getDepth());
     assertEquals("a b c", ufsUrl.getName());
     assertTrue(ufsUrl.getScheme().isPresent());
-    assertEquals("alluxio", ufsUrl.getScheme().get());
-    // TODO(Tony Sun): Some URL is outdated, renew them in further pr.
-    /*
-    The test below is not supported, for absolute path promise.
-    assertEquals(2, ufsUrl.getDepth());
-    assertEquals("alluxio://localhost:19998/xy z", ufsUrl.getParentURL().asString());
-    assertEquals("alluxio://localhost:19998/", ufsUrl.getParentURL().getParentURL().asString());
+    assertEquals("abc", ufsUrl.getScheme().get());
+    assertEquals("abc://localhost:19998/xy z", ufsUrl.getParentURL().asString());
+    assertEquals("abc://localhost:19998/", ufsUrl.getParentURL().getParentURL().asString());
     assertEquals("/xy z/a b c", ufsUrl.getFullPath());
-    assertEquals("alluxio://localhost:19998/xy z/a b c/d", ufsUrl.join("/d").asString());
-    assertEquals("alluxio://localhost:19998/xy z/a b c/d", ufsUrl.join(new AlluxioURI("/d"))
-        .toString());
-    assertEquals("alluxio://localhost:19998/xy z/a b c", ufsUrl.asString());
-*/
+    assertEquals("abc://localhost:19998/xy z/a b c/d", ufsUrl.join("/d").asString());
+    // TODO(Tony Sun): Rewrite join function in the future.
+//    assertEquals("abc://localhost:19998/xy z/a b c/d",
+//        ufsUrl.join(new UfsUrl("/d").toString()).asString());
+    assertEquals("abc://localhost:19998/xy z/a b c", ufsUrl.asString());
   }
 
-  // TODO(Tony Sun): Some URL is outdated, renew them in further pr.
+  /**
+   * Tests the {@link UfsUrl#createInstance(String)} constructor for basic HDFS paths.
+   */
   @Test
-  public void basicTests() {
-    String[] strings =
-        new String[] {"alluxio://localhost:19998/xyz/abc", "hdfs://localhost:19998/xyz/abc",
-            "s3://localhost:19998/xyz/abc", "alluxio://localhost:19998/xy z/a b c",
-            "hdfs://localhost:19998/xy z/a b c", "s3://localhost:19998/xy z/a b c",
-            "s3://tony-fuse-test/test"};
-    for (String str : strings) {
-      UfsUrl ufsUrl = UfsUrl.createInstance(str);
-      assertEquals(str, ufsUrl.asString());
-      assertTrue(ufsUrl.getAuthority().isPresent());
-//      class alluxio.uri.NoAuthority cannot be cast to class alluxio.uri.SingleMasterAuthority.
-//      SingleMasterAuthority authority = (SingleMasterAuthority) (ufsUrl.getAuthority().get();
-//      assertEquals("localhost", authority.getHost());
-//      assertEquals(19998, authority.getPort());
-    }
+  public void basicHdfsUri() {
+    UfsUrl ufsUrl = UfsUrl.createInstance("hdfs://localhost:8020/xy z/a b c");
+
+    assertTrue(ufsUrl.getAuthority().isPresent());
+    assertEquals("localhost:8020", ufsUrl.getAuthority().get().toString());
+    assertTrue(ufsUrl.getAuthority().get() instanceof SingleMasterAuthority);
+    SingleMasterAuthority authority = (SingleMasterAuthority) ufsUrl.getAuthority().get();
+    assertEquals("localhost", authority.getHost());
+    assertEquals(8020, authority.getPort());
+
+    assertEquals(2, ufsUrl.getDepth());
+    assertEquals("a b c", ufsUrl.getName());
+    assertEquals("hdfs://localhost:8020/xy z", ufsUrl.getParentURL().asString());
+    assertEquals("hdfs://localhost:8020/", ufsUrl.getParentURL().getParentURL().asString());
+    assertEquals("/xy z/a b c", ufsUrl.getFullPath());
+    assertTrue(ufsUrl.getScheme().isPresent());
+    assertEquals("hdfs", ufsUrl.getScheme().get());
+    assertEquals("hdfs://localhost:8020/xy z/a b c/d", ufsUrl.join("/d").asString());
+    // TODO(Tony Sun): Rewrite join function in the future.
+//    assertEquals("hdfs://localhost:8020/xy z/a b c/d", ufsUrl.join(new UfsUrl("/d"))
+//        .toString());
+    assertEquals("hdfs://localhost:8020/xy z/a b c", ufsUrl.asString());
   }
 }

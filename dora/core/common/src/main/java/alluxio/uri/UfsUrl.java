@@ -60,12 +60,21 @@ public class UfsUrl {
       start += scheme.length() + SCHEME_SEPARATOR.length();
     }
 
+    Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
+        "alluxio is not allowed as scheme, please input a valid path.");
+
     int authSplitIndex = ufsPath.indexOf(PATH_SEPARATOR, start);
     if (authSplitIndex == -1) {
       authority = ufsPath.substring(start);
     } else {
       authority = ufsPath.substring(start, authSplitIndex);
     }
+
+    if (scheme.equalsIgnoreCase("s3")) {
+      Preconditions.checkArgument(!authority.contains(PORT_SEPARATOR),
+          "The authority of s3 should not include port, please input a valid path.");
+    }
+
     start += authority.length();
     path = ufsPath.substring(start);
 
@@ -316,7 +325,8 @@ public class UfsUrl {
    * @return a full path string
    */
   public String getFullPath() {
-    return Strings.join(mProto.getPathComponentsList(), PATH_SEPARATOR.charAt(0));
+    String partPath = Strings.join(mProto.getPathComponentsList(), PATH_SEPARATOR.charAt(0));
+    return partPath.startsWith("/") ? partPath : "/" + partPath;
   }
 
   /**
@@ -335,7 +345,10 @@ public class UfsUrl {
    * @return the depth
    */
   public int getDepth() {
-    return getPathComponents().size();
+    int pathComponentsSize = getPathComponents().size();
+    Preconditions.checkArgument(pathComponentsSize > 0);
+    // "/" is represented as an empty String "".
+    return getPathComponents().get(0).isEmpty() ? pathComponentsSize - 1 : pathComponentsSize;
   }
 
   /**
