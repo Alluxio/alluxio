@@ -102,7 +102,7 @@ Bing Zheng ([bzheng888](https://github.com/bzheng888){:target="_blank"}),
 Chenliang Lu ([yabola](https://github.com/yabola){:target="_blank"}), 
 kqhzz ([kuszz](https://github.com/kuszz){:target="_blank"}),
 Jieliang Li ([ljl1988com](https://github.com/ljl1988com){:target="_blank"}), 
-litao,
+Tom Lee ([tomscut](https://github.com/tomscut){:target="_blank"}),
 Baolong Mao ([maobaolong](https://github.com/maobaolong){:target="_blank"}),
 and Lei Qian ([qian0817](https://github.com/qian0817){:target="_blank"}).
 
