@@ -713,7 +713,8 @@ public final class Configuration
    * @param recordEvent whether to record update conf event
    * @return the update properties status map
    */
-  private static Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap,
+  @VisibleForTesting
+  public static Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap,
       boolean recordEvent) {
     Map<String, Boolean> result = new HashMap<>();
     int successCount = 0;
