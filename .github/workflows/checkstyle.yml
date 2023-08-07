@@ -1,4 +1,4 @@
-name: Checkstyle, Findbugs, Doc Check, etc.
+name: Checkstyle, Findbugs, Doc Check, SortPom, etc.
 
 on: [pull_request]
 
@@ -29,7 +29,7 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.mod') }}
 
-      - name: Execute license check, checkstyle, findbugs
+      - name: Execute license check, checkstyle, findbugs, sortpom
         run: |
           mkdir -p ~/.m2
           ALLUXIO_DOCKER_NO_TTY=true \

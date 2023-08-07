@@ -4,45 +4,65 @@ title: MinIO
 ---
 
 
-This guide describes how to configure Alluxio with [MinIO](https://min.io/) as the
+This guide describes how to configure Alluxio with [MinIO](https://min.io/){:target="_blank"} as the
 under storage system.
 
-MinIO is a high-performance, S3 compatible object store. It is built for large scale AI/ML, data lake and database workloads. It runs on-prem and on any cloud (public or private) and from the data center to the edge.
+MinIO is a high-performance, S3 compatible object store. It is built for large scale AI/ML, data lake and database workloads. It runs on-prem and on any cloud (public or private) and from the data center to the edge. MinIO provides an open source alternative to AWS S3.
 
 Alluxio natively provides the `s3://` scheme (recommended for better performance). You can use this scheme to connect Alluxio with a MinIO server.
 
-## Setup MinIO
+For more information about MinIO, please read its [documentation](https://min.io/docs/minio/linux/index.html){:target="_blank"}
 
-MinIO is an object storage server built for cloud applications and DevOps. MinIO provides an open
-source alternative to AWS S3.
+## Prerequisites
+
+If you haven't already, please see [Prerequisites]({{ '/en/ufs/Storage-Overview.html#prerequisites' | relativize_url }}) before you get started.
 
 Launch a MinIO server instance using the steps mentioned
-[here](http://docs.min.io/docs/minio-quickstart-guide).
-Then, either create a new bucket or use an existing one.
-Once the MinIO server is launched, keep a note of the server endpoint, accessKey and secretKey.
+[here](https://min.io/docs/minio/linux/index.html){:target="_blank"}. Once the MinIO server is launched, keep a note of the server endpoint, accessKey and secretKey.
 
-You should also note the directory you want to use in that bucket, either by creating
-a new directory in the bucket or using an existing one.
-For the purposes of this guide, the MinIO bucket name is called `MINIO_BUCKET`, and the directory in
-that bucket is called `MINIO_DIRECTORY`.
+In preparation for using MinIO with Alluxio:
+<table class="table table-striped">
+    <tr>
+        <td markdown="span" style="width:30%">`<MINIO_BUCKET>`</td>
+        <td markdown="span">[Create a new bucket](https://min.io/docs/minio/linux/reference/minio-mc/mc-mb.html#examples){:target="_blank"} or use an existing bucket</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<MINIO_DIRECTORY>`</td>
+        <td markdown="span">The directory you want to use in the bucket, either by creating a new directory or using an existing one</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<MINIO_ENDPOINT>`</td>
+        <td markdown="span"></td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<S3_ACCESS_KEY_ID>`</td>
+        <td markdown="span">Used to sign programmatic requests made to AWS. See [How to Obtain Access Key ID and Secret Access Key](https://docs.aws.amazon.com/powershell/latest/userguide/pstools-appendix-sign-up.html){:target="_blank"}</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<S3_SECRET_KEY>`</td>
+        <td markdown="span">Used to sign programmatic requests made to AWS. See [How to Obtain Access Key ID and Secret Access Key](https://docs.aws.amazon.com/powershell/latest/userguide/pstools-appendix-sign-up.html){:target="_blank"}</td>
+    </tr>
+</table>
 
-## Configuring Alluxio
+## Basic Setup
 
-You need to configure Alluxio to use MinIO as its under storage system by modifying
-`conf/alluxio-site.properties`. The first modification is to specify an **existing** MinIO
-bucket and directory as the under storage system.
-Because Minio supports the `s3` protocol, it is possible to configure Alluxio as if it were
-pointing to an AWS S3 endpoint.
+To use MinIO as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
 
-All the fields to be modified in `conf/alluxio-site.properties` file are listed here:
+```shell
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
+
+Specify an **existing** MinIO bucket and directory as the underfs address. Because Minio supports the `s3` protocol, it is possible to configure Alluxio as if it were pointing to an AWS S3 endpoint.
+
+Modify `conf/alluxio-site.properties` to include:
 
 ```properties
 alluxio.dora.client.ufs.root=s3://<MINIO_BUCKET>/<MINIO_DIRECTORY>
 alluxio.underfs.s3.endpoint=http://<MINIO_ENDPOINT>/
 alluxio.underfs.s3.disable.dns.buckets=true
 alluxio.underfs.s3.inherit.acl=false
-s3a.accessKeyId=<MINIO_ACCESS_KEY_ID>
-s3a.secretKey=<MINIO_SECRET_KEY_ID>
+s3a.accessKeyId=<S3_ACCESS_KEY_ID>
+s3a.secretKey=<S3_SECRET_KEY>
 ```
 
 For these parameters, replace `<MINIO_ENDPOINT>` with the hostname and port of your MinIO service,
@@ -51,23 +71,7 @@ If the port value is left unset, it defaults to port 80 for `http` and 443 for `
 
 ## Running Alluxio Locally with MinIO
 
-Format and start Alluxio with
-
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
-```
-
-Verify Alluxio is running by navigating to [http://localhost:19999](http://localhost:19999) or by
-examining the logs to ensure the process is running.
-
-Then, to run tests using some basic Alluxio operations execute the following command:
-
-```shell
-$ ./bin/alluxio runTests
-```
-
-If there are no errors then MinIO is configured properly!
+Once you have configured Alluxio to MinIO, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
 
 ## Troubleshooting
 

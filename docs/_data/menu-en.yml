@@ -64,38 +64,40 @@
   - title: Storage Integrations
     buttonTitle: Storage_Integrations
     subfiles:
+      - title: Storage Integrations Overview
+        url: /en/ufs/Storage-Overview.html
       - title: Amazon AWS S3
         url: /en/ufs/S3.html
       - title: HDFS
         url: /en/ufs/HDFS.html
+      - title: Aliyun OSS
+        url: /en/ufs/Aliyun-OSS.html
       - title: Azure Blob Store
         url: /en/ufs/Azure-Blob-Store.html
       - title: Azure Data Lake Storage
         url: /en/ufs/Azure-Data-Lake.html
       - title: Azure Data Lake Storage Gen2
         url: /en/ufs/Azure-Data-Lake-Gen2.html
-      - title: Google Cloud Storage
-        url: /en/ufs/GCS.html
-      - title: Qiniu Kodo
-        url: /en/ufs/Qiniu-KODO.html
-      - title: Tencent COS
-        url: /en/ufs/COS.html
+      - title: CephFS
+        url: /en/ufs/CephFS.html
       - title: CephObjectStorage
         url: /en/ufs/CephObjectStorage.html
+      - title: Google Cloud Storage
+        url: /en/ufs/GCS.html
+      - title: Huawei OBS
+        url: /en/ufs/Huawei-OBS.html
       - title: MinIO
         url: /en/ufs/Minio.html
       - title: NFS
         url: /en/ufs/NFS.html
-      - title: Aliyun Object Storage Service
-        url: /en/ufs/OSS.html
       - title: Ozone
         url: /en/ufs/Ozone.html
+      - title: Qiniu Kodo
+        url: /en/ufs/Qiniu-KODO.html
       - title: Swift
         url: /en/ufs/Swift.html
-      - title: CephFS
-        url: /en/ufs/CephFS.html
-      - title: Huawei OBS
-        url: /en/ufs/OBS.html
+      - title: Tencent COS
+        url: /en/ufs/Tencent-COS.html
 
   - title: FUSE SDK
     buttonTitle: FUSE_SDK

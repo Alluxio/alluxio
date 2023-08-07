@@ -28,11 +28,7 @@ function printUsage {
   echo -e "  runClass      \t Run the main method of an Alluxio class."
   echo -e "  runTest       \t Run an end-to-end test on an Alluxio cluster."
   echo -e "  runTests      \t Run all end-to-end tests on an Alluxio cluster."
-  echo -e "  runHmsTests   \t Test the integration between Alluxio and the target hive metastore. Try 'alluxio runHmsTests -h' for more help."
-  echo -e "                \t NOTE: This command requires valid hive metastore uris to run tests against."
   echo -e "  runHdfsMountTests\t Test the integration between Alluxio and the target HDFS path. "
-  echo -e "  runJournalCrashTest\t Test the Master Journal System in a crash scenario. Try 'alluxio runJournalCrashTest -help' for more help."
-  echo -e "                \t NOTE: This command will stop the existing server and creates a new one!"
   echo -e "  runUfsIOTest  \t Test the Alluxio throughput to the UFS path. Try 'alluxio runUfsIOTest -help' for more help."
   echo -e "                \t NOTE: This command requires a valid ufs path to write temporary files into."
   echo -e "  runUfsTests   \t Test the integration between Alluxio and the target under filesystem. Try 'alluxio runUfsTests -help' for more help."
@@ -328,20 +324,9 @@ function main {
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
-    ;;
-  "runHmsTests")
-    CLASS="alluxio.cli.HmsTests"
-    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
-    runJavaClass "$@"
   ;;
   "runHdfsMountTests")
     CLASS="alluxio.cli.ValidateHdfsMount"
-    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
-    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
-    runJavaClass "$@"
-  ;;
-  "runJournalCrashTest")
-    CLASS="alluxio.cli.JournalCrashTest"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"

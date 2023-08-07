@@ -18,7 +18,6 @@ import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.resource.CloseableResource;
-import alluxio.scheduler.job.WorkerProvider;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -52,6 +51,11 @@ public class DefaultWorkerProvider implements WorkerProvider {
       throw new UnavailableRuntimeException(
           "fail to get worker infos because master is not available", e);
     }
+  }
+
+  @Override
+  public List<WorkerInfo> getLiveWorkerInfos() {
+    return getWorkerInfos();
   }
 
   @Override

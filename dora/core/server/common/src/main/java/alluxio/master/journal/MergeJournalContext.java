@@ -96,8 +96,8 @@ public final class MergeJournalContext implements JournalContext {
   @Override
   public void flush() throws UnavailableException {
     if (mJournalEntries.size() > MAX_ENTRIES) {
-      LOG.debug("MergeJournalContext has " + mJournalEntries.size()
-          + " entries, over the limit of " + MAX_ENTRIES);
+      LOG.debug("MergeJournalContext has {} entries, over the limit of {}",
+          mJournalEntries.size(), MAX_ENTRIES);
     }
     List<JournalEntry> mergedEntries = mMergeOperator.apply(mJournalEntries);
     mergedEntries.forEach(mJournalContext::append);

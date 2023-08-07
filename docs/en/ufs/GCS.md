@@ -4,50 +4,52 @@ title: Google Cloud Storage
 ---
 
 
-This guide describes how to configure Alluxio with [Google Cloud Storage (GCS)](https://cloud.google.com/storage/)
+This guide describes how to configure Alluxio with [Google Cloud Storage (GCS)](https://cloud.google.com/storage/){:target="_blank"}
 as the under storage system.
 
 Google Cloud Storage (GCS) is a scalable and durable object storage service offered by Google Cloud Platform (GCP). It allows users to store and retrieve various types of data, including unstructured and structured data.
 
+For more information about GCS, please read its [documentation](https://cloud.google.com/storage/docs){:target="_blank"}.
+
 ## Prerequisites
 
-In preparation for using GCS with Alluxio, create a bucket (or use an existing bucket). You
-should also note the directory you want to use in that bucket, either by creating a new directory in
-the bucket, or using an existing one. For the purposes of this guide, the GCS bucket name is called
-`GCS_BUCKET`, and the directory in that bucket is called `GCS_DIRECTORY`.
+If you haven't already, please see [Prerequisites]({{ '/en/ufs/Storage-Overview.html#prerequisites' | relativize_url }}) before you get started.
 
-For more information on GCS, please read its
-[documentation](https://cloud.google.com/storage/docs/overview).
-
-## Setup 
+In preparation for using GCS with Alluxio:
+<table class="table table-striped">
+    <tr>
+        <td markdown="span" style="width:30%">`<GCS_BUCKET>`</td>
+        <td markdown="span">[Create a new bucket in your Google Cloud account](https://cloud.google.com/storage/docs/creating-buckets){:target="_blank"}{:target="_blank"} or use an existing bucket</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<GCS_DIRECTORY>`</td>
+        <td markdown="span">The directory you want to use in the bucket, either by creating a new directory or using an existing one</td>
+    </tr>
+</table>
 
 Alluxio provides two ways to access GCS. GCS version 1 is implemented based on 
-[jets3t](http://www.jets3t.org/) library which is design for AWS S3. 
+[jets3t](http://www.jets3t.org/){:target="_blank"} library which is design for AWS S3. 
 Thus, it only accepts Google cloud storage interoperability access/secret keypair 
 which allows full access to all Google cloud storages inside a Google cloud project.
 No permission or access control can be placed on the interoperability keys.
 The conjunction of Google interoperability API and jets3t library also impact the performance of the default GCS UFS module. 
 
 The default GCS UFS module (GCS version 2) is implemented based on Google Cloud API
-which accepts [Google application credentials](https://cloud.google.com/docs/authentication/getting-started).
+which accepts [Google application credentials](https://cloud.google.com/docs/authentication/getting-started){:target="_blank"}.
 Based on the application credentials, Google cloud can determine what permissions an authenticated client 
 has for its target Google cloud storage bucket. Besides, GCS with Google cloud API has much better performance
 than the default one in metadata and read/write operations. 
 
 ## Basic Setup
 
-A GCS bucket can be mounted to the Alluxio either at the root of the namespace, or at a nested directory.
-
-Configure Alluxio to use under storage systems by modifying
-`conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
-template.
+To use Google Cloud Storage as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying
+`conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
 
 ```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-Configure Alluxio to use GCS as its root under storage system. The first modification is to
-specify an **existing** GCS bucket and directory as the under storage system by modifying
+Specify an **existing** GCS bucket and directory as the underfs address by modifying
 `conf/alluxio-site.properties` to include:
 
 ```properties
@@ -72,56 +74,26 @@ but it is always recommended to set this property explicitly.
 
 {% navtab GCS version 1 %}
 
-In`conf/alluxio-site.properties`, add:
+In `conf/alluxio-site.properties`, add:
 ```properties
 alluxio.underfs.gcs.version=1
 fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID>
 fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY>
 ```
-- The first property key tells Alluxio to load the Version 1 GCS UFS module which uses the [jets3t](http://www.jets3t.org/) library.
+- The first property key tells Alluxio to load the Version 1 GCS UFS module which uses the [jets3t](http://www.jets3t.org/){:target="_blank"} library.
 - Replace `<GCS_ACCESS_KEY_ID>` and `<GCS_SECRET_ACCESS_KEY>` with actual
-[GCS interoperable storage access keys](https://console.cloud.google.com/storage/settings),
+[GCS interoperable storage access keys](https://console.cloud.google.com/storage/settings){:target="_blank"},
 or other environment variables that contain your credentials.
 Note: GCS interoperability is disabled by default. Please click on the Interoperability tab
-in [GCS setting](https://console.cloud.google.com/storage/settings) and enable this feature.
+in [GCS setting](https://console.cloud.google.com/storage/settings){:target="_blank"} and enable this feature.
 Click on `Create a new key` to get the Access Key and Secret pair.
 
 {% endnavtab %}
 {% endnavtabs %}
 
-After these changes, Alluxio should be configured to work with GCS as its under storage system, and
-you can [Run Alluxio Locally with GCS](#running-alluxio-locally-with-gcs).
-
 ## Running Alluxio Locally with GCS
 
-Start up Alluxio locally to see that everything works.
-
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local SudoMount
-```
-
-This should start an Alluxio master and an Alluxio worker. You can see the master UI at
-[http://localhost:19999](http://localhost:19999).
-
-Run a simple example program:
-
-```shell
-$ ./bin/alluxio runTests
-```
-
-Visit your GCS directory `GCS_BUCKET/GCS_DIRECTORY` to verify the files
-and directories created by Alluxio exist. For this test, you should see files named like:
-
-```
-GCS_BUCKET/GCS_DIRECTORY/default_tests_files/BASIC_CACHE_THROUGH
-```
-
-To stop Alluxio, you can run:
-
-```shell
-$ ./bin/alluxio-stop.sh local
-```
+Once you have configured Alluxio to GCS, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
 
 ## Advanced Setup
 
@@ -164,7 +136,7 @@ GCS buckets nor objects.
 By default, Alluxio tries to extract the GCS user id from the credentials. Optionally,
 `alluxio.underfs.gcs.owner.id.to.username.mapping` can be used to specify a preset gcs owner id to
 Alluxio username static mapping in the format `id1=user1;id2=user2`. The Google Cloud Storage IDs
-can be found at the console [address](https://console.cloud.google.com/storage/settings). Please use
+can be found at the console [address](https://console.cloud.google.com/storage/settings){:target="_blank"}. Please use
 the "Owners" one.
 
 ### Accessing GCS through Proxy (GCS Version 2 only)

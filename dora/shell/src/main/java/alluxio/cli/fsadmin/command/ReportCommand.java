@@ -17,6 +17,7 @@ import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.cli.fsadmin.report.JobServiceMetricsCommand;
 import alluxio.cli.fsadmin.report.MetricsCommand;
+import alluxio.cli.fsadmin.report.NodeStatusCommand;
 import alluxio.cli.fsadmin.report.ProxyCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.cli.fsadmin.report.UfsCommand;
@@ -83,7 +84,8 @@ public final class ReportCommand extends AbstractFsAdminCommand {
     SUMMARY, // Report cluster summary
     UFS, // Report under filesystem information
     JOBSERVICE, // Report job service metrics information
-    PROXY // Report proxy information in the cluster
+    PROXY, // Report proxy information in the cluster
+    NODESTATUS // Report node status - current for workers
   }
 
   private AlluxioConfiguration mConf;
@@ -138,6 +140,9 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         case "proxy":
           command = Command.PROXY;
           break;
+        case "nodestatus":
+          command = Command.NODESTATUS;
+          break;
         default:
           System.out.println(getUsage());
           System.out.println(getDescription());
@@ -181,6 +186,10 @@ public final class ReportCommand extends AbstractFsAdminCommand {
       case PROXY:
         ProxyCommand proxyCommand = new ProxyCommand(mMetaClient, mPrintStream);
         proxyCommand.run();
+        break;
+      case NODESTATUS:
+        NodeStatusCommand nodeStatusCommand = new NodeStatusCommand(mConf, mPrintStream);
+        nodeStatusCommand.run(cl);
         break;
       default:
         break;
@@ -229,7 +238,8 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         + "    metrics          metrics information\n"
         + "    summary          cluster summary\n"
         + "    ufs              under storage system information\n"
-        + "    jobservice       job service metrics information\n";
+        + "    jobservice       job service metrics information\n"
+        + "    nodestatus       node status [worker as of now]\n";
   }
 
   @Override

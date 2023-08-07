@@ -11,6 +11,7 @@
 
 package alluxio.worker.netty;
 
+import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.network.ChannelType;
@@ -18,6 +19,7 @@ import alluxio.underfs.UfsManager;
 import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.dora.DoraWorker;
+import alluxio.worker.s3.S3HttpPipelineHandler;
 
 import com.google.common.base.Throwables;
 import com.google.inject.Inject;
@@ -49,6 +51,7 @@ public class NettyDataServer implements DataServer {
 
   private ServerBootstrap mBootstrap;
   private ChannelFuture mChannelFuture;
+  private ChannelFuture mHttpChannelFuture;
   private final UfsManager mUfsManager;
   private final SocketAddress mSocketAddress;
   private final long mQuietPeriodMs =
@@ -60,12 +63,14 @@ public class NettyDataServer implements DataServer {
    * Creates a new instance of {@link NettyDataServer}.
    *
    * @param nettyBindAddress the server address
+   * @param s3BindAddress    the s3 server address
    * @param ufsManager       the UfsManager object
    * @param doraWorker       the DoraWorker object
    */
   @Inject
   public NettyDataServer(
       @Named("NettyBindAddress") InetSocketAddress nettyBindAddress,
+      @Named("S3BindAddress") InetSocketAddress s3BindAddress,
       UfsManager ufsManager,
       DoraWorker doraWorker) {
     mSocketAddress = nettyBindAddress;
@@ -74,6 +79,12 @@ public class NettyDataServer implements DataServer {
         new PipelineHandler(mUfsManager, doraWorker));
     try {
       mChannelFuture = mBootstrap.bind(nettyBindAddress).sync();
+
+      if (Configuration.getBoolean(PropertyKey.WORKER_S3_REST_ENABLED)) {
+        FileSystem fileSystem = FileSystem.Factory.create(Configuration.global());
+        mBootstrap.childHandler(new S3HttpPipelineHandler(fileSystem, doraWorker));
+        mHttpChannelFuture = mBootstrap.bind(s3BindAddress).sync();
+      }
     } catch (InterruptedException e) {
       throw Throwables.propagate(e);
     }
@@ -105,8 +116,11 @@ public class NettyDataServer implements DataServer {
     // gracefully and its shutdown is forced.
 
     boolean completed;
-    completed =
-        mChannelFuture.channel().close().awaitUninterruptibly(mTimeoutMs);
+    completed = mChannelFuture.channel().close().awaitUninterruptibly(mTimeoutMs);
+    if (mHttpChannelFuture != null) {
+      completed =
+          completed && mHttpChannelFuture.channel().close().awaitUninterruptibly(mTimeoutMs);
+    }
     if (!completed) {
       LOG.warn("Closing the channel timed out.");
     }

@@ -14,8 +14,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>alluxio-integration-tools</artifactId>
     <groupId>org.alluxio</groupId>
+    <artifactId>alluxio-integration-tools</artifactId>
     <version>303-SNAPSHOT</version>
   </parent>
 
@@ -23,7 +23,6 @@
   <packaging>jar</packaging>
   <name>Alluxio Integration - Tools - HMS</name>
   <description>Alluxio integration tools for hive metastore</description>
-
 
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
@@ -33,7 +32,6 @@
   </properties>
 
   <dependencies>
-    <!-- External dependencies -->
     <dependency>
       <groupId>com.beust</groupId>
       <artifactId>jcommander</artifactId>
@@ -85,8 +83,8 @@
           <artifactId>slf4j-log4j12</artifactId>
         </exclusion>
         <exclusion>
-           <groupId>jdk.tools</groupId>
-           <artifactId>jdk.tools</artifactId>
+          <groupId>jdk.tools</groupId>
+          <artifactId>jdk.tools</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -100,14 +98,14 @@
         <executions>
           <execution>
             <id>shade</id>
-            <phase>package</phase>
             <goals>
               <goal>shade</goal>
             </goals>
+            <phase>package</phase>
             <configuration>
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
               </transformers>
               <filters>
                 <filter>
@@ -126,16 +124,16 @@
         </executions>
       </plugin>
       <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
         <inherited>false</inherited>
         <executions>
           <execution>
             <id>copy-lib-jars-selectively</id>
-            <phase>install</phase>
             <goals>
               <goal>exec</goal>
             </goals>
+            <phase>install</phase>
             <configuration>
               <executable>${build.path}/lib/copy_jars.sh</executable>
               <arguments>
