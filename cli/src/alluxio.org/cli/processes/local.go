@@ -56,20 +56,20 @@ func (p *LocalProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 }
 
 func (p *LocalProcess) Start(cmd *env.StartProcessCommand) error {
-	for i := 0; i < len(Local.Processes); i++ {
-		subProcess := Local.Processes[i]
+	for i := 0; i < len(p.Processes); i++ {
+		subProcess := p.Processes[i]
 		if err := subProcess.Start(cmd); err != nil {
-			return stacktrace.Propagate(err, "Error: %s on subprocess start %s", err, Local.Processes[i])
+			return stacktrace.Propagate(err, "Error starting subprocesses for %s", p.Processes[i])
 		}
 	}
 	return nil
 }
 
 func (p *LocalProcess) Stop(cmd *env.StopProcessCommand) error {
-	for i := len(Local.Processes) - 1; i >= 0; i-- {
-		subProcess := Local.Processes[i]
+	for i := len(p.Processes) - 1; i >= 0; i-- {
+		subProcess := p.Processes[i]
 		if err := subProcess.Stop(cmd); err != nil {
-			return stacktrace.Propagate(err, "Error: %s on subprocess stop %s", err, Local.Processes[i])
+			return stacktrace.Propagate(err, "Error stopping subprocesses for %s", p.Processes[i])
 		}
 	}
 	return nil
