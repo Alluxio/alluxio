@@ -15,8 +15,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.conf.Configuration;
+import alluxio.fuse.AlluxioFuseUtils;
+import alluxio.jnifuse.LibFuse;
+
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
@@ -26,6 +31,11 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 
 public class FuseHdfsIntegrationTest extends AbstractFuseHdfsIntegrationTest {
+  @BeforeClass
+  public static void beforeClass() {
+    LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
+  }
+
   @Test
   public void createDeleteEmptyFile() throws Exception {
     String testFile = Paths.get(MOUNT_POINT, "/createDeleteEmptyFile").toString();

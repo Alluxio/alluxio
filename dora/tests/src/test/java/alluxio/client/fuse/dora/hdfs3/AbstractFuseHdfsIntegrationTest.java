@@ -21,10 +21,8 @@ import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.fuse.dora.FuseUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
-import alluxio.jnifuse.LibFuse;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.apache.hadoop.fs.FileSystem;
@@ -45,14 +43,14 @@ public class AbstractFuseHdfsIntegrationTest {
       .createTemporaryDirectory("fuse_mount").toString();
 
   private static final String PAGING_STORE_DIR = AlluxioTestDirectory
-      .createTemporaryDirectory("ramdisk").toString();
+      .createTemporaryDirectory("paging_store_dir").toString();
   private AlluxioJniFuseFileSystem mFuseFileSystem;
 
   // Hdfs related
   protected MiniDFSCluster mHdfsCluster;
   protected final org.apache.hadoop.conf.Configuration
       mHdfsConfiguration = new org.apache.hadoop.conf.Configuration();
-  private static final int HDFS_BLOCK_SIZE = 1024 * 1024;
+  protected static final int HDFS_BLOCK_SIZE = 1024 * 1024;
   private static final int HDFS_NAMENODE_PORT = 9870;
   protected FileSystem mHdfs;
 
@@ -72,7 +70,10 @@ public class AbstractFuseHdfsIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() {
-    LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
+    // Load fuse library need be implemented in individual test classes,
+    // because the fuse library loading process is location dependent.
+    // please add the following to the beforeClass method of test classes.
+    // LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
   }
 
   @Before
