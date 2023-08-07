@@ -94,6 +94,10 @@ future, we'd like to explore certain use cases where invalidation of metadata is
 
 ### Paging Worker Storage
 
+* ▶️ [What is Paging Storage?](https://youtu.be/qFF7qef__OY){:target="_blank"} (1:06)
+* ▶️ [Benefits of Paging Storage](https://www.youtube.com/watch?v=cO7ymRFnPyM){:target="_blank"} (2:44)
+* ▶️ [Efficient Alluxio Caching with Paging Storage](https://youtu.be/7UY_iE_Ha_k){:target="_blank"} (1:18)
+
 Alluxio supports finer-grained page-level (typically, 1 MB) caching storage on Alluxio workers, 
 as an alternative option to the existing block-based (defaults to 64 MB) tiered caching storage. 
 This paging storage supports general workloads including reading and writing, with customizable cache eviction policies similar to [block annotation policies]({{ '/en/core-services/Data-Caching.html' | relativize_url }}#block-annotation-policies) in tiered block store.
@@ -130,8 +134,3 @@ To enable the asynchronous writes for paging store:
 alluxio.worker.page.store.async.write.enabled=true
 ```
 You might find this property helpful if you notice performance degradation when there are a lot of cache misses.
-
-## Additional Resources
-Check out these 2 short videos on the benefits of paging storage and how it improves the efficiency of Alluxio caching:
-* ▶️ [Benefits of Paging Storage](https://www.youtube.com/watch?v=cO7ymRFnPyM){:target="_blank"} (2:44)
-* ▶️ [Efficient Alluxio Caching with Paging Storage](https://youtu.be/7UY_iE_Ha_k){:target="_blank"} (1:18)
