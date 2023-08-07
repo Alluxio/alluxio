@@ -16,24 +16,24 @@ See [Install Alluxio on Kubernetes]({{ '/en/kubernetes/Install-Alluxio-On-Kubern
 [Helm](https://helm.sh/), a kubernetes package manager, and [Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/), a kubernetes extension for managing applications.
 
 Check out these 2 short videos on deployment and best practices with configurations & recommendations:
-* [Deploy Alluxio on Kubernetes](https://www.youtube.com/watch?v=FlvbekK_xG0){:target="_blank"} (5:12)
-* [Alluxio on Kubernetes Best Practices](https://www.youtube.com/watch?v=zwhMwiYmO8M){:target="_blank"} (5:26)
+* ▶️ [Deploy Alluxio on Kubernetes](https://www.youtube.com/watch?v=FlvbekK_xG0){:target="_blank"} (5:12)
+* ▶️ [Alluxio on Kubernetes Best Practices](https://www.youtube.com/watch?v=zwhMwiYmO8M){:target="_blank"} (5:26)
 
-## Compute Integrations
+## Run a Compute framework with Alluxio
 * [Running Presto with Alluxio]({{ '/en/compute/Presto.html' | relativize_url }})
 
 * [Running Trino with Alluxio]({{ '/en/compute/Trino.html' | relativize_url }})
 
 * [Running Apache Spark with Alluxio]({{ '/en/compute/Spark.html' | relativize_url }})
 
-## Storage Integrations
+## Connect a Storage Service to Alluxio
 * [Amazon AWS S3]({{ '/en/ufs/S3.html' | relativize_url }})
 
 * [HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }})
 
 * [Google Cloud Storage]({{ '/en/ufs/GCS.html' | relativize_url }})
 
-## Alluxio Community Slack
+## Ask a Question to Alluxio Community
 
 Join our vibrant and fast-growing [Alluxio Community Slack Channel](https://www.alluxio.io/slack) to connect with users & developers of Alluxio. If you need help running Alluxio or encounter any blockers, send your technical questions to our `#troubleshooting` channel. If you are a developer looking to contribute to Alluxio, check out the `#dev` channel.
 
