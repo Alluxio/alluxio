@@ -12,29 +12,29 @@
 package processes
 
 import (
+	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"alluxio.org/cli/env"
-	"alluxio.org/log"
 )
 
 var All = &AllProcess{
 	BaseProcess: &env.BaseProcess{
 		Name: "all",
 	},
+	Processes: []env.Process{
+		Masters,
+		JobMasters,
+		Workers,
+		JobWorkers,
+		Proxies,
+	},
 }
 
 type AllProcess struct {
 	*env.BaseProcess
-}
-
-var allProcesses = []env.Process{
-	Masters,
-	JobMasters,
-	Workers,
-	JobWorkers,
-	Proxies,
+	Processes []env.Process
 }
 
 func (p *AllProcess) SetEnvVars(envVar *viper.Viper) {
@@ -56,22 +56,20 @@ func (p *AllProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 }
 
 func (p *AllProcess) Start(cmd *env.StartProcessCommand) error {
-	for _, subProcess := range allProcesses {
-		subProcess := subProcess
-		err := subProcess.Start(cmd)
-		if err != nil {
-			log.Logger.Errorf("Error: %s", err)
+	for i := 0; i < len(All.Processes); i++ {
+		subProcess := All.Processes[i]
+		if err := subProcess.Start(cmd); err != nil {
+			return stacktrace.Propagate(err, "Error on subprocess start %v", All.Processes[i])
 		}
 	}
 	return nil
 }
 
 func (p *AllProcess) Stop(cmd *env.StopProcessCommand) error {
-	for _, subProcess := range allProcesses {
-		subProcess := subProcess
-		err := subProcess.Stop(cmd)
-		if err != nil {
-			log.Logger.Errorf("Error: %s", err)
+	for i := len(All.Processes) - 1; i >= 0; i-- {
+		subProcess := All.Processes[i]
+		if err := subProcess.Stop(cmd); err != nil {
+			return stacktrace.Propagate(err, "Error: %s on subprocess stop %s", err, All.Processes[i])
 		}
 	}
 	return nil

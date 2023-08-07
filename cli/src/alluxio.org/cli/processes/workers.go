@@ -82,12 +82,10 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 			errors = append(errors, err)
 			continue
 		}
-		err = runCommand(worker, conn, command)
-		if err != nil {
+		if err = runCommand(worker, conn, command); err != nil {
 			errors = append(errors, err)
 		}
-		err = closeConnection(worker, conn)
-		if err != nil {
+		if err = closeConnection(worker, conn); err != nil {
 			errors = append(errors, err)
 		}
 	}
@@ -130,20 +128,17 @@ func (p *WorkersProcess) Stop(cmd *env.StopProcessCommand) error {
 			errors = append(errors, err)
 			continue
 		}
-		err = runCommand(worker, conn, command)
-		if err != nil {
+		if err = runCommand(worker, conn, command); err != nil {
 			errors = append(errors, err)
 		}
-		err = closeConnection(worker, conn)
-		if err != nil {
+		if err = closeConnection(worker, conn); err != nil {
 			errors = append(errors, err)
 		}
 	}
 
-	if len(errors) == 0 {
-		log.Logger.Infof("Run command %s successful on workers: %s", command, workers)
-	} else {
-		log.Logger.Fatalf("Run command %s failed, number of failures: %v", command, len(errors))
+	if len(errors) != 0 {
+		log.Logger.Fatalf("Run command %v failed. Failed commands: %v", command, len(errors))
 	}
+	log.Logger.Infof("Run command %s successful on workers: %s", command, workers)
 	return nil
 }

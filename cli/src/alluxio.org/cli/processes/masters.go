@@ -82,12 +82,10 @@ func (p *MastersProcess) Start(cmd *env.StartProcessCommand) error {
 			errors = append(errors, err)
 			continue
 		}
-		err = runCommand(master, conn, command)
-		if err != nil {
+		if err = runCommand(master, conn, command); err != nil {
 			errors = append(errors, err)
 		}
-		err = closeConnection(master, conn)
-		if err != nil {
+		if err = closeConnection(master, conn); err != nil {
 			errors = append(errors, err)
 		}
 	}
@@ -130,20 +128,17 @@ func (p *MastersProcess) Stop(cmd *env.StopProcessCommand) error {
 			errors = append(errors, err)
 			continue
 		}
-		err = runCommand(master, conn, command)
-		if err != nil {
+		if err = runCommand(master, conn, command); err != nil {
 			errors = append(errors, err)
 		}
-		err = closeConnection(master, conn)
-		if err != nil {
+		if err = closeConnection(master, conn); err != nil {
 			errors = append(errors, err)
 		}
 	}
 
-	if len(errors) == 0 {
-		log.Logger.Infof("Run command %s successful on masters: %s", command, masters)
-	} else {
-		log.Logger.Fatalf("Run command %s failed, number of failures: %v", command, len(errors))
+	if len(errors) != 0 {
+		log.Logger.Fatalf("Run command %v failed. Failed commands: %v", command, len(errors))
 	}
+	log.Logger.Infof("Run command %s successful on masters: %s", command, masters)
 	return nil
 }

@@ -12,14 +12,15 @@
 package processes
 
 import (
-	"bufio"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/palantir/stacktrace"
 	"golang.org/x/crypto/ssh"
 
 	"alluxio.org/cli/env"
@@ -27,33 +28,18 @@ import (
 )
 
 func getMasters() ([]string, error) {
-	mastersDir := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioConfDir.EnvVar), "masters")
-	mastersFile, err := os.Open(mastersDir)
+	mastersFilePath := filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioConfDir.EnvVar), "masters")
+	mastersFile, err := ioutil.ReadFile(mastersFilePath)
 	if err != nil {
-		log.Logger.Errorf("Error reading worker hostnames at %s", mastersDir)
-		return nil, err
+		return nil, stacktrace.Propagate(err, "Error reading master hostnames at %v", mastersFilePath)
 	}
 
-	mastersReader := bufio.NewReader(mastersFile)
 	var mastersList []string
-	lastLine := false
-	for !lastLine {
-		// read lines of the workers file
-		line, err := mastersReader.ReadString('\n')
-		if err != nil {
-			if err == io.EOF {
-				lastLine = true
-			} else {
-				log.Logger.Errorf("Error parsing worker file at this line: %s", line)
-				return nil, err
-			}
+	for _, line := range strings.Split(string(mastersFile), "\n") {
+		if strings.HasPrefix(strings.TrimSpace(line), "#") {
+			continue
 		}
-		// remove notes
-		if strings.Index(line, "#") != -1 {
-			line = line[:strings.Index(line, "#")]
-		}
-		line = strings.TrimSpace(line)
-		if line != "" {
+		if strings.TrimSpace(line) != "" {
 			mastersList = append(mastersList, line)
 		}
 	}
@@ -61,33 +47,18 @@ func getMasters() ([]string, error) {
 }
 
 func getWorkers() ([]string, error) {
-	workersDir := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioConfDir.EnvVar), "workers")
-	workersFile, err := os.Open(workersDir)
+	workersFilePath := filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioConfDir.EnvVar), "workers")
+	workersFile, err := ioutil.ReadFile(workersFilePath)
 	if err != nil {
-		log.Logger.Errorf("Error reading worker hostnames at %s", workersDir)
-		return nil, err
+		return nil, stacktrace.Propagate(err, "Error reading worker hostnames at %v", workersFilePath)
 	}
 
-	workersReader := bufio.NewReader(workersFile)
 	var workersList []string
-	lastLine := false
-	for !lastLine {
-		// read lines of the workers file
-		line, err := workersReader.ReadString('\n')
-		if err != nil {
-			if err == io.EOF {
-				lastLine = true
-			} else {
-				log.Logger.Errorf("Error parsing worker file at this line: %s", line)
-				return nil, err
-			}
+	for _, line := range strings.Split(string(workersFile), "\n") {
+		if strings.HasPrefix(strings.TrimSpace(line), "#") {
+			continue
 		}
-		// remove notes
-		if strings.Index(line, "#") != -1 {
-			line = line[:strings.Index(line, "#")]
-		}
-		line = strings.TrimSpace(line)
-		if line != "" {
+		if strings.TrimSpace(line) != "" {
 			workersList = append(workersList, line)
 		}
 	}
@@ -97,28 +68,26 @@ func getWorkers() ([]string, error) {
 func getPrivateKey() (ssh.Signer, error) {
 	homePath, err := os.UserHomeDir()
 	if err != nil {
-		log.Logger.Errorf("User home directory not found at %s", homePath)
-		return nil, err
+		return nil, stacktrace.Propagate(err, "User home directory not found at %v", homePath)
 	}
-	privateKey, err := os.ReadFile(path.Join(homePath, ".ssh", "id_rsa"))
+	privateKeyFile := filepath.Join(homePath, ".ssh", "id_rsa")
+	privateKey, err := os.ReadFile(privateKeyFile)
 	if err != nil {
-		log.Logger.Errorf("Private key file not found at %s", path.Join(homePath, ".ssh", "id_rsa"))
-		return nil, err
+		return nil, stacktrace.Propagate(err, "Private key file not found at %v", privateKeyFile)
 	}
 	parsedPrivateKey, err := ssh.ParsePrivateKey(privateKey)
 	if err != nil {
-		log.Logger.Errorf("Cannot parse public key at %s", path.Join(homePath, ".ssh", "id_rsa"))
-		return nil, err
+		return nil, stacktrace.Propagate(err, "Cannot parse public key at %v", privateKeyFile)
 	}
 	return parsedPrivateKey, nil
 }
 
-func dialConnection(remoteAddress string, key ssh.Signer) (*ssh.Client, error) {
+func dialConnection(remoteAddress string, signer ssh.Signer) (*ssh.Client, error) {
 	clientConfig := &ssh.ClientConfig{
 		// TODO: how to get user name? Like ${USER} in alluxio-common.sh
 		User: "root",
 		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(key),
+			ssh.PublicKeys(signer),
 		},
 		Timeout:         5 * time.Second,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
@@ -127,42 +96,40 @@ func dialConnection(remoteAddress string, key ssh.Signer) (*ssh.Client, error) {
 	dialAddr := fmt.Sprintf("%s:%d", remoteAddress, 22)
 	conn, err := ssh.Dial("tcp", dialAddr, clientConfig)
 	if err != nil {
-		log.Logger.Errorf("Dial failed to %s, error: %s", remoteAddress, err)
+		return nil, stacktrace.Propagate(err, "Dial failed to %v, error: %v", remoteAddress, err)
 	}
 	return conn, err
 }
 
 func closeConnection(remoteAddress string, conn *ssh.Client) error {
-	err := conn.Close()
-	if err != nil {
+	if err := conn.Close(); err != nil {
 		log.Logger.Infof("Connection to %s closed. Error: %s", remoteAddress, err)
+		return err
 	} else {
 		log.Logger.Infof("Connection to %s closed.", remoteAddress)
+		return nil
 	}
-	return err
 }
 
 func runCommand(remoteAddress string, conn *ssh.Client, command string) error {
 	// create a session for each worker
 	session, err := conn.NewSession()
 	if err != nil {
-		log.Logger.Errorf("Cannot create session at %s", remoteAddress)
-		return err
+		return stacktrace.Propagate(err, "Cannot create session at %v", remoteAddress)
 	}
 
 	session.Stdout = os.Stdout
 	session.Stderr = os.Stderr
 
 	// run session
-	err = session.Run(command)
-	if err != nil {
-		log.Logger.Errorf("Run command %s failed at %s", command, remoteAddress)
-		return err
+
+	if err = session.Run(command); err != nil {
+		return stacktrace.Propagate(err, "Run command %v failed at %v", command, remoteAddress)
 	}
 
 	// close session
-	err = session.Close()
-	if err != nil && err != io.EOF {
+
+	if err = session.Close(); err != nil && err != io.EOF {
 		log.Logger.Infof("Session at %s closed. Error: %s", remoteAddress, err)
 		return err
 	} else {

@@ -12,29 +12,29 @@
 package processes
 
 import (
+	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"alluxio.org/cli/env"
-	"alluxio.org/log"
 )
 
 var Local = &LocalProcess{
 	BaseProcess: &env.BaseProcess{
 		Name: "local",
 	},
-}
-
-var localProcesses = []env.Process{
-	Master,
-	JobMaster,
-	Worker,
-	JobWorker,
-	Proxy,
+	Processes: []env.Process{
+		Master,
+		JobMaster,
+		Worker,
+		JobWorker,
+		Proxy,
+	},
 }
 
 type LocalProcess struct {
 	*env.BaseProcess
+	Processes []env.Process
 }
 
 func (p *LocalProcess) SetEnvVars(envVar *viper.Viper) {
@@ -56,22 +56,20 @@ func (p *LocalProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 }
 
 func (p *LocalProcess) Start(cmd *env.StartProcessCommand) error {
-	for _, subProcess := range localProcesses {
-		subProcess := subProcess
-		err := subProcess.Start(cmd)
-		if err != nil {
-			log.Logger.Errorf("Error: %s", err)
+	for i := 0; i < len(Local.Processes); i++ {
+		subProcess := Local.Processes[i]
+		if err := subProcess.Start(cmd); err != nil {
+			return stacktrace.Propagate(err, "Error: %s on subprocess start %s", err, Local.Processes[i])
 		}
 	}
 	return nil
 }
 
 func (p *LocalProcess) Stop(cmd *env.StopProcessCommand) error {
-	for _, subProcess := range localProcesses {
-		subProcess := subProcess
-		err := subProcess.Stop(cmd)
-		if err != nil {
-			log.Logger.Errorf("Error: %s", err)
+	for i := len(Local.Processes) - 1; i >= 0; i-- {
+		subProcess := Local.Processes[i]
+		if err := subProcess.Stop(cmd); err != nil {
+			return stacktrace.Propagate(err, "Error: %s on subprocess stop %s", err, Local.Processes[i])
 		}
 	}
 	return nil

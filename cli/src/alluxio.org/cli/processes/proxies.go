@@ -87,12 +87,10 @@ func (p *ProxiesProcess) Start(cmd *env.StartProcessCommand) error {
 			errors = append(errors, err)
 			continue
 		}
-		err = runCommand(node, conn, command)
-		if err != nil {
+		if err = runCommand(node, conn, command); err != nil {
 			errors = append(errors, err)
 		}
-		err = closeConnection(node, conn)
-		if err != nil {
+		if err = closeConnection(node, conn); err != nil {
 			errors = append(errors, err)
 		}
 	}
@@ -140,20 +138,17 @@ func (p *ProxiesProcess) Stop(cmd *env.StopProcessCommand) error {
 			errors = append(errors, err)
 			continue
 		}
-		err = runCommand(node, conn, command)
-		if err != nil {
+		if err = runCommand(node, conn, command); err != nil {
 			errors = append(errors, err)
 		}
-		err = closeConnection(node, conn)
-		if err != nil {
+		if err = closeConnection(node, conn); err != nil {
 			errors = append(errors, err)
 		}
 	}
 
-	if len(errors) == 0 {
-		log.Logger.Infof("Run command %s successful on nodes: %s", command, allNodes)
-	} else {
-		log.Logger.Fatalf("Run command %s failed, number of failures: %v", command, len(errors))
+	if len(errors) != 0 {
+		log.Logger.Fatalf("Run command %v failed. Failed commands: %v", command, len(errors))
 	}
+	log.Logger.Infof("Run command %s successful on nodes: %s", command, allNodes)
 	return nil
 }
