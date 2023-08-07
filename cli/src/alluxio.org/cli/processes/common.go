@@ -35,44 +35,59 @@ type Result struct {
 	msg string
 }
 
+type HostnamesFile struct {
+	Name      string
+	Mutex     *sync.Mutex
+	Once      *sync.Once
+	Hostnames []string
+}
+
+func NewHostnamesFile(name string) *HostnamesFile {
+	return &HostnamesFile{
+		Name:  name,
+		Mutex: &sync.Mutex{},
+		Once:  &sync.Once{},
+	}
+}
+
 // for each node, create a client and run
 func runCommand(command string, mode string) error {
 	// prepare client config, ssh port info
-	config, port, err := prepareCommand(mode)
+	config, port, err := prepareCommand()
 	if err != nil {
 		return stacktrace.Propagate(err, "prepare command failed")
 	}
 
 	// get list of masters or workers, or both
-	nodes, err := readNodes(mode)
+	hosts, err := getHostnames(mode)
 	if err != nil {
-		return stacktrace.Propagate(err, "cannot read name of masters or workers")
+		return stacktrace.Propagate(err, "cannot read host names")
 	}
 
 	// create wait group and channels
 	var wg sync.WaitGroup
 	results := make(chan Result)
-	for _, n := range nodes {
+	for _, h := range hosts {
 		wg.Add(1)
-		node := n
+		host := h
 
 		go func() {
 			defer wg.Done()
-			// dial nodes on target node with given config and ssh port
-			dialAddr := fmt.Sprintf("%s:%d", node, port)
+			// dial on target remote address with given host, config and ssh port
+			dialAddr := fmt.Sprintf("%s:%d", host, port)
 			conn, err := ssh.Dial("tcp", dialAddr, config)
 			if err != nil {
 				result := Result{
 					err: err,
-					msg: fmt.Sprintf("dial failed to %v", node),
+					msg: fmt.Sprintf("dial failed to %v", host),
 				}
 				results <- result
 			}
 			defer func(conn *ssh.Client) {
 				if err := conn.Close(); err != nil {
-					log.Logger.Infof("connection to %s closed, error: %s", node, err)
+					log.Logger.Infof("connection to %s closed, error: %s", host, err)
 				} else {
-					log.Logger.Infof("connection to %s closed", node)
+					log.Logger.Infof("connection to %s closed", host)
 				}
 			}(conn)
 
@@ -81,16 +96,16 @@ func runCommand(command string, mode string) error {
 			if err != nil {
 				result := Result{
 					err: err,
-					msg: fmt.Sprintf("cannot create session at %v.", node),
+					msg: fmt.Sprintf("cannot create session at %v.", host),
 				}
 				results <- result
 			}
 			defer func(session *ssh.Session) {
 				err := session.Close()
 				if err != nil && err != io.EOF {
-					log.Logger.Infof("session at %s closed, error: %s", node, err)
+					log.Logger.Infof("session at %s closed, error: %s", host, err)
 				} else {
-					log.Logger.Infof("session at %s closed", node)
+					log.Logger.Infof("session at %s closed", host)
 				}
 			}(session)
 
@@ -101,7 +116,7 @@ func runCommand(command string, mode string) error {
 			if err = session.Run(command); err != nil {
 				result := Result{
 					err: err,
-					msg: fmt.Sprintf("run command %v failed at %v", command, node),
+					msg: fmt.Sprintf("run command %v failed at %v", command, host),
 				}
 				results <- result
 			}
@@ -120,10 +135,10 @@ func runCommand(command string, mode string) error {
 		close(results)
 	}()
 
-	return errorHandler(command, nodes, results)
+	return errorHandler(command, hosts, results)
 }
 
-func prepareCommand(mode string) (*ssh.ClientConfig, int, error) {
+func prepareCommand() (*ssh.ClientConfig, int, error) {
 	// get the current user
 	cu, err := user.Current()
 	if err != nil {
@@ -182,46 +197,52 @@ func addStopFlags(argument string, cmd *env.StopProcessCommand) string {
 	return strings.Join(command, " ")
 }
 
-func readNodes(mode string) ([]string, error) {
+func getHostnames(mode string) ([]string, error) {
 	if mode != "master" && mode != "worker" && mode != "all" {
-		return nil, stacktrace.Propagate(fmt.Errorf("invalid mode for readNodes"),
-			"available readNodes modes: [master, worker, all]")
+		return nil, stacktrace.Propagate(fmt.Errorf("invalid mode for readHostnames"),
+			"available readHostnames modes: [master, worker, all]")
 	}
-
-	var nodes []string
+	var hosts []string
 	if mode == "master" || mode == "all" {
-		masterList, err := readFiles("masters")
+		masterList, err := NewHostnamesFile("masters").getHostnames()
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "cannot get masters")
 		}
-		nodes = append(nodes, masterList...)
+		hosts = append(hosts, masterList...)
 	}
 	if mode == "worker" || mode == "all" {
-		workerList, err := readFiles("workers")
+		workerList, err := NewHostnamesFile("worker").getHostnames()
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "cannot get workers")
 		}
-		nodes = append(nodes, workerList...)
+		hosts = append(hosts, workerList...)
 	}
-	return nodes, nil
+	return hosts, nil
 }
 
-func readFiles(fileName string) ([]string, error) {
-	p := filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioConfDir.EnvVar), fileName)
-	f, err := ioutil.ReadFile(p)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "error reading hostnames at %v", p)
-	}
-	var nodesList []string
-	for _, line := range strings.Split(string(f), "\n") {
-		if strings.HasPrefix(strings.TrimSpace(line), "#") {
-			continue
+func (f *HostnamesFile) getHostnames() ([]string, error) {
+	f.Mutex.Lock()
+	defer f.Mutex.Unlock()
+	var parseErr error
+	f.Once.Do(func() {
+		p := filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioConfDir.EnvVar), f.Name)
+		file, err := ioutil.ReadFile(p)
+		if err != nil {
+			parseErr = err
 		}
-		if strings.TrimSpace(line) != "" {
-			nodesList = append(nodesList, line)
+		for _, line := range strings.Split(string(file), "\n") {
+			if strings.HasPrefix(strings.TrimSpace(line), "#") {
+				continue
+			}
+			if strings.TrimSpace(line) != "" {
+				f.Hostnames = append(f.Hostnames, line)
+			}
 		}
+	})
+	if parseErr != nil {
+		return nil, stacktrace.Propagate(parseErr, "error parsing hostnames file")
 	}
-	return nodesList, nil
+	return f.Hostnames, nil
 }
 
 func getSigner() (ssh.Signer, error) {
