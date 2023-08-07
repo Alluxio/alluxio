@@ -91,7 +91,7 @@ A bunch of new metrics are added for users to better understand the Alluxio clus
 
 ## Acknowledgements
 
-We want to thank the community for their valuable contributions to the Alluxio 2.9.3 release. Especially, we would like to thank:
+We want to thank the community for their valuable contributions to the Alluxio 2.6.2 release. Especially, we would like to thank:
 
 Curt Hu ([BlueStalker](https://github.com/BlueStalker){:target="_blank"}),
 Peter Roelants ([horasal](https://github.com/horasal){:target="_blank"}),
