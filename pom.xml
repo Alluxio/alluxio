@@ -1427,7 +1427,7 @@
           <expandEmptyElements>false</expandEmptyElements>
           <keepBlankLines>true</keepBlankLines>
           <lineSeparator>\n</lineSeparator>
-          <sortOrderFile>build/sortpom/alluxio_pom.xml</sortOrderFile>
+          <sortOrderFile>${build.path}/sortpom/alluxio_pom.xml</sortOrderFile>
           <sortDependencies>scope,groupId,artifactId</sortDependencies>
           <sortProperties>true</sortProperties>
         </configuration>
