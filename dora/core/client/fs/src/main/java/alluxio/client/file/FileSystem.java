@@ -403,9 +403,7 @@ public interface FileSystem extends Closeable {
    * @param path the path to obtain information about
    * @return the {@link URIStatus} of the file
    * @throws FileDoesNotExistException if the path does not exist
-   * @deprecated this method is deprecated
    */
-  @Deprecated
   default URIStatus getStatus(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
     return getStatus(path, GetStatusPOptions.getDefaultInstance());
@@ -430,9 +428,7 @@ public interface FileSystem extends Closeable {
    * @param options options to associate with this operation
    * @return the {@link URIStatus} of the file
    * @throws FileDoesNotExistException if the path does not exist
-   * @deprecated this method is deprecated
    */
-  @Deprecated
   URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
