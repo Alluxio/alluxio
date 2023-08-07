@@ -154,6 +154,13 @@ public final class FileSystemShellUtils {
     return res;
   }
 
+  /**
+   * The utility function used to implement getUfsUrls.
+   *
+   * @param alluxioClient the client used to fetch metadata of Alluxio files
+   * @param inputUfsUrl the input URI (could contain wildcards)
+   * @return a list of {@link UfsUrl}s of the files that match the inputURI in parentDir
+   */
   // TODO(Tony Sun): Add wildcard handler version.
   public static List<UfsUrl> getUfsUrls(FileSystem alluxioClient, UfsUrl inputUfsUrl)
           throws IOException {

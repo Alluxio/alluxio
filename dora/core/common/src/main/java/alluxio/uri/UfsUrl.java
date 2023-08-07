@@ -27,6 +27,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * This class represents a UFS URL in the Alluxio system. This {@link UfsUrl} represents the
+ * absolute ufs path.
+ */
 public class UfsUrl {
 
   public static final String SCHEME_SEPARATOR = "://";
@@ -35,6 +39,11 @@ public class UfsUrl {
 
   UfsUrlMessage mProto;
 
+  /**
+   * Construct an UfsUrlMessage from a path String.
+   * @param ufsPath a string representing a ufs path
+   * @return an UfsUrlMessage
+   */
   public static UfsUrlMessage toProto(String ufsPath) {
     Preconditions.checkArgument(ufsPath != null && !ufsPath.isEmpty(),
         "ufsPath is null or empty");
@@ -67,10 +76,21 @@ public class UfsUrl {
         .addAllPathComponents(pathComponents).build();
   }
 
+  /**
+   * Create an UfsUrl instance from a UfsUrlMessage.
+   * @param proto an UfsUrlMessage
+   * @return an UfsUrl object
+   */
   public static UfsUrl createInstance(UfsUrlMessage proto) {
     return new UfsUrl(proto);
   }
 
+  /**
+   * Create an UfsUrl instance from a String.
+   *
+   * @param ufsPath an input String representing the ufsPath
+   * @return an UfsUrl representing the input String
+   */
   public static UfsUrl createInstance(String ufsPath) {
     Preconditions.checkArgument(ufsPath != null && !ufsPath.isEmpty(),
         "input path is null or empty");
@@ -138,16 +158,31 @@ public class UfsUrl {
         .build());
   }
 
+  /**
+   * Construct an UfsUrl from an UfsUrlMessage.
+   * @param proto the proto message
+   * @return an UfsUrl object
+   */
   public static UfsUrl fromProto(UfsUrlMessage proto) {
     return new UfsUrl(proto);
   }
 
+  /**
+   * Construct an {@link UfsUrl} from components.
+   * @param proto the proto of the UfsUrl
+   */
   public UfsUrl(UfsUrlMessage proto) {
     Preconditions.checkArgument(proto.getPathComponentsList().size() != 0,
         "The proto.path is empty, please check the proto first.");
     mProto = proto;
   }
 
+  /**
+   * Construct an {@link UfsUrl} from components.
+   * @param scheme the scheme of the path
+   * @param authority the authority of the path
+   * @param path the path component of the UfsUrl
+   */
   public UfsUrl(String scheme, String authority, String path) {
     String[] arrayOfPath = path.split(PATH_SEPARATOR);
     List<String> pathComponentsList = Arrays.asList(arrayOfPath);
@@ -158,6 +193,9 @@ public class UfsUrl {
         .build();
   }
 
+  /**
+   * @return the scheme of the {@link UfsUrl}
+   */
   public Optional<String> getScheme() {
     if (!mProto.hasScheme()) {
       return Optional.empty();
@@ -165,6 +203,9 @@ public class UfsUrl {
     return Optional.of(mProto.getScheme());
   }
 
+  /**
+   * @return the authority of the {@link UfsUrl}
+   */
   public Optional<Authority> getAuthority() {
     if (!mProto.hasAuthority()) {
       return Optional.empty();
@@ -172,15 +213,24 @@ public class UfsUrl {
     return Optional.of(Authority.fromString(mProto.getAuthority()));
   }
 
+  /**
+   * @return the pathComponents List of the {@link UfsUrl}
+   */
   // TODO(Tony Sun): In the future Consider whether pathComponents should be extracted as a class.
   public List<String> getPathComponents() {
     return mProto.getPathComponentsList();
   }
 
+  /**
+   * @return the proto field of the {@link UfsUrl}
+   */
   public UfsUrlMessage getProto() {
     return mProto;
   }
 
+  /**
+   * @return the String representation of the {@link UfsUrl}
+   */
   public String asString() {
     // TODO(Jiacheng Liu): consider corner cases
     StringBuilder sb = new StringBuilder();
@@ -205,6 +255,20 @@ public class UfsUrl {
     return sb.toString();
   }
 
+  /**
+   * @return hashCode of {@link UfsUrl}
+   */
+  // TODO(Tony Sun): determine how to modify it.
+  public int hashCode() {
+    return 0;
+  }
+
+  /**
+   * determine whether o is equal to this.
+   *
+   * @param o an object
+   * @return true if equal, false if not equal
+   */
   public boolean equals(Object o) {
     if (this == o)  {
       return true;
@@ -216,6 +280,11 @@ public class UfsUrl {
     return mProto.equals(that.mProto);
   }
 
+  /**
+   * Get parent UfsUrl of current UfsUrl.
+   *
+   * @return parent UfsUrl
+   */
   // TODO(Jiacheng Liu): try to avoid the copy by a RelativeUrl class
   public UfsUrl getParentURL() {
     List<String> pathComponents = mProto.getPathComponentsList();
@@ -226,6 +295,12 @@ public class UfsUrl {
         .addAllPathComponents(pathComponents.subList(0, pathComponents.size() - 1)).build());
   }
 
+  /**
+   * Get a child UfsUrl of current UfsUrl.
+   *
+   * @param childName a child file/directory of this object
+   * @return a child UfsUrl
+   */
   // TODO(Jiacheng Liu): try to avoid the copy by a RelativeUrl class
   public UfsUrl getChildURL(String childName) {
     List<String> pathComponents = mProto.getPathComponentsList();
@@ -235,25 +310,51 @@ public class UfsUrl {
         .addAllPathComponents(pathComponents).addPathComponents(childName).build());
   }
 
+  /**
+   * Return the full path by connect the pathComponents list.
+   *
+   * @return a full path string
+   */
   public String getFullPath() {
     return Strings.join(mProto.getPathComponentsList(), PATH_SEPARATOR.charAt(0));
   }
 
+  /**
+   * Translate current UfsUrl object to an AlluxioURI object.
+   *
+   * @return a corresponding AlluxioURI object
+   */
   public AlluxioURI toAlluxioURI() {
     return new AlluxioURI(mProto.getScheme(),
         Authority.fromString(mProto.getAuthority()), getFullPath());
   }
 
+  /**
+   * Returns the number of elements of the path component of the {@link UfsUrl}.
+   *
+   * @return the depth
+   */
   public int getDepth() {
     return getPathComponents().size();
   }
 
+  /**
+   * Gets the final component of the {@link UfsUrl}.
+   *
+   * @return the final component of the {@link UfsUrl}
+   */
   public String getName() {
     List<String> pathComponents = getPathComponents();
     Preconditions.checkArgument(!pathComponents.isEmpty());
     return pathComponents.get(pathComponents.size() - 1);
   }
 
+  /**
+   * Returns true if the current UfsUrl is an ancestor of another UfsUrl.
+   * otherwise, return false.
+   * @param ufsUrl potential children to check
+   * @return true the current ufsUrl is an ancestor of the ufsUrl
+   */
   public boolean isAncestorOf(UfsUrl ufsUrl) throws InvalidPathException {
     if (!Objects.equals(getAuthority(), ufsUrl.getAuthority())) {
       return false;
@@ -261,10 +362,17 @@ public class UfsUrl {
     if (!Objects.equals(getScheme(), ufsUrl.getScheme())) {
       return false;
     }
+    // Both of the ufsUrls has the same scheme and authority, so just need to compare their paths.
     return PathUtils.hasPrefix(PathUtils.normalizePath(ufsUrl.getFullPath(), PATH_SEPARATOR),
         PathUtils.normalizePath(getFullPath(), PATH_SEPARATOR));
   }
 
+  /**
+   * Append additional path elements to the end of an {@link UfsUrl}.
+   *
+   * @param suffix the suffix to add
+   * @return the new {@link UfsUrl}
+   */
   public UfsUrl join(String suffix) {
     if (suffix == null || suffix.isEmpty()) {
       return new UfsUrl(mProto);

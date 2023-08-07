@@ -340,16 +340,16 @@ public class MetadataCachingFileSystemTest {
     }
 
     @Override
+    public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options) {
+      mListStatusCount.compute(ufsPath.toAlluxioURI(), (k, v) -> v == null ? 1 : v + 1);
+      return Arrays.asList(FILE_STATUS);
+    }
+
+    @Override
     public void iterateStatus(AlluxioURI path, final ListStatusPOptions options,
                               Consumer<? super URIStatus> action) {
       mListStatusCount.compute(path, (k, v) -> v == null ? 1 : v + 1);
       action.accept(FILE_STATUS);
-    }
-
-    @Override
-    public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options) {
-      mListStatusCount.compute(ufsPath.toAlluxioURI(), (k, v) -> v == null ? 1 : v + 1);
-      return Arrays.asList(FILE_STATUS);
     }
 
     @Override

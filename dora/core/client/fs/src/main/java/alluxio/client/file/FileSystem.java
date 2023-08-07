@@ -403,6 +403,7 @@ public interface FileSystem extends Closeable {
    * @param path the path to obtain information about
    * @return the {@link URIStatus} of the file
    * @throws FileDoesNotExistException if the path does not exist
+   * @deprecated this method is deprecated
    */
   @Deprecated
   default URIStatus getStatus(AlluxioURI path)
@@ -410,6 +411,13 @@ public interface FileSystem extends Closeable {
     return getStatus(path, GetStatusPOptions.getDefaultInstance());
   }
 
+  /**
+   * Gets the {@link URIStatus} object that represents the metadata of an Alluxio path.
+   *
+   * @param ufsPath the path to obtain information about
+   * @return the {@link URIStatus} of the file
+   * @throws FileDoesNotExistException if the path does not exist
+   */
   default URIStatus getStatus(UfsUrl ufsPath)
       throws FileDoesNotExistException, IOException, AlluxioException {
     return getStatus(ufsPath, GetStatusPOptions.getDefaultInstance());
@@ -422,11 +430,20 @@ public interface FileSystem extends Closeable {
    * @param options options to associate with this operation
    * @return the {@link URIStatus} of the file
    * @throws FileDoesNotExistException if the path does not exist
+   * @deprecated this method is deprecated
    */
   @Deprecated
   URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
+  /**
+   * Gets the {@link URIStatus} object that represents the metadata of an Alluxio path.
+   *
+   * @param ufsPath the path to obtain information about
+   * @param options options to associate with this operation
+   * @return the {@link URIStatus} of the file
+   * @throws FileDoesNotExistException if the path does not exist
+   */
   URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
@@ -460,6 +477,17 @@ public interface FileSystem extends Closeable {
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
+  /**
+   * Performs a specific action on each {@code URIStatus} in the result of {@link #listStatus}.
+   * This method is preferred when iterating over directories with a large number of files or
+   * sub-directories inside. The caller can proceed with partial result without waiting for all
+   * result returned.
+   *
+   * @param ufsPath the path to list information about
+   * @param options options to associate with this operation
+   * @param action action to apply on each {@code URIStatus}
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
   void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException;
@@ -491,6 +519,16 @@ public interface FileSystem extends Closeable {
   List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
+  /**
+   * If the path is a directory, returns the {@link URIStatus} of all the direct entries in it.
+   * Otherwise, returns a list with a single {@link URIStatus} element for the file.
+   *
+   * @param ufsPath the path to list information about
+   * @param options options to associate with this operation
+   * @return a list of {@link URIStatus}s containing information about the files and directories
+   *         which are children of the given path
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
   List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
@@ -621,6 +659,16 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
       IOException, AlluxioException;
 
+  /**
+   * Opens a file for reading.
+   *
+   * @param ufsPath the file to read from
+   * @param options options to associate with this operation
+   * @return a {@link FileInStream} for the given path
+   * @throws FileDoesNotExistException when path does not exist
+   * @throws OpenDirectoryException when path is a directory
+   * @throws FileIncompleteException when path is a file and is not completed yet
+   */
   FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
       throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
       IOException, AlluxioException;

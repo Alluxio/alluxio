@@ -313,7 +313,8 @@ public final class LsCommand extends AbstractFileSystemCommand {
 
     if (sortField == null) {
       mFileSystem.iterateStatus(ufsPath, optionsBuilder.build(),
-              status -> printLsString(status, hSize, timestampFunction, pinnedOnly, status.isPinned()));
+              status -> printLsString(status, hSize, timestampFunction, pinnedOnly,
+                  status.isPinned()));
       return;
     }
 

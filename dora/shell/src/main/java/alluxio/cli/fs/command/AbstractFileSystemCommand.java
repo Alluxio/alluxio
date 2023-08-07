@@ -17,8 +17,8 @@ import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
-
 import alluxio.uri.UfsUrl;
+
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;

@@ -339,7 +339,7 @@ public class UfsBaseFileSystem implements FileSystem {
   @Override
   public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
       Consumer<? super URIStatus> action)
-    throws FileDoesNotExistException, IOException, AlluxioException {
+      throws FileDoesNotExistException, IOException, AlluxioException {
   }
 
   @Override
@@ -386,7 +386,7 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
-    throws IOException, AlluxioException {
+      throws IOException, AlluxioException {
     return openFile(getStatus(ufsPath), options);
   }
 
@@ -579,6 +579,11 @@ public class UfsBaseFileSystem implements FileSystem {
     return mRootUFS;
   }
 
+  /**
+   * Gets the Ufs Root.
+   *
+   * @return UfsUrl of Ufs Root
+   */
   public UfsUrl getRootUfsUrl() {
     return mRootUfsUrl;
   }

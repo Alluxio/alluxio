@@ -12,6 +12,7 @@
 package alluxio.client.file.dora;
 
 import static com.google.common.base.Preconditions.checkState;
+
 import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
@@ -196,6 +197,13 @@ public class DoraCacheClient {
     }
   }
 
+  /**
+   * List Status from Worker.
+   * @param ufsPath the file path
+   * @param options the list status options
+   * @return list of URIStatus
+   * @throws RuntimeException
+   */
   public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
       throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =

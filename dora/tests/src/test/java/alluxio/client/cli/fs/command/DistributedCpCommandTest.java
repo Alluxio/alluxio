@@ -127,7 +127,7 @@ public final class DistributedCpCommandTest extends AbstractFileSystemShellTest 
     }
   }
 
-  private void run(String ...args) {
+  private void run(String ... args) {
     if (sFsShell.run(args) != 0) {
       throw new RuntimeException(
           "Failed command <" + Joiner.on(" ").join(args) + "> " + mOutput.toString());

@@ -160,6 +160,12 @@ public interface FileSystemMasterClient extends Client {
    */
   URIStatus getStatus(AlluxioURI path, GetStatusPOptions options) throws AlluxioStatusException;
 
+  /**
+   * @param ufsPath the file path
+   * @param options the getStatus options
+   * @return the file info for the given file id
+   * @throws NotFoundException if the path does not exist
+   */
   URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options) throws AlluxioStatusException;
 
   /**
@@ -198,7 +204,14 @@ public interface FileSystemMasterClient extends Client {
   List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws AlluxioStatusException;
 
-  List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options) throws AlluxioStatusException;
+  /**
+   * @param ufsPath the path to list
+   * @param options the listStatus options
+   * @return the list of file information for the given path
+   * @throws NotFoundException if the path does not exist
+   */
+  List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+      throws AlluxioStatusException;
 
   /**
    * @param path the path to list
