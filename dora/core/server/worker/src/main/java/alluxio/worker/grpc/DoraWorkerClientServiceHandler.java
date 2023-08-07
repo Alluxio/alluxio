@@ -226,7 +226,6 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
         statuses = mWorker.listStatus(ufsPath.asString(), request.getOptions());
       }
       if (statuses == null) {
-        // TODO(Tony Sun): Here I do not judge and handle "file" scheme. Rethink it.
         responseObserver.onError(
             new NotFoundRuntimeException(String.format("%s Not Found", ufsPath.asString()))
                 .toGrpcStatusRuntimeException());
@@ -260,7 +259,6 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
 
       responseObserver.onCompleted();
     } catch (Exception e) {
-      // TODO(Tony Sun): Here I do not judge and handle "file" scheme. Reconsider it.
       LOG.error(String.format("Failed to list status of %s: ", ufsPath.asString()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
