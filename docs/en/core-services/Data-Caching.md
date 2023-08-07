@@ -133,5 +133,5 @@ You might find this property helpful if you notice performance degradation when 
 
 ## Additional Resources
 Check out these 2 short videos on the benefits of paging storage and how it improves the efficiency of Alluxio caching:
-* [Benefits of Paging Storage](https://www.youtube.com/watch?v=cO7ymRFnPyM){:target="_blank"} (2:44)
-* [Efficient Alluxio Caching with Paging Storage](https://youtu.be/7UY_iE_Ha_k){:target="_blank"} (1:18)
+* ▶️ [Benefits of Paging Storage](https://www.youtube.com/watch?v=cO7ymRFnPyM){:target="_blank"} (2:44)
+* ▶️ [Efficient Alluxio Caching with Paging Storage](https://youtu.be/7UY_iE_Ha_k){:target="_blank"} (1:18)
