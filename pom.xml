@@ -1201,6 +1201,19 @@
               </rules>
             </configuration>
           </execution>
+          <execution>
+            <id>no-duplicate-dependencies</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <!-- checks for duplicate dependencies in the "dependencies" and "dependencyManagement" sections. -->
+                <!-- dependencies are considered duplicate if they have the same groupId, artifactId, type, and classifier properties -->
+                <banDuplicatePomDependencyVersions/>
+              </rules>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
 
