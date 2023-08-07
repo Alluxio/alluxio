@@ -302,8 +302,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       throws AlluxioStatusException {
     return retryRPC(() -> {
       List<URIStatus> result = new ArrayList<>();
-      mClient.listStatus(ListStatusPRequest.newBuilder()
-              .setPath(getTransportPath(path)).setOptions(options).build())
+      mClient
+          .listStatus(ListStatusPRequest.newBuilder().setPath(getTransportPath(path))
+              .setOptions(options).build())
               .forEachRemaining(
                       (pListStatusResponse) -> result.addAll(pListStatusResponse
                           .getFileInfosList().stream()

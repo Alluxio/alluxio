@@ -260,7 +260,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
 
       responseObserver.onCompleted();
     } catch (Exception e) {
-      // TODO(Tony Sun): Here I do not judge and handle "file" scheme. Rethink it.
+      // TODO(Tony Sun): Here I do not judge and handle "file" scheme. Reconsider it.
       LOG.error(String.format("Failed to list status of %s: ", ufsPath.asString()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
