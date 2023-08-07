@@ -291,11 +291,6 @@ function main {
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
-  "table")
-    CLASS="alluxio.cli.table.TableShell"
-    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
-    runJavaClass "$@"
-  ;;
   "logLevel")
     CLASS="alluxio.cli.LogLevel"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
