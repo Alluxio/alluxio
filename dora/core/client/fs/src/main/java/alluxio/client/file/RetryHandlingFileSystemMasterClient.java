@@ -283,7 +283,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
               .forEach(action);
           return null;
         },
-        RPC_LOG, "ListStatus", "path=%s,options=%s", path, options);
+        RPC_LOG, "IterateStatus", "path=%s,options=%s", path, options);
   }
 
   @Override
