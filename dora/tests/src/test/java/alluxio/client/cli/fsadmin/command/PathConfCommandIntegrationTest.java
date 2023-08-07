@@ -11,7 +11,6 @@
 
 package alluxio.client.cli.fsadmin.command;
 
-import alluxio.cli.fsadmin.command.PathConfCommand;
 import alluxio.cli.fsadmin.pathconf.AddCommand;
 import alluxio.cli.fsadmin.pathconf.ListCommand;
 import alluxio.cli.fsadmin.pathconf.RemoveCommand;
