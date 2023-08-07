@@ -48,10 +48,10 @@ func (p *ProxiesProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 
 func (p *ProxiesProcess) Start(cmd *env.StartProcessCommand) error {
 	arguments := "process start proxy"
-	return runCommand(addStartFlags(arguments, cmd), true, true)
+	return runCommand(addStartFlags(arguments, cmd), "all")
 }
 
 func (p *ProxiesProcess) Stop(cmd *env.StopProcessCommand) error {
 	arguments := "process stop proxy"
-	return runCommand(addStopFlags(arguments, cmd), true, true)
+	return runCommand(addStopFlags(arguments, cmd), "all")
 }

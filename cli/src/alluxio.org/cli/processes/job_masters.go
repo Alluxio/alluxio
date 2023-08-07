@@ -48,10 +48,10 @@ func (p *JobMastersProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 
 func (p *JobMastersProcess) Start(cmd *env.StartProcessCommand) error {
 	arguments := "process start job_master"
-	return runCommand(addStartFlags(arguments, cmd), true, false)
+	return runCommand(addStartFlags(arguments, cmd), "master")
 }
 
 func (p *JobMastersProcess) Stop(cmd *env.StopProcessCommand) error {
 	arguments := "process stop job_master"
-	return runCommand(addStopFlags(arguments, cmd), true, false)
+	return runCommand(addStopFlags(arguments, cmd), "master")
 }

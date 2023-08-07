@@ -30,129 +30,83 @@ import (
 	"alluxio.org/log"
 )
 
-var currentUsername = ""
-var cliPath = filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
-var privateKeySigner ssh.Signer
-var masterList []string
-var workerList []string
-
 type Result struct {
 	err error
 	msg string
 }
 
 // for each node, create a client and run
-// TODO: now start master one by one, need to do them in parallel
-func runCommand(command string, onMasters bool, onWorkers bool) error {
-	// get list of masters and workers
-	var nodes []string
-	if onMasters {
-		if len(masterList) == 0 {
-			if err := getNodes("masters"); err != nil {
-				return stacktrace.Propagate(err, "Cannot get masters")
-			}
-		}
-		nodes = append(nodes, masterList...)
-	}
-	if onWorkers {
-		if len(workerList) == 0 {
-			if err := getNodes("workers"); err != nil {
-				return stacktrace.Propagate(err, "Cannot get workers")
-			}
-		}
-		nodes = append(nodes, workerList...)
-	}
-
-	// get the current user
-	if currentUsername == "" {
-		currentUser, err := user.Current()
-		if err != nil {
-			return stacktrace.Propagate(err, "Cannot find current user")
-		} else {
-			currentUsername = currentUser.Username
-			log.Logger.Debugf("Current user: %v", currentUsername)
-		}
-	}
-
-	// get public key if none
-	if privateKeySigner == nil {
-		if err := getPrivateKey(); err != nil {
-			log.Logger.Fatalf("Cannot get private key, error: %s", err)
-		}
-	}
-
-	clientConfig := &ssh.ClientConfig{
-		User: currentUsername,
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(privateKeySigner),
-		},
-		Timeout:         5 * time.Second,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	}
-
-	// find default ssh port
-	port, err := net.LookupPort("tcp", "ssh")
+func runCommand(command string, mode string) error {
+	// prepare client config, ssh port info
+	config, port, err := prepareCommand(mode)
 	if err != nil {
-		return stacktrace.Propagate(err, "Get default ssh port failed.")
+		return stacktrace.Propagate(err, "prepare command failed")
 	}
 
-	// dial nodes, run sessions and close
-	var waitGroup sync.WaitGroup
-	results := make(chan Result)
-	for _, node := range nodes {
-		waitGroup.Add(1)
-		node := node
-		go func() {
-			defer waitGroup.Done()
+	// get list of masters or workers, or both
+	nodes, err := readNodes(mode)
+	if err != nil {
+		return stacktrace.Propagate(err, "cannot read name of masters or workers")
+	}
 
-			// dial remote node via the ssh port
+	// create wait group and channels
+	var wg sync.WaitGroup
+	results := make(chan Result)
+	for _, n := range nodes {
+		wg.Add(1)
+		node := n
+
+		go func() {
+			defer wg.Done()
+			// dial nodes on target node with given config and ssh port
 			dialAddr := fmt.Sprintf("%s:%d", node, port)
-			conn, err := ssh.Dial("tcp", dialAddr, clientConfig)
+			conn, err := ssh.Dial("tcp", dialAddr, config)
 			if err != nil {
 				result := Result{
 					err: err,
-					msg: fmt.Sprintf("Dial failed to %v.", node),
+					msg: fmt.Sprintf("dial failed to %v", node),
 				}
 				results <- result
 			}
 			defer func(conn *ssh.Client) {
 				if err := conn.Close(); err != nil {
-					log.Logger.Infof("Connection to %s closed. Error: %s", node, err)
+					log.Logger.Infof("connection to %s closed, error: %s", node, err)
 				} else {
-					log.Logger.Infof("Connection to %s closed.", node)
+					log.Logger.Infof("connection to %s closed", node)
 				}
 			}(conn)
 
-			// create a session for each worker
+			// create and set up a session
 			session, err := conn.NewSession()
 			if err != nil {
 				result := Result{
 					err: err,
-					msg: fmt.Sprintf("Cannot create session at %v.", node),
+					msg: fmt.Sprintf("cannot create session at %v.", node),
 				}
 				results <- result
 			}
 			defer func(session *ssh.Session) {
 				err := session.Close()
 				if err != nil && err != io.EOF {
-					log.Logger.Infof("Session at %s closed. Error: %s", node, err)
+					log.Logger.Infof("session at %s closed, error: %s", node, err)
 				} else {
-					log.Logger.Infof("Session at %s closed.", node)
+					log.Logger.Infof("session at %s closed", node)
 				}
 			}(session)
 
 			session.Stdout = os.Stdout
 			session.Stderr = os.Stderr
 
-			// run session
+			// run command on the session, output errors
 			if err = session.Run(command); err != nil {
 				result := Result{
 					err: err,
-					msg: fmt.Sprintf("Run command %v failed at %v", command, node),
+					msg: fmt.Sprintf("run command %v failed at %v", command, node),
 				}
 				results <- result
 			}
 
+			// if no errors, return nil
 			result := Result{
 				err: nil,
 				msg: "",
@@ -162,30 +116,51 @@ func runCommand(command string, onMasters bool, onWorkers bool) error {
 	}
 
 	go func() {
-		waitGroup.Wait()
+		wg.Wait()
 		close(results)
 	}()
 
-	hasError := 0
-	for result := range results {
-		if result.err != nil {
-			hasError++
-			err := stacktrace.Propagate(result.err, result.msg)
-			if err != nil {
-				return err
-			}
-		}
+	return errorHandler(command, nodes, results)
+}
+
+func prepareCommand(mode string) (*ssh.ClientConfig, int, error) {
+	// get the current user
+	cu, err := user.Current()
+	if err != nil {
+		return &ssh.ClientConfig{}, -1,
+			stacktrace.Propagate(err, "cannot find current user")
+	}
+	cuName := cu.Username
+	log.Logger.Debugf("current user: %v", cuName)
+
+	// get public key
+	signer, err := getSigner()
+	if err != nil {
+		return &ssh.ClientConfig{}, -1,
+			stacktrace.Propagate(err, "cannot get private key")
 	}
 
-	if hasError != 0 {
-		log.Logger.Warningf("Run command %s failed, number of failures: %v", command, hasError)
-		return nil
+	// set client config with current user and signer
+	config := &ssh.ClientConfig{
+		User: cuName,
+		Auth: []ssh.AuthMethod{
+			ssh.PublicKeys(signer),
+		},
+		Timeout:         5 * time.Second,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
-	log.Logger.Infof("Run command %s successful on nodes: %s", command, nodes)
-	return nil
+
+	// find default ssh port
+	port, err := net.LookupPort("tcp", "ssh")
+	if err != nil {
+		return &ssh.ClientConfig{}, -1,
+			stacktrace.Propagate(err, "get default ssh port failed")
+	}
+	return config, port, nil
 }
 
 func addStartFlags(argument string, cmd *env.StartProcessCommand) string {
+	cliPath := filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
 	var command []string
 	command = append(command, cliPath, argument)
 	if cmd.AsyncStart {
@@ -198,6 +173,7 @@ func addStartFlags(argument string, cmd *env.StartProcessCommand) string {
 }
 
 func addStopFlags(argument string, cmd *env.StopProcessCommand) string {
+	cliPath := filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
 	var command []string
 	command = append(command, cliPath, argument)
 	if cmd.SoftKill {
@@ -206,20 +182,35 @@ func addStopFlags(argument string, cmd *env.StopProcessCommand) string {
 	return strings.Join(command, " ")
 }
 
-func getNodes(nodeType string) error {
-	var p string
-	if nodeType == "masters" {
-		p = filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioConfDir.EnvVar), "masters")
-	} else if nodeType == "workers" {
-		p = filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioConfDir.EnvVar), "workers")
-	} else {
-		return stacktrace.Propagate(fmt.Errorf("invalid nodeType"),
-			"NodeType must be one of [masters, workers].")
+func readNodes(mode string) ([]string, error) {
+	if mode != "master" && mode != "worker" && mode != "all" {
+		return nil, stacktrace.Propagate(fmt.Errorf("invalid mode for readNodes"),
+			"available readNodes modes: [master, worker, all]")
 	}
 
+	var nodes []string
+	if mode == "master" || mode == "all" {
+		masterList, err := readFiles("masters")
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "cannot get masters")
+		}
+		nodes = append(nodes, masterList...)
+	}
+	if mode == "worker" || mode == "all" {
+		workerList, err := readFiles("workers")
+		if err != nil {
+			return nil, stacktrace.Propagate(err, "cannot get workers")
+		}
+		nodes = append(nodes, workerList...)
+	}
+	return nodes, nil
+}
+
+func readFiles(fileName string) ([]string, error) {
+	p := filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioConfDir.EnvVar), fileName)
 	f, err := ioutil.ReadFile(p)
 	if err != nil {
-		return stacktrace.Propagate(err, "Error reading hostnames at %v", p)
+		return nil, stacktrace.Propagate(err, "error reading hostnames at %v", p)
 	}
 	var nodesList []string
 	for _, line := range strings.Split(string(f), "\n") {
@@ -230,32 +221,43 @@ func getNodes(nodeType string) error {
 			nodesList = append(nodesList, line)
 		}
 	}
-	if nodeType == "masters" {
-		masterList = nodesList
-	} else if nodeType == "workers" {
-		workerList = nodesList
-	} else {
-		return stacktrace.Propagate(fmt.Errorf("invalid nodeType"),
-			"NodeType must be one of [masters, workers].")
-	}
-	return nil
+	return nodesList, nil
 }
 
-func getPrivateKey() error {
+func getSigner() (ssh.Signer, error) {
 	// get private key
 	homePath, err := os.UserHomeDir()
 	if err != nil {
-		return stacktrace.Propagate(err, "User home directory not found at %v", homePath)
+		return nil, stacktrace.Propagate(err, "user home directory not found at %v", homePath)
 	}
 	privateKeyFile := filepath.Join(homePath, ".ssh", "id_rsa")
 	privateKey, err := os.ReadFile(privateKeyFile)
 	if err != nil {
-		return stacktrace.Propagate(err, "Private key file not found at %v", privateKeyFile)
+		return nil, stacktrace.Propagate(err, "private key file not found at %v", privateKeyFile)
 	}
 	parsedPrivateKey, err := ssh.ParsePrivateKey(privateKey)
 	if err != nil {
-		return stacktrace.Propagate(err, "Cannot parse public key at %v", privateKeyFile)
+		return nil, stacktrace.Propagate(err, "cannot parse public key at %v", privateKeyFile)
 	}
-	privateKeySigner = parsedPrivateKey
+	return parsedPrivateKey, nil
+}
+
+func errorHandler(command string, nodes []string, results chan Result) error {
+	hasError := 0
+	for result := range results {
+		if result.err != nil {
+			hasError++
+			err := stacktrace.Propagate(result.err, result.msg)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	if hasError != 0 {
+		return stacktrace.Propagate(fmt.Errorf("run command %s failed", command),
+			"number of failures: %v", hasError)
+	}
+	log.Logger.Infof("run command %s successful on nodes: %s", command, nodes)
 	return nil
 }

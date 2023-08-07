@@ -48,10 +48,10 @@ func (p *WorkersProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 
 func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 	arguments := "process start worker"
-	return runCommand(addStartFlags(arguments, cmd), false, true)
+	return runCommand(addStartFlags(arguments, cmd), "worker")
 }
 
 func (p *WorkersProcess) Stop(cmd *env.StopProcessCommand) error {
 	arguments := "process stop worker"
-	return runCommand(addStopFlags(arguments, cmd), false, true)
+	return runCommand(addStopFlags(arguments, cmd), "worker")
 }
