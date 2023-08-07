@@ -16,7 +16,6 @@ import (
 	"github.com/spf13/viper"
 
 	"alluxio.org/cli/env"
-	"alluxio.org/log"
 )
 
 var Masters = &MastersProcess{
@@ -48,93 +47,11 @@ func (p *MastersProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 }
 
 func (p *MastersProcess) Start(cmd *env.StartProcessCommand) error {
-	// get list of all masters, stored at mastersList
-	masters, err := getNodes(true)
-	if err != nil {
-		log.Logger.Fatalf("Cannot get masters, error: %s", err)
-	}
-
-	// get public key for passwordless ssh
-	key, err := getPrivateKey()
-	if err != nil {
-		log.Logger.Fatalf("Cannot get private key, error: %s", err)
-	}
-
-	// generate command
 	arguments := "process start master"
-	if cmd.AsyncStart {
-		arguments = arguments + " -a"
-	}
-	if cmd.SkipKillOnStart {
-		arguments = arguments + " -N"
-	}
-	command := cliPath + " " + arguments
-
-	// for each master, create a client and run
-	// TODO: now start master one by one, need to do them in parallel
-	var errors []error
-	for _, master := range masters {
-		conn, err := dialConnection(master, key)
-		if err != nil {
-			errors = append(errors, err)
-			continue
-		}
-		if err = runCommand(master, conn, command); err != nil {
-			errors = append(errors, err)
-		}
-		if err = closeConnection(master, conn); err != nil {
-			errors = append(errors, err)
-		}
-	}
-
-	if len(errors) == 0 {
-		log.Logger.Infof("Run command %s successful on masters: %s", command, masters)
-	} else {
-		log.Logger.Fatalf("Run command %s failed, number of failures: %v", command, len(errors))
-	}
-	return nil
+	return runCommand(addStartFlags(arguments, cmd), true, false)
 }
 
 func (p *MastersProcess) Stop(cmd *env.StopProcessCommand) error {
-	// get list of all masters, stored at mastersList
-	masters, err := getNodes(true)
-	if err != nil {
-		log.Logger.Fatalf("Cannot get masters, error: %s", err)
-	}
-
-	// get public key for passwordless ssh
-	key, err := getPrivateKey()
-	if err != nil {
-		log.Logger.Fatalf("Cannot get private key, error: %s", err)
-	}
-
-	// generate command
 	arguments := "process stop master"
-	if cmd.SoftKill {
-		arguments = arguments + " -s"
-	}
-	command := cliPath + " " + arguments
-
-	// for each master, create a client and run
-	// TODO: now stop master one by one, need to do them in parallel
-	var errors []error
-	for _, master := range masters {
-		conn, err := dialConnection(master, key)
-		if err != nil {
-			errors = append(errors, err)
-			continue
-		}
-		if err = runCommand(master, conn, command); err != nil {
-			errors = append(errors, err)
-		}
-		if err = closeConnection(master, conn); err != nil {
-			errors = append(errors, err)
-		}
-	}
-
-	if len(errors) != 0 {
-		log.Logger.Fatalf("Run command %v failed. Failed commands: %v", command, len(errors))
-	}
-	log.Logger.Infof("Run command %s successful on masters: %s", command, masters)
-	return nil
+	return runCommand(addStopFlags(arguments, cmd), true, false)
 }
