@@ -1210,8 +1210,6 @@
               <rules>
                 <!-- checks for duplicate dependencies in the "dependencies" and "dependencyManagement" sections. -->
                 <!-- dependencies are considered duplicate if they have the same groupId, artifactId, type, and classifier properties -->
-                <!-- Note: enforcer v3.0.0-M3 does not correctly check "dependencyManagement" section for duplicates:
-                     see https://issues.apache.org/jira/browse/MENFORCER-301 -->
                 <banDuplicatePomDependencyVersions/>
               </rules>
             </configuration>
