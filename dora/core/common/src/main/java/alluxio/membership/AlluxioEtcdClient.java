@@ -19,6 +19,7 @@ import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import io.etcd.jetcd.ByteSequence;
@@ -97,6 +98,7 @@ public class AlluxioEtcdClient {
    * CTOR for AlluxioEtcdClient.
    * @param conf
    */
+  @VisibleForTesting
   public AlluxioEtcdClient(AlluxioConfiguration conf) {
     String clusterName = conf.getString(PropertyKey.ALLUXIO_CLUSTER_NAME);
     List<String> endpointsList = conf.getList(PropertyKey.ETCD_ENDPOINTS);
