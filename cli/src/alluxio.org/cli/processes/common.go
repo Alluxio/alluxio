@@ -15,7 +15,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"os"
+	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
@@ -27,6 +29,7 @@ import (
 	"alluxio.org/log"
 )
 
+var currentUsername = ""
 var cliPath = filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
 var privateKeySigner ssh.Signer
 var masterList []string
@@ -54,7 +57,18 @@ func runCommand(command string, onMasters bool, onWorkers bool) error {
 		nodes = append(nodes, workerList...)
 	}
 
-	// get public key if nones
+	// get the current user
+	if currentUsername == "" {
+		currentUser, err := user.Current()
+		if err != nil {
+			return stacktrace.Propagate(err, "Cannot find current user")
+		} else {
+			currentUsername = currentUser.Username
+			log.Logger.Debugf("Current user: %v", currentUsername)
+		}
+	}
+
+	// get public key if none
 	if privateKeySigner == nil {
 		if err := getPrivateKey(); err != nil {
 			log.Logger.Fatalf("Cannot get private key, error: %s", err)
@@ -88,20 +102,24 @@ func runCommand(command string, onMasters bool, onWorkers bool) error {
 }
 
 func addStartFlags(argument string, cmd *env.StartProcessCommand) string {
+	var command []string
+	command = append(command, cliPath, argument)
 	if cmd.AsyncStart {
-		argument = argument + " -a"
+		command = append(command, "-a")
 	}
 	if cmd.SkipKillOnStart {
-		argument = argument + " -N"
+		command = append(command, "-N")
 	}
-	return cliPath + " " + argument
+	return strings.Join(command, " ")
 }
 
 func addStopFlags(argument string, cmd *env.StopProcessCommand) string {
+	var command []string
+	command = append(command, cliPath, argument)
 	if cmd.SoftKill {
-		argument = argument + " -s"
+		command = append(command, "-s")
 	}
-	return cliPath + " " + argument
+	return strings.Join(command, " ")
 }
 
 func getNodes(isMasters bool) error {
@@ -133,6 +151,7 @@ func getNodes(isMasters bool) error {
 }
 
 func getPrivateKey() error {
+	// get private key
 	homePath, err := os.UserHomeDir()
 	if err != nil {
 		return stacktrace.Propagate(err, "User home directory not found at %v", homePath)
@@ -152,16 +171,22 @@ func getPrivateKey() error {
 
 func dialConnection(remoteAddress string, signer ssh.Signer) (*ssh.Client, error) {
 	clientConfig := &ssh.ClientConfig{
-		// TODO: how to get user name? Like ${USER} in alluxio-common.sh
-		User: "root",
+		User: currentUsername,
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(signer),
 		},
 		Timeout:         5 * time.Second,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
-	// TODO: Some machines might have changed default SSH port. Get ssh port or remind users when get started.
-	dialAddr := fmt.Sprintf("%s:%d", remoteAddress, 22)
+
+	// find default ssh port
+	port, err := net.LookupPort("tcp", "ssh")
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "Get default ssh port failed.")
+	}
+
+	// dial remote node via the ssh port
+	dialAddr := fmt.Sprintf("%s:%d", remoteAddress, port)
 	conn, err := ssh.Dial("tcp", dialAddr, clientConfig)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "Dial failed to %v, error: %v", remoteAddress, err)
