@@ -13,7 +13,7 @@ package alluxio.membership;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.UnavailableException;
+import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
@@ -40,7 +40,6 @@ import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Comparator;
@@ -138,7 +137,7 @@ public class AlluxioEtcdClient {
   }
 
   private <V> V retryInternal(String description, RetryPolicy retryPolicy,
-                              EtcdUtilCallable<V> etcdCallable) throws IOException {
+                              EtcdUtilCallable<V> etcdCallable) {
     Exception ex = null;
     // TODO(lucy) Currently retry on all sorts of exception and report the last exception,
     // As jetcd exception often hides underneath CompletableFuture.get(), find
@@ -157,7 +156,7 @@ public class AlluxioEtcdClient {
       }
       LOG.debug("AlluxioEtcdClient call failed ({}): ", retryPolicy.getAttemptCount(), ex);
     }
-    throw new UnavailableException(
+    throw new UnavailableRuntimeException(
         String.format("Exhausted retry for (%s), retries:%s, last exception:",
             description, retryPolicy.getAttemptCount()),
         ex);
@@ -203,10 +202,8 @@ public class AlluxioEtcdClient {
    * @param timeout
    * @param timeUnit
    * @return Lease
-   * @throws IOException
    */
-  public Lease createLease(long ttlInSec, long timeout, TimeUnit timeUnit)
-      throws IOException {
+  public Lease createLease(long ttlInSec, long timeout, TimeUnit timeUnit) {
     return retryInternal(
         String.format("Creating Lease with ttl:%s", ttlInSec),
         new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
@@ -223,18 +220,16 @@ public class AlluxioEtcdClient {
   /**
    * Create lease with default ttl and timeout.
    * @return Lease
-   * @throws IOException
    */
-  public Lease createLease() throws IOException {
+  public Lease createLease() {
     return createLease(DEFAULT_LEASE_TTL_IN_SEC, DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
   }
 
   /**
    * Revoke given lease.
    * @param lease
-   * @throws IOException
    */
-  public void revokeLease(Lease lease) throws IOException {
+  public void revokeLease(Lease lease) {
     retryInternal(
         String.format("Revoking Lease:%s", lease.toString()),
         new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
@@ -251,7 +246,7 @@ public class AlluxioEtcdClient {
    * @param lease
    * @return lease expired
    */
-  public boolean isLeaseExpired(Lease lease) throws IOException {
+  public boolean isLeaseExpired(Lease lease) {
     return retryInternal(
         String.format("Checking IsLeaseExpired, lease:%s", lease.toString()),
         new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
@@ -272,8 +267,7 @@ public class AlluxioEtcdClient {
    * @param childPath
    * @param value
    */
-  public void addChildren(String parentPath, String childPath, byte[] value)
-      throws IOException {
+  public void addChildren(String parentPath, String childPath, byte[] value) {
     Preconditions.checkArgument(!StringUtil.isNullOrEmpty(parentPath));
     Preconditions.checkArgument(!StringUtil.isNullOrEmpty(childPath));
     String fullPath = PathUtils.concatPath(parentPath, childPath);
@@ -297,7 +291,7 @@ public class AlluxioEtcdClient {
    * @param parentPath parentPath ends with /
    * @return list of children KeyValues
    */
-  public List<KeyValue> getChildren(String parentPath) throws IOException {
+  public List<KeyValue> getChildren(String parentPath) {
     Preconditions.checkArgument(!StringUtil.isNullOrEmpty(parentPath));
     return retryInternal(
         String.format("Getting children for path:%s", parentPath),
@@ -316,11 +310,9 @@ public class AlluxioEtcdClient {
    * @param parentPath
    * @param listener
    * @param watchType
-   * @throws IOException
    */
   private void addListenerInternal(
-      String parentPath, StateListener listener, WatchType watchType)
-      throws IOException {
+      String parentPath, StateListener listener, WatchType watchType) {
     if (mRegisteredWatchers.containsKey(getRegisterWatcherKey(parentPath, watchType))) {
       LOG.warn("Watcher already there for path:{} for children.", parentPath);
       return;
@@ -414,9 +406,8 @@ public class AlluxioEtcdClient {
    * Add state listener to given path.
    * @param path
    * @param listener
-   * @throws IOException
    */
-  public void addStateListener(String path, StateListener listener) throws IOException {
+  public void addStateListener(String path, StateListener listener) {
     addListenerInternal(path, listener, WatchType.SINGLE_PATH);
   }
 
@@ -432,10 +423,8 @@ public class AlluxioEtcdClient {
    * Add state listener to watch children for given path.
    * @param parentPath
    * @param listener
-   * @throws IOException
    */
-  public void addChildrenListener(String parentPath, StateListener listener)
-      throws IOException {
+  public void addChildrenListener(String parentPath, StateListener listener) {
     addListenerInternal(parentPath, listener, WatchType.CHILDREN);
   }
 
@@ -451,9 +440,8 @@ public class AlluxioEtcdClient {
    * Get latest value attached to the path.
    * @param path
    * @return byte[] value
-   * @throws IOException
    */
-  public byte[] getForPath(String path) throws IOException {
+  public byte[] getForPath(String path) {
     return retryInternal(
         String.format("Get for path:%s", path),
         new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
@@ -475,9 +463,8 @@ public class AlluxioEtcdClient {
    * Check existence of a single given path.
    * @param path
    * @return if the path exists or not
-   * @throws IOException
    */
-  public boolean checkExistsForPath(String path) throws IOException {
+  public boolean checkExistsForPath(String path) {
     return retryInternal(String.format("Check exists for path:%s", path),
         new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
         () -> {
@@ -496,9 +483,8 @@ public class AlluxioEtcdClient {
    * Create a path with given value in non-transactional way.
    * @param path
    * @param value
-   * @throws IOException
    */
-  public void createForPath(String path, Optional<byte[]> value) throws IOException {
+  public void createForPath(String path, Optional<byte[]> value) {
     retryInternal(String.format("Create for path:%s, value bytes len:%s",
             path, (!value.isPresent() ? "null" : value.get().length)),
         new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
@@ -515,9 +501,8 @@ public class AlluxioEtcdClient {
    * Delete a path or recursively all paths with given path as prefix.
    * @param path
    * @param recursive
-   * @throws IOException
    */
-  public void deleteForPath(String path, boolean recursive) throws IOException {
+  public void deleteForPath(String path, boolean recursive) {
     retryInternal(
         String.format("Delete for path:%s", path),
         new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),

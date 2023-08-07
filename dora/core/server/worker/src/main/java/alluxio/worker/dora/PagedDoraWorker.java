@@ -30,6 +30,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
@@ -256,7 +257,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         mMembershipManager.join(new WorkerInfo().setAddress(mAddress));
         mWorkerId.set(HashUtils.hashAsLong(mAddress.dumpMainInfo()));
         break;
-      } catch (IOException ioe) {
+      } catch (UnavailableRuntimeException ioe) {
+        /* We should only expect such exception when situation such as
+         * etcd hasn't started up yet when alluxio components and etcd
+         * are starting up at same time. In such case we keep retrying.
+         */
         if (!retry.attempt()) {
           throw ioe;
         }
