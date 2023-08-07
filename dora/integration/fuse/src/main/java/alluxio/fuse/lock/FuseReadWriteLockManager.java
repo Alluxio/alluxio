@@ -17,6 +17,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import alluxio.Constants;
 import alluxio.concurrent.ClientRWLock;
 import alluxio.concurrent.LockMode;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.CancelledRuntimeException;
 import alluxio.exception.runtime.DeadlineExceededRuntimeException;
 import alluxio.resource.CloseableResource;
@@ -34,7 +36,8 @@ import java.util.concurrent.locks.Lock;
 public class FuseReadWriteLockManager {
   private static final long TRY_LOCK_TIMEOUT = 20 * Constants.SECOND_MS;
   // Maximum readers allowed for each file
-  private static final int MAX_READER_CONCURRENCY = 64;
+  private static final int MAX_READER_CONCURRENCY = Configuration.global()
+      .getInt(PropertyKey.FUSE_MAX_READER_CONCURRENCY);
 
   private final LoadingCache<String, ClientRWLock> mLockCache
       = CacheBuilder.newBuilder().weakValues()
