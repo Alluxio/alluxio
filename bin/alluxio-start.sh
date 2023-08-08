@@ -26,11 +26,8 @@ Where ACTION is one of:
   masters                   \tStart masters on master nodes.
   proxy                     \tStart the proxy on this node.
   proxies                   \tStart proxies on master and worker nodes.
-  safe                      \tScript will run continuously and start the master if it's not running.
   worker  [MOPT] [-c cache] \tStart a worker on this node.
   workers [MOPT] [-c cache] \tStart workers on worker nodes.
-  restart_worker            \tRestart a failed worker on this node.
-  restart_workers           \tRestart any failed workers on worker nodes.
 "
 USAGE+="
 MOPT (Mount Option) is one of:
@@ -47,9 +44,6 @@ MOPT (Mount Option) is one of:
            specified directory (relative to each worker node's host filesystem).
 -f         format Journal, UnderFS Data and Workers Folder on master.
 -h         display this help.
--i backup  a journal backup to restore the master from. The backup should be
-           a URI path within the root under filesystem, e.g.
-           hdfs://mycluster/alluxio_backups/alluxio-journal-YYYY-MM-DD-timestamp.gz.
 -N         do not try to kill previous running processes before starting new ones.
 -w         wait for processes to end before returning.
 
@@ -263,18 +257,6 @@ start_workers() {
   ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "-a" "worker" $1 ${start_opts}
 }
 
-restart_worker() {
-  RUN=$(ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | awk '{ print $1; }')
-  if [[ ${RUN} -eq 0 ]]; then
-    echo "Restarting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup ${BIN}/launch-process worker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
-  fi
-}
-
-restart_workers() {
-  ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "restart_worker"
-}
-
 get_offline_worker() {
   local run=
   local result=""
@@ -308,35 +290,11 @@ start_monitor() {
   local action=$1
   local nodes=$2
   local run=
-  if [[ "${action}" == "restart_worker" ]]; then
-    action="worker"
-    if [[ -z "${nodes}" ]]; then
-      run="false"
-    fi
-  elif [[ "${action}" == "restart_workers" ]]; then
-    action="workers"
-    if [[ -z "${nodes}" ]]; then
-      run="false"
-    fi
-  fi
   if [[ -z "${run}" ]]; then
     ${LAUNCHER} "${BIN}/alluxio-monitor.sh" "${action}" "${nodes}"
   else
     echo "Skipping the monitor checks..."
   fi
-}
-
-run_safe() {
-  while [ 1 ]
-  do
-    RUN=$(ps -ef | grep "alluxio.master.AlluxioMaster" | grep "java" | wc | awk '{ print $1; }')
-    if [[ ${RUN} -eq 0 ]]; then
-      echo "Restarting the system master..."
-      start_master
-    fi
-    echo "Alluxio is running... "
-    sleep 2
-  done
 }
 
 main() {
@@ -419,12 +377,6 @@ main() {
   MONITOR_NODES=
   if [[ ! "${async}" ]]; then
     case "${ACTION}" in
-      restart_worker)
-        MONITOR_NODES=$(get_offline_worker)
-        ;;
-      restart_workers)
-        MONITOR_NODES=$(get_offline_workers)
-        ;;
       *)
         MONITOR_NODES=""
       ;;
@@ -505,15 +457,6 @@ main() {
       ;;
     proxies)
       start_proxies
-      ;;
-    restart_worker)
-      restart_worker
-      ;;
-    restart_workers)
-      restart_workers
-      ;;
-    safe)
-      run_safe
       ;;
     worker)
       start_worker "${MOPT}"

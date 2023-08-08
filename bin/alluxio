@@ -25,7 +25,6 @@ function printUsage {
   echo -e "  job           \t Command line tool for interacting with the job service."
   echo -e "  logLevel      \t Set or get log level of Alluxio servers."
   echo -e "  runClass      \t Run the main method of an Alluxio class."
-  echo -e "  runTest       \t Run an end-to-end test on an Alluxio cluster."
   echo -e "  runTests      \t Run all end-to-end tests on an Alluxio cluster."
   echo -e "  runHdfsMountTests\t Test the integration between Alluxio and the target HDFS path. "
   echo -e "  runUfsIOTest  \t Test the Alluxio throughput to the UFS path. Try 'alluxio runUfsIOTest -help' for more help."
@@ -299,12 +298,6 @@ function main {
     CLASS=$1
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH} # this should be the common case
     shift
-    runJavaClass "$@"
-  ;;
-  "runTest")
-    CLASS="alluxio.cli.TestRunner"
-    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
-    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "runTests")
