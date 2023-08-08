@@ -4622,25 +4622,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "the netty data server.")
           .build();
 
-  public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
-      intBuilder(Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX)
+  public static final PropertyKey WORKER_NETWORK_NETTY_READER_THREADS_MAX =
+      intBuilder(Name.WORKER_NETWORK_NETTY_READER_THREADS_MAX)
           .setDefaultValue(2048)
-          .setDescription("The maximum number of threads used to read blocks in the netty "
+          .setDescription("The maximum number of threads used to read pages in the netty "
               + "data server.")
+          .setAlias("alluxio.worker.network.netty.block.reader.threads.max")
           .build();
 
-  public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
-      intBuilder(Name.WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX)
+  public static final PropertyKey WORKER_NETWORK_NETTY_WRITER_THREADS_MAX =
+      intBuilder(Name.WORKER_NETWORK_NETTY_WRITER_THREADS_MAX)
           .setDefaultValue(1024)
-          .setDescription("The maximum number of threads used to write blocks in the netty "
+          .setDescription("The maximum number of threads used to write pages in the netty "
               + "data server.")
+          .setAlias("alluxio.worker.network.netty.block.writer.threads.max")
           .build();
 
-  public static final PropertyKey WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
-      intBuilder(Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX)
+  public static final PropertyKey WORKER_NETWORK_NETTY_UFS_WRITER_THREADS_MAX =
+      intBuilder(Name.WORKER_NETWORK_NETTY_UFS_WRITER_THREADS_MAX)
           .setDefaultValue(1024)
           .setDescription("The maximum number of threads used to write files to UFS in the "
               + "netty data server.")
+          .setAlias("alluxio.worker.network.netty.file.writer.threads.max")
           .build();
 
   public static final PropertyKey WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
@@ -8930,14 +8933,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX =
         "alluxio.worker.network.netty.async.cache.manager.threads.max";
-    public static final String WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
-        "alluxio.worker.network.netty.block.reader.threads.max";
-    public static final String WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
-        "alluxio.worker.network.netty.block.writer.threads.max";
-    public static final String WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX =
-        "alluxio.worker.network.netty.file.reader.threads.max";
-    public static final String WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
-        "alluxio.worker.network.netty.file.writer.threads.max";
+    public static final String WORKER_NETWORK_NETTY_READER_THREADS_MAX =
+        "alluxio.worker.network.netty.reader.threads.max";
+    public static final String WORKER_NETWORK_NETTY_WRITER_THREADS_MAX =
+        "alluxio.worker.network.netty.writer.threads.max";
+    public static final String WORKER_NETWORK_NETTY_UFS_WRITER_THREADS_MAX =
+        "alluxio.worker.network.netty.ufs.writer.threads.max";
     public static final String WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
         "alluxio.worker.network.netty.rpc.threads.max";
     public static final String WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =

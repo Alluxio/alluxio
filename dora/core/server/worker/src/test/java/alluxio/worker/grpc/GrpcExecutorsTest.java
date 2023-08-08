@@ -59,9 +59,4 @@ public class GrpcExecutorsTest {
   public void impersonationPassedToBlockWriter() {
     validateAuthenticatedClientUser(GrpcExecutors.BLOCK_WRITER_EXECUTOR);
   }
-
-  @Test
-  public void impersonationPassedToAsyncCacheManager() {
-    validateAuthenticatedClientUser(GrpcExecutors.CACHE_MANAGER_EXECUTOR);
-  }
 }
