@@ -9,10 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package cmd
+package job
 
-const (
-	FileSystemAdminShellJavaClass = "alluxio.cli.fsadmin.FileSystemAdminShell"
-	FileSystemShellJavaClass      = "alluxio.cli.fs.FileSystemShell"
-	JobShellJavaClass             = "alluxio.cli.job.JobShell"
-)
+import "alluxio.org/cli/env"
+
+var Service = &env.Service{
+	Name:        "job",
+	Description: "Command line tool for interacting with the job service.",
+	Commands: []env.Command{
+		Cancel,
+		CmdStatus,
+		JobStatus,
+		Leader,
+		List,
+		Load,
+		Submit,
+	},
+}
