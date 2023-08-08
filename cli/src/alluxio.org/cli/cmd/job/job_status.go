@@ -39,7 +39,7 @@ func (c *JobStatusCommand) Base() *env.BaseJavaCommand {
 }
 
 func (c *JobStatusCommand) ToCommand() *cobra.Command {
-	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
+	command := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   JobStatus.CommandName,
 		Short: "Displays the status info for the specific job.",
 		Args:  cobra.NoArgs,
@@ -47,12 +47,12 @@ func (c *JobStatusCommand) ToCommand() *cobra.Command {
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().IntVar(&c.jobId, "id", 0,
+	command.Flags().IntVar(&c.jobId, "id", 0,
 		"Determine the job ID to get status info")
-	cmd.Flags().BoolVarP(&c.everyTask, "every-task", "v", false,
+	command.Flags().BoolVarP(&c.everyTask, "every-task", "v", false,
 		"Determine display the status of every task")
-	cmd.MarkFlagRequired("id")
-	return cmd
+	command.MarkFlagRequired("id")
+	return command
 }
 
 func (c *JobStatusCommand) Run(args []string) error {

@@ -38,7 +38,7 @@ func (c *CmdStatusCommand) Base() *env.BaseJavaCommand {
 }
 
 func (c *CmdStatusCommand) ToCommand() *cobra.Command {
-	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
+	command := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   CmdStatus.CommandName,
 		Short: "Get the status information for a distributed command.",
 		Args:  cobra.NoArgs,
@@ -46,10 +46,10 @@ func (c *CmdStatusCommand) ToCommand() *cobra.Command {
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().IntVar(&c.jobControlId, "id", 0,
+	command.Flags().IntVar(&c.jobControlId, "id", 0,
 		"Determine the job control ID to get the status information")
-	cmd.MarkFlagRequired("id")
-	return cmd
+	command.MarkFlagRequired("id")
+	return command
 }
 
 func (c *CmdStatusCommand) Run(args []string) error {

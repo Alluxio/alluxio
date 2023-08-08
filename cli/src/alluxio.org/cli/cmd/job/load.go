@@ -35,7 +35,7 @@ func (c *LoadCommand) Base() *env.BaseJavaCommand {
 }
 
 func (c *LoadCommand) ToCommand() *cobra.Command {
-	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
+	command := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Load.CommandName,
 		Short: "Submit load job to Alluxio master, update job options if already exists",
 		Args:  cobra.NoArgs,
@@ -43,9 +43,9 @@ func (c *LoadCommand) ToCommand() *cobra.Command {
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().StringVar(&c.path, "path", "", "Determine the path of the load job to submit")
-	cmd.MarkFlagRequired("path")
-	return cmd
+	command.Flags().StringVar(&c.path, "path", "", "Determine the path of the load job to submit")
+	command.MarkFlagRequired("path")
+	return command
 }
 
 func (c *LoadCommand) Run(args []string) error {

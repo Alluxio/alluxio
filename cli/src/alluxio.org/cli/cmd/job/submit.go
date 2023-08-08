@@ -43,7 +43,7 @@ func (c *SubmitCommand) Base() *env.BaseJavaCommand {
 }
 
 func (c *SubmitCommand) ToCommand() *cobra.Command {
-	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
+	command := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Submit.CommandName,
 		Short: "Moves or copies a file or directory in parallel at file level.",
 		Args:  cobra.NoArgs,
@@ -51,16 +51,16 @@ func (c *SubmitCommand) ToCommand() *cobra.Command {
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().StringVar(&c.operationType, "type", "", "Determine type, options: [cp, mv]")
-	cmd.Flags().StringVar(&c.src, "src", "", "The path to move/copy from")
-	cmd.Flags().StringVar(&c.dst, "dst", "", "The path to move/copy to")
-	cmd.Flags().IntVar(&c.activeJobs, "active-jobs", 3000,
+	command.Flags().StringVar(&c.operationType, "type", "", "Determine type, options: [cp, mv]")
+	command.Flags().StringVar(&c.src, "src", "", "The path to move/copy from")
+	command.Flags().StringVar(&c.dst, "dst", "", "The path to move/copy to")
+	command.Flags().IntVar(&c.activeJobs, "active-jobs", 3000,
 		"Number of active jobs that can run at the same time, later jobs must wait")
-	cmd.Flags().IntVar(&c.batchSize, "batch-size", 1, "Number of files per request")
-	cmd.MarkFlagRequired("type")
-	cmd.MarkFlagRequired("src")
-	cmd.MarkFlagRequired("dst")
-	return cmd
+	command.Flags().IntVar(&c.batchSize, "batch-size", 1, "Number of files per request")
+	command.MarkFlagRequired("type")
+	command.MarkFlagRequired("src")
+	command.MarkFlagRequired("dst")
+	return command
 }
 
 func (c *SubmitCommand) Run(args []string) error {

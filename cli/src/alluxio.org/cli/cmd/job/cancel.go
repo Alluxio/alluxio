@@ -38,7 +38,7 @@ func (c *CancelCommand) Base() *env.BaseJavaCommand {
 }
 
 func (c *CancelCommand) ToCommand() *cobra.Command {
-	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
+	command := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Cancel.CommandName,
 		Short: "Cancels a job asynchronously.",
 		Args:  cobra.NoArgs,
@@ -46,9 +46,9 @@ func (c *CancelCommand) ToCommand() *cobra.Command {
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().IntVar(&c.jobId, "id", 0, "Determine a job ID to cancel")
-	cmd.MarkFlagRequired("id")
-	return cmd
+	command.Flags().IntVar(&c.jobId, "id", 0, "Determine a job ID to cancel")
+	command.MarkFlagRequired("id")
+	return command
 }
 
 func (c *CancelCommand) Run(args []string) error {

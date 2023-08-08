@@ -34,7 +34,7 @@ func (c *LeaderCommand) Base() *env.BaseJavaCommand {
 }
 
 func (c *LeaderCommand) ToCommand() *cobra.Command {
-	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
+	command := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Leader.CommandName,
 		Short: "Prints the hostname of the job master service leader.",
 		Args:  cobra.NoArgs,
@@ -42,7 +42,7 @@ func (c *LeaderCommand) ToCommand() *cobra.Command {
 			return c.Run(args)
 		},
 	})
-	return cmd
+	return command
 }
 
 func (c *LeaderCommand) Run(args []string) error {
