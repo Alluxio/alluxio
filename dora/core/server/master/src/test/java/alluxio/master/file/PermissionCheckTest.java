@@ -38,7 +38,7 @@ import alluxio.grpc.TtlAction;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
-import alluxio.master.block.BlockMasterFactory;
+//import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
@@ -187,7 +187,7 @@ public final class PermissionCheckTest {
     MetricsMaster metricsMaster =
         new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, metricsMaster);
-    new BlockMasterFactory().create(mRegistry, masterContext);
+//    new BlockMasterFactory().create(mRegistry, masterContext);
     mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);
     mRegistry.start(true);
 

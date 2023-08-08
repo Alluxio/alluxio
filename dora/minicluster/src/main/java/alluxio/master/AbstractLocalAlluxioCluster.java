@@ -25,8 +25,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.block.DefaultBlockMaster;
+//import alluxio.master.block.BlockMaster;
+//import alluxio.master.block.DefaultBlockMaster;
 import alluxio.proxy.ProxyProcess;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.underfs.UnderFileSystem;
@@ -319,12 +319,12 @@ public abstract class AbstractLocalAlluxioCluster {
     killWorkerProcesses();
 
     // forget all the workers in the master
-    LocalAlluxioMaster master = getLocalAlluxioMaster();
-    if (master != null) {
-      DefaultBlockMaster bm =
-          (DefaultBlockMaster) master.getMasterProcess().getMaster(BlockMaster.class);
-      bm.forgetAllWorkers();
-    }
+//    LocalAlluxioMaster master = getLocalAlluxioMaster();
+//    if (master != null) {
+//      DefaultBlockMaster bm =
+//          (DefaultBlockMaster) master.getMasterProcess().getMaster(BlockMaster.class);
+//      bm.forgetAllWorkers();
+//    }
   }
 
   /**

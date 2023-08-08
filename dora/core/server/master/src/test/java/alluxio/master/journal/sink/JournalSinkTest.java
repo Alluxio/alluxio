@@ -26,7 +26,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
-import alluxio.master.block.BlockMasterFactory;
+//import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.file.contexts.CompleteFileContext;
@@ -400,7 +400,7 @@ public final class JournalSinkTest {
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(journalSystem);
 
     new MetricsMasterFactory().create(registry, masterContext);
-    new BlockMasterFactory().create(registry, masterContext);
+//    new BlockMasterFactory().create(registry, masterContext);
     new FileSystemMasterFactory().create(registry, masterContext);
 
     if (sink != null) {

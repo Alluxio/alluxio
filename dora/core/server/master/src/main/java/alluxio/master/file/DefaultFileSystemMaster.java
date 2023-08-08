@@ -71,7 +71,7 @@ import alluxio.master.ProtobufUtils;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
-import alluxio.master.block.BlockMaster;
+//import alluxio.master.block.BlockMaster;
 import alluxio.master.file.activesync.ActiveSyncManager;
 import alluxio.master.file.contexts.CallTracker;
 import alluxio.master.file.contexts.CheckAccessContext;
@@ -245,7 +245,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class DefaultFileSystemMaster extends CoreMaster
     implements FileSystemMaster, DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultFileSystemMaster.class);
-  private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
+//  private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
+private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of();
 
   /** The number of threads to use in the {@link #mPersistCheckerPool}. */
   private static final int PERSIST_CHECKER_POOL_THREADS = 128;
@@ -351,7 +352,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    */
 
   /** Handle to the block master. */
-  private final BlockMaster mBlockMaster;
+//  private final BlockMaster mBlockMaster;
 
   /** This manages the file system inode structure. This must be journaled. */
   protected final InodeTree mInodeTree;
@@ -453,36 +454,37 @@ public class DefaultFileSystemMaster extends CoreMaster
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
    *
-   * @param blockMaster a block master handle
    * @param masterContext the context for Alluxio master
    */
-  public DefaultFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext) {
-    this(blockMaster, masterContext, ExecutorServiceFactories.cachedThreadPool(
+  public DefaultFileSystemMaster(CoreMasterContext masterContext) {
+    this(masterContext, ExecutorServiceFactories.cachedThreadPool(
         Constants.FILE_SYSTEM_MASTER_NAME), Clock.systemUTC());
   }
 
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
    *
-   * @param blockMaster a block master handle
    * @param masterContext the context for Alluxio master
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    * @param clock the clock used to compute the current time
    */
-  public DefaultFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
+  public DefaultFileSystemMaster(CoreMasterContext masterContext,
       ExecutorServiceFactory executorServiceFactory, Clock clock) {
     super(masterContext, new SystemClock(), executorServiceFactory);
 
-    mBlockMaster = blockMaster;
+//    mBlockMaster = blockMaster;
     mClock = clock;
-    mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
+//    mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
+    mDirectoryIdGenerator = new InodeDirectoryIdGenerator(null);
     mUfsManager = masterContext.getUfsManager();
     mMountTable = new MountTable(mUfsManager, getRootMountInfo(mUfsManager), mClock);
     mInodeLockManager = new InodeLockManager();
     InodeStore inodeStore = masterContext.getInodeStoreFactory().apply(mInodeLockManager);
     mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);
-    mInodeTree = new InodeTree(inodeStore, mBlockMaster,
+//    mInodeTree = new InodeTree(inodeStore, mBlockMaster,
+//        mDirectoryIdGenerator, mMountTable, mInodeLockManager);
+    mInodeTree = new InodeTree(inodeStore, null,
         mDirectoryIdGenerator, mMountTable, mInodeLockManager);
 
     // TODO(gene): Handle default config value for whitelist.
@@ -744,12 +746,12 @@ public class DefaultFileSystemMaster extends CoreMaster
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS)),
               Configuration.global(), mMasterContext.getUserState()));
-      getExecutorService().submit(
-          new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
-              new LostFileDetector(this, mBlockMaster, mInodeTree),
-              () -> new FixedIntervalSupplier(
-                  Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)),
-              Configuration.global(), mMasterContext.getUserState()));
+//      getExecutorService().submit(
+//          new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
+//              new LostFileDetector(this, mBlockMaster, mInodeTree),
+//              () -> new FixedIntervalSupplier(
+//                  Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)),
+//              Configuration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER,
               new PersistenceScheduler(),
@@ -844,10 +846,10 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public void validateInodeBlocks(boolean repair) throws UnavailableException {
-    mBlockMaster.validateBlocks((blockId) -> {
-      long fileId = IdUtils.fileIdFromBlockId(blockId);
-      return mInodeTree.inodeIdExists(fileId);
-    }, repair);
+//    mBlockMaster.validateBlocks((blockId) -> {
+//      long fileId = IdUtils.fileIdFromBlockId(blockId);
+//      return mInodeTree.inodeIdExists(fileId);
+//    }, repair);
   }
 
   @Override
@@ -1038,18 +1040,18 @@ public class DefaultFileSystemMaster extends CoreMaster
       fileInfo.setLength(inode.asDirectory().getChildCount());
     }
     if (inode.isFile()) {
-      InodeFile inodeFile = inode.asFile();
-      List<BlockInfo> blockInfos = mBlockMaster.getBlockInfoList(inodeFile.getBlockIds());
-      inMemoryPercentage = getFileInMemoryPercentageInternal(inodeFile, blockInfos);
-      inAlluxioPercentage = getFileInAlluxioPercentageInternal(inodeFile, blockInfos);
-      fileInfo.setInMemoryPercentage(inMemoryPercentage);
-      fileInfo.setInAlluxioPercentage(inAlluxioPercentage);
-
-      List<FileBlockInfo> fileBlockInfos = new ArrayList<>(blockInfos.size());
-      for (BlockInfo blockInfo : blockInfos) {
-        fileBlockInfos.add(generateFileBlockInfo(inodePath, blockInfo, excludeMountInfo));
-      }
-      fileInfo.setFileBlockInfos(fileBlockInfos);
+//      InodeFile inodeFile = inode.asFile();
+//      List<BlockInfo> blockInfos = mBlockMaster.getBlockInfoList(inodeFile.getBlockIds());
+//      inMemoryPercentage = getFileInMemoryPercentageInternal(inodeFile, blockInfos);
+//      inAlluxioPercentage = getFileInAlluxioPercentageInternal(inodeFile, blockInfos);
+//      fileInfo.setInMemoryPercentage(inMemoryPercentage);
+//      fileInfo.setInAlluxioPercentage(inAlluxioPercentage);
+//
+//      List<FileBlockInfo> fileBlockInfos = new ArrayList<>(blockInfos.size());
+//      for (BlockInfo blockInfo : blockInfos) {
+//        fileBlockInfos.add(generateFileBlockInfo(inodePath, blockInfo, excludeMountInfo));
+//      }
+//      fileInfo.setFileBlockInfos(fileBlockInfos);
     }
     // Rehydrate missing block-infos for persisted files.
     if (fileInfo.isCompleted()
@@ -1061,7 +1063,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       LOG.warn("BlockInfo missing for file: {}. BlockIdsWithMissingInfos: {}", inodePath.getUri(),
           missingBlockIds.stream().map(Object::toString).collect(Collectors.joining(",")));
       // Remove old block metadata from block-master before re-committing.
-      mBlockMaster.removeBlocks(fileInfo.getBlockIds(), true);
+//      mBlockMaster.removeBlocks(fileInfo.getBlockIds(), true);
       // Commit all the file blocks (without locations) so the metadata for the block exists.
       commitBlockInfosForFile(
           fileInfo.getBlockIds(), fileInfo.getLength(), fileInfo.getBlockSizeBytes(), null);
@@ -1729,24 +1731,24 @@ public class DefaultFileSystemMaster extends CoreMaster
 
     InodeFile fileInode = inode.asFile();
     List<Long> blockIdList = fileInode.getBlockIds();
-    List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
-    if (!fileInode.isPersisted() && blockInfoList.size() != blockIdList.size()) {
-      throw new BlockInfoException("Cannot complete a file without all the blocks committed");
-    }
-
-    // Iterate over all file blocks committed to Alluxio, computing the length and verify that all
-    // the blocks (except the last one) is the same size as the file block size.
+//    List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
+//    if (!fileInode.isPersisted() && blockInfoList.size() != blockIdList.size()) {
+//      throw new BlockInfoException("Cannot complete a file without all the blocks committed");
+//    }
+//
+//    // Iterate over all file blocks committed to Alluxio, computing the length and verify that all
+//    // the blocks (except the last one) is the same size as the file block size.
     long inAlluxioLength = 0;
-    long fileBlockSize = fileInode.getBlockSizeBytes();
-    for (int i = 0; i < blockInfoList.size(); i++) {
-      BlockInfo blockInfo = blockInfoList.get(i);
-      inAlluxioLength += blockInfo.getLength();
-      if (i < blockInfoList.size() - 1 && blockInfo.getLength() != fileBlockSize) {
-        throw new BlockInfoException(
-            "Block index " + i + " has a block size smaller than the file block size (" + fileInode
-                .getBlockSizeBytes() + ")");
-      }
-    }
+//    long fileBlockSize = fileInode.getBlockSizeBytes();
+//    for (int i = 0; i < blockInfoList.size(); i++) {
+//      BlockInfo blockInfo = blockInfoList.get(i);
+//      inAlluxioLength += blockInfo.getLength();
+//      if (i < blockInfoList.size() - 1 && blockInfo.getLength() != fileBlockSize) {
+//        throw new BlockInfoException(
+//            "Block index " + i + " has a block size smaller than the file block size (" + fileInode
+//                .getBlockSizeBytes() + ")");
+//      }
+//    }
 
     // If the file is persisted, its length is determined by UFS. Otherwise, its length is
     // determined by its size in Alluxio.
@@ -2436,14 +2438,15 @@ public class DefaultFileSystemMaster extends CoreMaster
   private List<FileBlockInfo> getFileBlockInfoListInternal(LockedInodePath inodePath,
       boolean excludeMountInfo)
       throws InvalidPathException, FileDoesNotExistException, UnavailableException {
-    InodeFile file = inodePath.getInodeFile();
-    List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(file.getBlockIds());
-
-    List<FileBlockInfo> ret = new ArrayList<>(blockInfoList.size());
-    for (BlockInfo blockInfo : blockInfoList) {
-      ret.add(generateFileBlockInfo(inodePath, blockInfo, excludeMountInfo));
-    }
-    return ret;
+//    InodeFile file = inodePath.getInodeFile();
+//    List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(file.getBlockIds());
+//
+//    List<FileBlockInfo> ret = new ArrayList<>(blockInfoList.size());
+//    for (BlockInfo blockInfo : blockInfoList) {
+//      ret.add(generateFileBlockInfo(inodePath, blockInfo, excludeMountInfo));
+//    }
+//    return ret;
+    return Collections.emptyList();
   }
 
   /**
@@ -2618,13 +2621,14 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @return the in memory percentage
    */
   private int getInMemoryPercentage(Inode inode) throws UnavailableException {
-    if (!inode.isFile()) {
-      return 0;
-    }
-    InodeFile inodeFile = inode.asFile();
-
-    return getFileInMemoryPercentageInternal(inodeFile,
-        mBlockMaster.getBlockInfoList(inodeFile.getBlockIds()));
+//    if (!inode.isFile()) {
+//      return 0;
+//    }
+//    InodeFile inodeFile = inode.asFile();
+//
+//    return getFileInMemoryPercentageInternal(inodeFile,
+//        mBlockMaster.getBlockInfoList(inodeFile.getBlockIds()));
+    return 0;
   }
 
   /**
@@ -2656,13 +2660,14 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @return the in alluxio percentage
    */
   private int getInAlluxioPercentage(Inode inode) throws UnavailableException {
-    if (!inode.isFile()) {
-      return 0;
-    }
-    InodeFile inodeFile = inode.asFile();
-
-    return getFileInAlluxioPercentageInternal(inodeFile,
-        mBlockMaster.getBlockInfoList(inodeFile.getBlockIds()));
+//    if (!inode.isFile()) {
+//      return 0;
+//    }
+//    InodeFile inodeFile = inode.asFile();
+//
+//    return getFileInAlluxioPercentageInternal(inodeFile,
+//        mBlockMaster.getBlockInfoList(inodeFile.getBlockIds()));
+    return 0;
   }
 
   /**
@@ -2690,11 +2695,11 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @return true if the given block is in the top storage level in some worker, false otherwise
    */
   private boolean isInTopStorageTier(BlockInfo blockInfo) {
-    for (BlockLocation location : blockInfo.getLocations()) {
-      if (mBlockMaster.getGlobalStorageTierAssoc().getOrdinal(location.getTierAlias()) == 0) {
-        return true;
-      }
-    }
+//    for (BlockLocation location : blockInfo.getLocations()) {
+//      if (mBlockMaster.getGlobalStorageTierAssoc().getOrdinal(location.getTierAlias()) == 0) {
+//        return true;
+//      }
+//    }
     return false;
   }
 
@@ -3230,80 +3235,80 @@ public class DefaultFileSystemMaster extends CoreMaster
   public void free(AlluxioURI path, FreeContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       UnexpectedAlluxioException, IOException {
-    Metrics.FREE_FILE_OPS.inc();
-    // No need to syncMetadata before free.
-    try (RpcContext rpcContext = createRpcContext(context);
-         LockedInodePath inodePath =
-             mInodeTree
-                 .lockFullInodePath(path, LockPattern.WRITE_INODE, rpcContext.getJournalContext());
-         FileSystemMasterAuditContext auditContext =
-             createAuditContext("free", path, null, inodePath.getInodeOrNull())) {
-      try {
-        mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
-      } catch (AccessControlException e) {
-        auditContext.setAllowed(false);
-        throw e;
-      }
-      freeInternal(rpcContext, inodePath, context);
-      auditContext.setSucceeded(true);
-    }
+//    Metrics.FREE_FILE_OPS.inc();
+//    // No need to syncMetadata before free.
+//    try (RpcContext rpcContext = createRpcContext(context);
+//         LockedInodePath inodePath =
+//             mInodeTree
+//                 .lockFullInodePath(path, LockPattern.WRITE_INODE, rpcContext.getJournalContext());
+//         FileSystemMasterAuditContext auditContext =
+//             createAuditContext("free", path, null, inodePath.getInodeOrNull())) {
+//      try {
+//        mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
+//      } catch (AccessControlException e) {
+//        auditContext.setAllowed(false);
+//        throw e;
+//      }
+//      freeInternal(rpcContext, inodePath, context);
+//      auditContext.setSucceeded(true);
+//    }
   }
 
-  /**
-   * Implements free operation.
-   *
-   * @param rpcContext the rpc context
-   * @param inodePath inode of the path to free
-   * @param context context to free method
-   */
-  private void freeInternal(RpcContext rpcContext, LockedInodePath inodePath, FreeContext context)
-      throws FileDoesNotExistException, UnexpectedAlluxioException,
-      IOException, InvalidPathException, AccessControlException {
-    Inode inode = inodePath.getInode();
-    if (inode.isDirectory() && !context.getOptions().getRecursive()
-        && mInodeStore.hasChildren(inode.asDirectory())) {
-      // inode is nonempty, and we don't free a nonempty directory unless recursive is true
-      throw new UnexpectedAlluxioException(
-          ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR.getMessage(mInodeTree.getPath(inode)));
-    }
-    long opTimeMs = mClock.millis();
-    List<Inode> freeInodes = new ArrayList<>();
-    freeInodes.add(inode);
-    try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
-      int journalFlushCounter = 0;
-      for (LockedInodePath descedant : Iterables.concat(descendants,
-          Collections.singleton(inodePath))) {
-        Inode freeInode = descedant.getInodeOrNull();
-
-        if (freeInode != null && freeInode.isFile()) {
-          if (freeInode.getPersistenceState() != PersistenceState.PERSISTED) {
-            throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE
-                .getMessage(mInodeTree.getPath(freeInode)));
-          }
-          if (freeInode.isPinned()) {
-            if (!context.getOptions().getForced()) {
-              throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_PINNED_FILE
-                  .getMessage(mInodeTree.getPath(freeInode)));
-            }
-
-            SetAttributeContext setAttributeContext = SetAttributeContext
-                .mergeFrom(SetAttributePOptions.newBuilder().setRecursive(false).setPinned(false));
-            setAttributeSingleFile(rpcContext, descedant, true, opTimeMs, setAttributeContext);
-          }
-          // Remove corresponding blocks from workers.
-          mBlockMaster.removeBlocks(freeInode.asFile().getBlockIds(), false /* delete */);
-          journalFlushCounter++;
-          if (mMergeInodeJournals
-              && journalFlushCounter > mRecursiveOperationForceFlushEntries) {
-            rpcContext.getJournalContext().flush();
-            journalFlushCounter = 0;
-          }
-        }
-      }
-    }
-
-    Metrics.FILES_FREED.inc(freeInodes.size());
-  }
+//  /**
+//   * Implements free operation.
+//   *
+//   * @param rpcContext the rpc context
+//   * @param inodePath inode of the path to free
+//   * @param context context to free method
+//   */
+//  private void freeInternal(RpcContext rpcContext, LockedInodePath inodePath, FreeContext context)
+//      throws FileDoesNotExistException, UnexpectedAlluxioException,
+//      IOException, InvalidPathException, AccessControlException {
+//    Inode inode = inodePath.getInode();
+//    if (inode.isDirectory() && !context.getOptions().getRecursive()
+//        && mInodeStore.hasChildren(inode.asDirectory())) {
+//      // inode is nonempty, and we don't free a nonempty directory unless recursive is true
+//      throw new UnexpectedAlluxioException(
+//          ExceptionMessage.CANNOT_FREE_NON_EMPTY_DIR.getMessage(mInodeTree.getPath(inode)));
+//    }
+//    long opTimeMs = mClock.millis();
+//    List<Inode> freeInodes = new ArrayList<>();
+//    freeInodes.add(inode);
+//    try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
+//      int journalFlushCounter = 0;
+//      for (LockedInodePath descedant : Iterables.concat(descendants,
+//          Collections.singleton(inodePath))) {
+//        Inode freeInode = descedant.getInodeOrNull();
+//
+//        if (freeInode != null && freeInode.isFile()) {
+//          if (freeInode.getPersistenceState() != PersistenceState.PERSISTED) {
+//            throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_NON_PERSISTED_FILE
+//                .getMessage(mInodeTree.getPath(freeInode)));
+//          }
+//          if (freeInode.isPinned()) {
+//            if (!context.getOptions().getForced()) {
+//              throw new UnexpectedAlluxioException(ExceptionMessage.CANNOT_FREE_PINNED_FILE
+//                  .getMessage(mInodeTree.getPath(freeInode)));
+//            }
+//
+//            SetAttributeContext setAttributeContext = SetAttributeContext
+//                .mergeFrom(SetAttributePOptions.newBuilder().setRecursive(false).setPinned(false));
+//            setAttributeSingleFile(rpcContext, descedant, true, opTimeMs, setAttributeContext);
+//          }
+//          // Remove corresponding blocks from workers.
+//          mBlockMaster.removeBlocks(freeInode.asFile().getBlockIds(), false /* delete */);
+//          journalFlushCounter++;
+//          if (mMergeInodeJournals
+//              && journalFlushCounter > mRecursiveOperationForceFlushEntries) {
+//            rpcContext.getJournalContext().flush();
+//            journalFlushCounter = 0;
+//          }
+//        }
+//      }
+//    }
+//
+//    Metrics.FILES_FREED.inc(freeInodes.size());
+//  }
 
   @Override
   public AlluxioURI getPath(long fileId) throws FileDoesNotExistException {
@@ -3348,14 +3353,14 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public Set<Long> getLostFiles() {
     Set<Long> lostFiles = new HashSet<>();
-    Iterator<Long> iter = mBlockMaster.getLostBlocksIterator();
-    while (iter.hasNext()) {
-      long blockId = iter.next();
-      // the file id is the container id of the block id
-      long containerId = BlockId.getContainerId(blockId);
-      long fileId = IdUtils.createFileId(containerId);
-      lostFiles.add(fileId);
-    }
+//    Iterator<Long> iter = mBlockMaster.getLostBlocksIterator();
+//    while (iter.hasNext()) {
+//      long blockId = iter.next();
+//      // the file id is the container id of the block id
+//      long containerId = BlockId.getContainerId(blockId);
+//      long fileId = IdUtils.createFileId(containerId);
+//      lostFiles.add(fileId);
+//    }
     return lostFiles;
   }
 
@@ -4407,7 +4412,8 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
-    return mBlockMaster.getWorkerInfoList();
+//    return mBlockMaster.getWorkerInfoList();
+    return Collections.emptyList();
   }
 
   @Override
@@ -5361,20 +5367,20 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   private void removeBlocks(Collection<Long> blocks) throws IOException {
-    if (blocks.isEmpty()) {
-      return;
-    }
-    RetryPolicy retry = new CountingRetry(3);
-    IOException lastThrown = null;
-    while (retry.attempt()) {
-      try {
-        mBlockMaster.removeBlocks(blocks, true);
-        return;
-      } catch (UnavailableException e) {
-        lastThrown = e;
-      }
-    }
-    throw new IOException("Failed to remove deleted blocks from block master", lastThrown);
+//    if (blocks.isEmpty()) {
+//      return;
+//    }
+//    RetryPolicy retry = new CountingRetry(3);
+//    IOException lastThrown = null;
+//    while (retry.attempt()) {
+//      try {
+//        mBlockMaster.removeBlocks(blocks, true);
+//        return;
+//      } catch (UnavailableException e) {
+//        lastThrown = e;
+//      }
+//    }
+//    throw new IOException("Failed to remove deleted blocks from block master", lastThrown);
   }
 
   /**

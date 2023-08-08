@@ -27,7 +27,7 @@ import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterProcess;
 import alluxio.master.MasterRegistry;
-import alluxio.master.block.BlockMaster;
+//import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.NoopJournaled;
 import alluxio.master.metrics.MetricsMaster;
@@ -52,7 +52,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class DefaultThrottleMaster extends AbstractMaster implements NoopJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultThrottleMaster.class);
   private static final Set<Class<? extends Server>> DEPS =
-      ImmutableSet.of(BlockMaster.class, FileSystemMaster.class,
+      ImmutableSet.of(FileSystemMaster.class,
           MetricsMaster.class);
 
   /** The Alluxio master process. */

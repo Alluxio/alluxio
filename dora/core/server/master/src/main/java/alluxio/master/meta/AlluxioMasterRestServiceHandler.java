@@ -36,7 +36,7 @@ import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.master.AlluxioMasterProcess;
-import alluxio.master.block.BlockMaster;
+//import alluxio.master.block.BlockMaster;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.ListStatusContext;
@@ -163,7 +163,7 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String LOG_ARGUMENT_LEVEL = "level";
 
   private final AlluxioMasterProcess mMasterProcess;
-  private final BlockMaster mBlockMaster;
+//  private final BlockMaster mBlockMaster;
   private final FileSystemMaster mFileSystemMaster;
   private final MetaMaster mMetaMaster;
   private final FileSystem mFsClient;
@@ -179,7 +179,7 @@ public final class AlluxioMasterRestServiceHandler {
     // Poor man's dependency injection through the Jersey application scope.
     mMasterProcess = (AlluxioMasterProcess) context
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
-    mBlockMaster = mMasterProcess.getMaster(BlockMaster.class);
+//    mBlockMaster = mMasterProcess.getMaster(BlockMaster.class);
     mFileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
     mMetaMaster = mMasterProcess.getMaster(MetaMaster.class);
     mFsClient =
@@ -217,16 +217,19 @@ public final class AlluxioMasterRestServiceHandler {
       if (rawConfiguration != null) {
         rawConfig = rawConfiguration;
       }
-      return new AlluxioMasterInfo().setCapacity(getCapacityInternal())
+      return new AlluxioMasterInfo()
+//          .setCapacity(getCapacityInternal())
           .setConfiguration(getConfigurationInternal(rawConfig))
-          .setLostWorkers(mBlockMaster.getLostWorkersInfoList()).setMetrics(getMetricsInternal())
+//          .setLostWorkers(mBlockMaster.getLostWorkersInfoList())
+          .setMetrics(getMetricsInternal())
           .setMountPoints(getMountPointsInternal())
           .setRpcAddress(mMasterProcess.getRpcAddress().toString())
           .setStartTimeMs(mMasterProcess.getStartTimeMs())
-          .setTierCapacity(getTierCapacityInternal()).setUfsCapacity(getUfsCapacityInternal())
+//          .setTierCapacity(getTierCapacityInternal())
+          .setUfsCapacity(getUfsCapacityInternal())
           .setUptimeMs(mMasterProcess.getUptimeMs())
-          .setVersion(RuntimeConstants.VERSION).setRevision(ProjectConstants.REVISION)
-          .setWorkers(mBlockMaster.getWorkerInfoList());
+          .setVersion(RuntimeConstants.VERSION).setRevision(ProjectConstants.REVISION);
+//          .setWorkers(mBlockMaster.getWorkerInfoList());
     }, Configuration.global());
   }
 
@@ -279,15 +282,15 @@ public final class AlluxioMasterRestServiceHandler {
               Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)))
           .setVersion(RuntimeConstants.VERSION)
           .setRevision(ProjectConstants.REVISION)
-          .setLiveWorkerNodes(Integer.toString(mBlockMaster.getWorkerCount()))
-          .setCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes()))
+//          .setLiveWorkerNodes(Integer.toString(mBlockMaster.getWorkerCount()))
+//          .setCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes()))
           .setClusterId(mMetaMaster.getClusterID())
-          .setReplicaBlockCount(Long.toString(mBlockMaster.getBlockReplicaCount()))
-          .setUniqueBlockCount(Long.toString(mBlockMaster.getUniqueBlockCount()))
-          .setTotalPath(Long.toString(mFileSystemMaster.getInodeCount()))
-          .setUsedCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getUsedBytes()))
-          .setFreeCapacity(FormatUtils
-              .getSizeFromBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()));
+//          .setReplicaBlockCount(Long.toString(mBlockMaster.getBlockReplicaCount()))
+//          .setUniqueBlockCount(Long.toString(mBlockMaster.getUniqueBlockCount()))
+          .setTotalPath(Long.toString(mFileSystemMaster.getInodeCount()));
+//          .setUsedCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getUsedBytes()))
+//          .setFreeCapacity(FormatUtils
+//              .getSizeFromBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes()));
       ConfigCheckReport report = mMetaMaster.getConfigCheckReport();
       response.setConfigCheckStatus(report.getConfigStatus())
           .setConfigCheckErrors(report.getConfigErrors())
@@ -296,21 +299,21 @@ public final class AlluxioMasterRestServiceHandler {
           .setConfigCheckWarnNum(
               report.getConfigWarns().values().stream().mapToInt(List::size).sum());
 
-      StorageTierAssoc globalStorageTierAssoc = mBlockMaster.getGlobalStorageTierAssoc();
-      List<StorageTierInfo> infosList = new ArrayList<>();
-      Map<String, Long> totalBytesOnTiers = mBlockMaster.getTotalBytesOnTiers();
-      Map<String, Long> usedBytesOnTiers = mBlockMaster.getUsedBytesOnTiers();
-
-      for (int ordinal = 0; ordinal < globalStorageTierAssoc.size(); ordinal++) {
-        String tierAlias = globalStorageTierAssoc.getAlias(ordinal);
-        if (totalBytesOnTiers.containsKey(tierAlias) && totalBytesOnTiers.get(tierAlias) > 0) {
-          StorageTierInfo info = new StorageTierInfo(tierAlias, totalBytesOnTiers.get(tierAlias),
-              usedBytesOnTiers.get(tierAlias));
-          infosList.add(info);
-        }
-      }
-
-      response.setStorageTierInfos(infosList);
+//      StorageTierAssoc globalStorageTierAssoc = mBlockMaster.getGlobalStorageTierAssoc();
+//      List<StorageTierInfo> infosList = new ArrayList<>();
+//      Map<String, Long> totalBytesOnTiers = mBlockMaster.getTotalBytesOnTiers();
+//      Map<String, Long> usedBytesOnTiers = mBlockMaster.getUsedBytesOnTiers();
+//
+//      for (int ordinal = 0; ordinal < globalStorageTierAssoc.size(); ordinal++) {
+//        String tierAlias = globalStorageTierAssoc.getAlias(ordinal);
+//        if (totalBytesOnTiers.containsKey(tierAlias) && totalBytesOnTiers.get(tierAlias) > 0) {
+//          StorageTierInfo info = new StorageTierInfo(tierAlias, totalBytesOnTiers.get(tierAlias),
+//              usedBytesOnTiers.get(tierAlias));
+//          infosList.add(info);
+//        }
+//      }
+//
+//      response.setStorageTierInfos(infosList);
 
       MountPointInfo mountInfo;
       try {
@@ -440,7 +443,7 @@ public final class AlluxioMasterRestServiceHandler {
         long fileId = mFileSystemMaster.getFileId(currentPath);
         FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
         UIFileInfo currentFileInfo = new UIFileInfo(fileInfo, Configuration.global(),
-            mBlockMaster.getGlobalStorageTierAssoc().getOrderedStorageAliases());
+            Collections.emptyList());
         if (currentFileInfo.getAbsolutePath() == null) {
           throw new FileDoesNotExistException(currentPath.toString());
         }
@@ -506,7 +509,7 @@ public final class AlluxioMasterRestServiceHandler {
               uiBlockInfo.add(new UIFileBlockInfo(fileBlockInfo, Configuration.global()));
             }
             response.setFileBlocks(uiBlockInfo).setFileData(fileData)
-                .setHighestTierAlias(mBlockMaster.getGlobalStorageTierAssoc().getAlias(0));
+                .setHighestTierAlias("MEM");
           } catch (AlluxioException e) {
             throw new IOException(e);
           }
@@ -522,14 +525,14 @@ public final class AlluxioMasterRestServiceHandler {
           fileId = mFileSystemMaster.getFileId(currentPath);
           pathInfos[0] =
               new UIFileInfo(mFileSystemMaster.getFileInfo(fileId), Configuration.global(),
-                  mBlockMaster.getGlobalStorageTierAssoc().getOrderedStorageAliases());
+                  Collections.emptyList());
           AlluxioURI breadcrumb = new AlluxioURI(AlluxioURI.SEPARATOR);
           for (int i = 1; i < splitPath.length - 1; i++) {
             breadcrumb = breadcrumb.join(splitPath[i]);
             fileId = mFileSystemMaster.getFileId(breadcrumb);
             pathInfos[i] =
                 new UIFileInfo(mFileSystemMaster.getFileInfo(fileId), Configuration.global(),
-                    mBlockMaster.getGlobalStorageTierAssoc().getOrderedStorageAliases());
+                    Collections.emptyList());
           }
           response.setPathInfos(pathInfos);
         }
@@ -557,7 +560,7 @@ public final class AlluxioMasterRestServiceHandler {
       List<UIFileInfo> fileInfos = new ArrayList<>(filesInfo.size());
       for (FileInfo fileInfo : filesInfo) {
         UIFileInfo toAdd = new UIFileInfo(fileInfo, Configuration.global(),
-            mBlockMaster.getGlobalStorageTierAssoc().getOrderedStorageAliases());
+            Collections.emptyList());
         try {
           if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
             FileBlockInfo blockInfo =
@@ -650,7 +653,7 @@ public final class AlluxioMasterRestServiceHandler {
           FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
           if (fileInfo != null && fileInfo.getInAlluxioPercentage() == 100) {
             fileInfos.add(new UIFileInfo(fileInfo, Configuration.global(),
-                mBlockMaster.getGlobalStorageTierAssoc().getOrderedStorageAliases()));
+                Collections.emptyList()));
           }
         } catch (FileDoesNotExistException e) {
           response.setFatalError("Error: File does not exist " + e.getLocalizedMessage());
@@ -728,7 +731,7 @@ public final class AlluxioMasterRestServiceHandler {
                 new UIFileInfo.LocalFileInfo(logFileName, logFileName, logFile.length(),
                     UIFileInfo.LocalFileInfo.EMPTY_CREATION_TIME, logFile.lastModified(),
                     logFile.isDirectory()), Configuration.global(),
-                mBlockMaster.getGlobalStorageTierAssoc().getOrderedStorageAliases()));
+                Collections.emptyList()));
           }
         }
         fileInfos.sort(UIFileInfo.PATH_STRING_COMPARE);
@@ -864,13 +867,13 @@ public final class AlluxioMasterRestServiceHandler {
 
       response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG));
 
-      List<WorkerInfo> workerInfos = mBlockMaster.getWorkerInfoList();
-      NodeInfo[] normalNodeInfos = WebUtils.generateOrderedNodeInfos(workerInfos);
-      response.setNormalNodeInfos(normalNodeInfos);
-
-      List<WorkerInfo> lostWorkerInfos = mBlockMaster.getLostWorkersInfoList();
-      NodeInfo[] failedNodeInfos = WebUtils.generateOrderedNodeInfos(lostWorkerInfos);
-      response.setFailedNodeInfos(failedNodeInfos);
+//      List<WorkerInfo> workerInfos = mBlockMaster.getWorkerInfoList();
+//      NodeInfo[] normalNodeInfos = WebUtils.generateOrderedNodeInfos(workerInfos);
+//      response.setNormalNodeInfos(normalNodeInfos);
+//
+//      List<WorkerInfo> lostWorkerInfos = mBlockMaster.getLostWorkersInfoList();
+//      NodeInfo[] failedNodeInfos = WebUtils.generateOrderedNodeInfos(lostWorkerInfos);
+//      response.setFailedNodeInfos(failedNodeInfos);
 
       return response;
     }, Configuration.global());
@@ -1167,10 +1170,10 @@ public final class AlluxioMasterRestServiceHandler {
     }, Configuration.global());
   }
 
-  private Capacity getCapacityInternal() {
-    return new Capacity().setTotal(mBlockMaster.getCapacityBytes())
-        .setUsed(mBlockMaster.getUsedBytes());
-  }
+//  private Capacity getCapacityInternal() {
+//    return new Capacity().setTotal(mBlockMaster.getCapacityBytes())
+//        .setUsed(mBlockMaster.getUsedBytes());
+//  }
 
   private Map<String, Object> getConfigurationInternal(boolean raw) {
     return new TreeMap<>(Configuration
@@ -1202,17 +1205,17 @@ public final class AlluxioMasterRestServiceHandler {
     return mFileSystemMaster.getMountPointInfoSummary();
   }
 
-  private Map<String, Capacity> getTierCapacityInternal() {
-    SortedMap<String, Capacity> tierCapacity = new TreeMap<>();
-    Map<String, Long> totalTierCapacity = mBlockMaster.getTotalBytesOnTiers();
-    Map<String, Long> usedTierCapacity = mBlockMaster.getUsedBytesOnTiers();
-    for (String tierAlias : mBlockMaster.getGlobalStorageTierAssoc().getOrderedStorageAliases()) {
-      long total = totalTierCapacity.containsKey(tierAlias) ? totalTierCapacity.get(tierAlias) : 0;
-      long used = usedTierCapacity.containsKey(tierAlias) ? usedTierCapacity.get(tierAlias) : 0;
-      tierCapacity.put(tierAlias, new Capacity().setTotal(total).setUsed(used));
-    }
-    return tierCapacity;
-  }
+//  private Map<String, Capacity> getTierCapacityInternal() {
+//    SortedMap<String, Capacity> tierCapacity = new TreeMap<>();
+//    Map<String, Long> totalTierCapacity = mBlockMaster.getTotalBytesOnTiers();
+//    Map<String, Long> usedTierCapacity = mBlockMaster.getUsedBytesOnTiers();
+//    for (String tierAlias : mBlockMaster.getGlobalStorageTierAssoc().getOrderedStorageAliases()) {
+//      long total = totalTierCapacity.containsKey(tierAlias) ? totalTierCapacity.get(tierAlias) : 0;
+//      long used = usedTierCapacity.containsKey(tierAlias) ? usedTierCapacity.get(tierAlias) : 0;
+//      tierCapacity.put(tierAlias, new Capacity().setTotal(total).setUsed(used));
+//    }
+//    return tierCapacity;
+//  }
 
   private Capacity getUfsCapacityInternal() {
     MountPointInfo mountInfo = mFileSystemMaster.getMountPointInfoSummary().get(MountTable.ROOT);

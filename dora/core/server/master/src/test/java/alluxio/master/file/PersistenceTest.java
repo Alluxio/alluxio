@@ -36,7 +36,7 @@ import alluxio.master.DefaultSafeModeManager;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.SafeModeManager;
-import alluxio.master.block.BlockMasterFactory;
+//import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
@@ -523,7 +523,7 @@ public final class PersistenceTest {
         JournalTestUtils.createJournalSystem(mJournalFolder.getAbsolutePath());
     CoreMasterContext context = MasterTestUtils.testMasterContext(journalSystem);
     new MetricsMasterFactory().create(mRegistry, context);
-    new BlockMasterFactory().create(mRegistry, context);
+//    new BlockMasterFactory().create(mRegistry, context);
     mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, context);
     journalSystem.start();
     journalSystem.gainPrimacy();

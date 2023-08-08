@@ -15,7 +15,7 @@ import alluxio.Constants;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
-import alluxio.master.block.BlockMaster;
+//import alluxio.master.block.BlockMaster;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +47,8 @@ public final class MetaMasterFactory implements MasterFactory<CoreMasterContext>
   @Override
   public MetaMaster create(MasterRegistry registry, CoreMasterContext context) {
     LOG.info("Creating {} ", MetaMaster.class.getName());
-    MetaMaster metaMaster = new DefaultMetaMaster(registry.get(BlockMaster.class), context);
+//    MetaMaster metaMaster = new DefaultMetaMaster(registry.get(BlockMaster.class), context);
+    MetaMaster metaMaster = new DefaultMetaMaster(context);
     registry.add(MetaMaster.class, metaMaster);
     return metaMaster;
   }

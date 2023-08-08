@@ -31,8 +31,8 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.StateLockOptions;
 import alluxio.master.block.BlockId;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.block.BlockMasterFactory;
+//import alluxio.master.block.BlockMaster;
+//import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.FileSystemJournalEntryMerger;
 import alluxio.master.file.InodeSyncStream;
 import alluxio.master.file.meta.PersistenceState;
@@ -76,7 +76,7 @@ public class JournalContextTest {
 
   private JournalSystem mJournalSystem;
   private CoreMasterContext mMasterContext;
-  private BlockMaster mBlockMaster;
+//  private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
 
   @Rule
@@ -96,7 +96,7 @@ public class JournalContextTest {
     mJournalSystem.format();
     mMasterContext = MasterTestUtils.testMasterContext(mJournalSystem);
     new MetricsMasterFactory().create(mRegistry, mMasterContext);
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, mMasterContext);
+//    mBlockMaster = new BlockMasterFactory().create(mRegistry, mMasterContext);
 
     // start
     mJournalSystem.start();
@@ -111,141 +111,141 @@ public class JournalContextTest {
     Configuration.reloadProperties();
   }
 
-  @Test
-  public void journalContextBlocksPausing() throws Exception {
-    JournalContext journalContext = mBlockMaster.createJournalContext();
+//  @Test
+//  public void journalContextBlocksPausing() throws Exception {
+//    JournalContext journalContext = mBlockMaster.createJournalContext();
+//
+//    AtomicBoolean paused = new AtomicBoolean(false);
+//
+//    Thread thread = new Thread(() -> {
+//      // the pause lock should block
+//      try {
+//        mMasterContext.getStateLockManager().lockExclusive(StateLockOptions.defaults());
+//        paused.set(true);
+//      } catch (Exception e) {
+//        throw new IllegalStateException("Failed to grab state-lock exclusively", e);
+//      }
+//    });
+//    thread.start();
+//
+//    try {
+//      // since the journal context is still open, the pause should be blocked
+//      CommonUtils.sleepMs(100);
+//      assertFalse(paused.get());
+//
+//      // after closing the journal context, the pause lock should succeed
+//      journalContext.close();
+//      CommonUtils.waitFor("pause lock to succeed", paused::get,
+//          WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS).setInterval(10));
+//    } finally {
+//      thread.interrupt();
+//      thread.join();
+//    }
+//  }
 
-    AtomicBoolean paused = new AtomicBoolean(false);
-
-    Thread thread = new Thread(() -> {
-      // the pause lock should block
-      try {
-        mMasterContext.getStateLockManager().lockExclusive(StateLockOptions.defaults());
-        paused.set(true);
-      } catch (Exception e) {
-        throw new IllegalStateException("Failed to grab state-lock exclusively", e);
-      }
-    });
-    thread.start();
-
-    try {
-      // since the journal context is still open, the pause should be blocked
-      CommonUtils.sleepMs(100);
-      assertFalse(paused.get());
-
-      // after closing the journal context, the pause lock should succeed
-      journalContext.close();
-      CommonUtils.waitFor("pause lock to succeed", paused::get,
-          WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS).setInterval(10));
-    } finally {
-      thread.interrupt();
-      thread.join();
-    }
-  }
-
-  @Test
-  public void pauseBlocksJournalContext() throws Exception {
-    LockResource lock =
-        mMasterContext.getStateLockManager().lockExclusive(StateLockOptions.defaults());
-
-    AtomicBoolean journalContextCreated = new AtomicBoolean(false);
-    Runnable run = () -> {
-      // new journal contexts should be blocked
-      try (JournalContext journalContext = mBlockMaster.createJournalContext()) {
-        journalContextCreated.set(true);
-      } catch (UnavailableException e) {
-        throw new RuntimeException("Failed to create journal context", e);
-      }
-    };
-
-    Thread thread = new Thread(run);
-    Thread thread2 = new Thread(run);
-    thread.start();
-
-    try {
-      // since state is paused, new contexts should not be created
-      CommonUtils.sleepMs(100);
-      assertFalse(journalContextCreated.get());
-
-      // after un-pausing, new journal contexts can be created
-      lock.close();
-      thread2.start();
-      CommonUtils.waitFor("journal context created", journalContextCreated::get,
-          WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS).setInterval(10));
-    } finally {
-      thread.interrupt();
-      thread.join();
-      thread2.interrupt();
-      thread2.join();
-    }
-  }
+//  @Test
+//  public void pauseBlocksJournalContext() throws Exception {
+//    LockResource lock =
+//        mMasterContext.getStateLockManager().lockExclusive(StateLockOptions.defaults());
+//
+//    AtomicBoolean journalContextCreated = new AtomicBoolean(false);
+//    Runnable run = () -> {
+//      // new journal contexts should be blocked
+//      try (JournalContext journalContext = mBlockMaster.createJournalContext()) {
+//        journalContextCreated.set(true);
+//      } catch (UnavailableException e) {
+//        throw new RuntimeException("Failed to create journal context", e);
+//      }
+//    };
+//
+//    Thread thread = new Thread(run);
+//    Thread thread2 = new Thread(run);
+//    thread.start();
+//
+//    try {
+//      // since state is paused, new contexts should not be created
+//      CommonUtils.sleepMs(100);
+//      assertFalse(journalContextCreated.get());
+//
+//      // after un-pausing, new journal contexts can be created
+//      lock.close();
+//      thread2.start();
+//      CommonUtils.waitFor("journal context created", journalContextCreated::get,
+//          WaitForOptions.defaults().setTimeoutMs(5 * Constants.SECOND_MS).setInterval(10));
+//    } finally {
+//      thread.interrupt();
+//      thread.join();
+//      thread2.interrupt();
+//      thread2.join();
+//    }
+//  }
 
   // See https://github.com/Alluxio/alluxio/issues/13904
-  @Test
-  public void journalClosedTest() throws Exception {
-    // Secondary journals will be closed for operation.
-    mJournalSystem.losePrimacy();
-    // Validate that createJournalContext fails for standby journals.
-    try {
-      mBlockMaster.createJournalContext();
-      fail("journal context creation should fail in standby journal.");
-    } catch (UnavailableException e) {
-      // expected.
-    }
-    // Validate that we haven't leaked state lock while creating journal context.
-    assertEquals(0, mMasterContext.getStateLockManager().getSharedWaitersAndHolders().size());
-  }
+//  @Test
+//  public void journalClosedTest() throws Exception {
+//    // Secondary journals will be closed for operation.
+//    mJournalSystem.losePrimacy();
+//    // Validate that createJournalContext fails for standby journals.
+//    try {
+//      mBlockMaster.createJournalContext();
+//      fail("journal context creation should fail in standby journal.");
+//    } catch (UnavailableException e) {
+//      // expected.
+//    }
+//    // Validate that we haven't leaked state lock while creating journal context.
+//    assertEquals(0, mMasterContext.getStateLockManager().getSharedWaitersAndHolders().size());
+//  }
 
-  @Test
-  public void stateChangeFairness() throws Exception {
-    JournalContext journalContext = mBlockMaster.createJournalContext();
-
-    AtomicBoolean paused = new AtomicBoolean(false);
-
-    ExecutorService service =
-        ExecutorServiceFactories.cachedThreadPool("stateChangeFairness").create();
-
-    // create tasks that continually create journal contexts
-    for (int i = 0; i < 100; i++) {
-      service.submit(() -> {
-        while (!Thread.currentThread().isInterrupted()) {
-          try {
-            mBlockMaster.createJournalContext().close();
-          } catch (UnavailableException e) {
-            // ignore
-          }
-        }
-      });
-    }
-
-    // task that attempts to pause the state
-    service.submit(() -> {
-      // the pause lock should block
-      try (LockResource lr =
-          mMasterContext.getStateLockManager().lockExclusive(StateLockOptions.defaults())) {
-        paused.set(true);
-      } catch (Exception e) {
-        throw new IllegalStateException("Failed to acquire state-lock exclusively.");
-      }
-    });
-
-    try {
-      // since the journal context is still open, the pause should be blocked
-      CommonUtils.sleepMs(100);
-      assertFalse(paused.get());
-
-      // after closing the journal context, the pause lock should succeed, even when there are many
-      // threads creating journal contexts.
-      journalContext.close();
-      CommonUtils.waitFor("pause lock to succeed", paused::get,
-          WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS).setInterval(10));
-    } finally {
-      service.shutdownNow();
-      service.awaitTermination(5, TimeUnit.SECONDS);
-    }
-
-    assertTrue(paused.get());
-  }
+//  @Test
+//  public void stateChangeFairness() throws Exception {
+//    JournalContext journalContext = mBlockMaster.createJournalContext();
+//
+//    AtomicBoolean paused = new AtomicBoolean(false);
+//
+//    ExecutorService service =
+//        ExecutorServiceFactories.cachedThreadPool("stateChangeFairness").create();
+//
+//    // create tasks that continually create journal contexts
+//    for (int i = 0; i < 100; i++) {
+//      service.submit(() -> {
+//        while (!Thread.currentThread().isInterrupted()) {
+//          try {
+//            mBlockMaster.createJournalContext().close();
+//          } catch (UnavailableException e) {
+//            // ignore
+//          }
+//        }
+//      });
+//    }
+//
+//    // task that attempts to pause the state
+//    service.submit(() -> {
+//      // the pause lock should block
+//      try (LockResource lr =
+//          mMasterContext.getStateLockManager().lockExclusive(StateLockOptions.defaults())) {
+//        paused.set(true);
+//      } catch (Exception e) {
+//        throw new IllegalStateException("Failed to acquire state-lock exclusively.");
+//      }
+//    });
+//
+//    try {
+//      // since the journal context is still open, the pause should be blocked
+//      CommonUtils.sleepMs(100);
+//      assertFalse(paused.get());
+//
+//      // after closing the journal context, the pause lock should succeed, even when there are many
+//      // threads creating journal contexts.
+//      journalContext.close();
+//      CommonUtils.waitFor("pause lock to succeed", paused::get,
+//          WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS).setInterval(10));
+//    } finally {
+//      service.shutdownNow();
+//      service.awaitTermination(5, TimeUnit.SECONDS);
+//    }
+//
+//    assertTrue(paused.get());
+//  }
 
   @Test
   public void mergeJournal() throws Exception {
