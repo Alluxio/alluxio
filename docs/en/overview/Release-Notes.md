@@ -69,7 +69,7 @@ Yantao xue ([jhonxue](https://github.com/jhonxue){:target="_blank"})
 Yaolong Liu ([codings-dan](https://github.com/codings-dan){:target="_blank"}),
 Bing Zheng ([bzheng888](https://github.com/bzheng888){:target="_blank"}),
 Tianbao Ding ([flaming-archer](https://github.com/flaming-archer){:target="_blank"}),
-Zheng Han, 
+Zheng Han ([jayzhenghan](https://github.com/jayzhenghan){:target="_blank"}), 
 Jieliang Li ([ljl1988com](https://github.com/ljl1988com){:target="_blank"}), 
 Tom Lee, ([tomscut](https://github.com/tomscut){:target="_blank"}),
 Baolong Mao ([maobaolong](https://github.com/maobaolong){:target="_blank"}),
