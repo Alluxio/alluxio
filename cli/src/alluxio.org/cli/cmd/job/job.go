@@ -22,5 +22,6 @@ var Service = &env.Service{
 		JStatus,
 		Leader,
 		List,
+		Submit,
 	},
 }
