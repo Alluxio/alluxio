@@ -130,14 +130,8 @@
         url: /en/operation/Journal.html
       - title: Metrics System
         url: /en/operation/Metrics-System.html
-
-  - title: Administration
-    buttonTitle: Administration
-    subfiles:
-      - title: Troubleshooting
-        url: /en/administration/Troubleshooting.html
       - title: Basic Logging
-        url: /en/administration/Basic-Logging.html
+        url: /en/operation/Basic-Logging.html
 
   - title: Client APIs
     buttonTitle: Client_APIs
@@ -172,3 +166,15 @@
         url: /en/reference/Environment-List.html
       - title: List of Metrics
         url: /en/reference/Metrics-List.html
+  
+  - title: Glossary
+    buttonTitle: Glosary
+    subfiles:
+      - title: Glossary
+        url: /en/Glossary.html
+
+  - title: Troubleshooting
+    buttonTitle: Troubleshooting
+    subfiles:
+      - title: Troubleshooting
+        url: /en/Troubleshooting.html
