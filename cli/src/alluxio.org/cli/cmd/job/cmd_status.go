@@ -45,16 +45,16 @@ func (c *CStatusCommand) ToCommand() *cobra.Command {
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().IntVar(&c.jobControlId, "jobControlId", 0,
-		"Determine the jobControl ID to get the status information.")
-	cmd.MarkFlagRequired("jobControlId")
+	cmd.Flags().IntVar(&c.jobControlId, "id", 0,
+		"Determine the job control ID to get the status information.")
+	cmd.MarkFlagRequired("id")
 	return cmd
 }
 
 func (c *CStatusCommand) Run(args []string) error {
 	var javaArgs []string
 	if c.jobControlId <= 0 {
-		stacktrace.Propagate(nil, "Flag --jobControlId should be a positive integer")
+		stacktrace.Propagate(nil, "Flag --id should be a positive integer")
 	}
 	javaArgs = append(javaArgs, "getCmdStatus")
 	javaArgs = append(javaArgs, strconv.Itoa(c.jobControlId))
