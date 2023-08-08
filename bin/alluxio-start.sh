@@ -14,7 +14,7 @@
 
 #start up alluxio
 
-USAGE="Usage: alluxio-start.sh [-hNwm] [-i backup] ACTION [MOPT] [-f] [-c cache]
+USAGE="Usage: alluxio-start.sh [-hNwm] ACTION [MOPT] [-f] [-c cache]
 Where ACTION is one of:
   all [MOPT] [-c cache]     \tStart all masters, proxies, and workers.
   job_master                \tStart the job_master on this node.
@@ -312,9 +312,6 @@ main() {
       h)
         echo -e "${USAGE}"
         exit 0
-        ;;
-      i)
-        journal_backup=${OPTARG}
         ;;
       N)
         killonstart="no"
