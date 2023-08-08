@@ -34,7 +34,7 @@ func (c *ListCommand) Base() *env.BaseJavaCommand {
 
 func (c *ListCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use: Cancel.CommandName,
+		Use: List.CommandName,
 		Short: "Prints the IDs of the most recent jobs, running and finished, " +
 			"in the history up to the capacity set in alluxio.job.master.job.capacity",
 		Args: cobra.NoArgs,

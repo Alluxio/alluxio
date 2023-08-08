@@ -34,7 +34,7 @@ func (c *LeaderCommand) Base() *env.BaseJavaCommand {
 
 func (c *LeaderCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   Cancel.CommandName,
+		Use:   Leader.CommandName,
 		Short: "Prints the hostname of the job master service leader.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {

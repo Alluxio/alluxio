@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"alluxio.org/cli/cmd/job"
 	"github.com/spf13/viper"
 
 	"alluxio.org/cli/cmd/conf"
@@ -49,6 +50,7 @@ func main() {
 		fs.Service,
 		generate.Service,
 		info.Service,
+		job.Service,
 		journal.Service,
 		process.Service,
 		quorum.Service,

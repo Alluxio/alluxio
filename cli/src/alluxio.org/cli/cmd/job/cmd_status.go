@@ -38,7 +38,7 @@ func (c *CStatusCommand) Base() *env.BaseJavaCommand {
 
 func (c *CStatusCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   Cancel.CommandName,
+		Use:   CStatus.CommandName,
 		Short: "Get the status information for a distributed command.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

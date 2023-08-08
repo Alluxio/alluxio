@@ -35,7 +35,7 @@ func (c *LoadCommand) Base() *env.BaseJavaCommand {
 
 func (c *LoadCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   Cancel.CommandName,
+		Use:   Load.CommandName,
 		Short: "Submit load job to Alluxio master, update job options if already exists",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {

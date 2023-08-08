@@ -43,7 +43,7 @@ func (c *SubmitCommand) Base() *env.BaseJavaCommand {
 
 func (c *SubmitCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   Cancel.CommandName,
+		Use:   Submit.CommandName,
 		Short: "Moves or copies a file or directory in parallel at file level.",
 		Args:  cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {

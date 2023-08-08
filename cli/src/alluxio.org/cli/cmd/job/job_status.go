@@ -39,7 +39,7 @@ func (c *JStatusCommand) Base() *env.BaseJavaCommand {
 
 func (c *JStatusCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   Cancel.CommandName,
+		Use:   JStatus.CommandName,
 		Short: "Displays the status info for the specific job.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
