@@ -42,7 +42,7 @@ type AlluxioEnv struct {
 	EnvVar   *viper.Viper
 }
 
-func InitAlluxioEnv(rootPath string, isDeployed bool) error {
+func InitAlluxioEnv(rootPath string, jarEnvVars map[string]string, appendClasspathJars map[string]func(*viper.Viper, string) string) error {
 	/*
 		Note the precedence order of viper, where earlier is retrieved first:
 		- Set, env, config, default (https://pkg.go.dev/github.com/dvln/viper#section-readme)
@@ -75,19 +75,13 @@ func InitAlluxioEnv(rootPath string, isDeployed bool) error {
 		ConfAlluxioConfDir.EnvVar:     filepath.Join(rootPath, "conf"),
 		ConfAlluxioLogsDir.EnvVar:     filepath.Join(rootPath, "logs"),
 		confAlluxioUserLogsDir.EnvVar: filepath.Join(rootPath, "logs", "user"),
-		envAlluxioAssemblyClientJar:   filepath.Join(rootPath, "assembly", "client", "target", fmt.Sprintf("alluxio-assembly-client-%v-jar-with-dependencies.jar", ver)),
-		envAlluxioAssemblyServerJar:   filepath.Join(rootPath, "assembly", "server", "target", fmt.Sprintf("alluxio-assembly-server-%v-jar-with-dependencies.jar", ver)),
 	} {
 		envVar.SetDefault(k, v)
 	}
-	if isDeployed {
-		// override the client and server assembly jar paths with the expected location within a deployed environment
-		for k, v := range map[string]string{
-			envAlluxioAssemblyClientJar: filepath.Join(rootPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", ver)),
-			envAlluxioAssemblyServerJar: filepath.Join(rootPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", ver)),
-		} {
-			envVar.SetDefault(k, v)
-		}
+
+	// set jar env vars
+	for envVarName, jarPathFormat := range jarEnvVars {
+		envVar.SetDefault(envVarName, filepath.Join(rootPath, fmt.Sprintf(jarPathFormat, ver)))
 	}
 
 	// set user-specified environment variable values from alluxio-env.sh
@@ -118,14 +112,17 @@ func InitAlluxioEnv(rootPath string, isDeployed bool) error {
 	envVar.Set(EnvAlluxioClientClasspath, strings.Join([]string{
 		envVar.GetString(ConfAlluxioConfDir.EnvVar) + "/",
 		envVar.GetString(confAlluxioClasspath.EnvVar),
-		envVar.GetString(envAlluxioAssemblyClientJar),
-		filepath.Join(envVar.GetString(ConfAlluxioHome.EnvVar), "lib", fmt.Sprintf("alluxio-integration-tools-validation-%v.jar", ver)),
+		envVar.GetString(EnvAlluxioAssemblyClientJar),
 	}, ":"))
 	envVar.Set(EnvAlluxioServerClasspath, strings.Join([]string{
 		envVar.GetString(ConfAlluxioConfDir.EnvVar) + "/",
 		envVar.GetString(confAlluxioClasspath.EnvVar),
-		envVar.GetString(envAlluxioAssemblyServerJar),
+		envVar.GetString(EnvAlluxioAssemblyServerJar),
 	}, ":"))
+
+	for envVarName, envF := range appendClasspathJars {
+		envVar.Set(envVarName, envF(envVar, ver))
+	}
 
 	// check java executable and version
 	if err := checkAndSetJava(envVar); err != nil {
@@ -251,7 +248,6 @@ func checkJavaVersion(javaPath string) error {
 	if len(matches) != 2 {
 		return stacktrace.NewError("java version output does not match expected regex pattern %v\n%v", javaVersionRe.String(), string(javaVer))
 	}
-	fmt.Println(matches[1])
 	if !requiredVersionRegex.MatchString(matches[1]) {
 		return stacktrace.NewError("Error: Alluxio requires Java 1.8 or 11.0, currently Java %v found.", matches[1])
 	}

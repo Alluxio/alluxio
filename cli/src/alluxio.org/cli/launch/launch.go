@@ -17,12 +17,13 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"alluxio.org/cli/env"
 	"alluxio.org/log"
 )
 
-func Run() error {
+func Run(jarEnvVars map[bool]map[string]string, appendClasspathJars map[string]func(*viper.Viper, string) string) error {
 	rootCmd := &cobra.Command{}
 	const rootPathName = "rootPath"
 	var flagRootPath string
@@ -42,7 +43,7 @@ func Run() error {
 		if flagDebugLog {
 			log.Logger.SetLevel(logrus.DebugLevel)
 		}
-		if err := env.InitAlluxioEnv(filepath.Clean(flagRootPath), flagIsDeployed); err != nil {
+		if err := env.InitAlluxioEnv(filepath.Clean(flagRootPath), jarEnvVars[flagIsDeployed], appendClasspathJars); err != nil {
 			return stacktrace.Propagate(err, "error defining alluxio environment")
 		}
 		return nil

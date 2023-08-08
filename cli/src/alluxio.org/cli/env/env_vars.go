@@ -43,8 +43,8 @@ func RegisterTemplateEnvVar(v *AlluxioConfigEnvVar) *AlluxioConfigEnvVar {
 
 const (
 	envVersion                  = "VERSION" // VERSION is specified by libexec/version.sh and should not be overridden by the user
-	envAlluxioAssemblyClientJar = "ALLUXIO_ASSEMBLY_CLIENT_JAR"
-	envAlluxioAssemblyServerJar = "ALLUXIO_ASSEMBLY_SERVER_JAR"
+	EnvAlluxioAssemblyClientJar = "ALLUXIO_ASSEMBLY_CLIENT_JAR"
+	EnvAlluxioAssemblyServerJar = "ALLUXIO_ASSEMBLY_SERVER_JAR"
 	EnvAlluxioClientClasspath   = "ALLUXIO_CLIENT_CLASSPATH"
 	EnvAlluxioServerClasspath   = "ALLUXIO_SERVER_CLASSPATH"
 )
