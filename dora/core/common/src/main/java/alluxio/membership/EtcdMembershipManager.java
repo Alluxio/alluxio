@@ -72,8 +72,9 @@ public class EtcdMembershipManager implements MembershipManager {
   }
 
   @Override
-  public void join(WorkerInfo wkrAddr) throws IOException {
-    WorkerServiceEntity entity = new WorkerServiceEntity(wkrAddr.getAddress());
+  public void join(WorkerInfo workerInfo) throws IOException {
+    LOG.info("Try joining on etcd for worker:{} ", workerInfo);
+    WorkerServiceEntity entity = new WorkerServiceEntity(workerInfo.getAddress());
     // 1) register to the ring, check if there's existing entry
     String pathOnRing = new StringBuffer()
         .append(mRingPathPrefix)
@@ -99,11 +100,12 @@ public class EtcdMembershipManager implements MembershipManager {
       // It's me, go ahead to start heartbeating.
     } else {
       // If haven't created myself onto the ring before, create now.
-      mAlluxioEtcdClient.createForPath(pathOnRing, Optional.of(ServiceEntity.toJson(entity)
-          .getBytes(StandardCharsets.UTF_8)));
+      mAlluxioEtcdClient.createForPath(pathOnRing,
+          Optional.of(DefaultServiceEntity.toJson(entity).getBytes(StandardCharsets.UTF_8)));
     }
     // 2) start heartbeat
     mAlluxioEtcdClient.mServiceDiscovery.registerAndStartSync(entity);
+    LOG.info("Joined on etcd for worker:{} ", workerInfo);
   }
 
   @Override

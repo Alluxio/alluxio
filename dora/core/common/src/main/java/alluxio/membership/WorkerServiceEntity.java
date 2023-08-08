@@ -26,7 +26,7 @@ import com.google.gson.annotations.Expose;
  * Entity class including all the information to register to Etcd
  * when using EtcdMembershipManager.
  */
-public class WorkerServiceEntity extends ServiceEntity {
+public class WorkerServiceEntity extends DefaultServiceEntity {
   /**
    * Membership state of the worker.
    */
@@ -46,12 +46,6 @@ public class WorkerServiceEntity extends ServiceEntity {
   @Expose
   @com.google.gson.annotations.SerializedName("GenerationNumber")
   int mGenerationNum = -1;
-
-  /**
-   * CTOR for WorkerServiceEntity.
-   */
-  public WorkerServiceEntity() {
-  }
 
   /**
    * CTOR  for WorkerServiceEntity with given WorkerNetAddress.
