@@ -592,7 +592,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     }
   }
 
-
   /**
    * @return the last update time
    */
