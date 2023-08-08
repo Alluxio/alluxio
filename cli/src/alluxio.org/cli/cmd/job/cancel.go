@@ -51,11 +51,9 @@ func (c *CancelCommand) ToCommand() *cobra.Command {
 }
 
 func (c *CancelCommand) Run(args []string) error {
-	var javaArgs []string
 	if c.jobId <= 0 {
-		stacktrace.Propagate(nil, "Flag --id should be a positive integer")
+		stacktrace.NewError("Flag --id should be a positive integer")
 	}
-	javaArgs = append(javaArgs, "cancel")
-	javaArgs = append(javaArgs, strconv.Itoa(c.jobId))
-	return c.Base().Run(args)
+	javaArgs := []string{"cancel", strconv.Itoa(c.jobId)}
+	return c.Base().Run(javaArgs)
 }

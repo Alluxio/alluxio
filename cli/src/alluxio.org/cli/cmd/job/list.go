@@ -26,7 +26,6 @@ var List = &ListCommand{
 
 type ListCommand struct {
 	*env.BaseJavaCommand
-	jobId int
 }
 
 func (c *ListCommand) Base() *env.BaseJavaCommand {
@@ -47,7 +46,6 @@ func (c *ListCommand) ToCommand() *cobra.Command {
 }
 
 func (c *ListCommand) Run(args []string) error {
-	var javaArgs []string
-	javaArgs = append(javaArgs, "ls")
-	return c.Base().Run(args)
+	javaArgs := []string{"ls"}
+	return c.Base().Run(javaArgs)
 }

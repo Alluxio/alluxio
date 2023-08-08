@@ -14,11 +14,11 @@ package job
 import (
 	"strconv"
 
-	"alluxio.org/log"
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
+	"alluxio.org/log"
 )
 
 var Submit = &SubmitCommand{
@@ -44,7 +44,7 @@ func (c *SubmitCommand) Base() *env.BaseJavaCommand {
 func (c *SubmitCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Cancel.CommandName,
-		Short: "Moves, or copies a file or directory in parallel at file level.",
+		Short: "Moves or copies a file or directory in parallel at file level.",
 		Args:  cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
@@ -69,8 +69,6 @@ func (c *SubmitCommand) Run(args []string) error {
 	switch c.operationType {
 	case "cp":
 		javaArgs = append(javaArgs, "distributedCp")
-		javaArgs = append(javaArgs, c.src)
-		javaArgs = append(javaArgs, c.dst)
 		if c.activeJobs <= 0 {
 			stacktrace.NewError("Flag --active-jobs should be a positive integer")
 		}
@@ -82,8 +80,6 @@ func (c *SubmitCommand) Run(args []string) error {
 
 	case "mv":
 		javaArgs = append(javaArgs, "distributedMv")
-		javaArgs = append(javaArgs, c.src)
-		javaArgs = append(javaArgs, c.dst)
 		if c.activeJobs != 3000 {
 			log.Logger.Warningf("Flag --active-jobs is set, but won't be used in this operation type")
 		}
@@ -94,5 +90,8 @@ func (c *SubmitCommand) Run(args []string) error {
 	default:
 		stacktrace.NewError("Invalid operation type. Must be one of [cp mv].")
 	}
-	return c.Base().Run(args)
+
+	javaArgs = append(javaArgs, c.src)
+	javaArgs = append(javaArgs, c.dst)
+	return c.Base().Run(javaArgs)
 }

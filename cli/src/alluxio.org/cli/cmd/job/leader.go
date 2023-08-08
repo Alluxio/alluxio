@@ -26,7 +26,6 @@ var Leader = &LeaderCommand{
 
 type LeaderCommand struct {
 	*env.BaseJavaCommand
-	jobId int
 }
 
 func (c *LeaderCommand) Base() *env.BaseJavaCommand {
@@ -46,7 +45,6 @@ func (c *LeaderCommand) ToCommand() *cobra.Command {
 }
 
 func (c *LeaderCommand) Run(args []string) error {
-	var javaArgs []string
-	javaArgs = append(javaArgs, "leader")
-	return c.Base().Run(args)
+	javaArgs := []string{"leader"}
+	return c.Base().Run(javaArgs)
 }

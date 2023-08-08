@@ -55,14 +55,13 @@ func (c *JStatusCommand) ToCommand() *cobra.Command {
 }
 
 func (c *JStatusCommand) Run(args []string) error {
-	var javaArgs []string
 	if c.jobId <= 0 {
-		stacktrace.Propagate(nil, "Flag --id should be a positive integer")
+		stacktrace.NewError("Flag --id should be a positive integer")
 	}
-	javaArgs = append(javaArgs, "stat")
+	javaArgs := []string{"stat"}
 	if c.everyTask {
 		javaArgs = append(javaArgs, "-v")
 	}
 	javaArgs = append(javaArgs, strconv.Itoa(c.jobId))
-	return c.Base().Run(args)
+	return c.Base().Run(javaArgs)
 }
