@@ -20,5 +20,6 @@ var Service = &env.Service{
 	Description: "Worker-related file system and format operations.",
 	Commands: []env.Command{
 		Format,
+		Free,
 	},
 }
