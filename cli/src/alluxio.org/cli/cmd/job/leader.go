@@ -12,50 +12,41 @@
 package job
 
 import (
-	"strconv"
-
-	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
-var Cancel = &CancelCommand{
+var Leader = &LeaderCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "cancel",
+		CommandName:   "leader",
 		JavaClassName: "alluxio.cli.job.JobShell",
 	},
 }
 
-type CancelCommand struct {
+type LeaderCommand struct {
 	*env.BaseJavaCommand
 	jobId int
 }
 
-func (c *CancelCommand) Base() *env.BaseJavaCommand {
+func (c *LeaderCommand) Base() *env.BaseJavaCommand {
 	return c.BaseJavaCommand
 }
 
-func (c *CancelCommand) ToCommand() *cobra.Command {
+func (c *LeaderCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Cancel.CommandName,
-		Short: "Cancels a job asynchronously.",
-		Args:  cobra.ExactArgs(1),
+		Short: "Prints the hostname of the job master service leader.",
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().IntVar(&c.jobId, "id", 0, "Determine a job ID to cancel.")
-	cmd.MarkFlagRequired("id")
 	return cmd
 }
 
-func (c *CancelCommand) Run(args []string) error {
+func (c *LeaderCommand) Run(args []string) error {
 	var javaArgs []string
-	if c.jobId <= 0 {
-		stacktrace.Propagate(nil, "Flag --id should be a positive integer")
-	}
-	javaArgs = append(javaArgs, "cancel")
-	javaArgs = append(javaArgs, strconv.Itoa(c.jobId))
+	javaArgs = append(javaArgs, "leader")
 	return c.Base().Run(args)
 }
