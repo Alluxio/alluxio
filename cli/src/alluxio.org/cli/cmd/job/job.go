@@ -16,5 +16,7 @@ import "alluxio.org/cli/env"
 var Service = &env.Service{
 	Name:        "job",
 	Description: "Command line tool for interacting with the job service.",
-	Commands:    []env.Command{},
+	Commands: []env.Command{
+		Cancel,
+	},
 }
