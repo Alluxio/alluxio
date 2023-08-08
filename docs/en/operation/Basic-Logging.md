@@ -9,12 +9,12 @@ title: Basic Logging
 This page describes the basic logging function provided by Alluxio server processes (e.g., masters, workers, and etc.)
 and application processes utilizing Alluxio clients (e.g., Spark or MapReduce jobs running on Alluxio).
 
-Alluxio logging is implemented using [`log4j`](https://logging.apache.org/log4j/) and thus
+Alluxio logging is implemented using [`log4j`](https://logging.apache.org/log4j/){:target="_blank"} and thus
 most of the configuration is done through modifying `log4j.properties`.
 
 The master and worker logs are useful to understand what the Alluxio Master and
 Workers are doing, especially when running into any issues. If you do not understand the error messages,
-search for them in the [Github issues](https://github.com/Alluxio/alluxio/issues),
+search for them in the [Github issues](https://github.com/Alluxio/alluxio/issues){:target="_blank"},
 in the case the problem has been discussed before. 
 You can also join our [Slack channel](https://slackin.alluxio.io/) and seek help there.
 You can find more details about the Alluxio server logs [here]({{ '/en/operation/Basic-Logging.html#server-logs' | relativize_url }}).
