@@ -14,10 +14,10 @@ package cache
 import (
 	"fmt"
 
-	"alluxio.org/cli/cmd"
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
+	"alluxio.org/cli/cmd"
 	"alluxio.org/cli/env"
 )
 
@@ -41,7 +41,7 @@ func (c *FreeFormat) Base() *env.BaseJavaCommand {
 }
 
 func (c *FreeFormat) ToCommand() *cobra.Command {
-	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
+	command := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use: Free.CommandName,
 		Short: "Synchronously free all blocks and directories of specific worker, " +
 			"or free the space occupied by a file or a directory in Alluxio",
@@ -50,12 +50,12 @@ func (c *FreeFormat) ToCommand() *cobra.Command {
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().StringVar(&c.worker, "worker", "", "The worker to free")
-	cmd.Flags().StringVar(&c.path, "path", "", "The file or directory to free")
-	cmd.Flags().BoolVarP(&c.force, "force", "f", false,
+	command.Flags().StringVar(&c.worker, "worker", "", "The worker to free")
+	command.Flags().StringVar(&c.path, "path", "", "The file or directory to free")
+	command.Flags().BoolVarP(&c.force, "force", "f", false,
 		"Force freeing pinned files in the directory")
-	cmd.MarkFlagsMutuallyExclusive("worker", "path")
-	return cmd
+	command.MarkFlagsMutuallyExclusive("worker", "path")
+	return command
 }
 
 func (c *FreeFormat) Run(args []string) error {
@@ -63,6 +63,7 @@ func (c *FreeFormat) Run(args []string) error {
 	if c.worker == "" {
 		if c.path != "" {
 			// free directory
+			javaArgs = append(javaArgs, "free")
 			if c.force {
 				javaArgs = append(javaArgs, "-f")
 			}
@@ -73,7 +74,7 @@ func (c *FreeFormat) Run(args []string) error {
 	} else {
 		if c.path == "" {
 			// free workers
-			javaArgs = append(javaArgs, c.worker)
+			javaArgs = append(javaArgs, "freeWorker", c.worker)
 		} else {
 			return stacktrace.NewError("both worker and path to free specified")
 		}

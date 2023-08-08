@@ -21,5 +21,6 @@ var Service = &env.Service{
 	Commands: []env.Command{
 		Format,
 		Free,
+		Persist,
 	},
 }
