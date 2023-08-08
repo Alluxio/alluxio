@@ -17,7 +17,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"alluxio.org/cli/cmd/job"
 	"github.com/spf13/viper"
 
 	"alluxio.org/cli/cmd/conf"
@@ -25,6 +24,7 @@ import (
 	"alluxio.org/cli/cmd/fs"
 	"alluxio.org/cli/cmd/generate"
 	"alluxio.org/cli/cmd/info"
+	"alluxio.org/cli/cmd/job"
 	"alluxio.org/cli/cmd/journal"
 	"alluxio.org/cli/cmd/process"
 	"alluxio.org/cli/cmd/quorum"
