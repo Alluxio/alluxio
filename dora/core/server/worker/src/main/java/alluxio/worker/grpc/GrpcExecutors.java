@@ -19,7 +19,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.executor.UniqueBlockingQueue;
 
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
@@ -46,76 +45,77 @@ public final class GrpcExecutors {
   private static final long THREAD_STOP_MS = Constants.SECOND_MS * 10;
   private static final int THREADS_MIN = 4;
 
-  // Used by BlockWorkerClientServiceHandler.readBlock() by DataReader threads,
-  // where each DataReader reads a block content for reply.
+  // Used by BlockWorkerClientServiceHandler.readBlock() by DataReader threads.
+  // Mainly used by distributed load and obsolete clients.
   // The thread pool queue is always empty.
-  private static final ThreadPoolExecutor BLOCK_READER_THREAD_POOL_EXECUTOR =
+  private static final ThreadPoolExecutor READER_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN, Configuration.getInt(
-          PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX), THREAD_STOP_MS,
+          PropertyKey.WORKER_NETWORK_GRPC_READER_THREADS_MAX), THREAD_STOP_MS,
           TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
-          ThreadFactoryUtils.build("BlockDataReaderExecutor-%d", true));
-  public static final ExecutorService BLOCK_READER_EXECUTOR =
-      new ImpersonateThreadPoolExecutor(BLOCK_READER_THREAD_POOL_EXECUTOR, true);
+          ThreadFactoryUtils.build("GrpcDataReaderExecutor-%d", true));
+  public static final ExecutorService READER_EXECUTOR =
+      new ImpersonateThreadPoolExecutor(READER_THREAD_POOL_EXECUTOR, true);
 
-  // Used for replying data to the client in BlockReadHandler.
+  // Used for replying data to the client in FileReadHandler.
   // The thread pool has a small queue of a constant size.
-  private static final ThreadPoolExecutor BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR =
+  private static final ThreadPoolExecutor SERIALIZED_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
-          Configuration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
+          Configuration.getInt(PropertyKey.WORKER_NETWORK_GRPC_READER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(32),
-          ThreadFactoryUtils.build("BlockDataReaderSerializedExecutor-%d", true),
+          ThreadFactoryUtils.build("GrpcDataReaderSerializedExecutor-%d", true),
           new ThreadPoolExecutor.CallerRunsPolicy());
-  public static final ExecutorService BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR =
-      new ImpersonateThreadPoolExecutor(BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR, true);
+  public static final ExecutorService READER_SERIALIZED_RUNNER_EXECUTOR =
+      new ImpersonateThreadPoolExecutor(SERIALIZED_THREAD_POOL_EXECUTOR, true);
 
-  // Used for writing blocks. The queue is always empty.
-  private static final ThreadPoolExecutor BLOCK_WRITE_THREAD_POOL_EXECUTOR =
+  // Mainly used by distributed mv/cp and obsolete clients.
+  // The queue is always empty.
+  private static final ThreadPoolExecutor WRITE_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN, Configuration.getInt(
-          PropertyKey.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX), THREAD_STOP_MS,
+          PropertyKey.WORKER_NETWORK_GRPC_WRITER_THREADS_MAX), THREAD_STOP_MS,
           TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
-          ThreadFactoryUtils.build("BlockDataWriterExecutor-%d", true));
-  public static final ExecutorService BLOCK_WRITER_EXECUTOR =
-          new ImpersonateThreadPoolExecutor(BLOCK_WRITE_THREAD_POOL_EXECUTOR, true);
+          ThreadFactoryUtils.build("GrpcDataWriterExecutor-%d", true));
+  public static final ExecutorService WRITER_EXECUTOR =
+          new ImpersonateThreadPoolExecutor(WRITE_THREAD_POOL_EXECUTOR, true);
 
   static {
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_READER_THREAD_ACTIVE_COUNT.getName()),
-        BLOCK_READER_THREAD_POOL_EXECUTOR::getActiveCount);
+        READER_THREAD_POOL_EXECUTOR::getActiveCount);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_READER_THREAD_CURRENT_COUNT.getName()),
-        BLOCK_READER_THREAD_POOL_EXECUTOR::getPoolSize);
+        READER_THREAD_POOL_EXECUTOR::getPoolSize);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_READER_THREAD_MAX_COUNT.getName()),
-        BLOCK_READER_THREAD_POOL_EXECUTOR::getMaximumPoolSize);
+        READER_THREAD_POOL_EXECUTOR::getMaximumPoolSize);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_READER_COMPLETED_TASK_COUNT.getName()),
-        BLOCK_READER_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
+        READER_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
 
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_SERIALIZED_THREAD_ACTIVE_COUNT.getName()),
-        BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR::getActiveCount);
+        SERIALIZED_THREAD_POOL_EXECUTOR::getActiveCount);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_SERIALIZED_THREAD_CURRENT_COUNT.getName()),
-        BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR::getPoolSize);
+        SERIALIZED_THREAD_POOL_EXECUTOR::getPoolSize);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_SERIALIZED_THREAD_MAX_COUNT.getName()),
-        BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR::getMaximumPoolSize);
+        SERIALIZED_THREAD_POOL_EXECUTOR::getMaximumPoolSize);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_SERIALIZED_COMPLETED_TASK_COUNT.getName()),
-        BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
+        SERIALIZED_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
 
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_WRITER_THREAD_ACTIVE_COUNT.getName()),
-        BLOCK_WRITE_THREAD_POOL_EXECUTOR::getActiveCount);
+        WRITE_THREAD_POOL_EXECUTOR::getActiveCount);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_WRITER_THREAD_CURRENT_COUNT.getName()),
-        BLOCK_WRITE_THREAD_POOL_EXECUTOR::getPoolSize);
+        WRITE_THREAD_POOL_EXECUTOR::getPoolSize);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_WRITER_THREAD_MAX_COUNT.getName()),
-        BLOCK_WRITE_THREAD_POOL_EXECUTOR::getMaximumPoolSize);
+        WRITE_THREAD_POOL_EXECUTOR::getMaximumPoolSize);
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_WRITER_COMPLETED_TASK_COUNT.getName()),
-        BLOCK_WRITE_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
+        WRITE_THREAD_POOL_EXECUTOR::getCompletedTaskCount);
   }
 
   /**

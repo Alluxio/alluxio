@@ -52,11 +52,11 @@ public class GrpcExecutorsTest {
 
   @Test
   public void impersonationPassedToBlockReader() {
-    validateAuthenticatedClientUser(GrpcExecutors.BLOCK_READER_EXECUTOR);
+    validateAuthenticatedClientUser(GrpcExecutors.READER_EXECUTOR);
   }
 
   @Test
   public void impersonationPassedToBlockWriter() {
-    validateAuthenticatedClientUser(GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+    validateAuthenticatedClientUser(GrpcExecutors.WRITER_EXECUTOR);
   }
 }

@@ -34,19 +34,19 @@ public final class NettyExecutors {
       new ThreadPoolExecutor(THREADS_MIN,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_READER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
-          ThreadFactoryUtils.build("ReaderExecutor-%d", true));
+          ThreadFactoryUtils.build("NettyReaderExecutor-%d", true));
 
   public static final ExecutorService WRITER_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WRITER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
-          ThreadFactoryUtils.build("WriterExecutor-%d", true));
+          ThreadFactoryUtils.build("NettyWriterExecutor-%d", true));
 
   public static final ExecutorService UFS_WRITER_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_UFS_WRITER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
-          ThreadFactoryUtils.build("UfsWriterExecutor-%d", true));
+          ThreadFactoryUtils.build("NettyUfsWriterExecutor-%d", true));
 
   /**
    * Private constructor.
