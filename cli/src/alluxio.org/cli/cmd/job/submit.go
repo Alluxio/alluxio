@@ -51,14 +51,12 @@ func (c *SubmitCommand) ToCommand() *cobra.Command {
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().StringVar(&c.operationType, "type", "", "Determine type, options: [cp, mv].")
-	cmd.Flags().StringVar(&c.src, "src", "", "The path to move/copy from.")
-	cmd.Flags().StringVar(&c.dst, "dst", "", "The path to move/copy to.")
+	cmd.Flags().StringVar(&c.operationType, "type", "", "Determine type, options: [cp, mv]")
+	cmd.Flags().StringVar(&c.src, "src", "", "The path to move/copy from")
+	cmd.Flags().StringVar(&c.dst, "dst", "", "The path to move/copy to")
 	cmd.Flags().IntVar(&c.activeJobs, "active-jobs", 3000,
-		"Number of active jobs that can run at the same time. Later jobs must wait."+
-			"The default upper limit is 3000.")
-	cmd.Flags().IntVar(&c.batchSize, "batch-size", 1,
-		"Number of files per request. The default batch size is 1.")
+		"Number of active jobs that can run at the same time, later jobs must wait")
+	cmd.Flags().IntVar(&c.batchSize, "batch-size", 1, "Number of files per request")
 	cmd.MarkFlagRequired("type")
 	cmd.MarkFlagRequired("src")
 	cmd.MarkFlagRequired("dst")

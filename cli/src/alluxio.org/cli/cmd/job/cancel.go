@@ -46,7 +46,7 @@ func (c *CancelCommand) ToCommand() *cobra.Command {
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().IntVar(&c.jobId, "id", 0, "Determine a job ID to cancel.")
+	cmd.Flags().IntVar(&c.jobId, "id", 0, "Determine a job ID to cancel")
 	cmd.MarkFlagRequired("id")
 	return cmd
 }

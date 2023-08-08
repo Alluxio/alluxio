@@ -21,26 +21,26 @@ import (
 	"alluxio.org/cli/env"
 )
 
-var JStatus = &JStatusCommand{
+var JobStatus = &JobStatusCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "jobStatus",
 		JavaClassName: cmd.JobShellJavaClass,
 	},
 }
 
-type JStatusCommand struct {
+type JobStatusCommand struct {
 	*env.BaseJavaCommand
 	jobId     int
 	everyTask bool
 }
 
-func (c *JStatusCommand) Base() *env.BaseJavaCommand {
+func (c *JobStatusCommand) Base() *env.BaseJavaCommand {
 	return c.BaseJavaCommand
 }
 
-func (c *JStatusCommand) ToCommand() *cobra.Command {
+func (c *JobStatusCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   JStatus.CommandName,
+		Use:   JobStatus.CommandName,
 		Short: "Displays the status info for the specific job.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -48,14 +48,14 @@ func (c *JStatusCommand) ToCommand() *cobra.Command {
 		},
 	})
 	cmd.Flags().IntVar(&c.jobId, "id", 0,
-		"Determine the job ID to get status info.")
+		"Determine the job ID to get status info")
 	cmd.Flags().BoolVarP(&c.everyTask, "every-task", "v", false,
-		"Determine display the status of every task.")
+		"Determine display the status of every task")
 	cmd.MarkFlagRequired("id")
 	return cmd
 }
 
-func (c *JStatusCommand) Run(args []string) error {
+func (c *JobStatusCommand) Run(args []string) error {
 	if c.jobId <= 0 {
 		return stacktrace.NewError("Flag --id should be a positive integer")
 	}

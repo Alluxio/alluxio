@@ -21,25 +21,25 @@ import (
 	"alluxio.org/cli/env"
 )
 
-var CStatus = &CStatusCommand{
+var CmdStatus = &CmdStatusCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "cmdStatus",
 		JavaClassName: cmd.JobShellJavaClass,
 	},
 }
 
-type CStatusCommand struct {
+type CmdStatusCommand struct {
 	*env.BaseJavaCommand
 	jobControlId int
 }
 
-func (c *CStatusCommand) Base() *env.BaseJavaCommand {
+func (c *CmdStatusCommand) Base() *env.BaseJavaCommand {
 	return c.BaseJavaCommand
 }
 
-func (c *CStatusCommand) ToCommand() *cobra.Command {
+func (c *CmdStatusCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   CStatus.CommandName,
+		Use:   CmdStatus.CommandName,
 		Short: "Get the status information for a distributed command.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -47,14 +47,14 @@ func (c *CStatusCommand) ToCommand() *cobra.Command {
 		},
 	})
 	cmd.Flags().IntVar(&c.jobControlId, "id", 0,
-		"Determine the job control ID to get the status information.")
+		"Determine the job control ID to get the status information")
 	cmd.MarkFlagRequired("id")
 	return cmd
 }
 
-func (c *CStatusCommand) Run(args []string) error {
+func (c *CmdStatusCommand) Run(args []string) error {
 	if c.jobControlId <= 0 {
-		return stacktrace.Propagate(nil, "Flag --id should be a positive integer")
+		return stacktrace.NewError("Flag --id should be a positive integer")
 	}
 	javaArgs := []string{"getCmdStatus", strconv.Itoa(c.jobControlId)}
 	return c.Base().Run(javaArgs)

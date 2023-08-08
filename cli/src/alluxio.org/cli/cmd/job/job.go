@@ -18,8 +18,8 @@ var Service = &env.Service{
 	Description: "Command line tool for interacting with the job service.",
 	Commands: []env.Command{
 		Cancel,
-		CStatus,
-		JStatus,
+		CmdStatus,
+		JobStatus,
 		Leader,
 		List,
 		Load,
