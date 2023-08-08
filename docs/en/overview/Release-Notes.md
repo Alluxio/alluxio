@@ -23,7 +23,7 @@ Alluxio 2.7 also contains improvements in Helm charts, CSI, and Fluid integratio
 
 ### Improved Job Service Scalability
 
-Job Service has become an essential service in many deployments and data processing pipelines involving Alluxio. Alluxio 2.7 introduces Batched Job to reduce the management overhead in the job master and allows the job service to handle an order of magnitude more total jobs and concurrent jobs (see [configuration]({{ '/en/reference/Properties-List.html' | relativize_url }}) and [documentation]({{ 'en/operation/User-CLI.html#distributedload' | relativize_url }})). This is necessary as users are increasingly using Job Service to perform tasks like `distributedLoad` and `distributedCopy` on a very large number of files.
+Job Service has become an essential service in many deployments and data processing pipelines involving Alluxio. Alluxio 2.7 introduces Batched Job to reduce the management overhead in the job master and allows the job service to handle an order of magnitude more total jobs and concurrent jobs (see [configuration]({{ '/en/reference/Properties-List.html' | relativize_url }}) and [documentation]({{ '/en/operation/User-CLI.html#distributedload' | relativize_url }})). This is necessary as users are increasingly using Job Service to perform tasks like `distributedLoad` and `distributedCopy` on a very large number of files.
 
 In addition, on the client side, more efficient polling is implemented so that pinning and `setReplication` commands on large directories place less stress on the job service. This allows users to pin a larger set of files.
 
