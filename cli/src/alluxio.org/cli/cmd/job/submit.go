@@ -45,7 +45,7 @@ func (c *SubmitCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Submit.CommandName,
 		Short: "Moves or copies a file or directory in parallel at file level.",
-		Args:  cobra.MinimumNArgs(3),
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
@@ -70,11 +70,11 @@ func (c *SubmitCommand) Run(args []string) error {
 	case "cp":
 		javaArgs = append(javaArgs, "distributedCp")
 		if c.activeJobs <= 0 {
-			stacktrace.NewError("Flag --active-jobs should be a positive integer")
+			return stacktrace.NewError("Flag --active-jobs should be a positive integer")
 		}
 		javaArgs = append(javaArgs, "--active-jobs", strconv.Itoa(c.activeJobs))
 		if c.batchSize <= 0 {
-			stacktrace.NewError("Flag --batch-size should be a positive integer")
+			return stacktrace.NewError("Flag --batch-size should be a positive integer")
 		}
 		javaArgs = append(javaArgs, "--batch-size", strconv.Itoa(c.batchSize))
 
@@ -88,7 +88,7 @@ func (c *SubmitCommand) Run(args []string) error {
 		}
 
 	default:
-		stacktrace.NewError("Invalid operation type. Must be one of [cp mv].")
+		return stacktrace.NewError("Invalid operation type. Must be one of [cp mv].")
 	}
 
 	javaArgs = append(javaArgs, c.src)

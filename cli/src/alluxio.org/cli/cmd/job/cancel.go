@@ -40,7 +40,7 @@ func (c *CancelCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Cancel.CommandName,
 		Short: "Cancels a job asynchronously.",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
@@ -52,7 +52,7 @@ func (c *CancelCommand) ToCommand() *cobra.Command {
 
 func (c *CancelCommand) Run(args []string) error {
 	if c.jobId <= 0 {
-		stacktrace.NewError("Flag --id should be a positive integer")
+		return stacktrace.NewError("Flag --id should be a positive integer")
 	}
 	javaArgs := []string{"cancel", strconv.Itoa(c.jobId)}
 	return c.Base().Run(javaArgs)

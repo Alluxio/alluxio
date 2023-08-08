@@ -40,7 +40,7 @@ func (c *CStatusCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   CStatus.CommandName,
 		Short: "Get the status information for a distributed command.",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
@@ -53,7 +53,7 @@ func (c *CStatusCommand) ToCommand() *cobra.Command {
 
 func (c *CStatusCommand) Run(args []string) error {
 	if c.jobControlId <= 0 {
-		stacktrace.Propagate(nil, "Flag --id should be a positive integer")
+		return stacktrace.Propagate(nil, "Flag --id should be a positive integer")
 	}
 	javaArgs := []string{"getCmdStatus", strconv.Itoa(c.jobControlId)}
 	return c.Base().Run(javaArgs)

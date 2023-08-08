@@ -41,7 +41,7 @@ func (c *JStatusCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   JStatus.CommandName,
 		Short: "Displays the status info for the specific job.",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
@@ -56,7 +56,7 @@ func (c *JStatusCommand) ToCommand() *cobra.Command {
 
 func (c *JStatusCommand) Run(args []string) error {
 	if c.jobId <= 0 {
-		stacktrace.NewError("Flag --id should be a positive integer")
+		return stacktrace.NewError("Flag --id should be a positive integer")
 	}
 	javaArgs := []string{"stat"}
 	if c.everyTask {
