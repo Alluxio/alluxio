@@ -297,7 +297,6 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
         RPC_LOG, "ListStatus", "path=%s,options=%s", path, options);
   }
 
-
   @Override
   public List<URIStatus> listStatus(final AlluxioURI path, final ListStatusPOptions options)
       throws AlluxioStatusException {
