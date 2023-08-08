@@ -1464,6 +1464,9 @@
             <goals>
               <goal>sort</goal>
             </goals>
+            <!-- Empty phase to skip automatically running this as part of a build process -->
+            <!-- Still invokable by running `mvn sortpom:sort@manual-sort` from the command line -->
+            <phase/>
             <configuration>
               <createBackupFile>true</createBackupFile>
             </configuration>
