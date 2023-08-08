@@ -19,5 +19,6 @@ var Service = &env.Service{
 	Commands: []env.Command{
 		Cancel,
 		Leader,
+		List,
 	},
 }
