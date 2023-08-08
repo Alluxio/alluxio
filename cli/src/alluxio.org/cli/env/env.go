@@ -221,7 +221,7 @@ func checkAndSetJava(envVar *viper.Viper) error {
 	// check if java is available via `PATH` using `which`
 	whichJavaPath, err := exec.Command("which", "java").Output()
 	if err == nil {
-		envVar.Set(ConfJava.EnvVar, string(whichJavaPath))
+		envVar.Set(ConfJava.EnvVar, strings.TrimSpace(string(whichJavaPath)))
 		return nil
 	}
 	// cannot find java

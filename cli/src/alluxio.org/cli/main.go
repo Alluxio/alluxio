@@ -34,11 +34,18 @@ import (
 
 func main() {
 	for _, p := range []env.Process{
+		processes.All,
 		processes.JobMaster,
+		processes.JobMasters,
 		processes.JobWorker,
+		processes.JobWorkers,
+		processes.Local,
 		processes.Master,
+		processes.Masters,
 		processes.Proxy,
+		processes.Proxies,
 		processes.Worker,
+		processes.Workers,
 	} {
 		env.RegisterProcess(p)
 	}

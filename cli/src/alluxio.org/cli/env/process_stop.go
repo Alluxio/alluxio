@@ -14,12 +14,14 @@ package env
 import "github.com/spf13/cobra"
 
 type StopProcessCommand struct {
+	Name     string
 	SoftKill bool
 }
 
 func (c *StopProcessCommand) ToCommand() *cobra.Command {
+	c.Name = "stop"
 	cmd := &cobra.Command{
-		Use:   "stop",
+		Use:   c.Name,
 		Short: "Stops a process",
 	}
 	cmd.PersistentFlags().BoolVarP(&c.SoftKill, "soft", "s", false, "Soft kill only, don't forcibly kill the process")

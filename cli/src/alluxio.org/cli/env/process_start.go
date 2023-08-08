@@ -16,13 +16,15 @@ import (
 )
 
 type StartProcessCommand struct {
+	Name            string
 	AsyncStart      bool
 	SkipKillOnStart bool
 }
 
 func (c *StartProcessCommand) ToCommand() *cobra.Command {
+	c.Name = "start"
 	cmd := &cobra.Command{
-		Use:   "start",
+		Use:   c.Name,
 		Short: "Starts a process",
 	}
 	cmd.PersistentFlags().BoolVarP(&c.SkipKillOnStart, "skip-kill-prev", "N", false, "Avoid killing previous running processes when starting")
