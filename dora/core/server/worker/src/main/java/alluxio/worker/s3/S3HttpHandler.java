@@ -18,7 +18,6 @@ import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.s3.S3ErrorResponse;
 import alluxio.worker.dora.DoraWorker;
 
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -46,6 +45,7 @@ public class S3HttpHandler extends ChannelInboundHandlerAdapter {
   private final ThreadPoolExecutor mLightPool;
   private final ThreadPoolExecutor mHeavyPool;
   private S3NettyHandler mHandler;
+  private boolean mAsyncHandle;
 
   /**
    * Constructs an instance of {@link S3HttpHandler}.
@@ -64,6 +64,7 @@ public class S3HttpHandler extends ChannelInboundHandlerAdapter {
     mAsyncAuditLogWriter = asyncAuditLogWriter;
     mLightPool = lightPool;
     mHeavyPool = heavyPool;
+    mAsyncHandle = false;
   }
 
   //  private final PagedService mPagedService;
@@ -79,65 +80,67 @@ public class S3HttpHandler extends ChannelInboundHandlerAdapter {
       HttpResponse response = null;
       if (msg instanceof HttpRequest) {
         HttpRequest request = (HttpRequest) msg;
-        try {
-          mHandler =
-              S3NettyHandler.createHandler(context, request, mFileSystem, mDoraWorker,
-                  mAsyncAuditLogWriter);
-        } catch (Exception ex) {
-          LOG.error("Exception during create s3handler: ", ex);
-          HttpResponse errorResponse = S3ErrorResponse.createNettyErrorResponse(ex, request.uri());
-          ChannelFuture f = context.writeAndFlush(errorResponse);
-          f.addListener(ChannelFutureListener.CLOSE);
-          return;
-        }
+        mHandler = S3NettyHandler.createHandler(context, request, mFileSystem, mDoraWorker,
+            mAsyncAuditLogWriter);
+
         // Handle request async
         if (!mHandler.getS3Task().getOPType().equals(S3NettyBaseTask.OpType.PutObject)
             && Configuration.getBoolean(PropertyKey.WORKER_S3_ASYNC_PROCESS_ENABLED)) {
           S3NettyBaseTask.OpTag opTag = mHandler.getS3Task().mOPType.getOpTag();
           ExecutorService es =
               (ExecutorService) (opTag == S3NettyBaseTask.OpTag.LIGHT ? mLightPool : mHeavyPool);
-
-          es.submit(() -> {
-            try {
-              HttpResponse asyncResponse = mHandler.getS3Task().continueTask();
-              mHandler.processHttpResponse(asyncResponse);
-            } catch (Throwable th) {
-              HttpResponse errorResponse =
-                  S3ErrorResponse.createNettyErrorResponse(th, request.uri());
-              ChannelFuture f = context.writeAndFlush(errorResponse);
-              f.addListener(ChannelFutureListener.CLOSE);
-            }
-          });
+          es.submit(new AsyncS3NettyTask(mHandler));
+          mAsyncHandle = true;
           return;
+        } else {
+          response = mHandler.getS3Task().continueTask();
         }
-        response = mHandler.getS3Task().continueTask();
-      } else if (msg instanceof HttpContent && mHandler != null) {
-        HttpContent content = (HttpContent) msg;
-        response = mHandler.getS3Task().handleContent(content);
+      } else if (msg instanceof HttpContent) {
+        // if the req handle async, we skip the Empty content.
+        if (!mAsyncHandle) {
+          HttpContent content = (HttpContent) msg;
+          response = mHandler.getS3Task().handleContent(content);
+        }
       } else {
         HttpResponse errorResponse =
             S3ErrorResponse.generateS3ErrorResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR,
                 "Failed to encode HTTP request.", HttpHeaderValues.TEXT_PLAIN);
-        ChannelFuture f = context.writeAndFlush(errorResponse);
-        f.addListener(ChannelFutureListener.CLOSE);
+        context.writeAndFlush(errorResponse).addListener(ChannelFutureListener.CLOSE);
         return;
       }
       if (response != null && mHandler != null) {
         mHandler.processHttpResponse(response);
       }
-    } catch (Exception ex) {
-      HttpResponse errorResponse;
-      if (msg instanceof HttpRequest) {
-        errorResponse = S3ErrorResponse.createNettyErrorResponse(ex, ((HttpRequest) msg).uri());
-      } else if (mHandler != null) {
-        errorResponse = S3ErrorResponse.createNettyErrorResponse(ex, mHandler.getRequest().uri());
-      } else {
-        errorResponse = S3ErrorResponse.createNettyErrorResponse(ex, "internal error");
-      }
-      ChannelFuture f = context.writeAndFlush(errorResponse);
-      f.addListener(ChannelFutureListener.CLOSE);
+    } catch (Throwable ex) {
+      String resource = (mHandler != null) ? mHandler.getRequest().uri() : "internal error";
+      HttpResponse errorResponse = S3ErrorResponse.createNettyErrorResponse(ex, resource);
+      context.writeAndFlush(errorResponse).addListener(ChannelFutureListener.CLOSE);
     } finally {
-      ReferenceCountUtil.release(msg);
+      if (!mAsyncHandle) {
+        ReferenceCountUtil.release(msg);
+      }
+    }
+  }
+
+  static class AsyncS3NettyTask implements Runnable {
+    private final S3NettyHandler mHandler;
+
+    public AsyncS3NettyTask(S3NettyHandler handler) {
+      mHandler = handler;
+    }
+
+    @Override
+    public void run() {
+      try {
+        HttpResponse asyncResponse = mHandler.getS3Task().continueTask();
+        mHandler.processHttpResponse(asyncResponse);
+      } catch (Throwable th) {
+        HttpResponse errorResponse =
+            S3ErrorResponse.createNettyErrorResponse(th, mHandler.getRequest().uri());
+        mHandler.processHttpResponse(errorResponse);
+      } finally {
+        ReferenceCountUtil.release(mHandler.getRequest());
+      }
     }
   }
 }

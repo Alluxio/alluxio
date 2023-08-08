@@ -74,6 +74,7 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import javax.ws.rs.core.MediaType;
 
@@ -112,7 +113,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
      * @param handler
      * @return S3ObjectTask
      */
-    public static S3NettyObjectTask create(S3NettyHandler handler) {
+    public static S3NettyObjectTask create(S3NettyHandler handler) throws S3Exception {
       switch (handler.getHttpMethod()) {
         case "GET":
           return new GetObjectTask(handler, OpType.GetObject);
@@ -325,7 +326,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
 
   private static final class CopyObjectTask extends PutObjectTask {
 
-    public CopyObjectTask(S3NettyHandler handler, OpType opType) {
+    public CopyObjectTask(S3NettyHandler handler, OpType opType) throws S3Exception {
       super(handler, opType);
     }
 
@@ -443,8 +444,14 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
     private long mToRead;
     // For both PutObject and UploadPart
 
-    public PutObjectTask(S3NettyHandler handler, OpType opType) {
+    public PutObjectTask(S3NettyHandler handler, OpType opType) throws S3Exception {
       super(handler, opType);
+      try {
+        mAlreadyRead = 0;
+        mMessageDigest = MessageDigest.getInstance("MD5");
+      } catch (NoSuchAlgorithmException e) {
+        throw new S3Exception(handler.getRequest().uri(), S3ErrorCode.INTERNAL_ERROR);
+      }
     }
 
     /**
@@ -463,7 +470,6 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         throws S3Exception {
       AlluxioURI objectUri = new AlluxioURI(objectPath);
       try {
-        mMessageDigest = MessageDigest.getInstance("MD5");
         final String decodedLengthHeader = mHandler.getHeader("x-amz-decoded-content-length");
         final String contentLength = mHandler.getHeader("Content-Length");
         // The request body can be in the aws-chunked encoding format, or not encoded at all
@@ -477,7 +483,6 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         }
         FileOutStream os = userFs.createFile(objectUri, createFilePOptions);
         DigestOutputStream digestOutputStream = new DigestOutputStream(os, mMessageDigest);
-        mAlreadyRead = 0;
         return digestOutputStream;
       } catch (Exception e) {
         throw NettyRestUtils.toObjectS3Exception(e, objectPath, auditContext);
@@ -646,7 +651,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         final String object = mHandler.getObject();
         final FileSystem userFs = mHandler.getFileSystemForUser(user);
         String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
-        String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+        String objectPath = PathUtils.concatPath(bucketPath, object);
         try (S3AuditContext auditContext =
                  mHandler.createAuditContext(mOPType.name(), user, bucket, object)) {
           AlluxioURI objectUri = new AlluxioURI(objectPath);
