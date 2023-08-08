@@ -28,7 +28,7 @@ September 17, 2021
 
 When deploying a High Availability cluster using the Embedded Journal, users can now manually specify the leading master. This is useful when users want to debug or do maintenance on a server without killing an existing running master process. This new functionality transfers the leadership of the quorum gracefully to another master specified. 
 
-The [docs]({{ 'e/en/operation/Admin-CLI.html#journal' | relativize_url }}) show how to use this new feature. ([d6c6733](https://github.com/Alluxio/alluxio/commit/d6c673323348b3ff3c1951d1d7c9a0d4071d69ff){:target="_blank"})([d67996c1](https://github.com/Alluxio/alluxio/commit/d67996c142b54a0e8ae6ebbbc01fc96a1c9efc73){:target="_blank"})([e79fcdd](https://github.com/Alluxio/alluxio/commit/e79fcddf8739faeda15365be99f508873278a7cb){:target="_blank"})
+The [docs]({{ '/en/operation/Admin-CLI.html#journal' | relativize_url }}) show how to use this new feature. ([d6c6733](https://github.com/Alluxio/alluxio/commit/d6c673323348b3ff3c1951d1d7c9a0d4071d69ff){:target="_blank"})([d67996c1](https://github.com/Alluxio/alluxio/commit/d67996c142b54a0e8ae6ebbbc01fc96a1c9efc73){:target="_blank"})([e79fcdd](https://github.com/Alluxio/alluxio/commit/e79fcddf8739faeda15365be99f508873278a7cb){:target="_blank"})
 
 ### Docker Images for Production and Development
 
