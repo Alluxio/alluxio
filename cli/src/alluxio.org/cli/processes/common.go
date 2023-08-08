@@ -142,8 +142,7 @@ func prepareCommand() (*ssh.ClientConfig, int, error) {
 	// get the current user
 	cu, err := user.Current()
 	if err != nil {
-		return &ssh.ClientConfig{}, -1,
-			stacktrace.Propagate(err, "cannot find current user")
+		return nil, 0, stacktrace.Propagate(err, "cannot find current user")
 	}
 	cuName := cu.Username
 	log.Logger.Debugf("current user: %v", cuName)
@@ -151,8 +150,13 @@ func prepareCommand() (*ssh.ClientConfig, int, error) {
 	// get public key
 	signer, err := getSigner()
 	if err != nil {
-		return &ssh.ClientConfig{}, -1,
-			stacktrace.Propagate(err, "cannot get private key")
+		return nil, 0, stacktrace.Propagate(err, "cannot get private key")
+	}
+
+	// find default ssh port
+	port, e := net.LookupPort("tcp", "ssh")
+	if e != nil {
+		return nil, 0, stacktrace.Propagate(err, "cannot find default ssh port")
 	}
 
 	// set client config with current user and signer
@@ -163,13 +167,6 @@ func prepareCommand() (*ssh.ClientConfig, int, error) {
 		},
 		Timeout:         5 * time.Second,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-	}
-
-	// find default ssh port
-	port, err := net.LookupPort("tcp", "ssh")
-	if err != nil {
-		return &ssh.ClientConfig{}, -1,
-			stacktrace.Propagate(err, "get default ssh port failed")
 	}
 	return config, port, nil
 }
@@ -199,7 +196,7 @@ func addStopFlags(argument string, cmd *env.StopProcessCommand) string {
 
 func getHostnames(mode string) ([]string, error) {
 	if mode != "master" && mode != "worker" && mode != "all" {
-		return nil, stacktrace.Propagate(fmt.Errorf("invalid mode for readHostnames"),
+		return nil, stacktrace.NewError("invalid mode for readHostnames, " +
 			"available readHostnames modes: [master, worker, all]")
 	}
 	var hosts []string
@@ -276,8 +273,7 @@ func errorHandler(command string, nodes []string, results chan Result) error {
 	}
 
 	if hasError != 0 {
-		return stacktrace.Propagate(fmt.Errorf("run command %s failed", command),
-			"number of failures: %v", hasError)
+		return stacktrace.NewError("run command %s failed, number of failures: %s", command, hasError)
 	}
 	log.Logger.Infof("run command %s successful on nodes: %s", command, nodes)
 	return nil

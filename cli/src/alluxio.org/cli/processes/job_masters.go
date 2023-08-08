@@ -12,6 +12,8 @@
 package processes
 
 import (
+	"strings"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -47,11 +49,11 @@ func (p *JobMastersProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 }
 
 func (p *JobMastersProcess) Start(cmd *env.StartProcessCommand) error {
-	arguments := "process start job_master"
+	arguments := strings.Join([]string{env.Service{}.Name, cmd.Name, JobMasterProcess{}.Name}, "")
 	return runCommand(addStartFlags(arguments, cmd), "master")
 }
 
 func (p *JobMastersProcess) Stop(cmd *env.StopProcessCommand) error {
-	arguments := "process stop job_master"
+	arguments := strings.Join([]string{env.Service{}.Name, cmd.Name, JobMasterProcess{}.Name}, "")
 	return runCommand(addStopFlags(arguments, cmd), "master")
 }

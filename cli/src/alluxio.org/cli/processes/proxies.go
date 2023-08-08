@@ -12,6 +12,8 @@
 package processes
 
 import (
+	"strings"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -47,11 +49,11 @@ func (p *ProxiesProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 }
 
 func (p *ProxiesProcess) Start(cmd *env.StartProcessCommand) error {
-	arguments := "process start proxy"
+	arguments := strings.Join([]string{env.Service{}.Name, cmd.Name, ProxyProcess{}.Name}, "")
 	return runCommand(addStartFlags(arguments, cmd), "all")
 }
 
 func (p *ProxiesProcess) Stop(cmd *env.StopProcessCommand) error {
-	arguments := "process stop proxy"
+	arguments := strings.Join([]string{env.Service{}.Name, cmd.Name, ProxyProcess{}.Name}, "")
 	return runCommand(addStopFlags(arguments, cmd), "all")
 }
