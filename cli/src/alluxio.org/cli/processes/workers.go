@@ -49,11 +49,11 @@ func (p *WorkersProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 }
 
 func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
-	arguments := strings.Join([]string{env.Service{}.Name, cmd.Name, WorkerProcess{}.Name}, "")
+	arguments := strings.Join([]string{env.Service{}.Name, cmd.Name, WorkerProcess{}.Name}, " ")
 	return runCommand(addStartFlags(arguments, cmd), "worker")
 }
 
 func (p *WorkersProcess) Stop(cmd *env.StopProcessCommand) error {
-	arguments := strings.Join([]string{env.Service{}.Name, cmd.Name, WorkerProcess{}.Name}, "")
+	arguments := strings.Join([]string{env.Service{}.Name, cmd.Name, WorkerProcess{}.Name}, " ")
 	return runCommand(addStopFlags(arguments, cmd), "worker")
 }

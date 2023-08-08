@@ -49,11 +49,11 @@ func (p *ProxiesProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 }
 
 func (p *ProxiesProcess) Start(cmd *env.StartProcessCommand) error {
-	arguments := strings.Join([]string{env.Service{}.Name, cmd.Name, ProxyProcess{}.Name}, "")
+	arguments := strings.Join([]string{env.Service{}.Name, cmd.Name, ProxyProcess{}.Name}, " ")
 	return runCommand(addStartFlags(arguments, cmd), "all")
 }
 
 func (p *ProxiesProcess) Stop(cmd *env.StopProcessCommand) error {
-	arguments := strings.Join([]string{env.Service{}.Name, cmd.Name, ProxyProcess{}.Name}, "")
+	arguments := strings.Join([]string{env.Service{}.Name, cmd.Name, ProxyProcess{}.Name}, " ")
 	return runCommand(addStopFlags(arguments, cmd), "all")
 }
