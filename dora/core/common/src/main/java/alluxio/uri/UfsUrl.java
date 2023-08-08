@@ -241,7 +241,6 @@ public class UfsUrl {
    * @return the String representation of the {@link UfsUrl}
    */
   public String asString() {
-    // TODO(Jiacheng Liu): consider corner cases
     StringBuilder sb = new StringBuilder();
     sb.append(mProto.getScheme());
     if (!mProto.getScheme().isEmpty()) {
@@ -269,11 +268,17 @@ public class UfsUrl {
    */
   // TODO(Tony Sun): determine how to modify it.
   public int hashCode() {
-    return 0;
+    String s = asString();
+    int len = s.length();
+    int hash = 0;
+    for (int i = 0; i < len; i++) {
+      hash = (hash + s.charAt(i)) % Integer.MAX_VALUE;
+    }
+    return hash;
   }
 
   /**
-   * determine whether o is equal to this.
+   * determine whether object o is equal to current UfsUrl.
    *
    * @param o an object
    * @return true if equal, false if not equal

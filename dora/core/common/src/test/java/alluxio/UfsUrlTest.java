@@ -50,7 +50,7 @@ public class UfsUrlTest {
     assertEquals("abc://localhost:19998/", ufsUrl.getParentURL().getParentURL().asString());
     assertEquals("/xy z/a b c", ufsUrl.getFullPath());
     assertEquals("abc://localhost:19998/xy z/a b c/d", ufsUrl.join("/d").asString());
-    // TODO(Tony Sun): Rewrite join function, add join test in the future.
+    // TODO(Tony Sun): Rewrite join function of UfsUrl, add join test in the future.
     assertEquals("abc://localhost:19998/xy z/a b c", ufsUrl.asString());
   }
 
@@ -76,7 +76,7 @@ public class UfsUrlTest {
     assertTrue(ufsUrl.getScheme().isPresent());
     assertEquals("hdfs", ufsUrl.getScheme().get());
     assertEquals("hdfs://localhost:8020/xy z/a b c/d", ufsUrl.join("/d").asString());
-    // TODO(Tony Sun): Rewrite join function, add join test in the future.
+    // TODO(Tony Sun): Rewrite join function of UfsUrl, add join test in the future.
     assertEquals("hdfs://localhost:8020/xy z/a b c", ufsUrl.asString());
   }
 }

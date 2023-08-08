@@ -410,7 +410,7 @@ public interface FileSystem extends Closeable {
   }
 
   /**
-   * Gets the {@link URIStatus} object that represents the metadata of an Alluxio path.
+   * Gets the {@link URIStatus} object that represents the metadata of an UFS path.
    *
    * @param ufsPath the path to obtain information about
    * @return the {@link URIStatus} of the file
@@ -433,7 +433,7 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Gets the {@link URIStatus} object that represents the metadata of an Alluxio path.
+   * Gets the {@link URIStatus} object that represents the metadata of an UFS path.
    *
    * @param ufsPath the path to obtain information about
    * @param options options to associate with this operation

@@ -297,6 +297,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
         RPC_LOG, "ListStatus", "path=%s,options=%s", path, options);
   }
 
+
   @Override
   public List<URIStatus> listStatus(final AlluxioURI path, final ListStatusPOptions options)
       throws AlluxioStatusException {
@@ -305,11 +306,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       mClient
           .listStatus(ListStatusPRequest.newBuilder().setPath(getTransportPath(path))
               .setOptions(options).build())
-              .forEachRemaining(
-                      (pListStatusResponse) -> result.addAll(pListStatusResponse
-                          .getFileInfosList().stream()
-                          .map((pFileInfo) -> new URIStatus(GrpcUtils.fromProto(pFileInfo)))
-                          .collect(Collectors.toList())));
+          .forEachRemaining(
+              (pListStatusResponse) -> result.addAll(pListStatusResponse.getFileInfosList().stream()
+                  .map((pFileInfo) -> new URIStatus(GrpcUtils.fromProto(pFileInfo)))
+                  .collect(Collectors.toList())));
       return result;
     }, RPC_LOG, "ListStatus", "path=%s,options=%s", path, options);
   }
