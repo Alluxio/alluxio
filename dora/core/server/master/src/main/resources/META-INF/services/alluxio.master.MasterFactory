@@ -9,7 +9,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-alluxio.master.block.BlockMasterFactory
+#alluxio.master.block.BlockMasterFactory
 alluxio.master.file.FileSystemMasterFactory
 alluxio.master.journal.JournalMasterFactory
 alluxio.master.meta.MetaMasterFactory

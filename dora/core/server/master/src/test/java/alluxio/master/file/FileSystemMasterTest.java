@@ -660,97 +660,97 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
    * Tests that file information is still present after it has been freed after the TTL has been set
    * to 0.
    */
-  @Test
-  public void ttlFileFree() throws Exception {
-    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-    // Set ttl & operation.
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.mergeFrom(
-        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptionsUtils
-            .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
-            .setTtlAction(alluxio.grpc.TtlAction.FREE))));
-    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
-        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
-    // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
-    assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-  }
+//  @Test
+//  public void ttlFileFree() throws Exception {
+//    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+//    assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+//    // Set ttl & operation.
+//    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.mergeFrom(
+//        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptionsUtils
+//            .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
+//            .setTtlAction(alluxio.grpc.TtlAction.FREE))));
+//    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
+//        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
+//        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
+//    // Verify the muted Free command on worker1.
+//    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
+//    assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+//  }
 
   /**
    * Tests that TTL free of a file is not forgotten across restarts.
    */
-  @Test
-  public void ttlFileFreeReplay() throws Exception {
-    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-    // Set ttl & operation.
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.mergeFrom(
-        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptionsUtils
-            .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
-            .setTtlAction(alluxio.grpc.TtlAction.FREE))));
-    // Simulate restart.
-    stopServices();
-    startServices();
-
-    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
-        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.of(), ImmutableMap.<String, StorageList>of(), mMetrics);
-    // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
-    assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-  }
+//  @Test
+//  public void ttlFileFreeReplay() throws Exception {
+//    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+//    assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+//    // Set ttl & operation.
+//    mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeContext.mergeFrom(
+//        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptionsUtils
+//            .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
+//            .setTtlAction(alluxio.grpc.TtlAction.FREE))));
+//    // Simulate restart.
+//    stopServices();
+//    startServices();
+//
+//    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
+//        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
+//        ImmutableMap.of(), ImmutableMap.<String, StorageList>of(), mMetrics);
+//    // Verify the muted Free command on worker1.
+//    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
+//    assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+//  }
 
   /**
    * Tests that file information is still present after it has been freed after the parent
    * directory's TTL has been set to 0.
    */
-  @Test
-  public void ttlDirectoryFree() throws Exception {
-    CreateDirectoryContext directoryContext = CreateDirectoryContext
-        .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true));
-    mFileSystemMaster.createDirectory(NESTED_URI, directoryContext);
-    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-    // Set ttl & operation.
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(
-        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
-            .newBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE))));
-    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
-        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.of(), ImmutableMap.<String, StorageList>of(), mMetrics);
-    // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
-    assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-  }
+//  @Test
+//  public void ttlDirectoryFree() throws Exception {
+//    CreateDirectoryContext directoryContext = CreateDirectoryContext
+//        .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true));
+//    mFileSystemMaster.createDirectory(NESTED_URI, directoryContext);
+//    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+//    assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+//    // Set ttl & operation.
+//    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(
+//        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
+//            .newBuilder().setTtl(0).setTtlAction(alluxio.grpc.TtlAction.FREE))));
+//    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
+//        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
+//        ImmutableMap.of(), ImmutableMap.<String, StorageList>of(), mMetrics);
+//    // Verify the muted Free command on worker1.
+//    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
+//    assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+//  }
 
   /**
    * Tests that TTL free of a directory is not forgotten across restarts.
    */
-  @Test
-  public void ttlDirectoryFreeReplay() throws Exception {
-    CreateDirectoryContext directoryContext = CreateDirectoryContext
-        .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true));
-    mFileSystemMaster.createDirectory(NESTED_URI, directoryContext);
-    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-    // Set ttl & operation.
-    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(
-        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptionsUtils
-            .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
-            .setTtlAction(alluxio.grpc.TtlAction.FREE))));
-
-    // Simulate restart.
-    stopServices();
-    startServices();
-
-    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
-        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
-    // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
-    assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-  }
+//  @Test
+//  public void ttlDirectoryFreeReplay() throws Exception {
+//    CreateDirectoryContext directoryContext = CreateDirectoryContext
+//        .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true));
+//    mFileSystemMaster.createDirectory(NESTED_URI, directoryContext);
+//    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+//    assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+//    // Set ttl & operation.
+//    mFileSystemMaster.setAttribute(NESTED_URI, SetAttributeContext.mergeFrom(
+//        SetAttributePOptions.newBuilder().setCommonOptions(FileSystemOptionsUtils
+//            .commonDefaults(Configuration.global()).toBuilder().setTtl(0)
+//            .setTtlAction(alluxio.grpc.TtlAction.FREE))));
+//
+//    // Simulate restart.
+//    stopServices();
+//    startServices();
+//
+//    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
+//        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
+//        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
+//    // Verify the muted Free command on worker1.
+//    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
+//    assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+//  }
 
   /**
    * Tests that an exception is thrown when trying to get information about a file after it
@@ -997,49 +997,49 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
   /**
    * Tests that a file is fully written to memory.
    */
-  @Test
-  public void isFullyInMemory() throws Exception {
-    // add nested file
-    mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileContext);
-    // add in-memory block
-    long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
-    mBlockMaster.commitBlock(mWorkerId1, Constants.KB,
-        Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, Constants.KB);
-    // add SSD block
-    blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
-    mBlockMaster.commitBlock(mWorkerId1, Constants.KB, Constants.MEDIUM_SSD,
-        Constants.MEDIUM_SSD, blockId, Constants.KB);
-    mFileSystemMaster.completeFile(NESTED_FILE_URI, CompleteFileContext.defaults());
-
-    // Create 2 files in memory.
-    createFileWithSingleBlock(ROOT_FILE_URI);
-    AlluxioURI nestedMemUri = NESTED_URI.join("mem_file");
-    createFileWithSingleBlock(nestedMemUri);
-    assertEquals(2, mFileSystemMaster.getInMemoryFiles().size());
-    assertTrue(mFileSystemMaster.getInMemoryFiles().contains(ROOT_FILE_URI));
-    assertTrue(mFileSystemMaster.getInMemoryFiles().contains(nestedMemUri));
-  }
+//  @Test
+//  public void isFullyInMemory() throws Exception {
+//    // add nested file
+//    mFileSystemMaster.createFile(NESTED_FILE_URI, mNestedFileContext);
+//    // add in-memory block
+//    long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
+//    mBlockMaster.commitBlock(mWorkerId1, Constants.KB,
+//        Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, Constants.KB);
+//    // add SSD block
+//    blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
+//    mBlockMaster.commitBlock(mWorkerId1, Constants.KB, Constants.MEDIUM_SSD,
+//        Constants.MEDIUM_SSD, blockId, Constants.KB);
+//    mFileSystemMaster.completeFile(NESTED_FILE_URI, CompleteFileContext.defaults());
+//
+//    // Create 2 files in memory.
+//    createFileWithSingleBlock(ROOT_FILE_URI);
+//    AlluxioURI nestedMemUri = NESTED_URI.join("mem_file");
+//    createFileWithSingleBlock(nestedMemUri);
+//    assertEquals(2, mFileSystemMaster.getInMemoryFiles().size());
+//    assertTrue(mFileSystemMaster.getInMemoryFiles().contains(ROOT_FILE_URI));
+//    assertTrue(mFileSystemMaster.getInMemoryFiles().contains(nestedMemUri));
+//  }
 
   /**
    * Tests {@link FileSystemMaster#free} on persisted file.
    */
-  @Test
-  public void free() throws Exception {
-    mNestedFileContext.setWriteType(WriteType.CACHE_THROUGH);
-    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-
-    // free the file
-    mFileSystemMaster.free(NESTED_FILE_URI, FreeContext.mergeFrom(FreePOptions.newBuilder()
-        .setForced(false).setRecursive(false)));
-    // Update the heartbeat of removedBlockId received from worker 1.
-    Command heartbeat2 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
-        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
-    // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat2);
-    assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-  }
+//  @Test
+//  public void free() throws Exception {
+//    mNestedFileContext.setWriteType(WriteType.CACHE_THROUGH);
+//    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+//    assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+//
+//    // free the file
+//    mFileSystemMaster.free(NESTED_FILE_URI, FreeContext.mergeFrom(FreePOptions.newBuilder()
+//        .setForced(false).setRecursive(false)));
+//    // Update the heartbeat of removedBlockId received from worker 1.
+//    Command heartbeat2 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
+//        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
+//        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
+//    // Verify the muted Free command on worker1.
+//    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat2);
+//    assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+//  }
 
   /**
    * Tests {@link FileSystemMaster#free} on non-persisted file.
@@ -1073,26 +1073,26 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
   /**
    * Tests {@link FileSystemMaster#free} on pinned file when forced flag is true.
    */
-  @Test
-  public void freePinnedFileWithForce() throws Exception {
-    mNestedFileContext.setWriteType(WriteType.CACHE_THROUGH);
-    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder().setPinned(true)));
-
-    assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-
-    // free the file
-    mFileSystemMaster.free(NESTED_FILE_URI,
-        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true)));
-    // Update the heartbeat of removedBlockId received from worker 1.
-    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
-        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
-    // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
-    assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-  }
+//  @Test
+//  public void freePinnedFileWithForce() throws Exception {
+//    mNestedFileContext.setWriteType(WriteType.CACHE_THROUGH);
+//    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+//    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+//        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder().setPinned(true)));
+//
+//    assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+//
+//    // free the file
+//    mFileSystemMaster.free(NESTED_FILE_URI,
+//        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true)));
+//    // Update the heartbeat of removedBlockId received from worker 1.
+//    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
+//        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
+//        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
+//    // Verify the muted Free command on worker1.
+//    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
+//    assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+//  }
 
   /**
    * Tests the {@link FileSystemMaster#free} method with a directory but recursive to false.
@@ -1111,23 +1111,23 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
   /**
    * Tests the {@link FileSystemMaster#free} method with a directory.
    */
-  @Test
-  public void freeDir() throws Exception {
-    mNestedFileContext.setWriteType(WriteType.CACHE_THROUGH);
-    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-
-    // free the dir
-    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
-        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
-    // Update the heartbeat of removedBlockId received from worker 1.
-    Command heartbeat3 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
-        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
-    // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat3);
-    assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-  }
+//  @Test
+//  public void freeDir() throws Exception {
+//    mNestedFileContext.setWriteType(WriteType.CACHE_THROUGH);
+//    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+//    assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+//
+//    // free the dir
+//    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+//        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
+//    // Update the heartbeat of removedBlockId received from worker 1.
+//    Command heartbeat3 = mBlockMaster.workerHeartbeat(mWorkerId1, null,
+//        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
+//        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
+//    // Verify the muted Free command on worker1.
+//    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat3);
+//    assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+//  }
 
   /**
    * Tests the {@link FileSystemMaster#free} method with a directory with a file non-persisted.
@@ -1165,23 +1165,23 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
    * Tests the {@link FileSystemMaster#free} method with a directory with a file pinned when
    * forced flag is true.
    */
-  @Test
-  public void freeDirWithPinnedFileAndForced() throws Exception {
-    mNestedFileContext.setWriteType(WriteType.CACHE_THROUGH);
-    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
-        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder().setPinned(true)));
-    // free the parent dir of a pinned file with "forced"
-    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
-        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
-    // Update the heartbeat of removedBlockId received from worker 1.
-    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
-        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
-        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
-    // Verify the muted Free command on worker1.
-    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
-    assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
-  }
+//  @Test
+//  public void freeDirWithPinnedFileAndForced() throws Exception {
+//    mNestedFileContext.setWriteType(WriteType.CACHE_THROUGH);
+//    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+//    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+//        SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder().setPinned(true)));
+//    // free the parent dir of a pinned file with "forced"
+//    mFileSystemMaster.free(NESTED_FILE_URI.getParent(),
+//        FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
+//    // Update the heartbeat of removedBlockId received from worker 1.
+//    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1, null,
+//        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB), ImmutableList.of(blockId),
+//        ImmutableMap.of(), ImmutableMap.of(), mMetrics);
+//    // Verify the muted Free command on worker1.
+//    assertEquals(Command.newBuilder().setCommandType(CommandType.Nothing).build(), heartbeat);
+//    assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+//  }
 
   /**
    * Tests the {@link FileSystemMaster#mount(AlluxioURI, AlluxioURI, MountContext)} method.
@@ -1427,27 +1427,27 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
   /**
    * Tests that lost files can successfully be detected.
    */
-  @Test
-  public void lostFilesDetection() throws Exception {
-    createFileWithSingleBlock(NESTED_FILE_URI);
-    long fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);
-
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    mBlockMaster.reportLostBlocks(fileInfo.getBlockIds());
-
-    assertEquals(PersistenceState.NOT_PERSISTED.name(), fileInfo.getPersistenceState());
-    // Check with getPersistenceState.
-    assertEquals(PersistenceState.NOT_PERSISTED,
-        mFileSystemMaster.getPersistenceState(fileId));
-
-    // run the detector
-    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_FILES_DETECTION);
-
-    fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    assertEquals(PersistenceState.LOST.name(), fileInfo.getPersistenceState());
-    // Check with getPersistenceState.
-    assertEquals(PersistenceState.LOST, mFileSystemMaster.getPersistenceState(fileId));
-  }
+//  @Test
+//  public void lostFilesDetection() throws Exception {
+//    createFileWithSingleBlock(NESTED_FILE_URI);
+//    long fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);
+//
+//    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
+//    mBlockMaster.reportLostBlocks(fileInfo.getBlockIds());
+//
+//    assertEquals(PersistenceState.NOT_PERSISTED.name(), fileInfo.getPersistenceState());
+//    // Check with getPersistenceState.
+//    assertEquals(PersistenceState.NOT_PERSISTED,
+//        mFileSystemMaster.getPersistenceState(fileId));
+//
+//    // run the detector
+//    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_FILES_DETECTION);
+//
+//    fileInfo = mFileSystemMaster.getFileInfo(fileId);
+//    assertEquals(PersistenceState.LOST.name(), fileInfo.getPersistenceState());
+//    // Check with getPersistenceState.
+//    assertEquals(PersistenceState.LOST, mFileSystemMaster.getPersistenceState(fileId));
+//  }
 
   @Test
   public void getUfsInfo() throws Exception {

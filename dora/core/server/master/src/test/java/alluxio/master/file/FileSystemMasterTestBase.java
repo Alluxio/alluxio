@@ -35,8 +35,8 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.block.BlockMasterFactory;
+//import alluxio.master.block.BlockMaster;
+//import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
@@ -114,7 +114,7 @@ public class FileSystemMasterTestBase {
   CreateFileContext mNestedFileContext;
   MasterRegistry mRegistry;
   JournalSystem mJournalSystem;
-  BlockMaster mBlockMaster;
+//  BlockMaster mBlockMaster;
   ExecutorService mExecutorService;
   public DefaultFileSystemMaster mFileSystemMaster;
   InodeTree mInodeTree;
@@ -330,8 +330,8 @@ public class FileSystemMasterTestBase {
             || writeType == WritePType.ASYNC_THROUGH)) {
       Files.createFile(Paths.get(info.getUfsPath()));
     }
-    mBlockMaster.commitBlock(mWorkerId1, Constants.KB,
-        Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, Constants.KB);
+//    mBlockMaster.commitBlock(mWorkerId1, Constants.KB,
+//        Constants.MEDIUM_MEM, Constants.MEDIUM_MEM, blockId, Constants.KB);
     CompleteFileContext context =
         CompleteFileContext.mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(Constants.KB));
     mFileSystemMaster.completeFile(uri, context);
@@ -359,10 +359,10 @@ public class FileSystemMasterTestBase {
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
+//    mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
     mExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
-    mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
+    mFileSystemMaster = new DefaultFileSystemMaster(masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), mClock);
     mInodeStore = mFileSystemMaster.getInodeStore();
     mInodeTree = mFileSystemMaster.getInodeTree();
@@ -372,25 +372,25 @@ public class FileSystemMasterTestBase {
     mRegistry.start(true);
 
     // set up workers
-    mWorkerId1 = mBlockMaster.getWorkerId(
-        new WorkerNetAddress().setHost("localhost").setRpcPort(80).setDataPort(81).setWebPort(82));
-    mBlockMaster.workerRegister(mWorkerId1,
-        Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD),
-        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.MB,
-            Constants.MEDIUM_SSD, (long) Constants.MB),
-        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB,
-            Constants.MEDIUM_SSD, (long) Constants.KB), ImmutableMap.of(),
-        new HashMap<String, StorageList>(), RegisterWorkerPOptions.getDefaultInstance());
-    mWorkerId2 = mBlockMaster.getWorkerId(
-        new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
-    mBlockMaster.workerRegister(mWorkerId2,
-        Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD),
-        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.MB,
-            Constants.MEDIUM_SSD, (long) Constants.MB),
-        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB,
-            Constants.MEDIUM_SSD, (long) Constants.KB),
-        ImmutableMap.of(), new HashMap<String, StorageList>(),
-        RegisterWorkerPOptions.getDefaultInstance());
+//    mWorkerId1 = mBlockMaster.getWorkerId(
+//        new WorkerNetAddress().setHost("localhost").setRpcPort(80).setDataPort(81).setWebPort(82));
+//    mBlockMaster.workerRegister(mWorkerId1,
+//        Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD),
+//        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.MB,
+//            Constants.MEDIUM_SSD, (long) Constants.MB),
+//        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB,
+//            Constants.MEDIUM_SSD, (long) Constants.KB), ImmutableMap.of(),
+//        new HashMap<String, StorageList>(), RegisterWorkerPOptions.getDefaultInstance());
+//    mWorkerId2 = mBlockMaster.getWorkerId(
+//        new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
+//    mBlockMaster.workerRegister(mWorkerId2,
+//        Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD),
+//        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.MB,
+//            Constants.MEDIUM_SSD, (long) Constants.MB),
+//        ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.KB,
+//            Constants.MEDIUM_SSD, (long) Constants.KB),
+//        ImmutableMap.of(), new HashMap<String, StorageList>(),
+//        RegisterWorkerPOptions.getDefaultInstance());
   }
 
   public void stopServices() throws Exception {

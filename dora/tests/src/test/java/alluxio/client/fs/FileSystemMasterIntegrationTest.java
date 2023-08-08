@@ -47,7 +47,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterClientContext;
-import alluxio.master.block.BlockMaster;
+//import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
@@ -491,13 +491,13 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
             .setDeleteMountPoint(true)));
   }
 
-  @Test
-  public void getCapacityBytes() {
-    BlockMaster blockMaster =
-        sLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-            .getMaster(BlockMaster.class);
-    Assert.assertEquals(10 * Constants.MB, blockMaster.getCapacityBytes());
-  }
+//  @Test
+//  public void getCapacityBytes() {
+//    BlockMaster blockMaster =
+//        sLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+//            .getMaster(BlockMaster.class);
+//    Assert.assertEquals(10 * Constants.MB, blockMaster.getCapacityBytes());
+//  }
 
   @Test
   public void lastModificationTimeCompleteFile() throws Exception {

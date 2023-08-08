@@ -52,7 +52,7 @@ import alluxio.master.StateLockOptions;
 import alluxio.master.backup.BackupLeaderRole;
 import alluxio.master.backup.BackupRole;
 import alluxio.master.backup.BackupWorkerRole;
-import alluxio.master.block.BlockMaster;
+//import alluxio.master.block.BlockMaster;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalType;
 import alluxio.master.journal.checkpoint.CheckpointName;
@@ -102,7 +102,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultMetaMaster.class);
-  private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
+//  private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
+  private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of();
 
   // Master metadata management.
   private static final IndexDefinition<MasterInfo, Long> ID_INDEX =
@@ -228,23 +229,21 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /**
    * Creates a new instance of {@link DefaultMetaMaster}.
    *
-   * @param blockMaster a block master handle
    * @param masterContext the context for Alluxio master
    */
-  DefaultMetaMaster(BlockMaster blockMaster, CoreMasterContext masterContext) {
-    this(blockMaster, masterContext,
+  DefaultMetaMaster(CoreMasterContext masterContext) {
+    this(masterContext,
         ExecutorServiceFactories.cachedThreadPool(Constants.META_MASTER_NAME));
   }
 
   /**
    * Creates a new instance of {@link DefaultMetaMaster}.
    *
-   * @param blockMaster a block master handle
    * @param masterContext the context for Alluxio master
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultMetaMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
+  DefaultMetaMaster(CoreMasterContext masterContext,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, new SystemClock(), executorServiceFactory);
     mCoreMasterContext = masterContext;
@@ -253,10 +252,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
             mRpcConnectAddress.getHostName()))
             .setRpcPort(mPort);
     /* Handle to the block master. */
-    blockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
-    blockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
-    blockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
-    blockMaster.registerWorkerDeleteListener(mWorkerConfigStore::handleNodeDelete);
+//    blockMaster.registerLostWorkerFoundListener(mWorkerConfigStore::lostNodeFound);
+//    blockMaster.registerWorkerLostListener(mWorkerConfigStore::handleNodeLost);
+//    blockMaster.registerNewWorkerConfListener(mWorkerConfigStore::registerNewConf);
+//    blockMaster.registerWorkerDeleteListener(mWorkerConfigStore::handleNodeDelete);
 
     mUfsManager = masterContext.getUfsManager();
 

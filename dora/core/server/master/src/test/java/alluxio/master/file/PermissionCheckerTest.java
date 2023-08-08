@@ -24,8 +24,8 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.block.BlockMasterFactory;
+//import alluxio.master.block.BlockMaster;
+//import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
@@ -189,13 +189,13 @@ public final class PermissionCheckerTest {
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
     sMetricsMaster = new MetricsMasterFactory().create(sRegistry, masterContext);
     sRegistry.add(MetricsMaster.class, sMetricsMaster);
-    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, masterContext);
-    InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
+//    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, masterContext);
+//    InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager, mock(MountInfo.class), Clock.systemUTC());
     InodeLockManager lockManager = new InodeLockManager();
     sInodeStore = masterContext.getInodeStoreFactory().apply(lockManager);
-    sTree = new InodeTree(sInodeStore, blockMaster, directoryIdGenerator, mountTable, lockManager);
+//    sTree = new InodeTree(sInodeStore, blockMaster, directoryIdGenerator, mountTable, lockManager);
 
     sRegistry.start(true);
 

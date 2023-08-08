@@ -22,7 +22,7 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.MasterUtils;
 import alluxio.master.SafeModeManager;
 import alluxio.master.TestSafeModeManager;
-import alluxio.master.block.BlockMasterFactory;
+//import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.journal.JournalSystem;
@@ -134,7 +134,7 @@ public class MasterTestUtils {
         .setUfsManager(new MasterUfsManager())
         .build();
     new MetricsMasterFactory().create(registry, masterContext);
-    new BlockMasterFactory().create(registry, masterContext);
+//    new BlockMasterFactory().create(registry, masterContext);
     new FileSystemMasterFactory().create(registry, masterContext);
     journalSystem.start();
     if (isLeader) {

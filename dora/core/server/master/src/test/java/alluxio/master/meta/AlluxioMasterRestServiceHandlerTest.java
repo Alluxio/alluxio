@@ -35,8 +35,8 @@ import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterProcess;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.block.BlockMasterFactory;
+//import alluxio.master.block.BlockMaster;
+//import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.journal.noop.NoopJournalSystem;
@@ -113,7 +113,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
       Constants.MEDIUM_SSD, 200L);
 
   private AlluxioMasterProcess mMasterProcess;
-  private BlockMaster mBlockMaster;
+//  private BlockMaster mBlockMaster;
   private FileSystemMaster mFileSystemMaster;
   private MasterRegistry mRegistry;
   private AlluxioMasterRestServiceHandler mHandler;
@@ -140,25 +140,25 @@ public final class AlluxioMasterRestServiceHandlerTest {
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     registerMockUfs();
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
+//    mBlockMaster = new BlockMasterFactory().create(mRegistry, masterContext);
     mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, masterContext);
     mRegistry.start(true);
-    when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
+//    when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
     when(mMasterProcess.getMaster(FileSystemMaster.class)).thenReturn(mFileSystemMaster);
     when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
         mMasterProcess);
     mHandler = new AlluxioMasterRestServiceHandler(context);
     // Register two workers
-    long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
-    long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
-    List<String> tiers = Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD);
-
-    mBlockMaster.workerRegister(worker1, tiers, WORKER1_TOTAL_BYTES_ON_TIERS,
-        WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_LOCATIONS, NO_LOST_STORAGE,
-        RegisterWorkerPOptions.getDefaultInstance());
-    mBlockMaster.workerRegister(worker2, tiers, WORKER2_TOTAL_BYTES_ON_TIERS,
-        WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_LOCATIONS, NO_LOST_STORAGE,
-        RegisterWorkerPOptions.getDefaultInstance());
+//    long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
+//    long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
+//    List<String> tiers = Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD);
+//
+//    mBlockMaster.workerRegister(worker1, tiers, WORKER1_TOTAL_BYTES_ON_TIERS,
+//        WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_LOCATIONS, NO_LOST_STORAGE,
+//        RegisterWorkerPOptions.getDefaultInstance());
+//    mBlockMaster.workerRegister(worker2, tiers, WORKER2_TOTAL_BYTES_ON_TIERS,
+//        WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_LOCATIONS, NO_LOST_STORAGE,
+//        RegisterWorkerPOptions.getDefaultInstance());
 
     String filesPinnedProperty = MetricKey.MASTER_FILES_PINNED.getName();
     MetricsSystem.METRIC_REGISTRY.remove(filesPinnedProperty);
@@ -258,18 +258,18 @@ public final class AlluxioMasterRestServiceHandlerTest {
       assertEquals(UFS_SPACE_TOTAL, ufsCapacity.getTotal());
       assertEquals(UFS_SPACE_USED, ufsCapacity.getUsed());
       // Validate workers
-      List<WorkerInfo> workers = info.getWorkers();
-      assertEquals(2, workers.size());
-      long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
-      long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
-      Set<Long> expectedWorkers = new HashSet<>();
-      expectedWorkers.add(worker1);
-      expectedWorkers.add(worker2);
-      Set<Long> actualWorkers = new HashSet<>();
-      for (WorkerInfo w : workers) {
-        actualWorkers.add(w.getId());
-      }
-      assertEquals(expectedWorkers, actualWorkers);
+//      List<WorkerInfo> workers = info.getWorkers();
+//      assertEquals(2, workers.size());
+//      long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
+//      long worker2 = mBlockMaster.getWorkerId(NET_ADDRESS_2);
+//      Set<Long> expectedWorkers = new HashSet<>();
+//      expectedWorkers.add(worker1);
+//      expectedWorkers.add(worker2);
+//      Set<Long> actualWorkers = new HashSet<>();
+//      for (WorkerInfo w : workers) {
+//        actualWorkers.add(w.getId());
+//      }
+//      assertEquals(expectedWorkers, actualWorkers);
     } finally {
       response.close();
     }
