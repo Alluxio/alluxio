@@ -164,15 +164,11 @@ start_master() {
   fi
 
   echo "Starting master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-  (JOURNAL_BACKUP="${journal_backup}" nohup ${BIN}/launch-process master > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
+  (nohup ${BIN}/launch-process master > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
 }
 
 start_masters() {
-  start_opts=""
-  if [[ -n ${journal_backup} ]]; then
-    start_opts="-i ${journal_backup}"
-  fi
-  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" ${start_opts} "-a" "master" $1
+  ${LAUNCHER} "${BIN}/alluxio-masters.sh" "${BIN}/alluxio-start.sh" "-a" "master" $1
 }
 
 start_proxy() {
