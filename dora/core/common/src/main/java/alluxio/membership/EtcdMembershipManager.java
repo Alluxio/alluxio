@@ -204,6 +204,6 @@ public class EtcdMembershipManager implements MembershipManager {
 
   @Override
   public void close() throws Exception {
-    mAlluxioEtcdClient.close();
+    // NOTHING TO CLOSE
   }
 }

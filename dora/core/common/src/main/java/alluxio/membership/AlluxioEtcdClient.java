@@ -13,15 +13,15 @@ package alluxio.membership;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialBackoffRetry;
-import alluxio.retry.RetryUtils;
+import alluxio.retry.RetryPolicy;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KeyValue;
@@ -40,8 +40,6 @@ import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Comparator;
@@ -49,10 +47,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nullable;
@@ -79,7 +74,7 @@ import javax.annotation.concurrent.GuardedBy;
  * instances, will leave these logic to jetcd client itself for now unless we need to
  * handle it in our layer.
  */
-public class AlluxioEtcdClient implements Closeable {
+public class AlluxioEtcdClient {
 
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioEtcdClient.class);
   private static final Lock INSTANCE_LOCK = new ReentrantLock();
@@ -92,8 +87,6 @@ public class AlluxioEtcdClient implements Closeable {
   @Nullable
   private static volatile AlluxioEtcdClient sAlluxioEtcdClient;
   public final ServiceDiscoveryRecipe mServiceDiscovery;
-  private final AtomicBoolean mConnected = new AtomicBoolean(false);
-  private final Closer mCloser = Closer.create();
   // only watch for children change(add/remove) for given parent path
   private final ConcurrentHashMap<String, Watch.Watcher> mRegisteredWatchers =
       new ConcurrentHashMap<>();
@@ -104,11 +97,16 @@ public class AlluxioEtcdClient implements Closeable {
    * CTOR for AlluxioEtcdClient.
    * @param conf
    */
+  @VisibleForTesting
   public AlluxioEtcdClient(AlluxioConfiguration conf) {
     String clusterName = conf.getString(PropertyKey.ALLUXIO_CLUSTER_NAME);
     List<String> endpointsList = conf.getList(PropertyKey.ETCD_ENDPOINTS);
     mEndpoints = endpointsList.toArray(new String[0]);
     mServiceDiscovery = new ServiceDiscoveryRecipe(this, clusterName);
+    // TODO(lucy) add more options as needed for io.etcd.jetcd.ClientBuidler
+    // to control underneath grpc parameters.
+    mClient = Client.builder().endpoints(mEndpoints)
+        .build();
   }
 
   /**
@@ -127,36 +125,41 @@ public class AlluxioEtcdClient implements Closeable {
     return sAlluxioEtcdClient;
   }
 
-  /**
-   * Create jetcd grpc client no forcing.
-   */
-  public void connect() {
-    connect(false);
+  @FunctionalInterface
+  protected interface EtcdUtilCallable<V> {
+    /**
+     * The task where logics to communicate with etcd happens.
+     *
+     * @return Etcd gRPC call result
+     * @throws Exception
+     */
+    V call() throws Exception;
   }
 
-  /**
-   * Create jetcd grpc client and force(or not) connection.
-   * @param force
-   */
-  public void connect(boolean force) {
-    if (mConnected.get() && !force) {
-      return;
+  private <V> V retryInternal(String description, RetryPolicy retryPolicy,
+                              EtcdUtilCallable<V> etcdCallable) {
+    Exception ex = null;
+    // TODO(lucy) Currently retry on all sorts of exception and report the last exception,
+    // As jetcd exception often hides underneath CompletableFuture.get(), find
+    // more info later on distinguishing different possible exceptions.
+    while (retryPolicy.attempt()) {
+      try {
+        return etcdCallable.call();
+      } catch (Exception e) {
+        // TODO(lucy) check in future if io.etcd.jetcd.common.exception.EtcdException
+        // needs to be handled for detection of underlying jetcd client connection
+        // getting into possible stale states or needs reconnection, for now, reuse single
+        // jetcd client handle for entire lifecycle of AlluxioEtcdClient.
+        LOG.warn("Failed to {} (attempt {}): {}", description, retryPolicy.getAttemptCount(),
+            e.toString());
+        ex = e;
+      }
+      LOG.debug("AlluxioEtcdClient call failed ({}): ", retryPolicy.getAttemptCount(), ex);
     }
-    mConnected.set(false);
-    // create client using endpoints
-    Client client = Client.builder().endpoints(mEndpoints)
-        .build();
-    if (mConnected.compareAndSet(false, true)) {
-      mClient = client;
-    }
-  }
-
-  /**
-   * Disconnect.
-   * @throws IOException
-   */
-  public void disconnect() throws IOException {
-    close();
+    throw new UnavailableRuntimeException(
+        String.format("Exhausted retry for (%s), retries:%s, last exception:",
+            description, retryPolicy.getAttemptCount()),
+        ex);
   }
 
   /**
@@ -199,50 +202,43 @@ public class AlluxioEtcdClient implements Closeable {
    * @param timeout
    * @param timeUnit
    * @return Lease
-   * @throws IOException
    */
-  public Lease createLease(long ttlInSec, long timeout, TimeUnit timeUnit)
-      throws IOException {
-    try {
-      return RetryUtils.retryCallable(String.format("Creating Lease with ttl:%s", ttlInSec), () -> {
-        CompletableFuture<LeaseGrantResponse> leaseGrantFut =
-            getEtcdClient().getLeaseClient().grant(ttlInSec, timeout, timeUnit);
-        long leaseId;
-        LeaseGrantResponse resp = leaseGrantFut.get(timeout, timeUnit);
-        leaseId = resp.getID();
-        Lease lease = new Lease(leaseId, ttlInSec);
-        return lease;
-      }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
-    } catch (AlluxioRuntimeException ex) {
-      throw new IOException(ex.getMessage(), ex.getCause());
-    }
+  public Lease createLease(long ttlInSec, long timeout, TimeUnit timeUnit) {
+    return retryInternal(
+        String.format("Creating Lease with ttl:%s", ttlInSec),
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
+        () -> {
+          CompletableFuture<LeaseGrantResponse> leaseGrantFut =
+              getEtcdClient().getLeaseClient().grant(ttlInSec, timeout, timeUnit);
+          LeaseGrantResponse resp = leaseGrantFut.get(timeout, timeUnit);
+          long leaseId = resp.getID();
+          Lease lease = new Lease(leaseId, ttlInSec);
+          return lease;
+        });
   }
 
   /**
    * Create lease with default ttl and timeout.
    * @return Lease
-   * @throws IOException
    */
-  public Lease createLease() throws IOException {
+  public Lease createLease() {
     return createLease(DEFAULT_LEASE_TTL_IN_SEC, DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
   }
 
   /**
    * Revoke given lease.
    * @param lease
-   * @throws IOException
    */
-  public void revokeLease(Lease lease) throws IOException {
-    RetryUtils.retry(String.format("Revoking Lease:%s", lease.toString()), () -> {
-      try {
-        CompletableFuture<LeaseRevokeResponse> leaseRevokeFut =
-            getEtcdClient().getLeaseClient().revoke(lease.mLeaseId);
-        long leaseId;
-        LeaseRevokeResponse resp = leaseRevokeFut.get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
-      } catch (ExecutionException | InterruptedException | TimeoutException ex) {
-        throw new IOException("Error revoking lease:" + lease.toString(), ex);
-      }
-    }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
+  public void revokeLease(Lease lease) {
+    retryInternal(
+        String.format("Revoking Lease:%s", lease.toString()),
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
+        () -> {
+          CompletableFuture<LeaseRevokeResponse> leaseRevokeFut =
+              getEtcdClient().getLeaseClient().revoke(lease.mLeaseId);
+          leaseRevokeFut.get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
+          return null;
+        });
   }
 
   /**
@@ -250,19 +246,17 @@ public class AlluxioEtcdClient implements Closeable {
    * @param lease
    * @return lease expired
    */
-  public boolean isLeaseExpired(Lease lease) throws IOException {
-    try {
-      return RetryUtils.retryCallable(
-          String.format("Checking IsLeaseExpired, lease:%s", lease.toString()), () -> {
-            LeaseTimeToLiveResponse leaseResp = mClient.getLeaseClient()
-                .timeToLive(lease.mLeaseId, LeaseOption.DEFAULT)
-                .get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
-            // if no such lease, lease resp will still be returned with a negative ttl
-            return leaseResp.getTTl() <= 0;
-          }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
-    } catch (AlluxioRuntimeException e) {
-      throw new IOException("Failed to check if lease expired:" + lease.toString(), e.getCause());
-    }
+  public boolean isLeaseExpired(Lease lease) {
+    return retryInternal(
+        String.format("Checking IsLeaseExpired, lease:%s", lease.toString()),
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
+        () -> {
+          LeaseTimeToLiveResponse leaseResp = mClient.getLeaseClient()
+              .timeToLive(lease.mLeaseId, LeaseOption.DEFAULT)
+              .get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
+          // if no such lease, lease resp will still be returned with a negative ttl
+          return leaseResp.getTTl() <= 0;
+        });
   }
 
   /**
@@ -273,26 +267,21 @@ public class AlluxioEtcdClient implements Closeable {
    * @param childPath
    * @param value
    */
-  public void addChildren(String parentPath, String childPath, byte[] value)
-      throws IOException {
+  public void addChildren(String parentPath, String childPath, byte[] value) {
     Preconditions.checkArgument(!StringUtil.isNullOrEmpty(parentPath));
     Preconditions.checkArgument(!StringUtil.isNullOrEmpty(childPath));
     String fullPath = PathUtils.concatPath(parentPath, childPath);
     Preconditions.checkArgument(!StringUtil.isNullOrEmpty(fullPath));
-    RetryUtils.retry(
-        String.format("Adding child, parentPath:%s, childPath:%s",
-            parentPath, childPath), () -> {
-          try {
-            mClient.getKVClient().put(
-                    ByteSequence.from(fullPath, StandardCharsets.UTF_8),
-                    ByteSequence.from(value))
-                .get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
-          } catch (ExecutionException | InterruptedException | TimeoutException e) {
-            throw new IOException("Failed to addChildren, parentPath:" + parentPath
-                + " child:" + childPath, e);
-          }
-        },
-        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, 0));
+    retryInternal(
+        String.format("Adding child for parentPath:%s, childPath:%s",
+            parentPath, childPath),
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, 0),
+        () -> {
+          return mClient.getKVClient().put(
+                  ByteSequence.from(fullPath, StandardCharsets.UTF_8),
+                  ByteSequence.from(value))
+              .get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
+        });
   }
 
   /**
@@ -302,20 +291,18 @@ public class AlluxioEtcdClient implements Closeable {
    * @param parentPath parentPath ends with /
    * @return list of children KeyValues
    */
-  public List<KeyValue> getChildren(String parentPath) throws IOException {
-    try {
-      Preconditions.checkArgument(!StringUtil.isNullOrEmpty(parentPath));
-      return RetryUtils.retryCallable(
-          String.format("Getting children for path:%s", parentPath), () -> {
-            GetResponse getResponse = mClient.getKVClient().get(
-                    ByteSequence.from(parentPath, StandardCharsets.UTF_8),
-                    GetOption.newBuilder().isPrefix(true).build())
-                .get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
-            return getResponse.getKvs();
-          }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
-    } catch (AlluxioRuntimeException e) {
-      throw new IOException("Failed to getChildren for parentPath:" + parentPath, e.getCause());
-    }
+  public List<KeyValue> getChildren(String parentPath) {
+    Preconditions.checkArgument(!StringUtil.isNullOrEmpty(parentPath));
+    return retryInternal(
+        String.format("Getting children for path:%s", parentPath),
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
+        () -> {
+          GetResponse getResponse = mClient.getKVClient().get(
+                  ByteSequence.from(parentPath, StandardCharsets.UTF_8),
+                  GetOption.newBuilder().isPrefix(true).build())
+              .get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
+          return getResponse.getKvs();
+        });
   }
 
   /**
@@ -352,52 +339,56 @@ public class AlluxioEtcdClient implements Closeable {
         break;
     }
 
-    Watch.Watcher watcher = mClient.getWatchClient().watch(
-        ByteSequence.from(parentPath, StandardCharsets.UTF_8),
-        watchOptBuilder.build(),
-        new Watch.Listener() {
-          @Override
-          public void onNext(WatchResponse response) {
-            for (WatchEvent event : response.getEvents()) {
-              switch (event.getEventType()) {
-                case PUT:
-                  listener.onNewPut(
-                      event.getKeyValue().getKey().toString(StandardCharsets.UTF_8),
-                      event.getKeyValue().getValue().getBytes());
-                  break;
-                case DELETE:
-                  listener.onNewDelete(
-                      event.getKeyValue().getKey().toString(StandardCharsets.UTF_8));
-                  break;
-                case UNRECOGNIZED: // Fall through
-                default:
-                  LOG.info("Unrecognized event:{} on watch path of:{}",
-                      event.getEventType(), parentPath);
-                  break;
-              }
-            }
-          }
+    Watch.Watcher watcher = retryInternal(
+        String.format("Adding listener for path:%s, type:%s", parentPath, watchType),
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, 0),
+        () -> {
+          Watch.Watcher newWatcher = mClient.getWatchClient().watch(
+              ByteSequence.from(parentPath, StandardCharsets.UTF_8),
+              watchOptBuilder.build(),
+              new Watch.Listener() {
+                @Override
+                public void onNext(WatchResponse response) {
+                  for (WatchEvent event : response.getEvents()) {
+                    switch (event.getEventType()) {
+                      case PUT:
+                        listener.onNewPut(
+                            event.getKeyValue().getKey().toString(StandardCharsets.UTF_8),
+                            event.getKeyValue().getValue().getBytes());
+                        break;
+                      case DELETE:
+                        listener.onNewDelete(
+                            event.getKeyValue().getKey().toString(StandardCharsets.UTF_8));
+                        break;
+                      case UNRECOGNIZED: // Fall through
+                      default:
+                        LOG.info("Unrecognized event:{} on watch path of:{}",
+                            event.getEventType(), parentPath);
+                        break;
+                    }
+                  }
+                }
 
-          @Override
-          public void onError(Throwable throwable) {
-            LOG.warn("Error occurred on children watch for path:{}, removing the watch.",
-                parentPath, throwable);
-            removeChildrenListener(parentPath);
-          }
+                @Override
+                public void onError(Throwable throwable) {
+                  LOG.warn("Error occurred on children watch for path:{}, removing the watch.",
+                      parentPath, throwable);
+                  removeChildrenListener(parentPath);
+                }
 
-          @Override
-          public void onCompleted() {
-            LOG.warn("Watch for path onCompleted:{}, removing the watch.", parentPath);
-            removeChildrenListener(parentPath);
-          }
+                @Override
+                public void onCompleted() {
+                  LOG.warn("Watch for path onCompleted:{}, removing the watch.", parentPath);
+                  removeChildrenListener(parentPath);
+                }
+              });
+          return newWatcher;
         });
     Watch.Watcher prevWatcher = mRegisteredWatchers.putIfAbsent(
         getRegisterWatcherKey(parentPath, watchType), watcher);
     // another same watcher already added in a race, close current one
     if (prevWatcher != null) {
       watcher.close();
-    } else {
-      mCloser.register(watcher);
     }
   }
 
@@ -449,93 +440,79 @@ public class AlluxioEtcdClient implements Closeable {
    * Get latest value attached to the path.
    * @param path
    * @return byte[] value
-   * @throws IOException
    */
-  public byte[] getForPath(String path) throws IOException {
-    try {
-      return RetryUtils.retryCallable(String.format("Get for path:%s", path), () -> {
-        byte[] ret = null;
-        CompletableFuture<GetResponse> getResponse =
-            getEtcdClient().getKVClient().get(ByteSequence.from(path, StandardCharsets.UTF_8));
-        List<KeyValue> kvs = getResponse.get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS).getKvs();
-        if (!kvs.isEmpty()) {
-          KeyValue latestKv = Collections.max(
-              kvs, Comparator.comparing(KeyValue::getModRevision));
-          return latestKv.getValue().getBytes();
-        }
-        return ret;
-      }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
-    } catch (AlluxioRuntimeException ex) {
-      throw new IOException(ex.getMessage());
-    }
+  public byte[] getForPath(String path) {
+    return retryInternal(
+        String.format("Get for path:%s", path),
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
+        () -> {
+          byte[] ret = null;
+          CompletableFuture<GetResponse> getResponse =
+              getEtcdClient().getKVClient().get(ByteSequence.from(path, StandardCharsets.UTF_8));
+          List<KeyValue> kvs = getResponse.get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS).getKvs();
+          if (!kvs.isEmpty()) {
+            KeyValue latestKv = Collections.max(
+                kvs, Comparator.comparing(KeyValue::getModRevision));
+            return latestKv.getValue().getBytes();
+          }
+          return ret;
+        });
   }
 
   /**
    * Check existence of a single given path.
    * @param path
    * @return if the path exists or not
-   * @throws IOException
    */
-  public boolean checkExistsForPath(String path) throws IOException {
-    try {
-      return RetryUtils.retryCallable(String.format("Get for path:%s", path), () -> {
-        boolean exist = false;
-        try {
+  public boolean checkExistsForPath(String path) {
+    return retryInternal(String.format("Check exists for path:%s", path),
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
+        () -> {
+          boolean exist = false;
           CompletableFuture<GetResponse> getResponse =
               getEtcdClient().getKVClient().get(
                   ByteSequence.from(path, StandardCharsets.UTF_8));
           List<KeyValue> kvs = getResponse.get(
               DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS).getKvs();
           exist = !kvs.isEmpty();
-        } catch (ExecutionException | InterruptedException | TimeoutException ex) {
-          throw new IOException("Error getting path:" + path, ex);
-        }
-        return exist;
-      }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
-    } catch (AlluxioRuntimeException ex) {
-      throw new IOException(ex.getMessage());
-    }
+          return exist;
+        });
   }
 
   /**
    * Create a path with given value in non-transactional way.
    * @param path
    * @param value
-   * @throws IOException
    */
-  public void createForPath(String path, Optional<byte[]> value) throws IOException {
-    RetryUtils.retry(String.format("Get for path:%s, value size:%s",
-        path, (!value.isPresent() ? "null" : value.get().length)), () -> {
-        try {
+  public void createForPath(String path, Optional<byte[]> value) {
+    retryInternal(String.format("Create for path:%s, value bytes len:%s",
+            path, (!value.isPresent() ? "null" : value.get().length)),
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
+        () -> {
           mClient.getKVClient().put(
-                ByteSequence.from(path, StandardCharsets.UTF_8),
-                ByteSequence.from(value.get()))
-            .get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
-        } catch (ExecutionException | InterruptedException | TimeoutException ex) {
-          String errMsg = String.format("Error createForPath:%s", path);
-          throw new IOException(errMsg, ex);
-        }
-      }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
+                  ByteSequence.from(path, StandardCharsets.UTF_8),
+                  ByteSequence.from(value.get()))
+              .get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
+          return null;
+        });
   }
 
   /**
    * Delete a path or recursively all paths with given path as prefix.
    * @param path
    * @param recursive
-   * @throws IOException
    */
-  public void deleteForPath(String path, boolean recursive) throws IOException {
-    RetryUtils.retry(String.format("Delete for path:%s", path), () -> {
-      try {
-        mClient.getKVClient().delete(
-          ByteSequence.from(path, StandardCharsets.UTF_8),
-              DeleteOption.newBuilder().isPrefix(recursive).build())
-            .get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
-      } catch (ExecutionException | InterruptedException | TimeoutException ex) {
-        String errMsg = String.format("Error deleteForPath:%s", path);
-        throw new IOException(errMsg, ex);
-      }
-    }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
+  public void deleteForPath(String path, boolean recursive) {
+    retryInternal(
+        String.format("Delete for path:%s", path),
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
+        () -> {
+          mClient.getKVClient().delete(
+                  ByteSequence.from(path, StandardCharsets.UTF_8),
+                  DeleteOption.newBuilder().isPrefix(recursive).build())
+              .get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
+          return null;
+        });
   }
 
   /**
@@ -552,30 +529,10 @@ public class AlluxioEtcdClient implements Closeable {
   }
 
   /**
-   * Check if it's connected.
-   * @return true if this client is connected
-   */
-  public boolean isConnected() {
-    return mConnected.get();
-  }
-
-  /**
    * Get the jetcd client instance.
    * @return jetcd client
    */
   public Client getEtcdClient() {
-    if (mConnected.get()) {
-      return mClient;
-    }
-    connect();
     return mClient;
-  }
-
-  @Override
-  public void close() throws IOException {
-    if (mClient != null) {
-      mClient.close();
-    }
-    mCloser.close();
   }
 }
