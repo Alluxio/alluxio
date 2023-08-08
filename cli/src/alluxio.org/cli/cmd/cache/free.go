@@ -12,8 +12,6 @@
 package cache
 
 import (
-	"fmt"
-
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
@@ -21,26 +19,25 @@ import (
 	"alluxio.org/cli/env"
 )
 
-var Free = &FreeFormat{
+var Free = &FreeCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "free",
 		JavaClassName: cmd.FileSystemShellJavaClass,
-		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
 	},
 }
 
-type FreeFormat struct {
+type FreeCommand struct {
 	*env.BaseJavaCommand
 	worker string
 	path   string
 	force  bool
 }
 
-func (c *FreeFormat) Base() *env.BaseJavaCommand {
+func (c *FreeCommand) Base() *env.BaseJavaCommand {
 	return c.BaseJavaCommand
 }
 
-func (c *FreeFormat) ToCommand() *cobra.Command {
+func (c *FreeCommand) ToCommand() *cobra.Command {
 	command := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use: Free.CommandName,
 		Short: "Synchronously free all blocks and directories of specific worker, " +
@@ -58,7 +55,7 @@ func (c *FreeFormat) ToCommand() *cobra.Command {
 	return command
 }
 
-func (c *FreeFormat) Run(args []string) error {
+func (c *FreeCommand) Run(args []string) error {
 	var javaArgs []string
 	if c.worker == "" {
 		if c.path != "" {

@@ -12,7 +12,6 @@
 package cache
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/palantir/stacktrace"
@@ -26,7 +25,6 @@ var Persist = &PersistCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "persist",
 		JavaClassName: cmd.FileSystemShellJavaClass,
-		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
 	},
 }
 
