@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"alluxio.org/cli/cmd/cache"
 	"github.com/spf13/viper"
 
 	"alluxio.org/cli/cmd/conf"
@@ -51,6 +52,7 @@ func main() {
 	}
 
 	for _, c := range []*env.Service{
+		cache.Service,
 		conf.Service,
 		exec.Service,
 		fs.Service,
