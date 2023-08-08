@@ -2047,13 +2047,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey WORKER_CACHE_MANAGER_COMPLETED_TASK_COUNT =
-      new Builder("Worker.CacheManagerCompleteTaskCount")
-          .setDescription("The approximate total number of block cache tasks "
-              + "that have completed execution")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
   public static final MetricKey WORKER_BLOCK_READER_THREAD_ACTIVE_COUNT =
       new Builder("Worker.BlockReaderThreadActiveCount")
           .setDescription("The approximate number of block read "

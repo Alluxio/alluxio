@@ -4597,14 +4597,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-
-  public static final PropertyKey WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX =
-      intBuilder(Name.WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX)
-          .setDefaultValue(8)
-          .setDescription("The maximum number of threads used to cache blocks asynchronously in "
-              + "the netty data server.")
-          .build();
-
   public static final PropertyKey WORKER_NETWORK_NETTY_READER_THREADS_MAX =
       intBuilder(Name.WORKER_NETWORK_NETTY_READER_THREADS_MAX)
           .setDefaultValue(2048)
@@ -8903,10 +8895,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_MASTER_PERIODICAL_RPC_TIMEOUT =
         "alluxio.worker.master.periodical.rpc.timeout";
     public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
-    public static final String WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
-        "alluxio.worker.network.async.cache.manager.threads.max";
-    public static final String WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX =
-        "alluxio.worker.network.async.cache.manager.queue.max";
     public static final String WORKER_NETWORK_GRPC_READER_THREADS_MAX =
         "alluxio.worker.network.grpc.reader.threads.max";
     public static final String WORKER_NETWORK_GRPC_WRITER_THREADS_MAX =
@@ -8914,8 +8902,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
         "alluxio.worker.network.writer.buffer.size.messages";
 
-    public static final String WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX =
-        "alluxio.worker.network.netty.async.cache.manager.threads.max";
     public static final String WORKER_NETWORK_NETTY_READER_THREADS_MAX =
         "alluxio.worker.network.netty.reader.threads.max";
     public static final String WORKER_NETWORK_NETTY_WRITER_THREADS_MAX =
