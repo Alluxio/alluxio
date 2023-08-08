@@ -17,13 +17,14 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
+	"alluxio.org/cli/cmd"
 	"alluxio.org/cli/env"
 )
 
 var CStatus = &CStatusCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "cmdStatus",
-		JavaClassName: "alluxio.cli.job.JobShell",
+		JavaClassName: cmd.JobShellJavaClass,
 	},
 }
 

@@ -17,6 +17,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
+	"alluxio.org/cli/cmd"
 	"alluxio.org/cli/env"
 	"alluxio.org/log"
 )
@@ -24,7 +25,7 @@ import (
 var Submit = &SubmitCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "submit",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
+		JavaClassName: cmd.FileSystemShellJavaClass,
 	},
 }
 

@@ -14,13 +14,14 @@ package job
 import (
 	"github.com/spf13/cobra"
 
+	"alluxio.org/cli/cmd"
 	"alluxio.org/cli/env"
 )
 
 var Load = &LoadCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "load",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
+		JavaClassName: cmd.FileSystemShellJavaClass,
 	},
 }
 

@@ -14,4 +14,5 @@ package cmd
 const (
 	FileSystemAdminShellJavaClass = "alluxio.cli.fsadmin.FileSystemAdminShell"
 	FileSystemShellJavaClass      = "alluxio.cli.fs.FileSystemShell"
+	JobShellJavaClass             = "alluxio.cli.job.JobShell"
 )
