@@ -209,7 +209,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -703,12 +702,6 @@ public class DefaultFileSystemMaster extends CoreMaster
               new InodeTtlChecker(this, mInodeTree),
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS)),
-              Configuration.global(), mMasterContext.getUserState()));
-      getExecutorService().submit(
-          new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
-              new LostFileDetector(this, mBlockMaster, mInodeTree),
-              () -> new FixedIntervalSupplier(
-                  Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER,
@@ -3262,20 +3255,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public List<String> getWhiteList() {
     return mWhitelist.getList();
-  }
-
-  @Override
-  public Set<Long> getLostFiles() {
-    Set<Long> lostFiles = new HashSet<>();
-    Iterator<Long> iter = mBlockMaster.getLostBlocksIterator();
-    while (iter.hasNext()) {
-      long blockId = iter.next();
-      // the file id is the container id of the block id
-      long containerId = BlockId.getContainerId(blockId);
-      long fileId = IdUtils.createFileId(containerId);
-      lostFiles.add(fileId);
-    }
-    return lostFiles;
   }
 
   /**

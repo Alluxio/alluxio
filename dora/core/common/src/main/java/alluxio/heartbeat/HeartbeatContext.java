@@ -45,7 +45,6 @@ public final class HeartbeatContext {
   public static final String MASTER_JOURNAL_SPACE_MONITOR = "Master Journal Space Monitor";
   public static final String MASTER_LOG_CONFIG_REPORT_SCHEDULING
       = "Master Log Config Report Scheduling";
-  public static final String MASTER_LOST_FILES_DETECTION = "Master Lost Files Detection";
   public static final String MASTER_LOST_MASTER_DETECTION = "Master Lost Master Detection";
   public static final String MASTER_LOST_WORKER_DETECTION = "Master Lost Worker Detection";
   public static final String MASTER_LOST_PROXY_DETECTION = "Master Lost Proxy Detection";
@@ -89,7 +88,6 @@ public final class HeartbeatContext {
     MASTER_FILE_RECOMPUTATION(110),
     MASTER_JOURNAL_SPACE_MONITOR(111),
     MASTER_LOG_CONFIG_REPORT_SCHEDULING(112),
-    MASTER_LOST_FILES_DETECTION(113),
     MASTER_LOST_MASTER_DETECTION(114),
     MASTER_LOST_WORKER_DETECTION(115),
     MASTER_METRICS_SYNC(116),
@@ -134,7 +132,6 @@ public final class HeartbeatContext {
     sTimerClasses.put(MASTER_FILE_RECOMPUTATION, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_JOURNAL_SPACE_MONITOR, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_LOG_CONFIG_REPORT_SCHEDULING, SLEEPING_TIMER_CLASS);
-    sTimerClasses.put(MASTER_LOST_FILES_DETECTION, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_LOST_MASTER_DETECTION, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_LOST_WORKER_DETECTION, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_LOST_PROXY_DETECTION, SLEEPING_TIMER_CLASS);
