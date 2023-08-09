@@ -43,8 +43,6 @@ public final class AbstractFileSystemApiTest {
 
   @Before
   public void before() {
-    // To make the test run faster.
-    mConf.set(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT, "0sec");
   }
 
   @After

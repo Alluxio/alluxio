@@ -591,13 +591,6 @@ public class InstancedConfigurationTest {
   }
 
   @Test
-  public void getTemplatedKey() {
-    mConfiguration.set(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS, "test");
-    assertEquals("test",
-        mConfiguration.get(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(0)));
-  }
-
-  @Test
   public void templatedKeyDependency() {
     mConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED,
         "${alluxio.master.worker.register.lease.respect.jvm.space}");
@@ -1093,38 +1086,5 @@ public class InstancedConfigurationTest {
   public void testDeprecatedKeysNotLogged() {
     mConfiguration.validate();
     assertFalse(mLogger.wasLogged(" is deprecated"));
-  }
-
-  @Test
-  public void unknownTieredStorageAlias() throws Exception {
-    for (String alias : Arrays.asList("mem", "ssd", "hdd", "unknown")) {
-      try (Closeable p = new SystemPropertyRule("alluxio.worker.tieredstore.level0.alias", alias)
-          .toResource()) {
-        resetConf();
-        mConfiguration.validate();
-        fail("Should have thrown a runtime exception when using an unknown tier alias");
-      } catch (RuntimeException e) {
-        assertTrue(e.getMessage().contains(
-            format("Alias \"%s\" on tier 0 on worker (configured by %s) is not found "
-                + "in global tiered", alias, Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0))
-        ));
-      }
-    }
-  }
-
-  @Test
-  public void wrongTieredStorageLevel() throws Exception {
-    try (Closeable p =
-             new SystemPropertyRule(ImmutableMap.of("alluxio.master.tieredstore.global.levels", "1",
-                 "alluxio.worker.tieredstore.levels", "2")).toResource()) {
-      resetConf();
-      mConfiguration.validate();
-      fail("Should have thrown a runtime exception when setting an unknown tier level");
-    } catch (RuntimeException e) {
-      assertTrue(e.getMessage().contains(
-          format("%s tiers on worker (configured by %s), larger than global %s tiers "
-                  + "(configured by %s) ", 2, PropertyKey.WORKER_TIERED_STORE_LEVELS, 1,
-              PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS)));
-    }
   }
 }
