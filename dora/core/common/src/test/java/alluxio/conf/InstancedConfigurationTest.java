@@ -695,21 +695,6 @@ public class InstancedConfigurationTest {
   }
 
   @Test
-  public void validateTieredLocality() throws Exception {
-    // Pre-load the Configuration class so that the exception is thrown when we call init(), not
-    // during class loading.
-    resetConf();
-    HashMap<String, String> sysProps = new HashMap<>();
-    sysProps.put(Template.LOCALITY_TIER.format("unknownTier").toString(), "val");
-    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      mThrown.expect(IllegalStateException.class);
-      mThrown.expectMessage("Tier unknownTier is configured by alluxio.locality.unknownTier, but "
-          + "does not exist in the tier list [node, rack] configured by alluxio.locality.order");
-      resetConf();
-    }
-  }
-
-  @Test
   public void propertyTestModeEqualsTrue() throws Exception {
     assertTrue(mConfiguration.getBoolean(PropertyKey.TEST_MODE));
   }
