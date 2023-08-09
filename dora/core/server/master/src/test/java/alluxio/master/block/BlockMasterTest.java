@@ -136,6 +136,13 @@ public class BlockMasterTest {
     // set a large value of PropertyKey.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS
     // to prevent worker to be deleted after it is lost
     Configuration.set(PropertyKey.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS, Integer.MAX_VALUE);
+    Configuration.set(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS, 3);
+    Configuration.set(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(0),
+        Constants.MEDIUM_MEM);
+    Configuration.set(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(1),
+        Constants.MEDIUM_SSD);
+    Configuration.set(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(2),
+        Constants.MEDIUM_HDD);
     mRegistry = new MasterRegistry();
     mMetrics = Lists.newArrayList();
     JournalSystem journalSystem = new NoopJournalSystem();
