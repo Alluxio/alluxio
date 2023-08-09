@@ -3513,7 +3513,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVELS =
       intBuilder(Name.MASTER_TIERED_STORE_GLOBAL_LEVELS)
-          .setDefaultValue(3)
+          .setDefaultValue(0)
           .setDescription("The total number of storage tiers in the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -4864,6 +4864,99 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE)
           .setDefaultValue(5000)
           .setDescription("The max entries in the UFS instream cache.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_TYPE =
+      enumBuilder(Name.WORKER_RPC_EXECUTOR_TYPE, RpcExecutorType.class)
+          .setDefaultValue(RpcExecutorType.TPE)
+          .setDescription("Type of ExecutorService for Alluxio worker gRPC server. "
+              + "Supported values are TPE (for ThreadPoolExecutor) and FJP (for ForkJoinPool).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_CORE_POOL_SIZE =
+      intBuilder(Name.WORKER_RPC_EXECUTOR_CORE_POOL_SIZE)
+          .setDefaultValue(100)
+          .setDescription(
+              "The number of threads to keep in thread pool of worker RPC ExecutorService.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_MAX_POOL_SIZE =
+      intBuilder(Name.WORKER_RPC_EXECUTOR_MAX_POOL_SIZE)
+          .setDefaultValue(1000)
+          .setDescription("The maximum number of threads allowed for worker RPC ExecutorService."
+              + " When the maximum is reached, attempts to replace blocked threads fail.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_KEEPALIVE =
+      durationBuilder(Name.WORKER_RPC_EXECUTOR_KEEPALIVE)
+          .setDefaultValue("60sec")
+          .setDescription("The keep alive time of a thread in worker RPC ExecutorService"
+              + "last used before this thread is terminated (and replaced if necessary).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_TPE_QUEUE_TYPE =
+      enumBuilder(Name.WORKER_RPC_EXECUTOR_TPE_QUEUE_TYPE, ThreadPoolExecutorQueueType.class)
+          .setDefaultValue(ThreadPoolExecutorQueueType.LINKED_BLOCKING_QUEUE_WITH_CAP)
+          .setDescription(format(
+              "This property is effective when %s is set to TPE. "
+                  + "It specifies the internal task queue that's used by RPC ExecutorService. "
+                  + "Supported values are: LINKED_BLOCKING_QUEUE, LINKED_BLOCKING_QUEUE_WITH_CAP, "
+                  + "ARRAY_BLOCKING_QUEUE and SYNCHRONOUS_BLOCKING_QUEUE",
+              Name.WORKER_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT =
+      booleanBuilder(Name.WORKER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT)
+          .setDefaultValue(true)
+          .setDescription(
+              format("This property is effective when %s is set to ThreadPoolExecutor. "
+                  + "It controls whether core threads can timeout and terminate "
+                  + "when there is no work.", Name.WORKER_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_FJP_PARALLELISM =
+      intBuilder(Name.WORKER_RPC_EXECUTOR_FJP_PARALLELISM)
+          .setAlias("alluxio.worker.rpc.executor.parallelism")
+          .setDefaultSupplier(() -> Math.max(8, 2 * Runtime.getRuntime().availableProcessors()),
+              "2 * {CPU core count}")
+          .setDescription(
+              format("This property is effective when %s is set to ForkJoinPool. "
+                  + "It controls the parallelism level (internal queue count) "
+                  + "of master RPC ExecutorService.", Name.WORKER_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_FJP_MIN_RUNNABLE =
+      intBuilder(Name.WORKER_RPC_EXECUTOR_FJP_MIN_RUNNABLE)
+          .setAlias("alluxio.worker.rpc.executor.min.runnable")
+          .setDefaultValue(1)
+          .setDescription(
+              format(
+                  "This property is effective when %s is set to ForkJoinPool. "
+                      + "It controls the minimum allowed number of core threads not blocked. "
+                      + "A value of 1 ensures liveness. A larger value might improve "
+                      + "throughput but might also increase overhead.",
+                  Name.WORKER_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_RPC_EXECUTOR_FJP_ASYNC =
+      booleanBuilder(Name.WORKER_RPC_EXECUTOR_FJP_ASYNC)
+          .setDefaultValue(true)
+          .setDescription(format(
+              "This property is effective when %s is set to ForkJoinPool. "
+                  + "if true, it establishes local first-in-first-out scheduling mode for "
+                  + "forked tasks that are never joined. This mode may be more appropriate "
+                  + "than default locally stack-based mode in applications in which "
+                  + "worker threads only process event-style asynchronous tasks.",
+              Name.WORKER_RPC_EXECUTOR_TYPE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -8140,6 +8233,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_DATA_BIND_HOST = "alluxio.worker.data.bind.host";
     public static final String WORKER_DATA_HOSTNAME = "alluxio.worker.data.hostname";
     public static final String WORKER_DATA_PORT = "alluxio.worker.data.port";
+    public static final String WORKER_RPC_EXECUTOR_TYPE = "alluxio.worker.rpc.executor.type";
+    public static final String WORKER_RPC_EXECUTOR_CORE_POOL_SIZE =
+        "alluxio.worker.rpc.executor.core.pool.size";
+    public static final String WORKER_RPC_EXECUTOR_MAX_POOL_SIZE =
+        "alluxio.worker.rpc.executor.max.pool.size";
+    public static final String WORKER_RPC_EXECUTOR_KEEPALIVE =
+        "alluxio.worker.rpc.executor.keepalive";
+    public static final String WORKER_RPC_EXECUTOR_TPE_QUEUE_TYPE =
+        "alluxio.worker.rpc.executor.tpe.queue.type";
+    public static final String WORKER_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT =
+        "alluxio.worker.rpc.executor.tpe.allow.core.threads.timeout";
+    public static final String WORKER_RPC_EXECUTOR_FJP_PARALLELISM =
+        "alluxio.worker.rpc.executor.fjp.parallelism";
+    public static final String WORKER_RPC_EXECUTOR_FJP_MIN_RUNNABLE =
+        "alluxio.worker.rpc.executor.fjp.min.runnable";
+    public static final String WORKER_RPC_EXECUTOR_FJP_ASYNC =
+        "alluxio.worker.rpc.executor.fjp.async";
     public static final String WORKER_STARTUP_TIMEOUT = "alluxio.worker.startup.timeout";
     public static final String WORKER_TIERED_STORE_LEVELS = "alluxio.worker.tieredstore.levels";
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
