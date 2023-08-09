@@ -194,6 +194,11 @@ func getHostnames(hostGroups []string) ([]string, error) {
 	for _, hostGroup := range hostGroups {
 		switch hostGroup {
 		case HostGroupMasters:
+			hostnames, err := NewHostnamesFile(hostGroup).getHostnames()
+			if err != nil {
+				return nil, stacktrace.Propagate(err, "error listing hostnames from %v", hostGroup)
+			}
+			hosts = append(hosts, hostnames...)
 		case HostGroupWorkers:
 			hostnames, err := NewHostnamesFile(hostGroup).getHostnames()
 			if err != nil {
