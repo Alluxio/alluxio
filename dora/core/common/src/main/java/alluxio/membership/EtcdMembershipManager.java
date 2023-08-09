@@ -88,23 +88,16 @@ public class EtcdMembershipManager implements MembershipManager {
     String pathOnRing = new StringBuffer()
         .append(getRingPathPrefix())
         .append(entity.getServiceEntityName()).toString();
-    byte[] ret = mAlluxioEtcdClient.getForPath(pathOnRing);
+    byte[] existingEntityBytes = mAlluxioEtcdClient.getForPath(pathOnRing);
+    String entityJson = DefaultServiceEntity.toJson(entity);
     // If there's existing entry, check if it's me.
-    if (ret != null) {
-      try {
-        WorkerServiceEntity existingEntity = WorkerServiceEntity.fromJson(
-            new String(ret, StandardCharsets.UTF_8));
-        // It's not me, something is wrong.
-        if (!existingEntity.equals(entity)) {
-          throw new AlreadyExistsException(
-              "Some other member with same id registered on the ring, bail.");
-        }
-      } catch (JsonSyntaxException ex) {
-        // If for regression or other reasons the existing value couldn't be
-        // recognized, additional effort to wipe clean corrupted key on etcd
-        // is needed.
-        throw new IOException(String.format(
-            "Malformatted existing value for service path:%s", pathOnRing));
+    if (existingEntityBytes != null) {
+      String existingEntityJson = new String(existingEntityBytes);
+      // It's not me, something is wrong.
+      if (!existingEntityJson.equals(entityJson)) {
+        // Might be regression of different formatted value of workerinfo is registered.
+        throw new AlreadyExistsException(
+            "Some other member with same id registered on the ring, bail.");
       }
       // It's me, go ahead to start heartbeating.
     } else {

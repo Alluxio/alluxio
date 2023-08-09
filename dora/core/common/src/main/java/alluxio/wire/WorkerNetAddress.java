@@ -59,14 +59,14 @@ public final class WorkerNetAddress implements Serializable {
   @Expose
   @com.google.gson.annotations.SerializedName("DomainSocketPath")
   private String mDomainSocketPath = "";
-  @Expose
-  @com.google.gson.annotations.SerializedName("TieredIdentity")
+
   private TieredIdentity mTieredIdentity;
 
   /**
    * Creates a new instance of {@link WorkerNetAddress}.
    */
   public WorkerNetAddress() {}
+
 
   /**
    * @return the secure rpc port

@@ -255,6 +255,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
     while (true) {
       try {
+        LOG.info("{} membership manager starts joining...",
+            mConf.get(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE));
         mMembershipManager.join(new WorkerInfo().setAddress(mAddress));
         mWorkerId.set(HashUtils.hashAsLong(mAddress.dumpMainInfo()));
         break;
