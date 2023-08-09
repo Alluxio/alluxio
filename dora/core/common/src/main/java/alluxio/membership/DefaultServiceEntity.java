@@ -77,23 +77,42 @@ public abstract class DefaultServiceEntity implements Closeable {
     return mKeepAliveClient;
   }
 
+  /**
+   * @return lease
+   */
   public AlluxioEtcdClient.Lease getLease() {
     return mLease;
   }
 
+  /**
+   * Set lease.
+   * @param lease
+   */
   @GuardedBy("mLock")
   public void setLease(AlluxioEtcdClient.Lease lease) {
     mLease = lease;
   }
 
+  /**
+   * Get the revision number of currently registered DefaultServiceEntity
+   * on ETCD.
+   * @return revision number
+   */
   public long getRevisionNumber() {
     return mRevision;
   }
 
+  /**
+   * Set revision number.
+   * @param revisionNumber
+   */
   public void setRevisionNumber(long revisionNumber) {
     mRevision = revisionNumber;
   }
 
+  /**
+   * @return lock for atomically modifying certain fields
+   */
   ReentrantLock getLock() {
     return mLock;
   }

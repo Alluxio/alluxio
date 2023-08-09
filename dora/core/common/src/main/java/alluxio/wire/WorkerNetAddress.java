@@ -67,7 +67,6 @@ public final class WorkerNetAddress implements Serializable {
    */
   public WorkerNetAddress() {}
 
-
   /**
    * @return the secure rpc port
    */

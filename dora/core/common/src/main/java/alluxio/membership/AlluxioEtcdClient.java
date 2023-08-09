@@ -11,15 +11,12 @@
 
 package alluxio.membership;
 
-import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
-import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -50,8 +47,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -97,14 +92,6 @@ public class AlluxioEtcdClient {
       new ConcurrentHashMap<>();
   private Client mClient;
   private final String[] mEndpoints;
-  private static final long THREAD_STOP_MS = Constants.SECOND_MS * 10;
-  // Provide our own executor for jetcd client's usage for controlability/visibility.
-  // No need to make these params configurable as of now as it's not on critical path.
-  private static final ThreadPoolExecutor JETCD_EXECUTOR =
-      new ThreadPoolExecutor(4, 4,
-          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(65536),
-          ThreadFactoryUtils.build("JETCD-EXECUTOR-%d", true),
-          new ThreadPoolExecutor.CallerRunsPolicy());
 
   /**
    * CTOR for AlluxioEtcdClient.
@@ -119,7 +106,6 @@ public class AlluxioEtcdClient {
     // TODO(lucy) add more options as needed for io.etcd.jetcd.ClientBuilder
     // to control underneath grpc parameters.
     mClient = Client.builder().endpoints(mEndpoints)
-        .executorService(JETCD_EXECUTOR)
         .build();
   }
 

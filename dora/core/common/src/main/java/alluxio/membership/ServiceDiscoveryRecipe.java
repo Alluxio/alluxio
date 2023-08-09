@@ -11,10 +11,10 @@
 
 package alluxio.membership;
 
+import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.resource.LockResource;
-import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 
@@ -94,7 +94,6 @@ public class ServiceDiscoveryRecipe {
   private String getRegisterPathPrefix() {
     return mRegisterPathPrefix.get();
   }
-
 
   /**
    * Apply for a new lease or extend expired lease for
@@ -364,7 +363,7 @@ public class ServiceDiscoveryRecipe {
           LOG.info("Start reconnect for service:{}", entity.getServiceEntityName());
           newLeaseInternal(entity);
           entity.mNeedReconnect.set(false);
-        } catch (IOException e) {
+        } catch (IOException | UnavailableRuntimeException e) {
           LOG.info("Failed trying to new the lease for service:{}", entity, e);
         }
       }
