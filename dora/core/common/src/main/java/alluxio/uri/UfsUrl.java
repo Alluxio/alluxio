@@ -96,6 +96,9 @@ public class UfsUrl {
    * @return the scheme of this UfsUrl object
    */
   public static String handleScheme(Map<String, String> rootUrl, Map<String, String> inputUrl) {
+    if (rootUrl.equals(inputUrl)) {
+      return rootUrl.get("scheme");
+    }
     if (rootUrl.get("scheme").isEmpty())  {
       if (inputUrl.get("scheme").isEmpty())  {
         return "file";
@@ -118,6 +121,9 @@ public class UfsUrl {
    * @return the authority of this UfsUrl object
    */
   public static String handleAuthority(Map<String, String> rootUrl, Map<String, String> inputUrl) {
+    if (rootUrl.equals(inputUrl)) {
+      return rootUrl.get("authority");
+    }
     if (rootUrl.get("authority").isEmpty())  {
       return  inputUrl.get("authority");
     } else {
@@ -143,6 +149,10 @@ public class UfsUrl {
                                                   Map<String, String> inputUrl) {
     List<String> rootPathComponents = Arrays.asList(rootUrl.get("path").split(PATH_SEPARATOR));
     List<String> inputPathComponents = Arrays.asList(inputUrl.get("path").split(PATH_SEPARATOR));
+
+    if (rootUrl.equals(inputUrl)) {
+      return rootPathComponents;
+    }
 
     if (rootUrl.get("scheme").equals("file")
         || rootUrl.get("scheme").equals(inputUrl.get("scheme"))) {
