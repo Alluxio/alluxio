@@ -182,8 +182,6 @@ public class InodeTree implements DelegatingJournaled {
   /** Mount table manages the file system mount points. */
   private final MountTable mMountTable;
 
-  private final TtlBucketList mTtlBuckets;
-
   /** Manager for inode locking. */
   private final InodeLockManager mInodeLockManager;
 
@@ -218,9 +216,8 @@ public class InodeTree implements DelegatingJournaled {
       InodeDirectoryIdGenerator directoryIdGenerator, MountTable mountTable,
       InodeLockManager lockManager) {
     mInodeStore = new DelegatingReadOnlyInodeStore(inodeStore);
-    mTtlBuckets = new TtlBucketList(mInodeStore);
     mInodeLockManager = lockManager;
-    mState = new InodeTreePersistentState(inodeStore, mInodeLockManager, mTtlBuckets);
+    mState = new InodeTreePersistentState(inodeStore, mInodeLockManager);
     mContainerIdGenerator = containerIdGenerator;
     mDirectoryIdGenerator = directoryIdGenerator;
     mMountTable = mountTable;
@@ -263,13 +260,6 @@ public class InodeTree implements DelegatingJournaled {
       root.setPersistenceState(PersistenceState.PERSISTED);
       mState.applyAndJournal(context, root, ROOT_PATH);
     }
-  }
-
-  /**
-   * @return the list of TTL buckets for tracking inode TTLs
-   */
-  public TtlBucketList getTtlBuckets() {
-    return mTtlBuckets;
   }
 
   /**

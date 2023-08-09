@@ -733,12 +733,6 @@ public class DefaultFileSystemMaster extends CoreMaster
                 Configuration.global(), mMasterContext.getUserState()));
       }
       getExecutorService().submit(
-          new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
-              new InodeTtlChecker(this, mInodeTree),
-              () -> new FixedIntervalSupplier(
-                  Configuration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS)),
-              Configuration.global(), mMasterContext.getUserState()));
-      getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
               new LostFileDetector(this, mBlockMaster, mInodeTree),
               () -> new FixedIntervalSupplier(
@@ -5236,10 +5230,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           () -> inodeTree.getToBePersistedIds().size());
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_REPLICATION_LIMITED_FILES.getName(),
           () -> inodeTree.getReplicationLimitedFileIds().size());
-      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TTL_BUCKETS.getName(),
-          () -> inodeTree.getTtlBuckets().getNumBuckets());
-      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TTL_INODES.getName(),
-          () -> inodeTree.getTtlBuckets().getNumInodes());
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_PATHS.getName(),
           inodeTree::getInodeCount);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILE_SIZE.getName(),

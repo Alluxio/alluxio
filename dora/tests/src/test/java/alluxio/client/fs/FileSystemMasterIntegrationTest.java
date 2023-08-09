@@ -36,16 +36,12 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatScheduler;
-import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterClientContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -57,7 +53,6 @@ import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.SetAttributeContext;
-import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
@@ -94,7 +89,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 /**
@@ -116,13 +110,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   private static final long TEST_TIME_MS = Long.MAX_VALUE;
   private static final long TTL_CHECKER_INTERVAL_MS = 100;
   private static final String TEST_USER = "test";
-
-  @ClassRule
-  public static ManuallyScheduleHeartbeat sManuallySchedule =
-      new ManuallyScheduleHeartbeat(HeartbeatContext.MASTER_TTL_CHECK);
-
-  @ClassRule
-  public static TtlIntervalRule sTtlIntervalRule = new TtlIntervalRule(TTL_CHECKER_INTERVAL_MS);
 
   @Rule
   public Timeout mGlobalTimeout = Timeout.seconds(60);
@@ -648,85 +635,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         createFileOptions);
     mFsMaster.rename(new AlluxioURI("/testDir1/testDir2"),
         new AlluxioURI("/testDir1/testDir2/testDir3/testDir4"), RenameContext.defaults());
-  }
-
-  @Test
-  public void ttlCreateFile() throws Exception {
-    mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
-    long ttl = 100;
-    CreateFileContext context = CreateFileContext
-        .mergeFrom(CreateFilePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
-            .newBuilder().setTtl(ttl).setTtlAction(alluxio.grpc.TtlAction.FREE)));
-    mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), context);
-    FileInfo folderInfo =
-        mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
-    Assert.assertEquals(ttl, folderInfo.getTtl());
-    Assert.assertEquals(TtlAction.FREE, folderInfo.getTtlAction());
-  }
-
-  @Test
-  public void ttlExpiredCreateFile() throws Exception {
-    mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
-    long ttl = 1;
-    CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
-        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)))
-        .setWriteType(WriteType.CACHE_THROUGH);
-    long fileId =
-        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), context).getFileId();
-    FileInfo folderInfo =
-        mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile1")));
-    Assert.assertEquals(fileId, folderInfo.getFileId());
-    Assert.assertEquals(ttl, folderInfo.getTtl());
-    // Sleep for the ttl expiration.
-    CommonUtils.sleepMs(2 * TTL_CHECKER_INTERVAL_MS);
-    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_TTL_CHECK);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
-    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
-    Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
-  }
-
-  @Test
-  public void ttlExpiredCreateFileWithFreeAction() throws Exception {
-    mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
-    long ttl = 1;
-    CreateFileContext context = CreateFileContext
-        .mergeFrom(CreateFilePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
-            .newBuilder().setTtl(ttl).setTtlAction(alluxio.grpc.TtlAction.FREE)))
-        .setWriteType(WriteType.CACHE_THROUGH);
-    long fileId =
-        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), context).getFileId();
-    FileInfo folderInfo =
-        mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile1")));
-    Assert.assertEquals(fileId, folderInfo.getFileId());
-    Assert.assertEquals(ttl, folderInfo.getTtl());
-    Assert.assertEquals(TtlAction.FREE, folderInfo.getTtlAction());
-    // Sleep for the ttl expiration.
-    CommonUtils.sleepMs(2 * TTL_CHECKER_INTERVAL_MS);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_TTL_CHECK);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
-    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
-    Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
-  }
-
-  @Deprecated
-  public void ttlRename() throws Exception {
-    // TODO(jiacheliu3): mark deprecated temporary because metadata no longer exists in master
-    AlluxioURI srcPath = new AlluxioURI("/testFolder/testFile1");
-    AlluxioURI dstPath = new AlluxioURI("/testFolder/testFile2");
-    mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
-    long ttl = 1;
-    CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
-        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)));
-    mFsMaster.createFile(srcPath, context);
-    mFsMaster.rename(srcPath, dstPath, RenameContext.defaults().setOperationTimeMs(TEST_TIME_MS));
-    FileInfo folderInfo =
-        mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile2")));
-    Assert.assertEquals(ttl, folderInfo.getTtl());
   }
 
   @Test
