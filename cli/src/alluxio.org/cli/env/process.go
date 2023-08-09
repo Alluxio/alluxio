@@ -92,6 +92,8 @@ func (p *BaseProcess) Launch(start *StartProcessCommand, args []string) error {
 	if start.AsyncStart {
 		log.Logger.Warnf("Skipping monitor checks for %v", p.Name)
 	} else {
+		// wait a little for main process to start before starting monitor process
+		time.Sleep(100 * time.Millisecond)
 		if err := p.Monitor(); err != nil {
 			return stacktrace.Propagate(err, "error monitoring process after launching")
 		}
