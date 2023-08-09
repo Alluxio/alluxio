@@ -85,7 +85,7 @@ func (p *MultiProcess) Start(cmd *env.StartProcessCommand) error {
 	return runSshCommand(
 		addStartFlags(cmd,
 			process.Service.Name,
-			cmd.Name,
+			env.StartProcessName,
 			p.SingleProcessName,
 		), p.HostnameFiles...)
 }
@@ -94,7 +94,7 @@ func (p *MultiProcess) Stop(cmd *env.StopProcessCommand) error {
 	return runSshCommand(
 		addStopFlags(cmd,
 			process.Service.Name,
-			cmd.Name,
+			env.StopProcessName,
 			p.SingleProcessName,
 		), p.HostnameFiles...)
 }
