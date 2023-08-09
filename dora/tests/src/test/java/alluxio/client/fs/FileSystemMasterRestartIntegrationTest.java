@@ -93,7 +93,6 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
           .setProperty(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false)
           .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, TTL_CHECKER_INTERVAL_MS)
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, 1000)
-          .setProperty(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, 0)
           .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER).build();
 
   @Rule

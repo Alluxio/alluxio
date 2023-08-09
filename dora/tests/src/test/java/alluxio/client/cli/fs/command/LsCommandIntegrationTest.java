@@ -44,8 +44,7 @@ import java.io.PrintWriter;
  */
 @LocalAlluxioClusterResource.ServerConfig(
     confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
-        PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
-        PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"})
+        PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
 @Ignore
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
     comment = "the command is still relevant")

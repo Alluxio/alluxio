@@ -409,8 +409,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** Stores the time series for various metrics which are exposed in the UI. */
   private final TimeSeriesStore mTimeSeriesStore;
 
-  @Nullable private final AccessTimeUpdater mAccessTimeUpdater;
-
   /** Used to check pending/running backup from RPCs. */
   protected final CallTracker mStateLockCallTracker;
   private final Scheduler mScheduler;
@@ -511,10 +509,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
     mSyncManager = new ActiveSyncManager(mMountTable, this);
     mTimeSeriesStore = new TimeSeriesStore();
-    mAccessTimeUpdater =
-        Configuration.getBoolean(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATER_ENABLED)
-            ? new AccessTimeUpdater(
-                this, mInodeTree, masterContext.getJournalSystem()) : null;
     // Sync executors should allow core threads to time out
     mSyncPrefetchExecutor.allowCoreThreadTimeOut(true);
     mSyncMetadataExecutor.allowCoreThreadTimeOut(true);
@@ -789,9 +783,6 @@ public class DefaultFileSystemMaster extends CoreMaster
                     Configuration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL)),
                 Configuration.global(), mMasterContext.getUserState()));
       }
-      if (mAccessTimeUpdater != null) {
-        mAccessTimeUpdater.start();
-      }
       mSyncManager.start();
       mScheduler.start();
     }
@@ -805,9 +796,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       mAsyncAuditLogWriter = null;
     }
     mSyncManager.stop();
-    if (mAccessTimeUpdater != null) {
-      mAccessTimeUpdater.stop();
-    }
     mScheduler.stop();
     super.stop();
   }
@@ -998,11 +986,6 @@ public class DefaultFileSystemMaster extends CoreMaster
             MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
             Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
                 Metrics.UFSOps.GET_FILE_INFO).dec();
-          }
-          Mode.Bits accessMode = Mode.Bits.fromProto(context.getOptions().getAccessMode());
-          if (context.getOptions().getUpdateTimestamps() && context.getOptions().hasAccessMode()
-              && (accessMode.imply(Mode.Bits.READ) || accessMode.imply(Mode.Bits.WRITE))) {
-            updateAccessTime(rpcContext, inodePath.getInode(), opTimeMs);
           }
           auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
           ret = fileInfo;
@@ -1323,7 +1306,6 @@ public class DefaultFileSystemMaster extends CoreMaster
         // in the remaining recursive calls, so we set partialPath to the empty list
         partialPath = Collections.emptyList();
       }
-      updateAccessTime(rpcContext, inode, CommonUtils.getCurrentMs());
       DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
           ? DescendantType.ALL : DescendantType.NONE;
       try (CloseableIterator<? extends Inode> childrenIterator = getChildrenIterator(
@@ -5413,12 +5395,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws InvalidPathException {
     return new LockingScheme(path, LockPattern.READ, options,
         getSyncPathCache(), descendantType);
-  }
-
-  protected void updateAccessTime(RpcContext rpcContext, Inode inode, long opTimeMs) {
-    if (mAccessTimeUpdater != null) {
-      mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(), inode, opTimeMs);
-    }
   }
 
   boolean isAclEnabled() {

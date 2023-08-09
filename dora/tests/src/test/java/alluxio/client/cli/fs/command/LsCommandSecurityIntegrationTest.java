@@ -48,8 +48,7 @@ import java.util.function.Function;
         PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
         PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
         "alluxio.security.group.provider.IdentityUserGroupsMapping",
-        PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls",
-        PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"})
+        PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls"})
 @Ignore
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
     comment = "pending on security related meta in dora")

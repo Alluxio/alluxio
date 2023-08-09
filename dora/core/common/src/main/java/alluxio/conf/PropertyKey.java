@@ -2651,46 +2651,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "the log folder when it transitions to standby. ")
           .setScope(Scope.MASTER)
           .build();
-
-  public static final PropertyKey MASTER_FILE_ACCESS_TIME_UPDATER_ENABLED =
-      booleanBuilder(Name.MASTER_FILE_ACCESS_TIME_UPDATER_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("If enabled, file access time updater will update the file last "
-              + "access time when an inode is accessed. This property can be turned off to improve "
-              + "performance and reduce the number of journal entries if your application does "
-              + "not rely on the file access time metadata.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
-      durationBuilder(Name.MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL)
-          .setDefaultValue("1h")
-          .setDescription("The minimum interval between files access time update journal entries "
-              + "get flushed asynchronously. Setting it to a non-positive value will make the the "
-              + "journal update synchronous. Asynchronous update reduces the performance impact of "
-              + "tracking access time but can lose some access time update when master stops "
-              + "unexpectedly.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION =
-      durationBuilder(Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION)
-          .setDefaultValue("1d")
-          .setDescription("The file last access time is precise up to this value. Setting it to"
-              + "a non-positive value will update last access time on every file access operation."
-              + "Longer precision will help reduce the performance impact of tracking access time "
-              + "by reduce the amount of metadata writes occur while reading the same group of "
-              + "files repetitively.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_FILE_ACCESS_TIME_UPDATER_SHUTDOWN_TIMEOUT =
-      durationBuilder(Name.MASTER_FILE_ACCESS_TIME_UPDATER_SHUTDOWN_TIMEOUT)
-          .setDefaultValue("1sec")
-          .setDescription("Maximum time to wait for access updater to stop on shutdown.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_FORMAT_FILE_PREFIX =
       stringBuilder(Name.MASTER_FORMAT_FILE_PREFIX)
           .setAlias("alluxio.master.format.file_prefix")
@@ -8336,14 +8296,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.container.id.reservation.size";
     public static final String MASTER_FAILOVER_COLLECT_INFO =
         "alluxio.master.failover.collect.info";
-    public static final String MASTER_FILE_ACCESS_TIME_UPDATER_ENABLED =
-        "alluxio.master.file.access.time.updater.enabled";
-    public static final String MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
-        "alluxio.master.file.access.time.journal.flush.interval";
-    public static final String MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION =
-        "alluxio.master.file.access.time.update.precision";
-    public static final String MASTER_FILE_ACCESS_TIME_UPDATER_SHUTDOWN_TIMEOUT =
-        "alluxio.master.file.access.time.updater.shutdown.timeout";
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file.prefix";
     public static final String MASTER_STANDBY_HEARTBEAT_INTERVAL =
         "alluxio.master.standby.heartbeat.interval";
