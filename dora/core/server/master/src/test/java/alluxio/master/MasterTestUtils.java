@@ -15,9 +15,9 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
-import alluxio.master.metastore.BlockMetaStore;
+//import alluxio.master.metastore.BlockMetaStore;
 import alluxio.master.metastore.InodeStore;
-import alluxio.master.metastore.heap.HeapBlockMetaStore;
+//import alluxio.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.security.user.UserState;
 import alluxio.underfs.MasterUfsManager;
@@ -50,7 +50,8 @@ public final class MasterTestUtils {
   public static CoreMasterContext testMasterContext(JournalSystem journalSystem,
       UserState userState) {
     return testMasterContext(journalSystem, userState,
-        HeapBlockMetaStore::new, x -> new HeapInodeStore(), new AlwaysStandbyPrimarySelector());
+//        HeapBlockMetaStore::new,
+        x -> new HeapInodeStore(), new AlwaysStandbyPrimarySelector());
   }
 
   /**
@@ -62,23 +63,23 @@ public final class MasterTestUtils {
   public static CoreMasterContext testMasterContext(JournalSystem journalSystem,
       UserState userState, PrimarySelector primarySelector) {
     return testMasterContext(journalSystem, userState,
-        HeapBlockMetaStore::new, x -> new HeapInodeStore(), primarySelector);
+//        HeapBlockMetaStore::new,
+        x -> new HeapInodeStore(), primarySelector);
   }
 
   /**
    * @return a basic master context for the purpose of testing
    * @param journalSystem a journal system to use in the context
    * @param userState the user state to use in the context
-   * @param blockStoreFactory a factory to create {@link BlockMetaStore}
    * @param inodeStoreFactory a factory to create {@link InodeStore}
    */
   public static CoreMasterContext testMasterContext(
       JournalSystem journalSystem, UserState userState,
-      BlockMetaStore.Factory blockStoreFactory,
+//      BlockMetaStore.Factory blockStoreFactory,
       InodeStore.Factory inodeStoreFactory
   ) {
     return testMasterContext(
-        journalSystem, userState, blockStoreFactory,
+        journalSystem, userState,
         inodeStoreFactory, new AlwaysPrimaryPrimarySelector());
   }
 
@@ -86,13 +87,12 @@ public final class MasterTestUtils {
    * @return a basic master context for the purpose of testing
    * @param journalSystem a journal system to use in the context
    * @param userState the user state to use in the context
-   * @param blockStoreFactory a factory to create {@link BlockMetaStore}
    * @param inodeStoreFactory a factory to create {@link InodeStore}
    * @param primarySelector the primary selector
    */
   public static CoreMasterContext testMasterContext(
       JournalSystem journalSystem, UserState userState,
-      BlockMetaStore.Factory blockStoreFactory,
+//      BlockMetaStore.Factory blockStoreFactory,
       InodeStore.Factory inodeStoreFactory,
       PrimarySelector primarySelector
   ) {
@@ -102,7 +102,7 @@ public final class MasterTestUtils {
         .setUserState(userState)
         .setSafeModeManager(new TestSafeModeManager())
         .setBackupManager(mock(BackupManager.class))
-        .setBlockStoreFactory(blockStoreFactory)
+//        .setBlockStoreFactory(blockStoreFactory)
         .setInodeStoreFactory(inodeStoreFactory)
         .setStartTimeMs(-1)
         .setPort(-1)

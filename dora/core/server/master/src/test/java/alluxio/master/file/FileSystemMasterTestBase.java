@@ -51,7 +51,7 @@ import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metastore.caching.CachingInodeStore;
-import alluxio.master.metastore.heap.HeapBlockMetaStore;
+//import alluxio.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
 import alluxio.master.metrics.MetricsMaster;
@@ -354,7 +354,8 @@ public class FileSystemMasterTestBase {
     mRegistry = new MasterRegistry();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
     CoreMasterContext masterContext = MasterTestUtils.testMasterContext(mJournalSystem,
-        new TestUserState(TEST_USER, Configuration.global()), HeapBlockMetaStore::new,
+        new TestUserState(TEST_USER, Configuration.global()),
+//            HeapBlockMetaStore::new,
         mInodeStoreFactory);
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);

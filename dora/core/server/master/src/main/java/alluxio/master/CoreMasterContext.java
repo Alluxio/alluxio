@@ -12,7 +12,7 @@
 package alluxio.master;
 
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.metastore.BlockMetaStore;
+//import alluxio.master.metastore.BlockMetaStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.security.user.UserState;
 import alluxio.underfs.MasterUfsManager;
@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 public class CoreMasterContext extends MasterContext<MasterUfsManager> {
   private final SafeModeManager mSafeModeManager;
   private final BackupManager mBackupManager;
-  private final BlockMetaStore.Factory mBlockStoreFactory;
+//  private final BlockMetaStore.Factory mBlockStoreFactory;
   private final InodeStore.Factory mInodeStoreFactory;
   private final JournalSystem mJournalSystem;
   @Nullable
@@ -41,8 +41,8 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
 
     mSafeModeManager = Preconditions.checkNotNull(builder.mSafeModeManager, "safeModeManager");
     mBackupManager = Preconditions.checkNotNull(builder.mBackupManager, "backupManager");
-    mBlockStoreFactory =
-        Preconditions.checkNotNull(builder.mBlockStoreFactory, "blockStoreFactory");
+//    mBlockStoreFactory =
+//        Preconditions.checkNotNull(builder.mBlockStoreFactory, "blockStoreFactory");
     mInodeStoreFactory =
         Preconditions.checkNotNull(builder.mInodeStoreFactory, "inodeStoreFactory");
     mJournalSystem = Preconditions.checkNotNull(builder.mJournalSystem, "journalSystem");
@@ -65,12 +65,12 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
     return mBackupManager;
   }
 
-  /**
-   * @return the block store factory
-   */
-  public BlockMetaStore.Factory getBlockStoreFactory() {
-    return mBlockStoreFactory;
-  }
+//  /**
+//   * @return the block store factory
+//   */
+//  public BlockMetaStore.Factory getBlockStoreFactory() {
+//    return mBlockStoreFactory;
+//  }
 
   /**
    * @return the inode store factory
@@ -121,7 +121,7 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
     private UserState mUserState;
     private SafeModeManager mSafeModeManager;
     private BackupManager mBackupManager;
-    private BlockMetaStore.Factory mBlockStoreFactory;
+//    private BlockMetaStore.Factory mBlockStoreFactory;
     private InodeStore.Factory mInodeStoreFactory;
     private MasterUfsManager mUfsManager;
     private long mStartTimeMs;
@@ -176,10 +176,10 @@ public class CoreMasterContext extends MasterContext<MasterUfsManager> {
      * @param blockStoreFactory factory for creating a block store
      * @return the builder
      */
-    public Builder setBlockStoreFactory(BlockMetaStore.Factory blockStoreFactory) {
-      mBlockStoreFactory = blockStoreFactory;
-      return this;
-    }
+//    public Builder setBlockStoreFactory(BlockMetaStore.Factory blockStoreFactory) {
+//      mBlockStoreFactory = blockStoreFactory;
+//      return this;
+//    }
 
     /**
      * @param inodeStoreFactory factory for creating an inode store

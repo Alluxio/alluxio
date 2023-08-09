@@ -131,15 +131,15 @@ public class AlluxioMasterProcess extends MasterProcess {
   }
 
   protected CoreMasterContext.Builder createBaseMasterContext() {
-    String inodeStoreBaseDir = Configuration.getString(PropertyKey.MASTER_METASTORE_DIR_INODE);
-    String blockStoreBaseDir = Configuration.getString(PropertyKey.MASTER_METASTORE_DIR_BLOCK);
+//    String inodeStoreBaseDir = Configuration.getString(PropertyKey.MASTER_METASTORE_DIR_INODE);
+//    String blockStoreBaseDir = Configuration.getString(PropertyKey.MASTER_METASTORE_DIR_BLOCK);
     return CoreMasterContext.newBuilder()
         .setJournalSystem(mJournalSystem)
         .setPrimarySelector(mLeaderSelector)
         .setSafeModeManager(mSafeModeManager)
         .setBackupManager(mBackupManager)
-        .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(blockStoreBaseDir))
-        .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(inodeStoreBaseDir))
+//        .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(blockStoreBaseDir))
+//        .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(inodeStoreBaseDir))
         .setStartTimeMs(mStartTimeMs)
         .setPort(NetworkAddressUtils.getPort(ServiceType.MASTER_RPC, Configuration.global()))
         .setUfsManager(mUfsManager);

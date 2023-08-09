@@ -126,7 +126,7 @@ public class MasterTestUtils {
         .setPrimarySelector(new AlwaysStandbyPrimarySelector())
         .setSafeModeManager(safeModeManager)
         .setBackupManager(mock(BackupManager.class))
-        .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))
+//        .setBlockStoreFactory(MasterUtils.getBlockStoreFactory(baseDir))
         .setInodeStoreFactory(MasterUtils.getInodeStoreFactory(baseDir))
         .setStartTimeMs(startTimeMs)
         .setUserState(userState)
