@@ -1077,14 +1077,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey UNDERFS_CLEANUP_INTERVAL =
-      durationBuilder(Name.UNDERFS_CLEANUP_INTERVAL)
-          .setDefaultValue("1day")
-          .setDescription("The interval for periodically cleaning all the "
-              + " mounted under file storages.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey UNDERFS_LISTING_LENGTH =
       intBuilder(Name.UNDERFS_LISTING_LENGTH)
           .setDefaultValue(1000)
@@ -7218,7 +7210,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_CHECKSUM_TYPE =
         "alluxio.underfs.checksum.type";
     public static final String UNDERFS_CLEANUP_ENABLED = "alluxio.underfs.cleanup.enabled";
-    public static final String UNDERFS_CLEANUP_INTERVAL = "alluxio.underfs.cleanup.interval";
     public static final String UNDERFS_EVENTUAL_CONSISTENCY_RETRY_BASE_SLEEP_MS =
         "alluxio.underfs.eventual.consistency.retry.base.sleep";
     public static final String UNDERFS_EVENTUAL_CONSISTENCY_RETRY_MAX_NUM =
