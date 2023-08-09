@@ -282,7 +282,6 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options) {
-    // TODO(Tony Sun): Implement it in the future.
     return callWithReturn(() -> {
       ListOptions ufsOptions = ListOptions.defaults();
       if (options.hasRecursive()) {
@@ -338,8 +337,36 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
-      Consumer<? super URIStatus> action)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+      Consumer<? super URIStatus> action) {
+    call(() -> {
+      ListOptions ufsOptions = ListOptions.defaults();
+      if (options.hasRecursive()) {
+        ufsOptions.setRecursive(options.getRecursive());
+      }
+      UfsStatus[] ufsStatuses;
+      if (ufsPath.getScheme().isPresent() && ufsPath.getScheme().get().equals("file")) {
+        ufsStatuses = mUfs.get().listStatus(ufsPath.getFullPath(), ufsOptions);
+      } else {
+        ufsStatuses = mUfs.get().listStatus(ufsPath.asString(), ufsOptions);
+      }
+      URIStatus uriStatus = null;
+      if (ufsStatuses == null || ufsStatuses.length == 0) {
+        return;
+      }
+      // ufsStatuses is neither null nor empty, so uriStatus is not null.
+      if (ufsPath.getScheme().isPresent() && ufsPath.getScheme().get().equals("file")) {
+        for (UfsStatus ufsStatus : ufsStatuses) {
+          uriStatus = transformStatus(ufsStatus,
+              PathUtils.concatPath(ufsPath.getFullPath(), ufsStatus.getName()));
+        }
+      } else {
+        for (UfsStatus ufsStatus : ufsStatuses) {
+          uriStatus = transformStatus(ufsStatus,
+              PathUtils.concatPath(ufsPath.asString(), ufsStatus.getName()));
+        }
+      }
+      action.accept(uriStatus);
+    });
   }
 
   @Override
@@ -382,12 +409,6 @@ public class UfsBaseFileSystem implements FileSystem {
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws FileDoesNotExistException {
     return openFile(getStatus(path), options);
-  }
-
-  @Override
-  public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
-      throws IOException, AlluxioException {
-    return openFile(getStatus(ufsPath), options);
   }
 
   @Override

@@ -181,7 +181,7 @@ public class DoraCacheClient {
    * @throws RuntimeException
    */
   public List<URIStatus> listStatus(String path, ListStatusPOptions options)
-      throws RuntimeException {
+      throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       List<URIStatus> result = new ArrayList<>();
@@ -198,7 +198,7 @@ public class DoraCacheClient {
   }
 
   /**
-   * List Status from Worker.
+   * Lists Status from Worker.
    * @param ufsPath the file path
    * @param options the list status options
    * @return list of URIStatus

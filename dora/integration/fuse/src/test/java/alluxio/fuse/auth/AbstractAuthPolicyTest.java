@@ -262,12 +262,6 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
-    public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
-        throws IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public FileInStream openFile(URIStatus status, OpenFilePOptions options)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();

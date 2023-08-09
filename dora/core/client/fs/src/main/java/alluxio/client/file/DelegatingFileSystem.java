@@ -208,13 +208,6 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
-      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
-      IOException, AlluxioException {
-    return mDelegatedFileSystem.openFile(ufsPath, options);
-  }
-
-  @Override
   public FileInStream openFile(URIStatus status, OpenFilePOptions options)
       throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
       IOException, AlluxioException {

@@ -33,7 +33,6 @@ public class UfsUrlTest {
    */
   @Test
   public void basicUfsUrl() {
-    // deprecate it.
     UfsUrl ufsUrl = UfsUrl.createInstance("abc://localhost:19998/xy z/a b c");
 
     assertTrue(ufsUrl.getAuthority().isPresent());

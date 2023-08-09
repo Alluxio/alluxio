@@ -658,20 +658,6 @@ public interface FileSystem extends Closeable {
   /**
    * Opens a file for reading.
    *
-   * @param ufsPath the file to read from
-   * @param options options to associate with this operation
-   * @return a {@link FileInStream} for the given path
-   * @throws FileDoesNotExistException when path does not exist
-   * @throws OpenDirectoryException when path is a directory
-   * @throws FileIncompleteException when path is a file and is not completed yet
-   */
-  FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
-      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
-      IOException, AlluxioException;
-
-  /**
-   * Opens a file for reading.
-   *
    * @param status status of the file to read from
    * @param options options to associate with this operation
    * @return a {@link FileInStream} for the given path

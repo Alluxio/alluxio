@@ -181,12 +181,6 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   }
 
   @Override
-  public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
-      throws IOException, AlluxioException {
-    return openFile(getStatus(ufsPath), options);
-  }
-
-  @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws IOException, AlluxioException {
     return openFile(getStatus(path), options);
