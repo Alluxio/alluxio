@@ -36,7 +36,9 @@ func (c *StartProcessCommand) ToCommand() *cobra.Command {
 			Args: cobra.NoArgs,
 			RunE: func(cmd *cobra.Command, args []string) error {
 				if !c.SkipKillOnStart {
-					_ = p.Stop(&StopProcessCommand{})
+					_ = p.Stop(&StopProcessCommand{
+						Name: "stop",
+					})
 				}
 				return p.Start(c)
 			},

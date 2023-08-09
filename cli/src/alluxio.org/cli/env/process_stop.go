@@ -31,9 +31,7 @@ func (c *StopProcessCommand) ToCommand() *cobra.Command {
 		cmd.AddCommand(p.StopCmd(&cobra.Command{
 			Args: cobra.NoArgs,
 			RunE: func(cmd *cobra.Command, args []string) error {
-				return p.Stop(&StopProcessCommand{
-					SoftKill: c.SoftKill,
-				})
+				return p.Stop(c)
 			},
 		}))
 	}
