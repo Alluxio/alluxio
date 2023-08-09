@@ -104,10 +104,10 @@
     subfiles:
       - title: FUSE SDK Overview
         url: /en/fuse-sdk/FUSE-SDK-Overview.html
-      - title: Local Cache Quick Start
-        url: /en/fuse-sdk/Local-Cache-Quick-Start.html
       - title: Local Cache Overview
         url: /en/fuse-sdk/Local-Cache-Overview.html
+      - title: Local Cache Quick Start
+        url: /en/fuse-sdk/Local-Cache-Quick-Start.html
       - title: Distributed Cache Quick Start
         url: /en/fuse-sdk/FUSE-SDK-Dora-Quick-Start.html
       - title: Advanced Tuning
@@ -122,22 +122,16 @@
   - title: Operations
     buttonTitle: Operations
     subfiles:
+      - title: Basic Logging
+        url: /en/operation/Basic-Logging.html
       - title: Configuration Settings
         url: /en/operation/Configuration.html
-      - title: User CLI
-        url: /en/operation/User-CLI.html
       - title: Journal Management
         url: /en/operation/Journal.html
       - title: Metrics System
         url: /en/operation/Metrics-System.html
-
-  - title: Administration
-    buttonTitle: Administration
-    subfiles:
-      - title: Troubleshooting
-        url: /en/administration/Troubleshooting.html
-      - title: Basic Logging
-        url: /en/administration/Basic-Logging.html
+      - title: User CLI
+        url: /en/operation/User-CLI.html
 
   - title: Client APIs
     buttonTitle: Client_APIs
@@ -172,3 +166,10 @@
         url: /en/reference/Environment-List.html
       - title: List of Metrics
         url: /en/reference/Metrics-List.html
+
+  - title: Troubleshooting
+    buttonTitle: Troubleshooting
+    subfiles:
+      - title: Troubleshooting
+        url: /en/Troubleshooting.html
+        
