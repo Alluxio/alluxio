@@ -23,7 +23,6 @@ import alluxio.cli.fsadmin.report.UfsCommand;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.membership.MembershipType;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
