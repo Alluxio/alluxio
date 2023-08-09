@@ -3968,6 +3968,33 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_RPC_EXECUTOR_FJP_MIN_RUNNABLE =
+      intBuilder(Name.MASTER_RPC_EXECUTOR_FJP_MIN_RUNNABLE)
+          .setAlias("alluxio.master.rpc.executor.min.runnable")
+          .setDefaultValue(1)
+          .setDescription(
+              format(
+                  "This property is effective when %s is set to ForkJoinPool. "
+                      + "It controls the minimum allowed number of core threads not blocked. "
+                      + "A value of 1 ensures liveness. A larger value might improve "
+                      + "throughput but might also increase overhead.",
+                  Name.MASTER_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_RPC_EXECUTOR_FJP_ASYNC =
+      booleanBuilder(Name.MASTER_RPC_EXECUTOR_FJP_ASYNC)
+          .setDefaultValue(true)
+          .setDescription(format(
+              "This property is effective when %s is set to ForkJoinPool. "
+                  + "if true, it establishes local first-in-first-out scheduling mode for "
+                  + "forked tasks that are never joined. This mode may be more appropriate "
+                  + "than default locally stack-based mode in applications in which "
+                  + "worker threads only process event-style asynchronous tasks.",
+              Name.MASTER_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_ENABLED =
       booleanBuilder(Name.MASTER_WORKER_REGISTER_LEASE_ENABLED)
           .setDefaultValue(false)
@@ -7971,6 +7998,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.rpc.executor.tpe.allow.core.threads.timeout";
     public static final String MASTER_RPC_EXECUTOR_FJP_PARALLELISM =
         "alluxio.master.rpc.executor.fjp.parallelism";
+    public static final String MASTER_RPC_EXECUTOR_FJP_MIN_RUNNABLE =
+        "alluxio.master.rpc.executor.fjp.min.runnable";
+    public static final String MASTER_RPC_EXECUTOR_FJP_ASYNC =
+        "alluxio.master.rpc.executor.fjp.async";
     public static final String MASTER_SKIP_ROOT_ACL_CHECK =
         "alluxio.master.skip.root.acl.check";
     public static final String MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =

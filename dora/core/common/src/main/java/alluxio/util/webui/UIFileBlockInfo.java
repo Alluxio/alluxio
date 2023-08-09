@@ -12,7 +12,6 @@
 package alluxio.util.webui;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 
