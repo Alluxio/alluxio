@@ -23,7 +23,6 @@ import alluxio.jnifuse.struct.FileStat;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
@@ -110,7 +109,6 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
     }, true, path);
   }
 
-  @Ignore("RandomAccessFuseFileStream allows to overwrite the existing file")
   @Test
   public void failedToOverwrite() {
     String path = "/failedToOverwrite";
@@ -190,7 +188,6 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
     }, true, path);
   }
 
-  @Ignore("RandomAccessFuseFileStream allows to truncate middle")
   @Test
   public void truncateMiddle() {
     String path = "/truncateMiddle";
@@ -208,7 +205,6 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
     }, true, path);
   }
 
-  @Ignore("RandomAccessFuseFileStream allows to overwrite the existing file")
   @Test
   public void overwriteTruncateFuture() {
     String path = "/overwriteTruncateFuture";
@@ -411,7 +407,7 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
   }
 
   private void createOpenTest(Consumer<Function<Integer, Integer>> testCase,
-      boolean testOpenReadWrite, String path) {
+                              boolean testOpenReadWrite, String path) {
     List<Function<Integer, Integer>> operations = new ArrayList<>();
     operations.add(extraFlag -> {
       mFileInfo.get().flags.set(O_WRONLY.intValue() | extraFlag);

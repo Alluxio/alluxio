@@ -95,7 +95,6 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     checkFileInAlluxio(alluxioURI, newLen, newStartValue);
   }
 
-  @Ignore("RandomAccessFuseFileStream allows read and write")
   @Test (expected = FailedPreconditionRuntimeException.class)
   public void read() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());

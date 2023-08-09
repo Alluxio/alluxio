@@ -26,7 +26,6 @@ import alluxio.util.io.BufferUtils;
 
 import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -114,7 +113,6 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   /**
    * Tests opening a file with O_WRONLY on existing file without O_TRUNC.
    */
-  @Ignore("RandomAccessFuseFileStream allows write existing file")
   @Test
   public void openWriteExistingWithoutTruncFlag() throws Exception {
     String testFile = "/openWriteExistingWithoutTruncFlag";

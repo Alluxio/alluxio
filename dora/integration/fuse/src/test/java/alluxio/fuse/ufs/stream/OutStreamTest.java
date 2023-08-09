@@ -23,7 +23,6 @@ import alluxio.util.io.BufferUtils;
 
 import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
@@ -63,7 +62,6 @@ public class OutStreamTest extends AbstractStreamTest {
     Assert.assertEquals(0, status.getLength());
   }
 
-  @Ignore("RandomAccessFuseFileStream allows to write existing file")
   @Test (expected = AlreadyExistsRuntimeException.class)
   public void createExisting() throws Exception {
     AlluxioURI alluxioURI = getTestFileUri();
@@ -78,7 +76,6 @@ public class OutStreamTest extends AbstractStreamTest {
 
   @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "JiamingMai",
       comment = "support create out stream with truncate flag")
-  @Ignore
   @Test
   public void createTruncateFlag() throws Exception {
     AlluxioURI alluxioURI = getTestFileUri();
@@ -176,7 +173,6 @@ public class OutStreamTest extends AbstractStreamTest {
     }
   }
 
-  @Ignore("RandomAccessFuseFileStream allows to append to existing file")
   @Test (expected = UnimplementedRuntimeException.class)
   public void openExistingTruncateFuture() throws Exception {
     AlluxioURI alluxioURI = getTestFileUri();
