@@ -5464,15 +5464,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
 
-  public static final PropertyKey WORKER_STATIC_MEMBERSHIP_MANAGER_ENDPOINTS =
-      stringBuilder(Name.WORKER_ETCD_MEMBERSHIP_MANAGER_ENDPOINTS)
-          .setDefaultValue("${alluxio.etcd.endpoints}")
-          .setDescription("A list of comma-separated http://host:port addresses of "
-              + "etcd cluster (e.g. http://localhost:2379,http://etcd1:2379) for "
-              + "etcd worker membership type.")
-          .setScope(Scope.ALL)
-          .build();
-
   //
   // Proxy related properties
   //
@@ -8987,8 +8978,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.membership.manager.type";
     public static final String WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE =
         "alluxio.worker.static.membership.manager.config.file";
-    public static final String WORKER_ETCD_MEMBERSHIP_MANAGER_ENDPOINTS =
-        "alluxio.worker.etcd.membership.manager.endpoints";
 
     //
     // Proxy related properties
