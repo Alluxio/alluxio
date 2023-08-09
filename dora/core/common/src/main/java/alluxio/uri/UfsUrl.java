@@ -38,7 +38,7 @@ public class UfsUrl {
   public static final String PATH_SEPARATOR = "/";
   public static final String PORT_SEPARATOR = ":";
 
-  UfsUrlMessage mProto;
+  final UfsUrlMessage mProto;
 
   /**
    * Constructs an UfsUrlMessage from a path String.
