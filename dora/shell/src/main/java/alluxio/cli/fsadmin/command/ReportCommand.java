@@ -23,6 +23,7 @@ import alluxio.cli.fsadmin.report.UfsCommand;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.membership.MembershipType;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
@@ -114,7 +115,11 @@ public final class ReportCommand extends AbstractFsAdminCommand {
       return 0;
     }
 
-    FileSystemAdminShellUtils.checkMasterClientService(mConf);
+    MembershipType membershipType = mConf
+        .getEnum(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.class);
+    if (membershipType != MembershipType.ETCD && membershipType != MembershipType.STATIC) {
+      FileSystemAdminShellUtils.checkMasterClientService(mConf);
+    }
 
     // Get the report category
     Command command = Command.SUMMARY;
