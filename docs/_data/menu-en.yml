@@ -102,7 +102,7 @@
       - title: PyTorch
       - title: Tensorflow
     subitems:
-      - title: FUSE SDK # for now this dir is fuse sdk but ideally sdk will go under fuse folder but hard to do because there 5 fuse sdk docs
+      - title: FUSE SDK # for now this dir is fuse sdk but ideally sdk will go under fuse folder but hard to do because there 5 fuse sdk docs unless some of them can live under "Fuse" instead of "SDK"
         buttonTitle: FUSE_SDK
         subfiles:
           - title: FUSE SDK Overview

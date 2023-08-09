@@ -11,42 +11,33 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.annotation.PublicApi;
 import alluxio.cli.Command;
-import alluxio.cli.fsadmin.pathconf.AddCommand;
-import alluxio.cli.fsadmin.pathconf.ListCommand;
-import alluxio.cli.fsadmin.pathconf.RemoveCommand;
-import alluxio.cli.fsadmin.pathconf.ShowCommand;
+import alluxio.cli.fsadmin.nodes.WorkerStatusCommand;
 import alluxio.conf.AlluxioConfiguration;
-
-import com.google.common.annotations.VisibleForTesting;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 
 /**
- * Manages path level configuration.
+ * Command to get or administrate worker nodes status.
  */
-@PublicApi
-public final class PathConfCommand extends AbstractFsAdminCommand {
+public class NodesCommand extends AbstractFsAdminCommand {
+
   private static final Map<String, BiFunction<Context, AlluxioConfiguration, ? extends Command>>
       SUB_COMMANDS = new HashMap<>();
 
   static {
-    SUB_COMMANDS.put("list", ListCommand::new);
-    SUB_COMMANDS.put("show", ShowCommand::new);
-    SUB_COMMANDS.put("add", AddCommand::new);
-    SUB_COMMANDS.put("remove", RemoveCommand::new);
+    SUB_COMMANDS.put("status", WorkerStatusCommand::new);
   }
 
   private Map<String, Command> mSubCommands = new HashMap<>();
 
   /**
-   * @param context fsadmin command context
-   * @param alluxioConf Alluxio configuration
+   * @param context
+   * @param alluxioConf
    */
-  public PathConfCommand(Context context, AlluxioConfiguration alluxioConf) {
+  public NodesCommand(Context context, AlluxioConfiguration alluxioConf) {
     super(context);
     SUB_COMMANDS.forEach((name, constructor) -> {
       mSubCommands.put(name, constructor.apply(context, alluxioConf));
@@ -54,13 +45,13 @@ public final class PathConfCommand extends AbstractFsAdminCommand {
   }
 
   @Override
-  public Map<String, Command> getSubCommands() {
-    return mSubCommands;
+  public String getCommandName() {
+    return "nodes";
   }
 
   @Override
-  public String getCommandName() {
-    return "pathConf";
+  public Map<String, Command> getSubCommands() {
+    return mSubCommands;
   }
 
   @Override
@@ -72,16 +63,9 @@ public final class PathConfCommand extends AbstractFsAdminCommand {
     return usage.toString();
   }
 
-  /**
-   * @return command's description
-   */
-  @VisibleForTesting
-  public static String description() {
-    return "Manage path level configuration, see sub-commands' descriptions for more details.";
-  }
-
   @Override
   public String getDescription() {
-    return description();
+    return "Provide operations for worker nodes. "
+        + "See sub-commands' descriptions for more details.";
   }
 }
