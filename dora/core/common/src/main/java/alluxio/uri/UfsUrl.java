@@ -140,7 +140,7 @@ public class UfsUrl {
   }
 
   /**
-   * Determines the path components list of this absolute path object.
+   * Determines the path components list of this absolute path.
    * @param rootUrl the elems map of root url, including scheme, authority and path
    * @param inputUrl the elems map of input url, including scheme, authority and path
    * @return the path components list of this UfsUrl Object
