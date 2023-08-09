@@ -115,11 +115,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
       return 0;
     }
 
-    MembershipType membershipType = mConf
-        .getEnum(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.class);
-    if (membershipType != MembershipType.ETCD && membershipType != MembershipType.STATIC) {
-      FileSystemAdminShellUtils.checkMasterClientService(mConf);
-    }
+    FileSystemAdminShellUtils.checkMasterClientService(mConf);
 
     // Get the report category
     Command command = Command.SUMMARY;
