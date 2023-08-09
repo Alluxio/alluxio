@@ -30,6 +30,10 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.github.serceman</groupId>
       <artifactId>jnr-fuse</artifactId>
     </dependency>

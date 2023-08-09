@@ -46,7 +46,7 @@ public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
     Configuration.set(PropertyKey.FUSE_MOUNT_POINT, mountPoint);
     Configuration.set(PropertyKey.FUSE_USER_GROUP_TRANSLATION_ENABLED, true);
     mFuseFileSystem = new AlluxioJnrFuseFileSystem(fileSystem, Configuration.global(),
-        FuseOptions.create(Configuration.global()));
+        FuseOptions.Builder.fromConfig(Configuration.global()).build());
     mFuseFileSystem.mount(Paths.get(mountPoint), false, false, new String[] {"-odirect_io"});
   }
 

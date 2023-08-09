@@ -109,7 +109,7 @@ public class AlluxioJniFuseFileSystemTest {
     LibFuse.loadLibrary(AlluxioFuseUtils.getLibfuseVersion(Configuration.global()));
     try {
       mFuseFs = new AlluxioJniFuseFileSystem(
-          mFileSystemContext, mFileSystem, FuseOptions.create(mConf));
+          mFileSystemContext, mFileSystem, FuseOptions.Builder.fromConfig(mConf).build());
     } catch (UnsatisfiedLinkError e) {
       // stop test and ignore if FuseFileSystem fails to create due to missing libfuse library
       Assume.assumeNoException(e);

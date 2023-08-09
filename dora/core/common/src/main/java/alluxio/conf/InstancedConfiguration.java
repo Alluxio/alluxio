@@ -242,6 +242,15 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     mProperties.merge(properties, source);
   }
 
+  /**
+   * Merges map of properties into the current alluxio properties.
+   *
+   * @param properties map of keys to values
+   */
+  public void merge(AlluxioProperties properties) {
+    mProperties.merge(properties);
+  }
+
   @Override
   public Set<PropertyKey> keySet() {
     return mProperties.keySet();

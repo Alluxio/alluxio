@@ -39,7 +39,7 @@ public class UpdateCheckerTest {
   @Ignore
   public void UnderFileSystemAlluxio() {
     try (UpdateChecker checker = UpdateChecker
-        .create(FuseOptions.create(Configuration.global()))) {
+        .create(FuseOptions.Builder.fromConfig(Configuration.global()).build())) {
       Assert.assertTrue(containsTargetInfo(checker.getUnchangeableFuseInfo(),
           UpdateChecker.ALLUXIO_FS));
     }
@@ -97,7 +97,8 @@ public class UpdateCheckerTest {
 
   @Test
   public void FuseOpsCalled() {
-    try (UpdateChecker checker = UpdateChecker.create(FuseOptions.create(Configuration.global()))) {
+    try (UpdateChecker checker = UpdateChecker.create(
+        FuseOptions.Builder.fromConfig(Configuration.global()).build())) {
       MetricsSystem.timer(FuseConstants.FUSE_READ).update(5, TimeUnit.MILLISECONDS);
       Assert.assertTrue(containsTargetInfo(checker.getFuseCheckInfo(), FuseConstants.FUSE_READ));
       MetricsSystem.timer(FuseConstants.FUSE_WRITE).update(5, TimeUnit.MILLISECONDS);
@@ -114,14 +115,17 @@ public class UpdateCheckerTest {
             .setUfsFileSystemOptions(new UfsFileSystemOptions(ufsAddress))
             .build();
     return UpdateChecker.create(
-        FuseOptions.create(Configuration.global(), fileSystemOptions, false));
+        FuseOptions.Builder.fromConfig(Configuration.global())
+            .setFileSystemOptions(fileSystemOptions)
+            .setUpdateCheckEnabled(false)
+            .build());
   }
 
   private UpdateChecker getUpdateCheckerWithMountOptions(String mountOptions) {
     InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.FUSE_MOUNT_OPTIONS,
         PropertyKey.FUSE_MOUNT_OPTIONS.formatValue(mountOptions));
-    return UpdateChecker.create(FuseOptions.create(conf));
+    return UpdateChecker.create(FuseOptions.Builder.fromConfig(conf).build());
   }
 
   private boolean containsTargetInfo(List<String> list, String targetInfo) {

@@ -83,7 +83,10 @@ public class FuseEndToEndTest {
             .setUfsFileSystemOptions(ufsOptions)
             .build();
     AlluxioJniFuseFileSystem fuseFileSystem = new AlluxioJniFuseFileSystem(context, fileSystem,
-        FuseOptions.create(Configuration.global(), fileSystemOptions, false));
+        FuseOptions.Builder.fromConfig(Configuration.global())
+            .setFileSystemOptions(fileSystemOptions)
+            .setUpdateCheckEnabled(false)
+            .build());
     fuseFileSystem.mount(false, false, new HashSet<>());
     if (!FuseUtils.waitForFuseMounted(MOUNT_POINT)) {
       FuseUtils.umountFromShellIfMounted(MOUNT_POINT);
