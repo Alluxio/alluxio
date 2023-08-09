@@ -175,7 +175,7 @@ public class AlluxioFuse {
       FuseUmountable fuseFileSystem = createFuseFileSystem(fsContext, fs, fuseOptions);
       if (fuseFileSystem instanceof AlluxioJniFuseFileSystem) {
         AlluxioJniFuseFileSystem jniFuseFileSystem = (AlluxioJniFuseFileSystem) fuseFileSystem;
-        preprocess(jniFuseFileSystem);
+        setupFuseFileSystem(jniFuseFileSystem);
       }
       launchFuse(fuseFileSystem, fsContext, fuseOptions, true);
     } catch (Throwable t) {
@@ -237,11 +237,12 @@ public class AlluxioFuse {
   }
 
   /**
-   * Preprocess the instance of {@link AlluxioJniFuseFileSystem} before mounting.
+   * Set up the FUSE file system {@link AlluxioJniFuseFileSystem} before mounting.
    *
    * @param jniFuseFileSystem the instance of {@link AlluxioJniFuseFileSystem}
    */
-  public void preprocess(AlluxioJniFuseFileSystem jniFuseFileSystem) {
+  public void setupFuseFileSystem(AlluxioJniFuseFileSystem jniFuseFileSystem) {
+    // do nothing by default
   }
 
   /**
