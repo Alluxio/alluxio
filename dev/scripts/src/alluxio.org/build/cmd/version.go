@@ -16,6 +16,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/palantir/stacktrace"
 
@@ -32,7 +33,8 @@ func VersionF() error {
 	return nil
 }
 
-var versionRe = regexp.MustCompile(".*<version>(.*)</version>.*")
+// only one <version> tag is expected in the root pom.xml that is at the level directly under the root project node
+var versionRe = regexp.MustCompile(`^  <version>(.*)</version>$`)
 
 func alluxioVersionFromPom() (string, error) {
 	rootPomPath := filepath.Join(repo.FindRepoRoot(), "pom.xml")
@@ -40,9 +42,11 @@ func alluxioVersionFromPom() (string, error) {
 	if err != nil {
 		return "", stacktrace.Propagate(err, "error reading %v", rootPomPath)
 	}
-	matches := versionRe.FindStringSubmatch(string(contents))
-	if len(matches) < 2 {
-		return "", stacktrace.NewError("did not find any matching version tag in %v", rootPomPath)
+	for _, l := range strings.Split(string(contents), "\n") {
+		matches := versionRe.FindStringSubmatch(l)
+		if len(matches) == 2 {
+			return matches[1], nil
+		}
 	}
-	return matches[1], nil
+	return "", stacktrace.NewError("did not find matching version tag in %v", rootPomPath)
 }
