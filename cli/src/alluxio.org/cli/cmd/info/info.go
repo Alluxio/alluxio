@@ -23,5 +23,6 @@ var Service = &env.Service{
 		Collect,
 		Master,
 		Report,
+		Version,
 	},
 }
