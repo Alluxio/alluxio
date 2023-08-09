@@ -12,12 +12,12 @@
 package cache
 
 import (
-	"alluxio.org/cli/cmd"
-	"alluxio.org/log"
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
+	"alluxio.org/cli/cmd"
 	"alluxio.org/cli/env"
+	"alluxio.org/log"
 )
 
 var Ttl = &TtlCommand{

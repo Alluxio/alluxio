@@ -17,9 +17,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"alluxio.org/cli/cmd/cache"
 	"github.com/spf13/viper"
 
+	"alluxio.org/cli/cmd/cache"
 	"alluxio.org/cli/cmd/conf"
 	"alluxio.org/cli/cmd/exec"
 	"alluxio.org/cli/cmd/fs"
