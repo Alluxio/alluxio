@@ -14,7 +14,7 @@ package quorum
 import (
 	"github.com/spf13/cobra"
 
-	"alluxio.org/cli/cmd"
+	"alluxio.org/cli/cmd/names"
 	"alluxio.org/cli/env"
 )
 
@@ -22,7 +22,7 @@ var Remove = &RemoveCommand{
 	QuorumCommand: &QuorumCommand{
 		BaseJavaCommand: &env.BaseJavaCommand{
 			CommandName:   "remove",
-			JavaClassName: cmd.FileSystemAdminShellJavaClass,
+			JavaClassName: names.FileSystemAdminShellJavaClass,
 			Parameters:    []string{"journal", "quorum", "remove"},
 		},
 		AllowedDomains: []string{DomainJobMaster, DomainMaster},

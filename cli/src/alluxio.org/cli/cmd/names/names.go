@@ -9,9 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package cmd
+package names
 
 const (
+	BinAlluxio                    = "bin/alluxio"
 	FileSystemAdminShellJavaClass = "alluxio.cli.fsadmin.FileSystemAdminShell"
 	FileSystemShellJavaClass      = "alluxio.cli.fs.FileSystemShell"
 	JobShellJavaClass             = "alluxio.cli.job.JobShell"

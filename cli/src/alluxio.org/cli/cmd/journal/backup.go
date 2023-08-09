@@ -14,14 +14,14 @@ package journal
 import (
 	"github.com/spf13/cobra"
 
-	"alluxio.org/cli/cmd"
+	"alluxio.org/cli/cmd/names"
 	"alluxio.org/cli/env"
 )
 
 var Backup = &BackupCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "backup",
-		JavaClassName: cmd.FileSystemAdminShellJavaClass,
+		JavaClassName: names.FileSystemAdminShellJavaClass,
 		Parameters:    []string{"backup"},
 	},
 }

@@ -14,14 +14,14 @@ package job
 import (
 	"github.com/spf13/cobra"
 
-	"alluxio.org/cli/cmd"
+	"alluxio.org/cli/cmd/names"
 	"alluxio.org/cli/env"
 )
 
 var List = &ListCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "list",
-		JavaClassName: cmd.JobShellJavaClass,
+		JavaClassName: names.JobShellJavaClass,
 	},
 }
 

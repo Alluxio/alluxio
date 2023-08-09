@@ -16,14 +16,14 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"alluxio.org/cli/cmd"
+	"alluxio.org/cli/cmd/names"
 	"alluxio.org/cli/env"
 )
 
 var Cache = &CacheCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "cache",
-		JavaClassName: cmd.FileSystemAdminShellJavaClass,
+		JavaClassName: names.FileSystemAdminShellJavaClass,
 		Parameters:    []string{"report", "capacity"},
 	},
 }

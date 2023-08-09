@@ -14,7 +14,7 @@ package quorum
 import (
 	"github.com/spf13/cobra"
 
-	"alluxio.org/cli/cmd"
+	"alluxio.org/cli/cmd/names"
 	"alluxio.org/cli/env"
 )
 
@@ -22,7 +22,7 @@ var Info = &InfoCommand{
 	QuorumCommand: &QuorumCommand{
 		BaseJavaCommand: &env.BaseJavaCommand{
 			CommandName:   "info",
-			JavaClassName: cmd.FileSystemAdminShellJavaClass,
+			JavaClassName: names.FileSystemAdminShellJavaClass,
 			Parameters:    []string{"journal", "quorum", "info"},
 		},
 		AllowedDomains: []string{DomainJobMaster, DomainMaster},

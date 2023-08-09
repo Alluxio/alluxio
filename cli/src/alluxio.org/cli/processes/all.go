@@ -37,7 +37,7 @@ type AllProcess struct {
 	Processes []env.Process
 }
 
-func (p *AllProcess) SetEnvVars(envVar *viper.Viper) {
+func (p *AllProcess) SetEnvVars(_ *viper.Viper) {
 	return
 }
 
@@ -57,9 +57,9 @@ func (p *AllProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 
 func (p *AllProcess) Start(cmd *env.StartProcessCommand) error {
 	for i := 0; i < len(p.Processes); i++ {
-		subProcess := p.Processes[i]
-		if err := subProcess.Start(cmd); err != nil {
-			return stacktrace.Propagate(err, "Error starting subprocesses for %s", p.Processes[i])
+		subprocess := p.Processes[i]
+		if err := subprocess.Start(cmd); err != nil {
+			return stacktrace.Propagate(err, "error starting subprocesses for %s", subprocess.Base().Name)
 		}
 	}
 	return nil
@@ -67,9 +67,9 @@ func (p *AllProcess) Start(cmd *env.StartProcessCommand) error {
 
 func (p *AllProcess) Stop(cmd *env.StopProcessCommand) error {
 	for i := len(p.Processes) - 1; i >= 0; i-- {
-		subProcess := p.Processes[i]
-		if err := subProcess.Stop(cmd); err != nil {
-			return stacktrace.Propagate(err, "Error stopping subprocesses for %s", p.Processes[i])
+		subprocess := p.Processes[i]
+		if err := subprocess.Stop(cmd); err != nil {
+			return stacktrace.Propagate(err, "error stopping subprocesses for %s", subprocess.Base().Name)
 		}
 	}
 	return nil

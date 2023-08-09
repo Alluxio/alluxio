@@ -15,7 +15,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
-	"alluxio.org/cli/cmd"
+	"alluxio.org/cli/cmd/names"
 	"alluxio.org/cli/env"
 )
 
@@ -23,7 +23,7 @@ var Elect = &ElectCommand{
 	QuorumCommand: &QuorumCommand{
 		BaseJavaCommand: &env.BaseJavaCommand{
 			CommandName:   "elect",
-			JavaClassName: cmd.FileSystemAdminShellJavaClass,
+			JavaClassName: names.FileSystemAdminShellJavaClass,
 			Parameters:    []string{"journal", "quorum", "elect"},
 		},
 		AllowedDomains: []string{DomainMaster},

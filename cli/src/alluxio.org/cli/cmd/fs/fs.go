@@ -12,14 +12,14 @@
 package fs
 
 import (
-	"alluxio.org/cli/cmd"
+	"alluxio.org/cli/cmd/names"
 	"alluxio.org/cli/env"
 )
 
 var Service = &env.Service{
 	Name:        "fs",
 	Description: "Operations to interface with the Alluxio filesystem",
-	Commands:    Cmds(cmd.FileSystemShellJavaClass),
+	Commands:    Cmds(names.FileSystemShellJavaClass),
 }
 
 func Cmds(className string) []env.Command {

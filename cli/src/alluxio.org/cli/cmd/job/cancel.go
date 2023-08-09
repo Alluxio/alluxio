@@ -17,14 +17,14 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
-	"alluxio.org/cli/cmd"
+	"alluxio.org/cli/cmd/names"
 	"alluxio.org/cli/env"
 )
 
 var Cancel = &CancelCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "cancel",
-		JavaClassName: cmd.JobShellJavaClass,
+		JavaClassName: names.JobShellJavaClass,
 	},
 }
 

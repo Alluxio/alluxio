@@ -26,14 +26,10 @@ import (
 	"github.com/palantir/stacktrace"
 	"golang.org/x/crypto/ssh"
 
+	"alluxio.org/cli/cmd/names"
 	"alluxio.org/cli/env"
 	"alluxio.org/log"
 )
-
-type Result struct {
-	err error
-	msg string
-}
 
 type HostnamesFile struct {
 	Name      string
@@ -50,8 +46,9 @@ func NewHostnamesFile(name string) *HostnamesFile {
 	}
 }
 
-// for each node, create a client and run
-func runCommand(command string, mode string) error {
+// runSshCommand parses hostnames from the hosts files such as `conf/masters` and `conf/workers`
+// For each hostname, create a SSH client and run the given command
+func runSshCommand(command string, hostGroups ...string) error {
 	// prepare client config, ssh port info
 	config, port, err := prepareCommand()
 	if err != nil {
@@ -59,53 +56,46 @@ func runCommand(command string, mode string) error {
 	}
 
 	// get list of masters or workers, or both
-	hosts, err := getHostnames(mode)
+	hosts, err := getHostnames(hostGroups)
 	if err != nil {
 		return stacktrace.Propagate(err, "cannot read host names")
 	}
 
 	// create wait group and channels
 	var wg sync.WaitGroup
-	results := make(chan Result)
+	errs := make(chan error)
 	for _, h := range hosts {
+		h := h
 		wg.Add(1)
-		host := h
 
 		go func() {
 			defer wg.Done()
 			// dial on target remote address with given host, config and ssh port
-			dialAddr := fmt.Sprintf("%s:%d", host, port)
+			dialAddr := fmt.Sprintf("%s:%d", h, port)
 			conn, err := ssh.Dial("tcp", dialAddr, config)
 			if err != nil {
-				result := Result{
-					err: err,
-					msg: fmt.Sprintf("dial failed to %v", host),
-				}
-				results <- result
+				errs <- stacktrace.Propagate(err, "dial failed to %v", h)
+				return
 			}
 			defer func(conn *ssh.Client) {
 				if err := conn.Close(); err != nil {
-					log.Logger.Infof("connection to %s closed, error: %s", host, err)
+					log.Logger.Warnf("connection to %s closed, error: %s", h, err)
 				} else {
-					log.Logger.Infof("connection to %s closed", host)
+					log.Logger.Debugf("connection to %s closed", h)
 				}
 			}(conn)
 
 			// create and set up a session
 			session, err := conn.NewSession()
 			if err != nil {
-				result := Result{
-					err: err,
-					msg: fmt.Sprintf("cannot create session at %v.", host),
-				}
-				results <- result
+				errs <- stacktrace.Propagate(err, "cannot create session at %v.", h)
+				return
 			}
 			defer func(session *ssh.Session) {
-				err := session.Close()
-				if err != nil && err != io.EOF {
-					log.Logger.Infof("session at %s closed, error: %s", host, err)
+				if err := session.Close(); err != nil && err != io.EOF {
+					log.Logger.Warnf("session at %s closed, error: %s", h, err)
 				} else {
-					log.Logger.Infof("session at %s closed", host)
+					log.Logger.Debugf("session at %s closed", h)
 				}
 			}(session)
 
@@ -114,28 +104,26 @@ func runCommand(command string, mode string) error {
 
 			// run command on the session, output errors
 			if err = session.Run(command); err != nil {
-				result := Result{
-					err: err,
-					msg: fmt.Sprintf("run command %v failed at %v", command, host),
-				}
-				results <- result
+				errs <- stacktrace.Propagate(err, "run command %v failed at %v", command, h)
+				return
 			}
-
-			// if no errors, return nil
-			result := Result{
-				err: nil,
-				msg: "",
-			}
-			results <- result
 		}()
 	}
 
 	go func() {
 		wg.Wait()
-		close(results)
+		close(errs)
 	}()
 
-	return errorHandler(command, hosts, results)
+	var errMsgs []string
+	for err := range errs {
+		errMsgs = append(errMsgs, err.Error())
+	}
+	if len(errMsgs) > 0 {
+		return stacktrace.NewError("At least one error encountered:\n%v", strings.Join(errMsgs, "\n"))
+	}
+	log.Logger.Infof("Command %s successful on nodes: %s", command, hosts)
+	return nil
 }
 
 func prepareCommand() (*ssh.ClientConfig, int, error) {
@@ -171,10 +159,11 @@ func prepareCommand() (*ssh.ClientConfig, int, error) {
 	return config, port, nil
 }
 
-func addStartFlags(argument string, cmd *env.StartProcessCommand) string {
-	cliPath := filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
+func addStartFlags(cmd *env.StartProcessCommand, arguments ...string) string {
+	cliPath := filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), names.BinAlluxio)
 	var command []string
-	command = append(command, cliPath, argument)
+	command = append(command, cliPath)
+	command = append(command, arguments...)
 	if cmd.AsyncStart {
 		command = append(command, "-a")
 	}
@@ -184,35 +173,37 @@ func addStartFlags(argument string, cmd *env.StartProcessCommand) string {
 	return strings.Join(command, " ")
 }
 
-func addStopFlags(argument string, cmd *env.StopProcessCommand) string {
-	cliPath := filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
+func addStopFlags(cmd *env.StopProcessCommand, arguments ...string) string {
+	cliPath := filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), names.BinAlluxio)
 	var command []string
-	command = append(command, cliPath, argument)
+	command = append(command, cliPath)
+	command = append(command, arguments...)
 	if cmd.SoftKill {
 		command = append(command, "-s")
 	}
 	return strings.Join(command, " ")
 }
 
-func getHostnames(mode string) ([]string, error) {
-	if mode != "master" && mode != "worker" && mode != "all" {
-		return nil, stacktrace.NewError("invalid mode for readHostnames, " +
-			"available readHostnames modes: [master, worker, all]")
-	}
+const (
+	HostGroupMasters = "masters"
+	HostGroupWorkers = "workers"
+)
+
+func getHostnames(hostGroups []string) ([]string, error) {
 	var hosts []string
-	if mode == "master" || mode == "all" {
-		masterList, err := NewHostnamesFile("masters").getHostnames()
-		if err != nil {
-			return nil, stacktrace.Propagate(err, "cannot get masters")
+	for _, hostGroup := range hostGroups {
+		switch hostGroup {
+		case HostGroupMasters:
+		case HostGroupWorkers:
+			hostnames, err := NewHostnamesFile(hostGroup).getHostnames()
+			if err != nil {
+				return nil, stacktrace.Propagate(err, "error listing hostnames from %v", hostGroup)
+			}
+			hosts = append(hosts, hostnames...)
+		default:
+			return nil, stacktrace.NewError("unknown hosts file: %v", hostGroup)
 		}
-		hosts = append(hosts, masterList...)
-	}
-	if mode == "worker" || mode == "all" {
-		workerList, err := NewHostnamesFile("worker").getHostnames()
-		if err != nil {
-			return nil, stacktrace.Propagate(err, "cannot get workers")
-		}
-		hosts = append(hosts, workerList...)
+
 	}
 	return hosts, nil
 }
@@ -258,23 +249,4 @@ func getSigner() (ssh.Signer, error) {
 		return nil, stacktrace.Propagate(err, "cannot parse public key at %v", privateKeyFile)
 	}
 	return parsedPrivateKey, nil
-}
-
-func errorHandler(command string, nodes []string, results chan Result) error {
-	hasError := 0
-	for result := range results {
-		if result.err != nil {
-			hasError++
-			err := stacktrace.Propagate(result.err, result.msg)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	if hasError != 0 {
-		return stacktrace.NewError("run command %s failed, number of failures: %s", command, hasError)
-	}
-	log.Logger.Infof("run command %s successful on nodes: %s", command, nodes)
-	return nil
 }
