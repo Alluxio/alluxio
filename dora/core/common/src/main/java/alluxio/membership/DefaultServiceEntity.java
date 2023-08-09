@@ -118,7 +118,7 @@ public abstract class DefaultServiceEntity implements Closeable {
   }
 
   /**
-   * Convert a WorkerServiceEntity into a json string.
+   * Convert a DefaultServiceEntity into a json string.
    * @param entity
    * @return json string
    */
