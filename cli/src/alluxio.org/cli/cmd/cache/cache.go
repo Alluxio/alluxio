@@ -22,5 +22,6 @@ var Service = &env.Service{
 		Format,
 		Free,
 		Persist,
+		Ttl,
 	},
 }
