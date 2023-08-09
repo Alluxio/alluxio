@@ -21,9 +21,10 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FilenameUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -41,23 +42,24 @@ public class UfsUrl {
   final UfsUrlMessage mProto;
 
   /**
-   * Constructs an UfsUrlMessage from a path String.
-   * @param ufsPath a string representing a ufs path
-   * @return an UfsUrlMessage
+   * Constructs a map containing scheme, authority, and path.
+   * @param inputUrl the input url string
+   * @return a map containing scheme, authority, and path
    */
-  public static UfsUrlMessage toProto(String ufsPath) {
-    Preconditions.checkArgument(ufsPath != null && !ufsPath.isEmpty(),
-        "ufsPath is null or empty");
+  public static Map<String, String> extractElements(String inputUrl) {
+    Preconditions.checkArgument(inputUrl != null && !inputUrl.isEmpty(),
+        "The input url is null or empty, please input a valid url.");
+    Map<String, String> elements = new HashMap<>();
     String scheme = null;
     String authority = null;
     String path = null;
 
     int start = 0;
-    int schemeSplitIndex = ufsPath.indexOf(SCHEME_SEPARATOR, start);
+    int schemeSplitIndex = inputUrl.indexOf(SCHEME_SEPARATOR, start);
     if (schemeSplitIndex == -1) {
       scheme = "";
     } else {
-      scheme = ufsPath.substring(start, schemeSplitIndex);
+      scheme = inputUrl.substring(start, schemeSplitIndex);
       start += scheme.length() + SCHEME_SEPARATOR.length();
     }
 
@@ -65,11 +67,11 @@ public class UfsUrl {
         "Alluxio 3.x no longer supports alluxio:// scheme,"
             + " please input the UFS path directly like hdfs://host:port/path");
 
-    int authSplitIndex = ufsPath.indexOf(PATH_SEPARATOR, start);
+    int authSplitIndex = inputUrl.indexOf(PATH_SEPARATOR, start);
     if (authSplitIndex == -1) {
-      authority = ufsPath.substring(start);
+      authority = inputUrl.substring(start);
     } else {
-      authority = ufsPath.substring(start, authSplitIndex);
+      authority = inputUrl.substring(start, authSplitIndex);
     }
 
     if (scheme.startsWith("s3")
@@ -79,12 +81,107 @@ public class UfsUrl {
     }
 
     start += authority.length();
-    path = ufsPath.substring(start);
+    path = inputUrl.substring(start);
 
-    List<String> pathComponents = Arrays.asList(path.split(PATH_SEPARATOR));
+    elements.put("scheme", scheme);
+    elements.put("authority", authority);
+    elements.put("path", path);
+    return elements;
+  }
+
+  /**
+   * Determines the scheme of this absolute path object.
+   * @param rootUrl the elems map of root url, including scheme, authority and path
+   * @param inputUrl the elems map of input url, including scheme, authority and path
+   * @return the scheme of this UfsUrl object
+   */
+  public static String handleScheme(Map<String, String> rootUrl, Map<String, String> inputUrl) {
+    if (rootUrl.get("scheme").isEmpty())  {
+      if (inputUrl.get("scheme").isEmpty())  {
+        return "file";
+      } else {
+        return inputUrl.get("scheme");
+      }
+    } else {
+      if (inputUrl.get("scheme").isEmpty())  {
+        return rootUrl.get("scheme");
+      } else {
+        return inputUrl.get("scheme");
+      }
+    }
+  }
+
+  /**
+   * Determines the authority of this absolute path object.
+   * @param rootUrl the elems map of root url, including scheme, authority and path
+   * @param inputUrl the elems map of input url, including scheme, authority and path
+   * @return the authority of this UfsUrl object
+   */
+  public static String handleAuthority(Map<String, String> rootUrl, Map<String, String> inputUrl) {
+    if (rootUrl.get("authority").isEmpty())  {
+      return  inputUrl.get("authority");
+    } else {
+      if (rootUrl.get("scheme").equals(inputUrl.get("scheme"))) {
+        if (!inputUrl.get("authority").isEmpty()) {
+          return inputUrl.get("authority");
+        } else {
+          return rootUrl.get("authority");
+        }
+      } else {
+        return inputUrl.get("authority");
+      }
+    }
+  }
+
+  /**
+   * Determines the path components list of this absolute path object.
+   * @param rootUrl the elems map of root url, including scheme, authority and path
+   * @param inputUrl the elems map of input url, including scheme, authority and path
+   * @return the path components list of this UfsUrl Object
+   */
+  public static List<String> handlePathComponents(Map<String, String> rootUrl,
+                                                  Map<String, String> inputUrl) {
+    List<String> rootPathComponents = Arrays.asList(rootUrl.get("path").split(PATH_SEPARATOR));
+    List<String> inputPathComponents = Arrays.asList(inputUrl.get("path").split(PATH_SEPARATOR));
+
+    if (rootUrl.get("scheme").equals("file")
+        || rootUrl.get("scheme").equals(inputUrl.get("scheme"))) {
+      rootPathComponents.addAll(inputPathComponents);
+      return rootPathComponents;
+      // If two schemes are not equal,
+      // it is possible to add root path only when ufsUrl has an empty scheme.
+    } else if (inputUrl.get("scheme").isEmpty()) {
+      if (rootUrl.get("authority").equals(inputUrl.get("authority")))  {
+        rootPathComponents.addAll(inputPathComponents);
+        return rootPathComponents;
+        // If two authorities are not equal,
+        // it is possible to add root path only when ufsUrl has an empty authority
+      } else if (inputUrl.get("authority").isEmpty()) {
+        rootPathComponents.addAll(inputPathComponents);
+        return rootPathComponents;
+      }
+    }
+    return inputPathComponents;
+  }
+
+  /**
+   * Constructs an UfsUrlMessage from a path String.
+   * @param ufsPath a string representing a ufs path
+   * @return an UfsUrlMessage
+   */
+  public static UfsUrlMessage toProto(String ufsPath) {
+    Map<String, String> elements = extractElements(ufsPath);
+
+    Preconditions.checkArgument(
+        elements.containsKey("scheme") && elements.get("scheme") != null
+        && elements.containsKey("authority") && elements.get("authority") != null
+        && elements.containsKey("path") && elements.get("path") != null);
+
+    List<String> pathComponents = Arrays.asList(elements.get("path").split(PATH_SEPARATOR));
+
     return UfsUrlMessage.newBuilder()
-        .setScheme(scheme)
-        .setAuthority(authority)
+        .setScheme(elements.get("scheme"))
+        .setAuthority(elements.get("authority"))
         .addAllPathComponents(pathComponents).build();
   }
 
@@ -106,62 +203,28 @@ public class UfsUrl {
   public static UfsUrl createInstance(String ufsPath) {
     Preconditions.checkArgument(ufsPath != null && !ufsPath.isEmpty(),
         "input path is null or empty");
+
     String ufsRootDir = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
+
     Preconditions.checkArgument(ufsRootDir != null && !ufsRootDir.isEmpty(),
         "root dir is null or empty.");
-    UfsUrlMessage rootMessage = toProto(ufsRootDir);
-    UfsUrlMessage ufsUrlMessage = toProto(ufsPath);
 
-    String scheme = null;
-    String authority = null;
-    List<String> pathComponents = new ArrayList<String>();
+    Map<String, String> rootDirElems = extractElements(ufsRootDir);
+    Map<String, String> ufsPathElems = extractElements(ufsPath);
 
-    // parse scheme
-    if (rootMessage.getScheme().isEmpty())  {
-      if (ufsUrlMessage.getScheme().isEmpty())  {
-        scheme = "file";
-      } else {
-        scheme = ufsUrlMessage.getScheme();
-      }
-    } else {
-      if (ufsUrlMessage.getScheme().isEmpty())  {
-        scheme = rootMessage.getScheme();
-      } else {
-        scheme = ufsUrlMessage.getScheme();
-      }
-    }
+    Preconditions.checkArgument(
+        rootDirElems.containsKey("scheme") && rootDirElems.get("scheme") != null
+            && rootDirElems.containsKey("authority") && rootDirElems.get("authority") != null
+            && rootDirElems.containsKey("path") && rootDirElems.get("path") != null);
 
-    // parse authority
-    if (rootMessage.getAuthority().isEmpty())  {
-      authority = ufsUrlMessage.getAuthority();
-    } else {
-      if (rootMessage.getScheme().equals(ufsUrlMessage.getScheme())) {
-        if (!ufsUrlMessage.getAuthority().isEmpty()) {
-          authority = ufsUrlMessage.getAuthority();
-        } else {
-          authority = rootMessage.getAuthority();
-        }
-      } else {
-        authority = ufsUrlMessage.getAuthority();
-      }
-    }
+    Preconditions.checkArgument(
+        ufsPathElems.containsKey("scheme") && ufsPathElems.get("scheme") != null
+            && ufsPathElems.containsKey("authority") && ufsPathElems.get("authority") != null
+            && ufsPathElems.containsKey("path") && ufsPathElems.get("path") != null);
 
-    // parse path
-    if (scheme.equals("file") || rootMessage.getScheme().equals(ufsUrlMessage.getScheme())) {
-      pathComponents.addAll(rootMessage.getPathComponentsList());
-      // If two schemes are not equal,
-      // it is possible to add root path only when ufsUrl has an empty scheme.
-    } else if (ufsUrlMessage.getScheme().isEmpty()) {
-      if (rootMessage.getAuthority().equals(ufsUrlMessage.getAuthority()))  {
-        pathComponents.addAll(rootMessage.getPathComponentsList());
-        // If two authorities are not equal,
-        // it is possible to add root path only when ufsUrl has an empty authority
-      } else if (ufsUrlMessage.getAuthority().isEmpty()) {
-        pathComponents.addAll(rootMessage.getPathComponentsList());
-      }
-    }
-
-    pathComponents.addAll(ufsUrlMessage.getPathComponentsList());
+    String scheme = handleScheme(rootDirElems, ufsPathElems);
+    String authority = handleAuthority(rootDirElems, ufsPathElems);
+    List<String> pathComponents = handlePathComponents(rootDirElems, ufsPathElems);
 
     return new UfsUrl(UfsUrlMessage.newBuilder()
         .setScheme(scheme)
