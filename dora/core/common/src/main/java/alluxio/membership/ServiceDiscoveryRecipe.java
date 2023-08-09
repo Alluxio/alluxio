@@ -14,6 +14,8 @@ package alluxio.membership;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.resource.LockResource;
+import alluxio.underfs.ObjectUnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.base.Preconditions;
@@ -46,6 +48,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -58,8 +61,9 @@ public class ServiceDiscoveryRecipe {
   final AlluxioEtcdClient mAlluxioEtcdClient;
   private final ScheduledExecutorService mExecutor;
   private final String mClusterIdentifier;
-  // Will look like /ServiceDiscovery/<mClusterIdentifier>
-  private final String mRegisterPathPrefix;
+  // e.g. /ServiceDiscovery/<mClusterIdentifier>
+  private final Supplier<String> mRegisterPathPrefix
+      = CommonUtils.memoize(this::constructRegisterPathPrefix);
   private final ConcurrentHashMap<String, DefaultServiceEntity> mRegisteredServices
       = new ConcurrentHashMap<>();
 
@@ -68,17 +72,29 @@ public class ServiceDiscoveryRecipe {
    * @param client
    * @param clusterIdentifier
    */
-  public ServiceDiscoveryRecipe(AlluxioEtcdClient client, String clusterIdentifier) {
+  ServiceDiscoveryRecipe(AlluxioEtcdClient client, String clusterIdentifier) {
     mAlluxioEtcdClient = client;
     mClusterIdentifier = clusterIdentifier;
-    mRegisterPathPrefix = String.format("%s%s%s", BASE_PATH,
-        MembershipManager.PATH_SEPARATOR, mClusterIdentifier);
     mExecutor = Executors.newSingleThreadScheduledExecutor(
         ThreadFactoryUtils.build("service-discovery-checker", false));
     mExecutor.scheduleWithFixedDelay(this::checkAllForReconnect,
         AlluxioEtcdClient.DEFAULT_LEASE_TTL_IN_SEC, AlluxioEtcdClient.DEFAULT_LEASE_TTL_IN_SEC,
         TimeUnit.SECONDS);
   }
+
+  /**
+   * Construct registerPathPrefix for first time.
+   * @return
+   */
+  private String constructRegisterPathPrefix() {
+    return String.format("%s%s%s", BASE_PATH,
+        MembershipManager.PATH_SEPARATOR, mClusterIdentifier);
+  }
+
+  private String getRegisterPathPrefix() {
+    return mRegisterPathPrefix.get();
+  }
+
 
   /**
    * Apply for a new lease or extend expired lease for
@@ -100,7 +116,7 @@ public class ServiceDiscoveryRecipe {
         return;
       }
       String path = service.getServiceEntityName();
-      String fullPath = new StringBuffer().append(mRegisterPathPrefix)
+      String fullPath = new StringBuffer().append(getRegisterPathPrefix())
           .append(MembershipManager.PATH_SEPARATOR)
           .append(path).toString();
       try {
@@ -212,7 +228,7 @@ public class ServiceDiscoveryRecipe {
    */
   public ByteBuffer getRegisteredServiceDetail(String DefaultServiceEntityName)
       throws IOException {
-    String fullPath = new StringBuffer().append(mRegisterPathPrefix)
+    String fullPath = new StringBuffer().append(getRegisterPathPrefix())
         .append(MembershipManager.PATH_SEPARATOR)
         .append(DefaultServiceEntityName).toString();
     byte[] val = mAlluxioEtcdClient.getForPath(fullPath);
@@ -238,7 +254,7 @@ public class ServiceDiscoveryRecipe {
       throw new NoSuchElementException("Service " + service.getServiceEntityName()
           + " not registered, please register first.");
     }
-    String fullPath = new StringBuffer().append(mRegisterPathPrefix)
+    String fullPath = new StringBuffer().append(getRegisterPathPrefix())
         .append(MembershipManager.PATH_SEPARATOR)
         .append(service.getServiceEntityName()).toString();
     try (LockResource lockResource = new LockResource(service.getLock())) {
@@ -324,7 +340,7 @@ public class ServiceDiscoveryRecipe {
    */
   public Map<String, ByteBuffer> getAllLiveServices() throws IOException {
     Map<String, ByteBuffer> ret = new HashMap<>();
-    List<KeyValue> children = mAlluxioEtcdClient.getChildren(mRegisterPathPrefix);
+    List<KeyValue> children = mAlluxioEtcdClient.getChildren(getRegisterPathPrefix());
     for (KeyValue kv : children) {
       ret.put(kv.getKey().toString(StandardCharsets.UTF_8),
           ByteBuffer.wrap(kv.getValue().getBytes()));

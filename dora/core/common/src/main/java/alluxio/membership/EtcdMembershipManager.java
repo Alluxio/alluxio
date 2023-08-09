@@ -14,6 +14,7 @@ package alluxio.membership;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlreadyExistsException;
+import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -37,11 +39,11 @@ import java.util.stream.Collectors;
  */
 public class EtcdMembershipManager implements MembershipManager {
   private static final Logger LOG = LoggerFactory.getLogger(EtcdMembershipManager.class);
-  private static final String RING_PATH_FORMAT = "/DHT/%s/AUTHORIZED/";
   private final AlluxioConfiguration mConf;
   private AlluxioEtcdClient mAlluxioEtcdClient;
   private String mClusterName;
-  private String mRingPathPrefix = "";
+  private Supplier<String> mRingPathPrefix =
+      CommonUtils.memoize(this::constructRingPathPrefix);
 
   /**
    * @param conf
@@ -67,8 +69,15 @@ public class EtcdMembershipManager implements MembershipManager {
   public EtcdMembershipManager(AlluxioConfiguration conf, AlluxioEtcdClient alluxioEtcdClient) {
     mConf = conf;
     mClusterName = conf.getString(PropertyKey.ALLUXIO_CLUSTER_NAME);
-    mRingPathPrefix = String.format(RING_PATH_FORMAT, mClusterName);
     mAlluxioEtcdClient = alluxioEtcdClient;
+  }
+
+  private String constructRingPathPrefix() {
+    return String.format("/DHT/%s/AUTHORIZED/", mClusterName);
+  }
+
+  private String getRingPathPrefix() {
+    return mRingPathPrefix.get();
   }
 
   @Override
@@ -77,7 +86,7 @@ public class EtcdMembershipManager implements MembershipManager {
     WorkerServiceEntity entity = new WorkerServiceEntity(workerInfo.getAddress());
     // 1) register to the ring, check if there's existing entry
     String pathOnRing = new StringBuffer()
-        .append(mRingPathPrefix)
+        .append(getRingPathPrefix())
         .append(entity.getServiceEntityName()).toString();
     byte[] ret = mAlluxioEtcdClient.getForPath(pathOnRing);
     // If there's existing entry, check if it's me.
@@ -118,7 +127,7 @@ public class EtcdMembershipManager implements MembershipManager {
 
   private List<WorkerServiceEntity> retrieveFullMembers() throws IOException {
     List<WorkerServiceEntity> fullMembers = new ArrayList<>();
-    List<KeyValue> childrenKvs = mAlluxioEtcdClient.getChildren(mRingPathPrefix);
+    List<KeyValue> childrenKvs = mAlluxioEtcdClient.getChildren(getRingPathPrefix());
     for (KeyValue kv : childrenKvs) {
       try {
         WorkerServiceEntity entity = WorkerServiceEntity.fromJson(

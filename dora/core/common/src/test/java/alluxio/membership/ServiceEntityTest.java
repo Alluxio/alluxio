@@ -13,8 +13,8 @@ public final class ServiceEntityTest {
         .setHost("worker1").setContainerHost("containerhostname1")
         .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
         .setDomainSocketPath("/var/lib/domain.sock"));
-    String str = ServiceEntity.toJson(entity);
-    ServiceEntity deserialized = WorkerServiceEntity.fromJson(str);
+    String str = DefaultServiceEntity.toJson(entity);
+    DefaultServiceEntity deserialized = WorkerServiceEntity.fromJson(str);
     Assert.assertEquals(deserialized, entity);
   }
 }
