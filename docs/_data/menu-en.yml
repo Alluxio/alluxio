@@ -21,8 +21,6 @@
             url: /en/core-services/Data-Caching.html
           - title: Metadata Cache & Invalidation
             url: /en/core-services/Metadata-Caching.html
-      - title: Release Notes
-        url: /en/introduction/Release-Notes.html
 
   # - title: Core Services
   #   buttonTitle: Core_Services
