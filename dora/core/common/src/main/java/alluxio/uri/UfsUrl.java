@@ -80,8 +80,6 @@ public class UfsUrl {
 
     start += authority.length();
     path = inputUrl.substring(start);
-    Preconditions.checkArgument(!path.isEmpty(),
-        String.format("The path part of %s is empty, please input a valid path.", inputUrl));
     elements.put("scheme", scheme);
     elements.put("authority", authority);
     elements.put("path", path);
