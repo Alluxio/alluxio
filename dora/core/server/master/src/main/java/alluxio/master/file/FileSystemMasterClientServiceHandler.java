@@ -452,7 +452,6 @@ public final class FileSystemMasterClientServiceHandler
   public void startSync(StartSyncPRequest request,
       StreamObserver<StartSyncPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-//      mFileSystemMaster.startSync(new AlluxioURI(request.getPath()));
       return StartSyncPResponse.newBuilder().build();
     }, "startSync", "request=%s", responseObserver, request);
   }
@@ -461,7 +460,6 @@ public final class FileSystemMasterClientServiceHandler
   public void stopSync(StopSyncPRequest request,
       StreamObserver<StopSyncPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-//      mFileSystemMaster.stopSync(new AlluxioURI(request.getPath()));
       return StopSyncPResponse.newBuilder().build();
     }, "stopSync", "request=%s", responseObserver, request);
   }
