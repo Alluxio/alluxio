@@ -104,6 +104,12 @@ public abstract class RestApiTest extends BaseIntegrationTest {
             .setContentType(TestCaseOptions.XML_CONTENT_TYPE));
   }
 
+  protected TestCase abortMultipartUploadTestCase(String uri, String uploadId) throws Exception {
+    return newTestCase(
+        uri, ImmutableMap.of("uploadId", uploadId), HttpMethod.DELETE,
+        getDefaultOptionsWithAuth());
+  }
+
   protected TestCaseOptions getDefaultOptionsWithAuth(@NotNull String user) {
     return TestCaseOptions.defaults()
         .setAuthorization("AWS4-HMAC-SHA256 Credential=" + user + "/...");

@@ -130,14 +130,25 @@ public class MultipartUploadTest extends RestApiTest {
       throws Exception {
     // Upload parts
     for (int partNum : parts) {
-      createObjectTestCase(OBJECT_KEY, objects.get(partNum).getBytes(), uploadId, partNum)
+      createObjectTestCase(OBJECT_KEY, objects.get(partNum - 1).getBytes(), uploadId, partNum)
           .checkResponseCode(Status.OK.getStatusCode());
     }
     for (int partNum : parts) {
       getTestCase(OBJECT_KEY + "_" + uploadId + AlluxioURI.SEPARATOR + partNum)
           .checkResponseCode(Status.OK.getStatusCode())
-          .checkResponse(objects.get(partNum).getBytes());
+          .checkResponse(objects.get(partNum - 1).getBytes());
     }
+  }
+
+  @Test
+  public void uploadPartWithNonExistentUpload() throws Exception {
+    createObjectTestCase(OBJECT_KEY, EMPTY_CONTENT, "wrong", 1)
+        .checkResponseCode(Status.NOT_FOUND.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_UPLOAD);
+    initiateMultipartUpload();
+    createObjectTestCase(OBJECT_KEY, EMPTY_CONTENT, "wrong", 1)
+        .checkResponseCode(Status.NOT_FOUND.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_UPLOAD);
   }
 
   public void completeMultipartUpload(String uploadId, List<Part> partList) throws Exception {
@@ -154,18 +165,7 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   @Test
-  public void uploadPartWithNonExistentUploadId() throws Exception {
-    createObjectTestCase(OBJECT_KEY, EMPTY_CONTENT, "wrong", 1)
-        .checkResponseCode(Status.NOT_FOUND.getStatusCode())
-        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_UPLOAD);
-    initiateMultipartUpload();
-    createObjectTestCase(OBJECT_KEY, EMPTY_CONTENT, "wrong", 1)
-        .checkResponseCode(Status.NOT_FOUND.getStatusCode())
-        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_UPLOAD);
-  }
-
-  @Test
-  public void completeAllPartsUpload() throws Exception {
+  public void completeMultipartUpload() throws Exception {
     final int partsNum = 50;
     final List<String> objects = new ArrayList<>();
     final List<Integer> parts = new ArrayList<>();
@@ -173,7 +173,7 @@ public class MultipartUploadTest extends RestApiTest {
     final String uploadId = initiateMultipartUpload();
     final AlluxioURI tmpDir = new AlluxioURI(
         AlluxioURI.SEPARATOR + OBJECT_KEY + "_" + uploadId);
-    for (int i = 0; i < partsNum; i++) {
+    for (int i = 1; i <= partsNum; i++) {
       parts.add(i);
       partList.add(new Part("", i));
       objects.add(CommonUtils.randomAlphaNumString(Constants.KB));
@@ -191,25 +191,35 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   @Test
-  public void completePartialPartsUpload() throws Exception {
-    final int partsNum = 50;
+  public void completeMultipartUploadWithEmptyPart() throws Exception {
+    final List<Part> partList = new ArrayList<>();
+    final String uploadId = initiateMultipartUpload();
+    completeMultipartUploadTestCase(OBJECT_KEY, uploadId,
+        new CompleteMultipartUploadRequest(partList))
+        .checkResponseCode(Status.BAD_REQUEST.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.MALFORMED_XML);
+  }
+
+  @Test
+  public void completeMultipartUploadWithPartialParts() throws Exception {
+    final int partsNum = 3;
     final List<String> objects = new ArrayList<>();
     final List<Integer> parts = new ArrayList<>();
     final List<Part> partList = new ArrayList<>();
     final String uploadId = initiateMultipartUpload();
     final AlluxioURI tmpDir = new AlluxioURI(
         AlluxioURI.SEPARATOR + OBJECT_KEY + "_" + uploadId);
-    for (Integer i = 0; i < partsNum; i++) {
+    for (int i = 1; i <= partsNum; i++) {
       parts.add(i);
-      partList.add(new Part("", i));
       objects.add(CommonUtils.randomAlphaNumString(Constants.KB));
     }
     Collections.shuffle(parts);
-
     uploadParts(uploadId, objects, parts);
-    completeMultipartUpload(uploadId, partList.subList(10, partsNum - 10));
+    partList.add(new Part("", 1));
+    partList.add(new Part("", 3));
+    completeMultipartUpload(uploadId, partList);
     getTestCase(OBJECT_KEY).checkResponse(
-        String.join("", objects.subList(10, partsNum - 10)).getBytes());
+        (objects.get(0) + objects.get(2)).getBytes());
   }
 
   @Test
@@ -221,7 +231,7 @@ public class MultipartUploadTest extends RestApiTest {
     final String uploadId = initiateMultipartUpload();
     final AlluxioURI tmpDir = new AlluxioURI(
         AlluxioURI.SEPARATOR + OBJECT_KEY + "_" + uploadId);
-    for (int i = 0; i < partsNum; i++) {
+    for (int i = 1; i <= partsNum; i++) {
       parts.add(i);
       partList.add(new Part("", i));
       objects.add(CommonUtils.randomAlphaNumString(Constants.KB));
@@ -230,20 +240,13 @@ public class MultipartUploadTest extends RestApiTest {
     uploadParts(uploadId, objects, parts);
 
     // Invalid part
-    partList.add(new Part("", partsNum));
+    partList.add(new Part("", partsNum + 1));
     completeMultipartUploadTestCase(OBJECT_KEY, uploadId,
-        new CompleteMultipartUploadRequest(partList, true))
+        new CompleteMultipartUploadRequest(partList))
         .checkResponseCode(Status.BAD_REQUEST.getStatusCode())
         .checkErrorCode(S3ErrorCode.Name.INVALID_PART);
+    // the temporary directory should still exist.
     Assert.assertTrue(mFileSystem.exists(tmpDir));
-
-    // Invalid part
-    partList.clear();
-    partList.add(new Part("", -1));
-    completeMultipartUploadTestCase(OBJECT_KEY, uploadId,
-        new CompleteMultipartUploadRequest(partList, true))
-        .checkResponseCode(Status.BAD_REQUEST.getStatusCode())
-        .checkErrorCode(S3ErrorCode.Name.INVALID_PART);
   }
 
   @Test
@@ -255,7 +258,7 @@ public class MultipartUploadTest extends RestApiTest {
     final String uploadId = initiateMultipartUpload();
     final AlluxioURI tmpDir = new AlluxioURI(
         AlluxioURI.SEPARATOR + OBJECT_KEY + "_" + uploadId);
-    for (int i = 0; i < partsNum; i++) {
+    for (int i = 1; i <= partsNum; i++) {
       parts.add(i);
       objects.add(CommonUtils.randomAlphaNumString(Constants.KB));
     }
@@ -263,36 +266,37 @@ public class MultipartUploadTest extends RestApiTest {
     uploadParts(uploadId, objects, parts);
 
     // Invalid part order
-    partList.add(new Part("", 0));
-    partList.add(new Part("", 2));
-
-    completeMultipartUploadTestCase(OBJECT_KEY, uploadId,
-        new CompleteMultipartUploadRequest(partList, true))
-        .checkResponseCode(Status.BAD_REQUEST.getStatusCode())
-        .checkErrorCode(S3ErrorCode.Name.INVALID_PART_ORDER);
-    Assert.assertTrue(mFileSystem.exists(tmpDir));
-
-    // Invalid part order
-    partList.clear();
-    partList.add(new Part("", 0));
     partList.add(new Part("", 2));
     partList.add(new Part("", 1));
 
     completeMultipartUploadTestCase(OBJECT_KEY, uploadId,
-        new CompleteMultipartUploadRequest(partList, true))
+        new CompleteMultipartUploadRequest(partList))
         .checkResponseCode(Status.BAD_REQUEST.getStatusCode())
         .checkErrorCode(S3ErrorCode.Name.INVALID_PART_ORDER);
+    // the temporary directory should still exist.
+    Assert.assertTrue(mFileSystem.exists(tmpDir));
+
+    // Invalid part order
+    partList.clear();
+    partList.add(new Part("", 2));
+    partList.add(new Part("", 2));
+
+    completeMultipartUploadTestCase(OBJECT_KEY, uploadId,
+        new CompleteMultipartUploadRequest(partList))
+        .checkResponseCode(Status.BAD_REQUEST.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.INVALID_PART_ORDER);
+    // the temporary directory should still exist.
     Assert.assertTrue(mFileSystem.exists(tmpDir));
   }
 
   @Test
-  public void completeTooSmallPartsUpload() throws Exception {
+  public void completeMultipartUploadWithTooSmallEntity() throws Exception {
     final int partsNum = 10;
     final List<String> objects = new ArrayList<>();
     final List<Integer> parts = new ArrayList<>();
     final List<Part> partList = new ArrayList<>();
     final String uploadId = initiateMultipartUpload();
-    for (int i = 0; i < partsNum; i++) {
+    for (int i = 1; i <= partsNum; i++) {
       parts.add(i);
       partList.add(new Part("", i));
       objects.add(CommonUtils.randomAlphaNumString(1));
@@ -301,13 +305,13 @@ public class MultipartUploadTest extends RestApiTest {
     uploadParts(uploadId, objects, parts);
 
     completeMultipartUploadTestCase(OBJECT_KEY, uploadId,
-        new CompleteMultipartUploadRequest(partList, true))
+        new CompleteMultipartUploadRequest(partList))
         .checkResponseCode(Status.BAD_REQUEST.getStatusCode())
         .checkErrorCode(S3ErrorCode.Name.ENTITY_TOO_SMALL);
   }
 
   @Test
-  public void completeNonExistentUpload() throws Exception {
+  public void completeMultipartUploadWithNonExistentUpload() throws Exception {
     final String uploadId = "wrong";
     final List<Part> partList = new ArrayList<>();
 
@@ -316,6 +320,33 @@ public class MultipartUploadTest extends RestApiTest {
         new CompleteMultipartUploadRequest(partList))
         .checkResponseCode(Status.NOT_FOUND.getStatusCode())
         .checkErrorCode(S3ErrorCode.Name.NO_SUCH_UPLOAD);
+  }
+
+  @Test
+  public void abortMultipartUpload() throws Exception {
+    final String uploadId = initiateMultipartUpload();
+    final AlluxioURI tmpDir = new AlluxioURI(
+        AlluxioURI.SEPARATOR + OBJECT_KEY + "_" + uploadId);
+    final List<Part> partList = new ArrayList<>();
+    abortMultipartUploadTestCase(OBJECT_KEY, uploadId)
+        .checkResponseCode(Status.NO_CONTENT.getStatusCode());
+    completeMultipartUploadTestCase(OBJECT_KEY, uploadId,
+        new CompleteMultipartUploadRequest(partList))
+        .checkResponseCode(Status.NOT_FOUND.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_UPLOAD);
+    Assert.assertFalse(mFileSystem.exists(tmpDir));
+  }
+
+  @Test
+  public void abortMultipartUploadWithNonExistentUpload() throws Exception {
+    final String uploadId = initiateMultipartUpload();
+    final AlluxioURI tmpDir = new AlluxioURI(
+        AlluxioURI.SEPARATOR + OBJECT_KEY + "_" + uploadId);
+    abortMultipartUploadTestCase(OBJECT_KEY, "wrong")
+        .checkResponseCode(Status.NOT_FOUND.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_UPLOAD);
+    // the temporary directory should still exist.
+    Assert.assertTrue(mFileSystem.exists(tmpDir));
   }
 
   @Override
