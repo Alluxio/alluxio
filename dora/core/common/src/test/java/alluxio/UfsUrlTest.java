@@ -22,8 +22,13 @@ import static org.junit.Assert.assertTrue;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.UfsUrlMessage;
+import alluxio.uri.EmbeddedLogicalAuthority;
+import alluxio.uri.NoAuthority;
 import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.UfsUrl;
+import alluxio.uri.UnknownAuthority;
+import alluxio.uri.ZookeeperAuthority;
+import alluxio.uri.ZookeeperLogicalAuthority;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Test;
@@ -191,6 +196,54 @@ public class UfsUrlTest {
     for (int i = 0; i < uriFromDifferentConstructor.length - 1; i++) {
       assertEquals(uriFromDifferentConstructor[i], uriFromDifferentConstructor[i + 1]);
     }
+  }
+
+  /**
+   * Tests the {@link UfsUrl#getAuthority()} method.
+   */
+  @Test
+  public void getAuthorityTests() {
+    String[] authorities =
+        new String[] {"localhost", "localhost:8080", "127.0.0.1", "127.0.0.1:8080", "localhost"};
+    for (String authority : authorities) {
+      UfsUrl uri = new UfsUrl("file", authority, "/a/b");
+      assertTrue(uri.getAuthority().isPresent());
+      assertEquals(authority, uri.getAuthority().get().toString());
+    }
+
+    assertEquals("",
+        new UfsUrl("file", "", "/b/c").getAuthority().get().toString());
+    assertEquals("", UfsUrl.createInstance("file:///b/c").getAuthority().get().toString());
+  }
+
+  @Test
+  public void authorityTypeTests() {
+    assertTrue(new UfsUrl("file", "localhost:8080", "/b/c").getAuthority().get()
+        instanceof SingleMasterAuthority);
+
+    assertTrue(new UfsUrl("file", "zk@host:2181", "/b/c").getAuthority().get()
+        instanceof ZookeeperAuthority);
+    assertTrue(UfsUrl.createInstance("xxx://zk@host1:2181,host2:2181,host3:2181/b/c").getAuthority().get()
+        instanceof ZookeeperAuthority);
+    assertTrue(UfsUrl.createInstance("xxx://zk@host1:2181;host2:2181;host3:2181/b/c").getAuthority().get()
+        instanceof ZookeeperAuthority);
+
+    assertTrue(new UfsUrl("file", "", "/b/c").getAuthority().get()
+        instanceof NoAuthority);
+//    assertTrue(new UfsUrl("file", null, "/b/c").getAuthority()
+//        instanceof NoAuthority);
+//    assertTrue(new UfsUrl("file", Authority.fromString(null), "/b/c").getAuthority()
+//        instanceof NoAuthority);
+    assertTrue(UfsUrl.createInstance("file:///b/c").getAuthority().get() instanceof NoAuthority);
+
+    assertTrue(new UfsUrl("file", "ebj@logical", "/b/c").getAuthority().get()
+        instanceof EmbeddedLogicalAuthority);
+
+    assertTrue(new UfsUrl("file", "zk@logical", "/b/c").getAuthority().get()
+        instanceof ZookeeperLogicalAuthority);
+
+    assertTrue(new UfsUrl("file", "localhost", "/b/c").getAuthority().get()
+        instanceof UnknownAuthority);
   }
 
   /**
