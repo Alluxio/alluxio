@@ -44,32 +44,32 @@ public abstract class RestApiTest extends BaseIntegrationTest {
     return newTestCase(bucket, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth());
   }
 
-  protected TestCase createObjectTestCase(String bucket, byte[] object, String uploadId,
+  protected TestCase createObjectTestCase(String uri, byte[] object, String uploadId,
                                           Integer partNumber) throws Exception {
     Map<String, String> params = new HashMap<>();
     params.put("uploadId", uploadId);
     params.put("partNumber", partNumber.toString());
-    return newTestCase(bucket, params, HttpMethod.PUT, getDefaultOptionsWithAuth()
+    return newTestCase(uri, params, HttpMethod.PUT, getDefaultOptionsWithAuth()
         .setBody(object)
         .setMD5(computeObjectChecksum(object)));
   }
 
-  protected TestCase createObjectTestCase(String bucket, byte[] object) throws Exception {
-    return newTestCase(bucket, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth()
+  protected TestCase createObjectTestCase(String uri, byte[] object) throws Exception {
+    return newTestCase(uri, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth()
         .setBody(object)
         .setMD5(computeObjectChecksum(object)));
   }
 
-  protected TestCase createObjectTestCase(String bucket, TestCaseOptions options)
+  protected TestCase createObjectTestCase(String uri, TestCaseOptions options)
       throws Exception {
-    return newTestCase(bucket, NO_PARAMS, HttpMethod.PUT, options);
+    return newTestCase(uri, NO_PARAMS, HttpMethod.PUT, options);
   }
 
-  protected TestCase copyObjectTestCase(String sourcePath, String targetPath) throws Exception {
-    return newTestCase(targetPath, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth()
+  protected TestCase copyObjectTestCase(String sourceUri, String targetUri) throws Exception {
+    return newTestCase(targetUri, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth()
         .addHeader(S3Constants.S3_METADATA_DIRECTIVE_HEADER,
             S3Constants.Directive.REPLACE.name())
-        .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, sourcePath));
+        .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, sourceUri));
   }
 
   protected TestCase deleteTestCase(String uri) throws Exception {

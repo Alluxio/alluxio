@@ -358,9 +358,9 @@ public final class S3RestUtils {
     final AlluxioURI metaUri = new AlluxioURI(
         S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId));
     URIStatus metaStatus = metaFs.getStatus(metaUri);
+//    3.x haven't supported XAttr yet
 //    if (metaStatus.getXAttr() == null
 //        || !metaStatus.getXAttr().containsKey(S3Constants.UPLOADS_FILE_ID_XATTR_KEY)) {
-//      //TODO(czhu): determine intended behavior in this edge-case
 //      throw new RuntimeException(
 //          "Alluxio is missing multipart-upload metadata for upload ID: " + uploadId);
 //    }

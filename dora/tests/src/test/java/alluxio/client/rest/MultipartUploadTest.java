@@ -11,6 +11,8 @@
 
 package alluxio.client.rest;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.WriteType;
@@ -21,6 +23,7 @@ import alluxio.proxy.s3.CompleteMultipartUploadRequest;
 import alluxio.proxy.s3.CompleteMultipartUploadRequest.Part;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
 import alluxio.proxy.s3.InitiateMultipartUploadResult;
+import alluxio.proxy.s3.ListMultipartUploadsResult;
 import alluxio.proxy.s3.S3RestUtils;
 import alluxio.s3.S3ErrorCode;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -32,6 +35,7 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.google.common.collect.ImmutableMap;
 import org.gaul.s3proxy.junit.S3ProxyRule;
 import org.junit.After;
 import org.junit.Assert;
@@ -106,7 +110,7 @@ public class MultipartUploadTest extends RestApiTest {
 
   public String initiateMultipartUpload() throws Exception {
     // Initiate the multipart upload.
-    createBucketTestCase(BUCKET_NAME).checkResponseCode(Status.OK.getStatusCode());
+    createBucketTestCase(BUCKET_NAME);
     final InitiateMultipartUploadResult result =
         initiateMultipartUploadTestCase(OBJECT_KEY)
             .getResponse(InitiateMultipartUploadResult.class);
@@ -212,39 +216,56 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   @Test
-  public void completeInvalidPartsUpload() throws Exception {
+  public void completeMultipartUploadWithInvalidPart() throws Exception {
     final int partsNum = 10;
     final List<String> objects = new ArrayList<>();
     final List<Integer> parts = new ArrayList<>();
     final List<Part> partList = new ArrayList<>();
     final String uploadId = initiateMultipartUpload();
+    final AlluxioURI tmpDir = new AlluxioURI(
+        AlluxioURI.SEPARATOR + OBJECT_KEY + "_" + uploadId);
     for (int i = 0; i < partsNum; i++) {
       parts.add(i);
+      partList.add(new Part("", i));
       objects.add(CommonUtils.randomAlphaNumString(Constants.KB));
     }
     Collections.shuffle(parts);
     uploadParts(uploadId, objects, parts);
-    partList.add(new Part("", -1));
 
+    // Invalid part
+    partList.add(new Part("", partsNum));
     completeMultipartUploadTestCase(OBJECT_KEY, uploadId,
-        new CompleteMultipartUploadRequest(partList))
+        new CompleteMultipartUploadRequest(partList, true))
+        .checkResponseCode(Status.BAD_REQUEST.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.INVALID_PART);
+    Assert.assertTrue(mFileSystem.exists(tmpDir));
+
+    // Invalid part
+    partList.clear();
+    partList.add(new Part("", -1));
+    completeMultipartUploadTestCase(OBJECT_KEY, uploadId,
+        new CompleteMultipartUploadRequest(partList, true))
         .checkResponseCode(Status.BAD_REQUEST.getStatusCode())
         .checkErrorCode(S3ErrorCode.Name.INVALID_PART);
   }
 
   @Test
-  public void completeInvalidPartsUpload2() throws Exception {
+  public void completeMultipartUploadWithInvalidPartOrder() throws Exception {
     final int partsNum = 10;
     final List<String> objects = new ArrayList<>();
     final List<Integer> parts = new ArrayList<>();
     final List<Part> partList = new ArrayList<>();
     final String uploadId = initiateMultipartUpload();
+    final AlluxioURI tmpDir = new AlluxioURI(
+        AlluxioURI.SEPARATOR + OBJECT_KEY + "_" + uploadId);
     for (int i = 0; i < partsNum; i++) {
       parts.add(i);
       objects.add(CommonUtils.randomAlphaNumString(Constants.KB));
     }
     Collections.shuffle(parts);
     uploadParts(uploadId, objects, parts);
+
+    // Invalid part order
     partList.add(new Part("", 0));
     partList.add(new Part("", 2));
 
@@ -252,6 +273,32 @@ public class MultipartUploadTest extends RestApiTest {
         new CompleteMultipartUploadRequest(partList, true))
         .checkResponseCode(Status.BAD_REQUEST.getStatusCode())
         .checkErrorCode(S3ErrorCode.Name.INVALID_PART_ORDER);
+    Assert.assertTrue(mFileSystem.exists(tmpDir));
+
+    // Invalid part order
+    partList.clear();
+    partList.add(new Part("", 0));
+    partList.add(new Part("", 2));
+    partList.add(new Part("", 1));
+
+    completeMultipartUploadTestCase(OBJECT_KEY, uploadId,
+        new CompleteMultipartUploadRequest(partList, true))
+        .checkResponseCode(Status.BAD_REQUEST.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.INVALID_PART_ORDER);
+    Assert.assertTrue(mFileSystem.exists(tmpDir));
+  }
+
+  @Test
+  public void listMultipartUploads() throws Exception {
+    final String uploadId1 = initiateMultipartUpload();
+    final String uploadId2 = initiateMultipartUpload();
+    ListMultipartUploadsResult listUploadsResult = listTestCase(BUCKET_NAME,
+        ImmutableMap.of("uploads", "")).getResponse(ListMultipartUploadsResult.class);
+    List<ListMultipartUploadsResult.Upload> uploads = listUploadsResult.getUploads();
+
+    assertEquals(2, uploads.size());
+    assertEquals(uploadId1, uploads.get(0).getUploadId());
+    assertEquals(uploadId2, uploads.get(1).getUploadId());
   }
 
   @Test

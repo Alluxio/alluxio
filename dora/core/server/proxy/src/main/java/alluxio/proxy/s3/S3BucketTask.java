@@ -212,10 +212,11 @@ public class S3BucketTask extends S3BaseTask {
           try {
             List<URIStatus> children = mHandler.getMetaFS().listStatus(new AlluxioURI(
                     S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR));
-            final List<URIStatus> uploadIds = children.stream()
+//    TODO(Xinran Dong): not support credential authentication yet
+/*            final List<URIStatus> uploadIds = children.stream()
                     .filter((uri) -> uri.getOwner().equals(user))
-                    .collect(Collectors.toList());
-            return ListMultipartUploadsResult.buildFromStatuses(bucket, uploadIds);
+                    .collect(Collectors.toList());*/
+            return ListMultipartUploadsResult.buildFromStatuses(bucket, children);
           } catch (Exception e) {
             throw S3RestUtils.toBucketS3Exception(e, bucket, auditContext);
           }
@@ -399,7 +400,7 @@ public class S3BucketTask extends S3BaseTask {
             }
           }
           try {
-            URIStatus status = mHandler.getMetaFS().getStatus(new AlluxioURI(bucketPath));
+            URIStatus status = userFs.getStatus(new AlluxioURI(bucketPath));
             if (status.isFolder()) {
               if (status.getOwner().equals(user)) {
                 // Silently swallow CreateBucket calls on existing buckets for this user
@@ -431,11 +432,11 @@ public class S3BucketTask extends S3BaseTask {
                           .setWriteType(S3RestUtils.getS3WriteType())
                           .build();
           try {
-            mHandler.getMetaFS().createDirectory(new AlluxioURI(bucketPath), options);
+            userFs.createDirectory(new AlluxioURI(bucketPath), options);
             SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
                     .setOwner(user)
                     .build();
-            mHandler.getMetaFS().setAttribute(new AlluxioURI(bucketPath), attrPOptions);
+            userFs.setAttribute(new AlluxioURI(bucketPath), attrPOptions);
           } catch (Exception e) {
             throw S3RestUtils.toBucketS3Exception(e, bucketPath, auditContext);
           }
