@@ -62,7 +62,6 @@ public class UfsUrl {
       scheme = inputUrl.substring(start, schemeSplitIndex);
       start += scheme.length() + SCHEME_SEPARATOR.length();
     }
-
     Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
         "Alluxio 3.x no longer supports alluxio:// scheme,"
             + " please input the UFS path directly like hdfs://host:port/path");
@@ -73,7 +72,6 @@ public class UfsUrl {
     } else {
       authority = inputUrl.substring(start, authSplitIndex);
     }
-
     if (scheme.startsWith("s3")
         || scheme.startsWith("S3")) {
       Preconditions.checkArgument(!authority.contains(PORT_SEPARATOR),
@@ -82,7 +80,8 @@ public class UfsUrl {
 
     start += authority.length();
     path = inputUrl.substring(start);
-
+    Preconditions.checkArgument(!path.isEmpty(),
+        String.format("The path part of %s is empty, please input a valid path.", inputUrl));
     elements.put("scheme", scheme);
     elements.put("authority", authority);
     elements.put("path", path);
@@ -95,10 +94,7 @@ public class UfsUrl {
    * @param inputUrl the elems map of input url, including scheme, authority and path
    * @return the scheme of this UfsUrl object
    */
-  public static String handleScheme(Map<String, String> rootUrl, Map<String, String> inputUrl) {
-    if (rootUrl.equals(inputUrl)) {
-      return rootUrl.get("scheme");
-    }
+  public static String generateScheme(Map<String, String> rootUrl, Map<String, String> inputUrl) {
     if (rootUrl.get("scheme").isEmpty())  {
       if (inputUrl.get("scheme").isEmpty())  {
         return "file";
@@ -107,6 +103,7 @@ public class UfsUrl {
       }
     } else {
       if (inputUrl.get("scheme").isEmpty())  {
+        // means input is a relative path.
         return rootUrl.get("scheme");
       } else {
         return inputUrl.get("scheme");
@@ -120,10 +117,7 @@ public class UfsUrl {
    * @param inputUrl the elems map of input url, including scheme, authority and path
    * @return the authority of this UfsUrl object
    */
-  public static String handleAuthority(Map<String, String> rootUrl, Map<String, String> inputUrl) {
-    if (rootUrl.equals(inputUrl)) {
-      return rootUrl.get("authority");
-    }
+  public static String generateAuthority(Map<String, String> rootUrl, Map<String, String> inputUrl) {
     if (rootUrl.get("authority").isEmpty())  {
       return  inputUrl.get("authority");
     } else {
@@ -145,33 +139,30 @@ public class UfsUrl {
    * @param inputUrl the elems map of input url, including scheme, authority and path
    * @return the path components list of this UfsUrl Object
    */
-  public static List<String> handlePathComponents(Map<String, String> rootUrl,
-                                                  Map<String, String> inputUrl) {
+  public static List<String> generatePathComponents(Map<String, String> rootUrl,
+                                                    Map<String, String> inputUrl) {
     List<String> rootPathComponents = Arrays.asList(rootUrl.get("path").split(PATH_SEPARATOR));
     List<String> inputPathComponents = Arrays.asList(inputUrl.get("path").split(PATH_SEPARATOR));
-
-    if (rootUrl.equals(inputUrl)) {
-      return rootPathComponents;
-    }
-
-    if (rootUrl.get("scheme").equals("file")
-        || rootUrl.get("scheme").equals(inputUrl.get("scheme"))) {
-      rootPathComponents.addAll(inputPathComponents);
-      return rootPathComponents;
-      // If two schemes are not equal,
-      // it is possible to add root path only when ufsUrl has an empty scheme.
-    } else if (inputUrl.get("scheme").isEmpty()) {
-      if (rootUrl.get("authority").equals(inputUrl.get("authority")))  {
-        rootPathComponents.addAll(inputPathComponents);
-        return rootPathComponents;
-        // If two authorities are not equal,
-        // it is possible to add root path only when ufsUrl has an empty authority
-      } else if (inputUrl.get("authority").isEmpty()) {
-        rootPathComponents.addAll(inputPathComponents);
+    // address the case that both of rootUrl and inputUrl are from root dir.
+    if (rootUrl.get("scheme").equals("file") && inputUrl.get("scheme").isEmpty()) {
+      if (rootUrl.get("authority").equals(inputUrl.get("authority"))
+          && rootUrl.get("path").equals(inputUrl.get("path"))) {
         return rootPathComponents;
       }
     }
-    return inputPathComponents;
+
+    Preconditions.checkArgument(!rootUrl.get("scheme").isEmpty(),
+        "The scheme of root dir is empty, please check the alluxio configuration first.");
+    if (inputUrl.get("scheme").isEmpty()) {
+      rootPathComponents.addAll(inputPathComponents);
+      return rootPathComponents;
+    } else {
+      if (inputUrl.get("path").equals(PATH_SEPARATOR)
+          || inputUrl.get("path").equals(DOUBLE_SLASH_SEPARATOR))  {
+        inputPathComponents = Arrays.asList("");
+      }
+      return inputPathComponents;
+    }
   }
 
   /**
@@ -219,7 +210,7 @@ public class UfsUrl {
     Preconditions.checkArgument(ufsRootDir != null && !ufsRootDir.isEmpty(),
         "root dir is null or empty.");
 
-    Map<String, String> rootDirElems = extractElements(ufsRootDir);
+    Map<String, String> rootDirElems = transmitElemsToRootElemsMap(extractElements(ufsRootDir));
     Map<String, String> ufsPathElems = extractElements(ufsPath);
 
     Preconditions.checkArgument(
@@ -232,15 +223,29 @@ public class UfsUrl {
             && ufsPathElems.containsKey("authority") && ufsPathElems.get("authority") != null
             && ufsPathElems.containsKey("path") && ufsPathElems.get("path") != null);
 
-    String scheme = handleScheme(rootDirElems, ufsPathElems);
-    String authority = handleAuthority(rootDirElems, ufsPathElems);
-    List<String> pathComponents = handlePathComponents(rootDirElems, ufsPathElems);
+    String scheme = generateScheme(rootDirElems, ufsPathElems);
+    String authority = generateAuthority(rootDirElems, ufsPathElems);
+    List<String> pathComponents = generatePathComponents(rootDirElems, ufsPathElems);
 
     return new UfsUrl(UfsUrlMessage.newBuilder()
         .setScheme(scheme)
         .setAuthority(authority)
         .addAllPathComponents(pathComponents)
         .build());
+  }
+
+  /**
+   * Returns the correct root dir elems map from the String extraction result.
+   * @param rootElems the elems of root dir extracting from String
+   * @return the correct root dir elems map from the String extraction result
+   */
+  private static Map<String, String> transmitElemsToRootElemsMap(Map<String, String> rootElems) {
+    Preconditions.checkArgument(rootElems.get("scheme") != null,
+        "The scheme part of root dir is empty, please check the configuration of alluxio first.");
+    if (rootElems.get("scheme").equals("")) {
+      rootElems.put("scheme", "file");
+    }
+    return rootElems;
   }
 
   /**
