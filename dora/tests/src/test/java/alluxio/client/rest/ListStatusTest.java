@@ -27,12 +27,12 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.proxy.s3.ListBucketOptions;
-import alluxio.proxy.s3.ListBucketResult;
-import alluxio.proxy.s3.S3Error;
-import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.proxy.s3.S3RestServiceHandler;
 import alluxio.proxy.s3.S3RestUtils;
+import alluxio.s3.ListBucketOptions;
+import alluxio.s3.ListBucketResult;
+import alluxio.s3.S3Error;
+import alluxio.s3.S3ErrorCode;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
@@ -148,7 +148,7 @@ public class ListStatusTest extends RestApiTest {
     assertEquals("folder1/", expected.getContents().get(5).getKey());
     assertNull(expected.getCommonPrefixes());
 
-    listStatusRestCall(NO_PARAMS, expected);
+    listTestCase("bucket", NO_PARAMS).checkResponse(expected);
   }
 
   /**
@@ -175,7 +175,7 @@ public class ListStatusTest extends RestApiTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("list-type", "2");
 
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -198,7 +198,7 @@ public class ListStatusTest extends RestApiTest {
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("delimiter", AlluxioURI.SEPARATOR);  //parameters with delimiter="/"
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -223,7 +223,7 @@ public class ListStatusTest extends RestApiTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("list-type", "2");
     parameters.put("delimiter", AlluxioURI.SEPARATOR);  //parameters with delimiter="/"
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -246,7 +246,7 @@ public class ListStatusTest extends RestApiTest {
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("prefix", "folder0");
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -266,7 +266,7 @@ public class ListStatusTest extends RestApiTest {
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("prefix", "");
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -286,7 +286,7 @@ public class ListStatusTest extends RestApiTest {
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("prefix", "aa");
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -310,7 +310,7 @@ public class ListStatusTest extends RestApiTest {
     parameters.put("list-type", "2");
     parameters.put("prefix", "folder");
 
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -331,7 +331,7 @@ public class ListStatusTest extends RestApiTest {
     parameters.put("list-type", "2");
     parameters.put("prefix", "");
 
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -352,7 +352,7 @@ public class ListStatusTest extends RestApiTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("list-type", "2");
     parameters.put("prefix", "file1/");
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -377,7 +377,7 @@ public class ListStatusTest extends RestApiTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("prefix", "f");
     parameters.put("delimiter", AlluxioURI.SEPARATOR);
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -403,7 +403,7 @@ public class ListStatusTest extends RestApiTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("prefix", "f");
     parameters.put("max-keys", "3");
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -428,7 +428,7 @@ public class ListStatusTest extends RestApiTest {
     parameters.put("list-type", "2");
     parameters.put("prefix", "folder");
     parameters.put("delimiter", AlluxioURI.SEPARATOR);  //parameters with delimiter="/"
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -455,7 +455,7 @@ public class ListStatusTest extends RestApiTest {
     parameters.put("list-type", "2");
     parameters.put("prefix", "folder");
     parameters.put("max-keys", "2");
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -479,7 +479,7 @@ public class ListStatusTest extends RestApiTest {
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("marker", "file1");
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -503,7 +503,7 @@ public class ListStatusTest extends RestApiTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("marker", "abc");
     parameters.put("prefix", "folder0/f");
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -530,7 +530,7 @@ public class ListStatusTest extends RestApiTest {
     parameters.put("list-type", "2");
     parameters.put("start-after", "fa");
     parameters.put("prefix", "folder0");
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -557,7 +557,7 @@ public class ListStatusTest extends RestApiTest {
     parameters.put("list-type", "2");
     parameters.put("continuation-token", priorContinuationToken);
 
-    listStatusRestCall(parameters, expected2);
+    listTestCase("bucket", parameters).checkResponse(expected2);
   }
 
   /**
@@ -584,7 +584,7 @@ public class ListStatusTest extends RestApiTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("list-type", "2");
     parameters.put("start-after", "file0");
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -608,7 +608,7 @@ public class ListStatusTest extends RestApiTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("marker", "file1");
     parameters.put("delimiter", AlluxioURI.SEPARATOR);
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -636,7 +636,7 @@ public class ListStatusTest extends RestApiTest {
     parameters.put("list-type", "2");
     parameters.put("delimiter", AlluxioURI.SEPARATOR);
     parameters.put("continuation-token", priorContinuationToken);
-    listStatusRestCall(parameters, expected2);
+    listTestCase("bucket", parameters).checkResponse(expected2);
   }
 
   /**
@@ -663,7 +663,7 @@ public class ListStatusTest extends RestApiTest {
     parameters.put("list-type", "2");
     parameters.put("start-after", "file0");
     parameters.put("delimiter", AlluxioURI.SEPARATOR);
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -684,7 +684,7 @@ public class ListStatusTest extends RestApiTest {
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("max-keys", "10");
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -707,7 +707,7 @@ public class ListStatusTest extends RestApiTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("list-type", "2");
     parameters.put("max-keys", "10");
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -730,7 +730,7 @@ public class ListStatusTest extends RestApiTest {
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("max-keys", "3");
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -756,7 +756,7 @@ public class ListStatusTest extends RestApiTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("list-type", "2");
     parameters.put("max-keys", "3");
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -783,7 +783,7 @@ public class ListStatusTest extends RestApiTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("max-keys", "4");
     parameters.put("marker", "file0");
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -810,7 +810,7 @@ public class ListStatusTest extends RestApiTest {
     parameters.put("list-type", "2");
     parameters.put("max-keys", "4");
     parameters.put("start-after", "folder0/file0");
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -835,7 +835,7 @@ public class ListStatusTest extends RestApiTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("max-keys", "3");
     parameters.put("delimiter", AlluxioURI.SEPARATOR);
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -864,7 +864,7 @@ public class ListStatusTest extends RestApiTest {
     parameters.put("list-type", "2");
     parameters.put("max-keys", "3");
     parameters.put("delimiter", AlluxioURI.SEPARATOR);
-    listStatusRestCall(parameters, expected);
+    listTestCase("bucket", parameters).checkResponse(expected);
   }
 
   /**
@@ -903,7 +903,7 @@ public class ListStatusTest extends RestApiTest {
     parameters.put("prefix", "folder");
     parameters.put("continuation-token", priorContinuationToken);
 
-    listStatusRestCall(parameters, expected2);
+    listTestCase("bucket", parameters).checkResponse(expected2);
   }
 
   /**
@@ -923,8 +923,7 @@ public class ListStatusTest extends RestApiTest {
     // Heads a non-existent bucket.
     String bucketName = "non_existent_bucket";
     // Verifies 404 status will be returned by head non-existent bucket.
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
-        headBucketRestCall(bucketName).getResponseCode());
+    headTestCase(bucketName).checkResponseCode(Response.Status.NOT_FOUND.getStatusCode());
 
     // Lists objects in a non-existent bucket.
     HttpURLConnection connection2 = new TestCase(mHostname, mPort, mBaseUri,

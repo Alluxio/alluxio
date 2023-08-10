@@ -119,14 +119,17 @@ import alluxio.master.journal.Journaled;
 import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
-import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metrics.TimeSeriesStore;
 import alluxio.master.scheduler.DefaultWorkerProvider;
 import alluxio.master.scheduler.JournaledJobMetaStore;
+import alluxio.master.scheduler.MembershipManagerWorkerProvider;
 import alluxio.master.scheduler.Scheduler;
+import alluxio.master.scheduler.WorkerProvider;
+import alluxio.membership.EtcdMembershipManager;
+import alluxio.membership.MembershipType;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
@@ -406,8 +409,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** Stores the time series for various metrics which are exposed in the UI. */
   private final TimeSeriesStore mTimeSeriesStore;
 
-  @Nullable private final AccessTimeUpdater mAccessTimeUpdater;
-
   /** Used to check pending/running backup from RPCs. */
   protected final CallTracker mStateLockCallTracker;
   private final Scheduler mScheduler;
@@ -446,7 +447,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
       1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
       ThreadFactoryUtils.build("alluxio-ufs-active-sync-%d", false));
-  private HeartbeatThread mReplicationCheckHeartbeatThread;
 
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
@@ -509,18 +509,27 @@ public class DefaultFileSystemMaster extends CoreMaster
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
     mSyncManager = new ActiveSyncManager(mMountTable, this);
     mTimeSeriesStore = new TimeSeriesStore();
-    mAccessTimeUpdater =
-        Configuration.getBoolean(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATER_ENABLED)
-            ? new AccessTimeUpdater(
-                this, mInodeTree, masterContext.getJournalSystem()) : null;
     // Sync executors should allow core threads to time out
     mSyncPrefetchExecutor.allowCoreThreadTimeOut(true);
     mSyncMetadataExecutor.allowCoreThreadTimeOut(true);
     mActiveSyncMetadataExecutor.allowCoreThreadTimeOut(true);
     FileSystemContext schedulerFsContext = FileSystemContext.create();
     JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(this);
-    mScheduler = new Scheduler(schedulerFsContext,
-        new DefaultWorkerProvider(this, schedulerFsContext), jobMetaStore);
+    WorkerProvider workerProvider;
+    switch (Configuration.getEnum(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE,
+        MembershipType.class)) {
+      case STATIC:
+      case ETCD:
+        workerProvider = new MembershipManagerWorkerProvider(
+            EtcdMembershipManager.create(Configuration.global()), schedulerFsContext);
+        break;
+      case NOOP:
+        workerProvider = new DefaultWorkerProvider(this, schedulerFsContext);
+        break;
+      default:
+        throw new IllegalStateException("Unrecognized Membership Type");
+    }
+    mScheduler = new Scheduler(schedulerFsContext, workerProvider, jobMetaStore);
 
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
@@ -735,14 +744,6 @@ public class DefaultFileSystemMaster extends CoreMaster
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
-      mReplicationCheckHeartbeatThread = new HeartbeatThread(
-          HeartbeatContext.MASTER_REPLICATION_CHECK,
-          new alluxio.master.file.replication.ReplicationChecker(mInodeTree, mBlockMaster,
-              mSafeModeManager, mJobMasterClientPool),
-          () -> new FixedIntervalSupplier(
-              Configuration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS)),
-          Configuration.global(), mMasterContext.getUserState());
-      getExecutorService().submit(mReplicationCheckHeartbeatThread);
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER,
               new PersistenceScheduler(),
@@ -782,9 +783,6 @@ public class DefaultFileSystemMaster extends CoreMaster
                     Configuration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL)),
                 Configuration.global(), mMasterContext.getUserState()));
       }
-      if (mAccessTimeUpdater != null) {
-        mAccessTimeUpdater.start();
-      }
       mSyncManager.start();
       mScheduler.start();
     }
@@ -798,9 +796,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       mAsyncAuditLogWriter = null;
     }
     mSyncManager.stop();
-    if (mAccessTimeUpdater != null) {
-      mAccessTimeUpdater.stop();
-    }
     mScheduler.stop();
     super.stop();
   }
@@ -991,11 +986,6 @@ public class DefaultFileSystemMaster extends CoreMaster
             MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
             Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
                 Metrics.UFSOps.GET_FILE_INFO).dec();
-          }
-          Mode.Bits accessMode = Mode.Bits.fromProto(context.getOptions().getAccessMode());
-          if (context.getOptions().getUpdateTimestamps() && context.getOptions().hasAccessMode()
-              && (accessMode.imply(Mode.Bits.READ) || accessMode.imply(Mode.Bits.WRITE))) {
-            updateAccessTime(rpcContext, inodePath.getInode(), opTimeMs);
           }
           auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
           ret = fileInfo;
@@ -1316,7 +1306,6 @@ public class DefaultFileSystemMaster extends CoreMaster
         // in the remaining recursive calls, so we set partialPath to the empty list
         partialPath = Collections.emptyList();
       }
-      updateAccessTime(rpcContext, inode, CommonUtils.getCurrentMs());
       DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
           ? DescendantType.ALL : DescendantType.NONE;
       try (CloseableIterator<? extends Inode> childrenIterator = getChildrenIterator(
@@ -1865,14 +1854,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     long currLength = fileLength;
     for (long blockId : blockIds) {
       long currentBlockSize = Math.min(currLength, blockSize);
-      // if we are not using the UFS journal system, we can use the same journal context
-      // for the block info so that we do not have to create a new journal
-      // context and flush again
-      if (context != null && !(mJournalSystem instanceof UfsJournalSystem)) {
-        mBlockMaster.commitBlockInUFS(blockId, currentBlockSize, context);
-      } else {
-        mBlockMaster.commitBlockInUFS(blockId, currentBlockSize);
-      }
       currLength -= currentBlockSize;
     }
   }
@@ -4823,20 +4804,6 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
         mPersistRequests.put(fileId, job.getTimer());
       }
-
-      // Cleanup possible staging UFS blocks files due to fast durable write fallback.
-      // Note that this is best effort
-      if (ufsClient != null) {
-        for (long blockId : blockIds) {
-          String ufsBlockPath = alluxio.worker.BlockUtils.getUfsBlockPath(ufsClient, blockId);
-          try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
-            alluxio.util.UnderFileSystemUtils.deleteFileIfExists(ufsResource.get(), ufsBlockPath);
-          } catch (Exception e) {
-            LOG.warn("Failed to clean up staging UFS block file {}: {}",
-                ufsBlockPath, e.toString());
-          }
-        }
-      }
     }
 
     /**
@@ -5428,12 +5395,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws InvalidPathException {
     return new LockingScheme(path, LockPattern.READ, options,
         getSyncPathCache(), descendantType);
-  }
-
-  protected void updateAccessTime(RpcContext rpcContext, Inode inode, long opTimeMs) {
-    if (mAccessTimeUpdater != null) {
-      mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(), inode, opTimeMs);
-    }
   }
 
   boolean isAclEnabled() {

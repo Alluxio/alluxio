@@ -158,31 +158,6 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   }
 
   /**
-   * Tests writing to a file and specify the location to be localhost.
-   */
-  @Test
-  @LocalAlluxioClusterResource.Config(confParams = {
-      PropertyKey.Name.USER_BLOCK_WRITE_LOCATION_POLICY,
-      "alluxio.client.block.policy.LocalFirstPolicy"
-      })
-  public void writeSpecifyLocal() throws Exception {
-    AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    final int length = 2;
-    CreateFilePOptions op = CreateFilePOptions.newBuilder().setWriteType(mWriteType.toProto())
-        .setRecursive(true).build();
-    try (FileOutStream os = mFileSystem.createFile(filePath, op)) {
-      os.write((byte) 0);
-      os.write((byte) 1);
-    }
-    if (mWriteType.getAlluxioStorageType().isStore()) {
-      checkFileInAlluxio(filePath, length);
-    }
-    if (mWriteType.getUnderStorageType().isSyncPersist()) {
-      checkFileInUnderStorage(filePath, length);
-    }
-  }
-
-  /**
    * Tests writing to a file for longer than HEARTBEAT_INTERVAL_MS to make sure the sessionId
    * doesn't change. Tracks [ALLUXIO-171].
    */

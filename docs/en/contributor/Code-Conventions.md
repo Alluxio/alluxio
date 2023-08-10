@@ -27,9 +27,6 @@ Open an issue detailing the proposed change or the bug description.
 - If your pull request aims to solve an existing Github issue, please include a link to the Github
 issue in the last line of the description field of the pull request,
 such as `Fixes #1234`.
-- Please read our
-[pull request guidelines]({{ '/en/contributor/Contribution-Guide.html' | relativize_url }}#sending-a-pull-request)
-for details.
 
 ## Coding Style
 
@@ -67,7 +64,7 @@ will be formatted to what you want
 [checkstyle](http://checkstyle.sourceforge.net) before sending a pull request to verify no new
 warnings are introduced:
 
-```console
+```shell
 $ mvn checkstyle:checkstyle
 ```
 
@@ -81,7 +78,7 @@ with the following refinements:
 - All public members should have a member-level comment the describes the purpose of the member.
 
 ```java
-/** The number of logical bytes used. */
+// The number of logical bytes used.
 public final AtomicLong mBytes = new AtomicLong(0);
 ```
 
@@ -89,7 +86,7 @@ public final AtomicLong mBytes = new AtomicLong(0);
 
 ```java
 /**
- * Does something. This is a method description that uses
+Does something. This is a method description that uses
  * 3rd person (does something) as opposed to 2nd person (do
  * something).
  *
@@ -182,8 +179,8 @@ Note that, each class must use its own logger based on the class name,
 like `LoggerFactory.getLogger(MyClass.class)` in above example,
 so its output can easily be searched for.
 The location of the output of SLF4J loggers can be found for
-[server logs]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#server-logs)
-and [application logs]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#application-logs).
+[server logs]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#server-logs)
+and [application logs]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#application-logs).
 
 ### Best Practice
 
@@ -225,7 +222,7 @@ messages.
 ### Which logging level to use
 
 There are several levels of logging, see detailed explanation of
-[different Levels]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#configuring-log-levels)
+[different Levels]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#configuring-log-levels)
 Here are the guidelines for deciding which level to use.
 
 #### Error Log Level
@@ -822,7 +819,7 @@ locally. A common setting that may need to be set is `ulimit`.
 
 In order to increase the number of files and processes allowed on MacOS, run the following
 
-```console
+```shell
 $ sudo launchctl limit maxfiles 32768 32768
 $ sudo launchctl limit maxproc 32768 32768
 ```

@@ -287,7 +287,7 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
     try {
       while (!mFlowControlQueue.isEmpty()) {
         // wait for finishing sending data
-        LOG.debug("mFlowControlQueue.size(): " + mFlowControlQueue.size());
+        LOG.debug("mFlowControlQueue.size(): {}", mFlowControlQueue.size());
       }
       completeRequest(mContext);
       fireNext(TriggerEvent.END);

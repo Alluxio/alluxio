@@ -19,6 +19,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
+import alluxio.membership.MembershipManager;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.TieredIdentity;
@@ -72,6 +73,9 @@ public class DoraWorkerModule extends AbstractModule {
           throw new RuntimeException(e);
         }
       }).in(Scopes.SINGLETON);
+      bind(MembershipManager.class)
+          .toProvider(() -> MembershipManager.Factory.create(Configuration.global()))
+          .in(Scopes.SINGLETON);
 
       long pageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
       bind(new TypeLiteral<Long>() {

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -15,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-integration-tools</artifactId>
-    <version>302-SNAPSHOT</version>
+    <version>303-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-integration-tools-validation</artifactId>
   <packaging>jar</packaging>
@@ -30,36 +31,32 @@
   </properties>
 
   <dependencies>
-    <!-- External dependencies -->
+    <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.jline</groupId>
-      <artifactId>jline</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.beust</groupId>
-      <artifactId>jcommander</artifactId>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
+      <groupId>org.jline</groupId>
+      <artifactId>jline</artifactId>
     </dependency>
 
-    <!-- Internal dependencies -->
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <!-- Test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -78,16 +75,16 @@
   <build>
     <plugins>
       <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
         <inherited>false</inherited>
         <executions>
           <execution>
             <id>copy-lib-jars-selectively</id>
-            <phase>install</phase>
             <goals>
               <goal>exec</goal>
             </goals>
+            <phase>install</phase>
             <configuration>
               <executable>${build.path}/lib/copy_jars.sh</executable>
               <arguments>

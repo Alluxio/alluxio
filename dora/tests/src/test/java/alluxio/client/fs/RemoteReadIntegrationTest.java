@@ -13,21 +13,15 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.dora.DoraTestTodoItem;
-import alluxio.client.block.BlockStoreClient;
-import alluxio.client.block.stream.BlockInStream;
-import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.FileSystemUtils;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -39,8 +33,6 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.WorkerNetAddress;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -49,8 +41,6 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.util.Arrays;
 
 /**
  * Integration tests for reading from a remote worker.
@@ -236,103 +226,6 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       ret = new byte[k];
       Assert.assertEquals(k, is.read(ret));
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
-      is.close();
-      FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
-    }
-  }
-
-  /**
-   * Tests the single byte read API from a remote location when the data is in an Alluxio worker.
-   */
-  @Test
-  public void readTest4() throws Exception {
-    String uniqPath = PathUtils.uniqPath();
-    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
-      FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
-
-      URIStatus status = mFileSystem.getStatus(uri);
-      InStreamOptions options = new InStreamOptions(status, Configuration.global());
-      long blockId = status.getBlockIds().get(0);
-      BlockStoreClient blockStore =
-          BlockStoreClient.create(FileSystemContext.create(Configuration.global()));
-      BlockInfo info = blockStore.getInfo(blockId);
-      WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      BlockInStream is =
-          BlockInStream.create(mFsContext, options.getBlockInfo(blockId),
-              workerAddr, BlockInStreamSource.REMOTE, options);
-      byte[] ret = new byte[k];
-      int value = is.read();
-      int cnt = 0;
-      while (value != -1) {
-        Assert.assertTrue(value >= 0);
-        Assert.assertTrue(value < 256);
-        ret[cnt++] = (byte) value;
-        value = is.read();
-      }
-      Assert.assertEquals(cnt, k);
-      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
-      is.close();
-      FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
-    }
-  }
-
-  /**
-   * Tests the batch read API from a remote location when the data is only in an Alluxio worker.
-   */
-  @Test
-  public void readTest5() throws Exception {
-    String uniqPath = PathUtils.uniqPath();
-    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
-      FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
-
-      URIStatus status = mFileSystem.getStatus(uri);
-      InStreamOptions options = new InStreamOptions(status, Configuration.global());
-      long blockId = status.getBlockIds().get(0);
-      BlockInfo info =
-          BlockStoreClient.create(FileSystemContext.create(Configuration.global()))
-              .getInfo(blockId);
-      WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      BlockInStream is =
-          BlockInStream.create(mFsContext, options.getBlockInfo(blockId),
-              workerAddr, BlockInStreamSource.REMOTE, options);
-      byte[] ret = new byte[k];
-      int read = is.read(ret);
-      Assert
-          .assertTrue(BufferUtils.equalIncreasingByteArray(read, Arrays.copyOfRange(ret, 0, read)));
-      is.close();
-      FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
-    }
-  }
-
-  /**
-   * Tests the batch read API with offset and length from a remote location when the data is in an
-   * Alluxio worker.
-   */
-  @Test
-  public void readTest6() throws Exception {
-    String uniqPath = PathUtils.uniqPath();
-    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
-      FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
-
-      URIStatus status = mFileSystem.getStatus(uri);
-      InStreamOptions options = new InStreamOptions(status, Configuration.global());
-      long blockId = status.getBlockIds().get(0);
-      BlockInfo info =
-          BlockStoreClient.create(FileSystemContext
-              .create(Configuration.global())).getInfo(blockId);
-      WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      BlockInStream is =
-          BlockInStream.create(mFsContext, options.getBlockInfo(blockId),
-              workerAddr, BlockInStreamSource.REMOTE, options);
-      byte[] ret = new byte[k / 2];
-      int read = 0;
-      while (read < k / 2) {
-        read += is.read(ret, read, k / 2 - read);
-      }
-      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(read, ret));
       is.close();
       FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
     }
@@ -547,51 +440,5 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
     is.seek(99);
     Assert.assertEquals(99, is.read());
     is.close();
-  }
-
-  /**
-   * Tests remote reads lock blocks correctly.
-   */
-  @Test
-  public void remoteReadLock() throws Exception {
-    String uniqPath = PathUtils.uniqPath();
-    for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
-      AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
-      FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
-
-      URIStatus status = mFileSystem.getStatus(uri);
-      InStreamOptions options = new InStreamOptions(status, Configuration.global());
-      long blockId = status.getBlockIds().get(0);
-      BlockInfo info = BlockStoreClient
-          .create(FileSystemContext.create(Configuration.global())).getInfo(blockId);
-
-      WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      BlockInStream is =
-          BlockInStream.create(mFsContext, options.getBlockInfo(blockId),
-              workerAddr, BlockInStreamSource.REMOTE, options);
-      Assert.assertEquals(0, is.read());
-      mFileSystem.delete(uri);
-
-      // The file has been deleted.
-      Assert.assertFalse(mFileSystem.exists(uri));
-      // Look! We can still read the deleted file since we have a lock!
-      byte[] ret = new byte[k / 2];
-      Assert.assertTrue(is.read(ret, 0, k / 2) > 0);
-      is.close();
-      Assert.assertFalse(mFileSystem.exists(uri));
-
-      // Try to create an in stream again, and it should fail.
-      BlockInStream is2 = null;
-      try {
-        is2 = BlockInStream.create(mFsContext, options.getBlockInfo(blockId),
-            workerAddr, BlockInStreamSource.REMOTE, options);
-      } catch (NotFoundException e) {
-        // Expected since the file has been deleted.
-      } finally {
-        if (is2 != null) {
-          is2.close();
-        }
-      }
-    }
   }
 }

@@ -15,15 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.ConfigHashSync;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemContextReinitializer;
 import alluxio.client.meta.MetaMasterConfigClient;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.resource.CloseableResource;
 import alluxio.testutils.BaseIntegrationTest;
@@ -34,11 +31,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Tests reinitializing {@link FileSystemContext}.
@@ -82,39 +74,6 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   }
 
   @Test
-  public void clusterConfUpdate() throws Exception {
-    checkClusterConfBeforeUpdate();
-    updateClusterConf();
-    triggerAndWaitSync();
-    checkClusterConfAfterUpdate();
-    checkHash(true, false);
-  }
-
-  @Test
-  public void pathConfUpdate() throws Exception {
-    checkPathConfBeforeUpdate();
-    updatePathConf();
-    triggerAndWaitSync();
-    checkPathConfAfterUpdate();
-    checkHash(false, true);
-  }
-
-  @Test
-  public void configHashSync() throws Exception {
-    checkClusterConfBeforeUpdate();
-    checkPathConfBeforeUpdate();
-    updateClusterConf();
-    updatePathConf();
-    triggerAndWaitSync();
-    checkClusterConfAfterUpdate();
-    checkPathConfAfterUpdate();
-    checkHash(true, true);
-    updateHash();
-    triggerAndWaitSync();
-    checkHash(false, false);
-  }
-
-  @Test
   public void blockWorkerClientReinit() throws Exception {
     FileSystemContext fsContext = FileSystemContext.create(Configuration.global());
     try (CloseableResource<BlockWorkerClient> client =
@@ -122,36 +81,6 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
       fsContext.reinit(true, true);
       fsContext.acquireBlockWorkerClient(mLocalAlluxioClusterResource.get().getWorkerAddress())
           .close();
-    }
-  }
-
-  @Test
-  public void configHashSyncWithOpenStream() throws Exception {
-    // Cannot use mLocalAlluxioClusterResource.get().getClient(mContext) here because the clients
-    // will be closed when restarting local masters, which in turn will close the contexts.
-    try (FileSystem client = FileSystem.Factory.create(mContext);
-        FileOutStream os = client.createFile(PATH_TO_UPDATE, CreateFilePOptions.newBuilder()
-            .setRecursive(true).build())) {
-      checkClusterConfBeforeUpdate();
-      checkPathConfBeforeUpdate();
-      updateClusterConf();
-      updatePathConf();
-
-      ExecutorService service = Executors.newSingleThreadExecutor();
-      Future future = service.submit(() -> {
-        mExecutor.heartbeat(Long.MAX_VALUE);
-      });
-      TimeUnit.SECONDS.sleep(1);
-      // Stream is open, so reinitialization should block until the stream is closed.
-      Assert.assertFalse(future.isDone());
-      future.cancel(true);
-      checkHash(false, false);
-      os.close();
-      // Stream is closed, reinitialization should not be blocked.
-      triggerAndWaitSync();
-      checkClusterConfAfterUpdate();
-      checkPathConfAfterUpdate();
-      checkHash(true, true);
     }
   }
 

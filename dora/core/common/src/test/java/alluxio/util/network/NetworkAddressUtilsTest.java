@@ -290,6 +290,9 @@ public class NetworkAddressUtilsTest {
       case WORKER_DATA:
         mConfiguration.set(PropertyKey.WORKER_DATA_PORT, 20000);
         break;
+      case WORKER_REST:
+        mConfiguration.set(PropertyKey.WORKER_REST_PORT, 20000);
+        break;
       default:
         Assert.fail("Unrecognized service type: " + service.toString());
         break;

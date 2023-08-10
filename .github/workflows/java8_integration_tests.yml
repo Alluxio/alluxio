@@ -1,5 +1,11 @@
 name: Java 8 Integration Tests
 
+# This build runs the default integration tests in the dora/tests module
+# It runs all the tests besides those categorized as:
+# - Fault tolerance = alluxio.server.ft
+# - Web UI = alluxio.web
+# - FUSE = alluxio.client.fuse
+
 on: [pull_request]
 
 jobs:
@@ -11,15 +17,11 @@ jobs:
       matrix:
         modules:
           - >-
-            alluxio.client.cli.**,!alluxio.client.cli.fs.**
+            alluxio.client.cli.**
           - >-
-            alluxio.client.cli.fs.**
+            alluxio.client.fs.**
           - >-
-            alluxio.client.fs.**,!alluxio.client.fs.concurrent.**,!alluxio.client.fs.io.**
-          - >-
-            alluxio.client.fs.concurrent.**,alluxio.client.fs.io.**
-          - >-
-            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**,!alluxio.client.fuse.**
+            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**
           - >-
             alluxio.job.**,alluxio.master.**,alluxio.stress.**
           - >-
@@ -56,9 +58,9 @@ jobs:
           mkdir -p ~/.m2
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
-          ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!dora/shaded/client,!dora/integration/tools/hms,!dora/integration/yarn,!assembly/client,!assembly/server,!dora/table/server/underdb/glue,!dora/underfs/hdfs,!dora/underfs/ozone,!dora/underfs/adl,!dora/underfs/abfs,!dora/underfs/cosn,!dora/underfs/wasb,!dora/underfs/cos,!dora/underfs/kodo,!dora/underfs/oss,!dora/underfs/swift \
-          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl dora/tests
+          ALLUXIO_DOCKER_MVN_PROJECT_LIST=dora/tests \
+          ALLUXIO_DOCKER_MVN_TESTS=${{ matrix.modules }} \
+          dev/github/run_docker.sh
         timeout-minutes: 60
 
       - name: Archive artifacts

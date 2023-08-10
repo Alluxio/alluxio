@@ -89,6 +89,19 @@ public final class GrpcServerBuilder {
   }
 
   /**
+   * Create a new instance of {@link GrpcServerBuilder} with authentication support.
+   *
+   * @param serverAddress server address
+   * @param authenticationServer the authentication server to use
+   * @param conf the Alluxio configuration
+   * @return a new instance of {@link GrpcServerBuilder}
+   */
+  public static GrpcServerBuilder forAddress(GrpcServerAddress serverAddress,
+      AuthenticationServer authenticationServer, AlluxioConfiguration conf) {
+    return new GrpcServerBuilder(serverAddress, authenticationServer, conf);
+  }
+
+  /**
    * Set the executor for this server.
    *
    * @param executor the executor

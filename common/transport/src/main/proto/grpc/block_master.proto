@@ -242,16 +242,6 @@ message CommitBlockPRequest {
 }
 
 message CommitBlockPOptions {}
-message CommitBlockInUfsPRequest {
-  /** the id of the worker */
-  optional int64 blockId = 1;
-  /** the space used in bytes on the target tier */
-  optional int64 length = 2;
-  optional CommitBlockInUfsPOptions options = 3;
-}
-
-message CommitBlockInUfsPOptions {}
-message CommitBlockInUfsPResponse {}
 
 message NotifyWorkerIdPOptions {}
 message NotifyWorkerIdPRequest {
@@ -324,11 +314,6 @@ service BlockMasterWorkerService {
    * Marks the given block as committed.
    */
   rpc CommitBlock(CommitBlockPRequest) returns(CommitBlockPResponse);
-
-  /**
-   * Marks the given block as committed which resides in UFS.
-   */
-  rpc CommitBlockInUfs(CommitBlockInUfsPRequest) returns(CommitBlockInUfsPResponse);
 
   /**
    * Returns a worker id for the given network address.

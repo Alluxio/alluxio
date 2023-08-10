@@ -18,7 +18,6 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.grpc.CompleteFilePOptions;
-import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -29,7 +28,6 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CompleteFileContext;
-import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.GetStatusContext;
@@ -37,7 +35,6 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.security.authorization.Mode;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.master.FsMasterResource;
@@ -93,7 +90,6 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
           .setProperty(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false)
           .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, TTL_CHECKER_INTERVAL_MS)
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, 1000)
-          .setProperty(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, 0)
           .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER).build();
 
   @Rule
@@ -329,74 +325,6 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
       mThrown.expect(AccessControlException.class);
       fsMaster.createFile(alluxioFile, CreateFileContext.defaults()
           .setWriteType(WriteType.CACHE_THROUGH));
-    }
-  }
-
-  /**
-   * Tests journal is updated with access time asynchronously before master is stopped.
-   */
-  @Test
-  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.MASTER_METASTORE, "HEAP"})
-  public void updateAccessTimeAsyncFlush() throws Exception {
-    String parentName = "d1";
-    AlluxioURI parentPath = new AlluxioURI("/" + parentName);
-    long parentId = mFsMaster.createDirectory(parentPath,
-        CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)
-            .setMode(new Mode((short) 0700).toProto())));
-    long oldAccessTime = mFsMaster.getFileInfo(parentId).getLastAccessTimeMs();
-    Thread.sleep(100);
-    mFsMaster.listStatus(parentPath, ListStatusContext.defaults());
-    long newAccessTime = mFsMaster.getFileInfo(parentId).getLastAccessTimeMs();
-    // time is changed in master
-    Assert.assertNotEquals(newAccessTime, oldAccessTime);
-    try (FsMasterResource masterResource = createFileSystemMasterFromJournal()) {
-      FileSystemMaster fsm = masterResource.getRegistry().get(FileSystemMaster.class);
-      long journaledAccessTime = fsm.getFileInfo(parentId).getLastAccessTimeMs();
-      // time is not flushed to journal
-      Assert.assertEquals(journaledAccessTime, oldAccessTime);
-    }
-    // Stop Alluxio.
-    mLocalAlluxioClusterResource.get().stopFS();
-    // Create the master using the existing journal.
-    try (FsMasterResource masterResource = createFileSystemMasterFromJournal()) {
-      FileSystemMaster fsm = masterResource.getRegistry().get(FileSystemMaster.class);
-      long journaledAccessTimeAfterStop = fsm.getFileInfo(parentId).getLastAccessTimeMs();
-      // time is now flushed to journal
-      Assert.assertEquals(journaledAccessTimeAfterStop, newAccessTime);
-    }
-  }
-
-  /**
-   * Tests journal is not updated with access time asynchronously after delete.
-   */
-  @Test
-  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.MASTER_METASTORE, "HEAP"})
-  public void updateAccessTimeAsyncFlushAfterDelete() throws Exception {
-    String parentName = "d1";
-    AlluxioURI parentPath = new AlluxioURI("/" + parentName);
-    long parentId = mFsMaster.createDirectory(parentPath,
-        CreateDirectoryContext.mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(true)
-            .setMode(new Mode((short) 0700).toProto())));
-    long oldAccessTime = mFsMaster.getFileInfo(parentId).getLastAccessTimeMs();
-    Thread.sleep(100);
-    mFsMaster.listStatus(parentPath, ListStatusContext.defaults());
-    long newAccessTime = mFsMaster.getFileInfo(parentId).getLastAccessTimeMs();
-    // time is changed in master
-    Assert.assertNotEquals(newAccessTime, oldAccessTime);
-    try (FsMasterResource masterResource = createFileSystemMasterFromJournal()) {
-      FileSystemMaster fsm = masterResource.getRegistry().get(FileSystemMaster.class);
-      long journaledAccessTime = fsm.getFileInfo(parentId).getLastAccessTimeMs();
-      // time is not flushed to journal
-      Assert.assertEquals(journaledAccessTime, oldAccessTime);
-      // delete the directory
-      mFsMaster.delete(parentPath, DeleteContext.defaults());
-    }
-    // Stop Alluxio.
-    mLocalAlluxioClusterResource.get().stopFS();
-    // Create the master using the existing journal.
-    try (FsMasterResource masterResource = createFileSystemMasterFromJournal()) {
-      FileSystemMaster fsm = masterResource.getRegistry().get(FileSystemMaster.class);
-      Assert.assertEquals(fsm.getFileId(parentPath), -1);
     }
   }
 }

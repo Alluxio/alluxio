@@ -21,9 +21,14 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
@@ -44,6 +49,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -65,6 +71,9 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketNameInternal;
+
+  /** The executor service for the multipart upload. */
+  private final Supplier<ListeningExecutorService> mMultipartUploadExecutor;
 
   /**
    * Constructs a new instance of {@link COSUnderFileSystem}.
@@ -110,6 +119,16 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
     mClient = client;
     mBucketName = bucketName;
     mBucketNameInternal = bucketName + "-" + appId;
+
+    // Initialize the executor service for the multipart upload.
+    mMultipartUploadExecutor = Suppliers.memoize(() -> {
+      int numTransferThreads =
+          conf.getInt(PropertyKey.UNDERFS_COS_MULTIPART_UPLOAD_THREADS);
+      ExecutorService service = ExecutorServiceFactories
+          .fixedThreadPool("alluxio-cos-multipart-upload-worker",
+              numTransferThreads).create();
+      return MoreExecutors.listeningDecorator(service);
+    });
   }
 
   @Override
@@ -152,6 +171,10 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
+    if (mUfsConf.getBoolean(PropertyKey.UNDERFS_COS_MULTIPART_UPLOAD_ENABLED)) {
+      return new COSMultipartUploadOutputStream(mBucketNameInternal, key, mClient,
+          mMultipartUploadExecutor.get(), mUfsConf);
+    }
     return new COSOutputStream(mBucketNameInternal, key, mClient,
         mUfsConf.getList(PropertyKey.TMP_DIRS));
   }

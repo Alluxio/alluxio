@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -11,126 +12,122 @@
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <artifactId>alluxio-underfs</artifactId>
-        <groupId>org.alluxio</groupId>
-        <version>302-SNAPSHOT</version>
-    </parent>
-    <artifactId>alluxio-underfs-abfs</artifactId>
-    <name>Alluxio Under File System - Microsoft Azure DataLake Gen 2</name>
-    <description>Microsoft Azure DataLake Gen 2 Under File System implementation</description>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.alluxio</groupId>
+    <artifactId>alluxio-underfs</artifactId>
+    <version>303-SNAPSHOT</version>
+  </parent>
+  <artifactId>alluxio-underfs-abfs</artifactId>
+  <name>Alluxio Under File System - Microsoft Azure DataLake Gen 2</name>
+  <description>Microsoft Azure DataLake Gen 2 Under File System implementation</description>
 
-    <properties>
-        <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
-        <!-- run properly from sub-project directories -->
-        <build.path>${project.parent.parent.parent.basedir}/build</build.path>
-        <ufs.hadoop.version>3.3.1</ufs.hadoop.version>
-    </properties>
+  <properties>
+    <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
+    <!-- run properly from sub-project directories -->
+    <build.path>${project.parent.parent.parent.basedir}/build</build.path>
+    <ufs.hadoop.version>3.3.1</ufs.hadoop.version>
+  </properties>
 
-    <dependencies>
-        <!-- External dependencies -->
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-azure</artifactId>
-            <version>${ufs.hadoop.version}</version>
-        </dependency>
+  <dependencies>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-hdfs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-azure</artifactId>
+      <version>${ufs.hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
 
-        <!-- Internal dependencies -->
-        <dependency>
-            <groupId>org.alluxio</groupId>
-            <artifactId>alluxio-core-common</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.alluxio</groupId>
-            <artifactId>alluxio-underfs-hdfs</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
-        <!-- Internal test dependencies -->
-        <dependency>
-            <groupId>org.alluxio</groupId>
-            <artifactId>alluxio-core-common</artifactId>
-            <version>${project.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>shade</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>LICENSE</exclude>
-                                        <exclude>META-INF/LICENSE</exclude>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                        <!-- Because this module depends on alluxio-underfs-hdfs, eliminate HDFS factory implementation -->
-                                        <exclude>alluxio/underfs/hdfs/HdfsUnderFileSystemFactory.*</exclude>
-                                    </excludes>
-                                </filter>
-                                <filter>
-                                    <artifact>org.alluxio:alluxio-underfs-hdfs</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/services/alluxio.underfs.UnderFileSystemFactory</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>exec-maven-plugin</artifactId>
-                <groupId>org.codehaus.mojo</groupId>
-                <inherited>false</inherited>
-                <executions>
-                    <execution>
-                        <id>copy-lib-jars-selectively</id>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>${build.path}/lib/copy_jars.sh</executable>
-                            <arguments>
-                                <argument>${project.artifactId}</argument>
-                                <argument>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</argument>
-                                <argument>${build.path}/../lib/${project.artifactId}-${project.version}.jar</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-                <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>${build.path}/../lib</directory>
-                            <includes>
-                                <include>**/${project.artifactId}-*.jar</include>
-                            </includes>
-                        </fileset>
-                    </filesets>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>shade</id>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>LICENSE</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <!-- Because this module depends on alluxio-underfs-hdfs, eliminate HDFS factory implementation -->
+                    <exclude>alluxio/underfs/hdfs/HdfsUnderFileSystemFactory.*</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>org.alluxio:alluxio-underfs-hdfs</artifact>
+                  <excludes>
+                    <exclude>META-INF/services/alluxio.underfs.UnderFileSystemFactory</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>copy-lib-jars-selectively</id>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <phase>install</phase>
+            <configuration>
+              <executable>${build.path}/lib/copy_jars.sh</executable>
+              <arguments>
+                <argument>${project.artifactId}</argument>
+                <argument>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</argument>
+                <argument>${build.path}/../lib/${project.artifactId}-${project.version}.jar</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${build.path}/../lib</directory>
+              <includes>
+                <include>**/${project.artifactId}-*.jar</include>
+              </includes>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
