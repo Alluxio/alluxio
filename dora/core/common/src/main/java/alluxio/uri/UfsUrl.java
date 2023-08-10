@@ -241,7 +241,7 @@ public class UfsUrl {
    */
   private static Map<String, String> transmitElemsToRootElemsMap(Map<String, String> rootElems) {
     Preconditions.checkArgument(rootElems.get("scheme") != null,
-        "The scheme part of root dir is empty, please check the configuration of alluxio first.");
+        "The scheme part of root dir is null, please check the configuration of alluxio first.");
     if (rootElems.get("scheme").equals("")) {
       rootElems.put("scheme", "file");
     }
