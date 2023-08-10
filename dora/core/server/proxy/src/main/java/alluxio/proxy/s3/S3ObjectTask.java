@@ -1236,10 +1236,11 @@ public class S3ObjectTask extends S3BaseTask {
         throws S3Exception, IOException, AlluxioException {
       final List<URIStatus> uploadedParts = mUserFs.listStatus(multipartTemporaryDir);
       final List<CompleteMultipartUploadRequest.Part> requestParts = request.getParts();
-      final Map<Integer, URIStatus> uploadedPartsMap = uploadedParts.stream().collect(Collectors.toMap(
-          status -> Integer.parseInt(status.getName()),
-          status -> status
-      ));
+      final Map<Integer, URIStatus> uploadedPartsMap =
+          uploadedParts.stream().collect(Collectors.toMap(
+              status -> Integer.parseInt(status.getName()),
+              status -> status
+          ));
 
       if (requestParts == null || requestParts.isEmpty()) {
         throw new S3Exception(objectPath, S3ErrorCode.MALFORMED_XML);
@@ -1253,15 +1254,16 @@ public class S3ObjectTask extends S3BaseTask {
         }
       }
       int prevPartNum = requestParts.get(0).getPartNumber();
-      for (CompleteMultipartUploadRequest.Part part : requestParts.subList(1,
-          requestParts.size())) {
+      for (CompleteMultipartUploadRequest.Part part :
+          requestParts.subList(1, requestParts.size())) {
         if (prevPartNum >= part.getPartNumber()) {
           throw new S3Exception(S3ErrorCode.INVALID_PART_ORDER);
         }
         prevPartNum = part.getPartNumber();
       }
 
-      for (CompleteMultipartUploadRequest.Part part : requestParts.subList(0, requestParts.size() - 1)) {
+      for (CompleteMultipartUploadRequest.Part part :
+          requestParts.subList(0, requestParts.size() - 1)) {
         if (uploadedPartsMap.get(part.getPartNumber()).getLength() < Configuration.getBytes(
             PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
           throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);

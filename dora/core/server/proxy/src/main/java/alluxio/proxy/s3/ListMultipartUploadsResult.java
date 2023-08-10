@@ -12,7 +12,6 @@
 package alluxio.proxy.s3;
 
 import alluxio.client.file.URIStatus;
-import alluxio.s3.S3Constants;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;

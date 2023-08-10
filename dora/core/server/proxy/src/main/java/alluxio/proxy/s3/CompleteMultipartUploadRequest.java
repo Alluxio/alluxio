@@ -11,9 +11,6 @@
 
 package alluxio.proxy.s3;
 
-import alluxio.s3.S3ErrorCode;
-import alluxio.s3.S3Exception;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -58,6 +55,7 @@ public class CompleteMultipartUploadRequest {
    *
    * @param parts the list of Part objects
    * @param ignoreValidation flag to skip Part validation
+   * @deprecated always ignore valdateion
    */
   @Deprecated
   public CompleteMultipartUploadRequest(List<Part> parts, boolean ignoreValidation) {
@@ -84,7 +82,6 @@ public class CompleteMultipartUploadRequest {
   public void setParts(List<Part> parts) {
     mParts = parts;
   }
-
 
   /**
    * The Part POJO.
