@@ -313,9 +313,12 @@ func checkAndSaveUrl(files []File, menuMap map[string]struct{}, errMsgs []string
 			if strings.HasSuffix(subfile.URL, mdType) {
 				errMsgs = append(errMsgs, fmt.Sprintf("error msg: docs %v with url %v is ended with %v, please replace %v with %v", subfile.Title, subfile.URL, mdType, mdType, htmlType))
 			}
-			// replace the url ending to .md in order to compare with actually list of docs in directory of docs
-			subfilePath := strings.Replace(subfile.URL, htmlType, mdType, 1)
-			menuMap[subfilePath] = struct{}{}
+			// ignore the folder path
+			if subfile.URL != "" {
+				// replace the url ending to .md in order to compare with actually list of docs in directory of docs
+				subfilePath := strings.Replace(subfile.URL, htmlType, mdType, 1)
+				menuMap[subfilePath] = struct{}{}
+			}
 			//recall the function until file.subFiles is empty
 			checkAndSaveUrl(file.Subfiles, menuMap, errMsgs)
 		}
@@ -355,7 +358,6 @@ func checkUrlMatch(docsPath, checkPath string, menuListOfURL map[string]struct{}
 	}); err != nil {
 		return fmt.Errorf("error walking thorugh %v with message: \n %v", docsPath, err)
 	}
-	// check the diff
 	switch {
 	case len(menuListOfURL) > len(filePaths):
 		result := compareDiff(menuListOfURL, filePaths)
