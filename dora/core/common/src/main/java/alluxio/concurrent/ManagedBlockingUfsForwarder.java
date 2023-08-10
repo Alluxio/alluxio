@@ -13,7 +13,6 @@ package alluxio.concurrent;
 
 import alluxio.AlluxioURI;
 import alluxio.PositionReader;
-import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.AlluxioConfiguration;

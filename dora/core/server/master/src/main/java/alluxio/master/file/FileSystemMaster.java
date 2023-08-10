@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -53,7 +52,6 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.FileSystemCommand;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerInfo;
 
@@ -62,7 +60,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 
 /**
  * The interface of file system master service.

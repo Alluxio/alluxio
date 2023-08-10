@@ -13,7 +13,6 @@ package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.SyncInfo;
 import alluxio.UfsConstants;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
@@ -65,8 +64,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Constructor;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;

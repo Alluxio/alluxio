@@ -13,7 +13,6 @@ package alluxio.testutils.underfs.delegating;
 
 import alluxio.AlluxioURI;
 import alluxio.PositionReader;
-import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.file.options.DescendantType;
