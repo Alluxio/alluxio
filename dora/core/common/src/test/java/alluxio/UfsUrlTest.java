@@ -18,10 +18,14 @@ package alluxio;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.grpc.UfsUrlMessage;
 import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.UfsUrl;
 
 import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Unit tests for {@link UfsUrl}.
@@ -75,5 +79,24 @@ public class UfsUrlTest {
     assertEquals("hdfs", ufsUrl.getScheme().get());
     assertEquals("hdfs://localhost:8020/xy z/a b c/d", ufsUrl.join("/d").asString());
     assertEquals("hdfs://localhost:8020/xy z/a b c", ufsUrl.asString());
+  }
+
+  @Test
+  public void hashCodeTest() {
+    String scheme = "xyz";
+    String authority = "192.168.0.1:9527";
+    String path = "/a/b/c/d";
+    String ufsUrlPath = scheme + "://" + authority + path;
+    List<String> pathComponents = Arrays.asList(path.split(UfsUrl.PATH_SEPARATOR));
+
+    UfsUrl ufsUrl1 = UfsUrl.createInstance(ufsUrlPath);
+    UfsUrl ufsUrl2 = UfsUrl.createInstance(UfsUrlMessage.newBuilder()
+        .setScheme(scheme).setAuthority(authority).addAllPathComponents(pathComponents).build());
+    assertEquals(ufsUrl1.asString(), ufsUrl2.asString());
+    assertEquals(ufsUrl1.hashCode(), ufsUrl2.hashCode());
+
+    UfsUrl ufsUrl3 = UfsUrl.createInstance(UfsUrl.toProto(ufsUrlPath));
+    assertEquals(ufsUrl2.asString(), ufsUrl3.asString());
+    assertEquals(ufsUrl2.hashCode(), ufsUrl3.hashCode());
   }
 }
