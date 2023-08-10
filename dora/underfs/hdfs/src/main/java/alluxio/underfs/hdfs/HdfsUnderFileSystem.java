@@ -89,9 +89,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   protected static final String HDFS_ACL_PROVIDER_CLASS =
       "alluxio.underfs.hdfs.acl.SupportedHdfsAclProvider";
 
-  /** Name of the class for the Hdfs ActiveSync provider. */
-  protected static final String HDFS_ACTIVESYNC_PROVIDER_CLASS =
-      "alluxio.underfs.hdfs.activesync.SupportedHdfsActiveSyncProvider";
+//  /** Name of the class for the Hdfs ActiveSync provider. */
+//  protected static final String HDFS_ACTIVESYNC_PROVIDER_CLASS =
+//      "alluxio.underfs.hdfs.activesync.SupportedHdfsActiveSyncProvider";
 
   /** The minimum HDFS production version required for EC. **/
   protected static final String HDFS_EC_MIN_VERSION = "3.0.0";
@@ -118,7 +118,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   private final LoadingCache<String, FileSystem> mUserFs;
   protected final HdfsAclProvider mHdfsAclProvider;
 
-  private HdfsActiveSyncProvider mHdfsActiveSyncer;
+//  private HdfsActiveSyncProvider mHdfsActiveSyncer;
 
   /**
    * Factory method to constructs a new HDFS {@link UnderFileSystem} instance.
@@ -248,30 +248,30 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       mUserFs = null;
     }
 
-    // Create the supported HdfsActiveSyncer if possible.
-    HdfsActiveSyncProvider hdfsActiveSyncProvider = new NoopHdfsActiveSyncProvider();
-
-    try {
-      Constructor c = Class.forName(HDFS_ACTIVESYNC_PROVIDER_CLASS)
-          .getConstructor(URI.class, Configuration.class, UnderFileSystemConfiguration.class);
-      Object o = c.newInstance(URI.create(ufsUri.toString()), hdfsConf, mUfsConf);
-      if (o instanceof HdfsActiveSyncProvider) {
-        hdfsActiveSyncProvider = (HdfsActiveSyncProvider) o;
-        LOG.info("Successfully instantiated SupportedHdfsActiveSyncProvider");
-      } else {
-        LOG.warn(
-            "SupportedHdfsActiveSyncProvider is not instance of HdfsActiveSyncProvider. "
-                + "HDFS ActiveSync will not be supported.");
-      }
-    } catch (Exception e) {
-      // ignore
-      LOG.warn("Cannot create SupportedHdfsActiveSyncProvider. "
-          + "HDFS ActiveSync will not be supported. "
-          + "Please upgrade to an HDFS version > 2.6.1 to enable support for HDFS ActiveSync");
-      LOG.debug("Exception:", e);
-    }
-
-    mHdfsActiveSyncer = hdfsActiveSyncProvider;
+//    // Create the supported HdfsActiveSyncer if possible.
+//    HdfsActiveSyncProvider hdfsActiveSyncProvider = new NoopHdfsActiveSyncProvider();
+//
+//    try {
+//      Constructor c = Class.forName(HDFS_ACTIVESYNC_PROVIDER_CLASS)
+//          .getConstructor(URI.class, Configuration.class, UnderFileSystemConfiguration.class);
+//      Object o = c.newInstance(URI.create(ufsUri.toString()), hdfsConf, mUfsConf);
+//      if (o instanceof HdfsActiveSyncProvider) {
+//        hdfsActiveSyncProvider = (HdfsActiveSyncProvider) o;
+//        LOG.info("Successfully instantiated SupportedHdfsActiveSyncProvider");
+//      } else {
+//        LOG.warn(
+//            "SupportedHdfsActiveSyncProvider is not instance of HdfsActiveSyncProvider. "
+//                + "HDFS ActiveSync will not be supported.");
+//      }
+//    } catch (Exception e) {
+//      // ignore
+//      LOG.warn("Cannot create SupportedHdfsActiveSyncProvider. "
+//          + "HDFS ActiveSync will not be supported. "
+//          + "Please upgrade to an HDFS version > 2.6.1 to enable support for HDFS ActiveSync");
+//      LOG.debug("Exception:", e);
+//    }
+//
+//    mHdfsActiveSyncer = hdfsActiveSyncProvider;
   }
 
   @Override
@@ -780,35 +780,35 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     return true;
   }
 
-  @Override
-  public boolean supportsActiveSync() {
-    return !(mHdfsActiveSyncer instanceof NoopHdfsActiveSyncProvider);
-  }
-
-  @Override
-  public SyncInfo getActiveSyncInfo() {
-    return mHdfsActiveSyncer.getActivitySyncInfo();
-  }
-
-  @Override
-  public boolean startActiveSyncPolling(long txId) throws IOException {
-    return mHdfsActiveSyncer.startPolling(txId);
-  }
-
-  @Override
-  public boolean stopActiveSyncPolling() {
-    return mHdfsActiveSyncer.stopPolling();
-  }
-
-  @Override
-  public void startSync(AlluxioURI ufsUri) {
-    mHdfsActiveSyncer.startSync(ufsUri);
-  }
-
-  @Override
-  public void stopSync(AlluxioURI ufsUri) {
-    mHdfsActiveSyncer.stopSync(ufsUri);
-  }
+//  @Override
+//  public boolean supportsActiveSync() {
+//    return !(mHdfsActiveSyncer instanceof NoopHdfsActiveSyncProvider);
+//  }
+//
+//  @Override
+//  public SyncInfo getActiveSyncInfo() {
+//    return mHdfsActiveSyncer.getActivitySyncInfo();
+//  }
+//
+//  @Override
+//  public boolean startActiveSyncPolling(long txId) throws IOException {
+//    return mHdfsActiveSyncer.startPolling(txId);
+//  }
+//
+//  @Override
+//  public boolean stopActiveSyncPolling() {
+//    return mHdfsActiveSyncer.stopPolling();
+//  }
+//
+//  @Override
+//  public void startSync(AlluxioURI ufsUri) {
+//    mHdfsActiveSyncer.startSync(ufsUri);
+//  }
+//
+//  @Override
+//  public void stopSync(AlluxioURI ufsUri) {
+//    mHdfsActiveSyncer.stopSync(ufsUri);
+//  }
 
   /**
    * Delete a file or directory at path.

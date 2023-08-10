@@ -72,7 +72,7 @@ import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.activesync.ActiveSyncManager;
+//import alluxio.master.file.activesync.ActiveSyncManager;
 import alluxio.master.file.contexts.CallTracker;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
@@ -401,7 +401,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** Thread pool which asynchronously handles the completion of persist jobs. */
   private java.util.concurrent.ThreadPoolExecutor mPersistCheckerPool;
 
-  private final ActiveSyncManager mSyncManager;
+//  private final ActiveSyncManager mSyncManager;
 
   /** Log writer for user access audit log. */
   protected AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
@@ -442,11 +442,11 @@ public class DefaultFileSystemMaster extends CoreMaster
           ? MetricsSystem.executorService(mSyncMetadataExecutor,
           MetricKey.MASTER_METADATA_SYNC_EXECUTOR.getName()) : mSyncMetadataExecutor;
 
-  final ThreadPoolExecutor mActiveSyncMetadataExecutor = new ThreadPoolExecutor(
-      Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
-      Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
-      1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
-      ThreadFactoryUtils.build("alluxio-ufs-active-sync-%d", false));
+//  final ThreadPoolExecutor mActiveSyncMetadataExecutor = new ThreadPoolExecutor(
+//      Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
+//      Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
+//      1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
+//      ThreadFactoryUtils.build("alluxio-ufs-active-sync-%d", false));
 
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
@@ -507,12 +507,12 @@ public class DefaultFileSystemMaster extends CoreMaster
     mPersistJobs = new ConcurrentHashMap<>();
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable, mClock);
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
-    mSyncManager = new ActiveSyncManager(mMountTable, this);
+//    mSyncManager = new ActiveSyncManager(mMountTable, this);
     mTimeSeriesStore = new TimeSeriesStore();
     // Sync executors should allow core threads to time out
     mSyncPrefetchExecutor.allowCoreThreadTimeOut(true);
     mSyncMetadataExecutor.allowCoreThreadTimeOut(true);
-    mActiveSyncMetadataExecutor.allowCoreThreadTimeOut(true);
+//    mActiveSyncMetadataExecutor.allowCoreThreadTimeOut(true);
     FileSystemContext schedulerFsContext = FileSystemContext.create();
     JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(this);
     WorkerProvider workerProvider;
@@ -539,7 +539,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         add(mDirectoryIdGenerator);
         add(mMountTable);
         add(mUfsManager);
-        add(mSyncManager);
+//        add(mSyncManager);
         add(jobMetaStore);
       }
     };
@@ -767,7 +767,7 @@ public class DefaultFileSystemMaster extends CoreMaster
                     Configuration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL)),
                 Configuration.global(), mMasterContext.getUserState()));
       }
-      mSyncManager.start();
+//      mSyncManager.start();
       mScheduler.start();
     }
   }
@@ -779,7 +779,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       mAsyncAuditLogWriter.stop();
       mAsyncAuditLogWriter = null;
     }
-    mSyncManager.stop();
+//    mSyncManager.stop();
     mScheduler.stop();
     super.stop();
   }
@@ -805,13 +805,13 @@ public class DefaultFileSystemMaster extends CoreMaster
       LOG.warn("Failed to wait for ufs prefetch executor to shut down.");
     }
 
-    try {
-      mActiveSyncMetadataExecutor.shutdownNow();
-      mActiveSyncMetadataExecutor.awaitTermination(5, TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      LOG.warn("Failed to wait for active sync executor to shut down.");
-    }
+//    try {
+//      mActiveSyncMetadataExecutor.shutdownNow();
+//      mActiveSyncMetadataExecutor.awaitTermination(5, TimeUnit.SECONDS);
+//    } catch (InterruptedException e) {
+//      Thread.currentThread().interrupt();
+//      LOG.warn("Failed to wait for active sync executor to shut down.");
+//    }
   }
 
   @Override
@@ -2309,9 +2309,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
       }
 
-      if (mSyncManager.isSyncPoint(inodePath.getUri())) {
-        mSyncManager.stopSyncAndJournal(RpcContext.NOOP, inodePath.getUri());
-      }
+//      if (mSyncManager.isSyncPoint(inodePath.getUri())) {
+//        mSyncManager.stopSyncAndJournal(RpcContext.NOOP, inodePath.getUri());
+//      }
 
       // Delete Inodes from children to parents
       int journalFlushCounter = 0;
@@ -3390,12 +3390,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     long newMountId = mMountTable.createUnusedMountId();
     // lock sync manager to ensure no sync point is added before the mount point is removed
-    try (LockResource r = new LockResource(mSyncManager.getLock())) {
-      List<AlluxioURI> syncPoints = mSyncManager.getFilterList(mountInfo.getMountId());
-      if (syncPoints != null && !syncPoints.isEmpty()) {
-        throw new InvalidArgumentException("Updating a mount point with ActiveSync enabled is not"
-            + " supported. Please remove all sync'ed paths from the mount point and try again.");
-      }
+//    try (LockResource r = new LockResource(mSyncManager.getLock())) {
+//      List<AlluxioURI> syncPoints = mSyncManager.getFilterList(mountInfo.getMountId());
+//      if (syncPoints != null && !syncPoints.isEmpty()) {
+//        throw new InvalidArgumentException("Updating a mount point with ActiveSync enabled is not"
+//            + " supported. Please remove all sync'ed paths from the mount point and try again.");
+//      }
       AlluxioURI alluxioPath = inodePath.getUri();
       // validate new UFS client before updating the mount table
       mUfsManager.addMount(newMountId, new AlluxioURI(ufsPath.toString()),
@@ -3405,11 +3405,11 @@ public class DefaultFileSystemMaster extends CoreMaster
       prepareForMount(ufsPath, newMountId, context);
       // old ufsClient is removed as part of the mount table update process
       mMountTable.update(journalContext, alluxioPath, newMountId, context.getOptions().build());
-    } catch (FileAlreadyExistsException | InvalidPathException | IOException e) {
-      // revert everything
-      mUfsManager.removeMount(newMountId);
-      throw e;
-    }
+//    } catch (FileAlreadyExistsException | InvalidPathException | IOException e) {
+//      // revert everything
+//      mUfsManager.removeMount(newMountId);
+//      throw e;
+//    }
   }
 
   @Override
@@ -3585,7 +3585,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
           + " the path is an existing mount point.");
     }
-    mSyncManager.stopSyncForMount(mountInfo.getMountId());
+//    mSyncManager.stopSyncForMount(mountInfo.getMountId());
 
     if (!mMountTable.delete(rpcContext, inodePath.getUri(), true)) {
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
@@ -3956,103 +3956,103 @@ public class DefaultFileSystemMaster extends CoreMaster
               Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
     }
   }
-
-  /**
-   * Actively sync metadata, based on a list of changed files.
-   *
-   * @param path the path to sync
-   * @param changedFiles collection of files that are changed under the path to full sync if this is
-   *        null, force sync the entire directory. if this is not null but an empty collection,
-   *        this method does nothing.
-   * @param executorService executor to execute the parallel incremental sync
-   */
-  @Override
-  public void activeSyncMetadata(AlluxioURI path, @Nullable Collection<AlluxioURI> changedFiles,
-      ExecutorService executorService) throws IOException {
-    if (changedFiles == null) {
-      LOG.info("Start an active full sync of {}", path.toString());
-    } else {
-      LOG.info("Start an active incremental sync of {} files", changedFiles.size());
-    }
-    long start = mClock.millis();
-
-    if (changedFiles != null && changedFiles.isEmpty()) {
-      return;
-    }
-
-    try (RpcContext rpcContext = createRpcContext()) {
-      if (changedFiles == null) {
-        // full sync
-        // Set sync interval to 0 to force a sync.
-        FileSystemMasterCommonPOptions options =
-            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
-        LockingScheme scheme = createSyncLockingScheme(path, options, DescendantType.ALL);
-        InodeSyncStream sync = new InodeSyncStream(scheme, this, getSyncPathCache(), rpcContext,
-            DescendantType.ALL, options, false, false, false);
-        if (sync.sync().equals(FAILED)) {
-          LOG.debug("Active full sync on {} didn't sync any paths.", path);
-        }
-        long end = mClock.millis();
-        LOG.info("Ended an active full sync of {} in {}ms", path, end - start);
-        return;
-      } else {
-        // incremental sync
-        Set<Callable<Void>> callables = new HashSet<>();
-        for (AlluxioURI changedFile : changedFiles) {
-          callables.add(() -> {
-            // Set sync interval to 0 to force a sync.
-            FileSystemMasterCommonPOptions options =
-                FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
-            LockingScheme scheme = createSyncLockingScheme(changedFile, options,
-                DescendantType.ONE);
-            InodeSyncStream sync = new InodeSyncStream(scheme,
-                this, getSyncPathCache(), rpcContext,
-                DescendantType.ONE, options, false, false, false);
-            if (sync.sync().equals(FAILED)) {
-              // Use debug because this can be a noisy log
-              LOG.debug("Incremental sync on {} didn't sync any paths.", path);
-            }
-            return null;
-          });
-        }
-        executorService.invokeAll(callables);
-      }
-    } catch (InterruptedException e) {
-      LOG.warn("InterruptedException during active sync: {}", e.toString());
-      Thread.currentThread().interrupt();
-      return;
-    } catch (InvalidPathException | AccessControlException e) {
-      LogUtils.warnWithException(LOG, "Failed to active sync on path {}", path, e);
-    }
-    if (changedFiles != null) {
-      long end = mClock.millis();
-      LOG.info("Ended an active incremental sync of {} files in {}ms", changedFiles.size(),
-          end - start);
-    }
-  }
-
-  @Override
-  public boolean recordActiveSyncTxid(long txId, long mountId) {
-    MountInfo mountInfo = mMountTable.getMountInfo(mountId);
-    if (mountInfo == null) {
-      return false;
-    }
-    AlluxioURI mountPath = mountInfo.getAlluxioUri();
-
-    try (RpcContext rpcContext = createRpcContext();
-        LockedInodePath inodePath = mInodeTree
-            .lockFullInodePath(mountPath, LockPattern.READ, rpcContext.getJournalContext())
-    ) {
-      File.ActiveSyncTxIdEntry txIdEntry =
-          File.ActiveSyncTxIdEntry.newBuilder().setTxId(txId).setMountId(mountId).build();
-      rpcContext.journal(JournalEntry.newBuilder().setActiveSyncTxId(txIdEntry).build());
-    } catch (UnavailableException | InvalidPathException | FileDoesNotExistException e) {
-      LOG.warn("Exception when recording activesync txid, path {}, exception {}",
-          mountPath, e);
-      return false;
-    }
-    return true;
-  }
+//
+//  /**
+//   * Actively sync metadata, based on a list of changed files.
+//   *
+//   * @param path the path to sync
+//   * @param changedFiles collection of files that are changed under the path to full sync if this is
+//   *        null, force sync the entire directory. if this is not null but an empty collection,
+//   *        this method does nothing.
+//   * @param executorService executor to execute the parallel incremental sync
+//   */
+//  @Override
+//  public void activeSyncMetadata(AlluxioURI path, @Nullable Collection<AlluxioURI> changedFiles,
+//      ExecutorService executorService) throws IOException {
+//    if (changedFiles == null) {
+//      LOG.info("Start an active full sync of {}", path.toString());
+//    } else {
+//      LOG.info("Start an active incremental sync of {} files", changedFiles.size());
+//    }
+//    long start = mClock.millis();
+//
+//    if (changedFiles != null && changedFiles.isEmpty()) {
+//      return;
+//    }
+//
+//    try (RpcContext rpcContext = createRpcContext()) {
+//      if (changedFiles == null) {
+//        // full sync
+//        // Set sync interval to 0 to force a sync.
+//        FileSystemMasterCommonPOptions options =
+//            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
+//        LockingScheme scheme = createSyncLockingScheme(path, options, DescendantType.ALL);
+//        InodeSyncStream sync = new InodeSyncStream(scheme, this, getSyncPathCache(), rpcContext,
+//            DescendantType.ALL, options, false, false, false);
+//        if (sync.sync().equals(FAILED)) {
+//          LOG.debug("Active full sync on {} didn't sync any paths.", path);
+//        }
+//        long end = mClock.millis();
+//        LOG.info("Ended an active full sync of {} in {}ms", path, end - start);
+//        return;
+//      } else {
+//        // incremental sync
+//        Set<Callable<Void>> callables = new HashSet<>();
+//        for (AlluxioURI changedFile : changedFiles) {
+//          callables.add(() -> {
+//            // Set sync interval to 0 to force a sync.
+//            FileSystemMasterCommonPOptions options =
+//                FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
+//            LockingScheme scheme = createSyncLockingScheme(changedFile, options,
+//                DescendantType.ONE);
+//            InodeSyncStream sync = new InodeSyncStream(scheme,
+//                this, getSyncPathCache(), rpcContext,
+//                DescendantType.ONE, options, false, false, false);
+//            if (sync.sync().equals(FAILED)) {
+//              // Use debug because this can be a noisy log
+//              LOG.debug("Incremental sync on {} didn't sync any paths.", path);
+//            }
+//            return null;
+//          });
+//        }
+//        executorService.invokeAll(callables);
+//      }
+//    } catch (InterruptedException e) {
+//      LOG.warn("InterruptedException during active sync: {}", e.toString());
+//      Thread.currentThread().interrupt();
+//      return;
+//    } catch (InvalidPathException | AccessControlException e) {
+//      LogUtils.warnWithException(LOG, "Failed to active sync on path {}", path, e);
+//    }
+//    if (changedFiles != null) {
+//      long end = mClock.millis();
+//      LOG.info("Ended an active incremental sync of {} files in {}ms", changedFiles.size(),
+//          end - start);
+//    }
+//  }
+//
+//  @Override
+//  public boolean recordActiveSyncTxid(long txId, long mountId) {
+//    MountInfo mountInfo = mMountTable.getMountInfo(mountId);
+//    if (mountInfo == null) {
+//      return false;
+//    }
+//    AlluxioURI mountPath = mountInfo.getAlluxioUri();
+//
+//    try (RpcContext rpcContext = createRpcContext();
+//        LockedInodePath inodePath = mInodeTree
+//            .lockFullInodePath(mountPath, LockPattern.READ, rpcContext.getJournalContext())
+//    ) {
+//      File.ActiveSyncTxIdEntry txIdEntry =
+//          File.ActiveSyncTxIdEntry.newBuilder().setTxId(txId).setMountId(mountId).build();
+//      rpcContext.journal(JournalEntry.newBuilder().setActiveSyncTxId(txIdEntry).build());
+//    } catch (UnavailableException | InvalidPathException | FileDoesNotExistException e) {
+//      LOG.warn("Exception when recording activesync txid, path {}, exception {}",
+//          mountPath, e);
+//      return false;
+//    }
+//    return true;
+//  }
 
   /**
    * Sync metadata for an Alluxio path with the UFS.
@@ -4291,77 +4291,77 @@ public class DefaultFileSystemMaster extends CoreMaster
     mInodeTree.updateInode(rpcContext, entry.build());
   }
 
-  @Override
-  public List<SyncPointInfo> getSyncPathList() {
-    return mSyncManager.getSyncPathList();
-  }
+//  @Override
+//  public List<SyncPointInfo> getSyncPathList() {
+//    return mSyncManager.getSyncPathList();
+//  }
 
-  @Override
-  public void startSync(AlluxioURI syncPoint)
-      throws IOException, InvalidPathException, AccessControlException, ConnectionFailedException {
-    LockingScheme lockingScheme = new LockingScheme(syncPoint, LockPattern.WRITE_EDGE, true);
-    try (RpcContext rpcContext = createRpcContext();
-        LockedInodePath inodePath = mInodeTree
-            .lockInodePath(
-                lockingScheme.getPath(),
-                lockingScheme.getPattern(),
-                rpcContext.getJournalContext()
-            );
-        FileSystemMasterAuditContext auditContext =
-            createAuditContext("startSync", syncPoint, null,
-                inodePath.getParentInodeOrNull())) {
-      try {
-        mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
-      } catch (AccessControlException e) {
-        auditContext.setAllowed(false);
-        throw e;
-      }
-      mSyncManager.startSyncAndJournal(rpcContext, syncPoint);
-      auditContext.setSucceeded(true);
-    }
-  }
+//  @Override
+//  public void startSync(AlluxioURI syncPoint)
+//      throws IOException, InvalidPathException, AccessControlException, ConnectionFailedException {
+//    LockingScheme lockingScheme = new LockingScheme(syncPoint, LockPattern.WRITE_EDGE, true);
+//    try (RpcContext rpcContext = createRpcContext();
+//        LockedInodePath inodePath = mInodeTree
+//            .lockInodePath(
+//                lockingScheme.getPath(),
+//                lockingScheme.getPattern(),
+//                rpcContext.getJournalContext()
+//            );
+//        FileSystemMasterAuditContext auditContext =
+//            createAuditContext("startSync", syncPoint, null,
+//                inodePath.getParentInodeOrNull())) {
+//      try {
+//        mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
+//      } catch (AccessControlException e) {
+//        auditContext.setAllowed(false);
+//        throw e;
+//      }
+//      mSyncManager.startSyncAndJournal(rpcContext, syncPoint);
+//      auditContext.setSucceeded(true);
+//    }
+//  }
 
-  @Override
-  public void stopSync(AlluxioURI syncPoint)
-      throws IOException, InvalidPathException, AccessControlException {
-    try (RpcContext rpcContext = createRpcContext()) {
-      boolean isSuperUser = true;
-      try {
-        mPermissionChecker.checkSuperUser();
-      } catch (AccessControlException e) {
-        isSuperUser = false;
-      }
-
-      if (isSuperUser) {
-        // TODO(AM): Remove once we don't require a write lock on the sync point during a full sync
-        // Stop sync w/o acquiring an inode lock to terminate an initial full scan (if running)
-        mSyncManager.stopSyncAndJournal(rpcContext, syncPoint);
-      }
-      LockingScheme lockingScheme = new LockingScheme(syncPoint, LockPattern.READ, false);
-      try (LockedInodePath inodePath =
-          mInodeTree
-              .lockInodePath(
-                  lockingScheme.getPath(),
-                  lockingScheme.getPattern(),
-                  rpcContext.getJournalContext()
-              );
-          FileSystemMasterAuditContext auditContext =
-              createAuditContext("stopSync", syncPoint, null,
-                  inodePath.getParentInodeOrNull())) {
-        try {
-          mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
-        } catch (AccessControlException e) {
-          auditContext.setAllowed(false);
-          throw e;
-        }
-        if (!isSuperUser) {
-          // Stop sync here only if not terminated w/o holding the inode lock
-          mSyncManager.stopSyncAndJournal(rpcContext, syncPoint);
-        }
-        auditContext.setSucceeded(true);
-      }
-    }
-  }
+//  @Override
+//  public void stopSync(AlluxioURI syncPoint)
+//      throws IOException, InvalidPathException, AccessControlException {
+//    try (RpcContext rpcContext = createRpcContext()) {
+//      boolean isSuperUser = true;
+//      try {
+//        mPermissionChecker.checkSuperUser();
+//      } catch (AccessControlException e) {
+//        isSuperUser = false;
+//      }
+//
+//      if (isSuperUser) {
+//        // TODO(AM): Remove once we don't require a write lock on the sync point during a full sync
+//        // Stop sync w/o acquiring an inode lock to terminate an initial full scan (if running)
+//        mSyncManager.stopSyncAndJournal(rpcContext, syncPoint);
+//      }
+//      LockingScheme lockingScheme = new LockingScheme(syncPoint, LockPattern.READ, false);
+//      try (LockedInodePath inodePath =
+//          mInodeTree
+//              .lockInodePath(
+//                  lockingScheme.getPath(),
+//                  lockingScheme.getPattern(),
+//                  rpcContext.getJournalContext()
+//              );
+//          FileSystemMasterAuditContext auditContext =
+//              createAuditContext("stopSync", syncPoint, null,
+//                  inodePath.getParentInodeOrNull())) {
+//        try {
+//          mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
+//        } catch (AccessControlException e) {
+//          auditContext.setAllowed(false);
+//          throw e;
+//        }
+//        if (!isSuperUser) {
+//          // Stop sync here only if not terminated w/o holding the inode lock
+//          mSyncManager.stopSyncAndJournal(rpcContext, syncPoint);
+//        }
+//        auditContext.setSucceeded(true);
+//      }
+//    }
+//  }
 
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {

@@ -123,6 +123,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -386,7 +387,7 @@ public final class FileSystemMasterClientServiceHandler
   public void getSyncPathList(GetSyncPathListPRequest request,
       StreamObserver<GetSyncPathListPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      List<SyncPointInfo> pathList = mFileSystemMaster.getSyncPathList();
+      List<SyncPointInfo> pathList = Collections.emptyList();
       List<alluxio.grpc.SyncPointInfo> syncPointInfoList =
           pathList.stream().map(SyncPointInfo::toProto).collect(Collectors.toList());
       return GetSyncPathListPResponse.newBuilder().addAllSyncPaths(syncPointInfoList).build();
@@ -451,7 +452,7 @@ public final class FileSystemMasterClientServiceHandler
   public void startSync(StartSyncPRequest request,
       StreamObserver<StartSyncPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.startSync(new AlluxioURI(request.getPath()));
+//      mFileSystemMaster.startSync(new AlluxioURI(request.getPath()));
       return StartSyncPResponse.newBuilder().build();
     }, "startSync", "request=%s", responseObserver, request);
   }
@@ -460,7 +461,7 @@ public final class FileSystemMasterClientServiceHandler
   public void stopSync(StopSyncPRequest request,
       StreamObserver<StopSyncPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.stopSync(new AlluxioURI(request.getPath()));
+//      mFileSystemMaster.stopSync(new AlluxioURI(request.getPath()));
       return StopSyncPResponse.newBuilder().build();
     }, "stopSync", "request=%s", responseObserver, request);
   }
