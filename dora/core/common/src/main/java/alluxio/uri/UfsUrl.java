@@ -144,16 +144,11 @@ public class UfsUrl {
                                                     Map<String, String> inputUrl) {
     List<String> rootPathComponents = Arrays.asList(rootUrl.get("path").split(PATH_SEPARATOR));
     List<String> inputPathComponents = Arrays.asList(inputUrl.get("path").split(PATH_SEPARATOR));
-    // address the case that both of rootUrl and inputUrl are from root dir.
-    if (rootUrl.get("scheme").equals("file") && inputUrl.get("scheme").isEmpty()) {
-      if (rootUrl.get("authority").equals(inputUrl.get("authority"))
-          && rootUrl.get("path").equals(inputUrl.get("path"))) {
-        return rootPathComponents;
-      }
+
+    if (rootUrl.equals(inputUrl)) {
+      return rootPathComponents;
     }
 
-    Preconditions.checkArgument(!rootUrl.get("scheme").isEmpty(),
-        "The scheme of root dir is empty, please check the alluxio configuration first.");
     if (inputUrl.get("scheme").isEmpty()) {
       rootPathComponents.addAll(inputPathComponents);
       return rootPathComponents;
@@ -211,7 +206,7 @@ public class UfsUrl {
     Preconditions.checkArgument(ufsRootDir != null && !ufsRootDir.isEmpty(),
         "root dir is null or empty.");
 
-    Map<String, String> rootDirElems = transmitElemsToRootElemsMap(extractElements(ufsRootDir));
+    Map<String, String> rootDirElems = extractElements(ufsRootDir);
     Map<String, String> ufsPathElems = extractElements(ufsPath);
 
     Preconditions.checkArgument(
@@ -225,7 +220,11 @@ public class UfsUrl {
             && ufsPathElems.containsKey("path") && ufsPathElems.get("path") != null);
 
     String scheme = generateScheme(rootDirElems, ufsPathElems);
+    Preconditions.checkArgument(!scheme.isEmpty(),
+        "scheme is empty, please check input Url again.");
+    ufsPathElems.put("scheme", scheme);
     String authority = generateAuthority(rootDirElems, ufsPathElems);
+    ufsPathElems.put("authority", authority);
     List<String> pathComponents = generatePathComponents(rootDirElems, ufsPathElems);
 
     return new UfsUrl(UfsUrlMessage.newBuilder()
@@ -233,20 +232,6 @@ public class UfsUrl {
         .setAuthority(authority)
         .addAllPathComponents(pathComponents)
         .build());
-  }
-
-  /**
-   * Returns the correct root dir elems map from the String extraction result.
-   * @param rootElems the elems of root dir extracting from String
-   * @return the correct root dir elems map from the String extraction result
-   */
-  private static Map<String, String> transmitElemsToRootElemsMap(Map<String, String> rootElems) {
-    Preconditions.checkArgument(rootElems.get("scheme") != null,
-        "The scheme part of root dir is null, please check the configuration of alluxio first.");
-    if (rootElems.get("scheme").equals("")) {
-      rootElems.put("scheme", "file");
-    }
-    return rootElems;
   }
 
   /**
