@@ -6359,6 +6359,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_INSTREAM_BUFFER_SIZE =
+      intBuilder(Name.FUSE_INSTREAM_BUFFER_SIZE)
+          .setDefaultValue(4 * Constants.MB)
+          .setDescription("The buffer size for fuse input stream. "
+              + "This helps improve the multiple threads read same file performance "
+              + "but consumes more memory. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey FUSE_AUTH_POLICY_CUSTOM_USER =
       stringBuilder(Name.FUSE_AUTH_POLICY_CUSTOM_USER)
           .setDescription("The fuse user name for custom auth policy. Only valid if the "
@@ -8360,6 +8369,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
     public static final String FUSE_JNIFUSE_ENABLED = "alluxio.fuse.jnifuse.enabled";
+    public static final String FUSE_INSTREAM_BUFFER_SIZE = "alluxio.fuse.instream.buffer.size";
     public static final String FUSE_SHARED_CACHING_READER_ENABLED
         = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
