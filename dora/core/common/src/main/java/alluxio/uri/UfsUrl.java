@@ -400,9 +400,9 @@ public class UfsUrl {
     StringBuilder sb = new StringBuilder();
     sb.append(PATH_SEPARATOR);
     // Then sb is not empty.
-    for (String s : mProto.getPathComponentsList()) {
-      sb.append(s);
-      if (!s.isEmpty()) {
+    for (int i = 1; i < mProto.getPathComponentsList().size(); i++) {
+      sb.append(mProto.getPathComponentsList().get(i));
+      if (!mProto.getPathComponentsList().get(i).isEmpty()) {
         sb.append(PATH_SEPARATOR);
       }
     }
