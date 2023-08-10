@@ -117,7 +117,8 @@ public class UfsUrl {
    * @param inputUrl the elems map of input url, including scheme, authority and path
    * @return the authority of this UfsUrl object
    */
-  public static String generateAuthority(Map<String, String> rootUrl, Map<String, String> inputUrl) {
+  public static String generateAuthority(Map<String, String> rootUrl,
+                                         Map<String, String> inputUrl) {
     if (rootUrl.get("authority").isEmpty())  {
       return  inputUrl.get("authority");
     } else {
