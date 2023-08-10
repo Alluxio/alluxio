@@ -11,7 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
@@ -44,7 +43,6 @@ public final class BlockWorkerDataWriter implements DataWriter {
   private final BlockWriter mBlockWriter;
   private final BlockWorker mBlockWorker;
   private final int mChunkSize;
-  private final OutStreamOptions mOptions;
   private final long mSessionId;
   private final long mBufferSize;
   private final long mReservedBytes;
@@ -156,7 +154,6 @@ public final class BlockWorkerDataWriter implements DataWriter {
     mBlockWriter = blockWriter;
     mChunkSize = chunkSize;
     mBlockId = blockId;
-    mOptions = options;
     mSessionId = sessionId;
     mReservedBytes = reservedBytes;
     mBufferSize = conf.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
