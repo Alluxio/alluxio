@@ -433,8 +433,6 @@ public class LocalCacheFileInStreamTest {
 
     // cache hit
     stream.read();
-    Assert.assertEquals(1,
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
     Assert.assertEquals(readSize, MetricsSystem.meter(
         MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(fileSize,

@@ -197,11 +197,8 @@ public class LocalCacheFileInStream extends FileInStream {
         mCacheManager.get(pageId, currentPageOffset, bytesToReadInPage, bytesBuffer, mCacheContext);
     stopwatch.stop();
     if (bytesRead > 0) {
-      MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
       MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).inc();
       if (cacheContext != null) {
-        cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
-            bytesRead);
         cacheContext.incrementCounter(
             MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
             stopwatch.elapsed(TimeUnit.NANOSECONDS));
