@@ -135,7 +135,6 @@ public final class GrpcDataWriter implements DataWriter {
       builder.setCreateUfsFileOptions(ufsFileOptions);
     }
     // check if we need to pin block on create
-    builder.setPinOnCreate(options.getWriteType() == WriteType.ASYNC_THROUGH);
     builder.setSpaceToReserve(reservedBytes);
     mPartialRequest = builder.buildPartial();
     mChunkSize = chunkSize;

@@ -67,7 +67,7 @@ public class MaxFileBench extends StressMasterBench {
       MasterBenchBaseParameters.STOP_COUNT_OPTION_NAME, Integer.toString(
           MasterBenchBaseParameters.STOP_COUNT_INVALID),
       MasterBenchBaseParameters.WARMUP_OPTION_NAME, "0s",
-      FileSystemParameters.WRITE_TYPE_OPTION_NAME, WritePType.MUST_CACHE.toString()
+      FileSystemParameters.WRITE_TYPE_OPTION_NAME, WritePType.CACHE_THROUGH.toString()
   );
 
   /**

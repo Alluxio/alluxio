@@ -191,7 +191,6 @@ public class FileSystemMasterTestBase {
     mUnderFS = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     mNestedFileContext = CreateFileContext.mergeFrom(
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-            .setWriteType(WritePType.MUST_CACHE)
             .setRecursive(true));
     mJournalFolder = mTestFolder.newFolder().getAbsolutePath();
     startServices();
@@ -326,8 +325,7 @@ public class FileSystemMasterTestBase {
     // write the file
     WritePType writeType = createFileContext.getOptions().getWriteType();
     if (info.getUfsPath() != null && (
-        writeType == WritePType.CACHE_THROUGH || writeType == WritePType.THROUGH
-            || writeType == WritePType.ASYNC_THROUGH)) {
+        writeType == WritePType.CACHE_THROUGH || writeType == WritePType.THROUGH)) {
       Files.createFile(Paths.get(info.getUfsPath()));
     }
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB,

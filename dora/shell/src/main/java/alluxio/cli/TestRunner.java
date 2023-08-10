@@ -46,8 +46,8 @@ public final class TestRunner {
       Arrays.asList(ReadType.CACHE_PROMOTE, ReadType.CACHE, ReadType.NO_CACHE);
 
   /** Write types to test. */
-  private static final List<WriteType> WRITE_TYPES = Arrays.asList(WriteType.MUST_CACHE,
-      WriteType.CACHE_THROUGH, WriteType.THROUGH, WriteType.ASYNC_THROUGH);
+  private static final List<WriteType> WRITE_TYPES =
+      Arrays.asList(WriteType.CACHE_THROUGH, WriteType.THROUGH);
 
   @Parameter(names = "--directory",
       description = "Alluxio path for the tests working directory.")

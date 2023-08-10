@@ -1034,9 +1034,6 @@ public class InodeTree implements DelegatingJournaled {
       if (fileContext.isCacheable()) {
         newFile.setCacheable(true);
       }
-      if (fileContext.getWriteType() == WriteType.ASYNC_THROUGH) {
-        newFile.setPersistenceState(PersistenceState.TO_BE_PERSISTED);
-      }
       if (context.getXAttr() != null) {
         newFile.setXAttr(context.getXAttr());
       }

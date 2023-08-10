@@ -61,7 +61,6 @@ public final class BackwardsCompatibilityJournalGenerator {
       .add(new CreateDirectory(),
           new CreateFile(),
           new Mount(),
-          new AsyncPersist(),
           new Delete(),
           new PersistFile(),
           new PersistDirectory(),

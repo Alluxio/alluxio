@@ -117,7 +117,7 @@ message CreateDirectoryPOptions {
   optional bool recursive = 1;
   optional bool allowExists = 2;
   optional PMode mode = 3;
-  optional WritePType writeType = 4;
+  optional WritePType writeType = 4 [default = CACHE_THROUGH];
   optional FileSystemMasterCommonPOptions commonOptions = 5;
   map<string, bytes> xattr = 6;
   optional XAttrPropagationStrategy xattrPropStrat = 7 [default = NEW_PATHS];
@@ -142,7 +142,7 @@ message CreateFilePOptions {
   optional int32 replicationMin = 5;
   optional int32 replicationDurable = 6;
   optional int32 writeTier = 7;
-  optional WritePType writeType = 8;
+  optional WritePType writeType = 8 [default = CACHE_THROUGH];
   optional FileSystemMasterCommonPOptions commonOptions = 9;
   optional int64 persistenceWaitTime = 10;
   map<string, bytes> xattr = 11;
@@ -642,7 +642,7 @@ message CopyJobPOptions {
   optional bool verify = 2;
   optional bool partialListing = 3;
   optional bool overwrite = 4;
-  optional WritePType writeType = 5;
+  optional WritePType writeType = 5 [default = CACHE_THROUGH];
   optional bool check_content = 6;
 }
 
@@ -651,7 +651,7 @@ message MoveJobPOptions {
   optional bool verify = 2;
   optional bool partialListing = 3;
   optional bool overwrite = 4;
-  optional WritePType writeType = 5;
+  optional WritePType writeType = 5 [default = CACHE_THROUGH];
   optional bool check_content = 6;
 }
 

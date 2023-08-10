@@ -27,6 +27,7 @@ public enum WriteType {
    * The data will be written to the highest tier in a worker's storage. Data will not be
    * persisted to the under storage.
    */
+  @Deprecated
   MUST_CACHE(1),
   /**
    * Write the file and try to cache it.
@@ -49,6 +50,7 @@ public enum WriteType {
   /**
    * [Experimental] Write the file asynchronously to the under fs.
    */
+  @Deprecated
   ASYNC_THROUGH(5),
   /**
    * Do not store the data in Alluxio or Under Storage. This write type should only be used for
@@ -79,8 +81,6 @@ public enum WriteType {
   public UnderStorageType getUnderStorageType() {
     if (isThrough()) {
       return UnderStorageType.SYNC_PERSIST;
-    } else if (isAsync()) {
-      return UnderStorageType.ASYNC_PERSIST;
     }
     return UnderStorageType.NO_PERSIST;
   }
@@ -93,21 +93,11 @@ public enum WriteType {
   }
 
   /**
-   * @return true if by this write type data will be persisted <em>asynchronously</em> to under
-   * storage (e.g., {@link #ASYNC_THROUGH}), false otherwise
-   */
-  public boolean isAsync() {
-    return mValue == ASYNC_THROUGH.mValue;
-  }
-
-  /**
    * @return true if by this write type data will be cached in Alluxio space (e.g.,
-   * {@link #MUST_CACHE}, {@link #CACHE_THROUGH}, {@link #TRY_CACHE}, or
-   * {@link #ASYNC_THROUGH}), false otherwise
+   * {@link #MUST_CACHE}, {@link #CACHE_THROUGH}, {@link #TRY_CACHE}, false otherwise
    */
   public boolean isCache() {
-    return (mValue == MUST_CACHE.mValue) || (mValue == CACHE_THROUGH.mValue)
-            || (mValue == TRY_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
+    return (mValue == CACHE_THROUGH.mValue) || (mValue == TRY_CACHE.mValue);
   }
 
   /**

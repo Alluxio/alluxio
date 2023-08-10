@@ -132,8 +132,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
   public void close() throws IOException {
     mBlockWriter.close();
     try {
-      mBlockWorker.commitBlock(mSessionId, mBlockId,
-          mOptions.getWriteType() == WriteType.ASYNC_THROUGH);
+      mBlockWorker.commitBlock(mSessionId, mBlockId, false);
     } catch (Exception e) {
       mBlockWorker.cleanupSession(mSessionId);
       throw new IOException(e);
