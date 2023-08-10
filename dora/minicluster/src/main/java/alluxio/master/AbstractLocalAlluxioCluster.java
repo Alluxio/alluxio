@@ -243,18 +243,6 @@ public abstract class AbstractLocalAlluxioCluster {
     UnderFileSystemUtils.mkdirIfNotExists(ufs, underfsAddress);
     UnderFileSystemUtils.mkdirIfNotExists(doraUfs, doraUfsRoot);
 
-    // TODO(wyy) code need to be removed
-//    // Creates storage dirs for worker
-//    int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
-//    for (int level = 0; level < numLevel; level++) {
-//      PropertyKey tierLevelDirPath =
-//          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
-//      String[] dirPaths = Configuration.getString(tierLevelDirPath).split(",");
-//      for (String dirPath : dirPaths) {
-//        FileUtils.createDir(dirPath);
-//      }
-//    }
-
     formatJournal();
   }
 
