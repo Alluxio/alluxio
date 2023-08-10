@@ -174,7 +174,7 @@ The default target value is the primary master, primary job master, all workers 
 * `--level <arg>` If provided, the command changes to the given logger level,
 otherwise it returns the current logger level.
 
-See [here]({{ '/en/administration/Basic-Logging.html#modifying-server-logging-at-runtime' | relativize_url }})
+See [here]({{ '/en/operation/Basic-Logging.html#modifying-server-logging-at-runtime' | relativize_url }})
 for more examples.
 
 > Note: This command requires the Alluxio cluster to be running.
@@ -267,7 +267,7 @@ $ ./bin/alluxio validateConf
 ### collectInfo
 
 The `collectInfo` command collects information to troubleshoot an Alluxio cluster.
-For more information see the [collectInfo command page]({{ '/en/administration/Troubleshooting.html#alluxio-collectinfo-command' | relativize_url }}).
+For more information see the [collectInfo command page]({{ '/en/Troubleshooting.html#alluxio-collectinfo-command' | relativize_url }}).
 
 > Note: This command does not require the Alluxio cluster to be running.
 > But if the cluster is not running, this command will fail to gather some information from it.

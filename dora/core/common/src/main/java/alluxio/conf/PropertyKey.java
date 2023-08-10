@@ -2651,46 +2651,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "the log folder when it transitions to standby. ")
           .setScope(Scope.MASTER)
           .build();
-
-  public static final PropertyKey MASTER_FILE_ACCESS_TIME_UPDATER_ENABLED =
-      booleanBuilder(Name.MASTER_FILE_ACCESS_TIME_UPDATER_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("If enabled, file access time updater will update the file last "
-              + "access time when an inode is accessed. This property can be turned off to improve "
-              + "performance and reduce the number of journal entries if your application does "
-              + "not rely on the file access time metadata.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
-      durationBuilder(Name.MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL)
-          .setDefaultValue("1h")
-          .setDescription("The minimum interval between files access time update journal entries "
-              + "get flushed asynchronously. Setting it to a non-positive value will make the the "
-              + "journal update synchronous. Asynchronous update reduces the performance impact of "
-              + "tracking access time but can lose some access time update when master stops "
-              + "unexpectedly.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION =
-      durationBuilder(Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION)
-          .setDefaultValue("1d")
-          .setDescription("The file last access time is precise up to this value. Setting it to"
-              + "a non-positive value will update last access time on every file access operation."
-              + "Longer precision will help reduce the performance impact of tracking access time "
-              + "by reduce the amount of metadata writes occur while reading the same group of "
-              + "files repetitively.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_FILE_ACCESS_TIME_UPDATER_SHUTDOWN_TIMEOUT =
-      durationBuilder(Name.MASTER_FILE_ACCESS_TIME_UPDATER_SHUTDOWN_TIMEOUT)
-          .setDefaultValue("1sec")
-          .setDescription("Maximum time to wait for access updater to stop on shutdown.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_FORMAT_FILE_PREFIX =
       stringBuilder(Name.MASTER_FORMAT_FILE_PREFIX)
           .setAlias("alluxio.master.format.file_prefix")
@@ -3413,19 +3373,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "in memory. This config is only available when "
               + Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS + "is enabled.")
           .build();
-  public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
-      booleanBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
-          .setDefaultValue(true)
-          .setDescription("Whether the system should delete orphaned blocks found during the "
-              + "periodic integrity check.")
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
-      durationBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL)
-          .setDefaultValue("1hr")
-          .setDescription("The period for the block integrity check, disabled if <= 0.")
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
       durationBuilder(Name.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS)
           .setDefaultValue("1s")
@@ -3536,15 +3483,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setIsHidden(true)
           .setIgnoredSiteProperty(true)
-          .build();
-  public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
-      booleanBuilder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Whether the system should be checked on startup for orphaned blocks "
-              + "(blocks having no corresponding files but still taking system resource due to "
-              + "various system failures). Orphaned blocks will be deleted during master startup "
-              + "if this property is true. This property is available since 1.7.1")
-          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_STATE_LOCK_ERROR_THRESHOLD =
       intBuilder(Name.MASTER_STATE_LOCK_ERROR_THRESHOLD)
@@ -4112,99 +4050,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "will prevent master snapshotting from working correctly.")
           .setScope(Scope.ALL)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .build();
-
-  //
-  // Throttle
-  //
-  public static final PropertyKey MASTER_THROTTLE_BACKGROUND_ENABLED =
-      booleanBuilder(Name.MASTER_THROTTLE_BACKGROUND_ENABLED)
-          .setDefaultValue(false)
-          .setIsDynamic(true)
-          .setDescription("Whether to throttle the background job")
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_ENABLED =
-      booleanBuilder(Name.MASTER_THROTTLE_ENABLED)
-          .setDefaultValue(true)
-          .setIsDynamic(true)
-          .setDescription("The throttle service can monitor and throttle the master in case of "
-              + "overloaded")
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_HEARTBEAT_INTERVAL =
-      durationBuilder(Name.MASTER_THROTTLE_HEARTBEAT_INTERVAL)
-          .setDefaultValue("3sec")
-          .setDescription("The heartbeat interval for throttling monitor check")
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_FOREGROUND_ENABLED =
-      booleanBuilder(Name.MASTER_THROTTLE_FOREGROUND_ENABLED)
-          .setDefaultValue(false)
-          .setIsDynamic(true)
-          .setDescription("Whether to throttle the foreground job")
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO =
-      doubleBuilder(Name.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO)
-          .setDefaultValue(0.5d)
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO =
-      doubleBuilder(Name.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO)
-          .setDefaultValue(0.5d)
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME =
-      durationBuilder(Name.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME)
-          .setDefaultValue("1sec")
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE =
-      intBuilder(Name.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE)
-          .setDefaultValue(50000)
-          .setIsDynamic(true)
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO =
-      doubleBuilder(Name.MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO)
-          .setDefaultValue(0.8d)
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO =
-      doubleBuilder(Name.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO)
-          .setDefaultValue(0.8d)
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_STRESSED_HEAP_GC_TIME =
-      durationBuilder(Name.MASTER_THROTTLE_STRESSED_HEAP_GC_TIME)
-          .setDefaultValue("5sec")
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE =
-      intBuilder(Name.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE)
-          .setDefaultValue(100000)
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO =
-      doubleBuilder(Name.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO)
-          .setDefaultValue(0.95d)
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO =
-      doubleBuilder(Name.MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO)
-          .setDefaultValue(0.9d)
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME =
-      durationBuilder(Name.MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME)
-          .setDefaultValue("10sec")
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE =
-      intBuilder(Name.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE)
-          .setDefaultValue(150000)
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_OBSERVED_PIT_NUMBER =
-      intBuilder(Name.MASTER_THROTTLE_OBSERVED_PIT_NUMBER)
-          .setDefaultValue(3)
-          .setDescription("The number of indicator PITs used to evaluate the system status.")
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_FILESYSTEM_OP_PER_SEC =
-      intBuilder(Name.MASTER_THROTTLE_FILESYSTEM_OP_PER_SEC)
-          .setIsDynamic(true)
-          .setDefaultValue(2000)
-          .setDescription("The max filesystem operations can be made per second "
-              + "if throttling is triggered")
-          .build();
-  public static final PropertyKey MASTER_THROTTLE_FILESYSTEM_RPC_QUEUE_SIZE_LIMIT =
-      intBuilder(Name.MASTER_THROTTLE_FILESYSTEM_RPC_QUEUE_SIZE_LIMIT)
-          .setDefaultValue(1000)
           .build();
 
   //
@@ -5369,6 +5214,77 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The port Alluxio worker's web UI runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_REST_PORT =
+      intBuilder(Name.WORKER_REST_PORT)
+          .setDefaultValue(29998)
+          .setDescription("The port Alluxio worker's rest api runs on.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_S3_REST_ENABLED =
+      booleanBuilder(Name.WORKER_S3_REST_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable worker netty s3 server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_S3_AUDIT_LOGGING_ENABLED =
+      booleanBuilder(Name.WORKER_S3_LOGGING_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable worker netty s3 audit.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_S3_ASYNC_PROCESS_ENABLED =
+      booleanBuilder(Name.WORKER_S3_ASYNC_PROCESS_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If enabled, handle S3 request "
+              + "in async mode in the netty based s3.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_S3_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER =
+      intBuilder(Name.WORKER_S3_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER)
+          .setDefaultValue(8)
+          .setDescription("Core thread number for async light thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WORKER_S3_ASYNC_LIGHT_POOL_MAXIMUM_THREAD_NUMBER =
+      intBuilder(Name.WORKER_S3_ASYNC_LIGHT_POOL_MAXIMUM_THREAD_NUMBER)
+          .setDefaultValue(64)
+          .setDescription("Maximum thread number for async light thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WORKER_S3_ASYNC_LIGHT_POOL_QUEUE_SIZE =
+      intBuilder(Name.WORKER_S3_ASYNC_LIGHT_POOL_QUEUE_SIZE)
+          .setDefaultValue(64 * 1024)
+          .setDescription("Queue size for async light thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WORKER_S3_ASYNC_HEAVY_POOL_CORE_THREAD_NUMBER =
+      intBuilder(Name.WORKER_S3_ASYNC_HEAVY_POOL_CORE_THREAD_NUMBER)
+          .setDefaultValue(8)
+          .setDescription("Core thread number for async heavy thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WORKER_S3_ASYNC_HEAVY_POOL_MAXIMUM_THREAD_NUMBER =
+      intBuilder(Name.WORKER_S3_ASYNC_HEAVY_POOL_MAXIMUM_THREAD_NUMBER)
+          .setDefaultValue(64)
+          .setDescription("Maximum thread number for async heavy thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WORKER_S3_ASYNC_HEAVY_POOL_QUEUE_SIZE =
+      intBuilder(Name.WORKER_S3_ASYNC_HEAVY_POOL_QUEUE_SIZE)
+          .setDefaultValue(64 * 1024)
+          .setDescription("Queue size for async heavy thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
       durationBuilder(Name.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS)
@@ -6548,7 +6464,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_METRICS_COLLECTION_ENABLED =
       booleanBuilder(Name.USER_METRICS_COLLECTION_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("Enable collecting the client-side metrics and heartbeat them to master")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -8358,14 +8274,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.container.id.reservation.size";
     public static final String MASTER_FAILOVER_COLLECT_INFO =
         "alluxio.master.failover.collect.info";
-    public static final String MASTER_FILE_ACCESS_TIME_UPDATER_ENABLED =
-        "alluxio.master.file.access.time.updater.enabled";
-    public static final String MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL =
-        "alluxio.master.file.access.time.journal.flush.interval";
-    public static final String MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION =
-        "alluxio.master.file.access.time.update.precision";
-    public static final String MASTER_FILE_ACCESS_TIME_UPDATER_SHUTDOWN_TIMEOUT =
-        "alluxio.master.file.access.time.updater.shutdown.timeout";
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file.prefix";
     public static final String MASTER_STANDBY_HEARTBEAT_INTERVAL =
         "alluxio.master.standby.heartbeat.interval";
@@ -8599,10 +8507,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.merge.journal.context.num.entries.logging.threshold";
     public static final String MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES =
         "alluxio.master.recursive.operation.journal.force.flush.max.entries";
-    public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
-        "alluxio.master.periodic.block.integrity.check.repair";
-    public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
-        "alluxio.master.periodic.block.integrity.check.interval";
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_PROXY_TIMEOUT_MS = "alluxio.master.proxy.timeout";
     public static final String MASTER_PROXY_CHECK_HEARTBEAT_INTERVAL =
@@ -8631,8 +8535,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.serving.thread.timeout";
     public static final String MASTER_SKIP_ROOT_ACL_CHECK =
         "alluxio.master.skip.root.acl.check";
-    public static final String MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
-        "alluxio.master.startup.block.integrity.check.enabled";
     public static final String MASTER_STATE_LOCK_ERROR_THRESHOLD =
         "alluxio.master.state.lock.error.threshold";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
@@ -9017,6 +8919,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
+    public static final String WORKER_REST_PORT = "alluxio.worker.rest.port";
+    public static final String WORKER_S3_REST_ENABLED = "alluxio.worker.s3.api.enabled";
+    public static final String WORKER_S3_LOGGING_ENABLED =
+        "alluxio.worker.s3.audit.logging.enabled";
+    public static final String WORKER_S3_ASYNC_PROCESS_ENABLED =
+        "alluxio.worker.s3.async.processing.enabled";
+    public static final String WORKER_S3_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER =
+        "alluxio.worker.s3.async.light.pool.core.thread.number";
+    public static final String WORKER_S3_ASYNC_LIGHT_POOL_MAXIMUM_THREAD_NUMBER =
+        "alluxio.worker.s3.async.light.pool.maximum.thread.number";
+    public static final String WORKER_S3_ASYNC_LIGHT_POOL_QUEUE_SIZE =
+        "alluxio.worker.s3.async.light.pool.queue.size";
+    public static final String WORKER_S3_ASYNC_HEAVY_POOL_CORE_THREAD_NUMBER =
+        "alluxio.worker.s3.async.heavy.pool.core.thread.number";
+    public static final String WORKER_S3_ASYNC_HEAVY_POOL_MAXIMUM_THREAD_NUMBER =
+        "alluxio.worker.s3.async.heavy.pool.maximum.thread.number";
+    public static final String WORKER_S3_ASYNC_HEAVY_POOL_QUEUE_SIZE =
+        "alluxio.worker.s3.async.heavy.pool.queue.size";
     public static final String WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
         "alluxio.worker.ufs.block.open.timeout";
     public static final String WORKER_UFS_INSTREAM_CACHE_EXPIRATION_TIME =

@@ -112,16 +112,7 @@ launch_process() {
 }
 
 # Launch a master process
-#
-# Environment Variables:
-#     JOURNAL_BACKUP: (Optional) A location of a journal backup. If set, the
-#                     master will read the value of this variable as a journal
-#                     backup.
 launch_master() {
-  if [[ -n ${JOURNAL_BACKUP} ]]; then
-    ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.journal.init.from.backup=${JOURNAL_BACKUP}"
-  fi
-
   # use a default Xmx value for the master
   local contain_xmx="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}" "Xmx")"
   local contain_max_percentage="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}" "MaxRAMPercentage")"

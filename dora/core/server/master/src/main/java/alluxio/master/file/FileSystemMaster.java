@@ -524,15 +524,6 @@ public interface FileSystemMaster extends Master {
       AccessControlException;
 
   /**
-   * Checks the integrity of the inodes with respect to the blocks of the system.
-   *
-   * @param repair if true, will attempt to repair the state of the system when inconsistencies are
-   *               discovered
-   * @throws UnavailableException if the repair attempt fails
-   */
-  void validateInodeBlocks(boolean repair) throws UnavailableException;
-
-  /**
    * Instructs a worker to persist the files.
    * <p>
    * Needs WRITE permission on the list of files.

@@ -97,16 +97,13 @@ public interface MembershipManager extends AutoCloseable {
      * Get or create a MembershipManager instance.
      * @param conf
      * @return MembershipManager
-     * @throws IOException
      */
-    public static MembershipManager get(AlluxioConfiguration conf) throws IOException {
+    public static MembershipManager get(AlluxioConfiguration conf) {
       if (MEMBERSHIP_MANAGER.get() == null) {
         try (LockResource lockResource = new LockResource(INIT_LOCK)) {
           if (MEMBERSHIP_MANAGER.get() == null) {
             MEMBERSHIP_MANAGER.set(create(conf));
           }
-        } catch (IOException e) {
-          throw e;
         }
       }
       return MEMBERSHIP_MANAGER.get();
@@ -116,7 +113,7 @@ public interface MembershipManager extends AutoCloseable {
      * @param conf the Alluxio configuration
      * @return an instance of {@link MembershipManager}
      */
-    public static MembershipManager create(AlluxioConfiguration conf) throws IOException {
+    public static MembershipManager create(AlluxioConfiguration conf) {
       switch (conf.getEnum(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.class)) {
         case STATIC:
           return StaticMembershipManager.create(conf);

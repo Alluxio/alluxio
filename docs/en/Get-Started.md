@@ -13,9 +13,10 @@ The guide will cover the following tasks:
 * **[Bonus]** Mount HDFS under storage in Alluxio
 * Stop Alluxio
 
-**[Bonus]** This guide contains optional tasks that use credentials from an
+This guide contains optional tasks labeled with **[Bonus]** that use credentials from an
 [AWS account with an access key id and secret access key](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html).
-The optional sections will be labeled with **[Bonus]**.
+
+▶️ [Get Alluxio Up & Running in Less Than 3 Min!](https://youtu.be/5YQvvznT5cI){:target="_blank"} (2:36)
 
 **Note**: This guide is designed to start an Alluxio system with minimal setup on a single machine.
 If you are trying to speedup SQL analytics, you can try the

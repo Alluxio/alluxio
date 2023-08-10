@@ -388,7 +388,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     checkZkConfiguration();
     checkTieredLocality();
     checkTieredStorage();
-    checkMasterThrottleThresholds();
     checkCheckpointZipConfig();
   }
 
@@ -590,89 +589,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       throw new IllegalStateException(String.format("Zip compression level for property key %s"
           + " must be between -1 and 9 inclusive",
           PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL.getName()));
-    }
-  }
-
-  /**
-   * @throws IllegalStateException if invalid throttle threshold parameters are found
-   */
-  private void checkMasterThrottleThresholds() {
-    boolean heapUsedRatioThresholdValid
-        = (Double
-        .compare(0,
-            getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO)) < 0
-        && Double
-        .compare(getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO),
-        getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO)) < 0
-        && Double
-        .compare(getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO),
-        getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO)) < 0
-        && Double
-        .compare(getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO),
-            1) <= 0);
-    if (!heapUsedRatioThresholdValid) {
-      throw new IllegalStateException(
-          String.format("The heap used ratio thresholds are not set correctly, the values should"
-                  + " be between 0 and 1, it is expected: ACTIVE < STRESSED < OVERLOADED,"
-                  + " while they are ACTIVE({}), STRESSED({}), OVERLOADED({})",
-              getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO),
-              getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO),
-              getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO)));
-    }
-
-    boolean cpuUsedRatioThresholdValid
-        = (Double
-        .compare(0,
-            getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO)) < 0
-        && Double
-        .compare(getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO),
-            getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO)) < 0
-        && Double
-        .compare(getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO),
-            getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO)) < 0
-        && Double
-        .compare(getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO),
-            1) <= 0);
-    if (!cpuUsedRatioThresholdValid) {
-      throw new IllegalStateException(
-          String.format("The cpu used ratio thresholds are not set correctly, the values should"
-                  + " be between 0 and 1, it is expected: ACTIVE < STRESSED < OVERLOADED,"
-                  + " while they are ACTIVE({}), STRESSED({}), OVERLOADED({})",
-              getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO),
-              getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO),
-              getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO)));
-    }
-
-    boolean heapGCTimeThresholdValid
-        = (0 < getMs(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME)
-        && getMs(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME)
-        < getMs(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_GC_TIME)
-        && getMs(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_GC_TIME)
-        < getMs(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME));
-    if (!heapGCTimeThresholdValid) {
-      throw new IllegalStateException(
-          String.format("The heap GC extra time threshold is not set correctly,"
-                  + " it is expected: ACTIVE < STRESSED < OVERLOADED, while they are "
-                  + "ACTIVE({}), STRESSED({}), OVERLOADED({})",
-              getMs(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME),
-              getMs(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_GC_TIME),
-              getMs(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME)));
-    }
-
-    boolean rpcQueueSizeThresholdValid
-        = (0 < getInt(PropertyKey.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE)
-        && getInt(PropertyKey.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE)
-        < getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE)
-        && getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE)
-        < getInt(PropertyKey.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE));
-    if (!rpcQueueSizeThresholdValid) {
-      throw new IllegalStateException(
-          String.format("The rpc queue size threshold is not set correctly,"
-                  + " it is expected: ACTIVE < STRESSED < OVERLOADED, while they are "
-                  + "ACTIVE({}), STRESSED({}), OVERLOADED({})",
-              getInt(PropertyKey.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE),
-              getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE),
-              getInt(PropertyKey.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE)));
     }
   }
 

@@ -118,9 +118,9 @@ public class AlluxioMasterProcess extends MasterProcess {
     // Create masters.
     mContext = createBaseMasterContext().build();
     MasterUtils.createMasters(mRegistry, mContext);
-    if (Configuration.getBoolean(PropertyKey.MASTER_THROTTLE_ENABLED)) {
-      mRegistry.get(alluxio.master.throttle.DefaultThrottleMaster.class).setMaster(this);
-    }
+//    if (Configuration.getBoolean(PropertyKey.MASTER_THROTTLE_ENABLED)) {
+//      mRegistry.get(alluxio.master.throttle.DefaultThrottleMaster.class).setMaster(this);
+//    }
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_LAST_GAIN_PRIMACY_TIME.getName(),
         () -> mLastGainPrimacyTime);
