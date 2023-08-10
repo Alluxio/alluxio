@@ -18,66 +18,64 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
-import com.google.common.base.Throwables;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Start a polling sync of a particular path.
+ * Sync direct children next time command.
  */
-
 @ThreadSafe
 @PublicApi
-public final class StartSyncCommand extends AbstractFileSystemCommand {
+public final class SyncDirNextTimeCommand extends AbstractFileSystemCommand {
+
+  private boolean mSyncNextTime;
 
   /**
    * @param fsContext the filesystem of Alluxio
    */
-  public StartSyncCommand(FileSystemContext fsContext) {
+  public SyncDirNextTimeCommand(FileSystemContext fsContext) {
     super(fsContext);
   }
 
   @Override
   public String getCommandName() {
-    return "startSync";
+    return "syncDirNextTime";
   }
 
   @Override
-  protected void runPlainPath(AlluxioURI path, CommandLine cl) {
-    System.out.println("Starting a full sync of '" + path
-        + "'. You can check the status of the sync using getSyncPathList cmd");
-    try {
-      mFileSystem.startSync(path);
-    } catch (Exception e) {
-      Throwables.propagateIfPossible(e);
-      System.out.println("Failed to start automatic syncing of '" + path + "'.");
-      throw new RuntimeException(e);
-    }
-    System.out.println("Started automatic syncing of '" + path + "'.");
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 2);
+  }
+
+  @Override
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
+    FileSystemCommandUtils.setDirectChildrenLoaded(mFileSystem, path, mSyncNextTime);
+    System.out.format("Successfully marked the dir %s to %s%n", path,
+        mSyncNextTime ? "trigger metadata sync on next access"
+            : "skip metadata sync on next access");
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    AlluxioURI path = new AlluxioURI(args[0]);
-    runWildCardCmd(path, cl);
+    mSyncNextTime = Boolean.parseBoolean(args[0]);
+    runWildCardCmd(new AlluxioURI(args[1]), cl);
     return 0;
   }
 
   @Override
   public String getUsage() {
-    return "startSync <path>";
+    return "syncDirNextTime <true|false> <path>\n"
+        + "\ttrue means the next access will trigger a metadata sync on the dir"
+        + "\tfalse means the next metadata sync is disabled";
   }
 
   @Override
   public String getDescription() {
-    return "Starts the automatic syncing process of the specified path). ";
-  }
-
-  @Override
-  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
+    return "Marks a directory to either trigger a metadata sync or skip the "
+        + "metadata sync on next access.";
   }
 }
