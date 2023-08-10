@@ -38,7 +38,6 @@ public final class HeartbeatContext {
       "Job Worker Command Handling";
   public static final String MASTER_THROTTLE = "Master Throttle";
   public static final String MASTER_ACTIVE_UFS_SYNC = "Master Active UFS Sync";
-  public static final String MASTER_BLOCK_INTEGRITY_CHECK = "Master Block Integrity Check";
   public static final String MASTER_CHECKPOINT_SCHEDULING = "Master Checkpoint Scheduling";
   public static final String MASTER_CLUSTER_METRICS_UPDATER = "Master Cluster Metrics Updater";
   public static final String MASTER_DAILY_BACKUP = "Master Daily Backup";
@@ -85,7 +84,6 @@ public final class HeartbeatContext {
     MASTER_POLICY_ACTION_SCHEDULER(103),
     MASTER_THROTTLE(104),
     MASTER_ACTIVE_UFS_SYNC(105),
-    MASTER_BLOCK_INTEGRITY_CHECK(106),
     MASTER_CHECKPOINT_SCHEDULING(107),
     MASTER_CLUSTER_METRICS_UPDATER(108),
     MASTER_DAILY_BACKUP(109),
@@ -132,7 +130,6 @@ public final class HeartbeatContext {
     sTimerClasses.put(JOB_MASTER_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(JOB_WORKER_COMMAND_HANDLING, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_ACTIVE_UFS_SYNC, SLEEPING_TIMER_CLASS);
-    sTimerClasses.put(MASTER_BLOCK_INTEGRITY_CHECK, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_CHECKPOINT_SCHEDULING, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_CLUSTER_METRICS_UPDATER, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_DAILY_BACKUP, SLEEPING_TIMER_CLASS);
