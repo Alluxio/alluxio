@@ -147,10 +147,12 @@ public class UfsUrl {
       return rootPathComponents;
     }
 
+    // inputUrl.scheme is empty -> the inputUrl is a relative path.
     if (inputUrl.get("scheme").isEmpty()) {
       rootPathComponents.addAll(inputPathComponents);
       return rootPathComponents;
-    } else {
+    } else {  // inputUrl is an absolute path.
+      // if inputUrl.path is "/" or "//", i.e., root directory, set a "" to represent root.
       if (inputUrl.get("path").equals(PATH_SEPARATOR)
           || inputUrl.get("path").equals(DOUBLE_SLASH_SEPARATOR))  {
         inputPathComponents = Arrays.asList("");
