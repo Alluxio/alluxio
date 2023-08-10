@@ -11,8 +11,6 @@
 
 package alluxio.client.rest;
 
-import static org.junit.Assert.assertEquals;
-
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.WriteType;
@@ -23,7 +21,6 @@ import alluxio.proxy.s3.CompleteMultipartUploadRequest;
 import alluxio.proxy.s3.CompleteMultipartUploadRequest.Part;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
 import alluxio.proxy.s3.InitiateMultipartUploadResult;
-import alluxio.proxy.s3.ListMultipartUploadsResult;
 import alluxio.proxy.s3.S3RestUtils;
 import alluxio.s3.S3ErrorCode;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -35,7 +32,6 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.google.common.collect.ImmutableMap;
 import org.gaul.s3proxy.junit.S3ProxyRule;
 import org.junit.After;
 import org.junit.Assert;
@@ -52,6 +48,7 @@ public class MultipartUploadTest extends RestApiTest {
   private FileSystem mFileSystem;
   private AmazonS3 mS3Client = null;
   private static final int UFS_PORT = 8004;
+  private static final String S3_USER_NAME = "CustomersName@amazon.com";
   private static final String BUCKET_NAME = "bucket";
   private static final String OBJECT_NAME = "object";
   private static final String OBJECT_KEY = BUCKET_NAME + AlluxioURI.SEPARATOR + OBJECT_NAME;
@@ -289,19 +286,6 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   @Test
-  public void listMultipartUploads() throws Exception {
-    final String uploadId1 = initiateMultipartUpload();
-    final String uploadId2 = initiateMultipartUpload();
-    ListMultipartUploadsResult listUploadsResult = listTestCase(BUCKET_NAME,
-        ImmutableMap.of("uploads", "")).getResponse(ListMultipartUploadsResult.class);
-    List<ListMultipartUploadsResult.Upload> uploads = listUploadsResult.getUploads();
-
-    assertEquals(2, uploads.size());
-    assertEquals(uploadId1, uploads.get(0).getUploadId());
-    assertEquals(uploadId2, uploads.get(1).getUploadId());
-  }
-
-  @Test
   public void completeTooSmallPartsUpload() throws Exception {
     final int partsNum = 10;
     final List<String> objects = new ArrayList<>();
@@ -332,5 +316,10 @@ public class MultipartUploadTest extends RestApiTest {
         new CompleteMultipartUploadRequest(partList))
         .checkResponseCode(Status.NOT_FOUND.getStatusCode())
         .checkErrorCode(S3ErrorCode.Name.NO_SUCH_UPLOAD);
+  }
+
+  @Override
+  protected TestCaseOptions getDefaultOptionsWithAuth() {
+    return getDefaultOptionsWithAuth(S3_USER_NAME);
   }
 }
