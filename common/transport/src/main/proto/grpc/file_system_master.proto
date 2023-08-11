@@ -226,11 +226,6 @@ enum SyncPointStatus {
   Initially_Synced = 2;
 }
 
-message SyncPointInfo {
-  optional string syncPointUri = 1;
-  optional SyncPointStatus syncStatus = 2;
-}
-
 message ListStatusPResponse {
   repeated FileInfo fileInfos = 1;
 }
