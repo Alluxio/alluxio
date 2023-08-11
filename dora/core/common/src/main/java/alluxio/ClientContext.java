@@ -21,7 +21,6 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.security.user.UserState;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
 import javax.security.auth.Subject;
 
 /**
