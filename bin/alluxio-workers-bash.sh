@@ -12,9 +12,9 @@
 
 set -o pipefail
 
-. $(dirname "$0")/alluxio-common.sh
+. $(dirname "$0")/alluxio-common-bash.sh
 
-USAGE="Usage: alluxio-workers.sh command..."
+USAGE="Usage: alluxio-workers-bash.sh command..."
 
 # if no args specified, show usage
 if [[ $# -le 0 ]]; then

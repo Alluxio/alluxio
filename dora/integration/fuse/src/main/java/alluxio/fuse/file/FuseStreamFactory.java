@@ -9,35 +9,26 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.hdfs;
+package alluxio.fuse.file;
 
 import alluxio.AlluxioURI;
-import alluxio.SyncInfo;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The noop HDFS Active Sync provider.
+ * Factory for {@link FuseFileInStream}.
  */
-public class NoopHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
-  @Override
-  public SyncInfo getActivitySyncInfo() {
-    return SyncInfo.emptyInfo();
-  }
+@ThreadSafe
+public interface FuseStreamFactory {
 
-  @Override
-  public boolean startPolling(long txId) {
-    return false;
-  }
-
-  @Override
-  public boolean stopPolling() {
-    return false;
-  }
-
-  @Override
-  public void startSync(AlluxioURI ufsUri) {
-  }
-
-  @Override
-  public void stopSync(AlluxioURI ufsUri) {
-  }
+  /**
+   * Factory method for creating/opening a file
+   * and creating an implementation of {@link FuseFileStream}.
+   *
+   * @param uri the Alluxio URI
+   * @param flags the create/open flags
+   * @param mode the create file mode, -1 if not set
+   * @return the created fuse file stream
+   */
+  FuseFileStream create(AlluxioURI uri, int flags, long mode);
 }

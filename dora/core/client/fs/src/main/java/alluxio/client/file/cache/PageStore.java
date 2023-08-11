@@ -14,7 +14,6 @@ package alluxio.client.file.cache;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.MemoryPageStore;
 import alluxio.client.file.cache.store.PageStoreOptions;
-import alluxio.client.file.cache.store.RocksPageStore;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.file.ReadTargetBuffer;
@@ -48,9 +47,6 @@ public interface PageStore extends AutoCloseable {
     switch (options.getType()) {
       case LOCAL:
         pageStore = new LocalPageStore(options);
-        break;
-      case ROCKS:
-        pageStore = RocksPageStore.open(options);
         break;
       case MEM:
         pageStore = new MemoryPageStore((int) options.getPageSize());

@@ -66,7 +66,6 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -315,11 +314,6 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-  public List<SyncPointInfo> getSyncPathList() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public void persist(final AlluxioURI path, final ScheduleAsyncPersistencePOptions options) {
     throw new UnsupportedOperationException();
   }
@@ -412,25 +406,6 @@ public class UfsBaseFileSystem implements FileSystem {
             String.format("Cannot set attribute of %s", options));
       }
     });
-  }
-
-  /**
-   * Starts the active syncing process on an Alluxio path.
-   *
-   * @param path the path to sync
-   */
-  @Override
-  public void startSync(AlluxioURI path) {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
-   * Stops the active syncing process on an Alluxio path.
-   * @param path the path to stop syncing
-   */
-  @Override
-  public void stopSync(AlluxioURI path) {
-    throw new UnsupportedOperationException();
   }
 
   @Override
