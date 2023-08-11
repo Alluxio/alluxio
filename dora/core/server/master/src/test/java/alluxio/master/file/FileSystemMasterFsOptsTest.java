@@ -22,6 +22,7 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedClientUserResource;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.conf.Configuration;
 import alluxio.exception.AccessControlException;
@@ -63,6 +64,7 @@ import alluxio.wire.FileInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -78,6 +80,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "remove FileSystemMaster unit testcases")
+@Ignore
 @RunWith(Parameterized.class)
 public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
 
