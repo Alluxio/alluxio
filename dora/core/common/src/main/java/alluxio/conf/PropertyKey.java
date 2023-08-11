@@ -4867,8 +4867,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       enumBuilder(Name.WORKER_PAGE_STORE_TYPE, PageStoreType.class)
           .setDefaultValue(PageStoreType.LOCAL)
           .setDescription("The type of page store to use for worker page store. Can be either "
-              + "`LOCAL` or `ROCKS`. The `LOCAL` page store stores all pages in a directory, "
-              + "the `ROCKS` page store utilizes rocksDB to persist the data.")
+              + "`LOCAL` or `MEM`. The `LOCAL` page store stores all pages in a directory, "
+              + "the `MEM` page store stores all pages in memory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
