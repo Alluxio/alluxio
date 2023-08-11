@@ -63,7 +63,6 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
@@ -920,11 +919,6 @@ public class LocalCacheFileInStreamTest {
     @Override
     public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
         throws IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
 

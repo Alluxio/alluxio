@@ -51,7 +51,6 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -223,11 +222,6 @@ public abstract class AbstractAuthPolicyTest {
     @Override
     public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
         throws IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<SyncPointInfo> getSyncPathList() {
       throw new UnsupportedOperationException();
     }
 

@@ -66,7 +66,6 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -311,11 +310,6 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public Map<String, MountPointInfo> getMountTable(boolean checkUfs) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public List<SyncPointInfo> getSyncPathList() {
     throw new UnsupportedOperationException();
   }
 

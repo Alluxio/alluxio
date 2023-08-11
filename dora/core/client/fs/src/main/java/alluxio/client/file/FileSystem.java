@@ -59,7 +59,6 @@ import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -566,13 +565,6 @@ public interface FileSystem extends Closeable {
    */
   Map<String, MountPointInfo> getMountTable(boolean checkUfs)
       throws IOException, AlluxioException;
-
-  /**
-   * Lists all the actively synced paths.
-   *
-   * @return a list of actively synced paths
-   */
-  List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #openFile(AlluxioURI, OpenFilePOptions)} with default options.

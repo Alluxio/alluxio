@@ -44,7 +44,6 @@ import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 
 import java.io.IOException;
 import java.util.List;
@@ -173,11 +172,6 @@ public class DelegatingFileSystem implements FileSystem {
   public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
       throws IOException, AlluxioException {
     return mDelegatedFileSystem.getMountTable(checkUfs);
-  }
-
-  @Override
-  public List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
-    return mDelegatedFileSystem.getSyncPathList();
   }
 
   @Override

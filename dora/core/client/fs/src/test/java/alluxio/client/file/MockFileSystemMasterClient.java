@@ -37,7 +37,6 @@ import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
