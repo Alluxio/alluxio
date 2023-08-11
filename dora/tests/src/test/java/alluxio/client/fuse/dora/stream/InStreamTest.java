@@ -21,6 +21,7 @@ import alluxio.util.io.BufferUtils;
 
 import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
@@ -81,6 +82,7 @@ public class InStreamTest extends AbstractStreamTest {
     }
   }
 
+  @Ignore("RandomAccessFuseFileStream allows to execute truncate operation")
   @Test (expected = UnimplementedRuntimeException.class)
   public void truncate() throws Exception {
     AlluxioURI alluxioURI = getTestFileUri();

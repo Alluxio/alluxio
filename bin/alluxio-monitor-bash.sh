@@ -17,7 +17,7 @@ if [[ "$-" == *x* ]]; then
 fi
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
-USAGE="Usage: alluxio-monitor.sh [-hL] ACTION [host1,host2,...]
+USAGE="Usage: alluxio-monitor-bash.sh [-hL] ACTION [host1,host2,...]
 Where ACTION is one of:
   all                \tStart monitors for all masters, proxies, and workers nodes.
   local              \tStart monitors for all process locally.
@@ -185,24 +185,24 @@ run_monitors() {
   if [[ "${node_type}" == "master" ]]; then
     # master check should only run once...
     local master=$(echo -e "${nodes}" | head -n1)
-    run_on_node ${master} "${BIN}/alluxio-monitor.sh" ${mode} "${node_type}"
+    run_on_node ${master} "${BIN}/alluxio-monitor-bash.sh" ${mode} "${node_type}"
 
     nodes=$(echo -e "${nodes}" | tail -n+2)
     if [[ $? -ne 0 ]]; then
       # if there is an error, print the log tail for the remaining master nodes.
-      batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" -L "${node_type}"
+      batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor-bash.sh" -L "${node_type}"
     else
-      HA_ENABLED=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.zookeeper.enabled)
-      JOURNAL_TYPE=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type | awk '{print toupper($0)}')
+      HA_ENABLED=$(${BIN}/alluxio-bash getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.zookeeper.enabled)
+      JOURNAL_TYPE=$(${BIN}/alluxio-bash getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type | awk '{print toupper($0)}')
       if [[ ${JOURNAL_TYPE} == "EMBEDDED" ]]; then
         HA_ENABLED="true"
       fi
       if [[ ${HA_ENABLED} == "true" ]]; then
-        batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" "${mode}" "${node_type}"
+        batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor-bash.sh" "${mode}" "${node_type}"
       fi
     fi
   else
-    batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" "${mode}" "${node_type}"
+    batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor-bash.sh" "${mode}" "${node_type}"
   fi
 }
 

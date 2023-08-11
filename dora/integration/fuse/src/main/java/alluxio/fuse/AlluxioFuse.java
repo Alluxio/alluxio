@@ -123,16 +123,16 @@ public class AlluxioFuse {
       .addOption(HELP_OPTION);
 
   // prevent instantiation
-  protected AlluxioFuse() {}
+  protected AlluxioFuse() {
+  }
 
   /**
-   * Running this class will mount the file system according to the options passed to this function.
-   * The user-space fuse application will stay on the foreground and keep the file system mounted.
-   * The user can unmount the file system by gracefully killing (SIGINT) the process.
+   * Startup the FUSE process.
    *
-   * @param args arguments to run the command line
+   * @param args process arguments
+   * @throws ParseException
    */
-  public static void main(String[] args) throws ParseException {
+  public void start(String[] args) throws ParseException {
     CommandLine cli = PARSER.parse(OPTIONS, args);
 
     if (cli.hasOption(HELP_OPTION_NAME)) {
@@ -172,7 +172,12 @@ public class AlluxioFuse {
           Configuration.global(), UserState.Factory.create(conf)));
     }
     try (FileSystem fs = FileSystem.Factory.create(fsContext, fuseOptions.getFileSystemOptions())) {
-      launchFuse(fsContext, fs, fuseOptions, true);
+      FuseUmountable fuseFileSystem = createFuseFileSystem(fsContext, fs, fuseOptions);
+      if (fuseFileSystem instanceof AlluxioJniFuseFileSystem) {
+        AlluxioJniFuseFileSystem jniFuseFileSystem = (AlluxioJniFuseFileSystem) fuseFileSystem;
+        setupFuseFileSystem(jniFuseFileSystem);
+      }
+      launchFuse(fuseFileSystem, fsContext, fuseOptions, true);
     } catch (Throwable t) {
       if (executor != null) {
         executor.shutdown();
@@ -184,16 +189,27 @@ public class AlluxioFuse {
   }
 
   /**
-   * Launches Fuse application.
+   * Running this class will mount the file system according to the options passed to this function.
+   * The user-space fuse application will stay on the foreground and keep the file system mounted.
+   * The user can unmount the file system by gracefully killing (SIGINT) the process.
    *
-   * @param fsContext file system context for Fuse client to communicate to servers
-   * @param fs file system for Fuse client to communicate to servers
-   * @param fuseOptions Fuse options
-   * @param blocking whether the Fuse application is blocking or not
-   * @return the Fuse application handler for future Fuse umount operation
+   * @param args arguments to run the command line
    */
-  public static FuseUmountable launchFuse(FileSystemContext fsContext, FileSystem fs,
-       FuseOptions fuseOptions, boolean blocking) {
+  public static void main(String[] args) throws ParseException {
+    AlluxioFuse alluxioFuse = new AlluxioFuse();
+    alluxioFuse.start(args);
+  }
+
+  /**
+   * Create a FuseFileSystem instance.
+   *
+   * @param fsContext   the context of the file system on which FuseFileSystem based on
+   * @param fs          the file system on which FuseFileSystem based on
+   * @param fuseOptions the fuse options
+   * @return a FuseFileSystem instance
+   */
+  public FuseUmountable createFuseFileSystem(FileSystemContext fsContext, FileSystem fs,
+                                             FuseOptions fuseOptions) {
     AlluxioConfiguration conf = fsContext.getClusterConf();
     validateFuseConfAndOptions(conf, fuseOptions);
 
@@ -210,34 +226,71 @@ public class AlluxioFuse {
       }
     }
 
-    final boolean debugEnabled = conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
     if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
       final AlluxioJniFuseFileSystem fuseFs
           = new AlluxioJniFuseFileSystem(fsContext, fs, fuseOptions);
+      return fuseFs;
+    } else {
+      AlluxioJnrFuseFileSystem fuseFs = new AlluxioJnrFuseFileSystem(fs, conf, fuseOptions);
+      return fuseFs;
+    }
+  }
 
+  /**
+   * Set up the FUSE file system {@link AlluxioJniFuseFileSystem} before mounting.
+   *
+   * @param jniFuseFileSystem the instance of {@link AlluxioJniFuseFileSystem}
+   */
+  public void setupFuseFileSystem(AlluxioJniFuseFileSystem jniFuseFileSystem) {
+    // do nothing by default
+  }
+
+  /**
+   * Launches Fuse application.
+   *
+   * @param fuseFs      the fuse file system
+   * @param fsContext   file system context for Fuse client to communicate to servers
+   * @param fuseOptions Fuse options
+   * @param blocking    whether the Fuse application is blocking or not
+   * @return the Fuse application handler for future Fuse umount operation
+   */
+  public static FuseUmountable launchFuse(FuseUmountable fuseFs,
+                                          FileSystemContext fsContext, FuseOptions fuseOptions,
+                                          boolean blocking) {
+    AlluxioConfiguration conf = fsContext.getClusterConf();
+    validateFuseConfAndOptions(conf, fuseOptions);
+
+    String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
+    Path mountPath = Paths.get(mountPoint);
+
+    final boolean debugEnabled = conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
+    if (conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
       FuseSignalHandler fuseSignalHandler = new FuseSignalHandler(fuseFs);
       Signal.handle(new Signal("TERM"), fuseSignalHandler);
-
       try {
         LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
             mountPoint, String.join(",", fuseOptions.getFuseMountOptions()));
-        fuseFs.mount(blocking, debugEnabled, fuseOptions.getFuseMountOptions());
+        if (fuseFs instanceof AlluxioJniFuseFileSystem) {
+          ((AlluxioJniFuseFileSystem) fuseFs).mount(blocking, debugEnabled,
+              fuseOptions.getFuseMountOptions());
+        }
         return fuseFs;
       } catch (RuntimeException e) {
         fuseFs.umount(true);
         throw e;
       }
     } else {
-      final AlluxioJnrFuseFileSystem fuseFs = new AlluxioJnrFuseFileSystem(fs, conf, fuseOptions);
       try {
-        fuseFs.mount(mountPath, blocking, debugEnabled, fuseOptions.getFuseMountOptions()
-            .stream().map(a -> "-o" + a).toArray(String[]::new));
+        if (fuseFs instanceof AlluxioJnrFuseFileSystem) {
+          ((AlluxioJnrFuseFileSystem) fuseFs).mount(mountPath, blocking, debugEnabled,
+              fuseOptions.getFuseMountOptions().stream().map(a -> "-o" + a).toArray(String[]::new));
+        }
         return fuseFs;
       } catch (Throwable t) {
         // only try to umount file system when exception occurred.
         // jnr-fuse registers JVM shutdown hook to ensure fs.umount()
         // will be executed when this process is exiting.
-        fuseFs.umount();
+        fuseFs.umount(true);
         throw t;
       }
     }
@@ -246,7 +299,7 @@ public class AlluxioFuse {
   /**
    * Updates Alluxio configuration according to command line input.
    *
-   * @param cli the command line inputs
+   * @param cli  the command line inputs
    * @param conf the modifiable configuration to update
    */
   protected static void setConfigurationFromInput(CommandLine cli, InstancedConfiguration conf) {

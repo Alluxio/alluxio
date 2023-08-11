@@ -67,12 +67,6 @@ public interface PageStoreDir extends CacheStatus {
             PageStore.create(pageStoreOptions),
             CacheEvictor.create(cacheEvictorOptions)
         );
-      case ROCKS:
-        return new RocksPageStoreDir(
-            pageStoreOptions,
-            PageStore.create(pageStoreOptions),
-            CacheEvictor.create(cacheEvictorOptions)
-        );
       case MEM:
         return new MemoryPageStoreDir(
             pageStoreOptions,

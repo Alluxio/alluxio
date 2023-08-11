@@ -140,8 +140,6 @@ public final class RemovedKey {
           PropertyKey.Name.WORKER_RAMDISK_SIZE));
       put("alluxio.worker.network.netty.async.cache.manager.threads.max", removedSince(V2_0_0));
       put("alluxio.worker.network.netty.backlog", removedSince(V2_0_0));
-      put("alluxio.worker.network.netty.block.reader.threads.max", removedSince(V2_0_0));
-      put("alluxio.worker.network.netty.block.writer.threads.max", removedSince(V2_0_0));
       put("alluxio.worker.network.netty.buffer.receive", removedSince(V2_0_0));
       put("alluxio.worker.network.netty.buffer.send", removedSince(V2_0_0));
       put("alluxio.worker.network.netty.file.transfer", removedSince(V2_0_0));
