@@ -376,13 +376,18 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (entry == null) {
       LOG.error("Failed to release {}: Cannot find fd {}", path, fd);
+      if (mOpenedFiles.contains(path)) {
+        mOpenedFiles.remove(path);
+      }
       return -ErrorCodes.EBADFD();
     }
     try {
       entry.getFileStream().close();
     } finally {
       mFileEntries.remove(entry);
-      mOpenedFiles.remove(path);
+      if (mOpenedFiles.contains(path)) {
+        mOpenedFiles.remove(path);
+      }
     }
     return 0;
   }
