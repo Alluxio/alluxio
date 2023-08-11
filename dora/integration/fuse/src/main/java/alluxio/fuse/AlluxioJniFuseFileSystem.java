@@ -18,6 +18,7 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.conf.AlluxioConfiguration;
@@ -106,6 +107,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private final IndexedSet<FuseFileEntry<FuseFileStream>> mFileEntries
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
+
+  private final Set<String> mOpenedFiles = new ConcurrentHashSet<>();
+
   private final AuthPolicy mAuthPolicy;
   private final FuseFileStream.Factory mStreamFactory;
 
@@ -180,6 +184,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       long fd = mNextOpenFileId.getAndIncrement();
       mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
       fi.fh.set(fd);
+      mOpenedFiles.add(path);
     } catch (NotFoundRuntimeException e) {
       LOG.error("Failed to read {}: path does not exist or is invalid", path, e);
       return -ErrorCodes.ENOENT();
@@ -377,6 +382,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       entry.getFileStream().close();
     } finally {
       mFileEntries.remove(entry);
+      mOpenedFiles.remove(path);
     }
     return 0;
   }
@@ -453,6 +459,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int renameInternal(String sourcePath, String destPath, int flags) {
+    waitForFileRelease(sourcePath);
     AlluxioURI sourceUri = mPathResolverCache.getUnchecked(sourcePath);
     AlluxioURI destUri = mPathResolverCache.getUnchecked(destPath);
     int res = AlluxioFuseUtils.checkNameLength(destUri);
@@ -511,7 +518,26 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         FuseConstants.FUSE_CHMOD, "path=%s,mode=%o", path, mode);
   }
 
+  private void waitForFileRelease(String path) {
+    int maxRetries = 5;
+    int retryCount = 0;
+    long sleepTime = 2000L;
+    while (mOpenedFiles.contains(path) && retryCount < maxRetries) {
+      try {
+        LOG.debug("The file {} hasn't been released yet. Wait for release and retry the {} time. ",
+            path, retryCount + 1);
+        Thread.sleep(sleepTime);
+      } catch (InterruptedException e) {
+        // ignore this exception
+      }
+      sleepTime = sleepTime * 2;
+      retryCount++;
+    }
+  }
+
+
   private int chmodInternal(String path, long mode) {
+    waitForFileRelease(path);
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
@@ -530,6 +556,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int chownInternal(String path, long uid, long gid) {
+    waitForFileRelease(path);
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
