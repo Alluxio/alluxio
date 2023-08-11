@@ -3373,19 +3373,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "in memory. This config is only available when "
               + Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS + "is enabled.")
           .build();
-  public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
-      booleanBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
-          .setDefaultValue(true)
-          .setDescription("Whether the system should delete orphaned blocks found during the "
-              + "periodic integrity check.")
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
-      durationBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL)
-          .setDefaultValue("1hr")
-          .setDescription("The period for the block integrity check, disabled if <= 0.")
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
       durationBuilder(Name.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS)
           .setDefaultValue("1s")
@@ -3496,15 +3483,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .setIsHidden(true)
           .setIgnoredSiteProperty(true)
-          .build();
-  public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
-      booleanBuilder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Whether the system should be checked on startup for orphaned blocks "
-              + "(blocks having no corresponding files but still taking system resource due to "
-              + "various system failures). Orphaned blocks will be deleted during master startup "
-              + "if this property is true. This property is available since 1.7.1")
-          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_STATE_LOCK_ERROR_THRESHOLD =
       intBuilder(Name.MASTER_STATE_LOCK_ERROR_THRESHOLD)
@@ -4440,37 +4418,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX =
-      intBuilder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)
-          .setDefaultValue(512)
-          .setDescription("The maximum number of outstanding async caching requests to cache "
-              + "blocks in each data server")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  // In Java8 in container environment Runtime.availableProcessors() always returns 1,
-  // which is not the actual number of cpus, so we set a safe default value 8.
-  public static final PropertyKey WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
-      intBuilder(Name.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX)
-          .setDefaultSupplier(() -> Math.max(8, 2 * Runtime.getRuntime().availableProcessors()),
-              "2 * {CPU core count}")
-          .setDescription("The maximum number of threads used to cache blocks asynchronously in "
-              + "the data server.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_NETWORK_BLOCK_READER_THREADS_MAX =
-      intBuilder(Name.WORKER_NETWORK_BLOCK_READER_THREADS_MAX)
+  public static final PropertyKey WORKER_NETWORK_GRPC_READER_THREADS_MAX =
+      intBuilder(Name.WORKER_NETWORK_GRPC_READER_THREADS_MAX)
           .setDefaultValue(2048)
-          .setDescription("The maximum number of threads used to read blocks in the data server.")
+          .setDescription("The maximum number of threads used to read files in the data server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setAlias("alluxio.worker.network.block.reader.threads.max")
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =
-      intBuilder(Name.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX)
+  public static final PropertyKey WORKER_NETWORK_GRPC_WRITER_THREADS_MAX =
+      intBuilder(Name.WORKER_NETWORK_GRPC_WRITER_THREADS_MAX)
           .setDefaultValue(1024)
-          .setDescription("The maximum number of threads used to write blocks in the data server.")
+          .setDescription("The maximum number of threads used to write files in the data server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setAlias("alluxio.worker.network.block.write.threads.max")
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
@@ -4481,33 +4442,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-
-  public static final PropertyKey WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX =
-      intBuilder(Name.WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX)
-          .setDefaultValue(8)
-          .setDescription("The maximum number of threads used to cache blocks asynchronously in "
-              + "the netty data server.")
-          .build();
-
-  public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
-      intBuilder(Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX)
+  public static final PropertyKey WORKER_NETWORK_NETTY_READER_THREADS_MAX =
+      intBuilder(Name.WORKER_NETWORK_NETTY_READER_THREADS_MAX)
           .setDefaultValue(2048)
-          .setDescription("The maximum number of threads used to read blocks in the netty "
+          .setDescription("The maximum number of threads used to read pages in the netty "
               + "data server.")
+          .setAlias("alluxio.worker.network.netty.block.reader.threads.max")
           .build();
 
-  public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
-      intBuilder(Name.WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX)
+  public static final PropertyKey WORKER_NETWORK_NETTY_WRITER_THREADS_MAX =
+      intBuilder(Name.WORKER_NETWORK_NETTY_WRITER_THREADS_MAX)
           .setDefaultValue(1024)
-          .setDescription("The maximum number of threads used to write blocks in the netty "
+          .setDescription("The maximum number of threads used to write pages in the netty "
               + "data server.")
+          .setAlias("alluxio.worker.network.netty.block.writer.threads.max")
           .build();
 
-  public static final PropertyKey WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
-      intBuilder(Name.WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX)
+  public static final PropertyKey WORKER_NETWORK_NETTY_UFS_WRITER_THREADS_MAX =
+      intBuilder(Name.WORKER_NETWORK_NETTY_UFS_WRITER_THREADS_MAX)
           .setDefaultValue(1024)
           .setDescription("The maximum number of threads used to write files to UFS in the "
               + "netty data server.")
+          .setAlias("alluxio.worker.network.netty.file.writer.threads.max")
           .build();
 
   public static final PropertyKey WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
@@ -4889,8 +4845,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       enumBuilder(Name.WORKER_PAGE_STORE_TYPE, PageStoreType.class)
           .setDefaultValue(PageStoreType.LOCAL)
           .setDescription("The type of page store to use for worker page store. Can be either "
-              + "`LOCAL` or `ROCKS`. The `LOCAL` page store stores all pages in a directory, "
-              + "the `ROCKS` page store utilizes rocksDB to persist the data.")
+              + "`LOCAL` or `MEM`. The `LOCAL` page store stores all pages in a directory, "
+              + "the `MEM` page store stores all pages in memory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -6486,7 +6442,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_METRICS_COLLECTION_ENABLED =
       booleanBuilder(Name.USER_METRICS_COLLECTION_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("Enable collecting the client-side metrics and heartbeat them to master")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -8529,10 +8485,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.merge.journal.context.num.entries.logging.threshold";
     public static final String MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES =
         "alluxio.master.recursive.operation.journal.force.flush.max.entries";
-    public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
-        "alluxio.master.periodic.block.integrity.check.repair";
-    public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
-        "alluxio.master.periodic.block.integrity.check.interval";
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_PROXY_TIMEOUT_MS = "alluxio.master.proxy.timeout";
     public static final String MASTER_PROXY_CHECK_HEARTBEAT_INTERVAL =
@@ -8561,8 +8513,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.serving.thread.timeout";
     public static final String MASTER_SKIP_ROOT_ACL_CHECK =
         "alluxio.master.skip.root.acl.check";
-    public static final String MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
-        "alluxio.master.startup.block.integrity.check.enabled";
     public static final String MASTER_STATE_LOCK_ERROR_THRESHOLD =
         "alluxio.master.state.lock.error.threshold";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
@@ -8776,27 +8726,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_MASTER_PERIODICAL_RPC_TIMEOUT =
         "alluxio.worker.master.periodical.rpc.timeout";
     public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
-    public static final String WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX =
-        "alluxio.worker.network.async.cache.manager.threads.max";
-    public static final String WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX =
-        "alluxio.worker.network.async.cache.manager.queue.max";
-    public static final String WORKER_NETWORK_BLOCK_READER_THREADS_MAX =
-        "alluxio.worker.network.block.reader.threads.max";
-    public static final String WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX =
-        "alluxio.worker.network.block.writer.threads.max";
+    public static final String WORKER_NETWORK_GRPC_READER_THREADS_MAX =
+        "alluxio.worker.network.grpc.reader.threads.max";
+    public static final String WORKER_NETWORK_GRPC_WRITER_THREADS_MAX =
+        "alluxio.worker.network.grpc.writer.threads.max";
     public static final String WORKER_NETWORK_WRITER_BUFFER_SIZE_MESSAGES =
         "alluxio.worker.network.writer.buffer.size.messages";
 
-    public static final String WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX =
-        "alluxio.worker.network.netty.async.cache.manager.threads.max";
-    public static final String WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
-        "alluxio.worker.network.netty.block.reader.threads.max";
-    public static final String WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =
-        "alluxio.worker.network.netty.block.writer.threads.max";
-    public static final String WORKER_NETWORK_NETTY_FILE_READER_THREADS_MAX =
-        "alluxio.worker.network.netty.file.reader.threads.max";
-    public static final String WORKER_NETWORK_NETTY_FILE_WRITER_THREADS_MAX =
-        "alluxio.worker.network.netty.file.writer.threads.max";
+    public static final String WORKER_NETWORK_NETTY_READER_THREADS_MAX =
+        "alluxio.worker.network.netty.reader.threads.max";
+    public static final String WORKER_NETWORK_NETTY_WRITER_THREADS_MAX =
+        "alluxio.worker.network.netty.writer.threads.max";
+    public static final String WORKER_NETWORK_NETTY_UFS_WRITER_THREADS_MAX =
+        "alluxio.worker.network.netty.ufs.writer.threads.max";
     public static final String WORKER_NETWORK_NETTY_RPC_THREADS_MAX =
         "alluxio.worker.network.netty.rpc.threads.max";
     public static final String WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =

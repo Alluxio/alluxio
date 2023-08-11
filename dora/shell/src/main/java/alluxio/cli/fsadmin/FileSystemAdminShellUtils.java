@@ -16,10 +16,12 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterInquireClient;
 import alluxio.master.PollingMasterInquireClient;
+import alluxio.membership.MembershipType;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialBackoffRetry;
 
@@ -58,6 +60,12 @@ public final class FileSystemAdminShellUtils {
    * @param alluxioConf Alluxio configuration
    */
   public static void checkMasterClientService(AlluxioConfiguration alluxioConf) throws IOException {
+    MembershipType membershipType = alluxioConf
+        .getEnum(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.class);
+    if (membershipType == MembershipType.ETCD || membershipType == MembershipType.STATIC) {
+      return;
+    }
+
     try (FileSystemContext context = FileSystemContext.create(ClientContext.create(alluxioConf));
         CloseableResource<FileSystemMasterClient> client = context.acquireMasterClientResource()) {
       // MasterClient is guaranteed to have an InetSocketAddress remote

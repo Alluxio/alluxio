@@ -48,7 +48,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Interface of the block master that manages the metadata for all the blocks and block workers in
@@ -144,17 +143,6 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param delete whether to delete blocks' metadata in Master
    */
   void removeBlocks(Collection<Long> blockIds, boolean delete) throws UnavailableException;
-
-  /**
-   * Validates the integrity of blocks with respect to the validator. A warning will be printed if
-   * blocks are invalid.
-   *
-   * @param validator a function returns true if the given block id is valid
-   * @param repair if true, deletes the invalid blocks
-   * @throws UnavailableException if the invalid blocks cannot be deleted
-   */
-  void validateBlocks(Function<Long, Boolean> validator, boolean repair)
-      throws UnavailableException;
 
   /**
    * Marks a block as committed on a specific worker.

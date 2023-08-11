@@ -14,16 +14,16 @@ set -e
 
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
-USAGE="Usage: launch-process <process name> [-c]
+USAGE="Usage: launch-process-bash <process name> [-c]
 
-launch-process launches one of the Alluxio processes in the foreground. By
+launch-process-bash launches one of the Alluxio processes in the foreground. By
 default it will only log to the configured log file. To configure the process,
 add configuration properties in alluxio-site.properties or environment
 variables in conf/alluxio-env.sh.
 
 Note that this script does not verify Alluxio configuration before starting.
 It simply populates the necessary environment variables and launches the
-desired process in the foreground. It is recommended to use alluxio-start.sh
+desired process in the foreground. It is recommended to use alluxio-start-bash.sh
 unless you know what you are doing.
 "
 USAGE+="
