@@ -73,7 +73,6 @@ public final class CliRunnerTest {
 
     AlluxioConfiguration conf = mock(AlluxioConfiguration.class);
 
-    when(fsCtx.getPathConf(any(AlluxioURI.class))).thenReturn(conf);
     when(conf.getEnum(any(PropertyKey.class), any()))
             .thenReturn(WriteType.THROUGH);
 

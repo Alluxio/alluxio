@@ -78,7 +78,6 @@ public class MetadataCachingFileSystemTest {
     mFileContext = PowerMockito.mock(FileSystemContext.class);
     when(mFileContext.getClientContext()).thenReturn(mClientContext);
     when(mFileContext.getClusterConf()).thenReturn(mConf);
-    when(mFileContext.getPathConf(any())).thenReturn(mConf);
     when(mFileContext.getUriValidationEnabled()).thenReturn(true);
     // This is intentionally an empty mock
     // If RpcCountingUfsBaseFileSystem fails to serve a method, the empty mock will err

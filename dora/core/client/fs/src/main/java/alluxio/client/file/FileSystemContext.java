@@ -556,7 +556,7 @@ public class FileSystemContext implements Closeable {
         throw new UnavailableException("Failed to get master address during reinitialization", e);
       }
       try {
-        getClientContext().loadConf(masterAddr, updateClusterConf, updatePathConf);
+        getClientContext().loadConf(masterAddr, updateClusterConf);
       } catch (AlluxioStatusException e) {
         // Failed to load configuration from meta master, maybe master is being restarted,
         // or their is a temporary network problem, give up reinitialization. The heartbeat thread
@@ -604,19 +604,6 @@ public class FileSystemContext implements Closeable {
    */
   public AlluxioConfiguration getClusterConf() {
     return getClientContext().getClusterConf();
-  }
-
-  /**
-   * The path level configuration is a {@link SpecificPathConfiguration}.
-   *
-   * If path level configuration has never been loaded from meta master yet, it will be loaded.
-   *
-   * @param path the path to get the configuration for
-   * @return the path level configuration for the specific path
-   */
-  public AlluxioConfiguration getPathConf(AlluxioURI path) {
-    return new SpecificPathConfiguration(getClientContext().getClusterConf(),
-        getClientContext().getPathConf(), path);
   }
 
   /**

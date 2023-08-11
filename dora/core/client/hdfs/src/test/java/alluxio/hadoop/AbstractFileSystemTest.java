@@ -784,7 +784,6 @@ public class AbstractFileSystemTest {
     FileSystemContext fsContext = mock(FileSystemContext.class);
     when(fsContext.getClientContext()).thenReturn(ClientContext.create(mConfiguration));
     when(fsContext.getClusterConf()).thenReturn(mConfiguration);
-    when(fsContext.getPathConf(any(AlluxioURI.class))).thenReturn(mConfiguration);
     alluxio.client.file.FileSystem fs = alluxio.client.file.FileSystem.Factory.create(fsContext);
     alluxio.client.file.FileSystem spyFs = spy(fs);
     doReturn(new URIStatus(fileInfo)).when(spyFs).getStatus(uri);

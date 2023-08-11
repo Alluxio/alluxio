@@ -104,8 +104,6 @@ public class BatchedJobDefinitionTest {
     when(mMockFsContext.getClientContext())
         .thenReturn(ClientContext.create(Configuration.global()));
     when(mMockFsContext.getClusterConf()).thenReturn(Configuration.global());
-    when(mMockFsContext.getPathConf(any(AlluxioURI.class)))
-        .thenReturn(Configuration.global());
     mJobServerContext = new JobServerContext(mMockFileSystem, mMockFsContext,
         mock(UfsManager.class));
   }
