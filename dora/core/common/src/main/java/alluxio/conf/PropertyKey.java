@@ -53,7 +53,6 @@ import alluxio.network.netty.FileTransferType;
 import alluxio.security.authentication.AuthType;
 import alluxio.underfs.ChecksumType;
 import alluxio.util.FormatUtils;
-import alluxio.util.OSUtils;
 import alluxio.util.compression.DirectoryMarshaller;
 import alluxio.worker.block.BlockStoreType;
 
