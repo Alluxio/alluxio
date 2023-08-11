@@ -73,9 +73,6 @@ public final class ConfigurationTestUtils {
         PathUtils.concatPath(workDirectory, "underFSStorage"));
     conf.put(PropertyKey.WORKER_PAGE_STORE_DIRS, ramdiskPath);
 
-    // Sets up the block allocation and review policy
-    conf.put(PropertyKey.WORKER_REVIEWER_CLASS, "alluxio.worker.block.reviewer.AcceptingReviewer");
-
     // Sets up the journal folder
     conf.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, PathUtils.concatPath(workDirectory, "journal"));
@@ -86,7 +83,6 @@ public final class ConfigurationTestUtils {
         PathUtils.concatPath(workDirectory, "worker"));
 
     conf.put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1KB");
-    conf.put(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "64");
     conf.put(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64");
     conf.put(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "1sec");
     conf.put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "1sec");
@@ -147,10 +143,6 @@ public final class ConfigurationTestUtils {
 
     // faster refresh
     conf.put(PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME, "20ms");
-
-    // faster I/O retries.
-    conf.put(PropertyKey.USER_BLOCK_READ_RETRY_SLEEP_MIN, "5ms");
-    conf.put(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION, "10ms");
 
     conf.put(PropertyKey.TEST_MODE, true);
 
