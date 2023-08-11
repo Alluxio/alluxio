@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import static java.util.stream.Collectors.toList;
 
-import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.BlockMasterClient;
@@ -27,7 +26,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ReconfigurableRegistry;
-import alluxio.conf.path.SpecificPathConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
