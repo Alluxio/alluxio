@@ -35,7 +35,7 @@ public enum WriteType {
    * Write the file and try to cache it.
    *
    * @deprecated This write type is deprecated as of v0.8 and not recommended for use. Use either
-   * {@link #MUST_CACHE} or {@link #CACHE_THROUGH} depending on your data persistence
+   * {@link #CACHE_THROUGH} or {@link #THROUGH} depending on your data persistence
    * requirements.
    */
   @Deprecated
@@ -98,7 +98,7 @@ public enum WriteType {
 
   /**
    * @return true if by this write type data will be cached in Alluxio space (e.g.,
-   * {@link #MUST_CACHE}, {@link #CACHE_THROUGH}, {@link #TRY_CACHE}, false otherwise
+   * {@link #CACHE_THROUGH}, {@link #TRY_CACHE}, false otherwise
    */
   public boolean isCache() {
     return (mValue == CACHE_THROUGH.mValue) || (mValue == TRY_CACHE.mValue);
