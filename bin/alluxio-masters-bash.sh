@@ -12,9 +12,9 @@
 
 set -o pipefail
 
-. $(dirname "$0")/alluxio-common.sh
+. $(dirname "$0")/alluxio-common-bash.sh
 
-USAGE="Usage: alluxio-masters.sh command..."
+USAGE="Usage: alluxio-masters-bash.sh command..."
 
 # if no args specified, show usage
 if [[ $# -le 0 ]]; then
@@ -32,8 +32,8 @@ ALLUXIO_TASK_LOG="${ALLUXIO_LOGS_DIR}/task.log"
 
 echo "Executing the following command on all master nodes and logging to ${ALLUXIO_TASK_LOG}: $@" | tee -a ${ALLUXIO_TASK_LOG}
 
-HA_ENABLED=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.zookeeper.enabled)
-JOURNAL_TYPE=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type | awk '{print toupper($0)}')
+HA_ENABLED=$(${BIN}/alluxio-bash getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.zookeeper.enabled)
+JOURNAL_TYPE=$(${BIN}/alluxio-bash getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type | awk '{print toupper($0)}')
 if [[ ${JOURNAL_TYPE} == "EMBEDDED" ]]; then
   HA_ENABLED="true"
 fi
