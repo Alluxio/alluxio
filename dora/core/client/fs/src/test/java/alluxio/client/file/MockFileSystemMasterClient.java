@@ -110,11 +110,6 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public List<SyncPointInfo> getSyncPathList() throws AlluxioStatusException {
-    return null;
-  }
-
-  @Override
   public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
       Consumer<? super URIStatus> action) throws AlluxioStatusException {
   }
@@ -174,14 +169,6 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   @Override
   public void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws AlluxioStatusException {
-  }
-
-  @Override
-  public void startSync(AlluxioURI path) throws AlluxioStatusException {
-  }
-
-  @Override
-  public void stopSync(AlluxioURI path) throws AlluxioStatusException {
   }
 
   @Override
