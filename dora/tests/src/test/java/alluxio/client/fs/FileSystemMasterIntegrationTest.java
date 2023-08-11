@@ -454,7 +454,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     FileSystem fs = sLocalAlluxioClusterResource.get().getClient();
     for (int i = 0; i < 3; i++) {
       FileSystemTestUtils.createByteFile(fs, PathUtils.concatPath(dir, "file" + i), 100,
-          CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
+          CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build());
     }
     fs.delete(dir, DeletePOptions.newBuilder().setRecursive(true).build());
     assertFalse(fs.exists(dir));
@@ -734,9 +734,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
         UfsMode.READ_ONLY);
 
-    // Alluxio only should not be affected
-    mFsMaster.createFile(new AlluxioURI("/in_alluxio"),
-        CreateFileContext.defaults().setWriteType(WriteType.MUST_CACHE));
     // Ufs file creation should throw an exception
     mThrown.expect(AccessControlException.class);
     mFsMaster.createFile(new AlluxioURI("/in_ufs"),
@@ -748,9 +745,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.updateUfsMode(new AlluxioURI(mFsMaster.getUfsAddress()),
         UfsMode.READ_ONLY);
 
-    // Alluxio only should not be affected
-    mFsMaster.createDirectory(new AlluxioURI("/in_alluxio"),
-        CreateDirectoryContext.defaults().setWriteType(WriteType.MUST_CACHE));
     // Ufs file creation should throw an exception
     mThrown.expect(AccessControlException.class);
     mFsMaster.createDirectory(new AlluxioURI("/in_ufs"),

@@ -105,7 +105,7 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
           TieredIdentityFactory.fromString("node=node1,rack=rack1",
               Configuration.global()));
       try {
-        FileSystemTestUtils.createByteFile(fs, "/file1", WritePType.MUST_CACHE, 100);
+        FileSystemTestUtils.createByteFile(fs, "/file1", WritePType.CACHE_THROUGH, 100);
       } finally {
         Whitebox.setInternalState(TieredIdentityFactory.class, "sInstance", (Object) null);
       }
@@ -147,7 +147,7 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
           TieredIdentityFactory.fromString("node=node3,rack=rack2",
               Configuration.global()));
       try {
-        FileSystemTestUtils.createByteFile(fs, "/file2", WritePType.MUST_CACHE, 10);
+        FileSystemTestUtils.createByteFile(fs, "/file2", WritePType.CACHE_THROUGH, 10);
       } finally {
         Whitebox.setInternalState(TieredIdentityFactory.class, "sInstance", (Object) null);
       }

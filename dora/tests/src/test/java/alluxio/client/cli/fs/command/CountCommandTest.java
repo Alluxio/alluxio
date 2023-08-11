@@ -41,11 +41,11 @@ public final class CountCommandTest extends AbstractFileSystemShellTest {
   @Test
   public void count() throws Exception {
     FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testFileA",
-        WritePType.MUST_CACHE, 10);
+        WritePType.CACHE_THROUGH, 10);
     FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testDir/testFileB",
-        WritePType.MUST_CACHE, 20);
+        WritePType.CACHE_THROUGH, 20);
     FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testFileB",
-        WritePType.MUST_CACHE, 30);
+        WritePType.CACHE_THROUGH, 30);
 
     //count a folders
     sFsShell.run("count", "/testRoot");

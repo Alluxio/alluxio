@@ -38,7 +38,7 @@ public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest
   @Test
   public void setIsPinned() throws Exception {
     AlluxioURI filePath = new AlluxioURI("/testFile");
-    FileSystemTestUtils.createByteFile(sFileSystem, filePath, WritePType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(sFileSystem, filePath, WritePType.CACHE_THROUGH, 1);
 
     // Ensure that the file exists
     assertTrue(fileExists(filePath));
@@ -71,17 +71,17 @@ public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest
     AlluxioURI filePathC = new AlluxioURI("/testFileC");
     int fileSize = SIZE_BYTES / 2;
 
-    FileSystemTestUtils.createByteFile(sFileSystem, filePathA, WritePType.MUST_CACHE,
+    FileSystemTestUtils.createByteFile(sFileSystem, filePathA, WritePType.CACHE_THROUGH,
         fileSize);
     assertTrue(fileExists(filePathA));
     assertEquals(0, sFsShell.run("pin", filePathA.toString()));
 
-    FileSystemTestUtils.createByteFile(sFileSystem, filePathB, WritePType.MUST_CACHE,
+    FileSystemTestUtils.createByteFile(sFileSystem, filePathB, WritePType.CACHE_THROUGH,
         fileSize);
     assertTrue(fileExists(filePathB));
     assertEquals(0, sFsShell.run("unpin", filePathB.toString()));
 
-    FileSystemTestUtils.createByteFile(sFileSystem, filePathC, WritePType.MUST_CACHE,
+    FileSystemTestUtils.createByteFile(sFileSystem, filePathC, WritePType.CACHE_THROUGH,
         fileSize);
     assertTrue(fileExists(filePathC));
 

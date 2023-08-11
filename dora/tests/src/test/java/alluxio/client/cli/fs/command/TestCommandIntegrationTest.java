@@ -45,7 +45,7 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Ignore
   public void testPathIsDirectoryWhenPathIsFile() throws Exception {
     FileSystemTestUtils
-        .createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+        .createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH, 10);
     int ret = sFsShell.run("test", "-d", "/testFile");
     Assert.assertEquals(1, ret);
   }
@@ -67,7 +67,7 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Ignore
   public void testPathIsFileWhenPathIsFile() throws Exception {
     FileSystemTestUtils
-        .createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+        .createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH, 10);
     int ret = sFsShell.run("test", "-f", "/testFile");
     Assert.assertEquals(0, ret);
   }
@@ -89,7 +89,7 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Ignore
   public void testPathExistWhenPathIsFile() throws Exception {
     FileSystemTestUtils
-        .createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+        .createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH, 10);
     int ret = sFsShell.run("test", "-e", "/testFile");
     Assert.assertEquals(0, ret);
   }
@@ -104,9 +104,9 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Ignore
   public void testDirNotEmptyWhenPathIsDirectory() throws Exception {
     FileSystemTestUtils
-        .createByteFile(sFileSystem, "/testDir1/testFile1", WritePType.MUST_CACHE, 0);
+        .createByteFile(sFileSystem, "/testDir1/testFile1", WritePType.CACHE_THROUGH, 0);
     FileSystemTestUtils
-        .createByteFile(sFileSystem, "/testDir2/testFile2", WritePType.MUST_CACHE, 10);
+        .createByteFile(sFileSystem, "/testDir2/testFile2", WritePType.CACHE_THROUGH, 10);
     String[] command = new String[] {"mkdir", "/testDir3/testDir4"};
     sFsShell.run(command);
 
@@ -126,9 +126,9 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Test
   public void testDirNotEmptyWhenPathIsFile() throws Exception {
     FileSystemTestUtils
-        .createByteFile(sFileSystem, "/testFile1", WritePType.MUST_CACHE, 0);
+        .createByteFile(sFileSystem, "/testFile1", WritePType.CACHE_THROUGH, 0);
     FileSystemTestUtils
-        .createByteFile(sFileSystem, "/testFile2", WritePType.MUST_CACHE, 10);
+        .createByteFile(sFileSystem, "/testFile2", WritePType.CACHE_THROUGH, 10);
     int ret = sFsShell.run("test", "-s", "/testFile1");
     Assert.assertEquals(1, ret);
 
@@ -153,9 +153,9 @@ public final class TestCommandIntegrationTest extends AbstractFileSystemShellTes
   @Ignore
   public void testFileZeroLengthWhenPathIsFile() throws Exception {
     FileSystemTestUtils
-        .createByteFile(sFileSystem, "/testFile1", WritePType.MUST_CACHE, 0);
+        .createByteFile(sFileSystem, "/testFile1", WritePType.CACHE_THROUGH, 0);
     FileSystemTestUtils
-        .createByteFile(sFileSystem, "/testFile2", WritePType.MUST_CACHE, 10);
+        .createByteFile(sFileSystem, "/testFile2", WritePType.CACHE_THROUGH, 10);
     int ret = sFsShell.run("test", "-z", "/testFile1");
     Assert.assertEquals(0, ret);
 

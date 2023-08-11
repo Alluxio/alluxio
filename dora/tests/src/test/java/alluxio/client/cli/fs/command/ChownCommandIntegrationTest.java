@@ -44,7 +44,7 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void chown() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH, 10);
     sFsShell.run("chown", TEST_USER_1.getUser(), "/testFile");
     String owner = sFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
     Assert.assertEquals(TEST_USER_1.getUser(), owner);
@@ -55,7 +55,7 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void chownValidOwnerValidGroupSuccess() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH, 10);
     String newOwner = TEST_USER_1.getUser();
     String group = "staff";
     String expectedCommandOutput =
@@ -67,7 +67,7 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void chownValidOwnerValidGroupFail() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH, 10);
     String newOwner = TEST_USER_2.getUser();
     String originalOwner = sFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
     String originalGroup = sFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
@@ -81,7 +81,7 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void chownInvalidOwnerValidGroup() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH, 10);
     String nonexistUser = "nonexistuser";
     String originalOwner = sFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
     String originalGroup = sFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
@@ -95,7 +95,7 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void chownValidOwnerInvalidGroup() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH, 10);
     String newOwner = TEST_USER_1.getUser();
     String nonexistGroup = "nonexistgroup";
     String originalOwner = sFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
@@ -110,7 +110,7 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void chownInvalidOwnerInvalidGroup() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH, 10);
     String nonexistUser = "nonexistuser";
     String nonexistGroup = "nonexistgroup";
     String originalOwner = sFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
@@ -129,7 +129,7 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
   @Test
   public void chownRecursive() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/testFile",
-        WritePType.MUST_CACHE, 10);
+        WritePType.CACHE_THROUGH, 10);
     sFsShell.run("chown", "-R", TEST_USER_1.getUser(), "/testDir");
     String owner = sFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getOwner();
     Assert.assertEquals(TEST_USER_1.getUser(), owner);
@@ -146,9 +146,9 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
   @Test
   public void chownWildcard() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/testFile1",
-        WritePType.MUST_CACHE, 10);
+        WritePType.CACHE_THROUGH, 10);
     FileSystemTestUtils.createByteFile(sFileSystem, "/testDir2/testFile2",
-        WritePType.MUST_CACHE, 10);
+        WritePType.CACHE_THROUGH, 10);
 
     sFsShell.run("chown", "-R", TEST_USER_1.getUser(), "/*/testFile*");
     String owner = sFileSystem.getStatus(new AlluxioURI("/testDir/testFile1")).getOwner();

@@ -37,7 +37,7 @@ public final class FreeCommandIntegrationTest extends AbstractFileSystemShellTes
   @Test
   public void freeNonPersistedFile() throws IOException, AlluxioException {
     String fileName = "/testFile";
-    FileSystemTestUtils.createByteFile(sFileSystem, fileName, WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, fileName, WritePType.CACHE_THROUGH, 10);
     // freeing non persisted files is expected to fail
     assertEquals(-1, sFsShell.run("free", fileName));
     assertTrue(isInMemoryTest(fileName));
@@ -73,7 +73,7 @@ public final class FreeCommandIntegrationTest extends AbstractFileSystemShellTes
   @Test
   public void freeWildCardNonPersistedFile() throws IOException, AlluxioException {
     String testDir =
-        FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem, WritePType.MUST_CACHE);
+        FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem, WritePType.CACHE_THROUGH);
     assertEquals(-1, sFsShell.run("free", testDir + "/foo/*"));
     // freeing non persisted files is expected to fail
     assertTrue(isInMemoryTest(testDir + "/foo/foobar1"));

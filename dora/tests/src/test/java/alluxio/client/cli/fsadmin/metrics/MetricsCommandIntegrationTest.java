@@ -35,7 +35,7 @@ public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTes
   @Test
   public void clearLeadingMasterMetrics() throws IOException {
     FileSystemTestUtils.createByteFile(mLocalAlluxioCluster.getClient(),
-        "/file", WritePType.MUST_CACHE, 10);
+        "/file", WritePType.CACHE_THROUGH, 10);
 
     int errCode = mFsAdminShell.run("report", "metrics");
     assertEquals("", mErrOutput.toString());

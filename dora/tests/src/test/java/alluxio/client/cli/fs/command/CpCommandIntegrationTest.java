@@ -674,7 +674,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Override
   protected void copyToLocalWithBytes(int bytes) throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE,
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH,
         bytes);
     String[] cmd = new String[] {"cp", "/testFile",
         "file://" + sLocalAlluxioCluster.getAlluxioHome() + "/testFile"};

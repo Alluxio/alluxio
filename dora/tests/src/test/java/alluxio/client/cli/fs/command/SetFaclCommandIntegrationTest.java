@@ -104,7 +104,7 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
     Assert.assertEquals(expected, mOutput.toString());
 
     FileSystemTestUtils.createByteFile(sFileSystem,
-        "/testRoot/testDir/testDir2/testFileD", WritePType.MUST_CACHE, 10);
+        "/testRoot/testDir/testDir2/testFileD", WritePType.CACHE_THROUGH, 10);
 
     sFsShell.run("getfacl", "/testRoot/testDir/testDir2");
     stringEntries = new ArrayList<>(DIR_FACL_STRING_ENTRIES);
@@ -155,9 +155,9 @@ public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShell
     }
 
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA",
-        WritePType.MUST_CACHE, 10);
+        WritePType.CACHE_THROUGH, 10);
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testDir/testFileB",
-        WritePType.MUST_CACHE, 20);
+        WritePType.CACHE_THROUGH, 20);
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileC", WritePType.THROUGH,
         30);
 

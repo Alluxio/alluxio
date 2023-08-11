@@ -38,7 +38,7 @@ public final class OldLoadCommandIntegrationTest extends AbstractFileSystemShell
     FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testFileA", WritePType.THROUGH,
         10);
     FileSystemTestUtils
-        .createByteFile(sFileSystem, "/testRoot/testFileB", WritePType.MUST_CACHE, 10);
+        .createByteFile(sFileSystem, "/testRoot/testFileB", WritePType.CACHE_THROUGH, 10);
     AlluxioURI uriA = new AlluxioURI("/testRoot/testFileA");
     AlluxioURI uriB = new AlluxioURI("/testRoot/testFileB");
 
