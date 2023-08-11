@@ -37,7 +37,7 @@ public class UfsUrl {
   public static final String SCHEME_SEPARATOR = "://";
   public static final String DOUBLE_SLASH_SEPARATOR = "//";
   public static final String PATH_SEPARATOR = "/";
-  public static final String PORT_SEPARATOR = ":";
+  public static final String COLON_SEPARATOR = ":";
 
   final UfsUrlMessage mProto;
 
@@ -60,26 +60,39 @@ public class UfsUrl {
       scheme = "";
     } else {
       scheme = inputUrl.substring(start, schemeSplitIndex);
-      start += scheme.length() + SCHEME_SEPARATOR.length();
+      start += scheme.length();
     }
     Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
         "Alluxio 3.x no longer supports alluxio:// scheme,"
             + " please input the UFS path directly like hdfs://host:port/path");
 
-    int authSplitIndex = inputUrl.indexOf(PATH_SEPARATOR, start);
-    if (authSplitIndex == -1) {
-      authority = inputUrl.substring(start);
-    } else {
-      authority = inputUrl.substring(start, authSplitIndex);
+    // unified address "://" and "//"
+    while (start < inputUrl.length() && inputUrl.charAt(start) == COLON_SEPARATOR.charAt(0))  {
+      start++;
     }
+
+    if (inputUrl.startsWith(DOUBLE_SLASH_SEPARATOR, start)
+        && start + DOUBLE_SLASH_SEPARATOR.length() < inputUrl.length()) {
+      start += DOUBLE_SLASH_SEPARATOR.length();
+      int authoritySplitIndex = inputUrl.indexOf(PATH_SEPARATOR, start);
+      if (authoritySplitIndex == -1)  {
+        authority = inputUrl.substring(start);
+      } else {
+        authority = inputUrl.substring(start, authoritySplitIndex);
+      }
+    } else {
+      authority = "";
+    }
+
     if (scheme.startsWith("s3")
         || scheme.startsWith("S3")) {
-      Preconditions.checkArgument(!authority.contains(PORT_SEPARATOR),
+      Preconditions.checkArgument(!authority.contains(COLON_SEPARATOR),
           "The authority of s3 should not include port, please input a valid path.");
     }
 
     start += authority.length();
-    path = inputUrl.substring(start);
+    path = FilenameUtils.normalize(inputUrl.substring(start));
+
     elements.put("scheme", scheme);
     elements.put("authority", authority);
     elements.put("path", path);
@@ -87,7 +100,7 @@ public class UfsUrl {
   }
 
   /**
-   * Determines the scheme of this absolute path object.
+   * Determines the scheme of this absolute path object. The returns String is not empty.
    * @param rootUrl the elems map of root url, including scheme, authority and path
    * @param inputUrl the elems map of input url, including scheme, authority and path
    * @return the scheme of this UfsUrl object
@@ -99,7 +112,7 @@ public class UfsUrl {
       } else {
         return inputUrl.get("scheme");
       }
-    } else {
+    } else {  // rootUrl.scheme is not empty
       if (inputUrl.get("scheme").isEmpty())  {
         // means input is a relative path.
         return rootUrl.get("scheme");
@@ -140,17 +153,22 @@ public class UfsUrl {
    */
   public static List<String> generatePathComponents(Map<String, String> rootUrl,
                                                     Map<String, String> inputUrl) {
-    List<String> rootPathComponents = Arrays.asList(rootUrl.get("path").split(PATH_SEPARATOR));
     List<String> inputPathComponents = Arrays.asList(inputUrl.get("path").split(PATH_SEPARATOR));
 
     if (rootUrl.equals(inputUrl)) {
-      return rootPathComponents;
+      return inputPathComponents;
     }
 
-    // inputUrl.scheme is empty -> the inputUrl is a relative path.
-    if (inputUrl.get("scheme").isEmpty()) {
-      rootPathComponents.addAll(inputPathComponents);
-      return rootPathComponents;
+    // inputUrl.scheme is "file" -> the inputUrl is probably a relative path.
+    if (inputUrl.get("scheme").equals("file")) {
+      // rootUrl.scheme is "file" or empty -> inputUrl is a relative path.
+      if (inputUrl.get("scheme").equals(rootUrl.get("scheme")) || rootUrl.get("scheme").isEmpty()) {
+        String concatPath = rootUrl.get("path") + inputUrl.get("path");
+        return Arrays.asList(FilenameUtils
+            .normalizeNoEndSeparator(concatPath).split(PATH_SEPARATOR));
+      } else {  // inputUrl is an absolute path.
+        return inputPathComponents;
+      }
     } else {  // inputUrl is an absolute path.
       // if inputUrl.path is "/" or "//", i.e., root directory, set a "" to represent root.
       if (inputUrl.get("path").equals(PATH_SEPARATOR)
@@ -223,6 +241,10 @@ public class UfsUrl {
     Preconditions.checkArgument(!scheme.isEmpty(),
         "scheme is empty, please check input Url again.");
     ufsPathElems.put("scheme", scheme);
+    if (scheme.equals("file"))  {
+      rootDirElems.put("scheme", scheme);
+    }
+
     String authority = generateAuthority(rootDirElems, ufsPathElems);
     ufsPathElems.put("authority", authority);
     List<String> pathComponents = generatePathComponents(rootDirElems, ufsPathElems);

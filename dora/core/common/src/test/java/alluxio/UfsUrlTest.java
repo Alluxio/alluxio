@@ -18,6 +18,8 @@ package alluxio;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.UfsUrlMessage;
 import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.UfsUrl;
@@ -98,5 +100,18 @@ public class UfsUrlTest {
     UfsUrl ufsUrl3 = UfsUrl.createInstance(UfsUrl.toProto(ufsUrlPath));
     assertEquals(ufsUrl2.asString(), ufsUrl3.asString());
     assertEquals(ufsUrl2.hashCode(), ufsUrl3.hashCode());
+  }
+
+  /**
+   * Tests the {@link UfsUrl#getDepth()} method.
+   */
+  @Test
+  public void getDepthTests() {
+    int rootDepth = UfsUrl.createInstance(
+        Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT)).getDepth();
+    assertEquals(rootDepth, UfsUrl.createInstance(".").getDepth());
+    assertEquals(0, UfsUrl.createInstance("abc://localhost:19998/").getDepth());
+    assertEquals(1, UfsUrl.createInstance("abc://localhost:19998/a").getDepth());
+    assertEquals(2, UfsUrl.createInstance("abc://localhost:19998/a/b.txt").getDepth());
   }
 }
