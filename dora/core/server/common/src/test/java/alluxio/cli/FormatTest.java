@@ -59,7 +59,7 @@ public final class FormatTest {
     }
     try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
-        put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, dirs[0].getPath());
+        put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0), dirs[0].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVELS, storageLevels);
         put(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS, perms);
       }
@@ -83,7 +83,7 @@ public final class FormatTest {
     }
     try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
-        put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, dirs[0].getPath());
+        put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0), dirs[0].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVELS, storageLevels);
       }
     }, Configuration.modifiableGlobal()).toResource()) {

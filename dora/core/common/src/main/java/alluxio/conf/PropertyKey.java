@@ -4160,21 +4160,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
-  /**
-   * @deprecated use block annotators instead
-   */
-  @Deprecated(message = "Use WORKER_BLOCK_ANNOTATOR_CLASS instead.")
-  public static final PropertyKey WORKER_EVICTOR_CLASS =
-      classBuilder(Name.WORKER_EVICTOR_CLASS)
-          .setDescription("The strategy that a worker uses to evict block files when a "
-              + "storage layer runs out of space. Valid options include "
-              + "`alluxio.worker.block.evictor.LRFUEvictor`, "
-              + "`alluxio.worker.block.evictor.GreedyEvictor`, "
-              + "`alluxio.worker.block.evictor.LRUEvictor`, "
-              + "`alluxio.worker.block.evictor.PartialLRUEvictor`.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
   public static final PropertyKey WORKER_FUSE_ENABLED =
       booleanBuilder(Name.WORKER_FUSE_ENABLED)
           .setDefaultValue(false)
@@ -4703,21 +4688,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-
-  public static final PropertyKey WORKER_REVIEWER_CLASS =
-      classBuilder(Name.WORKER_REVIEWER_CLASS)
-          .setDefaultValue("alluxio.worker.block.reviewer.ProbabilisticBufferReviewer")
-          .setDescription("(Experimental) The API is subject to change in the future."
-              + "The strategy that a worker uses to review space allocation "
-              + "in the Allocator. Each time a block allocation decision is made by "
-              + "the Allocator, the Reviewer will review the decision and rejects it,"
-              + "if the allocation does not meet certain criteria of the Reviewer."
-              + "The Reviewer prevents the worker to make a bad block allocation decision."
-              + "Valid options include:"
-              + "`alluxio.worker.block.reviewer.ProbabilisticBufferReviewer`.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
   public static final PropertyKey WORKER_RPC_PORT =
       intBuilder(Name.WORKER_RPC_PORT)
           .setAlias("alluxio.worker.port")
@@ -4739,29 +4709,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.WORKER_DATA_PORT)
           .setDefaultValue(29997)
           .setDescription("The port Alluxio's worker's data server runs on.")
-          .build();
-  // TODO(binfan): Use alluxio.worker.tieredstore.level0.dirs.mediumtype instead
-  public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_ALIAS =
-      new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 0)
-          .setDefaultValue(Constants.MEDIUM_MEM)
-          .setDescription("The alias of the top storage tier on this worker. It must "
-              + "match one of the global storage tiers from the master configuration. We "
-              + "disable placing an alias lower in the global hierarchy before an alias with "
-              + "a higher position on the worker hierarchy. So by default, SSD cannot come "
-              + "before MEM on any worker.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
-  public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_PATH =
-      new Builder(PropertyType.LIST, Optional.of(","),
-          Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 0)
-          .setDefaultSupplier(() -> OSUtils.isLinux() ? "/mnt/ramdisk" : "/Volumes/ramdisk",
-              "/mnt/ramdisk on Linux, /Volumes/ramdisk on OSX")
-          .setDescription("A comma-separated list of paths (eg., /mnt/ramdisk1,/mnt/ramdisk2,"
-              + "/mnt/ssd/alluxio/cache1) of storage directories for the top storage tier. "
-              + "Note that for MacOS, the root directory should be `/Volumes/` and not `/mnt/`.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVELS =
       intBuilder(Name.WORKER_TIERED_STORE_LEVELS)
@@ -5358,15 +5305,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
-      dataSizeBuilder(Name.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES)
-          .setDefaultValue("8MB")
-          .setDescription("The size of the file buffer to read data from remote Alluxio "
-              + "worker.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .setIsHidden(true)
-          .build();
   public static final PropertyKey USER_CONF_SYNC_INTERVAL =
       durationBuilder(Name.USER_CONF_SYNC_INTERVAL)
           .setDefaultValue("1min")
@@ -5405,19 +5343,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("64MB")
           .setDescription("Default block size for Alluxio files.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_BLOCK_READ_RETRY_SLEEP_MIN =
-      durationBuilder(Name.USER_BLOCK_READ_RETRY_SLEEP_MIN)
-          .setDefaultValue("250ms")
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_BLOCK_READ_RETRY_MAX_DURATION =
-      durationBuilder(Name.USER_BLOCK_READ_RETRY_MAX_DURATION)
-          .setDescription("This duration controls for how long Alluxio clients should try"
-              + "reading a single block. If a particular block can't be read within "
-              + "this duration, then the I/O will timeout.")
-          .setDefaultValue("5min")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_CONF_CLUSTER_DEFAULT_ENABLED =
@@ -8121,7 +8046,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.data.server.domain.socket.address";
     public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID =
         "alluxio.worker.data.server.domain.socket.as.uuid";
-    public static final String WORKER_EVICTOR_CLASS = "alluxio.worker.evictor.class";
     public static final String WORKER_FUSE_ENABLED =
         "alluxio.worker.fuse.enabled";
     public static final String WORKER_FUSE_MOUNT_ALLUXIO_PATH =
@@ -8259,7 +8183,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_RAMDISK_SIZE = "alluxio.worker.ramdisk.size";
     public static final String WORKER_REGISTER_LEASE_ENABLED =
         "alluxio.worker.register.lease.enabled";
-    public static final String WORKER_REVIEWER_CLASS = "alluxio.worker.reviewer.class";
     public static final String WORKER_RPC_PORT = "alluxio.worker.rpc.port";
     public static final String WORKER_DATA_BIND_HOST = "alluxio.worker.data.bind.host";
     public static final String WORKER_DATA_HOSTNAME = "alluxio.worker.data.hostname";
@@ -8401,14 +8324,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.master.client.pool.gc.threshold";
     public static final String USER_BLOCK_READ_METRICS_ENABLED =
         "alluxio.user.block.read.metrics.enabled";
-    public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
-        "alluxio.user.block.remote.read.buffer.size.bytes";
     public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
         "alluxio.user.block.size.bytes.default";
-    public static final String USER_BLOCK_READ_RETRY_SLEEP_MIN =
-        "alluxio.user.block.read.retry.sleep.base";
-    public static final String USER_BLOCK_READ_RETRY_MAX_DURATION =
-        "alluxio.user.block.read.retry.max.duration";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
         "alluxio.user.block.worker.client.pool.gc.threshold";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_MIN =
