@@ -408,25 +408,6 @@ public class UfsBaseFileSystem implements FileSystem {
     });
   }
 
-  /**
-   * Starts the active syncing process on an Alluxio path.
-   *
-   * @param path the path to sync
-   */
-  @Override
-  public void startSync(AlluxioURI path) {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
-   * Stops the active syncing process on an Alluxio path.
-   * @param path the path to stop syncing
-   */
-  @Override
-  public void stopSync(AlluxioURI path) {
-    throw new UnsupportedOperationException();
-  }
-
   @Override
   public void unmount(AlluxioURI path, UnmountPOptions options) {
     throw new UnsupportedOperationException();

@@ -271,16 +271,6 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
-    public void startSync(AlluxioURI path) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void stopSync(AlluxioURI path) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void setAttribute(AlluxioURI path, SetAttributePOptions options)
         throws IOException, AlluxioException {
       FileInfo info = new FileInfo();

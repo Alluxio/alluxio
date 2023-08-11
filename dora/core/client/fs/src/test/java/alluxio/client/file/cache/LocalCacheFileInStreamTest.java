@@ -980,18 +980,6 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public void startSync(AlluxioURI path)
-        throws FileDoesNotExistException, IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void stopSync(AlluxioURI path)
-        throws FileDoesNotExistException, IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void setAttribute(AlluxioURI path, SetAttributePOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();

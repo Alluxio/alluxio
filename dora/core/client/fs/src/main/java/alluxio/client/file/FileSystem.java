@@ -723,20 +723,6 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * Starts the active syncing process on an Alluxio path.
-   * @param path the path to sync
-   */
-  void startSync(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException;
-
-  /**
-   * Stops the active syncing process on an Alluxio path.
-   * @param path the path to stop syncing
-   */
-  void stopSync(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException;
-
-  /**
    * Convenience method for {@link #setAttribute(AlluxioURI, SetAttributePOptions)} with default
    * options.
    *

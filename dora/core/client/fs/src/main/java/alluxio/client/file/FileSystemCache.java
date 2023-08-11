@@ -394,24 +394,6 @@ public class FileSystemCache {
     }
 
     @Override
-    public void startSync(AlluxioURI path)
-        throws FileDoesNotExistException, IOException, AlluxioException {
-      if (mClosed) {
-        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
-      }
-      super.startSync(path);
-    }
-
-    @Override
-    public void stopSync(AlluxioURI path)
-        throws FileDoesNotExistException, IOException, AlluxioException {
-      if (mClosed) {
-        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
-      }
-      super.stopSync(path);
-    }
-
-    @Override
     public void setAttribute(AlluxioURI path, SetAttributePOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
       if (mClosed) {

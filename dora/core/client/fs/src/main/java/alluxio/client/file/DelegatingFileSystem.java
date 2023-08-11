@@ -223,18 +223,6 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public void startSync(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
-    mDelegatedFileSystem.startSync(path);
-  }
-
-  @Override
-  public void stopSync(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
-    mDelegatedFileSystem.stopSync(path);
-  }
-
-  @Override
   public void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     mDelegatedFileSystem.setAttribute(path, options);
