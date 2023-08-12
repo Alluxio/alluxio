@@ -526,7 +526,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private void waitForFileRelease(String path) {
     int maxRetries = 5;
     int retryCount = 0;
-    long sleepTime = 2000L;
+    long sleepTime = 400L;
     while (mOpenedFiles.contains(path) && retryCount < maxRetries) {
       try {
         LOG.debug("The file {} hasn't been released yet. Wait for release and retry the {} time. ",
@@ -542,6 +542,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
 
   private int chmodInternal(String path, long mode) {
+    if (mFuseOptions.isFastCopyEnabled()) {
+      // just ignore the chown op when fast copy is enabled
+      return 0;
+    }
     waitForFileRelease(path);
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     int res = AlluxioFuseUtils.checkNameLength(uri);
@@ -561,6 +565,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int chownInternal(String path, long uid, long gid) {
+    if (mFuseOptions.isFastCopyEnabled()) {
+      // just ignore the chown op when fast copy is enabled
+      return 0;
+    }
     waitForFileRelease(path);
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     int res = AlluxioFuseUtils.checkNameLength(uri);

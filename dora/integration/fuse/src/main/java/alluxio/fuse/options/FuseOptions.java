@@ -35,6 +35,8 @@ public class FuseOptions {
   private final boolean mUpdateCheckEnabled;
   private final boolean mSpecialCommandEnabled;
 
+  private final boolean mFastCopyEnabled;
+
   /**
    * Creates the FUSE options.
    *
@@ -102,7 +104,8 @@ public class FuseOptions {
       }
     }
     return new FuseOptions(fileSystemOptions, mountOptions, updateCheckEnabled,
-        conf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED));
+        conf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED),
+        conf.getBoolean(PropertyKey.FUSE_FAST_COPY_ENABLED));
   }
 
   /**
@@ -114,11 +117,13 @@ public class FuseOptions {
    * @param specialCommandEnabled whether fuse special commands are enabled
    */
   private FuseOptions(FileSystemOptions fileSystemOptions,
-      Set<String> fuseMountOptions, boolean updateCheckEnabled, boolean specialCommandEnabled) {
+      Set<String> fuseMountOptions, boolean updateCheckEnabled, boolean specialCommandEnabled,
+                      boolean fastCopyEnabled) {
     mFileSystemOptions = Preconditions.checkNotNull(fileSystemOptions);
     mFuseMountOptions = Preconditions.checkNotNull(fuseMountOptions);
     mUpdateCheckEnabled = updateCheckEnabled;
     mSpecialCommandEnabled = specialCommandEnabled;
+    mFastCopyEnabled = fastCopyEnabled;
   }
 
   /**
@@ -147,5 +152,12 @@ public class FuseOptions {
    */
   public boolean specialCommandEnabled() {
     return mSpecialCommandEnabled;
+  }
+
+  /**
+   * @return if fast copy enabled
+   */
+  public boolean isFastCopyEnabled() {
+    return mFastCopyEnabled;
   }
 }

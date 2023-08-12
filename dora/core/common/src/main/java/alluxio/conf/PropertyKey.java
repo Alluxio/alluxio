@@ -7292,6 +7292,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "will drop the metadata cache of path '/mnt/alluxio-fuse/path/to/be/cleaned/'")
           .setScope(Scope.CLIENT)
           .build();
+
+  public static final PropertyKey FUSE_FAST_COPY_ENABLED =
+      booleanBuilder(Name.FUSE_FAST_COPY_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("If enabled, ignore chmod and chown for fast copying.")
+          .setScope(Scope.CLIENT)
+          .build();
+
   //
   // Standalone FUSE process related properties
   //
@@ -9482,6 +9490,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.user.group.translation.enabled";
     public static final String FUSE_SPECIAL_COMMAND_ENABLED =
         "alluxio.fuse.special.command.enabled";
+
+    public static final String FUSE_FAST_COPY_ENABLED =
+        "alluxio.fuse.fast.copy.enabled";
+
     //
     // Standalone FUSE process related properties
     //
