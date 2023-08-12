@@ -34,7 +34,6 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client-hdfs</artifactId>
-      <version>${project.version}</version>
     </dependency>
   </dependencies>
 

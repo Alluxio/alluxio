@@ -36,13 +36,11 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client-fs</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <!-- This should include all Alluxio client implementations -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client-hdfs3</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <!-- Have hadoop-client dependency in provided scope by default -->
     <dependency>
