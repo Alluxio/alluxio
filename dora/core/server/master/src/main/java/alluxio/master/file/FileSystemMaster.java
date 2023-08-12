@@ -499,8 +499,8 @@ public interface FileSystemMaster extends Master {
    * @param path the path of the file for persistence
    * @param context the schedule async persistence context
    */
-  void scheduleAsyncPersistence(AlluxioURI path, ScheduleAsyncPersistenceContext context)
-      throws AlluxioException, UnavailableException;
+//  void scheduleAsyncPersistence(AlluxioURI path, ScheduleAsyncPersistenceContext context)
+//      throws AlluxioException, UnavailableException;
 
   /**
    * Update the operation mode for the given ufs path under one or more mount points.

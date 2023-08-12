@@ -407,15 +407,15 @@ public final class FileSystemMasterClientServiceHandler
     }, "ReverseResolve", "request=%s", responseObserver, request);
   }
 
-  @Override
-  public void scheduleAsyncPersistence(ScheduleAsyncPersistencePRequest request,
-      StreamObserver<ScheduleAsyncPersistencePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(request.getPath()),
-          ScheduleAsyncPersistenceContext.create(request.getOptions().toBuilder()));
-      return ScheduleAsyncPersistencePResponse.newBuilder().build();
-    }, "ScheduleAsyncPersist", "request=%s", responseObserver, request);
-  }
+//  @Override
+//  public void scheduleAsyncPersistence(ScheduleAsyncPersistencePRequest request,
+//      StreamObserver<ScheduleAsyncPersistencePResponse> responseObserver) {
+//    RpcUtils.call(LOG, () -> {
+//      mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(request.getPath()),
+//          ScheduleAsyncPersistenceContext.create(request.getOptions().toBuilder()));
+//      return ScheduleAsyncPersistencePResponse.newBuilder().build();
+//    }, "ScheduleAsyncPersist", "request=%s", responseObserver, request);
+//  }
 
   @Override
   public void setAttribute(SetAttributePRequest request,
