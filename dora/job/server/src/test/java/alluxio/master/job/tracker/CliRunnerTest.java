@@ -72,7 +72,7 @@ public final class CliRunnerTest {
         FileSystem.Factory.create(any(FileSystemContext.class))).thenReturn(mFs);
 
     AlluxioConfiguration conf = mock(AlluxioConfiguration.class);
-
+    when(fsCtx.getClusterConf()).thenReturn(conf);
     when(conf.getEnum(any(PropertyKey.class), any()))
             .thenReturn(WriteType.THROUGH);
 

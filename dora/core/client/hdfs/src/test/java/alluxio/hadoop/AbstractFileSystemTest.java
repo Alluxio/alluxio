@@ -785,6 +785,7 @@ public class AbstractFileSystemTest {
     when(fsContext.getClientContext()).thenReturn(ClientContext.create(mConfiguration));
     when(fsContext.getClusterConf()).thenReturn(mConfiguration);
     alluxio.client.file.FileSystem fs = alluxio.client.file.FileSystem.Factory.create(fsContext);
+    when(fsContext.getClusterConf()).thenReturn(mConfiguration);
     alluxio.client.file.FileSystem spyFs = spy(fs);
     doReturn(new URIStatus(fileInfo)).when(spyFs).getStatus(uri);
     List<BlockWorkerInfo> eligibleWorkerInfos = allWorkers.stream().map(worker ->
