@@ -42,7 +42,6 @@ import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
-import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.scheduler.Scheduler;
 import alluxio.metrics.TimeSeries;
@@ -167,11 +166,6 @@ public interface FileSystemMaster extends Master {
   void listStatus(AlluxioURI path, ListStatusContext context, ResultStream<FileInfo> resultStream)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException,
       UnavailableException, IOException;
-
-  /**
-   * @return a read-only view of the file system master
-   */
-  FileSystemMasterView getFileSystemMasterView();
 
   /**
    * Checks access to path.

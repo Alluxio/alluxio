@@ -204,32 +204,6 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     }
   }
 
-  /**
-   * Tests canceling after multiple blocks have been written correctly cleans up temporary worker
-   * resources.
-   */
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL, "250ms",
-          PropertyKey.Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "250ms"})
-  @Test
-  public void cancelWrite() throws Exception {
-    AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
-    try (FileOutStream os = mFileSystem.createFile(path, CreateFilePOptions.newBuilder()
-        .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
-      os.write(BufferUtils.getIncreasingByteArray(0, BLOCK_SIZE_BYTES * 3 + 1));
-      os.cancel();
-    }
-    long gracePeriod = Configuration
-        .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2;
-    CommonUtils.sleepMs(gracePeriod);
-    List<WorkerInfo> workers =
-        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-            .getMaster(FileSystemMaster.class).getFileSystemMasterView().getWorkerInfoList();
-    for (WorkerInfo worker : workers) {
-      Assert.assertEquals(0, worker.getUsedBytes());
-    }
-  }
-
   @Test
   public void getStatusBeforeClose() throws Exception {
     AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());

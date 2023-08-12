@@ -91,7 +91,6 @@ import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
-import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
@@ -1358,11 +1357,6 @@ public class DefaultFileSystemMaster extends CoreMaster
         mUfsAbsentPathCache.processAsync(inodePath.getUri(), inodePath.getInodeList());
       }
     }
-  }
-
-  @Override
-  public FileSystemMasterView getFileSystemMasterView() {
-    return new FileSystemMasterView(this);
   }
 
   @Override
