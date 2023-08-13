@@ -14,6 +14,7 @@ package alluxio.hadoop;
 import alluxio.client.file.FileInStream;
 
 import com.google.common.base.Preconditions;
+import org.apache.hadoop.fs.ByteBufferReadable;
 import org.apache.hadoop.fs.FSDataInputStream;
 
 import java.io.IOException;
@@ -50,7 +51,20 @@ public class AlluxioHdfsInputStream extends FileInStream {
 
   @Override
   public int read(ByteBuffer buf) throws IOException {
-    return mInput.read(buf);
+    if (mInput.getWrappedStream() instanceof ByteBufferReadable) {
+      return mInput.read(buf);
+    } else {
+      int off = buf.position();
+      int len = buf.remaining();
+      byte[] byteArray = new byte[len];
+      int totalBytesRead = read(byteArray);
+      if (totalBytesRead <= 0) {
+        return totalBytesRead;
+      }
+      buf.position(off).limit(off + len);
+      buf.put(byteArray, 0, totalBytesRead);
+      return totalBytesRead;
+    }
   }
 
   @Override
