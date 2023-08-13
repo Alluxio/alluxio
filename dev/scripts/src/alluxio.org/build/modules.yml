@@ -76,7 +76,7 @@ pluginModules:
   ufs-hadoop-2.7:
     moduleType: hdfs
     enumName: hadoop-2.7
-    mavenArgs: "-pl dora/underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.7.3 -PhdfsActiveSync"
+    mavenArgs: "-pl dora/underfs/hdfs -Pufs-hadoop-2 -Dufs.version.hadoop=2.7.3 -PhdfsActiveSync"
     generatedJarPath: "lib/alluxio-underfs-hdfs-2.7.3-${VERSION}.jar"
     tarballJarPath: "lib/alluxio-underfs-hadoop-2.7-${VERSION}.jar"
     bundleWith:
@@ -85,7 +85,7 @@ pluginModules:
   ufs-hadoop-2.10:
     moduleType: hdfs
     enumName: hadoop-2.10
-    mavenArgs: "-pl dora/underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.10.1 -PhdfsActiveSync"
+    mavenArgs: "-pl dora/underfs/hdfs -Pufs-hadoop-2 -Dufs.version.hadoop=2.10.1 -PhdfsActiveSync"
     generatedJarPath: "lib/alluxio-underfs-hdfs-2.10.1-${VERSION}.jar"
     tarballJarPath: "lib/alluxio-underfs-hadoop-2.10-${VERSION}.jar"
     bundleWith:
@@ -93,7 +93,7 @@ pluginModules:
   ufs-hadoop-3.3:
     moduleType: hdfs
     enumName: hadoop-3.3
-    mavenArgs: "-pl dora/underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1 -PhdfsActiveSync"
+    mavenArgs: "-pl dora/underfs/hdfs -Pufs-hadoop-3 -Dufs.version.hadoop=3.3.1 -PhdfsActiveSync"
     generatedJarPath: "lib/alluxio-underfs-hdfs-3.3.1-${VERSION}.jar"
     tarballJarPath: "lib/alluxio-underfs-hadoop-3.3-${VERSION}.jar"
     bundleWith:

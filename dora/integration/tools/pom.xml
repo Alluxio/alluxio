@@ -27,7 +27,7 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.parent.basedir}/build</build.path>
     <failIfNoTests>false</failIfNoTests>
-    <ufs.hadoop.version>3.3.1</ufs.hadoop.version>
+    <ufs.version.hadoop>3.3.1</ufs.version.hadoop>
   </properties>
 
   <modules>
@@ -54,7 +54,7 @@
         <dependency>
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-shaded-hadoop</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <version>${ufs.version.hadoop}</version>
         </dependency>
       </dependencies>
     </profile>
@@ -69,7 +69,7 @@
         <dependency>
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-shaded-hadoop</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <version>${ufs.version.hadoop}</version>
         </dependency>
       </dependencies>
     </profile>
