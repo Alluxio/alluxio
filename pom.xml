@@ -123,6 +123,7 @@
   </repositories>
 
   <properties>
+    <argLine/>
     <apache.curator.version>4.2.0</apache.curator.version>
     <aws.amazonaws.version>1.11.815</aws.amazonaws.version>
     <awssdk.version>2.20.56</awssdk.version>
