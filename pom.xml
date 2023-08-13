@@ -1203,7 +1203,7 @@
                   <version>${maven.version}</version>
                 </requireMavenVersion>
                 <requireJavaVersion>
-                  <version>${java.version}</version>
+                  <version>[1.8, 1.9)</version>
                 </requireJavaVersion>
               </rules>
             </configuration>
