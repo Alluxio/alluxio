@@ -172,7 +172,7 @@ For example, issuing the following command would build the client jar for the 2.
 ```shell
 $ mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests \
     -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true \
-    -Pufs-hadoop-2 -Dufs.version.hadoop=2.8.0
+    -Pufs-hadoop-2 -Dufs.hadoop.ver=2.8.0
 ```
 
 #### Using Site Properties

@@ -34,7 +34,7 @@ type UfsVersionDetails struct {
 var (
 	ufsTypeToVersionDetails = map[string]*UfsVersionDetails{
 		"hdfs": {
-			VersionProp:         "ufs.version.hadoop",
+			VersionProp:         "ufs.hadoop.ver",
 			VersionEnumFilePath: "dora/underfs/hdfs/src/main/java/alluxio/underfs/hdfs/HdfsVersion.java",
 		},
 	}

@@ -27,7 +27,7 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.parent.basedir}/build</build.path>
     <!-- Decouple hadoop versions between north and south bound -->
-    <ufs.version.hadoop>3.3.1</ufs.version.hadoop>
+    <ufs.hadoop.ver>3.3.1</ufs.hadoop.ver>
   </properties>
 
   <dependencies>
@@ -90,7 +90,7 @@
               <arguments>
                 <argument>${project.artifactId}</argument>
                 <argument>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</argument>
-                <argument>${build.path}/../lib/${project.artifactId}-${ufs.version.hadoop}-${project.version}.jar</argument>
+                <argument>${build.path}/../lib/${project.artifactId}-${ufs.hadoop.ver}-${project.version}.jar</argument>
               </arguments>
             </configuration>
           </execution>
@@ -148,7 +148,7 @@
         <dependency>
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-shaded-hadoop</artifactId>
-          <version>${ufs.version.hadoop}</version>
+          <version>${ufs.hadoop.ver}</version>
         </dependency>
       </dependencies>
       <build>
@@ -186,12 +186,12 @@
         <dependency>
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-shaded-hadoop</artifactId>
-          <version>${ufs.version.hadoop}</version>
+          <version>${ufs.hadoop.ver}</version>
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-minicluster</artifactId>
-          <version>${ufs.version.hadoop}</version>
+          <version>${ufs.hadoop.ver}</version>
           <scope>test</scope>
         </dependency>
       </dependencies>
