@@ -18,18 +18,13 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileBlockInfo;
-import alluxio.wire.WorkerInfo;
 
 import org.junit.Assert;
 import org.junit.Ignore;

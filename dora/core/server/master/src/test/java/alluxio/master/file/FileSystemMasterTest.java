@@ -65,10 +65,8 @@ import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
-import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
-import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.journal.JournalContext;
 import alluxio.proto.journal.Journal;
@@ -79,7 +77,6 @@ import alluxio.util.IdUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
-import alluxio.wire.FileSystemCommand;
 import alluxio.wire.UfsInfo;
 
 import com.google.common.collect.ImmutableList;
@@ -89,7 +86,6 @@ import com.google.common.collect.Sets;
 import com.google.common.math.IntMath;
 import com.google.protobuf.ByteString;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -1407,24 +1403,6 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     assertTrue(mExecutorService.isShutdown());
     assertTrue(mExecutorService.isTerminated());
   }
-
-  /**
-   * Tests the {@link FileSystemMaster#workerHeartbeat} method.
-   */
-//  @Ignore
-//  @Test
-//  public void workerHeartbeat() throws Exception {
-//    long blockId = createFileWithSingleBlock(ROOT_FILE_URI);
-//
-//    long fileId = mFileSystemMaster.getFileId(ROOT_FILE_URI);
-//    mFileSystemMaster.scheduleAsyncPersistence(ROOT_FILE_URI,
-//        ScheduleAsyncPersistenceContext.defaults());
-//
-//    FileSystemCommand command = mFileSystemMaster
-//        .workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId), WorkerHeartbeatContext.defaults());
-//    assertEquals(alluxio.wire.CommandType.PERSIST, command.getCommandType());
-//    assertEquals(0, command.getCommandOptions().getPersistOptions().getFilesToPersist().size());
-//  }
 
   /**
    * Tests that lost files can successfully be detected.

@@ -21,7 +21,6 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.Server;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.job.JobMasterClient;
 import alluxio.client.job.JobMasterClientPool;
 import alluxio.clock.SystemClock;
 import alluxio.collections.Pair;
@@ -29,7 +28,6 @@ import alluxio.collections.PrefixList;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -43,7 +41,6 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.PermissionDeniedException;
-import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.DeletePOptions;
@@ -62,8 +59,6 @@ import alluxio.grpc.TtlAction;
 import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.job.plan.persist.PersistConfig;
-import alluxio.job.wire.JobInfo;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.ProtobufUtils;
@@ -87,7 +82,6 @@ import alluxio.master.file.contexts.LoadMetadataContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.OperationContext;
 import alluxio.master.file.contexts.RenameContext;
-import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
@@ -158,7 +152,6 @@ import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ModeUtils;
@@ -221,7 +214,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -1554,11 +1546,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
       // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
       completeFileInternal(rpcContext, inodePath, context);
-//      // Inode completion check is skipped because we know the file we completed is complete.
-//      if (context.getOptions().hasAsyncPersistOptions()) {
-//        scheduleAsyncPersistenceInternal(inodePath, ScheduleAsyncPersistenceContext
-//            .create(context.getOptions().getAsyncPersistOptionsBuilder()), rpcContext);
-//      }
       auditContext.setSucceeded(true);
       cacheOperation(context);
     }
@@ -2727,17 +2714,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
   }
 
-  private boolean shouldPersistPath(String path) {
-    for (String pattern : mPersistBlacklist) {
-      if (path.contains(pattern)) {
-        LOG.debug("Not persisting path {} because it is in {}: {}", path,
-            PropertyKey.Name.MASTER_PERSISTENCE_BLACKLIST, mPersistBlacklist);
-        return false;
-      }
-    }
-    return true;
-  }
-
   /**
    * Renames a file to a destination.
    *
@@ -2811,61 +2787,6 @@ public class DefaultFileSystemMaster extends CoreMaster
 
     // Now we remove srcInode from its parent and insert it into dstPath's parent
     renameInternal(rpcContext, srcInodePath, dstInodePath, false, context);
-
-//    // Check options and determine if we should schedule async persist. This is helpful for compute
-//    // frameworks that use rename as a commit operation.
-//    if (context.getPersist() && srcInode.isFile() && !srcInode.isPersisted()
-//        && shouldPersistPath(dstInodePath.toString())) {
-//      LOG.debug("Schedule Async Persist on rename for File {}", srcInodePath);
-//      mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
-//          .setId(srcInode.getId())
-//          .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
-//          .build());
-//      long shouldPersistTime = srcInode.asFile().getShouldPersistTime();
-//      long persistenceWaitTime = shouldPersistTime == Constants.NO_AUTO_PERSIST ? 0
-//          : getPersistenceWaitTime(shouldPersistTime);
-//      mPersistRequests.put(srcInode.getId(), new alluxio.time.ExponentialTimer(
-//          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
-//          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-//          persistenceWaitTime,
-//          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
-//    }
-//
-//    // If a directory is being renamed with persist on rename, attempt to persist children
-//    int journalFlushCounter = 0;
-//    if (srcInode.isDirectory() && context.getPersist()
-//        && shouldPersistPath(dstInodePath.toString())) {
-//      LOG.debug("Schedule Async Persist on rename for Dir: {}", dstInodePath);
-//      try (LockedInodePathList descendants = mInodeTree.getDescendants(srcInodePath)) {
-//        for (LockedInodePath childPath : descendants) {
-//          Inode childInode = childPath.getInode();
-//          // TODO(apc999): Resolve the child path legitimately
-//          if (childInode.isFile() && !childInode.isPersisted()
-//              && shouldPersistPath(
-//                  childPath.toString().substring(srcInodePath.toString().length()))) {
-//            LOG.debug("Schedule Async Persist on rename for Child File: {}", childPath);
-//            mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
-//                .setId(childInode.getId())
-//                .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name())
-//                .build());
-//            long shouldPersistTime = childInode.asFile().getShouldPersistTime();
-//            long persistenceWaitTime = shouldPersistTime == Constants.NO_AUTO_PERSIST ? 0
-//                : getPersistenceWaitTime(shouldPersistTime);
-//            mPersistRequests.put(childInode.getId(), new alluxio.time.ExponentialTimer(
-//                Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
-//                Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-//                persistenceWaitTime,
-//                Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
-//            journalFlushCounter++;
-//            if (mMergeInodeJournals
-//                && journalFlushCounter > mRecursiveOperationForceFlushEntries) {
-//              rpcContext.getJournalContext().flush();
-//              journalFlushCounter = 0;
-//            }
-//          }
-//        }
-//      }
-//    }
   }
 
   /**
@@ -3780,51 +3701,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     setAttributeSingleFile(rpcContext, inodePath, true, opTimeMs, context);
   }
 
-//  @Override
-//  public void scheduleAsyncPersistence(AlluxioURI path, ScheduleAsyncPersistenceContext context)
-//      throws AlluxioException, UnavailableException {
-//    try (RpcContext rpcContext = createRpcContext(context);
-//        LockedInodePath inodePath =
-//            mInodeTree
-//                .lockFullInodePath(path, LockPattern.WRITE_INODE, rpcContext.getJournalContext())
-//    ) {
-//      InodeFile inode = inodePath.getInodeFile();
-//      if (!inode.isCompleted()) {
-//        throw new InvalidPathException(
-//            "Cannot persist an incomplete Alluxio file: " + inodePath.getUri());
-//      }
-//      scheduleAsyncPersistenceInternal(inodePath, context, rpcContext);
-//    }
-//  }
-
-//  /**
-//   * Persists an inode asynchronously.
-//   * This method does not do the completion check. When this method is invoked,
-//   * please make sure the inode has been completed.
-//   * Currently, two places call this method. One is completeFile(), where we know that
-//   * the file is completed. Another place is scheduleAsyncPersistence(), where we check
-//   * if the inode is completed and throws an exception if it is not.
-//   * @param inodePath the locked inode path
-//   * @param context the context
-//   * @param rpcContext the rpc context
-//   * @throws FileDoesNotExistException if the file does not exist
-//   */
-//  private void scheduleAsyncPersistenceInternal(LockedInodePath inodePath,
-//      ScheduleAsyncPersistenceContext context, RpcContext rpcContext)
-//      throws FileDoesNotExistException {
-//    InodeFile inode = inodePath.getInodeFile();
-//    if (shouldPersistPath(inodePath.toString())) {
-//      mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder().setId(inode.getId())
-//          .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name()).build());
-//      mPersistRequests.put(inode.getId(),
-//          new alluxio.time.ExponentialTimer(
-//              Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
-//              Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-//              context.getPersistenceWaitTime(),
-//              Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)));
-//    }
-//  }
-
   /**
    * Sync metadata for an Alluxio path with the UFS.
    *
@@ -4071,35 +3947,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   public long getInodeCount() {
     return mInodeTree.getInodeCount();
   }
-
-//  /**
-//   * @param fileId file ID
-//   * @param jobId persist job ID
-//   * @param persistenceWaitTime persistence initial wait time
-//   * @param uri Alluxio Uri of the file
-//   * @param tempUfsPath temp UFS path
-//   */
-//  private void addPersistJob(long fileId, long jobId, long persistenceWaitTime, AlluxioURI uri,
-//      String tempUfsPath) {
-//    alluxio.time.ExponentialTimer timer = mPersistRequests.remove(fileId);
-//    if (timer == null) {
-//      timer = new alluxio.time.ExponentialTimer(
-//          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS),
-//          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS),
-//          persistenceWaitTime,
-//          Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS));
-//    }
-//    mPersistJobs.put(fileId, new PersistJob(jobId, fileId, uri, tempUfsPath, timer));
-//  }
-//
-//  private long getPersistenceWaitTime(long shouldPersistTime) {
-//    long currentTime = mClock.millis();
-//    if (shouldPersistTime >= currentTime) {
-//      return shouldPersistTime - currentTime;
-//    } else {
-//      return 0;
-//    }
-//  }
 
   @NotThreadSafe
   private final class TimeSeriesRecorder implements alluxio.heartbeat.HeartbeatExecutor {
