@@ -59,7 +59,7 @@ public class FuseOptions {
    * @param updateCheckEnabled whether to enable update check
    * @param specialCommandEnabled whether fuse special commands are enabled
    */
-  private FuseOptions(FileSystemOptions fileSystemOptions,
+  protected FuseOptions(FileSystemOptions fileSystemOptions,
       Set<String> fuseMountOptions, boolean updateCheckEnabled, boolean specialCommandEnabled) {
     mFileSystemOptions = Preconditions.checkNotNull(fileSystemOptions);
     mFuseMountOptions = Preconditions.checkNotNull(fuseMountOptions);
