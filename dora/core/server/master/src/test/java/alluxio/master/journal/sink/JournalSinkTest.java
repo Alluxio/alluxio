@@ -18,6 +18,7 @@ import static org.junit.Assert.assertNotEquals;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -45,6 +46,7 @@ import alluxio.util.WaitForOptions;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -61,6 +63,9 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * Tests for {@link JournalSinkTest}.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jiacheng",
+    comment = "journal no longer exists in dora")
 public final class JournalSinkTest {
   private static final Logger LOG = LoggerFactory.getLogger(JournalSinkTest.class);
   private static final long INVALID_ID = -1;

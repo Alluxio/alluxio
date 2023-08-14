@@ -29,6 +29,9 @@ import org.junit.Test;
         PropertyKey.Name.MASTER_JOURNAL_TYPE, "EMBEDDED",
         PropertyKey.Name.MASTER_EMBEDDED_JOURNAL_PORT,
         ReportEmbeddedJournalIntegrationTest.JOURNAL_PORT})
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jiacheng",
+    comment = "journal no longer exists in dora")
 public class ReportEmbeddedJournalIntegrationTest  extends AbstractFsAdminShellTest {
   static final String JOURNAL_PORT = "0";
 
