@@ -70,7 +70,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -464,7 +463,6 @@ public final class AlluxioWorkerRestServiceHandler {
       @QueryParam("end") String requestEnd,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
-      FilenameFilter filenameFilter = (dir, name) -> name.toLowerCase().endsWith(".log");
       WorkerWebUILogs response = new WorkerWebUILogs();
 
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
@@ -481,7 +479,7 @@ public final class AlluxioWorkerRestServiceHandler {
         // List all log files in the log/ directory.
 
         List<UIFileInfo> fileInfos = new ArrayList<>();
-        File[] logFiles = logsDir.listFiles(filenameFilter);
+        File[] logFiles = logsDir.listFiles();
         if (logFiles != null) {
           for (File logFile : logFiles) {
             String logFileName = logFile.getName();
