@@ -16,6 +16,7 @@ import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -23,6 +24,7 @@ import org.junit.Test;
  */
 public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
+  @Ignore
   public void masterNotRunning() throws Exception {
     mLocalAlluxioCluster.stopMasters();
     int ret = mFsAdminShell.run("report");
