@@ -19,7 +19,7 @@
     <version>303-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-shaded-hadoop</artifactId>
-  <version>${ufs.hadoop.version}</version>
+  <version>3.3.1</version>
   <packaging>jar</packaging>
   <name>Alluxio Shaded Libraries - Hadoop</name>
   <description>Shaded Hadoop Module</description>
@@ -29,7 +29,7 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.parent.basedir}/build</build.path>
     <!-- Composite jar name with both hadoop version and project version included -->
-    <lib.jar.name>${project.artifactId}-${ufs.hadoop.version}-${project.version}.jar</lib.jar.name>
+    <lib.jar.name>${project.artifactId}-3.3.1-${project.version}.jar</lib.jar.name>
     <shading.prefix>alluxio.shaded.hdfs</shading.prefix>
     <ufs.hadoop.version>3.3.1</ufs.hadoop.version>
   </properties>
@@ -179,7 +179,7 @@
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-core</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <version>3.3.1</version>
         </dependency>
       </dependencies>
     </profile>
@@ -198,12 +198,12 @@
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-common</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <version>3.3.1</version>
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-hdfs</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <version>3.3.1</version>
         </dependency>
       </dependencies>
     </profile>
@@ -218,12 +218,12 @@
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-common</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <version>3.3.1</version>
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-hdfs-client</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <version>3.3.1</version>
         </dependency>
       </dependencies>
     </profile>
