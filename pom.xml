@@ -1073,9 +1073,9 @@
             </systemPropertyVariables>
             <environmentVariables>
               <!-- see https://github.com/testcontainers/testcontainers-java/issues/3609#issuecomment-746966465 -->
-              <TESTCONTAINERS_RYUK_DISABLED>true</TESTCONTAINERS_RYUK_DISABLED>
+<!--              <TESTCONTAINERS_RYUK_DISABLED>true</TESTCONTAINERS_RYUK_DISABLED>-->
               <!-- see https://github.com/testcontainers/testcontainers-java/issues/4785#issuecomment-1016686911 -->
-              <TESTCONTAINERS_HOST_OVERRIDE>host.docker.internal</TESTCONTAINERS_HOST_OVERRIDE>
+<!--              <TESTCONTAINERS_HOST_OVERRIDE>host.docker.internal</TESTCONTAINERS_HOST_OVERRIDE>-->
             </environmentVariables>
             <trimStackTrace>false</trimStackTrace>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
