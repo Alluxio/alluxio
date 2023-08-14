@@ -40,7 +40,6 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -339,14 +338,6 @@ public class FileSystemCache {
     }
 
     @Override
-    public List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
-      if (mClosed) {
-        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
-      }
-      return super.getSyncPathList();
-    }
-
-    @Override
     public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
         throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
         IOException, AlluxioException {
@@ -400,24 +391,6 @@ public class FileSystemCache {
         throw new IOException(CLOSED_FS_ERROR_MESSAGE);
       }
       super.setAcl(path, action, entries, options);
-    }
-
-    @Override
-    public void startSync(AlluxioURI path)
-        throws FileDoesNotExistException, IOException, AlluxioException {
-      if (mClosed) {
-        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
-      }
-      super.startSync(path);
-    }
-
-    @Override
-    public void stopSync(AlluxioURI path)
-        throws FileDoesNotExistException, IOException, AlluxioException {
-      if (mClosed) {
-        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
-      }
-      super.stopSync(path);
     }
 
     @Override

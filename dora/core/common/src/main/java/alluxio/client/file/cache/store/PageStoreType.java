@@ -20,10 +20,6 @@ public enum PageStoreType {
    */
   LOCAL(PageStoreType.LOCAL_OVERHEAD_RATIO),
   /**
-   * A store that utilizes RocksDB to store and retrieve pages.
-   */
-  ROCKS(PageStoreType.ROCKS_OVERHEAD_RATIO),
-  /**
    * A simple store with pages on the memory (HeapByteBuffer).
    */
   MEM(PageStoreType.MEMORY_OVERHEAD_RATIO);
@@ -32,9 +28,6 @@ public enum PageStoreType {
   // i.e., with 1GB space allocated, we
   // expect no more than 1024MB / (1 + BUFF_MEMORY_OVERHEAD_RATIO) logical data stored
   private static final double MEMORY_OVERHEAD_RATIO = 0.1;
-  // We assume 20% overhead using Rocksdb as a page store, i.e., with 1GB space allocated, we
-  // expect no more than 1024MB/(1+20%)=853MB logical data stored
-  private static final double ROCKS_OVERHEAD_RATIO = 0.2;
   // We assume there will be some overhead using local fs as a page store,
   // i.e., with 1GB space allocated, we
   // expect no more than 1024MB / (1 + LOCAL_OVERHEAD_RATIO) logical data stored

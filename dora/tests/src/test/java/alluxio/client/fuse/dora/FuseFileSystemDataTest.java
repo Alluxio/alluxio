@@ -407,7 +407,7 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
   }
 
   private void createOpenTest(Consumer<Function<Integer, Integer>> testCase,
-      boolean testOpenReadWrite, String path) {
+                              boolean testOpenReadWrite, String path) {
     List<Function<Integer, Integer>> operations = new ArrayList<>();
     operations.add(extraFlag -> {
       mFileInfo.get().flags.set(O_WRONLY.intValue() | extraFlag);

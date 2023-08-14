@@ -27,7 +27,7 @@ function get_alluxio_property() {
     exit 1
   fi
 
-  local property=$(${BIN}/alluxio getConf ${property_key})
+  local property=$(${BIN}/alluxio-bash getConf ${property_key})
   if [[ ${?} -ne 0 ]]; then
     echo "Failed to fetch value for Alluxio property key: ${property_key}"
     exit 1

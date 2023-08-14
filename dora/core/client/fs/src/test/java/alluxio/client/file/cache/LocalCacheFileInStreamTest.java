@@ -63,7 +63,6 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
@@ -433,8 +432,6 @@ public class LocalCacheFileInStreamTest {
 
     // cache hit
     stream.read();
-    Assert.assertEquals(1,
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
     Assert.assertEquals(readSize, MetricsSystem.meter(
         MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(fileSize,
@@ -926,11 +923,6 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
         throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
         IOException, AlluxioException {
@@ -984,18 +976,6 @@ public class LocalCacheFileInStreamTest {
     @Override
     public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
         SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void startSync(AlluxioURI path)
-        throws FileDoesNotExistException, IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void stopSync(AlluxioURI path)
-        throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
 

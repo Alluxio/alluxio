@@ -12,6 +12,7 @@
 package alluxio.fuse.ufs.stream;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
@@ -68,10 +69,13 @@ public class OutStreamTest extends AbstractStreamTest {
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
       ByteBuffer buffer = ByteBuffer.allocate(1);
       buffer.put((byte) 'a');
+      buffer.flip();
       outStream.write(buffer, 1, 0);
     }
   }
 
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "JiamingMai",
+      comment = "support create out stream with truncate flag")
   @Test
   public void createTruncateFlag() throws Exception {
     AlluxioURI alluxioURI = getTestFileUri();
