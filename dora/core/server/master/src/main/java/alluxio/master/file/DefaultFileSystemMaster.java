@@ -370,9 +370,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   /** The {@link JournaledGroup} representing all the subcomponents which require journaling. */
   private final JournaledGroup mJournaledGroup;
 
-  /** List of strings which are blacklisted from async persist. */
-  private final List<String> mPersistBlacklist;
-
   /** Log writer for user access audit log. */
   protected AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
@@ -449,9 +446,6 @@ public class DefaultFileSystemMaster extends CoreMaster
 
     // TODO(gene): Handle default config value for whitelist.
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.MASTER_WHITELIST));
-    mPersistBlacklist = Configuration.isSet(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
-        ? Configuration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
-        : Collections.emptyList();
 
     mStateLockCallTracker = new CallTracker() {
       @Override
@@ -4225,8 +4219,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     public static void registerGauges(final UfsManager ufsManager, final InodeTree inodeTree) {
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_PINNED.getName(),
           inodeTree::getPinnedSize);
-      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_TO_PERSIST.getName(),
-          () -> inodeTree.getToBePersistedIds().size());
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_REPLICATION_LIMITED_FILES.getName(),
           () -> inodeTree.getReplicationLimitedFileIds().size());
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TTL_BUCKETS.getName(),

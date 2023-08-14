@@ -2174,15 +2174,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * Master related properties.
    */
-  public static final PropertyKey MASTER_ASYNC_PERSIST_SIZE_VALIDATION =
-      booleanBuilder(Name.MASTER_ASYNC_PERSIST_SIZE_VALIDATION)
-          .setDefaultValue(true)
-          .setDescription("Checks if the size of an async persist file matches the original file "
-              + "and fails the async persist job if not.")
-          .setIsHidden(true)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_AUDIT_LOGGING_ENABLED =
       booleanBuilder(Name.MASTER_AUDIT_LOGGING_ENABLED)
           .setDefaultValue(false)
@@ -3344,51 +3335,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "but increases the memory consumption as alluxio holds more journal entries "
               + "in memory. This config is only available when "
               + Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS + "is enabled.")
-          .build();
-  public static final PropertyKey MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
-      durationBuilder(Name.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS)
-          .setDefaultValue("1s")
-          .setDescription("How often the master checks persistence status for files written using "
-              + "ASYNC_THROUGH")
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
-      durationBuilder(Name.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS)
-          .setDefaultValue("1s")
-          .setDescription("How often the  master persistence checker checks persistence status "
-              + "for files written using ASYNC_THROUGH")
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_PERSISTENCE_MAX_INTERVAL_MS =
-      durationBuilder(Name.MASTER_PERSISTENCE_MAX_INTERVAL_MS)
-          .setDefaultValue("1hr")
-          .setDescription("Max wait interval for master persistence checker persistence status "
-              + "for files written using ASYNC_THROUGH")
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS =
-      durationBuilder(Name.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS)
-          .setDefaultValue("1day")
-          .setDescription("Total wait time for master persistence checker persistence status "
-              + "for files written using ASYNC_THROUGH")
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS =
-      durationBuilder(Name.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS)
-          .setDefaultValue("1s")
-          .setDescription("How often the master schedules persistence jobs "
-              + "for files written using ASYNC_THROUGH")
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_PERSISTENCE_BLACKLIST =
-      listBuilder(Name.MASTER_PERSISTENCE_BLACKLIST)
-          .setDescription("Patterns to blacklist persist, comma separated, string match, no regex."
-            + " This affects any async persist call (including ASYNC_THROUGH writes and CLI "
-            + "persist) but does not affect CACHE_THROUGH writes. Users may want to specify "
-            + "temporary files in the blacklist to avoid unnecessary I/O and errors. Some "
-            + "examples are `.staging` and `.tmp`.")
-          .setScope(Scope.MASTER)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
   public static final PropertyKey MASTER_PRINCIPAL = stringBuilder(Name.MASTER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio master.")
@@ -5314,18 +5260,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether or not to asynchronously persist any files which have been "
               + "renamed. This is helpful when working with compute frameworks which use rename "
               + "to commit results.")
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME =
-      durationBuilder(Name.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME)
-          .setDefaultValue("0")
-          .setDescription(format("Time to wait before starting the persistence job. "
-              + "When the value is set to -1, the file will be persisted by rename operation "
-              + "or persist CLI but will not be automatically persisted in other cases. "
-              + "This is to avoid the heavy object copy in rename operation when %s is set to %s. "
-              + "This value should be smaller than the value of %s",
-              Name.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.ASYNC_THROUGH,
-              Name.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS))
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_WAITCOMPLETED_POLL_MS =
@@ -7440,8 +7374,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // Master related properties
     //
-    public static final String MASTER_ASYNC_PERSIST_SIZE_VALIDATION =
-        "alluxio.master.async.persist.size.validation";
     public static final String MASTER_AUDIT_LOGGING_ENABLED =
         "alluxio.master.audit.logging.enabled";
     public static final String MASTER_AUDIT_LOGGING_QUEUE_CAPACITY =
@@ -7696,8 +7628,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.rocks.inode.index";
     public static final String MASTER_METASTORE_METRICS_REFRESH_INTERVAL =
         "alluxio.master.metastore.metrics.refresh.interval";
-    public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
-        "alluxio.master.persistence.checker.interval";
     public static final String MASTER_METRICS_HEAP_ENABLED =
         "alluxio.master.metrics.heap.enabled";
     public static final String MASTER_METRICS_SERVICE_THREADS =
@@ -7716,16 +7646,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.network.keepalive.timeout";
     public static final String MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
         "alluxio.master.network.permit.keepalive.time";
-    public static final String MASTER_PERSISTENCE_INITIAL_INTERVAL_MS =
-        "alluxio.master.persistence.initial.interval";
-    public static final String MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS =
-        "alluxio.master.persistence.max.total.wait.time";
-    public static final String MASTER_PERSISTENCE_MAX_INTERVAL_MS =
-        "alluxio.master.persistence.max.interval";
-    public static final String MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS =
-        "alluxio.master.persistence.scheduler.interval";
-    public static final String MASTER_PERSISTENCE_BLACKLIST =
-        "alluxio.master.persistence.blacklist";
     public static final String MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
         "alluxio.master.log.config.report.heartbeat.interval";
     public static final String MASTER_MERGE_JOURNAL_CONTEXT_NUM_ENTRIES_LOGGING_THRESHOLD =

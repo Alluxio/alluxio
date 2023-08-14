@@ -326,12 +326,6 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "Note that IDs for these files are stored in memory.")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey MASTER_FILES_TO_PERSIST =
-      new Builder("Master.FilesToBePersisted")
-          .setDescription("Total number of currently to be persisted files."
-              + " Note that the IDs for these files are stored in memory.")
-          .setMetricType(MetricType.GAUGE)
-          .build();
   public static final MetricKey MASTER_FILE_SIZE =
       new Builder("Master.FileSize")
           .setDescription("File size distribution")
