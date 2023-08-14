@@ -25,6 +25,7 @@ import alluxio.uri.UfsUrl;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.SecurityUtils;
+import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -343,6 +344,18 @@ public final class LsCommand extends AbstractFileSystemCommand {
     return statuses.stream().sorted(sortBy).collect(Collectors.toList());
   }
 
+  private String handlePath(String rootDir, String inputDir) {
+    if (inputDir.contains(UfsUrl.SCHEME_SEPARATOR))  {
+      return inputDir;
+    } else {
+      if (rootDir.contains(UfsUrl.SCHEME_SEPARATOR))  {
+        return PathUtils.concatStringPath(rootDir, inputDir);
+      } else {
+        return "file://" + PathUtils.concatStringPath(rootDir, inputDir);
+      }
+    }
+  }
+
   @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
@@ -366,8 +379,10 @@ public final class LsCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
+    String rootDir = mFsContext.getClusterConf().getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     for (String dirArg : args) {
-      UfsUrl ufsPath = UfsUrl.createInstance(dirArg);
+      String processedDirArg = handlePath(rootDir, dirArg);
+      UfsUrl ufsPath = UfsUrl.createInstance(processedDirArg);
       runWildCardCmd(ufsPath, cl);
     }
     return 0;

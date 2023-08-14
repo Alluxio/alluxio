@@ -18,8 +18,6 @@ package alluxio;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.UfsUrlMessage;
 import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.UfsUrl;
@@ -58,6 +56,17 @@ public class UfsUrlTest {
     assertEquals("abc://localhost:19998/xy z/a b c", ufsUrl.toString());
   }
 
+  @Test
+  public void UfsUrlCtorTest() {
+    String scheme1 = "abc";
+    String authority1 = "127.0.0.1:4567";
+    String path1 = "/";
+    UfsUrl ufsUrl1 = new UfsUrl(scheme1, authority1, path1);
+    assertEquals(scheme1, ufsUrl1.getScheme().get());
+    assertEquals(authority1, ufsUrl1.getAuthority().get().toString());
+    assertEquals(path1, ufsUrl1.getFullPath());
+  }
+
   /**
    * Tests the {@link UfsUrl#createInstance(String)} constructor for basic HDFS paths.
    */
@@ -87,9 +96,9 @@ public class UfsUrlTest {
   public void hashCodeTest() {
     String scheme = "xyz";
     String authority = "192.168.0.1:9527";
-    String path = "/a/b/c/d";
-    String ufsUrlPath = scheme + "://" + authority + path;
-    List<String> pathComponents = Arrays.asList(path.split(UfsUrl.PATH_SEPARATOR));
+    String path = "a/b/c/d";
+    String ufsUrlPath = scheme + "://" + authority + "/" + path;
+    List<String> pathComponents = Arrays.asList(path.split(UfsUrl.SLASH_SEPARATOR));
 
     UfsUrl ufsUrl1 = UfsUrl.createInstance(ufsUrlPath);
     UfsUrl ufsUrl2 = UfsUrl.createInstance(UfsUrlMessage.newBuilder()
@@ -97,9 +106,9 @@ public class UfsUrlTest {
     assertEquals(ufsUrl1.toString(), ufsUrl2.toString());
     assertEquals(ufsUrl1.hashCode(), ufsUrl2.hashCode());
 
-//    UfsUrl ufsUrl3 = UfsUrl.createInstance(UfsUrl.toProto(ufsUrlPath));
-//    assertEquals(ufsUrl2.toString(), ufsUrl3.toString());
-//    assertEquals(ufsUrl2.hashCode(), ufsUrl3.hashCode());
+    UfsUrl ufsUrl3 = new UfsUrl(scheme, authority, path);
+    assertEquals(ufsUrl2.toString(), ufsUrl3.toString());
+    assertEquals(ufsUrl2.hashCode(), ufsUrl3.hashCode());
   }
 
   /**
@@ -107,9 +116,7 @@ public class UfsUrlTest {
    */
   @Test
   public void getDepthTests() {
-    int rootDepth = UfsUrl.createInstance(
-        Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT)).getDepth();
-    assertEquals(rootDepth, UfsUrl.createInstance(".").getDepth());
+    assertEquals(0, UfsUrl.createInstance(".").getDepth());
     assertEquals(0, UfsUrl.createInstance("abc://localhost:19998/").getDepth());
     assertEquals(1, UfsUrl.createInstance("abc://localhost:19998/a").getDepth());
     assertEquals(2, UfsUrl.createInstance("abc://localhost:19998/a/b.txt").getDepth());

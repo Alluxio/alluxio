@@ -11,7 +11,7 @@
 
 package alluxio.util.io;
 
-import static alluxio.uri.UfsUrl.PATH_SEPARATOR;
+import static alluxio.uri.UfsUrl.SLASH_SEPARATOR;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
@@ -483,10 +483,10 @@ public final class PathUtils {
   public static String concatStringPath(String pathA, String pathB) {
     Preconditions.checkArgument(pathA != null && !pathA.isEmpty());
     Preconditions.checkArgument(pathB != null && !pathB.isEmpty());
-    if (pathA.endsWith(PATH_SEPARATOR) && pathB.startsWith(PATH_SEPARATOR)) {
+    if (pathA.endsWith(SLASH_SEPARATOR) && pathB.startsWith(SLASH_SEPARATOR)) {
       return pathA.substring(0, pathA.length() - 1) + pathB;
-    } else if (!pathA.endsWith(PATH_SEPARATOR) && !pathB.startsWith(PATH_SEPARATOR)) {
-      return pathA + PATH_SEPARATOR + pathB;
+    } else if (!pathA.endsWith(SLASH_SEPARATOR) && !pathB.startsWith(SLASH_SEPARATOR)) {
+      return pathA + SLASH_SEPARATOR + pathB;
     } else {
       return pathA + pathB;
     }

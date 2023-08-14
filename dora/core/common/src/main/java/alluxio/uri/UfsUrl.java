@@ -12,8 +12,6 @@
 package alluxio.uri;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.UfsUrlMessage;
 import alluxio.util.io.PathUtils;
@@ -21,10 +19,9 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FilenameUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -36,140 +33,81 @@ public class UfsUrl {
 
   public static final String SCHEME_SEPARATOR = "://";
   public static final String DOUBLE_SLASH_SEPARATOR = "//";
-  public static final String PATH_SEPARATOR = "/";
+  public static final String SLASH_SEPARATOR = "/";
   public static final String COLON_SEPARATOR = ":";
 
-  final UfsUrlMessage mProto;
+  private final UfsUrlMessage mProto;
 
-  /**
-   * Constructs a map containing scheme, authority, and path.
-   * @param inputUrl the input url string
-   * @return a map containing scheme, authority, and path
-   */
-  public static Map<String, String> extractElements(String inputUrl) {
-    Preconditions.checkArgument(inputUrl != null && !inputUrl.isEmpty(),
-        "The input url is null or empty, please input a valid url.");
-    Map<String, String> elements = new HashMap<>();
-    String scheme = null;
-    String authority = null;
-    String path = null;
+  private static class Parser {
+    private final String mScheme;
+    private final String mAuthority;
+    private final List<String> mPathComponents;
 
-    int start = 0;
-    int schemeSplitIndex = inputUrl.indexOf(SCHEME_SEPARATOR, start);
-    if (schemeSplitIndex == -1) {
-      scheme = "";
-    } else {
-      scheme = inputUrl.substring(start, schemeSplitIndex);
-      start += scheme.length();
-    }
-    Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
-        "Alluxio 3.x no longer supports alluxio:// scheme,"
-            + " please input the UFS path directly like hdfs://host:port/path");
+    private Parser(String inputUrl) {
+      Preconditions.checkArgument(inputUrl != null && !inputUrl.isEmpty(),
+          "The input url is null or empty, please input a valid url.");
+      String scheme = null;
+      String authority = null;
+      String path = null;
 
-    // unified address "://" and "//"
-    while (start < inputUrl.length() && inputUrl.charAt(start) == COLON_SEPARATOR.charAt(0))  {
-      start++;
-    }
-
-    if (inputUrl.startsWith(DOUBLE_SLASH_SEPARATOR, start)
-        && start + DOUBLE_SLASH_SEPARATOR.length() < inputUrl.length()) {
-      start += DOUBLE_SLASH_SEPARATOR.length();
-      int authoritySplitIndex = inputUrl.indexOf(PATH_SEPARATOR, start);
-      if (authoritySplitIndex == -1)  {
-        authority = inputUrl.substring(start);
+      int start = 0;
+      int schemeSplitIndex = inputUrl.indexOf(SCHEME_SEPARATOR, start);
+      if (schemeSplitIndex == -1) {
+        scheme = "";
       } else {
-        authority = inputUrl.substring(start, authoritySplitIndex);
+        scheme = inputUrl.substring(start, schemeSplitIndex);
+        start += scheme.length();
       }
-    } else {
-      authority = "";
-    }
+      Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
+          "Alluxio 3.x no longer supports alluxio:// scheme,"
+              + " please input the UFS path directly like hdfs://host:port/path");
 
-      start += authority.length();
-      path = FilenameUtils.normalize(inputUrl.substring(start));
-
-    elements.put("scheme", scheme);
-    elements.put("authority", authority);
-    elements.put("path", path);
-    return elements;
-  }
-
-  /**
-   * Determines the scheme of this absolute path object. The returns String is not empty.
-   * @param rootUrl the elems map of root url, including scheme, authority and path
-   * @param inputUrl the elems map of input url, including scheme, authority and path
-   * @return the scheme of this UfsUrl object
-   */
-  public static String generateScheme(Map<String, String> rootUrl, Map<String, String> inputUrl) {
-    if (rootUrl.get("scheme").isEmpty())  {
-      if (inputUrl.get("scheme").isEmpty())  {
-        return "file";
-      } else {
-        return inputUrl.get("scheme");
+      // unified address "://" and "//"
+      while (start < inputUrl.length() && inputUrl.charAt(start) == COLON_SEPARATOR.charAt(0))  {
+        start++;
       }
-    } else {  // rootUrl.scheme is not empty
-      if (inputUrl.get("scheme").isEmpty())  {
-        // means input is a relative path.
-        return rootUrl.get("scheme");
-      } else {
-        return inputUrl.get("scheme");
-      }
-    }
-  }
 
-  /**
-   * Determines the authority of this absolute path object.
-   * @param rootUrl the elems map of root url, including scheme, authority and path
-   * @param inputUrl the elems map of input url, including scheme, authority and path
-   * @return the authority of this UfsUrl object
-   */
-  public static String generateAuthority(Map<String, String> rootUrl,
-                                         Map<String, String> inputUrl) {
-    if (rootUrl.get("authority").isEmpty())  {
-      return  inputUrl.get("authority");
-    } else {
-      if (rootUrl.get("scheme").equals(inputUrl.get("scheme"))) {
-        if (!inputUrl.get("authority").isEmpty()) {
-          return inputUrl.get("authority");
+      if (inputUrl.startsWith(DOUBLE_SLASH_SEPARATOR, start)
+          && start + DOUBLE_SLASH_SEPARATOR.length() < inputUrl.length()) {
+        start += DOUBLE_SLASH_SEPARATOR.length();
+        int authoritySplitIndex = inputUrl.indexOf(SLASH_SEPARATOR, start);
+        if (authoritySplitIndex == -1)  {
+          authority = inputUrl.substring(start);
         } else {
-          return rootUrl.get("authority");
+          authority = inputUrl.substring(start, authoritySplitIndex);
         }
       } else {
-        return inputUrl.get("authority");
+        authority = "";
+      }
+
+      start += authority.length();
+      // remove the fronting slash, if any.
+      while (start < inputUrl.length() && inputUrl.charAt(start) == SLASH_SEPARATOR.charAt(0)) {
+        start++;
+      }
+      path = FilenameUtils.normalizeNoEndSeparator(inputUrl.substring(start));
+
+      // scheme, authority, pathComponents are always not null.
+      mScheme = scheme;
+      mAuthority = authority;
+
+      if (path.isEmpty()) {
+        mPathComponents = new ArrayList<>();
+      } else {
+        mPathComponents = Arrays.asList(path.split(SLASH_SEPARATOR));
       }
     }
-  }
 
-  /**
-   * Determines the path components list of this absolute path.
-   * @param rootUrl the elems map of root url, including scheme, authority and path
-   * @param inputUrl the elems map of input url, including scheme, authority and path
-   * @return the path components list of this UfsUrl Object
-   */
-  public static List<String> generatePathComponents(Map<String, String> rootUrl,
-                                                    Map<String, String> inputUrl) {
-    List<String> inputPathComponents = Arrays.asList(inputUrl.get("path").split(PATH_SEPARATOR));
-
-    if (rootUrl.equals(inputUrl)) {
-      return inputPathComponents;
+    public String getScheme() {
+      return mScheme;
     }
 
-    // inputUrl.scheme is "file" -> the inputUrl is probably a relative path.
-    if (inputUrl.get("scheme").equals("file")) {
-      // rootUrl.scheme is "file" or empty -> inputUrl is a relative path.
-      if (inputUrl.get("scheme").equals(rootUrl.get("scheme")) || rootUrl.get("scheme").isEmpty()) {
-        String concatPath = rootUrl.get("path") + inputUrl.get("path");
-        return Arrays.asList(FilenameUtils
-            .normalizeNoEndSeparator(concatPath).split(PATH_SEPARATOR));
-      } else {  // inputUrl is an absolute path.
-        return inputPathComponents;
-      }
-    } else {  // inputUrl is an absolute path.
-      // if inputUrl.path is "/" or "//", i.e., root directory, set a "" to represent root.
-      if (inputUrl.get("path").equals(PATH_SEPARATOR)
-          || inputUrl.get("path").equals(DOUBLE_SLASH_SEPARATOR))  {
-        inputPathComponents = Arrays.asList("");
-      }
-      return inputPathComponents;
+    public String getAuthority() {
+      return mAuthority;
+    }
+
+    public List<String> getPathComponents() {
+      return mPathComponents;
     }
   }
 
@@ -192,40 +130,12 @@ public class UfsUrl {
     Preconditions.checkArgument(ufsPath != null && !ufsPath.isEmpty(),
         "input path is null or empty");
 
-    String ufsRootDir = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
-
-    Preconditions.checkArgument(ufsRootDir != null && !ufsRootDir.isEmpty(),
-        "root dir is null or empty.");
-
-    Map<String, String> rootDirElems = extractElements(ufsRootDir);
-    Map<String, String> ufsPathElems = extractElements(ufsPath);
-
-    Preconditions.checkArgument(
-        rootDirElems.containsKey("scheme") && rootDirElems.get("scheme") != null
-            && rootDirElems.containsKey("authority") && rootDirElems.get("authority") != null
-            && rootDirElems.containsKey("path") && rootDirElems.get("path") != null);
-
-    Preconditions.checkArgument(
-        ufsPathElems.containsKey("scheme") && ufsPathElems.get("scheme") != null
-            && ufsPathElems.containsKey("authority") && ufsPathElems.get("authority") != null
-            && ufsPathElems.containsKey("path") && ufsPathElems.get("path") != null);
-
-    String scheme = generateScheme(rootDirElems, ufsPathElems);
-    Preconditions.checkArgument(!scheme.isEmpty(),
-        "scheme is empty, please check input Url again.");
-    ufsPathElems.put("scheme", scheme);
-    if (scheme.equals("file"))  {
-      rootDirElems.put("scheme", scheme);
-    }
-
-    String authority = generateAuthority(rootDirElems, ufsPathElems);
-    ufsPathElems.put("authority", authority);
-    List<String> pathComponents = generatePathComponents(rootDirElems, ufsPathElems);
-
+    Parser parser = new Parser(ufsPath);
+    // if not present, the builder will throw exception.
     return new UfsUrl(UfsUrlMessage.newBuilder()
-        .setScheme(scheme)
-        .setAuthority(authority)
-        .addAllPathComponents(pathComponents)
+        .setScheme(parser.getScheme())
+        .setAuthority(parser.getAuthority())
+        .addAllPathComponents(parser.getPathComponents())
         .build());
   }
 
@@ -243,8 +153,6 @@ public class UfsUrl {
    * @param proto the proto of the UfsUrl
    */
   public UfsUrl(UfsUrlMessage proto) {
-    Preconditions.checkArgument(proto.getPathComponentsList().size() != 0,
-        "The proto.path is empty, please check the proto first.");
     mProto = proto;
   }
 
@@ -255,14 +163,8 @@ public class UfsUrl {
    * @param path the path component of the UfsUrl
    */
   public UfsUrl(String scheme, String authority, String path) {
-    String[] arrayOfPath = path.split(PATH_SEPARATOR);
+    String[] arrayOfPath = path.split(SLASH_SEPARATOR);
     List<String> pathComponentsList = Arrays.asList(arrayOfPath);
-    // handle root dir "/". If equal, pathComponentsList is empty, add "" to represent "/".
-    if (path.equals(PATH_SEPARATOR))  {
-      pathComponentsList.add("");
-    }
-    Preconditions.checkArgument(pathComponentsList.size() != 0,
-        "The path is empty, please input a valid path");
     mProto = UfsUrlMessage.newBuilder()
         .setScheme(scheme)
         .setAuthority(authority)
@@ -384,15 +286,17 @@ public class UfsUrl {
    */
   public String getFullPath() {
     StringBuilder sb = new StringBuilder();
-    sb.append(PATH_SEPARATOR);
+    sb.append(SLASH_SEPARATOR);
+    int n = mProto.getPathComponentsList().size();
     // Then sb is not empty.
-    for (int i = 1; i < mProto.getPathComponentsList().size(); i++) {
-      sb.append(mProto.getPathComponentsList().get(i));
-      if (!mProto.getPathComponentsList().get(i).isEmpty()) {
-        sb.append(PATH_SEPARATOR);
-      }
+    for (int i = 0; i < n - 1; i++) {
+      sb.append(mProto.getPathComponents(i));
+      sb.append(SLASH_SEPARATOR);
     }
-    return FilenameUtils.normalizeNoEndSeparator(sb.toString());
+    if (n - 1 >= 0)  {
+      sb.append(mProto.getPathComponents(n - 1));
+    }
+    return sb.toString();
   }
 
   /**
@@ -411,10 +315,7 @@ public class UfsUrl {
    * @return the depth
    */
   public int getDepth() {
-    int pathComponentsSize = getPathComponents().size();
-    Preconditions.checkArgument(pathComponentsSize > 0);
-    // "/" is represented as an empty String "".
-    return getPathComponents().get(0).isEmpty() ? pathComponentsSize - 1 : pathComponentsSize;
+    return getPathComponents().size();
   }
 
   /**
@@ -443,8 +344,8 @@ public class UfsUrl {
     }
     // TODO(Tony Sun): optimize the performance later
     // Both of the ufsUrls has the same scheme and authority, so just need to compare their paths.
-    return PathUtils.hasPrefix(PathUtils.normalizePath(ufsUrl.getFullPath(), PATH_SEPARATOR),
-        PathUtils.normalizePath(getFullPath(), PATH_SEPARATOR));
+    return PathUtils.hasPrefix(PathUtils.normalizePath(ufsUrl.getFullPath(), SLASH_SEPARATOR),
+        PathUtils.normalizePath(getFullPath(), SLASH_SEPARATOR));
   }
 
   /**
@@ -457,7 +358,7 @@ public class UfsUrl {
     if (suffix == null || suffix.isEmpty()) {
       return new UfsUrl(mProto);
     }
-    String[] suffixArray = suffix.split(PATH_SEPARATOR);
+    String[] suffixArray = suffix.split(SLASH_SEPARATOR);
     int nonEmptyIndex = 0;
     while (nonEmptyIndex < suffixArray.length && suffixArray[nonEmptyIndex].isEmpty())  {
       nonEmptyIndex++;
