@@ -15,7 +15,6 @@ jobs:
         modules:
           - >-
             alluxio.membership.**
-    # TODO: update the above
 
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.title, 'DOCFIX') &&
