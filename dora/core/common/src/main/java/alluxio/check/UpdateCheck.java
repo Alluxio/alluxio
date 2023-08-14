@@ -159,7 +159,6 @@ public final class UpdateCheck {
     addIfTrue(FeatureUtils.isZookeeperEnabled(), info, ZOOKEEPER_KEY);
     addIfTrue(FeatureUtils.isBackupDelegationEnabled(), info, BACKUP_DELEGATION_KEY);
     addIfTrue(FeatureUtils.isDailyBackupEnabled(), info, DAILY_BACKUP_KEY);
-    addIfTrue(!FeatureUtils.isPersistenceBlacklistEmpty(), info, PERSIST_BLACK_LIST_KEY);
     addIfTrue(FeatureUtils.isUnsafeDirectPersistEnabled(), info, UNSAFE_PERSIST_KEY);
     addIfTrue(FeatureUtils.isMasterAuditLoggingEnabled(), info, MASTER_AUDIT_LOG_KEY);
     addIfTrue(FeatureUtils.isPageStoreEnabled(), info, PAGE_STORE_KEY);
