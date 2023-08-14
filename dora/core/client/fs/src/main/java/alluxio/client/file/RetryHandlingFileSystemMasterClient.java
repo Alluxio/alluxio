@@ -238,7 +238,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
           throws AlluxioStatusException {
     return retryRPC(() -> new URIStatus(GrpcUtils
                 .fromProto(mClient.getStatus(GetStatusPRequest.newBuilder()
-                    .setUfsPath(ufsPath.getProto())
+                    .setUfsPath(ufsPath.toProto())
                     .setOptions(options).build()).getFileInfo())),
             RPC_LOG, "GetStatus", "path=%s,options=%s", ufsPath, options);
   }
@@ -319,7 +319,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     return retryRPC(() -> {
       List<URIStatus> result = new ArrayList<>();
       mClient.listStatus(ListStatusPRequest.newBuilder()
-              .setUfsPath(ufsPath.getProto()).setOptions(options).build())
+              .setUfsPath(ufsPath.toProto()).setOptions(options).build())
           .forEachRemaining(
               (pListStatusResponse) -> result.addAll(pListStatusResponse.getFileInfosList().stream()
                   .map((pFileInfo) -> new URIStatus(GrpcUtils.fromProto(pFileInfo)))

@@ -211,7 +211,7 @@ public class DoraCacheClient {
       List<URIStatus> result = new ArrayList<>();
       client.get().listStatus(ListStatusPRequest.newBuilder()
               .setPath(ufsPath.toString())
-              .setUfsPath(ufsPath.getProto())
+              .setUfsPath(ufsPath.toProto())
               .setOptions(options).build())
           .forEachRemaining(
               (pListStatusResponse) -> result.addAll(pListStatusResponse.getFileInfosList().stream()
