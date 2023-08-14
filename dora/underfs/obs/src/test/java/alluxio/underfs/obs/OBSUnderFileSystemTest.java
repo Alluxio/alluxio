@@ -12,14 +12,18 @@
 package alluxio.underfs.obs;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.PositionReader;
 import alluxio.conf.Configuration;
+import alluxio.retry.CountingRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.OpenOptions;
 
 import com.obs.services.ObsClient;
 import com.obs.services.exception.ObsException;
-import com.obs.services.model.ListObjectsRequest;
-import com.obs.services.model.ObjectMetadata;
+import com.obs.services.model.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +31,12 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Unit tests for the {@link OBSUnderFileSystem}.
@@ -40,6 +49,7 @@ public class OBSUnderFileSystemTest {
   private static final String PATH = "path";
   private static final String SRC = "src";
   private static final String DST = "dst";
+  private static final String KEY = "key";
 
   private static final String BUCKET_NAME = "bucket";
   private static final String BUCKET_TYPE = "obs";
@@ -48,10 +58,108 @@ public class OBSUnderFileSystemTest {
    * Set up.
    */
   @Before
-  public void before() throws InterruptedException, ObsException {
+  public void before() throws ObsException {
     mClient = Mockito.mock(ObsClient.class);
     mOBSUnderFileSystem = new OBSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
         BUCKET_TYPE, UnderFileSystemConfiguration.defaults(Configuration.global()));
+  }
+
+  /**
+   * Test case for {@link OBSUnderFileSystem#getUnderFSType()}.
+   */
+  @Test
+  public void getUnderFSType() {
+    Assert.assertEquals("obs", mOBSUnderFileSystem.getUnderFSType());
+  }
+
+  /**
+   * Test case for {@link OBSUnderFileSystem#copyObject(String, String)}.
+   */
+  @Test
+  public void testCopyObject() {
+    // test successful copy object
+    Mockito.when(mClient.copyObject(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenReturn(null);
+    boolean result = mOBSUnderFileSystem.copyObject(SRC, DST);
+    Assert.assertTrue(result);
+
+    // test copy object exception
+    Mockito.when(mClient.copyObject(ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString())).thenThrow(ObsException.class);
+    try {
+      mOBSUnderFileSystem.copyObject(SRC, DST);
+    } catch (Exception e) {
+      Assert.assertTrue(e instanceof ObsException);
+    }
+  }
+
+  /**
+   * Test case for {@link OBSUnderFileSystem#createEmptyObject(String)}.
+   */
+  @Test
+  public void testCreateEmptyObject() {
+    // test successful create empty object
+    Mockito.when(mClient.putObject(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+            ArgumentMatchers.any(InputStream.class), ArgumentMatchers.any(ObjectMetadata.class)))
+        .thenReturn(null);
+    boolean result = mOBSUnderFileSystem.createEmptyObject(KEY);
+    Assert.assertTrue(result);
+
+    // test create empty object exception
+    Mockito.when(mClient.putObject(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+            ArgumentMatchers.any(InputStream.class), ArgumentMatchers.any(ObjectMetadata.class)))
+        .thenThrow(ObsException.class);
+    try {
+      mOBSUnderFileSystem.createEmptyObject(KEY);
+    } catch (Exception e) {
+      Assert.assertTrue(e instanceof ObsException);
+    }
+  }
+
+  /**
+   * Test case for {@link OBSUnderFileSystem#createObject(String)}.
+   */
+  @Test
+  public void testCreateObject() throws IOException {
+    // test successful create object
+    Mockito.when(mClient.putObject(ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString(), ArgumentMatchers.any(InputStream.class),
+        ArgumentMatchers.any(ObjectMetadata.class))).thenReturn(null);
+    OutputStream result = mOBSUnderFileSystem.createObject(KEY);
+    Assert.assertTrue(result instanceof OBSOutputStream);
+  }
+
+  /**
+   * Test case for {@link OBSUnderFileSystem#deleteObjects(List)}.
+   */
+  @Test
+  public void testDeleteObjects() throws IOException {
+    String[] stringKeys = new String[]{"key1", "key2", "key3"};
+    List<String> keys = new ArrayList<>();
+    Collections.addAll(keys, stringKeys);
+    List<DeleteObjectsResult.DeleteObjectResult> deletedObjects =
+        new ArrayList<>();
+    for (String key : keys) {
+      DeleteObjectsResult.DeleteObjectResult deletedObject =
+          new DeleteObjectsResult.DeleteObjectResult(key, "", true, "");
+      deletedObjects.add(deletedObject);
+    }
+    // test successful delete objects
+    Mockito.when(mClient.deleteObjects(ArgumentMatchers.any(DeleteObjectsRequest.class)))
+        .thenReturn(new DeleteObjectsResult(deletedObjects, null));
+
+    List<String> result = mOBSUnderFileSystem.deleteObjects(keys);
+    Assert.assertEquals(keys, result);
+
+    // test delete objects exception
+    Mockito.when(mClient.deleteObjects(ArgumentMatchers.any(DeleteObjectsRequest.class)))
+        .thenThrow(ObsException.class);
+    try {
+      mOBSUnderFileSystem.deleteObjects(keys);
+    } catch (Exception e) {
+      Assert.assertTrue(e instanceof IOException);
+    }
   }
 
   /**
@@ -162,5 +270,66 @@ public class OBSUnderFileSystemTest {
         UnderFileSystemConfiguration.defaults(Configuration.global()));
     Assert.assertNotNull(mOBSUnderFileSystem.getObjectStatus("pfs_file1"));
     Assert.assertNotNull(mOBSUnderFileSystem.getObjectStatus("dir1"));
+  }
+
+  /**
+   * Test case for {@link OBSUnderFileSystem#getFolderSuffix()}.
+   */
+  @Test
+  public void testGetFolderSuffix() {
+    Assert.assertEquals("/", mOBSUnderFileSystem.getFolderSuffix());
+  }
+
+  /**
+   * Test case for {@link OBSUnderFileSystem#getObjectListingChunk(ListObjectsRequest)}.
+   */
+  @Test
+  public void testGetObjectListingChunk() {
+    // test successful get object listing chunk
+    Mockito.when(mClient.listObjects(ArgumentMatchers.any(ListObjectsRequest.class)))
+        .thenReturn(new ObjectListing(null, null, null, false,
+            null, null, 0, null, null, null));
+    ListObjectsRequest request = new ListObjectsRequest();
+    HeaderResponse result = mOBSUnderFileSystem.getObjectListingChunk(request);
+    Assert.assertTrue(result instanceof ObjectListing);
+  }
+
+  /**
+   * Test case for {@link OBSUnderFileSystem#isDirectory(String)}.
+   */
+  @Test
+  public void testIsDirectory() throws IOException {
+    Assert.assertTrue(mOBSUnderFileSystem.isDirectory("/"));
+  }
+
+  /**
+   * Test case for {@link OBSUnderFileSystem#openPositionRead(String, long)}.
+   */
+  @Test
+  public void testOpenPositionRead() {
+    PositionReader result = mOBSUnderFileSystem.openPositionRead(KEY, 1L);
+    Assert.assertTrue(result instanceof OBSPositionReader);
+  }
+
+  /**
+   * Test case for {@link OBSUnderFileSystem#getRootKey()}.
+   */
+  @Test
+  public void testGetRootKey() {
+    Assert.assertEquals(Constants.HEADER_OBS + BUCKET_NAME, mOBSUnderFileSystem.getRootKey());
+  }
+
+  /**
+   * Test case for {@link OBSUnderFileSystem#openObject(String, OpenOptions, RetryPolicy)}.
+   */
+  @Test
+  public void testOpenObject() throws IOException {
+    // test successful open object
+    Mockito.when(mClient.getObject(ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
+        .thenReturn(new ObsObject());
+    OpenOptions options = OpenOptions.defaults();
+    RetryPolicy retryPolicy = new CountingRetry(1);
+    InputStream result = mOBSUnderFileSystem.openObject(KEY, options, retryPolicy);
+    Assert.assertTrue(result instanceof OBSInputStream);
   }
 }
