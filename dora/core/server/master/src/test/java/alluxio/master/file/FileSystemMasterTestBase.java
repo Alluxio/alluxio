@@ -154,6 +154,11 @@ public class FileSystemMasterTestBase {
           put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
               .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
           put(PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED, false);
+          put(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS, 2);
+          put(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(0),
+              Constants.MEDIUM_MEM);
+          put(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(1),
+              Constants.MEDIUM_SSD);
         }
       }, Configuration.modifiableGlobal());
 

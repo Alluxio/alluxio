@@ -110,56 +110,6 @@ public final class PropertyKeyTest {
   }
 
   @Test
-  public void formatMasterTieredStoreGlobalAlias() throws Exception {
-    assertEquals(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS,
-        PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(0));
-    assertEquals(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS,
-        PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(1));
-    assertEquals(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS,
-        PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(2));
-  }
-
-  @Test
-  public void formatWorkerTieredStoreAlias() throws Exception {
-    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS,
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0));
-    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL1_ALIAS,
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1));
-    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL2_ALIAS,
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2));
-  }
-
-  @Test
-  public void formatWorkerTieredStoreDirsPath() throws Exception {
-    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH,
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0));
-    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH,
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(1));
-    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH,
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(2));
-  }
-
-  @Test
-  public void formatWorkerTieredStoreDirsQuota() throws Exception {
-    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA,
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(0));
-    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA,
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1));
-    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA,
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(2));
-  }
-
-  @Test
-  public void formatWorkerTieredStoreReservedRatio() throws Exception {
-    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO,
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(0));
-    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO,
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(1));
-    assertEquals(PropertyKey.WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO,
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(2));
-  }
-
-  @Test
   public void mountTableRootProperties() throws Exception {
     assertEquals(PropertyKey.MASTER_MOUNT_TABLE_ROOT_ALLUXIO,
         PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.format("root"));
