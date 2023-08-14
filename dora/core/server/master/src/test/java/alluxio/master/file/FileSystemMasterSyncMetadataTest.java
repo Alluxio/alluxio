@@ -118,9 +118,6 @@ public final class FileSystemMasterSyncMetadataTest {
     File ufsRoot = tmpFolder.newFolder();
     Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsRoot.getAbsolutePath());
-    Configuration.set(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, 0);
-    Configuration.set(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS, 1000);
-    Configuration.set(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS, 1000);
     mJournalFolder = tmpFolder.newFolder();
     startServices();
   }

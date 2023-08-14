@@ -5262,6 +5262,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "to commit results.")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME =
+      durationBuilder(Name.USER_FILE_PERSISTENCE_INITIAL_WAIT_TIME)
+          .setDefaultValue("0")
+          .setDescription(format("Time to wait before starting the persistence job. "
+              + "When the value is set to -1, the file will be persisted by rename operation "
+              + "or persist CLI but will not be automatically persisted in other cases. "
+              + "This is to avoid the heavy object copy in rename operation when %s is set to %s. "
+              + "This value should be smaller than the value of %s",
+              Name.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.ASYNC_THROUGH,
+              Name.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS))
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_FILE_WAITCOMPLETED_POLL_MS =
       durationBuilder(Name.USER_FILE_WAITCOMPLETED_POLL_MS)
           .setAlias("alluxio.user.file.waitcompleted.poll.ms")
@@ -7374,6 +7386,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // Master related properties
     //
+    public static final String MASTER_ASYNC_PERSIST_SIZE_VALIDATION =
+        "alluxio.master.async.persist.size.validation";
     public static final String MASTER_AUDIT_LOGGING_ENABLED =
         "alluxio.master.audit.logging.enabled";
     public static final String MASTER_AUDIT_LOGGING_QUEUE_CAPACITY =
@@ -7628,6 +7642,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.rocks.inode.index";
     public static final String MASTER_METASTORE_METRICS_REFRESH_INTERVAL =
         "alluxio.master.metastore.metrics.refresh.interval";
+    public static final String MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
+        "alluxio.master.persistence.checker.interval";
     public static final String MASTER_METRICS_HEAP_ENABLED =
         "alluxio.master.metrics.heap.enabled";
     public static final String MASTER_METRICS_SERVICE_THREADS =
@@ -7646,6 +7662,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.network.keepalive.timeout";
     public static final String MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS =
         "alluxio.master.network.permit.keepalive.time";
+    public static final String MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS =
+        "alluxio.master.persistence.max.total.wait.time";
     public static final String MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL =
         "alluxio.master.log.config.report.heartbeat.interval";
     public static final String MASTER_MERGE_JOURNAL_CONTEXT_NUM_ENTRIES_LOGGING_THRESHOLD =
