@@ -12,7 +12,6 @@
 package alluxio.client.file.options;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
@@ -20,9 +19,6 @@ import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
-import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.client.block.policy.LocalFirstPolicy;
-import alluxio.client.block.policy.RoundRobinPolicy;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -96,7 +92,6 @@ public class OutStreamOptionsTest {
 
     assertEquals(alluxioType, options.getAlluxioStorageType());
     assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
-    assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
     assertEquals("test_user", options.getOwner());
     assertEquals("test_group", options.getGroup());
     assertEquals(ModeUtils.applyFileUMask(Mode.defaults(),
@@ -115,8 +110,6 @@ public class OutStreamOptionsTest {
   public void fields() throws Exception {
     Random random = new Random();
     long blockSize = random.nextLong();
-    BlockLocationPolicy locationPolicy = new RoundRobinPolicy(
-        Configuration.global());
     String owner = CommonUtils.randomAlphaNumString(10);
     String group = CommonUtils.randomAlphaNumString(10);
     Mode mode = new Mode((short) random.nextInt());
@@ -131,7 +124,6 @@ public class OutStreamOptionsTest {
     ClientContext clientContext = ClientContext.create(mConf);
     OutStreamOptions options = OutStreamOptions.defaults(FileSystemContext.create(clientContext));
     options.setBlockSizeBytes(blockSize);
-    options.setLocationPolicy(locationPolicy);
     options.setOwner(owner);
     options.setGroup(group);
     options.setMode(mode);
@@ -139,7 +131,6 @@ public class OutStreamOptionsTest {
     options.setWriteType(writeType);
 
     assertEquals(blockSize, options.getBlockSizeBytes());
-    assertEquals(locationPolicy, options.getLocationPolicy());
     assertEquals(owner, options.getOwner());
     assertEquals(group, options.getGroup());
     assertEquals(mode, options.getMode());

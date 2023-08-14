@@ -25,6 +25,7 @@ import (
 const (
 	Docker          = "docker"
 	Modules         = "modules"
+	Presets         = "presets"
 	Profiles        = "profiles"
 	Tarball         = "tarball"
 	UfsVersionCheck = "ufsVersionCheck"
@@ -34,6 +35,7 @@ const (
 var SubCmdNames = []string{
 	Docker,
 	Modules,
+	Presets,
 	Profiles,
 	Tarball,
 	UfsVersionCheck,

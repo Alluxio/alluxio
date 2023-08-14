@@ -12,7 +12,7 @@
 package alluxio.client.rest;
 
 import alluxio.Constants;
-import alluxio.proxy.s3.ListBucketResult;
+import alluxio.s3.S3Constants;
 import alluxio.testutils.BaseIntegrationTest;
 
 import com.google.common.collect.ImmutableMap;
@@ -25,8 +25,9 @@ import javax.ws.rs.HttpMethod;
 
 public abstract class RestApiTest extends BaseIntegrationTest {
   protected static final Map<String, String> NO_PARAMS = ImmutableMap.of();
-  protected static final String TEST_USER_NAME = "testuser";
-  protected static final String TEST_BUCKET_NAME = "bucket";
+  protected static final byte[] EMPTY_CONTENT = new byte[] {};
+  protected static final String TEST_USER = "testuser";
+  protected static final String TEST_BUCKET = "test-bucket";
   protected String mHostname;
   protected int mPort;
   protected String mBaseUri = Constants.REST_API_PREFIX;
@@ -47,6 +48,18 @@ public abstract class RestApiTest extends BaseIntegrationTest {
         .setMD5(computeObjectChecksum(object)));
   }
 
+  protected TestCase createObjectTestCase(String bucket, TestCaseOptions options)
+      throws Exception {
+    return newTestCase(bucket, NO_PARAMS, HttpMethod.PUT, options);
+  }
+
+  protected TestCase copyObjectTestCase(String sourcePath, String targetPath) throws Exception {
+    return newTestCase(targetPath, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth()
+        .addHeader(S3Constants.S3_METADATA_DIRECTIVE_HEADER,
+            S3Constants.Directive.REPLACE.name())
+        .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, sourcePath));
+  }
+
   protected TestCase deleteTestCase(String uri) throws Exception {
     return newTestCase(uri, NO_PARAMS, HttpMethod.DELETE, getDefaultOptionsWithAuth());
   }
@@ -55,17 +68,13 @@ public abstract class RestApiTest extends BaseIntegrationTest {
     return newTestCase(uri, NO_PARAMS, HttpMethod.HEAD, getDefaultOptionsWithAuth());
   }
 
+  protected TestCase getTestCase(String uri) throws Exception {
+    return newTestCase(uri, NO_PARAMS, HttpMethod.GET, getDefaultOptionsWithAuth());
+  }
+
   protected TestCase listTestCase(String uri, Map<String, String> params) throws Exception {
     return newTestCase(uri, params, HttpMethod.GET,
         getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE));
-  }
-
-  protected void listStatusRestCall(Map<String, String> parameters, ListBucketResult expected)
-      throws Exception {
-    new TestCase(mHostname, mPort, mBaseUri,
-        TEST_BUCKET_NAME, parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
   }
 
   protected TestCaseOptions getDefaultOptionsWithAuth(@NotNull String user) {
@@ -74,7 +83,7 @@ public abstract class RestApiTest extends BaseIntegrationTest {
   }
 
   protected TestCaseOptions getDefaultOptionsWithAuth() {
-    return getDefaultOptionsWithAuth(TEST_USER_NAME);
+    return getDefaultOptionsWithAuth(TEST_USER);
   }
 
   private String computeObjectChecksum(byte[] objectContent) throws Exception {

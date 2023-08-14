@@ -43,6 +43,7 @@ public class OutStreamTest extends AbstractStreamTest {
     Assert.assertEquals(0, status.getLength());
   }
 
+  @Ignore("RandomAccessFuseFileStream allows to overwrite the existing file")
   @Test (expected = AlreadyExistsRuntimeException.class)
   public void createExisting() throws Exception {
     AlluxioURI alluxioURI = getTestFileAlluxioUri();
@@ -50,6 +51,7 @@ public class OutStreamTest extends AbstractStreamTest {
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
       ByteBuffer buffer = ByteBuffer.allocate(1);
       buffer.put((byte) 'a');
+      buffer.flip();
       outStream.write(buffer, 1, 0);
     }
   }
@@ -153,6 +155,7 @@ public class OutStreamTest extends AbstractStreamTest {
     }
   }
 
+  @Ignore("RandomAccessFuseFileStream has already supported allows to append to existing file")
   @Test (expected = UnimplementedRuntimeException.class)
   public void openExistingTruncateFuture() throws Exception {
     AlluxioURI alluxioURI = getTestFileAlluxioUri();

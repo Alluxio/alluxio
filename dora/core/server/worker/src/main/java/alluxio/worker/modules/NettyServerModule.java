@@ -73,4 +73,17 @@ public class NettyServerModule extends AbstractModule {
     }
     return new InetSocketAddress(configuredBindAddress.getHostName(), bindPort);
   }
+
+  /**
+   * @return s3 bind address
+   */
+  @Provides
+  @Named("S3BindAddress")
+  public InetSocketAddress provideS3BindAddress() {
+    // bind http port
+    InetSocketAddress httpBindAddress = NetworkAddressUtils.getBindAddress(
+        NetworkAddressUtils.ServiceType.WORKER_REST,
+        Configuration.global());
+    return httpBindAddress;
+  }
 }

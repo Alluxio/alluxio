@@ -30,6 +30,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
@@ -55,6 +56,8 @@ import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.membership.MembershipManager;
+import alluxio.membership.NoOpMembershipManager;
 import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.meta.DoraMeta;
@@ -74,9 +77,11 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.HashUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.block.BlockMasterClient;
@@ -123,10 +128,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   // and assumes all UFS paths belong to the same UFS.
   private static final int MOUNT_POINT = 1;
   private final Closer mResourceCloser = Closer.create();
+  // TODO(lucy) change to string typed once membership manager got enabled by default
   private final AtomicReference<Long> mWorkerId;
   private final CacheManager mCacheManager;
   private final DoraUfsManager mUfsManager;
   private final DoraMetaManager mMetaManager;
+  private final MembershipManager mMembershipManager;
   private final UfsInputStreamCache mUfsStreamCache;
   private final long mPageSize;
   private final AlluxioConfiguration mConf;
@@ -150,13 +157,16 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @param workerId
    * @param conf
    * @param cacheManager
+   * @param membershipManager
    */
   @Inject
   public PagedDoraWorker(
       @Named("workerId") AtomicReference<Long> workerId,
       AlluxioConfiguration conf,
-      CacheManager cacheManager) {
-    this(workerId, conf, cacheManager, new BlockMasterClientPool(),
+      CacheManager cacheManager,
+      MembershipManager membershipManager
+  ) {
+    this(workerId, conf, cacheManager, membershipManager, new BlockMasterClientPool(),
         FileSystemContext.create(conf));
   }
 
@@ -164,6 +174,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       AtomicReference<Long> workerId,
       AlluxioConfiguration conf,
       CacheManager cacheManager,
+      MembershipManager membershipManager,
       BlockMasterClientPool blockMasterClientPool,
       FileSystemContext fileSystemContext) {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
@@ -182,6 +193,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mCacheManager = cacheManager;
     mMetaManager = mResourceCloser.register(
         new DoraMetaManager(this, mCacheManager, mUfs));
+    mMembershipManager = membershipManager;
     mOpenFileHandleContainer = new DoraOpenFileHandleContainer();
 
     mMkdirsRecursive = MkdirsOptions.defaults(mConf).setCreateParent(true);
@@ -217,16 +229,52 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     // the heartbeat is only used to notify the aliveness of this worker, so that clients
     // can get the latest worker list from master.
     // TODO(bowen): once we set up a worker discovery service in place of master, remove this
-    getExecutorService()
-        .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
-            mResourceCloser.register(new BlockMasterSync()),
-            () -> new FixedIntervalSupplier(Configuration.getMs(
-                PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
-            mConf, ServerUserState.global()));
+    // TODO(lucy): temporary fallback logic during transition of removing master dependency
+    if (mMembershipManager instanceof NoOpMembershipManager) {
+      getExecutorService()
+          .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
+              mResourceCloser.register(new BlockMasterSync()),
+              () -> new FixedIntervalSupplier(Configuration.getMs(
+                  PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
+              mConf, ServerUserState.global()));
+    }
   }
 
+  /**
+   * Register to join to the distributed membership.
+   * @throws IOException
+   */
   private void register() throws IOException {
-    Preconditions.checkState(mAddress != null, "worker not started");
+    Preconditions.checkNotNull(mAddress, "worker not started");
+    RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
+    // For regression purpose, use the original way of regsiter
+    if (mMembershipManager instanceof NoOpMembershipManager) {
+      registerToMaster();
+      return;
+    }
+    while (true) {
+      try {
+        mMembershipManager.join(new WorkerInfo().setAddress(mAddress));
+        mWorkerId.set(HashUtils.hashAsLong(mAddress.dumpMainInfo()));
+        break;
+      } catch (UnavailableRuntimeException ioe) {
+        /* We should only expect such exception when situation such as
+         * etcd hasn't started up yet when alluxio components and etcd
+         * are starting up at same time. In such case we keep retrying.
+         */
+        if (!retry.attempt()) {
+          throw ioe;
+        }
+      }
+    }
+  }
+
+  private void decommission() {
+    // TO BE IMPLEMENTED
+  }
+
+  private void registerToMaster() throws IOException {
+    Preconditions.checkNotNull(mAddress, "worker not started");
     RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
     while (true) {
       try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
@@ -242,7 +290,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             ImmutableMap.of(),
             Configuration.getConfiguration(Scope.WORKER));
         LOG.info("Worker registered with worker ID: {}", mWorkerId.get());
-
         break;
       } catch (IOException ioe) {
         if (!retry.attempt()) {
@@ -261,7 +308,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Override
   public void close() throws IOException {
     try (AutoCloseable ignoredCloser = mResourceCloser;
-         AutoCloseable ignoredCacheManager = mCacheManager
+         AutoCloseable ignoredCacheManager = mCacheManager;
+         AutoCloseable ignoredMembershipManager = mMembershipManager;
     ) {
       // do nothing as we are closing
     } catch (Exception e) {
@@ -486,7 +534,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                   .setRetryable(t.isRetryable() && permissionCheckSucceeded)
                   .setMessage(t.getMessage()).build());
             }
-          }, GrpcExecutors.BLOCK_READER_EXECUTOR);
+          }, GrpcExecutors.READER_EXECUTOR);
           futures.add(loadFuture);
         } catch (RejectedExecutionException ex) {
           LOG.warn("BlockDataReaderExecutor overloaded.");
@@ -498,7 +546,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         }
       }
     }
-    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_READER_EXECUTOR);
+    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.READER_EXECUTOR);
   }
 
   protected void loadData(String ufsPath, long mountId, long length)
@@ -558,7 +606,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             }
             errors.add(builder.build());
           }
-        }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+        }, GrpcExecutors.WRITER_EXECUTOR);
         futures.add(future);
       } catch (IOException e) {
         // ignore close error
@@ -571,7 +619,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         errors.add(builder.build());
       }
     }
-    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.WRITER_EXECUTOR);
   }
 
   protected UnderFileSystem getUnderFileSystem(String ufsPath) {
@@ -622,7 +670,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             }
             errors.add(builder.build());
           }
-        }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+        }, GrpcExecutors.WRITER_EXECUTOR);
         futures.add(future);
       } catch (IOException e) {
         // ignore close error
@@ -635,7 +683,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         errors.add(builder.build());
       }
     }
-    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.WRITER_EXECUTOR);
   }
 
   @Override

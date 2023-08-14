@@ -63,7 +63,6 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
@@ -364,6 +363,10 @@ public class LocalCacheFileInStreamTest {
         Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheMiss);
     Assert.assertEquals(0, manager.mPagesServed);
     Assert.assertEquals(1, manager.mPagesCached);
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).getCount());
+    Assert.assertEquals(0,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).getCount());
 
     // cache hit
     byte[] cacheHit = new byte[partialReadSize];
@@ -372,6 +375,10 @@ public class LocalCacheFileInStreamTest {
     Assert.assertArrayEquals(
         Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheHit);
     Assert.assertEquals(1, manager.mPagesServed);
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).getCount());
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).getCount());
   }
 
   @Test
@@ -418,15 +425,21 @@ public class LocalCacheFileInStreamTest {
         MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(fileSize,
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
+    Assert.assertEquals(5,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).getCount());
+    Assert.assertEquals(0,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).getCount());
 
     // cache hit
     stream.read();
-    Assert.assertEquals(1,
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
     Assert.assertEquals(readSize, MetricsSystem.meter(
         MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(fileSize,
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
+    Assert.assertEquals(5,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).getCount());
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).getCount());
   }
 
   @Test
@@ -441,7 +454,8 @@ public class LocalCacheFileInStreamTest {
     ByteArrayFileSystem fs = new MultiReadByteArrayFileSystem(files);
 
     LocalCacheFileInStream stream = new LocalCacheFileInStream(fs.getStatus(testFilename),
-        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf);
+        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf,
+        Optional.empty());
 
     // cache miss
     byte[] cacheMiss = new byte[fileSize];
@@ -470,7 +484,8 @@ public class LocalCacheFileInStreamTest {
     ByteArrayFileSystem fs = new MultiReadByteArrayFileSystem(files);
 
     LocalCacheFileInStream stream = new LocalCacheFileInStream(fs.getStatus(testFilename),
-        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf);
+        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf,
+        Optional.empty());
 
     // cache miss
     ByteBuffer cacheMissBuf = ByteBuffer.wrap(new byte[fileSize]);
@@ -520,7 +535,7 @@ public class LocalCacheFileInStreamTest {
     LocalCacheFileInStream stream =
         new LocalCacheFileInStream(fs.getStatus(testFileName),
             (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager,
-            sConf) {
+            sConf, Optional.empty()) {
           @Override
           protected Stopwatch createUnstartedStopwatch() {
             return Stopwatch.createUnstarted(timeSource);
@@ -576,8 +591,9 @@ public class LocalCacheFileInStreamTest {
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
-
     Assert.assertEquals(100, stream.positionedRead(0, new byte[10], 100, 100));
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_POSITION_READ_FALLBACK.getName()).getCount());
   }
 
   private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager)
@@ -589,7 +605,8 @@ public class LocalCacheFileInStreamTest {
     ByteArrayFileSystem fs = new ByteArrayFileSystem(files);
 
     return new LocalCacheFileInStream(fs.getStatus(testFilename),
-        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf);
+        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf,
+        Optional.empty());
   }
 
   private Map<AlluxioURI, LocalCacheFileInStream> setupWithMultipleFiles(Map<String, byte[]> files,
@@ -604,7 +621,7 @@ public class LocalCacheFileInStreamTest {
         ret.put(entry.getKey(),
             new LocalCacheFileInStream(fs.getStatus(entry.getKey()),
                 (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager,
-                sConf));
+                sConf, Optional.empty()));
       } catch (Exception e) {
         // skip
       }
@@ -906,11 +923,6 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
         throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
         IOException, AlluxioException {
@@ -964,18 +976,6 @@ public class LocalCacheFileInStreamTest {
     @Override
     public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
         SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void startSync(AlluxioURI path)
-        throws FileDoesNotExistException, IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void stopSync(AlluxioURI path)
-        throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
 

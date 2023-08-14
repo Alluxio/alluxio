@@ -7,15 +7,16 @@ This quick start guide goes over how to run Alluxio on a local machine.
 The guide will cover the following tasks:
 
 * Download and configure Alluxio
-* Validate the Alluxio environment
 * Start Alluxio locally
 * Perform basic tasks via Alluxio Shell
 * **[Bonus]** Mount a public Amazon S3 bucket in Alluxio
+* **[Bonus]** Mount HDFS under storage in Alluxio
 * Stop Alluxio
 
-**[Bonus]** This guide contains optional tasks that use credentials from an
+This guide contains optional tasks labeled with **[Bonus]** that use credentials from an
 [AWS account with an access key id and secret access key](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html).
-The optional sections will be labeled with **[Bonus]**.
+
+▶️ [Get Alluxio Up & Running in Less Than 3 Min!](https://youtu.be/5YQvvznT5cI){:target="_blank"} (2:36)
 
 **Note**: This guide is designed to start an Alluxio system with minimal setup on a single machine.
 If you are trying to speedup SQL analytics, you can try the
@@ -106,10 +107,10 @@ $ echo "s3a.accessKeyId=<AWS_ACCESS_KEY_ID>" >> conf/alluxio-site.properties
 $ echo "s3a.secretKey=<AWS_SECRET_ACCESS_KEY>" >> conf/alluxio-site.properties
 ```
 
-Replace **`s3://<BUCKET_NAME>/<DIR>`**, **`<AWS_ACCESS_KEY_ID>`** and **`<AWS_SECRET_ACCESS_KEY>`** with
+Replace `s3://<BUCKET_NAME>/<DIR>`, `<AWS_ACCESS_KEY_ID>` and `<AWS_SECRET_ACCESS_KEY>` with
 a valid AWS S3 address, AWS access key ID and AWS secret access key respectively.
 
-For more information, please refer to the [S3 configuration docs]({{ '/en/ufs/S3.html' | relativize_url }}.
+For more information, please refer to the [S3 configuration docs]({{ '/en/ufs/S3.html' | relativize_url }}).
 
 ### [Bonus] Configuration for HDFS
 
@@ -120,9 +121,9 @@ $ echo "alluxio.dora.client.ufs.root=hdfs://nameservice/<DIR>" >> conf/alluxio-s
 $ echo "alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml" >> conf/alluxio-site.properties
 ```
 
-Replace the url and configuration with the actual value.
+Replace `nameservice/<DIR>` and `/path/to/hdfs/conf` with the actual values.
 
-For more information, please refer to the [HDFS configuration docs]({{ '/en/ufs/HDFS.html' | relativize_url }}.
+For more information, please refer to the [HDFS configuration docs]({{ '/en/ufs/HDFS.html' | relativize_url }}).
 
 ## Starting Alluxio
 
@@ -204,15 +205,20 @@ $ ./bin/alluxio-stop.sh master
 $ ./bin/alluxio-stop.sh worker
 ```
 
-## Conclusion
+## Next Steps
 
-Congratulations on completing the quick start guide for Alluxio! This guide covered how to
+Congratulations on getting Alluxio started! This guide covered how to
 download and install Alluxio locally with examples of basic interactions via the Alluxio
-shell. This was a simple example on how to get started with Alluxio.
+shell.
 
-There are several next steps available. Learn more about the various features of Alluxio in
-our documentation. The resources below detail deploying Alluxio in various ways,
-mounting existing storage systems, and configuring existing applications to interact with Alluxio.
+There are several next steps available:
+* Learn more about the various features of Alluxio in
+our documentation, such as [Data Caching]({{ '/en/core-services/Data-Caching.html' | relativize_url }}) and [Metadata Caching]({{ '/en/core-services/Metadata-Caching.html' | relativize_url }}). 
+* See how you can [Install an Alluxio Cluster with High Availability (HA)]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }})
+   * You can also [Install Alluxio on Kubernetes]({{ '/en/kubernetes/Install-Alluxio-On-Kubernetes.html' | relativize_url }}) with Alluxio K8s Helm Chart or Alluxio K8s Operator
+* Connect a compute engine such as [Presto]({{ '/en/compute/Presto.html' | relativize_url }}), [Trino]({{ '/en/compute/Trino.html' | relativize_url }}), or [Apache Spark]({{ '/en/compute/Spark.html' | relativize_url }})
+* Connect an under file storage such as [Amazon AWS S3]({{ '/en/ufs/S3.html' | relativize_url }}), [HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }}), or [Google Cloud Storage]({{ '/en/ufs/GCS.html' | relativize_url }})
+* Check out our [Contribution Guide]({{ '/en/contributor/Contribution-Guide.html' | relativize_url }}) if you're interested in becoming a contributor!
 
 ## FAQ
 

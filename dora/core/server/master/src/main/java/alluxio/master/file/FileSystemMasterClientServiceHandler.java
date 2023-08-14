@@ -51,8 +51,6 @@ import alluxio.grpc.GetStateLockHoldersPResponse;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
-import alluxio.grpc.GetSyncPathListPRequest;
-import alluxio.grpc.GetSyncPathListPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPRequest;
@@ -73,12 +71,8 @@ import alluxio.grpc.SetAclPRequest;
 import alluxio.grpc.SetAclPResponse;
 import alluxio.grpc.SetAttributePRequest;
 import alluxio.grpc.SetAttributePResponse;
-import alluxio.grpc.StartSyncPRequest;
-import alluxio.grpc.StartSyncPResponse;
 import alluxio.grpc.StopJobPRequest;
 import alluxio.grpc.StopJobPResponse;
-import alluxio.grpc.StopSyncPRequest;
-import alluxio.grpc.StopSyncPResponse;
 import alluxio.grpc.SubmitJobPRequest;
 import alluxio.grpc.SubmitJobPResponse;
 import alluxio.grpc.UnmountPRequest;
@@ -113,7 +107,6 @@ import alluxio.scheduler.job.Job;
 import alluxio.underfs.UfsMode;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -383,17 +376,6 @@ public final class FileSystemMasterClientServiceHandler
   }
 
   @Override
-  public void getSyncPathList(GetSyncPathListPRequest request,
-      StreamObserver<GetSyncPathListPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
-      List<SyncPointInfo> pathList = mFileSystemMaster.getSyncPathList();
-      List<alluxio.grpc.SyncPointInfo> syncPointInfoList =
-          pathList.stream().map(SyncPointInfo::toProto).collect(Collectors.toList());
-      return GetSyncPathListPResponse.newBuilder().addAllSyncPaths(syncPointInfoList).build();
-    }, "getSyncPathList", "request=%s", responseObserver, request);
-  }
-
-  @Override
   public void remove(DeletePRequest request, StreamObserver<DeletePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
@@ -445,24 +427,6 @@ public final class FileSystemMasterClientServiceHandler
               .withTracker(new GrpcCallTracker(responseObserver)));
       return SetAttributePResponse.newBuilder().build();
     }, "SetAttribute", "request=%s", responseObserver, request);
-  }
-
-  @Override
-  public void startSync(StartSyncPRequest request,
-      StreamObserver<StartSyncPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.startSync(new AlluxioURI(request.getPath()));
-      return StartSyncPResponse.newBuilder().build();
-    }, "startSync", "request=%s", responseObserver, request);
-  }
-
-  @Override
-  public void stopSync(StopSyncPRequest request,
-      StreamObserver<StopSyncPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.stopSync(new AlluxioURI(request.getPath()));
-      return StopSyncPResponse.newBuilder().build();
-    }, "stopSync", "request=%s", responseObserver, request);
   }
 
   @Override

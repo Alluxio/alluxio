@@ -83,7 +83,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
     SUMMARY, // Report cluster summary
     UFS, // Report under filesystem information
     JOBSERVICE, // Report job service metrics information
-    PROXY // Report proxy information in the cluster
+    PROXY, // Report proxy information in the cluster
   }
 
   private AlluxioConfiguration mConf;
@@ -229,7 +229,8 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         + "    metrics          metrics information\n"
         + "    summary          cluster summary\n"
         + "    ufs              under storage system information\n"
-        + "    jobservice       job service metrics information\n";
+        + "    jobservice       job service metrics information\n"
+        + "    nodestatus       node status [worker as of now]\n";
   }
 
   @Override

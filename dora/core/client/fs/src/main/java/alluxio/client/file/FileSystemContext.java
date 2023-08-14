@@ -19,7 +19,6 @@ import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
@@ -35,6 +34,8 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
+import alluxio.membership.MembershipManager;
+import alluxio.membership.NoOpMembershipManager;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.NettyChannelPool;
 import alluxio.network.netty.NettyClient;
@@ -66,7 +67,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -156,6 +156,8 @@ public class FileSystemContext implements Closeable {
    */
   private volatile ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
       mBlockWorkerClientPoolMap;
+  @Nullable
+  private MembershipManager mMembershipManager;
 
   /**
    * Indicates whether the {@link #mLocalWorker} field has been lazily initialized yet.
@@ -186,8 +188,6 @@ public class FileSystemContext implements Closeable {
   private final RefreshPolicy mWorkerRefreshPolicy;
 
   private final List<InetSocketAddress> mMasterAddresses;
-
-  private final Map<Class, BlockLocationPolicy> mBlockLocationPolicyMap;
 
   /**
    * FileSystemContextFactory, it can be extended.
@@ -411,7 +411,6 @@ public class FileSystemContext implements Closeable {
         new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
     LOG.debug("Created context with id: {}, with local block worker: {}",
         mId, mBlockWorker != null);
-    mBlockLocationPolicyMap = new ConcurrentHashMap();
   }
 
   /**
@@ -448,6 +447,7 @@ public class FileSystemContext implements Closeable {
     mBlockMasterClientPool = new BlockMasterClientPool(mMasterClientContext);
     mBlockWorkerClientPoolMap = new ConcurrentHashMap<>();
     mUriValidationEnabled = ctx.getUriValidationEnabled();
+    mMembershipManager = MembershipManager.Factory.create(getClusterConf());
   }
 
   /**
@@ -494,6 +494,12 @@ public class FileSystemContext implements Closeable {
 
       if (mMetricsEnabled) {
         MetricsHeartbeatContext.removeHeartbeat(getClientContext());
+      }
+      LOG.debug("Closing membership manager.");
+      try (AutoCloseable ignoredCloser = mMembershipManager) {
+        // do nothing as we are closing
+      } catch (Exception e) {
+        throw new IOException(e);
       }
     } else {
       LOG.warn("Attempted to close FileSystemContext which has already been closed or not "
@@ -869,6 +875,17 @@ public class FileSystemContext implements Closeable {
    * @return the info of all block workers
    */
   protected List<BlockWorkerInfo> getAllWorkers() throws IOException {
+    // TODO(lucy) once ConfigHashSync reinit is gotten rid of, will remove the blockReinit
+    // guard altogether
+    try (ReinitBlockerResource r = blockReinit()) {
+      // Use membership mgr
+      if (mMembershipManager != null && !(mMembershipManager instanceof NoOpMembershipManager)) {
+        return mMembershipManager.getAllMembers().stream()
+            .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
+            .collect(toList());
+      }
+    }
+    // Fall back to old way
     try (CloseableResource<BlockMasterClient> masterClientResource =
              acquireBlockMasterClientResource()) {
       return masterClientResource.get().getWorkerInfoList().stream()
@@ -919,32 +936,6 @@ public class FileSystemContext implements Closeable {
     }
 
     return localWorkerNetAddresses.isEmpty() ? workerNetAddresses : localWorkerNetAddresses;
-  }
-
-  /**
-   * Gets the readBlockLocationPolicy.
-   *
-   * @param alluxioConf Alluxio configuration
-   *
-   * @return the readBlockLocationPolicy
-   */
-  public BlockLocationPolicy getReadBlockLocationPolicy(AlluxioConfiguration alluxioConf) {
-    return mBlockLocationPolicyMap.computeIfAbsent(
-        alluxioConf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY),
-        pc -> BlockLocationPolicy.Factory.create(pc, alluxioConf));
-  }
-
-  /**
-   * Gets the writeBlockLocationPolicy.
-   *
-   * @param alluxioConf Alluxio configuration
-   *
-   * @return the writeBlockLocationPolicy
-   */
-  public BlockLocationPolicy getWriteBlockLocationPolicy(AlluxioConfiguration alluxioConf) {
-    return mBlockLocationPolicyMap.computeIfAbsent(
-        alluxioConf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
-        pc -> BlockLocationPolicy.Factory.create(pc, alluxioConf));
   }
 
   /**

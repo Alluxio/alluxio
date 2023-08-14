@@ -83,7 +83,6 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
           .setProperty(PropertyKey.MASTER_METASTORE_DIR,
               AlluxioTestDirectory.createTemporaryDirectory("meta"))
-          .setProperty(PropertyKey.MASTER_FILE_ACCESS_TIME_JOURNAL_FLUSH_INTERVAL, "0s")
           .build();
 
   private LocalAlluxioCluster mLocalAlluxioCluster;

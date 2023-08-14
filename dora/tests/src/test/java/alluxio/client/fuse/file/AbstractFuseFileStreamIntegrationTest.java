@@ -20,6 +20,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.LaunchUserGroupAuthPolicy;
 import alluxio.fuse.file.FuseFileStream;
+import alluxio.fuse.file.FuseStreamFactory;
+import alluxio.fuse.file.SimpleFuseStreamFactory;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -52,7 +54,7 @@ public abstract class AbstractFuseFileStreamIntegrationTest extends BaseIntegrat
 
   protected FileSystem mFileSystem = null;
   protected AuthPolicy mAuthPolicy = null;
-  protected FuseFileStream.Factory mStreamFactory = null;
+  protected FuseStreamFactory mStreamFactory = null;
 
   @Before
   public void before() throws Exception {
@@ -60,7 +62,7 @@ public abstract class AbstractFuseFileStreamIntegrationTest extends BaseIntegrat
     mAuthPolicy = LaunchUserGroupAuthPolicy.create(mFileSystem,
         mLocalAlluxioClusterResource.get().getClient().getConf(), Optional.empty());
     mAuthPolicy.init();
-    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
+    mStreamFactory = new SimpleFuseStreamFactory(mFileSystem, mAuthPolicy);
   }
 
   /**

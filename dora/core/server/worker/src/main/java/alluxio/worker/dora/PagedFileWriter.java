@@ -78,7 +78,7 @@ public class PagedFileWriter extends BlockWriter {
   @Override
   public long append(ByteBuf buf) throws IOException {
     long bytesWritten = 0;
-    LOG.debug("Writing @" + mPosition + "len=" + buf.readableBytes());
+    LOG.debug("Writing @{}, len={}", mPosition, buf.readableBytes());
     DoraOpenFileHandleContainer openFileHandleContainer = mWorker.getOpenFileHandleContainer();
     OpenFileHandle handle = openFileHandleContainer.find(mUfsPath);
 
@@ -109,7 +109,7 @@ public class PagedFileWriter extends BlockWriter {
 
     // data is written to local cache and UFS. Update Position.
     mPosition += bytesWritten;
-    LOG.debug("after write " + bytesWritten + " bytes. New pos = " + mPosition);
+    LOG.debug("after write {} bytes. New pos = {}", bytesWritten, mPosition);
     return bytesWritten;
   }
 

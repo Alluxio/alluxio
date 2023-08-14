@@ -17,7 +17,6 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.cli.fs.FileSystemShell;
-import alluxio.cli.job.JobShell;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -61,7 +60,6 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
   public static FileSystemShell sFsShell;
   protected static JobMaster sJobMaster;
   protected static LocalAlluxioJobCluster sLocalAlluxioJobCluster;
-  protected static JobShell sJobShell;
 
   /*
    * The user and group mappings for testing are:
@@ -125,7 +123,6 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
     sLocalAlluxioJobCluster.start();
     sFileSystem = sLocalAlluxioCluster.getClient();
     sJobMaster = sLocalAlluxioJobCluster.getMaster().getJobMaster();
-    sJobShell = new alluxio.cli.job.JobShell(Configuration.global());
     sFsShell = new FileSystemShell(Configuration.global());
   }
 
@@ -136,9 +133,6 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
     }
     if (sLocalAlluxioJobCluster != null) {
       sLocalAlluxioJobCluster.stop();
-    }
-    if (sJobShell != null) {
-      sJobShell.close();
     }
   }
 

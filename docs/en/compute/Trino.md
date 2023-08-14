@@ -3,6 +3,9 @@ layout: global
 title: Running Trino with Alluxio
 ---
 
+This guide describes how to configure [Trino](https://trino.io/) to access Alluxio.
+
+## Overview
 [Trino](https://trino.io/)
 is an open source distributed SQL query engine for running interactive analytic queries
 on data at a large scale.
@@ -118,7 +121,8 @@ directly).
 Run a single query (replace `localhost:8080` with your actual Trino server hostname and port):
 
 ```shell
-$ ./trino --server localhost:8080 --execute "use default; select * from u_user limit 10;" --catalog hive --debug
+$ ./trino --server localhost:8080 --execute "use default; select * from u_user limit 10;" \
+    --catalog hive --debug
 ```
 
 ## Advanced Setup

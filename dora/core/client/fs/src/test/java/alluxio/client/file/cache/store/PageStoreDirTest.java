@@ -50,7 +50,6 @@ public class PageStoreDirTest {
   @Parameterized.Parameters(name = "{index}-{0}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
-        {PageStoreType.ROCKS},
         {PageStoreType.LOCAL},
         {PageStoreType.MEM}
     });

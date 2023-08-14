@@ -177,6 +177,12 @@ public final class NetworkAddressUtils {
         PropertyKey.WORKER_DATA_BIND_HOST, PropertyKey.WORKER_DATA_PORT),
 
     /**
+     * Worker s3 service (Netty).
+     */
+    WORKER_REST("Alluxio Worker S3 service", PropertyKey.WORKER_WEB_HOSTNAME,
+        PropertyKey.WORKER_WEB_BIND_HOST, PropertyKey.WORKER_REST_PORT),
+
+    /**
      * Worker web service (Jetty).
      */
     WORKER_WEB("Alluxio Worker Web service", PropertyKey.WORKER_WEB_HOSTNAME,
