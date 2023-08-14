@@ -231,18 +231,6 @@ public class UpdateCheckTest {
   }
 
   @Test
-  public void featureStringPersistneceBlacklist() {
-    List<String> info = new ArrayList<>();
-    Configuration.set(PropertyKey.MASTER_PERSISTENCE_BLACKLIST, ".tmp");
-    UpdateCheck.addUserAgentFeatures(info);
-    Assert.assertTrue(listContainsTarget(info, UpdateCheck.PERSIST_BLACK_LIST_KEY));
-    Configuration.unset(PropertyKey.MASTER_PERSISTENCE_BLACKLIST);
-    info.clear();
-    UpdateCheck.addUserAgentFeatures(info);
-    Assert.assertFalse(listContainsTarget(info, UpdateCheck.PERSIST_BLACK_LIST_KEY));
-  }
-
-  @Test
   public void featureStringUnsafePersist() {
     List<String> info = new ArrayList<>();
     Configuration.set(PropertyKey.MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED, true);
