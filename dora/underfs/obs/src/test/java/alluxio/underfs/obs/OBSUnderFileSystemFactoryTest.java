@@ -11,6 +11,8 @@
 
 package alluxio.underfs.obs;
 
+import static org.junit.Assert.assertFalse;
+
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -22,8 +24,6 @@ import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertFalse;
 
 /**
  * Unit tests for the {@link OBSUnderFileSystemFactory}.

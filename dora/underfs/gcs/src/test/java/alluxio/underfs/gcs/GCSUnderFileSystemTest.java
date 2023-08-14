@@ -12,7 +12,6 @@
 package alluxio.underfs.gcs;
 
 import static org.junit.Assert.assertFalse;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -24,8 +23,8 @@ import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
-
 import alluxio.underfs.options.OpenOptions;
+
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.StorageObjectsChunk;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
@@ -80,14 +79,16 @@ public class GCSUnderFileSystemTest {
   @Test
   public void testCopyObject() throws ServiceException {
     // test successful copy object
-    when(mClient.copyObject(anyString(), anyString(),
-        anyString(), any(StorageObject.class), anyBoolean())).thenReturn(null);
+    when(mClient.copyObject(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString(), ArgumentMatchers.any(StorageObject.class),
+        ArgumentMatchers.anyBoolean())).thenReturn(null);
     boolean result = mGCSUnderFileSystem.copyObject(SRC, DST);
     Assert.assertTrue(result);
 
     // test copy object exception
-    Mockito.when(mClient.copyObject(anyString(), anyString(),
-        anyString(), any(StorageObject.class), anyBoolean())).thenThrow(ServiceException.class);
+    Mockito.when(mClient.copyObject(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString(), ArgumentMatchers.any(StorageObject.class),
+        ArgumentMatchers.anyBoolean())).thenThrow(ServiceException.class);
     try {
       mGCSUnderFileSystem.copyObject(SRC, DST);
     } catch (Exception e) {
@@ -102,13 +103,13 @@ public class GCSUnderFileSystemTest {
   public void testCreateEmptyObject() throws ServiceException {
 
     // test successful create empty object
-    Mockito.when(mClient.putObject(anyString(),
+    Mockito.when(mClient.putObject(ArgumentMatchers.anyString(),
             ArgumentMatchers.any(GSObject.class))).thenReturn(null);
     boolean result = mGCSUnderFileSystem.createEmptyObject(KEY);
     Assert.assertTrue(result);
 
     // test create empty object exception
-    Mockito.when(mClient.putObject(anyString(),
+    Mockito.when(mClient.putObject(ArgumentMatchers.anyString(),
             ArgumentMatchers.any(GSObject.class))).thenThrow(ServiceException.class);
     try {
       mGCSUnderFileSystem.createEmptyObject(KEY);
@@ -123,7 +124,7 @@ public class GCSUnderFileSystemTest {
   @Test
   public void testCreateObject() throws IOException, ServiceException {
     // test successful create object
-    Mockito.when(mClient.putObject(anyString(),
+    Mockito.when(mClient.putObject(ArgumentMatchers.anyString(),
         ArgumentMatchers.any(GSObject.class))).thenReturn(null);
     OutputStream result = mGCSUnderFileSystem.createObject(KEY);
     Assert.assertTrue(result instanceof GCSOutputStream);
@@ -134,8 +135,8 @@ public class GCSUnderFileSystemTest {
    */
   @Test
   public void deleteNonRecursiveOnServiceException() throws IOException, ServiceException {
-    when(mClient.listObjectsChunked(anyString(), anyString(),
-        anyString(), ArgumentMatchers.anyLong(), anyString()))
+    when(mClient.listObjectsChunked(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString(), ArgumentMatchers.anyLong(), ArgumentMatchers.anyString()))
         .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.deleteDirectory(PATH,
@@ -148,8 +149,8 @@ public class GCSUnderFileSystemTest {
    */
   @Test
   public void deleteRecursiveOnServiceException() throws IOException, ServiceException {
-    when(mClient.listObjectsChunked(anyString(), anyString(),
-        anyString(), ArgumentMatchers.anyLong(), anyString()))
+    when(mClient.listObjectsChunked(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString(), ArgumentMatchers.anyLong(), ArgumentMatchers.anyString()))
         .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.deleteDirectory(PATH,
@@ -162,13 +163,14 @@ public class GCSUnderFileSystemTest {
    */
   @Test
   public void renameOnServiceException() throws IOException, ServiceException {
-    when(mClient.listObjectsChunked(anyString(), anyString(),
-        anyString(), ArgumentMatchers.anyLong(), anyString()))
+    when(mClient.listObjectsChunked(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString(), ArgumentMatchers.anyLong(), ArgumentMatchers.anyString()))
         .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.renameFile(SRC, DST);
     assertFalse(result);
   }
+
   /**
    * Test case for {@link GCSUnderFileSystem#getFolderSuffix()}.
    */
@@ -183,8 +185,9 @@ public class GCSUnderFileSystemTest {
   @Test
   public void testGetObjectListingChunk() throws ServiceException {
     // test successful get object listing chunk
-    Mockito.when(mClient.listObjectsChunked(anyString(), anyString(),
-            anyString(), anyLong(), anyString())).thenReturn(new StorageObjectsChunk(
+    Mockito.when(mClient.listObjectsChunked(ArgumentMatchers.anyString(),
+        ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyLong(),
+        ArgumentMatchers.anyString())).thenReturn(new StorageObjectsChunk(
                 null, null, null, null, null));
     String delimiter = "/";
     String prefix = "";
@@ -223,7 +226,7 @@ public class GCSUnderFileSystemTest {
   @Test
   public void testOpenObject() throws IOException, ServiceException {
     // test successful open object
-    Mockito.when(mClient.getObject(anyString(), anyString()))
+    Mockito.when(mClient.getObject(ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
         .thenReturn(new GSObject());
     OpenOptions options = OpenOptions.defaults();
     RetryPolicy retryPolicy = new CountingRetry(1);

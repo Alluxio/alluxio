@@ -59,8 +59,9 @@ public class GCSPositionReaderTest {
   public void openObjectInputStream() throws Exception {
     GSObject object = Mockito.mock(GSObject.class);
     BufferedInputStream objectInputStream = Mockito.mock(BufferedInputStream.class);
-    Mockito.when(mClient.getObject(Mockito.anyString(), Mockito.anyString(), Mockito.any(),
-        Mockito.any(),Mockito.any(),Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(object);
+    Mockito.when(mClient.getObject(Mockito.anyString(), Mockito.anyString(),
+        Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
+        Mockito.any(), Mockito.any())).thenReturn(object);
     Mockito.when(object.getDataInputStream()).thenReturn(objectInputStream);
 
     // test successful open object input stream

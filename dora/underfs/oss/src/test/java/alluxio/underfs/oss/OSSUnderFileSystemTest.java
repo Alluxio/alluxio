@@ -269,5 +269,4 @@ public class OSSUnderFileSystemTest {
     InputStream result = mOSSUnderFileSystem.openObject(KEY, options, retryPolicy);
     Assert.assertTrue(result instanceof OSSInputStream);
   }
-
 }

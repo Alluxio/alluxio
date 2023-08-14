@@ -11,6 +11,8 @@
 
 package alluxio.underfs.gcs;
 
+import static org.junit.Assert.assertFalse;
+
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -19,12 +21,9 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
-import org.jets3t.service.ServiceException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertFalse;
 
 /**
  * Unit tests for the {@link GCSUnderFileSystemFactory}.
@@ -41,7 +40,6 @@ public final class GCSUnderFileSystemFactoryTest {
   private AlluxioConfiguration mAlluxioConf;
   private UnderFileSystemConfiguration mConf;
   private UnderFileSystemFactory mFactory;
-
 
   @Before
   public void setUp() {
@@ -94,13 +92,13 @@ public final class GCSUnderFileSystemFactoryTest {
       mFactory.create(mPath, mConf);
     } catch (Exception e) {
       Assert.assertTrue(e instanceof RuntimeException);
-      Assert.assertTrue(e.getMessage().contains("GCS credentials or version not available, " +
-          "cannot create GCS Under File System."));
+      Assert.assertTrue(e.getMessage().contains("GCS credentials or version not available, "
+          + "cannot create GCS Under File System."));
     }
     Exception e = Assert.assertThrows(RuntimeException.class, () -> mFactory.create(
         mPath, mConf));
-    Assert.assertTrue(e.getMessage().contains("GCS credentials or version not available, " +
-        "cannot create GCS Under File System."));
+    Assert.assertTrue(e.getMessage().contains("GCS credentials or version not available, "
+        + "cannot create GCS Under File System."));
   }
 
   /**
@@ -113,5 +111,4 @@ public final class GCSUnderFileSystemFactoryTest {
     assertFalse(mFactory.supportsPath("Invalid_Path"));
     assertFalse(mFactory.supportsPath("hdfs://test-bucket/path"));
   }
-
 }

@@ -23,7 +23,13 @@ import alluxio.underfs.options.OpenOptions;
 
 import com.obs.services.ObsClient;
 import com.obs.services.exception.ObsException;
-import com.obs.services.model.*;
+import com.obs.services.model.DeleteObjectsRequest;
+import com.obs.services.model.DeleteObjectsResult;
+import com.obs.services.model.HeaderResponse;
+import com.obs.services.model.ListObjectsRequest;
+import com.obs.services.model.ObjectListing;
+import com.obs.services.model.ObjectMetadata;
+import com.obs.services.model.ObsObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
