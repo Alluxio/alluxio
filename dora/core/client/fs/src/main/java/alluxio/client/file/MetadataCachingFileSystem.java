@@ -211,7 +211,7 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
       throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
       IOException, AlluxioException {
     URIStatus status = getStatus(path,
-        FileSystemOptionsUtils.getStatusDefaults(mFsContext.getPathConf(path)).toBuilder()
+        FileSystemOptionsUtils.getStatusDefaults(mFsContext.getClusterConf()).toBuilder()
             .setAccessMode(Bits.READ)
             .setUpdateTimestamps(options.getUpdateLastAccessTime())
             .build());
@@ -231,7 +231,7 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
     try {
       mAccessTimeUpdater.submit(() -> {
         try {
-          AlluxioConfiguration conf = mFsContext.getPathConf(path);
+          AlluxioConfiguration conf = mFsContext.getClusterConf();
           GetStatusPOptions getStatusOptions = FileSystemOptionsUtils
               .getStatusDefaults(conf).toBuilder()
               .setAccessMode(Bits.READ)

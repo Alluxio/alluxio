@@ -158,7 +158,7 @@ public class UfsBaseFileSystem implements FileSystem {
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options) {
     call(() -> {
       // TODO(lu) deal with other options e.g. owner/group
-      MkdirsOptions ufsOptions = MkdirsOptions.defaults(mFsContext.getPathConf(path));
+      MkdirsOptions ufsOptions = MkdirsOptions.defaults(mFsContext.getClusterConf());
       if (options.hasMode()) {
         ufsOptions.setMode(Mode.fromProto(options.getMode()));
       }
@@ -173,7 +173,7 @@ public class UfsBaseFileSystem implements FileSystem {
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options) {
     return callWithReturn(() -> {
       // TODO(lu) deal with other options e.g. owner/group/acl/ensureAtomic
-      CreateOptions ufsOptions = CreateOptions.defaults(mFsContext.getPathConf(path));
+      CreateOptions ufsOptions = CreateOptions.defaults(mFsContext.getClusterConf());
       if (options.hasMode()) {
         ufsOptions.setMode(Mode.fromProto(options.getMode()));
       }
