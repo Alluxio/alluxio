@@ -57,7 +57,6 @@ public final class HeartbeatContext {
   public static final String MASTER_REPLICATION_CHECK = "Master Replication Check";
   public static final String MASTER_TABLE_TRANSFORMATION_MONITOR =
       "Master Table Transformation Monitor";
-  public static final String MASTER_TTL_CHECK = "Master TTL Check";
   public static final String MASTER_UFS_CLEANUP = "Master Ufs Cleanup";
   public static final String MASTER_UPDATE_CHECK = "Master Update Check";
   public static final String META_MASTER_SYNC = "Meta Master Sync";
@@ -100,7 +99,6 @@ public final class HeartbeatContext {
     MASTER_PERSISTENCE_SCHEDULER(120),
     MASTER_REPLICATION_CHECK(121),
     MASTER_TABLE_TRANSFORMATION_MONITOR(122),
-    MASTER_TTL_CHECK(123),
     MASTER_UFS_CLEANUP(124),
     MASTER_UPDATE_CHECK(125),
     META_MASTER_SYNC(126),
@@ -147,7 +145,6 @@ public final class HeartbeatContext {
     sTimerClasses.put(MASTER_PERSISTENCE_SCHEDULER, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_REPLICATION_CHECK, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_TABLE_TRANSFORMATION_MONITOR, SLEEPING_TIMER_CLASS);
-    sTimerClasses.put(MASTER_TTL_CHECK, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_UFS_CLEANUP, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_UPDATE_CHECK, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(META_MASTER_SYNC, SLEEPING_TIMER_CLASS);

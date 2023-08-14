@@ -30,8 +30,6 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WritePType;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
@@ -44,7 +42,6 @@ import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.JournalType;
@@ -70,7 +67,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
@@ -161,14 +157,6 @@ public class FileSystemMasterTestBase {
               Constants.MEDIUM_SSD);
         }
       }, Configuration.modifiableGlobal());
-
-  @ClassRule
-  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
-      HeartbeatContext.MASTER_TTL_CHECK, HeartbeatContext.MASTER_LOST_FILES_DETECTION);
-
-  // Set ttl interval to 0 so that there is no delay in detecting expired files.
-  @ClassRule
-  public static TtlIntervalRule sTtlIntervalRule = new TtlIntervalRule(0);
 
   @Parameterized.Parameters
   public static Iterable<InodeStore.Factory> parameters() throws Exception {

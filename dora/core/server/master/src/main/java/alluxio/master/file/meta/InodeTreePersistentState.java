@@ -114,26 +114,15 @@ public class InodeTreePersistentState implements Journaled {
   /** A set of inode ids whose persistence state is {@link PersistenceState#TO_BE_PERSISTED}. */
   private final ToBePersistedFileIds mToBePersistedIds = new ToBePersistedFileIds();
 
-  /**
-   * TTL bucket list. The list is owned by InodeTree, and is only shared with
-   * InodeTreePersistentState so that the list can be updated whenever inode tree state changes.
-   */
-  // TODO(andrew): Move ownership of the ttl bucket list to this class
-  private final TtlBucketList mTtlBuckets;
-
   private final BucketCounter mBucketCounter;
 
   /**
    * @param inodeStore file store which holds inode metadata
    * @param lockManager manager for inode locks
-   * @param ttlBucketList reference to the ttl bucket list so that the list can be updated when the
-   *        inode tree is modified
    */
-  public InodeTreePersistentState(InodeStore inodeStore, InodeLockManager lockManager,
-      TtlBucketList ttlBucketList) {
+  public InodeTreePersistentState(InodeStore inodeStore, InodeLockManager lockManager) {
     mInodeStore = inodeStore;
     mInodeLockManager = lockManager;
-    mTtlBuckets = ttlBucketList;
     mBucketCounter = new BucketCounter(
         Configuration.getList(MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS)
             .stream().map(FormatUtils::parseSpaceSize).collect(Collectors.toList()));
@@ -205,13 +194,6 @@ public class InodeTreePersistentState implements Journaled {
    */
   public Set<Long> getToBePersistedIds() {
     return Collections.unmodifiableSet(mToBePersistedIds);
-  }
-
-  /**
-   * @return the list of TTL buckets for tracking inode TTLs
-   */
-  public TtlBucketList getTtlBuckets() {
-    return mTtlBuckets;
   }
 
   ////
@@ -444,7 +426,6 @@ public class InodeTreePersistentState implements Journaled {
     mPinnedInodeFileIds.remove(id);
     mReplicationLimitedFileIds.remove(id);
     mToBePersistedIds.remove(id);
-    mTtlBuckets.remove(inode);
   }
 
   private void applyCreateDirectory(InodeDirectoryEntry entry) {
@@ -498,15 +479,7 @@ public class InodeTreePersistentState implements Journaled {
       throw new IllegalStateException("Inode " + entry.getId() + " not found");
     }
     MutableInode<?> inode = inodeOpt.get();
-    if (entry.hasTtl()) {
-      // Remove before updating the inode. #remove relies on the inode having the same
-      // TTL as when it was inserted.
-      mTtlBuckets.remove(inode);
-    }
     inode.updateFromEntry(entry);
-    if (entry.hasTtl()) {
-      mTtlBuckets.insert(Inode.wrap(inode));
-    }
     if (inode.isFile() && entry.hasPinned()) {
       setReplicationForPin(inode, entry.getPinned());
     }
@@ -637,10 +610,6 @@ public class InodeTreePersistentState implements Journaled {
     if (entry.hasPinned()) {
       builder.setPinned(entry.getPinned());
     }
-    if (entry.hasTtl()) {
-      builder.setTtl(entry.getTtl());
-      builder.setTtlAction(entry.getTtlAction());
-    }
     if (entry.hasUfsFingerprint()) {
       builder.setUfsFingerprint(entry.getUfsFingerprint());
     }
@@ -676,8 +645,6 @@ public class InodeTreePersistentState implements Journaled {
       boolean pinned = inode.asFile().isPinned() || inode.asFile().getReplicationMin() > 0;
       setReplicationForPin(inode, pinned);
     }
-    // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
-    mTtlBuckets.insert(Inode.wrap(inode));
     updateToBePersistedIds(inode);
     if (inode.isFile() && inode.asFile().isCompleted()) {
       mBucketCounter.insert(inode.asFile().getLength());
@@ -832,34 +799,30 @@ public class InodeTreePersistentState implements Journaled {
   public CompletableFuture<Void> writeToCheckpoint(File directory,
                                                    ExecutorService executorService) {
     return CompletableFuture.allOf(Stream.of(mInodeStore, mPinnedInodeFileIds,
-        mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter)
+        mReplicationLimitedFileIds, mToBePersistedIds, mInodeCounter)
         .map(journaled -> journaled.writeToCheckpoint(directory, executorService))
         .toArray(CompletableFuture[]::new));
   }
 
   @Override
   public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
-    // mTtlBuckets must come after mInodeStore so that it can query the inode store to resolve inode
-    // ids to inodes.
     JournalUtils.writeToCheckpoint(output, Arrays.asList(mInodeStore, mPinnedInodeFileIds,
-        mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter));
+        mReplicationLimitedFileIds, mToBePersistedIds, mInodeCounter));
   }
 
   @Override
   public CompletableFuture<Void> restoreFromCheckpoint(File directory,
                                                        ExecutorService executorService) {
     return CompletableFuture.allOf(Stream.of(mInodeStore, mPinnedInodeFileIds,
-        mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter)
+        mReplicationLimitedFileIds, mToBePersistedIds, mInodeCounter)
         .map(journaled -> journaled.restoreFromCheckpoint(directory, executorService))
         .toArray(CompletableFuture[]::new));
   }
 
   @Override
   public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
-    // mTtlBuckets must come after mInodeStore so that it can query the inode store to resolve inode
-    // ids to inodes.
     JournalUtils.restoreFromCheckpoint(input, Arrays.asList(mInodeStore, mPinnedInodeFileIds,
-        mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter));
+        mReplicationLimitedFileIds, mToBePersistedIds, mInodeCounter));
   }
 
   @Override

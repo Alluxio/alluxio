@@ -18,15 +18,9 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.TtlAction;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
-import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
-import alluxio.util.CommonUtils;
-import alluxio.util.WaitForOptions;
 
 import org.junit.After;
 import org.junit.Before;
@@ -35,9 +29,6 @@ import org.junit.rules.TestName;
 
 public class MultiMasterJournalTest extends BaseIntegrationTest {
   private MultiMasterLocalAlluxioCluster mCluster;
-
-  @Rule
-  public TtlIntervalRule mTtlRule = new TtlIntervalRule(200);
 
   @Rule
   public TestName mTestName = new TestName();
@@ -65,31 +56,6 @@ public class MultiMasterJournalTest extends BaseIntegrationTest {
     mCluster.restartMasters();
     assertEquals("The cluster should remember the 10 files", 10,
         mCluster.getClient().listStatus(new AlluxioURI("/")).size());
-  }
-
-  @Deprecated
-  public void testTtl() throws Exception {
-    // TODO(JiamingMai): AlluxioFileOutStream is deprecated.
-    // We need to implement it with DoraFileOutStream.
-    // Test that ttls are still applied after restart.
-    AlluxioURI file = new AlluxioURI("/file");
-    mCluster.getClient().createFile(file).close();
-    int ttl = 5 * Constants.SECOND_MS;
-    mCluster.getClient().setAttribute(file, SetAttributePOptions.newBuilder()
-        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
-            .setTtl(ttl)
-            .setTtlAction(TtlAction.DELETE))
-        .build());
-    triggerAndWaitForCheckpoint();
-    mCluster.restartMasters();
-    FileSystem client = mCluster.getClient();
-    CommonUtils.waitFor("file to be deleted", () -> {
-      try {
-        return !client.exists(file);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(30 * Constants.SECOND_MS));
   }
 
   private void triggerAndWaitForCheckpoint() throws Exception {

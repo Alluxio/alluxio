@@ -24,8 +24,6 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateFileContext;
@@ -33,7 +31,6 @@ import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
-import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -48,7 +45,6 @@ import alluxio.wire.FileInfo;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -73,13 +69,6 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
   private static final long TEST_TIME_MS = Long.MAX_VALUE;
   private static final long TTL_CHECKER_INTERVAL_MS = 100;
   private static final String TEST_USER = "test";
-
-  @ClassRule
-  public static ManuallyScheduleHeartbeat sManuallySchedule =
-      new ManuallyScheduleHeartbeat(HeartbeatContext.MASTER_TTL_CHECK);
-
-  @ClassRule
-  public static TtlIntervalRule sTtlIntervalRule = new TtlIntervalRule(TTL_CHECKER_INTERVAL_MS);
 
   @Rule
   public Timeout mGlobalTimeout = Timeout.seconds(60);

@@ -427,20 +427,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of block replicas in Alluxio")
           .setMetricType(MetricType.GAUGE)
           .build();
-  public static final MetricKey MASTER_TTL_BUCKETS =
-      new Builder("Master.TTLBuckets")
-          .setDescription("The number of TTL buckets at the master. Note that these buckets"
-              + " are stored in memory.")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey MASTER_TTL_INODES =
-      new Builder("Master.TTLInodes")
-          .setDescription("The total number of inodes contained in TTL buckets at the mater."
-              + " Note that these inodes are stored in memory.")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
   public static final MetricKey MASTER_INODE_HEAP_SIZE =
       new Builder("Master.InodeHeapSize")
           .setDescription("An estimate of the inode heap size")
