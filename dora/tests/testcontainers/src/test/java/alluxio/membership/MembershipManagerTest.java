@@ -11,13 +11,8 @@
 
 package alluxio.membership;
 
-import alluxio.membership.MembershipType;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.membership.AlluxioEtcdClient;
-import alluxio.membership.EtcdMembershipManager;
-import alluxio.membership.MembershipManager;
-import alluxio.membership.StaticMembershipManager;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;

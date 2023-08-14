@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-tests</artifactId>
-    <version>303-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-tests-integration</artifactId>
   <packaging>jar</packaging>
@@ -26,7 +26,7 @@
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
-    <build.path>${project.parent.parent.basedir}/build/</build.path>
+    <build.path>${project.parent.parent.parent.basedir}/build/</build.path>
     <surefire.useSystemClassLoader>false</surefire.useSystemClassLoader>
   </properties>
 
