@@ -6293,14 +6293,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey FUSE_JNIFUSE_ENABLED =
-      booleanBuilder(Name.FUSE_JNIFUSE_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("Use JNI-Fuse library for better performance. "
-              + "If disabled, JNR-Fuse will be used.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey FUSE_JNIFUSE_LIBFUSE_VERSION =
       intBuilder(Name.FUSE_JNIFUSE_LIBFUSE_VERSION)
           .setDefaultValue(3)
@@ -8382,7 +8374,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
-    public static final String FUSE_JNIFUSE_ENABLED = "alluxio.fuse.jnifuse.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MOUNT_ALLUXIO_PATH =
         "alluxio.fuse.mount.alluxio.path";
