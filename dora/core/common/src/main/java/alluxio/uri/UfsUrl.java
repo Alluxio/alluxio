@@ -309,6 +309,9 @@ public class UfsUrl {
    */
   // TODO(Jiacheng Liu): try to avoid the copy by a RelativeUrl class
   public UfsUrl getParentURL() {
+    if (mProto.getPathComponentsList().size() == 0) {
+      return null;
+    }
     List<String> pathComponents = mProto.getPathComponentsList();
     return new UfsUrl(UfsUrlMessage.newBuilder()
         .setScheme(mProto.getScheme())

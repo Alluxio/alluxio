@@ -255,4 +255,95 @@ public class UfsUrlTest {
     assertEquals(1, UfsUrl.createInstance("abc://localhost:19998/a").getDepth());
     assertEquals(2, UfsUrl.createInstance("abc://localhost:19998/a/b.txt").getDepth());
   }
+
+  /**
+   * Tests the {@link UfsUrl#getName()} method.
+   */
+  @Test
+  public void getNameTests() {
+//    assertEquals(".", UfsUrl.createInstance(".").getName());
+//    assertEquals("", UfsUrl.createInstance("/").getName());
+//    assertEquals("", UfsUrl.createInstance("abc:/").getName());
+//    assertEquals("a", UfsUrl.createInstance("abc:/a/").getName());
+//    assertEquals("a.txt", UfsUrl.createInstance("abc:/a.txt/").getName());
+//    assertEquals(" b.txt", UfsUrl.createInstance("abc:/a/ b.txt").getName());
+    assertEquals("", UfsUrl.createInstance("abc://localhost/").getName());
+    assertEquals("a.txt", UfsUrl.createInstance("/a/a.txt").getName());
+  }
+
+  /**
+   * Tests the {@link UfsUrl#getParentURL()} method.
+   */
+  @Test
+  public void getParentTests() {
+    assertEquals(null,
+        UfsUrl.createInstance("abc://localhost/").getParentURL());
+    assertEquals(UfsUrl.createInstance("abc://localhost/"),
+        UfsUrl.createInstance("abc://localhost/a").getParentURL());
+    assertEquals(UfsUrl.createInstance("/a"), UfsUrl.createInstance("/a/b/../c").getParentURL());
+    assertEquals(UfsUrl.createInstance("abc:/a"),
+        UfsUrl.createInstance("abc:/a/b/../c").getParentURL());
+    assertEquals(UfsUrl.createInstance("abc://localhost:80/a"),
+        UfsUrl.createInstance("abc://localhost:80/a/b/../c").getParentURL());
+  }
+
+  /**
+   * Tests the {@link UfsUrl#getFullPath()} method.
+   */
+  @Test
+  public void getPathTests() {
+//    assertEquals(".", UfsUrl.createInstance(".").getFullPath());
+//    assertEquals("/", UfsUrl.createInstance("/").getFullPath());
+//    assertEquals("/", UfsUrl.createInstance("abc:/").getFullPath());
+    assertEquals("/", UfsUrl.createInstance("abc://localhost:80/").getFullPath());
+    assertEquals("/a.txt", UfsUrl.createInstance("abc://localhost:80/a.txt").getFullPath());
+    assertEquals("/b", UfsUrl.createInstance("abc://localhost:80/a/../b").getFullPath());
+    assertEquals("/b", UfsUrl.createInstance("abc://localhost:80/a/c/../../b").getFullPath());
+    assertEquals("/a/b", UfsUrl.createInstance("abc://localhost:80/a/./b").getFullPath());
+//    assertEquals("/a/b", UfsUrl.createInstance("/a/b").getFullPath());
+//    assertEquals("/a/b", UfsUrl.createInstance("file:///a/b").getFullPath());
+    assertEquals("/a/b", UfsUrl.createInstance("abc://localhost:80/a/b/").getFullPath());
+  }
+
+  /**
+   * Tests the {@link UfsUrl#getScheme()} method.
+   */
+  @Test
+  public void getSchemeTests() {
+    assertEquals("file", UfsUrl.createInstance(".").getScheme());
+    assertEquals("file", UfsUrl.createInstance("/").getScheme());
+    assertEquals("file", UfsUrl.createInstance("file:/").getScheme());
+    assertEquals("file", UfsUrl.createInstance("file://localhost/").getScheme());
+    assertEquals("s3", UfsUrl.createInstance("s3://localhost/").getScheme());
+    assertEquals("qwer", UfsUrl.createInstance("qwer://localhost/").getScheme());
+    assertEquals("hdfs", UfsUrl.createInstance("hdfs://localhost/").getScheme());
+    assertEquals("glusterfs", UfsUrl.createInstance("glusterfs://localhost/").getScheme());
+//    assertEquals("scheme:part1",
+//        UfsUrl.createInstance("scheme:part1://localhost/").getScheme().get());
+//    assertEquals("scheme:part1:part2",
+//        UfsUrl.createInstance("scheme:part1:part2://localhost/").getScheme().get());
+  }
+
+  /**
+   * Tests the {@link AlluxioURI#join(String)} and {@link AlluxioURI#join(AlluxioURI)} methods.
+   */
+  @Test
+  public void joinTests() {
+    assertEquals(UfsUrl.createInstance("/a"), UfsUrl.createInstance("/").join("a"));
+    assertEquals(UfsUrl.createInstance("alluxio:/a/b.txt"),
+        UfsUrl.createInstance("alluxio:/a").join("/b.txt"));
+//    assertEquals(UfsUrl.createInstance("/a/b"),UfsUrl.createInstance("/a").joinUnsafe("///b///"));
+
+    final String pathWithSpecialChar = "����,��b����$o����[| =B����";
+    assertEquals(UfsUrl.createInstance("/" + pathWithSpecialChar),
+        UfsUrl.createInstance("/").join(pathWithSpecialChar));
+
+    final String pathWithSpecialCharAndColon = "����,��b����$o����[| =B��:��";
+    assertEquals(UfsUrl.createInstance("/" + pathWithSpecialCharAndColon),
+        UfsUrl.createInstance("/").join(pathWithSpecialCharAndColon));
+
+    // join empty string
+    assertEquals(UfsUrl.createInstance("/a"), UfsUrl.createInstance("/a").join(""));
+//    assertEquals(UfsUrl.createInstance("/a"), UfsUrl.createInstance("/a").join(UfsUrl.createInstance("")));
+  }
 }
