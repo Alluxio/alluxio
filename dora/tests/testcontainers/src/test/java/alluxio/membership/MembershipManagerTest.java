@@ -19,6 +19,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+
 import eu.rekawek.toxiproxy.model.ToxicDirection;
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.After;
@@ -47,12 +48,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class MembershipManagerTest {
-  private static final Network network = Network.newNetwork();
+  private static final Network NETWORK = Network.newNetwork();
   private static final int ETCD_PORT = 2379;
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
-  private static ToxiproxyContainer.ContainerProxy etcdProxy;
+  private static ToxiproxyContainer.ContainerProxy sEtcdProxy;
 
   //Add for logging for debugging purpose
   @BeforeClass
@@ -63,44 +64,44 @@ public class MembershipManagerTest {
   }
 
   @ClassRule
-  public static final GenericContainer<?> etcd =
+  public static final GenericContainer<?> ETCD_CONTAINER =
       new GenericContainer<>("quay.io/coreos/etcd:latest")
           .withCommand("etcd",
               "--listen-client-urls", "http://0.0.0.0:" + ETCD_PORT,
               "--advertise-client-urls", "http://0.0.0.0:" + ETCD_PORT)
           .withExposedPorts(ETCD_PORT)
-          .withNetwork(network);
+          .withNetwork(NETWORK);
 
   @ClassRule
-  public static final ToxiproxyContainer toxiproxy =
+  public static final ToxiproxyContainer TOXIPROXY =
       new ToxiproxyContainer(
           "ghcr.io/shopify/toxiproxy:2.5.0")
-          .withNetwork(network)
+          .withNetwork(NETWORK)
           .withNetworkAliases("toxiproxy");
 
   private static List<String> getClientEndpoints() {
     ArrayList<String> clientEps = new ArrayList<>();
-    clientEps.add("https://" + etcd.getHost() +
-        ":" + etcd.getMappedPort(ETCD_PORT));
+    clientEps.add("https://" + ETCD_CONTAINER.getHost()
+        + ":" + ETCD_CONTAINER.getMappedPort(ETCD_PORT));
     return clientEps;
   }
 
   private static List<URI> getProxiedClientEndpoints() {
     ArrayList<URI> clientURIs = new ArrayList<>();
     clientURIs.add(URI.create(
-        "https://" + etcdProxy.getContainerIpAddress() +
-            ":" + etcdProxy.getProxyPort()));
+        "https://" + sEtcdProxy.getContainerIpAddress()
+            + ":" + sEtcdProxy.getProxyPort()));
     return clientURIs;
   }
 
   @BeforeClass
   public static void beforeAll() throws Exception {
-    etcdProxy = toxiproxy.getProxy(etcd, ETCD_PORT);
+    sEtcdProxy = TOXIPROXY.getProxy(ETCD_CONTAINER, ETCD_PORT);
   }
 
   @AfterClass
   public static void afterAll() {
-    network.close();
+    NETWORK.close();
   }
 
   @Before
@@ -145,7 +146,9 @@ public class MembershipManagerTest {
     membershipManager.join(wkr2);
     membershipManager.join(wkr3);
     List<WorkerInfo> wkrs = new ArrayList<>();
-    wkrs.add(wkr1); wkrs.add(wkr2); wkrs.add(wkr3);
+    wkrs.add(wkr1);
+    wkrs.add(wkr2);
+    wkrs.add(wkr3);
     List<WorkerInfo> allMembers = membershipManager.getAllMembers().stream()
         .sorted(Comparator.comparing(w -> w.getAddress().getHost()))
         .collect(Collectors.toList());
@@ -220,7 +223,7 @@ public class MembershipManagerTest {
     MembershipManager healthyMgr = getHealthyEtcdMemberMgr();
     System.out.println("All Node Status:\n" + healthyMgr.showAllMembers());
     System.out.println("Induce 10 sec latency upstream to etcd...");
-    etcdProxy.toxics()
+    sEtcdProxy.toxics()
         .latency("latency", ToxicDirection.UPSTREAM, 10000);
     CommonUtils.waitFor("Workers network errored",
         () -> {
@@ -233,7 +236,7 @@ public class MembershipManagerTest {
         }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
     System.out.println("All Node Status:\n" + healthyMgr.showAllMembers());
     System.out.println("Remove latency toxics...");
-    etcdProxy.toxics().get("latency").remove();
+    sEtcdProxy.toxics().get("latency").remove();
     CommonUtils.waitFor("Workers network recovered",
         () -> {
           try {
@@ -254,7 +257,8 @@ public class MembershipManagerTest {
     ps.println("worker2");
     ps.println("worker3");
     Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.STATIC);
-    Configuration.set(PropertyKey.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE, file.getAbsolutePath());
+    Configuration.set(PropertyKey.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE,
+        file.getAbsolutePath());
 
     MembershipManager membershipManager = MembershipManager.Factory.create(Configuration.global());
     Assert.assertTrue(membershipManager instanceof StaticMembershipManager);
