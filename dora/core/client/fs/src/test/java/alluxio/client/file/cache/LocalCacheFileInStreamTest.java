@@ -63,7 +63,6 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
@@ -924,11 +923,6 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
         throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
         IOException, AlluxioException {
@@ -982,18 +976,6 @@ public class LocalCacheFileInStreamTest {
     @Override
     public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
         SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void startSync(AlluxioURI path)
-        throws FileDoesNotExistException, IOException, AlluxioException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void stopSync(AlluxioURI path)
-        throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
 

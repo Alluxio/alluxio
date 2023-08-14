@@ -86,12 +86,6 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   }
 
   @Test
-  public void newCacheRocks() throws Exception {
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.ROCKS);
-    testNewCache();
-  }
-
-  @Test
   public void newCacheLocal() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.LOCAL);
     testNewCache();
@@ -110,12 +104,6 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   private void testPageCached(PageId pageId) {
     assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(pageId, PAGE_SIZE_BYTES, mBuffer, 0));
     assertArrayEquals(PAGE, mBuffer);
-  }
-
-  @Test
-  public void loadCacheRocks() throws Exception {
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.ROCKS);
-    testLoadCache();
   }
 
   @Test
@@ -171,25 +159,6 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   @Test
   public void loadCacheMismatchedPageSize() throws Exception {
     testLoadCacheConfMismatch(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES * 2);
-  }
-
-  @Test
-  public void loadCacheMismatchedStoreTypeRocks() throws Exception {
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.LOCAL);
-    testLoadCacheConfMismatch(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.ROCKS);
-  }
-
-  @Test
-  public void loadCacheMismatchedStoreTypeLocal() throws Exception {
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.ROCKS);
-    testLoadCacheConfMismatch(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.LOCAL);
-  }
-
-  @Test
-  public void loadCacheSmallerNewCacheSizeRocks() throws Exception {
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.ROCKS);
-    testLoadCacheConfMismatch(PropertyKey.USER_CLIENT_CACHE_SIZE,
-        String.valueOf(CACHE_SIZE_BYTES / 2));
   }
 
   @Test
