@@ -90,7 +90,7 @@
               <arguments>
                 <argument>${project.artifactId}</argument>
                 <argument>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</argument>
-                <argument>${build.path}/../lib/${project.artifactId}-${ufs.hadoop.ver}-${project.version}.jar</argument>
+                <argument>${build.path}/../lib/${project.artifactId}-3.3.1-${project.version}.jar</argument>
               </arguments>
             </configuration>
           </execution>
@@ -148,7 +148,7 @@
         <dependency>
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-shaded-hadoop</artifactId>
-          <version>${ufs.hadoop.ver}</version>
+          <version>3.3.1</version>
         </dependency>
       </dependencies>
       <build>
@@ -186,12 +186,12 @@
         <dependency>
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-shaded-hadoop</artifactId>
-          <version>${ufs.hadoop.ver}</version>
+          <version>3.3.1</version>
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-minicluster</artifactId>
-          <version>${ufs.hadoop.ver}</version>
+          <version>3.3.1</version>
           <scope>test</scope>
         </dependency>
       </dependencies>
