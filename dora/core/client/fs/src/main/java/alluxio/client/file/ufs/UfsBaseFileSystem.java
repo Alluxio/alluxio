@@ -288,8 +288,7 @@ public class UfsBaseFileSystem implements FileSystem {
         ufsOptions.setRecursive(options.getRecursive());
       }
       UfsStatus[] ufsStatuses;
-      Preconditions.checkArgument(ufsPath.getScheme().isPresent());
-      if (ufsPath.getScheme().get().equals("file")) {
+      if (ufsPath.getScheme().equals("file")) {
         ufsStatuses = mUfs.get().listStatus(ufsPath.getFullPath(), ufsOptions);
       } else {
         ufsStatuses = mUfs.get().listStatus(ufsPath.toString(), ufsOptions);
@@ -298,7 +297,7 @@ public class UfsBaseFileSystem implements FileSystem {
         return Collections.emptyList();
       }
       List<URIStatus> uriStatusList = new ArrayList<>();
-      if (ufsPath.getScheme().get().equals("file")) {
+      if (ufsPath.getScheme().equals("file")) {
         for (UfsStatus ufsStatus : ufsStatuses) {
           URIStatus uriStatus = transformStatus(ufsStatus,
               PathUtils.concatPath(ufsPath.getFullPath(), ufsStatus.getName()));
@@ -344,7 +343,7 @@ public class UfsBaseFileSystem implements FileSystem {
         ufsOptions.setRecursive(options.getRecursive());
       }
       UfsStatus[] ufsStatuses;
-      if (ufsPath.getScheme().isPresent() && ufsPath.getScheme().get().equals("file")) {
+      if (ufsPath.getScheme().equals("file")) {
         ufsStatuses = mUfs.get().listStatus(ufsPath.getFullPath(), ufsOptions);
       } else {
         ufsStatuses = mUfs.get().listStatus(ufsPath.toString(), ufsOptions);
@@ -354,7 +353,7 @@ public class UfsBaseFileSystem implements FileSystem {
         return;
       }
       // ufsStatuses is neither null nor empty, so uriStatus is not null.
-      if (ufsPath.getScheme().isPresent() && ufsPath.getScheme().get().equals("file")) {
+      if (ufsPath.getScheme().equals("file")) {
         for (UfsStatus ufsStatus : ufsStatuses) {
           uriStatus = transformStatus(ufsStatus,
               PathUtils.concatPath(ufsPath.getFullPath(), ufsStatus.getName()));

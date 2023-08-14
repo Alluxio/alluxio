@@ -198,11 +198,9 @@ public class UfsUrl {
   /**
    * @return the scheme of the {@link UfsUrl}
    */
-  public Optional<String> getScheme() {
-    if (!mProto.hasScheme()) {
-      return Optional.empty();
-    }
-    return Optional.of(mProto.getScheme());
+  public String getScheme() {
+    Preconditions.checkArgument(mProto.hasScheme(), "The UfsUrl has no scheme, it is illegal.");
+    return mProto.getScheme();
   }
 
   /**

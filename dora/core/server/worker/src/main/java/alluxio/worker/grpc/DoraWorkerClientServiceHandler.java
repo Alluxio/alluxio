@@ -220,7 +220,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
     LOG.debug("listStatus is called for {}", ufsPath.toString());
     try {
       UfsStatus[] statuses;
-      if (ufsPath.getScheme().get().equalsIgnoreCase("file")) {
+      if (ufsPath.getScheme().equalsIgnoreCase("file")) {
         statuses = mWorker.listStatus(ufsPath.getFullPath(), request.getOptions());
       } else {
         statuses = mWorker.listStatus(ufsPath.toString(), request.getOptions());
@@ -237,7 +237,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       for (int i = 0; i < statuses.length; i++) {
         UfsStatus status = statuses[i];
         String ufsFullPath;
-        if (ufsPath.getScheme().get().equalsIgnoreCase("file")) {
+        if (ufsPath.getScheme().equalsIgnoreCase("file")) {
           ufsFullPath = PathUtils.concatPath(ufsPath.getFullPath(), status.getName());
         } else {
           ufsFullPath = PathUtils.concatPath(ufsPath.toString(), status.getName());

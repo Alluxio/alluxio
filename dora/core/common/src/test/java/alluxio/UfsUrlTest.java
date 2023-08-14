@@ -47,8 +47,7 @@ public class UfsUrlTest {
 
     assertEquals(2, ufsUrl.getDepth());
     assertEquals("a b c", ufsUrl.getName());
-    assertTrue(ufsUrl.getScheme().isPresent());
-    assertEquals("abc", ufsUrl.getScheme().get());
+    assertEquals("abc", ufsUrl.getScheme());
     assertEquals("abc://localhost:19998/xy z", ufsUrl.getParentURL().toString());
     assertEquals("abc://localhost:19998/", ufsUrl.getParentURL().getParentURL().toString());
     assertEquals("/xy z/a b c", ufsUrl.getFullPath());
@@ -62,7 +61,7 @@ public class UfsUrlTest {
     String authority1 = "127.0.0.1:4567";
     String path1 = "/";
     UfsUrl ufsUrl1 = new UfsUrl(scheme1, authority1, path1);
-    assertEquals(scheme1, ufsUrl1.getScheme().get());
+    assertEquals(scheme1, ufsUrl1.getScheme());
     assertEquals(authority1, ufsUrl1.getAuthority().get().toString());
     assertEquals(path1, ufsUrl1.getFullPath());
   }
@@ -86,8 +85,7 @@ public class UfsUrlTest {
     assertEquals("hdfs://localhost:8020/xy z", ufsUrl.getParentURL().toString());
     assertEquals("hdfs://localhost:8020/", ufsUrl.getParentURL().getParentURL().toString());
     assertEquals("/xy z/a b c", ufsUrl.getFullPath());
-    assertTrue(ufsUrl.getScheme().isPresent());
-    assertEquals("hdfs", ufsUrl.getScheme().get());
+    assertEquals("hdfs", ufsUrl.getScheme());
     assertEquals("hdfs://localhost:8020/xy z/a b c/d", ufsUrl.join("/d").toString());
     assertEquals("hdfs://localhost:8020/xy z/a b c", ufsUrl.toString());
   }
