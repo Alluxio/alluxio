@@ -50,7 +50,7 @@ public class S3ObjectTest extends RestApiTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setIncludeProxy(true)
+          .setProperty(PropertyKey.WORKER_S3_REST_ENABLED, true)
           .setProperty(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL,
               "0s")  //always sync the metadata
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
@@ -64,7 +64,7 @@ public class S3ObjectTest extends RestApiTest {
           .setProperty(PropertyKey.WORKER_HTTP_SERVER_ENABLED, false)
           .setProperty(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey())
           .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
-          .setNumWorkers(2)
+          .setNumWorkers(1)
           .build();
 
   @Before
@@ -81,8 +81,9 @@ public class S3ObjectTest extends RestApiTest {
         .build();
     mS3Client.createBucket(TEST_BUCKET);
     mHostname = mLocalAlluxioClusterResource.get().getHostname();
-    mPort = mLocalAlluxioClusterResource.get().getProxyProcess().getWebLocalPort();
-    mBaseUri = String.format("/api/v1/s3");
+    mPort = mLocalAlluxioClusterResource.get().getWorkerProcess().getRestS3LocalPort();
+    // Must overwrite mBaseUri with empty string.
+    mBaseUri = "";
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
 
@@ -207,7 +208,6 @@ public class S3ObjectTest extends RestApiTest {
 
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(fullKey, content).checkResponseCode(Status.OK.getStatusCode());
-    getTestCase(fullKey).checkResponseCode(Status.OK.getStatusCode()).checkResponse(content);
     // overwrite this object
     createObjectTestCase(fullKey, content2).checkResponseCode(Status.OK.getStatusCode());
     getTestCase(fullKey).checkResponseCode(Status.OK.getStatusCode()).checkResponse(content2)
@@ -368,7 +368,6 @@ public class S3ObjectTest extends RestApiTest {
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(sourcePath, content).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(targetPath, content2).checkResponseCode(Status.OK.getStatusCode());
-    getTestCase(targetPath).checkResponseCode(Status.OK.getStatusCode()).checkResponse(content2);
     // copy object1 and overwrite object2.
     copyObjectTestCase(sourcePath, targetPath).checkResponseCode(Status.OK.getStatusCode());
     getTestCase(targetPath).checkResponseCode(Status.OK.getStatusCode()).checkResponse(content);

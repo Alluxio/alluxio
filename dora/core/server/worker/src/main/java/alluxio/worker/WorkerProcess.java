@@ -100,6 +100,11 @@ public interface WorkerProcess extends Process {
   int getNettyDataLocalPort();
 
   /**
+   * @return the worker's netty s3 data service port (used by unit test only)
+   */
+  int getRestS3LocalPort();
+
+  /**
    * @return the worker's data service domain socket path if available or "" if not available
    */
   String getDataDomainSocketPath();

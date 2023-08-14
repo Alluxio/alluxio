@@ -177,11 +177,11 @@ public class S3NettyHandler {
                                              FileSystem fileSystem, DoraWorker doraWorker,
                                              AsyncUserAccessAuditLogWriter asyncAuditLogWriter)
       throws Exception {
-    String path = request.uri();
+    String path = java.net.URI.create(request.uri()).getPath();
     Stopwatch stopwatch = Stopwatch.createStarted();
     Matcher bucketMatcher = BUCKET_PATH_PATTERN.matcher(path);
     Matcher objectMatcher = OBJECT_PATH_PATTERN.matcher(path);
-    String pathStr = java.net.URI.create(path.substring(1)).getPath();
+    String pathStr = path.substring(1);
     String bucket = null;
     String object = null;
     if (bucketMatcher.matches()) {

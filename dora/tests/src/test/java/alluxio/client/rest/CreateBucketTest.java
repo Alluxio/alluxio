@@ -46,7 +46,7 @@ public class CreateBucketTest extends RestApiTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setIncludeProxy(true)
+          .setProperty(PropertyKey.WORKER_S3_REST_ENABLED, true)
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
           .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, "PAGE")
           .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, Constants.KB)
@@ -58,7 +58,7 @@ public class CreateBucketTest extends RestApiTest {
           .setProperty(PropertyKey.WORKER_HTTP_SERVER_ENABLED, false)
           .setProperty(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey())
           .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
-          .setNumWorkers(2)
+          .setNumWorkers(1)
           .build();
 
   @Before
@@ -75,8 +75,9 @@ public class CreateBucketTest extends RestApiTest {
         .build();
     mS3Client.createBucket(TEST_BUCKET);
     mHostname = mLocalAlluxioClusterResource.get().getHostname();
-    mPort = mLocalAlluxioClusterResource.get().getProxyProcess().getWebLocalPort();
-    mBaseUri = String.format("/api/v1/s3");
+    mPort = mLocalAlluxioClusterResource.get().getWorkerProcess().getRestS3LocalPort();
+    // Must overwrite mBaseUri with empty string.
+    mBaseUri = "";
   }
 
   @After

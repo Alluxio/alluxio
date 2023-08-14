@@ -31,6 +31,7 @@ import alluxio.s3.auth.AwsAuthInfo;
 import alluxio.s3.signature.AwsSignatureProcessor;
 import alluxio.security.authentication.AuthType;
 import alluxio.util.ThreadUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -418,5 +419,19 @@ public class NettyRestUtils {
       scheme = "https";
     }
     return scheme;
+  }
+
+  /**
+   * Gets the full path combined by bucket name and object name.
+   * @param bucket
+   * @param object
+   * @return Full path
+   */
+  public static String getFullPath(String bucket, String object) {
+    String objectPath = PathUtils.concatPath(bucket, object);
+    if (object.endsWith(AlluxioURI.SEPARATOR)) {
+      objectPath += AlluxioURI.SEPARATOR;
+    }
+    return objectPath;
   }
 }
