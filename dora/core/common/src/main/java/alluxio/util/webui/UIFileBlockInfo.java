@@ -12,7 +12,6 @@
 package alluxio.util.webui;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 
@@ -35,7 +34,6 @@ public final class UIFileBlockInfo {
   private final long mId;
   private final long mBlockLength;
   private final long mLastAccessTimeMs;
-  private final boolean mIsInHighestTier;
 
   /**
    * Creates a new instance of {@link alluxio.util.webui.UIFileBlockInfo}.
@@ -52,9 +50,6 @@ public final class UIFileBlockInfo {
     for (BlockLocation location : fileBlockInfo.getBlockInfo().getLocations()) {
       mTierAliases.add(location.getTierAlias());
     }
-    mIsInHighestTier = mTierAliases
-        .contains(alluxioConfiguration.getString(
-            PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS));
   }
 
   /**
@@ -72,9 +67,6 @@ public final class UIFileBlockInfo {
     mBlockLength = blockLength;
     mLastAccessTimeMs = blockLastAccessTimeMs;
     mTierAliases.add(tierAlias);
-    mIsInHighestTier = mTierAliases
-        .contains(alluxioConfiguration.getString(
-            PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS));
   }
 
   private void addLocations(FileBlockInfo fileBlockInfo) {
@@ -134,14 +126,5 @@ public final class UIFileBlockInfo {
    */
   public List<String> getLocations() {
     return mLocations;
-  }
-
-  /**
-   * Gets whether the block is in the highest tier alias.
-   *
-   * @return true if it's in the highest tier alias
-   */
-  public boolean getIsInHighestTier() {
-    return mIsInHighestTier;
   }
 }

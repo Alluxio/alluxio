@@ -12,7 +12,6 @@
 package alluxio.client.file;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -78,7 +77,6 @@ public class MetadataCachingFileSystemTest {
     mFileContext = PowerMockito.mock(FileSystemContext.class);
     when(mFileContext.getClientContext()).thenReturn(mClientContext);
     when(mFileContext.getClusterConf()).thenReturn(mConf);
-    when(mFileContext.getPathConf(any())).thenReturn(mConf);
     when(mFileContext.getUriValidationEnabled()).thenReturn(true);
     // This is intentionally an empty mock
     // If RpcCountingUfsBaseFileSystem fails to serve a method, the empty mock will err

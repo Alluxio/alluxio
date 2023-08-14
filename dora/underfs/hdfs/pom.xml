@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>303-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-hdfs</artifactId>
   <name>Alluxio Under File System - HDFS</name>
@@ -31,11 +31,11 @@
   </properties>
 
   <dependencies>
-    <!-- Hadoop dependencies are included in individual profiles -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
     </dependency>
+    <!-- Hadoop dependencies are included in individual profiles -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -69,12 +69,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <excludes>
-            <exclude>**/SupportedHdfsAclProvider.java</exclude>
-            <exclude>**/SupportedHdfsActiveSyncProvider.java</exclude>
-          </excludes>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -135,6 +129,17 @@
   </build>
 
   <profiles>
+    <profile>
+      <id>hdfsAcl</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <!-- Profile to build this UFS module connecting to hdfs 2 -->
     <profile>
       <!-- Decouple hadoop profiles: hadoop-2 to indicate north bound and ufs-hadoop-2 to indicate the south bound -->
@@ -190,55 +195,6 @@
           <scope>test</scope>
         </dependency>
       </dependencies>
-    </profile>
-
-    <profile>
-      <id>hdfsAclandActiveSync</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <excludes combine.self="override"/>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>hdfsAcl</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <excludes combine.self="override">
-                <exclude>**/SupportedHdfsActiveSyncProvider.java</exclude>
-              </excludes>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>hdfsActiveSync</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <excludes combine.self="override">
-                <exclude>**/SupportedHdfsAclProvider.java</exclude>
-              </excludes>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
   </profiles>
 </project>

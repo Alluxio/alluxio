@@ -14,7 +14,6 @@ package alluxio.fuse.cli;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -73,7 +72,6 @@ public class FuseShellTest {
     FileSystemContext fileContext = PowerMockito.mock(FileSystemContext.class);
     when(fileContext.getClientContext()).thenReturn(clientContext);
     when(fileContext.getClusterConf()).thenReturn(mConf);
-    when(fileContext.getPathConf(any())).thenReturn(mConf);
     when(fileContext.getUriValidationEnabled()).thenReturn(true);
     // This is intentionally an empty mock
     // If RpcCountingUfsBaseFileSystem fails to serve a method, the empty mock will err

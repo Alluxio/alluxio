@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>303-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs</artifactId>
   <packaging>pom</packaging>
@@ -106,6 +106,10 @@
                     <excludes>
                       <exclude>LICENSE</exclude>
                       <exclude>META-INF/LICENSE</exclude>
+                      <exclude>META-INF/LICENSE.*</exclude>
+                      <exclude>META-INF/license/*</exclude>
+                      <exclude>META-INF/NOTICE</exclude>
+                      <exclude>META-INF/NOTICE.*</exclude>
                       <exclude>META-INF/*.SF</exclude>
                       <exclude>META-INF/*.DSA</exclude>
                       <exclude>META-INF/*.RSA</exclude>

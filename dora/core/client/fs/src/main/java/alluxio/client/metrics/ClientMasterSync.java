@@ -119,7 +119,7 @@ public final class ClientMasterSync {
   private boolean loadConf() {
     try {
       InetSocketAddress masterAddr = mInquireClient.getPrimaryRpcAddress();
-      mContext.loadConf(masterAddr, true, false);
+      mContext.loadConf(masterAddr, true);
     } catch (UnavailableException e) {
       SAMPLING_LOG.error("Failed to get master address during initialization", e);
       return false;

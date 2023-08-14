@@ -62,7 +62,7 @@ public final class FileSystemAdminShellUtils {
   public static void checkMasterClientService(AlluxioConfiguration alluxioConf) throws IOException {
     MembershipType membershipType = alluxioConf
         .getEnum(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.class);
-    if (membershipType != MembershipType.ETCD && membershipType != MembershipType.STATIC) {
+    if (membershipType == MembershipType.ETCD || membershipType == MembershipType.STATIC) {
       return;
     }
 
