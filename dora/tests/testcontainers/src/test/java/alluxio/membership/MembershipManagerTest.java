@@ -21,7 +21,6 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import eu.rekawek.toxiproxy.model.ToxicDirection;
-import org.apache.log4j.PropertyConfigurator;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -43,7 +42,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -55,13 +53,15 @@ public class MembershipManagerTest {
 
   private static ToxiproxyContainer.ContainerProxy sEtcdProxy;
 
-  //Add for logging for debugging purpose
+  //Uncomment for logging when need debugging
+  /*
   @BeforeClass
   public static void init() {
-    PropertyConfigurator.configure("/Users/lucyge/Documents/github/alluxio/conf/log4j.properties");
+    PropertyConfigurator.configure("alluxio/conf/log4j.properties");
     Properties props = new Properties();
     props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "Console");
   }
+  */
 
   @ClassRule
   public static final GenericContainer<?> ETCD_CONTAINER =

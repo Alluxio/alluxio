@@ -176,6 +176,7 @@
     <surefire.rerunFailingTestsCount>1</surefire.rerunFailingTestsCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <test.output.redirect>true</test.output.redirect>
+    <testcontainers.version>1.18.3</testcontainers.version>
     <update.check.auth.string>YWxsdXhpbzp0YWNoeW9u</update.check.auth.string>
     <update.check.configurable>true</update.check.configurable>
     <update.check.enabled>true</update.check.enabled>
@@ -858,13 +859,13 @@
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers</artifactId>
-        <version>1.18.3</version>
+        <version>${testcontainers.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>toxiproxy</artifactId>
-        <version>1.18.3</version>
+        <version>${testcontainers.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>
