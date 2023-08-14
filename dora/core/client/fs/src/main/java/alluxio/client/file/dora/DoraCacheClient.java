@@ -207,10 +207,10 @@ public class DoraCacheClient {
   public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
       throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =
-             mContext.acquireBlockWorkerClient(getWorkerNetAddress(ufsPath.asString()))) {
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(ufsPath.toString()))) {
       List<URIStatus> result = new ArrayList<>();
       client.get().listStatus(ListStatusPRequest.newBuilder()
-              .setPath(ufsPath.asString())
+              .setPath(ufsPath.toString())
               .setUfsPath(ufsPath.getProto())
               .setOptions(options).build())
           .forEachRemaining(

@@ -166,7 +166,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     }
     try {
       // TODO(Jiacheng Liu): use path conf if that is still needed
-      return mDoraClient.getStatus(ufsPath.asString(), options);
+      return mDoraClient.getStatus(ufsPath.toString(), options);
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
         if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {

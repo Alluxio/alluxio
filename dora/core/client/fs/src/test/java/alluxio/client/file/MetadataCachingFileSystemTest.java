@@ -323,14 +323,14 @@ public class MetadataCachingFileSystemTest {
     public URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options)
         throws FileDoesNotExistException {
       mGetStatusCount.compute(ufsPath.toAlluxioURI(), (k, v) -> v == null ? 1 : v + 1);
-      if (ufsPath.asString().equals(FILE_STATUS.getPath())
+      if (ufsPath.toString().equals(FILE_STATUS.getPath())
           || ufsPath.getFullPath().equals(FILE_STATUS.getPath())) {
         return FILE_STATUS;
       }
       if (mFileStatusMap.containsKey(ufsPath.toAlluxioURI())) {
         return mFileStatusMap.get(ufsPath.toAlluxioURI());
       }
-      throw new FileDoesNotExistException("Path \"" + ufsPath.asString() + "\" does not exist.");
+      throw new FileDoesNotExistException("Path \"" + ufsPath.toString() + "\" does not exist.");
     }
 
     @Override

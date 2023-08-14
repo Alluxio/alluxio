@@ -217,17 +217,17 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   public void listStatus(ListStatusPRequest request,
                          StreamObserver<ListStatusPResponse> responseObserver) {
     UfsUrl ufsPath = new UfsUrl(request.getUfsPath());
-    LOG.debug("listStatus is called for {}", ufsPath.asString());
+    LOG.debug("listStatus is called for {}", ufsPath.toString());
     try {
       UfsStatus[] statuses;
       if (ufsPath.getScheme().get().equalsIgnoreCase("file")) {
         statuses = mWorker.listStatus(ufsPath.getFullPath(), request.getOptions());
       } else {
-        statuses = mWorker.listStatus(ufsPath.asString(), request.getOptions());
+        statuses = mWorker.listStatus(ufsPath.toString(), request.getOptions());
       }
       if (statuses == null) {
         responseObserver.onError(
-            new NotFoundRuntimeException(String.format("%s Not Found", ufsPath.asString()))
+            new NotFoundRuntimeException(String.format("%s Not Found", ufsPath.toString()))
                 .toGrpcStatusRuntimeException());
         return;
       }
@@ -240,7 +240,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
         if (ufsPath.getScheme().get().equalsIgnoreCase("file")) {
           ufsFullPath = PathUtils.concatPath(ufsPath.getFullPath(), status.getName());
         } else {
-          ufsFullPath = PathUtils.concatPath(ufsPath.asString(), status.getName());
+          ufsFullPath = PathUtils.concatPath(ufsPath.toString(), status.getName());
         }
         alluxio.grpc.FileInfo fi =
             ((PagedDoraWorker) mWorker).buildFileInfoFromUfsStatus(status, ufsFullPath);
@@ -259,7 +259,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
 
       responseObserver.onCompleted();
     } catch (Exception e) {
-      LOG.error(String.format("Failed to list status of %s: ", ufsPath.asString()), e);
+      LOG.error(String.format("Failed to list status of %s: ", ufsPath.toString()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }

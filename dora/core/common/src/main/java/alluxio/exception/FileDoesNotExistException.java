@@ -79,6 +79,6 @@ public class FileDoesNotExistException extends AlluxioException {
    * @param ufsPath the path which does not exist
    */
   public FileDoesNotExistException(UfsUrl ufsPath) {
-    this(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessageWithUrl(ufsPath.asString()));
+    this(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessageWithUrl(ufsPath.toString()));
   }
 }

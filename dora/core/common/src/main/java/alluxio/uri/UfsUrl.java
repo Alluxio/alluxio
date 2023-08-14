@@ -84,14 +84,8 @@ public class UfsUrl {
       authority = "";
     }
 
-    if (scheme.startsWith("s3")
-        || scheme.startsWith("S3")) {
-      Preconditions.checkArgument(!authority.contains(COLON_SEPARATOR),
-          "The authority of s3 should not include port, please input a valid path.");
-    }
-
-    start += authority.length();
-    path = FilenameUtils.normalize(inputUrl.substring(start));
+      start += authority.length();
+      path = FilenameUtils.normalize(inputUrl.substring(start));
 
     elements.put("scheme", scheme);
     elements.put("authority", authority);
@@ -177,27 +171,6 @@ public class UfsUrl {
       }
       return inputPathComponents;
     }
-  }
-
-  /**
-   * Constructs an UfsUrlMessage from a path String.
-   * @param ufsPath a string representing a ufs path
-   * @return an UfsUrlMessage
-   */
-  public static UfsUrlMessage toProto(String ufsPath) {
-    Map<String, String> elements = extractElements(ufsPath);
-
-    Preconditions.checkArgument(
-        elements.containsKey("scheme") && elements.get("scheme") != null
-        && elements.containsKey("authority") && elements.get("authority") != null
-        && elements.containsKey("path") && elements.get("path") != null);
-
-    List<String> pathComponents = Arrays.asList(elements.get("path").split(PATH_SEPARATOR));
-
-    return UfsUrlMessage.newBuilder()
-        .setScheme(elements.get("scheme"))
-        .setAuthority(elements.get("authority"))
-        .addAllPathComponents(pathComponents).build();
   }
 
   /**
@@ -335,7 +308,7 @@ public class UfsUrl {
   /**
    * @return the String representation of the {@link UfsUrl}
    */
-  public String asString() {
+  public String toString() {
     StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append(mProto.getScheme());
     if (!mProto.getScheme().isEmpty()) {

@@ -250,7 +250,7 @@ public class UfsBaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(UfsUrl ufsPath, final GetStatusPOptions options) {
     return callWithReturn(() -> {
-      String pathStr = ufsPath.asString();
+      String pathStr = ufsPath.toString();
       UfsStatus ufsStatus = mUfs.get().getStatus(pathStr, GetStatusOptions.defaults()
               .setIncludeRealContentHash(options.getIncludeRealContentHash()));
       // TODO(Tony Sun): In the future,
@@ -292,7 +292,7 @@ public class UfsBaseFileSystem implements FileSystem {
       if (ufsPath.getScheme().get().equals("file")) {
         ufsStatuses = mUfs.get().listStatus(ufsPath.getFullPath(), ufsOptions);
       } else {
-        ufsStatuses = mUfs.get().listStatus(ufsPath.asString(), ufsOptions);
+        ufsStatuses = mUfs.get().listStatus(ufsPath.toString(), ufsOptions);
       }
       if (ufsStatuses == null || ufsStatuses.length == 0) {
         return Collections.emptyList();
@@ -307,7 +307,7 @@ public class UfsBaseFileSystem implements FileSystem {
       } else {
         for (UfsStatus ufsStatus : ufsStatuses) {
           URIStatus uriStatus = transformStatus(ufsStatus,
-              PathUtils.concatPath(ufsPath.asString(), ufsStatus.getName()));
+              PathUtils.concatPath(ufsPath.toString(), ufsStatus.getName()));
           uriStatusList.add(uriStatus);
         }
       }
@@ -347,7 +347,7 @@ public class UfsBaseFileSystem implements FileSystem {
       if (ufsPath.getScheme().isPresent() && ufsPath.getScheme().get().equals("file")) {
         ufsStatuses = mUfs.get().listStatus(ufsPath.getFullPath(), ufsOptions);
       } else {
-        ufsStatuses = mUfs.get().listStatus(ufsPath.asString(), ufsOptions);
+        ufsStatuses = mUfs.get().listStatus(ufsPath.toString(), ufsOptions);
       }
       URIStatus uriStatus = null;
       if (ufsStatuses == null || ufsStatuses.length == 0) {
@@ -362,7 +362,7 @@ public class UfsBaseFileSystem implements FileSystem {
       } else {
         for (UfsStatus ufsStatus : ufsStatuses) {
           uriStatus = transformStatus(ufsStatus,
-              PathUtils.concatPath(ufsPath.asString(), ufsStatus.getName()));
+              PathUtils.concatPath(ufsPath.toString(), ufsStatus.getName()));
         }
       }
       action.accept(uriStatus);
