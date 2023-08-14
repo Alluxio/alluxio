@@ -11,7 +11,6 @@
 
 package alluxio.master.block;
 
-import static alluxio.stress.rpc.TierAlias.MEM;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
@@ -100,7 +99,7 @@ public class BlockMasterTest {
       = ImmutableMap.of();
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
   public static final Map<String, List<String>> LOST_STORAGE =
-          ImmutableMap.of(MEM.toString(), ImmutableList.of());
+          ImmutableMap.of("MEM", ImmutableList.of());
   public static final List<ConfigProperty> EMPTY_CONFIG = ImmutableList.of();
   public static final int BATCH_SIZE = 1000;
 
