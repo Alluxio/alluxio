@@ -216,7 +216,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   @Override
   public void listStatus(ListStatusPRequest request,
                          StreamObserver<ListStatusPResponse> responseObserver) {
-    UfsUrl ufsPath = new UfsUrl(request.getUfsPath());
+    UfsUrl ufsPath = UfsUrl.fromProto(request.getUfsPath());
     LOG.debug("listStatus is called for {}", ufsPath.toString());
     try {
       UfsStatus[] statuses;

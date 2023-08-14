@@ -26,8 +26,31 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * This class represents a UFS URL in the Alluxio system. This {@link UfsUrl} represents the
- * absolute ufs path.
+ * This class represents a UFS URL in the Alluxio system.
+ * <p>
+ * A UFS URL:
+ * <ul>
+ *   <li><b>always</b> has a scheme that is not CONSTANTS SCHEME, e.g. {@code s3a:};</li>
+ *   <li><b>optionally,</b> can have an authority.
+ *   The authority can be made up of a hostname and a port,
+ *   e.g. {@code localhost:80}, but can be an arbitrary string,
+ *   e.g. a bucket name in an object store;
+ *   </li>
+ *   <li><b>always</b> has an absolute path.
+ *   A path is a list of path segments that are separated by {@code /}.
+ *   </li>
+ * </ul>
+ * Examples of valid UFS URL's:
+ * <ul>
+ *   <li>s3a://bucket1/file</li>
+ *   <li>hdfs://namenode:9083/</li>
+ *   <li>file:///home/user/file</li>
+ * </ul>
+ * Examples of invalid UFS URL's:
+ * <ul>
+ *   <li>alluxio://localhost:19998/</li>
+ *   <li>/opt/alluxio</li>
+ * </ul>
  */
 public class UfsUrl {
 
@@ -152,7 +175,7 @@ public class UfsUrl {
    * Constructs an {@link UfsUrl} from components.
    * @param proto the proto of the UfsUrl
    */
-  public UfsUrl(UfsUrlMessage proto) {
+  private UfsUrl(UfsUrlMessage proto) {
     mProto = proto;
   }
 
@@ -203,7 +226,7 @@ public class UfsUrl {
   /**
    * @return the proto field of the {@link UfsUrl}
    */
-  public UfsUrlMessage getProto() {
+  public UfsUrlMessage toProto() {
     return mProto;
   }
 
@@ -249,6 +272,11 @@ public class UfsUrl {
 
   /**
    * Gets parent UfsUrl of current UfsUrl.
+   * <p>
+   * e.g.
+   * <ul>
+   *   <li>getParentURL(abc://1.2.3.4:19998/xy z/a b c) -> abc://1.2.3.4:19998/xy z</li>
+   * </ul>
    *
    * @return parent UfsUrl
    */
@@ -260,23 +288,6 @@ public class UfsUrl {
         .setAuthority(mProto.getAuthority())
         // TODO(Jiacheng Liu): how many copies are there. Improve the performance in the future.
         .addAllPathComponents(pathComponents.subList(0, pathComponents.size() - 1)).build());
-  }
-
-  /**
-   * Gets a child UfsUrl of current UfsUrl.
-   *
-   * @param childName a child file/directory of this object
-   * @return a child UfsUrl
-   */
-  // TODO(Jiacheng Liu): try to avoid the copy by a RelativeUrl class
-  public UfsUrl getChildURL(String childName) {
-    Preconditions.checkArgument(childName != null && !childName.isEmpty(),
-        "The input string is null or empty, please input a valid file/dir name.");
-    List<String> pathComponents = mProto.getPathComponentsList();
-    return new UfsUrl(UfsUrlMessage.newBuilder()
-        .setScheme(mProto.getScheme())
-        .setAuthority(mProto.getAuthority())
-        .addAllPathComponents(pathComponents).addPathComponents(childName).build());
   }
 
   /**
@@ -367,6 +378,7 @@ public class UfsUrl {
     if (nonEmptyIndex == 0) {
       suffixComponentsList = Arrays.asList(suffixArray);
     } else {
+      // TODO(Tony Sun): optimize the performance later
       suffixComponentsList = Arrays.asList(
           Arrays.copyOfRange(
               suffixArray,
