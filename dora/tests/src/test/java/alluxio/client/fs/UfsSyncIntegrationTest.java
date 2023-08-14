@@ -21,7 +21,6 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.FileSystemUtils;
@@ -301,33 +300,6 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     mFileSystem
         .rename(new AlluxioURI(alluxioPath(EXISTING_FILE)), new AlluxioURI(alluxioPath(NEW_FILE)),
             options);
-  }
-
-  @Test
-  public void unpersistedFileSync() throws Exception {
-    ListStatusPOptions options = ListStatusPOptions.newBuilder()
-        .setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(PSYNC_ALWAYS).build();
-    List<String> initialStatusList =
-        mFileSystem.listStatus(new AlluxioURI(alluxioPath(ROOT_DIR)), options).stream()
-            .map(URIStatus::getName).collect(Collectors.toList());
-
-    // write a MUST_CACHE file
-    writeMustCacheFile(alluxioPath(NEW_FILE), 1);
-
-    // List the status with force sync.
-    List<String> syncStatusList =
-        mFileSystem.listStatus(new AlluxioURI(alluxioPath(ROOT_DIR)), options).stream()
-            .map(URIStatus::getName).collect(Collectors.toList());
-
-    Set<String> initialSet = Sets.newHashSet(initialStatusList);
-    Set<String> syncSet = Sets.newHashSet(syncStatusList);
-    assertTrue(syncSet.size() > initialSet.size());
-    syncSet.removeAll(initialSet);
-
-    // only the MUST_CACHE file should remain.
-    assertTrue(syncSet.size() == 1);
-    String file = syncSet.iterator().next();
-    assertTrue(file.equals(new AlluxioURI(NEW_FILE).getName()));
   }
 
   @Test(timeout = 10000)
@@ -907,16 +879,6 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
       fileWriter.write("test");
     }
     fileWriter.close();
-  }
-
-  private void writeMustCacheFile(String path, int sizeFactor) throws Exception {
-    CreateFilePOptions options = CreateFilePOptions.newBuilder()
-        .setWriteType(WritePType.MUST_CACHE).setRecursive(true).build();
-    FileOutStream os = mFileSystem.createFile(new AlluxioURI(path), options);
-    for (int i = 0; i < sizeFactor; i++) {
-      os.write("test".getBytes());
-    }
-    os.close();
   }
 
   private void checkGetStatus(String path, GetStatusPOptions options, boolean expectExists)

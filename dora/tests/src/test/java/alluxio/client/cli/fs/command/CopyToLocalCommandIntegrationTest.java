@@ -16,7 +16,6 @@ import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.grpc.WritePType;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -59,7 +58,7 @@ public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemS
       return;
     }
 
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", 10);
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
@@ -142,7 +141,7 @@ public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemS
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put("user.dir", mTestFolder.getRoot().getAbsolutePath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH, 10);
+      FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", 10);
       sFsShell.run("copyToLocal", "/testFile", ".");
       Assert.assertEquals("Copied /testFile to file://" + mTestFolder.getRoot().getAbsolutePath()
               + "/testFile" + "\n", mOutput.toString());
@@ -155,8 +154,7 @@ public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemS
 
   @Test
   public void parseOption() {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH,
-        10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", 10);
     int ret = sFsShell.run("copyToLocal", "--buffersize", "1024", "/testFile",
         sLocalAlluxioCluster.getAlluxioHome() + "/testFile");
     Assert.assertEquals(0, ret);

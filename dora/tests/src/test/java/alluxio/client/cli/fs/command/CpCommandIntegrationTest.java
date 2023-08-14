@@ -33,7 +33,6 @@ import alluxio.grpc.ReadPType;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.WritePType;
 import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.AclEntryType;
@@ -674,8 +673,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Override
   protected void copyToLocalWithBytes(int bytes) throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH,
-        bytes);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", bytes);
     String[] cmd = new String[] {"cp", "/testFile",
         "file://" + sLocalAlluxioCluster.getAlluxioHome() + "/testFile"};
     sFsShell.run(cmd);

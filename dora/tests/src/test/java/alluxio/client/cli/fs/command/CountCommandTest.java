@@ -18,7 +18,6 @@ import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
-import alluxio.grpc.WritePType;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -40,12 +39,9 @@ public final class CountCommandTest extends AbstractFileSystemShellTest {
 
   @Test
   public void count() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testFileA",
-        WritePType.CACHE_THROUGH, 10);
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testDir/testFileB",
-        WritePType.CACHE_THROUGH, 20);
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testFileB",
-        WritePType.CACHE_THROUGH, 30);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testFileA", 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testDir/testFileB", 20);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testFileB", 30);
 
     //count a folders
     sFsShell.run("count", "/testRoot");

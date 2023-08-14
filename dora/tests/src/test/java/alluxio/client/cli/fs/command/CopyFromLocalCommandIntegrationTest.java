@@ -14,15 +14,12 @@ package alluxio.client.cli.fs.command;
 import static org.hamcrest.CoreMatchers.containsString;
 
 import alluxio.AlluxioURI;
-import alluxio.ConfigurationRule;
 import alluxio.SystemPropertyRule;
 import alluxio.annotation.dora.DoraTestTodoItem;
-import alluxio.client.WriteType;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -266,23 +263,6 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, read));
     read = readContent(uri2, 20);
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, 20, read));
-  }
-
-  @Test
-  public void copyFromLocalMustCacheThenCacheThrough() throws Exception {
-    File file = mTestFolder.newFile();
-    try (Closeable c = new ConfigurationRule(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT,
-        WriteType.MUST_CACHE.toString(), Configuration.modifiableGlobal()).toResource()) {
-      Assert.assertEquals(0, sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/test"));
-    }
-    try (Closeable c = new ConfigurationRule(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT,
-        WriteType.CACHE_THROUGH.toString(), Configuration.modifiableGlobal()).toResource()) {
-      mOutput.reset();
-      sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/test");
-    }
-    Assert.assertThat(mOutput.toString(),
-        containsString(
-            ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage("/test")));
   }
 
   @Test

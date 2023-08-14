@@ -253,7 +253,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     LocalAlluxioCluster cluster = new LocalAlluxioCluster();
     cluster.initConfiguration(
         IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
-    Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE);
+    Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH);
     cluster.start();
     return cluster;
   }

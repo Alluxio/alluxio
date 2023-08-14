@@ -83,7 +83,7 @@ public class JournalToolTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
           .setProperty(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, CHECKPOINT_SIZE)
           .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "100")
-          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.MUST_CACHE).build();
+          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH).build();
 
   private File mDumpDir;
   private FileSystem mFs;

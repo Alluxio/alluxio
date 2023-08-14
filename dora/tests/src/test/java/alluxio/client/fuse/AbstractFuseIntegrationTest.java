@@ -31,7 +31,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
-import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -174,7 +173,7 @@ public abstract class AbstractFuseIntegrationTest {
     String userName = System.getProperty("user.name");
     Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
     Assert.assertTrue(groupName.isPresent());
-    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, 10);
     ShellUtils.execCommand("chgrp", groupName.get(), mMountPoint + testFile);
     assertEquals(groupName.get(), mFileSystem.getStatus(new AlluxioURI(testFile)).getGroup());
   }
@@ -183,7 +182,7 @@ public abstract class AbstractFuseIntegrationTest {
   @Ignore
   public void chmod() throws Exception {
     String testFile = "/chmodTestFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, 10);
     ShellUtils.execCommand("chmod", "777", mMountPoint + testFile);
     assertEquals((short) 0777, mFileSystem.getStatus(new AlluxioURI(testFile)).getMode());
   }
@@ -192,7 +191,7 @@ public abstract class AbstractFuseIntegrationTest {
   @Ignore
   public void chown() throws Exception {
     String testFile = "/chownTestFile";
-    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, 10);
 
     String userName = System.getProperty("user.name");
     Optional<String> groupName = AlluxioFuseUtils.getGroupName(userName);
@@ -282,7 +281,7 @@ public abstract class AbstractFuseIntegrationTest {
   public void mkdirAndMv() throws Exception {
     String testFile = "/mvTestFile";
     String testFolder = "/mkdirTestFolder";
-    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, 10);
     ShellUtils.execCommand("mkdir", mMountPoint + testFolder);
     ShellUtils.execCommand("mv", mMountPoint + testFile, mMountPoint + testFolder + testFile);
     assertFalse(mFileSystem.exists(new AlluxioURI(testFile)));
@@ -330,7 +329,7 @@ public abstract class AbstractFuseIntegrationTest {
   @Test
   @Ignore
   public void touchAndLs() throws Exception {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/lsTestFile", WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/lsTestFile", 10);
     String touchTestFile = "/touchTestFile";
     ShellUtils.execCommand("touch", mMountPoint + touchTestFile);
 

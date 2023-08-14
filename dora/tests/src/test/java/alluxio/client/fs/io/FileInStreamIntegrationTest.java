@@ -82,7 +82,6 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
 
   private FileSystem mFileSystem;
   private CreateFilePOptions mWriteBoth;
-  private CreateFilePOptions mWriteAlluxio;
   private CreateFilePOptions mWriteUnderStore;
   private String mTestPath;
 
@@ -117,9 +116,6 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
     mWriteBoth = CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toProto())
         .setBlockSizeBytes(BLOCK_SIZE).setWriteType(WritePType.CACHE_THROUGH)
         .setRecursive(true).build();
-    mWriteAlluxio = CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toProto())
-        .setBlockSizeBytes(BLOCK_SIZE).setWriteType(WritePType.MUST_CACHE).setRecursive(true)
-        .build();
     mWriteUnderStore = CreateFilePOptions.newBuilder().setMode(Mode.createFullAccess().toProto())
         .setBlockSizeBytes(BLOCK_SIZE).setWriteType(WritePType.THROUGH).setRecursive(true)
         .build();
@@ -137,7 +133,6 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   private List<CreateFilePOptions> getOptionSet() {
     List<CreateFilePOptions> ret = new ArrayList<>(3);
     ret.add(mWriteBoth);
-    ret.add(mWriteAlluxio);
     ret.add(mWriteUnderStore);
     return ret;
   }

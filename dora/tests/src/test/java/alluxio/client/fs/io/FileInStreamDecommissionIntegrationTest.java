@@ -13,7 +13,6 @@ package alluxio.client.fs.io;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThrows;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.dora.DoraTestTodoItem;
@@ -25,7 +24,6 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.GetStatusPOptions;
@@ -74,14 +72,12 @@ public class FileInStreamDecommissionIntegrationTest {
           .build();
   private FileSystem mFileSystem = null;
   private CreateFilePOptions mWriteBoth;
-  private CreateFilePOptions mWriteAlluxio;
   private OpenFilePOptions mReadNoCache;
   private OpenFilePOptions mReadCachePromote;
   private String mTestPath;
   private ExecutorService mThreadPool;
 
   private String mCacheThroughFilePath;
-  private String mMustCacheFilePath;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -100,24 +96,15 @@ public class FileInStreamDecommissionIntegrationTest {
             .setWriteType(WritePType.CACHE_THROUGH)
             .setWorkerLocation(GrpcUtils.toProto(worker1))
             .setRecursive(true).build();
-    mWriteAlluxio = CreateFilePOptions.newBuilder()
-            .setBlockSizeBytes(BLOCK_SIZE)
-            .setWriteType(WritePType.MUST_CACHE)
-            .setWorkerLocation(GrpcUtils.toProto(worker1))
-            .setRecursive(true).build();
     mReadCachePromote =
             OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
     mReadNoCache = OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
     mTestPath = PathUtils.uniqPath();
     mCacheThroughFilePath = mTestPath + "/file_BOTH";
-    mMustCacheFilePath = mTestPath + "/file_CACHE";
 
     // Create files of varying size and write type to later read from
     AlluxioURI path0 = new AlluxioURI(mCacheThroughFilePath);
     FileSystemTestUtils.createByteFile(mFileSystem, path0, mWriteBoth, LENGTH);
-
-    AlluxioURI path1 = new AlluxioURI(mMustCacheFilePath);
-    FileSystemTestUtils.createByteFile(mFileSystem, path1, mWriteAlluxio, LENGTH);
 
     mThreadPool = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("decommission-worker-%d", true));
@@ -132,7 +119,6 @@ public class FileInStreamDecommissionIntegrationTest {
   private List<CreateFilePOptions> getOptionSet() {
     List<CreateFilePOptions> ret = new ArrayList<>(2);
     ret.add(mWriteBoth);
-    ret.add(mWriteAlluxio);
     return ret;
   }
 
@@ -195,43 +181,6 @@ public class FileInStreamDecommissionIntegrationTest {
     assertEquals(1, block1Locs.size());
     // The block is not on the decommissioned worker, meaning it is cached on the other worker
     assertNotEquals(workerToDecommission, block1Locs.get(0).getWorkerAddress());
-  }
-
-  @Test
-  /*
-   * If a stream is created after the worker is decommissioned, it cannot pick that worker.
-   * And if that worker holds the only cache and the block is not in UFS,
-   * the read will fail.
-   */
-  public void cannotReadCacheFromDecommissionedWorker() throws Exception {
-    AlluxioURI uri = new AlluxioURI(mMustCacheFilePath);
-    FileSystemContext context = FileSystemContext
-            .create(new TestUserState("test", Configuration.global()).getSubject(),
-                    Configuration.global());
-    List<WorkerInfo> availableWorkers = context.acquireBlockMasterClientResource()
-            .get().getWorkerInfoList();
-    assertEquals(2, availableWorkers.size());
-
-    URIStatus status = context.acquireMasterClientResource().get()
-            .getStatus(uri, GetStatusPOptions.getDefaultInstance());
-    List<FileBlockInfo> blockInfos = status.getFileBlockInfos();
-    FileBlockInfo block0 = blockInfos.get(0);
-    BlockLocation loc0 = block0.getBlockInfo().getLocations().get(0);
-    WorkerNetAddress targetWorker = loc0.getWorkerAddress();
-
-    DecommissionWorkerPOptions decomOptions = DecommissionWorkerPOptions.newBuilder()
-            .setWorkerHostname(targetWorker.getHost()).setWorkerWebPort(targetWorker.getWebPort())
-            .setCanRegisterAgain(true).build();
-    context.acquireBlockMasterClientResource().get().decommissionWorker(decomOptions);
-
-    // This stream is able to find the undecommissioned worker and use that to read from UFS
-    FileInStream is = mFileSystem.openFile(uri, mReadCachePromote);
-    // The worker has been decommissioned and the file only exists in that worker
-    // So the client cannot read
-    assertThrows(UnavailableException.class, () -> {
-      int value = is.read();
-    });
-    is.close();
   }
 
   @Test

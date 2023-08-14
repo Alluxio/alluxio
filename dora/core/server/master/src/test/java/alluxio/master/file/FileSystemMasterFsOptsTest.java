@@ -23,7 +23,6 @@ import alluxio.AuthenticatedClientUserResource;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.annotation.dora.DoraTestTodoItem;
-import alluxio.client.WriteType;
 import alluxio.conf.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
@@ -70,7 +69,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.Closeable;
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -88,18 +86,6 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
 
   public FileSystemMasterFsOptsTest(InodeStore.Factory factory) {
     mInodeStoreFactory = factory;
-  }
-
-  @Test
-  public void createFileMustCacheThenCacheThrough() throws Exception {
-    File file = mTestFolder.newFile();
-    AlluxioURI path = new AlluxioURI("/test");
-    mFileSystemMaster.createFile(path,
-        CreateFileContext.defaults().setWriteType(WriteType.MUST_CACHE));
-
-    mThrown.expect(FileAlreadyExistsException.class);
-    mFileSystemMaster.createFile(path,
-        CreateFileContext.defaults().setWriteType(WriteType.MUST_CACHE));
   }
 
   @Test

@@ -20,7 +20,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.BlockInfoException;
-import alluxio.grpc.WritePType;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.block.BlockMaster;
@@ -57,7 +56,7 @@ public class BlockMasterJournalIntegrationTest {
     BlockMaster blockMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(BlockMaster.class);
     AlluxioURI file = new AlluxioURI("/test");
-    FileSystemTestUtils.createByteFile(fs, file, WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(fs, file, 10);
     URIStatus status = fs.getStatus(file);
     Long blockId = status.getBlockIds().get(0);
     assertNotNull(blockMaster.getBlockInfo(blockId));
@@ -74,7 +73,7 @@ public class BlockMasterJournalIntegrationTest {
     BlockMaster blockMaster =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(BlockMaster.class);
     AlluxioURI file = new AlluxioURI("/test");
-    FileSystemTestUtils.createByteFile(fs, file, WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(fs, file, 10);
     URIStatus status = fs.getStatus(file);
     Long blockId = status.getBlockIds().get(0);
     assertNotNull(blockMaster.getBlockInfo(blockId));

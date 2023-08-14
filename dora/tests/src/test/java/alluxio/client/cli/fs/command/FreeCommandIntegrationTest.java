@@ -35,15 +35,6 @@ import java.io.IOException;
 @Ignore
 public final class FreeCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
-  public void freeNonPersistedFile() throws IOException, AlluxioException {
-    String fileName = "/testFile";
-    FileSystemTestUtils.createByteFile(sFileSystem, fileName, WritePType.CACHE_THROUGH, 10);
-    // freeing non persisted files is expected to fail
-    assertEquals(-1, sFsShell.run("free", fileName));
-    assertTrue(isInMemoryTest(fileName));
-  }
-
-  @Test
   public void freePinnedFile() throws IOException, AlluxioException {
     String fileName = "/testFile";
     FileSystemTestUtils.createByteFile(sFileSystem, fileName, WritePType.CACHE_THROUGH, 10);
@@ -68,18 +59,6 @@ public final class FreeCommandIntegrationTest extends AbstractFileSystemShellTes
     FileSystemTestUtils.createByteFile(sFileSystem, fileName, WritePType.CACHE_THROUGH, 10);
     assertEquals(0, sFsShell.run("free", fileName));
     assertFalse(isInMemoryTest(fileName));
-  }
-
-  @Test
-  public void freeWildCardNonPersistedFile() throws IOException, AlluxioException {
-    String testDir =
-        FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem, WritePType.CACHE_THROUGH);
-    assertEquals(-1, sFsShell.run("free", testDir + "/foo/*"));
-    // freeing non persisted files is expected to fail
-    assertTrue(isInMemoryTest(testDir + "/foo/foobar1"));
-    assertTrue(isInMemoryTest(testDir + "/foo/foobar2"));
-    assertTrue(isInMemoryTest(testDir + "/bar/foobar3"));
-    assertTrue(isInMemoryTest(testDir + "/foobar4"));
   }
 
   @Test

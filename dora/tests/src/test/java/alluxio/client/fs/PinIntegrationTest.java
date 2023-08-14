@@ -218,7 +218,7 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
 
   private void createEmptyFile(AlluxioURI fileURI) throws IOException, AlluxioException {
     CreateFilePOptions options =
-        CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build();
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build();
     FileOutStream os = mFileSystem.createFile(fileURI, options);
     os.close();
   }

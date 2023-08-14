@@ -1361,7 +1361,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     mFileSystemMaster.mount(alluxioURI, ufsURI, MountContext.defaults());
     AlluxioURI dirURI = alluxioURI.join("dir");
     mFileSystemMaster.createDirectory(dirURI, CreateDirectoryContext
-        .defaults().setWriteType(WriteType.MUST_CACHE));
+        .defaults().setWriteType(WriteType.CACHE_THROUGH));
     mThrown.expect(InvalidPathException.class);
     mFileSystemMaster.unmount(dirURI);
   }

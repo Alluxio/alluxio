@@ -69,8 +69,6 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
     CreateFilePOptions optionsDefault = CreateFilePOptions.getDefaultInstance();
     ret.add(optionsDefault.toBuilder().setWriteType(WritePType.CACHE_THROUGH)
         .setRecursive(true).build());
-    ret.add(optionsDefault.toBuilder().setWriteType(WritePType.MUST_CACHE).setRecursive(true)
-        .build());
     ret.add(optionsDefault.toBuilder().setWriteType(WritePType.THROUGH).setRecursive(true)
         .build());
     return ret;

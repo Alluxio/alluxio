@@ -53,7 +53,6 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
       new LocalAlluxioClusterResource.Builder().build();
   private static FileSystem sFileSystem = null;
   private static CreateFilePOptions sWriteBoth;
-  private static CreateFilePOptions sWriteAlluxio;
   private static OpenFilePOptions sReadNoCache;
   private static OpenFilePOptions sReadCachePromote;
   private static String sTestPath;
@@ -65,8 +64,6 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
     sWriteBoth = CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
-        .setRecursive(true).build();
-    sWriteAlluxio = CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE)
         .setRecursive(true).build();
     sReadCachePromote =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
@@ -85,7 +82,6 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
   private static List<CreateFilePOptions> getOptionSet() {
     List<CreateFilePOptions> ret = new ArrayList<>(2);
     ret.add(sWriteBoth);
-    ret.add(sWriteAlluxio);
     return ret;
   }
 

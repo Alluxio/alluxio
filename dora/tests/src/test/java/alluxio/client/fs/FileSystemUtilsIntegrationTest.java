@@ -15,10 +15,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -34,14 +32,12 @@ import alluxio.util.io.PathUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Tests for {@link alluxio.client.file.FileSystemUtils}.
@@ -182,31 +178,5 @@ public class FileSystemUtilsIntegrationTest extends BaseIntegrationTest {
 
     waitingThread.join();
     writingThread.join();
-  }
-
-  @Test
-  @Ignore
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
-      comment = "check persist API")
-  public void waitPersistTimeoutTest() throws Exception {
-    String path = PathUtils.uniqPath();
-    AlluxioURI alluxioPath = new AlluxioURI(path);
-    FileSystemTestUtils.createByteFile(sFileSystem, path, WritePType.MUST_CACHE, 4096);
-    assertFalse("File cannot yet be persisted", sFileSystem.getStatus(alluxioPath).isPersisted());
-    mThrown.expect(TimeoutException.class);
-    FileSystemUtils.persistAndWait(sFileSystem, alluxioPath, 0, 1); // 1ms timeout
-  }
-
-  @Test
-  @Ignore
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
-      comment = "check persist API")
-  public void waitPersistIndefiniteTimeoutTest() throws Exception {
-    String path = PathUtils.uniqPath();
-    AlluxioURI alluxioPath = new AlluxioURI(path);
-    FileSystemTestUtils.createByteFile(sFileSystem, path, WritePType.MUST_CACHE, 4096);
-    assertFalse("File cannot yet be persisted", sFileSystem.getStatus(alluxioPath).isPersisted());
-    FileSystemUtils.persistAndWait(sFileSystem, alluxioPath, 5000, -1);
-    assertTrue("File must be persisted", sFileSystem.getStatus(alluxioPath).isPersisted());
   }
 }

@@ -25,7 +25,6 @@ import alluxio.fuse.file.SimpleFuseStreamFactory;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
-import alluxio.grpc.WritePType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
@@ -74,7 +73,7 @@ public abstract class AbstractFuseFileStreamIntegrationTest extends BaseIntegrat
    */
   protected void writeIncreasingByteArrayToFile(AlluxioURI filePath, int fileLen) throws Exception {
     try (FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
-        .setWriteType(WritePType.MUST_CACHE).setRecursive(true).build())) {
+        .setRecursive(true).build())) {
       os.write(BufferUtils.getIncreasingByteArray(fileLen));
     }
   }

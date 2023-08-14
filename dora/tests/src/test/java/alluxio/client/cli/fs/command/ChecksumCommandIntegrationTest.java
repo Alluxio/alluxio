@@ -15,7 +15,6 @@ import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
-import alluxio.grpc.WritePType;
 import alluxio.util.io.BufferUtils;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -36,7 +35,7 @@ public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShel
    */
   @Test
   public void checksum() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", 10);
     sFsShell.run("checksum", "/testFile");
     String str = mOutput.toString();
     String[] splitString = str.split("\\s+");
@@ -55,10 +54,8 @@ public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShel
    */
   @Test
   public void checksumWildCard() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/testFileA",
-        WritePType.CACHE_THROUGH, 10);
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir2/testFileB",
-        WritePType.CACHE_THROUGH, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/testFileA", 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir2/testFileB", 10);
     sFsShell.run("checksum", "/testDir*/testFile*");
     String str = mOutput.toString();
     String[] splitString = str.split("\\s+");
