@@ -72,36 +72,10 @@ public class AlluxioFuse {
   /**
    * Startup the FUSE process.
    *
-   * @param args process arguments
+   * @param conf configuration
    * @throws ParseException
    */
-  public void start(String[] args) throws ParseException {
-    FuseCliOptions fuseCliOptions = new FuseCliOptions();
-    JCommander jCommander = JCommander.newBuilder()
-        .addObject(fuseCliOptions)
-        .build();
-    jCommander.parse(args);
-    if (fuseCliOptions.getHelp().orElse(false)) {
-      jCommander.usage();
-      return;
-    }
-
-    LOG.info("Alluxio version: {}-{}", RuntimeConstants.VERSION, ProjectConstants.REVISION);
-    InstancedConfiguration configFromCli = parseCliOptionsAsConfig(fuseCliOptions);
-    { // !!! we are fiddling with mutable global states here !!!
-      // use an explicit scope to limit the visibility of `globalConf`
-      InstancedConfiguration globalConf = Configuration.modifiableGlobal();
-      globalConf.merge(configFromCli.getProperties());
-      Source metadataCacheSizeSource =
-          globalConf.getSource(PropertyKey.USER_METADATA_CACHE_MAX_SIZE);
-      if (metadataCacheSizeSource == Source.DEFAULT
-          || metadataCacheSizeSource == Source.CLUSTER_DEFAULT) {
-        globalConf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 20000, Source.RUNTIME);
-        LOG.info("Set default metadata cache size to 20,000 entries "
-            + "with around 40MB memory consumption for FUSE");
-      }
-    }
-    AlluxioConfiguration conf = Configuration.global();
+  public void start(AlluxioConfiguration conf) throws ParseException {
     FuseOptions fuseOptions = FuseOptions.Builder.fromConfig(conf).build();
 
     FileSystemContext fsContext = FileSystemContext.create(conf);
@@ -129,7 +103,7 @@ public class AlluxioFuse {
           UpdateChecker.create(fuseOptions), () -> new FixedIntervalSupplier(Constants.DAY_MS),
           Configuration.global(), UserState.Factory.create(conf)));
     }
-    try (FileSystem fs = FileSystem.Factory.create(fsContext, fuseOptions.getFileSystemOptions())) {
+    try (FileSystem fs = createBaseFileSystem(fsContext, fuseOptions)) {
       FuseUmountable fuseFileSystem = createFuseFileSystem(fsContext, fs, fuseOptions);
       if (fuseFileSystem instanceof AlluxioJniFuseFileSystem) {
         AlluxioJniFuseFileSystem jniFuseFileSystem = (AlluxioJniFuseFileSystem) fuseFileSystem;
@@ -155,19 +129,49 @@ public class AlluxioFuse {
    */
   public static void main(String[] args) throws ParseException {
     AlluxioFuse alluxioFuse = new AlluxioFuse();
-    alluxioFuse.start(args);
+    FuseCliOptions fuseCliOptions = new FuseCliOptions();
+    JCommander jCommander = JCommander.newBuilder()
+        .addObject(fuseCliOptions)
+        .build();
+    jCommander.parse(args);
+    if (fuseCliOptions.getHelp().orElse(false)) {
+      jCommander.usage();
+      return;
+    }
+
+    LOG.info("Alluxio version: {}-{}", RuntimeConstants.VERSION, ProjectConstants.REVISION);
+    InstancedConfiguration configFromCli = parseCliOptionsAsConfig(fuseCliOptions);
+    { // !!! we are fiddling with mutable global states here !!!
+      // use an explicit scope to limit the visibility of `globalConf`
+      InstancedConfiguration globalConf = Configuration.modifiableGlobal();
+      globalConf.merge(configFromCli.getProperties());
+      Source metadataCacheSizeSource =
+          globalConf.getSource(PropertyKey.USER_METADATA_CACHE_MAX_SIZE);
+      if (metadataCacheSizeSource == Source.DEFAULT
+          || metadataCacheSizeSource == Source.CLUSTER_DEFAULT) {
+        globalConf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 20000, Source.RUNTIME);
+        LOG.info("Set default metadata cache size to 20,000 entries "
+            + "with around 40MB memory consumption for FUSE");
+      }
+    }
+    AlluxioConfiguration conf = Configuration.global();
+    alluxioFuse.start(conf);
+  }
+
+  protected FileSystem createBaseFileSystem(FileSystemContext fsContext, FuseOptions fuseOptions) {
+    return FileSystem.Factory.create(fsContext, fuseOptions.getFileSystemOptions());
   }
 
   /**
    * Create a FuseFileSystem instance.
    *
-   * @param fsContext   the context of the file system on which FuseFileSystem based on
-   * @param fs          the file system on which FuseFileSystem based on
+   * @param fsContext the context of the file system on which FuseFileSystem based on
+   * @param fs the file system on which FuseFileSystem based on
    * @param fuseOptions the fuse options
    * @return a FuseFileSystem instance
    */
   public FuseUmountable createFuseFileSystem(FileSystemContext fsContext, FileSystem fs,
-                                             FuseOptions fuseOptions) {
+      FuseOptions fuseOptions) {
     AlluxioConfiguration conf = fsContext.getClusterConf();
     validateFuseConfAndOptions(conf, fuseOptions);
 
@@ -206,15 +210,15 @@ public class AlluxioFuse {
   /**
    * Launches Fuse application.
    *
-   * @param fuseFs      the fuse file system
-   * @param fsContext   file system context for Fuse client to communicate to servers
+   * @param fuseFs the fuse file system
+   * @param fsContext file system context for Fuse client to communicate to servers
    * @param fuseOptions Fuse options
-   * @param blocking    whether the Fuse application is blocking or not
+   * @param blocking whether the Fuse application is blocking or not
    * @return the Fuse application handler for future Fuse umount operation
    */
   public static FuseUmountable launchFuse(FuseUmountable fuseFs,
-                                          FileSystemContext fsContext, FuseOptions fuseOptions,
-                                          boolean blocking) {
+      FileSystemContext fsContext, FuseOptions fuseOptions,
+      boolean blocking) {
     AlluxioConfiguration conf = fsContext.getClusterConf();
     validateFuseConfAndOptions(conf, fuseOptions);
 
