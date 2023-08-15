@@ -213,6 +213,7 @@ message GetStatusPRequest {
   /** the path of the file or directory */
   optional string path = 1;
   optional GetStatusPOptions options = 2;
+  optional grpc.UfsUrlMessage ufsPath = 3;
 }
 
 message ExistsPOptions {
@@ -253,6 +254,7 @@ message ListStatusPRequest {
   /** the path of the file or directory */
   optional string path = 1;
   optional ListStatusPOptions options = 2;
+  optional grpc.UfsUrlMessage ufsPath = 3;
 }
 message ListStatusPartialPRequest {
   /** the path of the file or directory */
