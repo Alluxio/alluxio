@@ -25,7 +25,7 @@ import alluxio.util.WaitForOptions;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap;
 
 public class WorkerMetadataSyncIntegrationTest {
 
