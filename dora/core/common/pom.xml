@@ -115,7 +115,6 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-transport</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>

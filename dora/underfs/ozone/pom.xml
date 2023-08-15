@@ -40,7 +40,6 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-hdfs</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.ozone</groupId>
@@ -51,7 +50,6 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
-      <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

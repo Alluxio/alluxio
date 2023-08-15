@@ -37,7 +37,6 @@
     <dependency>
       <groupId>com.github.oshi</groupId>
       <artifactId>oshi-core</artifactId>
-      <version>${oshi.version}</version>
     </dependency>
     <dependency>
       <groupId>io.swagger</groupId>
@@ -46,27 +45,22 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client-fs</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client-hdfs</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-server-master</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-job-client</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-stress-common</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.orc</groupId>
@@ -96,28 +90,24 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client-fs</artifactId>
-      <version>${project.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
-      <version>${project.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-job-common</artifactId>
-      <version>${project.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-local</artifactId>
-      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
 

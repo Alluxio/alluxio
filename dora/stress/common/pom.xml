@@ -41,17 +41,14 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-server-worker</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-job-common</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.hdrhistogram</groupId>
