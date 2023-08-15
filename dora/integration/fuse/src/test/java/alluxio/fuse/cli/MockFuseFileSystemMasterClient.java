@@ -39,6 +39,7 @@ import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
+import alluxio.uri.UfsUrl;
 import alluxio.wire.MountPointInfo;
 
 import java.io.IOException;
@@ -107,6 +108,12 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
+  public URIStatus getStatus(UfsUrl path, GetStatusPOptions options)
+          throws AlluxioStatusException {
+    return null;
+  }
+
+  @Override
   public long getNewBlockIdForFile(AlluxioURI path) throws AlluxioStatusException {
     return 0;
   }
@@ -118,6 +125,11 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
 
   @Override
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
+      throws AlluxioStatusException {
+    return null;
+  }
+
+  public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
       throws AlluxioStatusException {
     return null;
   }

@@ -60,6 +60,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.security.authorization.AclEntry;
+import alluxio.uri.UfsUrl;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
@@ -933,6 +934,12 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options)
+            throws FileDoesNotExistException, IOException, AlluxioException {
+      return getStatus(ufsPath.toAlluxioURI(), options);
+    }
+
+    @Override
     public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
         Consumer<? super URIStatus> action)
         throws FileDoesNotExistException, IOException, AlluxioException {
@@ -940,7 +947,20 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
+        Consumer<? super URIStatus> action)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
