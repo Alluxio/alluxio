@@ -22,6 +22,7 @@ import org.apache.ratis.thirdparty.com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Mount options specified with {@code -o} from the command line.
@@ -96,5 +97,22 @@ public class MountCliOptions {
             // merge function: use value of the last occurrence if the key occurs multiple times
             (oldValue, newValue) -> newValue
         ));
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    MountCliOptions that = (MountCliOptions) o;
+    return Objects.equals(mMountOptions, that.mMountOptions);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(mMountOptions);
   }
 }

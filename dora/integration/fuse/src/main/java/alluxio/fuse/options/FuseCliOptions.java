@@ -20,6 +20,7 @@ import com.beust.jcommander.ParametersDelegate;
 import com.google.common.annotations.VisibleForTesting;
 
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
@@ -54,7 +55,7 @@ public class FuseCliOptions {
 
   @ParametersDelegate
   @Nullable
-  protected MountCliOptions mMountCliOptions;
+  protected MountCliOptions mMountCliOptions = new MountCliOptions();
 
   @Parameter(
       names = {"--update-check"},
@@ -141,5 +142,26 @@ public class FuseCliOptions {
    */
   public Optional<MountOptions> getMountOptions() {
     return getMountCliOptions().map(MountCliOptions::getMountOptions);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    FuseCliOptions that = (FuseCliOptions) o;
+    return mHelp == that.mHelp
+        && Objects.equals(mMountPoint, that.mMountPoint)
+        && Objects.equals(mRootUfsUri, that.mRootUfsUri)
+        && Objects.equals(mMountCliOptions, that.mMountCliOptions)
+        && Objects.equals(mUpdateCheck, that.mUpdateCheck);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(mMountPoint, mRootUfsUri, mMountCliOptions, mUpdateCheck, mHelp);
   }
 }

@@ -17,6 +17,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -111,5 +112,22 @@ public class MountOptions {
     return Maps.filterKeys(mMountOptions, (key) -> {
       return !alluxioSepecificKeys.contains(key) && !PropertyKey.isValid(key);
     });
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    MountOptions that = (MountOptions) o;
+    return Objects.equals(mMountOptions, that.mMountOptions);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(mMountOptions);
   }
 }

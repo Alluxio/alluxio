@@ -163,10 +163,20 @@ public class AlluxioProperties {
    * @param properties the properties to merge from
    */
   public void merge(AlluxioProperties properties) {
-    for (Map.Entry<PropertyKey, Optional<Object>> entry : properties.mUserProps.entrySet()) {
-      Source entrySource = properties.getSource(entry.getKey());
-      put(entry.getKey(), entry.getValue(), entrySource);
+    if (properties == null || properties.userKeySet().isEmpty()) {
+      return;
     }
+    for (Map.Entry<PropertyKey, Optional<Object>> entry : properties.mUserProps.entrySet()) {
+      PropertyKey key = entry.getKey();
+      Optional<Object> value = entry.getValue();
+      Source thatSource = properties.getSource(entry.getKey());
+      Source thisSource = getSource(key);
+      if (!mUserProps.containsKey(key) || thatSource.compareTo(thisSource) >= 0) {
+        mUserProps.put(key, value);
+        mSources.put(key, thatSource);
+      }
+    }
+    mHash.markOutdated();
   }
 
   /**

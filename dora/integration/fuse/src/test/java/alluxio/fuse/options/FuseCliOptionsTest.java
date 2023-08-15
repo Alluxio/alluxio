@@ -13,16 +13,64 @@ package alluxio.fuse.options;
 
 import static org.junit.Assert.*;
 
+import alluxio.AlluxioURI;
+
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
+import com.google.common.collect.ImmutableMap;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.nio.file.Paths;
+import java.util.Optional;
+
 public class FuseCliOptionsTest {
-  @Test
-  public void parse() throws Exception {
-    FuseCliOptions cliOptions = new FuseCliOptions();
-    JCommander jCommander = JCommander.newBuilder()
-        .addObject(cliOptions)
+  private FuseCliOptions mOptions;
+  private JCommander mJCommander;
+
+
+  @Before
+  public void setUp() throws Exception {
+    mOptions = new FuseCliOptions();
+    mJCommander = JCommander.newBuilder()
+        .addObject(mOptions)
         .build();
-    jCommander.parse("-m", "/tmp/alluxio-fuse");
+  }
+
+  @Test
+  public void testGetMountPoint() {
+    mJCommander.parse("-m", "/tmp/fuse-mp");
+    assertEquals(Optional.of(Paths.get("/tmp/fuse-mp")), mOptions.getMountPoint());
+  }
+
+  @Test
+  public void missingRequiredMountPoint() {
+    assertThrows(ParameterException.class, () -> mJCommander.parse("-m"));
+    assertThrows(ParameterException.class, () -> mJCommander.parse("-u", "/tmp/fuse-mp"));
+  }
+
+  @Test
+  public void testGetRootUfsUri() {
+    mJCommander.parse("-m", "/tmp/fuse-mp", "-u", "scheme://host/path");
+    assertEquals(Optional.of(new AlluxioURI("scheme://host/path")), mOptions.getRootUfsUri());
+  }
+
+  @Test
+  public void testGetUpdateCheck() {
+    mJCommander.parse("-m", "/tmp/fuse-mp", "--update-check");
+    assertEquals(Optional.of(true), mOptions.getUpdateCheck());
+  }
+
+  @Test
+  public void testGetHelp() {
+    mJCommander.parse("--help");
+    assertEquals(Optional.of(true), mOptions.getHelp());
+  }
+
+  @Test
+  public void testGetMountOptions() {
+    mJCommander.parse("-m", "/tmp/fuse-mp", "-o", "ro", "-o", "key=value");
+    assertEquals(Optional.of(new MountOptions(ImmutableMap.of("ro", "", "key", "value"))),
+        mOptions.getMountOptions());
   }
 }
