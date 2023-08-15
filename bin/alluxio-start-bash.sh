@@ -16,12 +16,12 @@
 
 USAGE="Usage: alluxio-start-bash.sh [-hNwm] ACTION [MOPT] [-f] [-c cache]
 Where ACTION is one of:
-  all [MOPT] [-c cache]     \tStart all masters, proxies, and workers.
+  all [MOPT] [-c cache]     \tStart all masters, and workers.
   job_master                \tStart the job_master on this node.
   job_masters               \tStart job_masters on master nodes.
   job_worker                \tStart a job_worker on this node.
   job_workers               \tStart job_workers on worker nodes.
-  local [MOPT] [-c cache]   \tStart all processes locally.
+  local [MOPT] [-c cache]   \tStart a master and a worker process locally.
   master                    \tStart the local master on this node.
   masters                   \tStart masters on master nodes.
   proxy                     \tStart the proxy on this node.
@@ -388,11 +388,8 @@ main() {
   case "${ACTION}" in
     all)
       start_masters "${FORMAT}"
-      start_job_masters
       sleep 2
       start_workers "${MOPT}"
-      start_job_workers
-      start_proxies
       ;;
     local)
       local master_hostname=$(${BIN}/alluxio-bash getConf alluxio.master.hostname)
@@ -421,11 +418,8 @@ main() {
         ${LAUNCHER} ${BIN}/alluxio-bash formatWorker
       fi
       start_master
-      start_job_master
       sleep 2
       start_worker "${MOPT}"
-      start_job_worker
-      start_proxy
       ;;
     job_master)
       start_job_master

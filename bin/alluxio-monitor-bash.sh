@@ -19,8 +19,8 @@ BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 USAGE="Usage: alluxio-monitor-bash.sh [-hL] ACTION [host1,host2,...]
 Where ACTION is one of:
-  all                \tStart monitors for all masters, proxies, and workers nodes.
-  local              \tStart monitors for all process locally.
+  all                \tStart monitors for all masters, and workers nodes.
+  local              \tStart monitors the master and worker process locally.
   master             \tStart a master monitor on this node.
   masters            \tStart monitors for all masters nodes.
   worker             \tStart a worker monitor on this node.
@@ -271,18 +271,12 @@ main() {
     all)
       prepare_monitor "Starting to monitor ${CYAN}all remote${NC} services."
       run_monitors "master"     "" "${MODE}"
-      run_monitors "job_master" "" "${MODE}"
       run_monitors "worker"     "" "${MODE}"
-      run_monitors "job_worker" "" "${MODE}"
-      run_monitors "proxy"      "" "${MODE}"
       ;;
     local)
       prepare_monitor "Starting to monitor ${CYAN}all local${NC} services."
       run_monitor "master"      "${MODE}"
-      run_monitor "job_master"  "${MODE}"
       run_monitor "worker"      "${MODE}"
-      run_monitor "job_worker"  "${MODE}"
-      run_monitor "proxy"       "${MODE}"
       ;;
     master)
       run_monitor "master" "${MODE}"
