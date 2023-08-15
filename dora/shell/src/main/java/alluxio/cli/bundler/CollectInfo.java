@@ -295,7 +295,7 @@ public class CollectInfo extends AbstractShell {
 
         String[] collectInfoArgs =
                 (String[]) ArrayUtils.addAll(
-                        new String[]{alluxioBinPath, "collectInfo", "--local"},
+                        new String[]{alluxioBinPath, "info collect", "--local"},
                         cmdLineToArgs(cmdLine).toArray(new String[0]));
         System.out.format("Invoking command %s%n", Arrays.toString(collectInfoArgs));
         try {
