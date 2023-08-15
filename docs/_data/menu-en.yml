@@ -7,7 +7,7 @@
       url: /en/Overview.html
 
 - title: What is Alluxio
-  buttonTitle: What_Is_Alluxio
+  buttonTitle: What_is_Alluxio
   subfiles:
     - title: Introduction
       url: /en/introduction/Introduction.html
