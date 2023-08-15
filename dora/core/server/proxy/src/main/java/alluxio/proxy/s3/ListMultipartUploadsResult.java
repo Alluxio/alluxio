@@ -52,7 +52,7 @@ public class ListMultipartUploadsResult {
             ))
             .collect(Collectors.toList());
         /*
-        3.x haven't supported XAttr
+        TODO(pkuweblab): 3.x haven't supported XAttr yet
         .filter(status -> {
           if (status.getXAttr() == null
               || !status.getXAttr().containsKey(S3Constants.UPLOADS_BUCKET_XATTR_KEY)
