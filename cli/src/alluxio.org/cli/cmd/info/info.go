@@ -21,7 +21,6 @@ var Service = &env.Service{
 	Commands: []env.Command{
 		Cache,
 		Collect,
-		Master,
 		Report,
 		Version,
 	},
