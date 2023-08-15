@@ -17,12 +17,10 @@ import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.security.user.UserState;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
 import javax.security.auth.Subject;
 
 /**
@@ -45,10 +43,7 @@ import javax.security.auth.Subject;
 public class ClientContext {
   private volatile AlluxioConfiguration mClusterConf;
   private volatile String mClusterConfHash;
-  private volatile PathConfiguration mPathConf = PathConfiguration.create(new HashMap<>());
   private volatile UserState mUserState;
-  private volatile String mPathConfHash;
-  private volatile boolean mIsPathConfLoaded = false;
   private volatile boolean mUriValidationEnabled = true;
 
   /**
@@ -83,10 +78,8 @@ public class ClientContext {
    */
   protected ClientContext(ClientContext ctx) {
     mClusterConf = ctx.getClusterConf();
-    mPathConf = ctx.getPathConf();
     mUserState = ctx.getUserState();
     mClusterConfHash = ctx.getClusterConfHash();
-    mPathConfHash = ctx.getPathConfHash();
     mUriValidationEnabled = ctx.getUriValidationEnabled();
   }
 
@@ -109,11 +102,10 @@ public class ClientContext {
    *
    * @param address the address to load cluster defaults from
    * @param loadClusterConf whether to load cluster level configuration
-   * @param loadPathConf whether to load path level configuration
    * @throws AlluxioStatusException
    */
-  public synchronized void loadConf(InetSocketAddress address, boolean loadClusterConf,
-      boolean loadPathConf) throws AlluxioStatusException {
+  public synchronized void loadConf(InetSocketAddress address, boolean loadClusterConf)
+      throws AlluxioStatusException {
     // TODO(yyong) so far remove it, will check if it is required to change for improvement.
     return;
   }
@@ -129,7 +121,6 @@ public class ClientContext {
     if (!mClusterConf.getBoolean(PropertyKey.USER_CONF_CLUSTER_DEFAULT_ENABLED)) {
       return;
     }
-    loadConf(address, !mClusterConf.clusterDefaultsLoaded(), !mIsPathConfLoaded);
     mUserState = UserState.Factory.create(mClusterConf, mUserState.getSubject());
   }
 
@@ -165,40 +156,10 @@ public class ClientContext {
   }
 
   /**
-   * @return the path level configuration backing this context
-   */
-  public PathConfiguration getPathConf() {
-    return mPathConf;
-  }
-
-  protected void setPathConf(PathConfiguration pathConfiguration) {
-    mPathConf = pathConfiguration;
-  }
-
-  protected void setPathConfHash(String pathConfHash) {
-    mPathConfHash = pathConfHash;
-  }
-
-  protected void setIsPathConfLoaded(boolean isPathConfLoaded) {
-    mIsPathConfLoaded = isPathConfLoaded;
-  }
-
-  protected boolean getIsPathConfLoaded() {
-    return mIsPathConfLoaded;
-  }
-
-  /**
    * @return hash of cluster level configuration
    */
   public String getClusterConfHash() {
     return mClusterConfHash;
-  }
-
-  /**
-   * @return hash of path level configuration
-   */
-  public String getPathConfHash() {
-    return mPathConfHash;
   }
 
   /**

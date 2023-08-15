@@ -71,7 +71,6 @@ public final class MigrateDefinitionRunTaskTest {
     when(mMockFileSystemContext.getClientContext())
         .thenReturn(ClientContext.create(conf));
     when(mMockFileSystemContext.getClusterConf()).thenReturn(conf);
-    when(mMockFileSystemContext.getPathConf(any(AlluxioURI.class))).thenReturn(conf);
     mMockInStream = new MockFileInStream(TEST_SOURCE_CONTENTS);
     when(mMockFileSystem.openFile(eq(new AlluxioURI(TEST_SOURCE)),
         any(OpenFilePOptions.class))).thenReturn(mMockInStream);

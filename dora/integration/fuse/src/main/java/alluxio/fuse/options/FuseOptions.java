@@ -14,7 +14,6 @@ package alluxio.fuse.options;
 import alluxio.client.file.options.FileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.utils.LibfuseVersion;
 
@@ -69,10 +68,6 @@ public class FuseOptions {
     Set<String> mountOptions = conf.getList(PropertyKey.FUSE_MOUNT_OPTIONS)
         .stream().filter(a -> !a.isEmpty()).collect(Collectors.toSet());
     LibfuseVersion version = AlluxioFuseUtils.getLibfuseVersion(conf);
-    if (!conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)
-        && version == LibfuseVersion.VERSION_3) {
-      throw new InvalidArgumentRuntimeException("Cannot use JNR-FUSE with libfuse 3");
-    }
     if (version == LibfuseVersion.VERSION_2) {
       // Without option big_write, the kernel limits a single writing request to 4k.
       // With option big_write, maximum of a single writing request is 128k.
@@ -83,12 +78,6 @@ public class FuseOptions {
       if (mountOptions.add(bigWritesOptions)) {
         LOG.info("Added fuse mount option {} to enlarge single write request size",
             bigWritesOptions);
-      }
-      if (!conf.getBoolean(PropertyKey.FUSE_JNIFUSE_ENABLED)) {
-        String directIOOptions = "direct_io";
-        if (mountOptions.add(directIOOptions)) {
-          LOG.info("Added fuse mount option {} for JNR FUSE", directIOOptions);
-        }
       }
     } else {
       if (mountOptions.remove("direct_io")) {

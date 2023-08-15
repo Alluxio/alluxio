@@ -41,7 +41,6 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
 
   @Override
   public void configure() {
-    Configuration.set(PropertyKey.FUSE_JNIFUSE_ENABLED, true);
   }
 
   @Override
