@@ -290,7 +290,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     createBucketRestCall(bucket);
 
     HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
-        bucket, NO_PARAMS, HttpMethod.GET, getDefaultOptionsWithAuth("dummy")).executeAndAssertSuccess();
+        bucket, NO_PARAMS, HttpMethod.GET, getDefaultOptionsWithAuth("dummy"))
+        .executeAndAssertSuccess();
     Assert.assertEquals(403, connection.getResponseCode());
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
