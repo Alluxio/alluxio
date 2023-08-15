@@ -86,6 +86,8 @@ public class UfsUrl {
       Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
           "Alluxio 3.x no longer supports alluxio:// scheme,"
               + " please input the UFS path directly like hdfs://host:port/path");
+      Preconditions.checkArgument(!scheme.isEmpty(), "scheme is not allowed to be empty,"
+          + "please input again.");
 
       // unified address "://" and "//"
       while (start < inputUrl.length() && inputUrl.charAt(start) == COLON_SEPARATOR.charAt(0))  {

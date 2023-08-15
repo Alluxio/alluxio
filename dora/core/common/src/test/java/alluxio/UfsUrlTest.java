@@ -18,9 +18,6 @@ package alluxio;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.UfsUrlMessage;
 import alluxio.uri.EmbeddedLogicalAuthority;
 import alluxio.uri.NoAuthority;
@@ -29,9 +26,10 @@ import alluxio.uri.UfsUrl;
 import alluxio.uri.UnknownAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.uri.ZookeeperLogicalAuthority;
-import alluxio.util.io.PathUtils;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -44,6 +42,9 @@ public class UfsUrlTest {
   /**
    * Tests the {@link UfsUrl#createInstance(String)} constructor for basic Alluxio paths.
    */
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
   @Test
   public void basicUfsUrl() {
     UfsUrl ufsUrl = UfsUrl.createInstance("abc://localhost:19998/xy z/a b c");
@@ -143,12 +144,10 @@ public class UfsUrlTest {
         "/pa / th",
         "/ pa / th ",
     };
-    String ufsRootDir = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     for (String path : paths) {
       UfsUrl ufsUrl = UfsUrl.createInstance(path);
-      String tmp = PathUtils.concatStringPath(ufsRootDir, path);
-      tmp = tmp.endsWith("/") ? tmp.substring(0, tmp.length() - 1) : tmp;
-      assertEquals(tmp, ufsUrl.getFullPath());
+      assertEquals(path, ufsUrl.getFullPath());
+      assertEquals(path, ufsUrl.toString());
     }
   }
 
