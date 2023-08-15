@@ -16,11 +16,15 @@
 package alluxio;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.UfsUrlMessage;
 import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.UfsUrl;
+import alluxio.util.io.PathUtils;
 
 import org.junit.Test;
 
@@ -116,6 +120,77 @@ public class UfsUrlTest {
     UfsUrl ufsUrl3 = new UfsUrl(scheme, authority, path);
     assertEquals(ufsUrl2.toString(), ufsUrl3.toString());
     assertEquals(ufsUrl2.hashCode(), ufsUrl3.hashCode());
+  }
+
+  /**
+   * Tests the {@link UfsUrl#createInstance(String)} constructor for URL with spaces.
+   */
+  @Test
+  public void pathWithWhiteSpaces() {
+    String[] paths = new String[]{
+        "/ ",
+        "/  ",
+        "/ path",
+        "/path ",
+        "/pa th",
+        "/ pa th ",
+        "/pa/ th",
+        "/pa / th",
+        "/ pa / th ",
+    };
+    String ufsRootDir = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
+    for (String path : paths) {
+      UfsUrl ufsUrl = UfsUrl.createInstance(path);
+      String tmp = PathUtils.concatStringPath(ufsRootDir, path);
+      tmp = tmp.endsWith("/") ? tmp.substring(0, tmp.length() - 1) : tmp;
+      assertEquals(tmp, ufsUrl.getFullPath());
+    }
+  }
+
+  /**
+   * Tests the {@link UfsUrl#UfsUrl(String, String, String)} constructor to build a URI
+   * from its different components.
+   */
+  @Test
+  public void constructFromComponentsTests() {
+    String scheme = "xyz";
+    String authority = "127.0.0.1:90909";
+    String path = "/a/../b/c.txt";
+    String absPath = "/b/c.txt";
+
+    UfsUrl uri0 = new UfsUrl("", "", path);
+    assertEquals(absPath, uri0.getFullPath());
+
+    UfsUrl uri1 = new UfsUrl(scheme, "", path);
+    assertEquals(scheme + "://" + absPath, uri1.toString());
+
+    UfsUrl uri2 = new UfsUrl(scheme, authority, path);
+    assertEquals(scheme + "://" + authority + absPath, uri2.toString());
+
+    UfsUrl uri3 = new UfsUrl("", authority, path);
+    assertEquals("//" + authority + absPath, uri3.toString());
+
+    UfsUrl uri4 = new UfsUrl("scheme:part1", authority, path);
+    assertEquals("scheme:part1://" + authority + absPath, uri4.toString());
+
+    UfsUrl uri5 = new UfsUrl("scheme:part1:part2", authority, path);
+    assertEquals("scheme:part1:part2://" + authority + absPath, uri5.toString());
+  }
+
+  /**
+   * Tests the {@link UfsUrl#equals(Object)} method.
+   */
+  @Test
+  public void equalsTests() {
+    assertNotEquals(UfsUrl.createInstance("xyz://127.0.0.1:8080/a/b/c.txt"),
+        UfsUrl.createInstance("xyz://localhost:8080/a/b/c.txt"));
+
+    UfsUrl[] uriFromDifferentConstructor =
+        new UfsUrl[] {UfsUrl.createInstance("xyz://127.0.0.1:8080/a/b/c.txt"),
+            new UfsUrl("xyz", "127.0.0.1:8080", "/a/b/c.txt")};
+    for (int i = 0; i < uriFromDifferentConstructor.length - 1; i++) {
+      assertEquals(uriFromDifferentConstructor[i], uriFromDifferentConstructor[i + 1]);
+    }
   }
 
   /**
