@@ -15,7 +15,6 @@ import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.utils.LibfuseVersion;
 
@@ -95,15 +94,26 @@ public class FuseOptions {
     return mSpecialCommandEnabled;
   }
 
-
+  /**
+   * Builder for Fuse options.
+   */
   public static class Builder {
     private FileSystemOptions mFileSystemOptions;
     private Set<String> mFuseMountOptions;
     private boolean mUpdateCheckEnabled;
     private boolean mSpecialCommandEnabled;
 
+    /**
+     * Creates a new builder with default settings.
+     */
     public Builder() { }
 
+    /**
+     * Creates a new builder pre-populated with settings from the given configurations.
+     *
+     * @param conf configurations
+     * @return builder
+     */
     public static Builder fromConfig(AlluxioConfiguration conf) {
       FuseOptions.Builder builder = new FuseOptions.Builder();
 
@@ -166,42 +176,83 @@ public class FuseOptions {
       return builder;
     }
 
+    /**
+     * @return file system options
+     */
     public FileSystemOptions getFileSystemOptions() {
       return mFileSystemOptions;
     }
 
+    /**
+     * Set file system options.
+     *
+     * @param fileSystemOptions
+     * @return this builder
+     */
     public Builder setFileSystemOptions(FileSystemOptions fileSystemOptions) {
       mFileSystemOptions = fileSystemOptions;
       return this;
     }
 
+    /**
+     * @return mount options
+     */
     public Set<String> getFuseMountOptions() {
       return mFuseMountOptions;
     }
 
+    /**
+     * Sets mount options.
+     *
+     * @param fuseMountOptions
+     * @return this builder
+     */
     public Builder setFuseMountOptions(Set<String> fuseMountOptions) {
       mFuseMountOptions = fuseMountOptions;
       return this;
     }
 
+    /**
+     * @return if update check is enabled
+     */
     public boolean isUpdateCheckEnabled() {
       return mUpdateCheckEnabled;
     }
 
+    /**
+     * Enables or disables update check.
+     *
+     * @param updateCheckEnabled
+     * @return this builder
+     */
     public Builder setUpdateCheckEnabled(boolean updateCheckEnabled) {
       mUpdateCheckEnabled = updateCheckEnabled;
       return this;
     }
 
+    /**
+     * @return if fuse special commands are enabled
+     */
     public boolean isSpecialCommandEnabled() {
       return mSpecialCommandEnabled;
     }
 
+    /**
+     * Enables or disabled fuse special commands.
+     *
+     * @param specialCommandEnabled
+     * @return this builder
+     */
     public Builder setSpecialCommandEnabled(boolean specialCommandEnabled) {
       mSpecialCommandEnabled = specialCommandEnabled;
       return this;
     }
 
+    /**
+     * Builds Fuse options.
+     *
+     * @return fuse options
+     */
     public FuseOptions build() {
       return new FuseOptions(mFileSystemOptions, mFuseMountOptions, mUpdateCheckEnabled,
           mSpecialCommandEnabled);
