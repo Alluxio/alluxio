@@ -323,6 +323,35 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   @Test
+  public void completeMultipartUploadAndOverwrite() throws Exception {
+    final int partsNum = 10;
+    final List<String> objects = new ArrayList<>();
+    final List<Integer> parts = new ArrayList<>();
+    final List<Part> partList = new ArrayList<>();
+    final String uploadId1 = initiateMultipartUpload();
+    final String uploadId2 = initiateMultipartUpload();
+    final byte[] content = "Hello World!".getBytes();
+    for (int i = 1; i <= partsNum; i++) {
+      parts.add(i);
+      partList.add(new Part("", i));
+      objects.add(CommonUtils.randomAlphaNumString(Constants.KB));
+    }
+    Collections.shuffle(parts.subList(0, partsNum / 2));
+    Collections.shuffle(parts.subList(partsNum / 2, partsNum));
+    uploadParts(uploadId1, objects, parts.subList(0, partsNum / 2));
+    uploadParts(uploadId2, objects, parts.subList(partsNum / 2, partsNum));
+
+    createObjectTestCase(OBJECT_KEY, content).checkResponseCode(Status.OK.getStatusCode());
+    getTestCase(OBJECT_KEY).checkResponseCode(Status.OK.getStatusCode()).checkResponse(content);
+    completeMultipartUpload(uploadId1, partList.subList(0, partsNum / 2));
+    getTestCase(OBJECT_KEY).checkResponse(
+        String.join("", objects.subList(0, partsNum / 2)).getBytes());
+    completeMultipartUpload(uploadId2, partList.subList(partsNum / 2, partsNum));
+    getTestCase(OBJECT_KEY).checkResponse(
+        String.join("", objects.subList(partsNum / 2, partsNum)).getBytes());
+  }
+
+  @Test
   public void abortMultipartUpload() throws Exception {
     final String uploadId = initiateMultipartUpload();
     final AlluxioURI tmpDir = new AlluxioURI(
