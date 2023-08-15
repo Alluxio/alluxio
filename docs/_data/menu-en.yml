@@ -160,20 +160,8 @@
               url: /en/api/REST-API.html
             - title: S3 API
               url: /en/api/S3-API.html
-    - subfiles:
-        - title: List of Configuration Properties
-          buttonTitle: List_of_Configuration_Properties
-          subfiles:
-            - title: Common Configuration
-              url: /en/reference/Common-Configuration.html
-            - title: Master Configuration
-              url: /en/reference/Master-Configuration.html
-            - title: Worker Configuration
-              url: /en/reference/Worker-Configuration.html
-            - title: User Configuration
-              url: /en/reference/User-Configuration.html
-            - title: Security Configuration
-              url: /en/reference/Security-Configuration.html
+    - title: List of Configuration Properties
+      url: /en/reference/Properties-List.html
     - title: List of Environment Variables
       url: /en/reference/Environment-List.html
     - title: List of Metrics
