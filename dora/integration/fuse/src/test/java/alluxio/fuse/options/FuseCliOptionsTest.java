@@ -11,7 +11,8 @@
 
 package alluxio.fuse.options;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import alluxio.AlluxioURI;
 
@@ -27,7 +28,6 @@ import java.util.Optional;
 public class FuseCliOptionsTest {
   private FuseCliOptions mOptions;
   private JCommander mJCommander;
-
 
   @Before
   public void setUp() throws Exception {
