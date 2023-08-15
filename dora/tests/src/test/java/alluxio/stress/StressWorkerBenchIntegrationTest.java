@@ -37,7 +37,6 @@ public class StressWorkerBenchIntegrationTest extends AbstractStressBenchIntegra
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/stress-worker-base/",
         "--threads", "2",
         "--file-size", "1m",
-        "--block-size", "128k",
         "--warmup", "0s", "--duration", "1s",
     });
 
@@ -64,7 +63,6 @@ public class StressWorkerBenchIntegrationTest extends AbstractStressBenchIntegra
     assertEquals(summary.getParameters().mBasePath, basePath);
     assertEquals(summary.getParameters().mFileSize, "1m");
     assertEquals(summary.getParameters().mThreads, 2);
-    assertEquals(summary.getParameters().mBlockSize, "128k");
     assertEquals(summary.getParameters().mWarmup, "0s");
     assertEquals(summary.getParameters().mDuration, "1s");
 
