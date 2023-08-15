@@ -52,7 +52,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   @Before
   public void before() throws Exception {
     mContext = FileSystemContext.create(Configuration.global());
-    mContext.getClientContext().loadConf(mContext.getMasterAddress(), true);
+    mContext.getClientContext().loadConf(mContext.getMasterAddress());
     updateHash();
 
     FileSystemContextReinitializer reinit = Whitebox.getInternalState(mContext,
