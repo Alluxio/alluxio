@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>303-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-adl</artifactId>
   <name>Alluxio Under File System - Microsoft Azure DataLake</name>
@@ -76,20 +76,10 @@
             <configuration>
               <filters>
                 <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <exclude>LICENSE</exclude>
-                    <exclude>META-INF/LICENSE</exclude>
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                    <!-- Because this module depends on alluxio-underfs-hdfs, eliminate HDFS factory implementation -->
-                    <exclude>alluxio/underfs/hdfs/HdfsUnderFileSystemFactory.*</exclude>
-                  </excludes>
-                </filter>
-                <filter>
                   <artifact>org.alluxio:alluxio-underfs-hdfs</artifact>
                   <excludes>
+                    <!-- Because this module depends on alluxio-underfs-hdfs, eliminate HDFS factory implementation -->
+                    <exclude>alluxio/underfs/hdfs/HdfsUnderFileSystemFactory.*</exclude>
                     <exclude>META-INF/services/alluxio.underfs.UnderFileSystemFactory</exclude>
                   </excludes>
                 </filter>
