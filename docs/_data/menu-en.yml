@@ -29,7 +29,6 @@
       url: /en/deploy/Get-Started.html
     - title: Install Alluxio Cluster with HA
       url: /en/deploy/Install-Alluxio-Cluster-with-HA.html
-    - title: Install Alluxio on Docker
     - title: Install Alluxio on K8s
       url: /en/kubernetes/Install-Alluxio-On-Kubernetes.html
 

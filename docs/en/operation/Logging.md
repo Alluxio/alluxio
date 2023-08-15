@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Basic Logging
+title: Logging
 ---
 
 
