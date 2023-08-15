@@ -36,8 +36,7 @@ public abstract class RestApiTest extends BaseIntegrationTest {
 
   protected TestCase newTestCase(String bucket, Map<String, String> params,
                                  String httpMethod, TestCaseOptions options) throws Exception {
-    return new TestCase(mHostname, mPort, mBaseUri, bucket, params, httpMethod,
-        options);
+    return new TestCase(mHostname, mPort, mBaseUri, bucket, params, httpMethod, options).execute();
   }
 
   protected TestCase createBucketTestCase(String bucket) throws Exception {

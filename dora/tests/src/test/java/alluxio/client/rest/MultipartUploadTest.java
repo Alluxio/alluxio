@@ -105,6 +105,11 @@ public class MultipartUploadTest extends RestApiTest {
     mS3Client = null;
   }
 
+  /**
+   * Initiates a multipart upload.
+   *
+   * @return the upload id
+   */
   public String initiateMultipartUpload() throws Exception {
     // Initiate the multipart upload.
     createBucketTestCase(BUCKET_NAME);
@@ -126,6 +131,13 @@ public class MultipartUploadTest extends RestApiTest {
     return uploadId;
   }
 
+  /**
+   * Uploads parts.
+   *
+   * @param uploadId the upload id
+   * @param objects the objects to upload
+   * @param parts the list of part number
+   */
   public void uploadParts(String uploadId, List<String> objects, List<Integer> parts)
       throws Exception {
     // Upload parts
@@ -140,6 +152,10 @@ public class MultipartUploadTest extends RestApiTest {
     }
   }
 
+  /**
+   * upload parts with non-existent upload id.
+   * @throws Exception
+   */
   @Test
   public void uploadPartWithNonExistentUpload() throws Exception {
     createObjectTestCase(OBJECT_KEY, EMPTY_CONTENT, "wrong", 1)
@@ -151,8 +167,13 @@ public class MultipartUploadTest extends RestApiTest {
         .checkErrorCode(S3ErrorCode.Name.NO_SUCH_UPLOAD);
   }
 
+  /**
+   * complete multipart upload.
+   * @param uploadId the upload id
+   * @param partList the list of part number
+   * @throws Exception
+   */
   public void completeMultipartUpload(String uploadId, List<Part> partList) throws Exception {
-    // Complete the multipart upload.
     CompleteMultipartUploadResult completeMultipartUploadResult =
         completeMultipartUploadTestCase(OBJECT_KEY, uploadId,
             new CompleteMultipartUploadRequest(partList))
@@ -164,6 +185,10 @@ public class MultipartUploadTest extends RestApiTest {
     Assert.assertEquals(OBJECT_NAME, completeMultipartUploadResult.getKey());
   }
 
+  /**
+   * complete multipart upload with 50 objects.
+   * @throws Exception
+   */
   @Test
   public void completeMultipartUpload() throws Exception {
     final int partsNum = 50;
@@ -190,6 +215,10 @@ public class MultipartUploadTest extends RestApiTest {
     getTestCase(OBJECT_KEY).checkResponse(String.join("", objects).getBytes());
   }
 
+  /**
+   * complete multipart upload with an empty part list.
+   * @throws Exception
+   */
   @Test
   public void completeMultipartUploadWithEmptyPart() throws Exception {
     final List<Part> partList = new ArrayList<>();
@@ -200,6 +229,10 @@ public class MultipartUploadTest extends RestApiTest {
         .checkErrorCode(S3ErrorCode.Name.MALFORMED_XML);
   }
 
+  /**
+   * complete multipart upload with the subset of uploaded parts.
+   * @throws Exception
+   */
   @Test
   public void completeMultipartUploadWithPartialParts() throws Exception {
     final int partsNum = 3;
@@ -207,8 +240,6 @@ public class MultipartUploadTest extends RestApiTest {
     final List<Integer> parts = new ArrayList<>();
     final List<Part> partList = new ArrayList<>();
     final String uploadId = initiateMultipartUpload();
-    final AlluxioURI tmpDir = new AlluxioURI(
-        AlluxioURI.SEPARATOR + OBJECT_KEY + "_" + uploadId);
     for (int i = 1; i <= partsNum; i++) {
       parts.add(i);
       objects.add(CommonUtils.randomAlphaNumString(Constants.KB));
@@ -222,6 +253,10 @@ public class MultipartUploadTest extends RestApiTest {
         (objects.get(0) + objects.get(2)).getBytes());
   }
 
+  /**
+   * complete multipart upload with the invalid part list.
+   * @throws Exception
+   */
   @Test
   public void completeMultipartUploadWithInvalidPart() throws Exception {
     final int partsNum = 10;
@@ -249,6 +284,10 @@ public class MultipartUploadTest extends RestApiTest {
     Assert.assertTrue(mFileSystem.exists(tmpDir));
   }
 
+  /**
+   * complete multipart upload with the invalid part order.
+   * @throws Exception
+   */
   @Test
   public void completeMultipartUploadWithInvalidPartOrder() throws Exception {
     final int partsNum = 10;
@@ -289,6 +328,10 @@ public class MultipartUploadTest extends RestApiTest {
     Assert.assertTrue(mFileSystem.exists(tmpDir));
   }
 
+  /**
+   * complete multipart upload with the part size smaller than the limitation.
+   * @throws Exception
+   */
   @Test
   public void completeMultipartUploadWithTooSmallEntity() throws Exception {
     final int partsNum = 10;
@@ -310,6 +353,10 @@ public class MultipartUploadTest extends RestApiTest {
         .checkErrorCode(S3ErrorCode.Name.ENTITY_TOO_SMALL);
   }
 
+  /**
+   * complete multipart upload with non-existent upload id.
+   * @throws Exception
+   */
   @Test
   public void completeMultipartUploadWithNonExistentUpload() throws Exception {
     final String uploadId = "wrong";
@@ -322,6 +369,10 @@ public class MultipartUploadTest extends RestApiTest {
         .checkErrorCode(S3ErrorCode.Name.NO_SUCH_UPLOAD);
   }
 
+  /**
+   * abort multipart upload.
+   * @throws Exception
+   */
   @Test
   public void abortMultipartUpload() throws Exception {
     final String uploadId = initiateMultipartUpload();
@@ -337,6 +388,10 @@ public class MultipartUploadTest extends RestApiTest {
     Assert.assertFalse(mFileSystem.exists(tmpDir));
   }
 
+  /**
+   * abort multipart upload with non-existent upload id.
+   * @throws Exception
+   */
   @Test
   public void abortMultipartUploadWithNonExistentUpload() throws Exception {
     final String uploadId = initiateMultipartUpload();
@@ -349,6 +404,10 @@ public class MultipartUploadTest extends RestApiTest {
     Assert.assertTrue(mFileSystem.exists(tmpDir));
   }
 
+  /**
+   * get default options with username {@code CustomersName@amazon.com}.
+   * @return
+   */
   @Override
   protected TestCaseOptions getDefaultOptionsWithAuth() {
     return getDefaultOptionsWithAuth(S3_USER_NAME);
