@@ -27,7 +27,7 @@ public class WorkerBenchDataPointDeserializer extends JsonDeserializer<WorkerBen
           throws IOException {
     JsonNode node = parser.getCodec().readTree(parser);
     return new WorkerBenchDataPoint(
-            node.get("workerID").asText(), node.get("threadID").asLong(),
+            node.get("workerID").asText(), node.get("threadID").asText(),
             node.get("startMs").asLong(), node.get("duration").asLong(),
             node.get("ioBytes").asLong()
     );

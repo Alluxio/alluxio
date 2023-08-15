@@ -41,6 +41,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
   private List<String> mErrors;
   private List<WorkerBenchDataPoint> mDataPoints;
   private List<Long> mDurationPercentiles;
+  private List<Long> mThroughputPercentiles;
 
   /**
    * Creates an instance.
@@ -50,6 +51,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
     mErrors = new ArrayList<>();
     mDataPoints = new ArrayList<>();
     mDurationPercentiles = new ArrayList<>();
+    mThroughputPercentiles = new ArrayList<>();
   }
 
   /**
@@ -184,6 +186,20 @@ public final class WorkerBenchTaskResult implements TaskResult {
   }
 
   /**
+   * @return 100 percentiles for durations of all I/O operations
+   */
+  public List<Long> getThroughputPercentiles() {
+    return mThroughputPercentiles;
+  }
+
+  /**
+   * @param percentiles 100 percentiles for durations of all I/O operations
+   */
+  public void setThroughputPercentiles(List<Long> percentiles) {
+    mThroughputPercentiles = percentiles;
+  }
+
+  /**
    * From the collected operation data, calculates 100 percentiles.
    */
   public void calculatePercentiles() {
@@ -193,6 +209,14 @@ public final class WorkerBenchTaskResult implements TaskResult {
     mDataPoints.forEach(stat -> durationHistogram.recordValue(stat.getDuration()));
     for (int i = 0; i <= 100; i++) {
       mDurationPercentiles.add(durationHistogram.getValueAtPercentile(i));
+    }
+
+    Histogram throughputHistogram = new Histogram(
+            FormatUtils.parseSpaceSize(mParameters.mFileSize),
+            StressConstants.TIME_HISTOGRAM_PRECISION);
+    mDataPoints.forEach(stat -> throughputHistogram.recordValue(stat.getInThroughput()));
+    for (int i = 0; i <= 100; i++) {
+      mThroughputPercentiles.add(throughputHistogram.getValueAtPercentile(i));
     }
   }
 

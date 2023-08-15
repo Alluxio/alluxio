@@ -25,14 +25,16 @@ public class WorkerBenchDataPoint {
   @JsonProperty("workerID")
   public String mWorkerID;
   @JsonProperty("threadID")
-  public long mThreadID;
+  public String mThreadID;
 
   @JsonProperty("duration")
   public long mDuration;
-  @JsonProperty("start")
+  @JsonProperty("startMs")
   public long mStartMs;
   @JsonProperty("ioBytes")
   public long mIOBytes;
+  @JsonProperty("inThroughput")
+  public long mInThroughput;
 
   /**
    * @param workerID the worker this I/O operation reads
@@ -43,8 +45,8 @@ public class WorkerBenchDataPoint {
    */
   @JsonCreator
   public WorkerBenchDataPoint(@JsonProperty("workerID") String workerID,
-                              @JsonProperty("threadID") long threadID,
-                              @JsonProperty("start") long startMs,
+                              @JsonProperty("threadID") String threadID,
+                              @JsonProperty("startMs") long startMs,
                               @JsonProperty("duration") long duration,
                               @JsonProperty("ioBytes") long ioBytes) {
     mWorkerID = workerID;
@@ -52,6 +54,7 @@ public class WorkerBenchDataPoint {
     mStartMs = startMs;
     mDuration = duration;
     mIOBytes = ioBytes;
+    mInThroughput = ioBytes / duration;
   }
 
   /**
@@ -64,7 +67,7 @@ public class WorkerBenchDataPoint {
   /**
    * @return thread ID
    */
-  public long getThreadID() {
+  public String getThreadID() {
     return mThreadID;
   }
 
@@ -90,6 +93,13 @@ public class WorkerBenchDataPoint {
   }
 
   /**
+   * @return instant throughput
+   */
+  public long getInThroughput() {
+    return mInThroughput;
+  }
+
+  /**
    * @param workerID worker ID
    */
   public void setWorkerID(String workerID) {
@@ -99,7 +109,7 @@ public class WorkerBenchDataPoint {
   /**
    * @param threadID the thread ID
    */
-  public void setThreadID(long threadID) {
+  public void setThreadID(String threadID) {
     mThreadID = threadID;
   }
 
@@ -124,12 +134,19 @@ public class WorkerBenchDataPoint {
     mIOBytes = ioBytes;
   }
 
+  /**
+   * @param inThroughput instant throughput
+   */
+  public void setInThroughput(long inThroughput) {
+    mInThroughput = inThroughput;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-            .add("threadID", mThreadID)
-            .add("ioBytes", mIOBytes)
-            .add("duration", mDuration)
+            .add("threadID", mWorkerID + "-" + mThreadID)
+            .add("startMs", mStartMs)
+            .add("inThroughput", mInThroughput)
             .toString();
   }
 }
