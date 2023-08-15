@@ -8,7 +8,7 @@ Welcome to Alluxio Documentation! You will find resources regarding deploying Al
 ## Get Started with Alluxio
 
 ### Install Alluxio Locally 
-Check out our [Quick Start Guide]({{ '/en/Get-Started.html' | relativize_url }}) for step-by-step guidance on how to download and configure Alluxio, run Alluxio on a local machine, and perform basic tasks via Alluxio Shell.
+Check out our [Quick Start Guide]({{ '/en/deploy/Get-Started.html' | relativize_url }}) for step-by-step guidance on how to download and configure Alluxio, run Alluxio on a local machine, and perform basic tasks via Alluxio Shell.
 
 ▶️ [Get Alluxio Up & Running in Less Than 3 Min!](https://youtu.be/5YQvvznT5cI){:target="_blank"} (2:36)
 
