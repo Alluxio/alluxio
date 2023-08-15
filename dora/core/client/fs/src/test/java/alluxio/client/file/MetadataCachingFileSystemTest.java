@@ -31,6 +31,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.RenamePOptions;
+import alluxio.uri.UfsUrl;
 import alluxio.wire.FileInfo;
 
 import org.junit.After;
@@ -319,8 +320,28 @@ public class MetadataCachingFileSystemTest {
     }
 
     @Override
+    public URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options)
+        throws FileDoesNotExistException {
+      mGetStatusCount.compute(ufsPath.toAlluxioURI(), (k, v) -> v == null ? 1 : v + 1);
+      if (ufsPath.toString().equals(FILE_STATUS.getPath())
+          || ufsPath.getFullPath().equals(FILE_STATUS.getPath())) {
+        return FILE_STATUS;
+      }
+      if (mFileStatusMap.containsKey(ufsPath.toAlluxioURI())) {
+        return mFileStatusMap.get(ufsPath.toAlluxioURI());
+      }
+      throw new FileDoesNotExistException("Path \"" + ufsPath.toString() + "\" does not exist.");
+    }
+
+    @Override
     public List<URIStatus> listStatus(AlluxioURI path, final ListStatusPOptions options) {
       mListStatusCount.compute(path, (k, v) -> v == null ? 1 : v + 1);
+      return Arrays.asList(FILE_STATUS);
+    }
+
+    @Override
+    public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options) {
+      mListStatusCount.compute(ufsPath.toAlluxioURI(), (k, v) -> v == null ? 1 : v + 1);
       return Arrays.asList(FILE_STATUS);
     }
 

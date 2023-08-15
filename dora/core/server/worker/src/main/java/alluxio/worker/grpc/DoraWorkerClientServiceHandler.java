@@ -53,6 +53,7 @@ import alluxio.grpc.SetAttributePRequest;
 import alluxio.grpc.SetAttributePResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.underfs.UfsStatus;
+import alluxio.uri.UfsUrl;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.OpenFileHandle;
@@ -215,13 +216,18 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   @Override
   public void listStatus(ListStatusPRequest request,
                          StreamObserver<ListStatusPResponse> responseObserver) {
-    LOG.debug("listStatus is called for {}", request.getPath());
-
+    UfsUrl ufsPath = UfsUrl.fromProto(request.getUfsPath());
+    LOG.debug("listStatus is called for {}", ufsPath.toString());
     try {
-      UfsStatus[] statuses = mWorker.listStatus(request.getPath(), request.getOptions());
+      UfsStatus[] statuses;
+      if (ufsPath.getScheme().equalsIgnoreCase("file")) {
+        statuses = mWorker.listStatus(ufsPath.getFullPath(), request.getOptions());
+      } else {
+        statuses = mWorker.listStatus(ufsPath.toString(), request.getOptions());
+      }
       if (statuses == null) {
         responseObserver.onError(
-            new NotFoundRuntimeException(String.format("%s Not Found", request.getPath()))
+            new NotFoundRuntimeException(String.format("%s Not Found", ufsPath.toString()))
                 .toGrpcStatusRuntimeException());
         return;
       }
@@ -230,8 +236,12 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
 
       for (int i = 0; i < statuses.length; i++) {
         UfsStatus status = statuses[i];
-        String ufsFullPath = PathUtils.concatPath(request.getPath(), status.getName());
-
+        String ufsFullPath;
+        if (ufsPath.getScheme().equalsIgnoreCase("file")) {
+          ufsFullPath = PathUtils.concatPath(ufsPath.getFullPath(), status.getName());
+        } else {
+          ufsFullPath = PathUtils.concatPath(ufsPath.toString(), status.getName());
+        }
         alluxio.grpc.FileInfo fi =
             ((PagedDoraWorker) mWorker).buildFileInfoFromUfsStatus(status, ufsFullPath);
 
@@ -249,7 +259,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
 
       responseObserver.onCompleted();
     } catch (Exception e) {
-      LOG.error(String.format("Failed to list status of %s: ", request.getPath()), e);
+      LOG.error(String.format("Failed to list status of %s: ", ufsPath.toString()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }

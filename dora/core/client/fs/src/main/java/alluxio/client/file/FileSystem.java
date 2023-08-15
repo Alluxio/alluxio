@@ -56,6 +56,7 @@ import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
+import alluxio.uri.UfsUrl;
 import alluxio.util.CommonUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
@@ -409,6 +410,18 @@ public interface FileSystem extends Closeable {
   }
 
   /**
+   * Gets the {@link URIStatus} object that represents the metadata of an UFS path.
+   *
+   * @param ufsPath the path to obtain information about
+   * @return the {@link URIStatus} of the file
+   * @throws FileDoesNotExistException if the path does not exist
+   */
+  default URIStatus getStatus(UfsUrl ufsPath)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return getStatus(ufsPath, GetStatusPOptions.getDefaultInstance());
+  }
+
+  /**
    * Gets the {@link URIStatus} object that represents the metadata of an Alluxio path.
    *
    * @param path the path to obtain information about
@@ -417,6 +430,17 @@ public interface FileSystem extends Closeable {
    * @throws FileDoesNotExistException if the path does not exist
    */
   URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Gets the {@link URIStatus} object that represents the metadata of an UFS path.
+   *
+   * @param ufsPath the path to obtain information about
+   * @param options options to associate with this operation
+   * @return the {@link URIStatus} of the file
+   * @throws FileDoesNotExistException if the path does not exist
+   */
+  URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
@@ -450,6 +474,21 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
+   * Performs a specific action on each {@code URIStatus} in the result of {@link #listStatus}.
+   * This method is preferred when iterating over directories with a large number of files or
+   * sub-directories inside. The caller can proceed with partial result without waiting for all
+   * result returned.
+   *
+   * @param ufsPath the path to list information about
+   * @param options options to associate with this operation
+   * @param action action to apply on each {@code URIStatus}
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
+  void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
    * Convenience method for {@link #listStatus(AlluxioURI, ListStatusPOptions)} with default
    * options.
    *
@@ -474,6 +513,19 @@ public interface FileSystem extends Closeable {
    * @throws FileDoesNotExistException if the given path does not exist
    */
   List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * If the path is a directory, returns the {@link URIStatus} of all the direct entries in it.
+   * Otherwise, returns a list with a single {@link URIStatus} element for the file.
+   *
+   * @param ufsPath the path to list information about
+   * @param options options to associate with this operation
+   * @return a list of {@link URIStatus}s containing information about the files and directories
+   *         which are children of the given path
+   * @throws FileDoesNotExistException if the given path does not exist
+   */
+  List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

@@ -59,6 +59,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.SetAttributePRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
+import alluxio.uri.UfsUrl;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
@@ -185,6 +186,32 @@ public class DoraCacheClient {
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       List<URIStatus> result = new ArrayList<>();
       client.get().listStatus(ListStatusPRequest.newBuilder().setPath(path)
+              .setOptions(options).build())
+          .forEachRemaining(
+              (pListStatusResponse) -> result.addAll(pListStatusResponse.getFileInfosList().stream()
+                  .map((pFileInfo) -> new URIStatus(GrpcUtils.fromProto(pFileInfo)))
+                  .collect(Collectors.toList())));
+      return result;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Lists Status from Worker.
+   * @param ufsPath the file path
+   * @param options the list status options
+   * @return list of URIStatus
+   * @throws RuntimeException
+   */
+  public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+      throws PermissionDeniedException {
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(ufsPath.toString()))) {
+      List<URIStatus> result = new ArrayList<>();
+      client.get().listStatus(ListStatusPRequest.newBuilder()
+              .setPath(ufsPath.toString())
+              .setUfsPath(ufsPath.toProto())
               .setOptions(options).build())
           .forEachRemaining(
               (pListStatusResponse) -> result.addAll(pListStatusResponse.getFileInfosList().stream()

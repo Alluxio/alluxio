@@ -48,6 +48,7 @@ import alluxio.jnifuse.struct.FuseContext;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
+import alluxio.uri.UfsUrl;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
@@ -187,7 +188,24 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
+    public URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options)
+            throws IOException, AlluxioException {
+      AlluxioURI path = ufsPath.toAlluxioURI();
+      if (mFiles.containsKey(path)) {
+        return mFiles.get(path);
+      } else {
+        throw new FileDoesNotExistException(path);
+      }
+    }
+
+    @Override
     public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
+        Consumer<? super URIStatus> action) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
         Consumer<? super URIStatus> action) {
       throw new UnsupportedOperationException();
     }
@@ -195,6 +213,12 @@ public abstract class AbstractAuthPolicyTest {
     @Override
     public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
         throws  IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+        throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
 

@@ -42,6 +42,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.uri.UfsUrl;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
@@ -57,6 +58,7 @@ import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -157,6 +159,28 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   }
 
   @Override
+  public URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options)
+          throws IOException, AlluxioException {
+    if (!mMetadataCacheEnabled) {
+      return mDelegatedFileSystem.getStatus(ufsPath, options);
+    }
+    try {
+      // TODO(Jiacheng Liu): use path conf if that is still needed
+      return mDoraClient.getStatus(ufsPath.toString(), options);
+    } catch (RuntimeException ex) {
+      if (ex instanceof StatusRuntimeException) {
+        if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
+          throw new FileNotFoundException();
+        }
+      }
+      UFS_FALLBACK_COUNTER.inc();
+      LOG.debug("Dora client get status error ({} times). Fall back to UFS.",
+              UFS_FALLBACK_COUNTER.getCount(), ex);
+      return mDelegatedFileSystem.getStatus(ufsPath, options);
+    }
+  }
+
+  @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws IOException, AlluxioException {
     return openFile(getStatus(path), options);
@@ -253,6 +277,24 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       LOG.debug("Dora client list status error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       return mDelegatedFileSystem.listStatus(ufsFullPath, options);
+    }
+  }
+
+  @Override
+  public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    try {
+      return mDoraClient.listStatus(ufsPath, options);
+    } catch (RuntimeException ex) {
+      if (ex instanceof StatusRuntimeException) {
+        if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
+          return Collections.emptyList();
+        }
+      }
+      UFS_FALLBACK_COUNTER.inc();
+      LOG.debug("Dora client list status error ({} times). Fall back to UFS.",
+              UFS_FALLBACK_COUNTER.getCount(), ex);
+      return mDelegatedFileSystem.listStatus(ufsPath, options);
     }
   }
 
@@ -367,6 +409,13 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
                             Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
     listStatus(path, options).forEach(action);
+  }
+
+  @Override
+  public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
+                            Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    listStatus(ufsPath, options).forEach(action);
   }
 
   @Override

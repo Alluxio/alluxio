@@ -30,6 +30,7 @@ import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.uri.UfsUrl;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.wire.BlockLocationInfo;
@@ -159,6 +160,14 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
       asyncUpdateFileAccessTime(path);
     }
     return status;
+  }
+
+  @Override
+  public URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options)
+          throws FileDoesNotExistException, IOException, AlluxioException {
+    // TODO(jiacheng): before fully switching to `UfsUrl`, the cache here is key-ed by AlluxioURI
+    //   We have to delegate by converting to AlluxioURI
+    return getStatus(ufsPath.toAlluxioURI(), options);
   }
 
   @Override

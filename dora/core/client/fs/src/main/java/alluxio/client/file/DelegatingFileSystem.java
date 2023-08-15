@@ -42,6 +42,7 @@ import alluxio.grpc.UnmountPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
+import alluxio.uri.UfsUrl;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -132,9 +133,21 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
+  public URIStatus getStatus(UfsUrl path, GetStatusPOptions options)
+          throws FileDoesNotExistException, IOException, AlluxioException {
+    return mDelegatedFileSystem.getStatus(path, options);
+  }
+
+  @Override
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     return mDelegatedFileSystem.listStatus(path, options);
+  }
+
+  @Override
+  public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return mDelegatedFileSystem.listStatus(ufsPath, options);
   }
 
   @Override
@@ -149,6 +162,13 @@ public class DelegatingFileSystem implements FileSystem {
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
     mDelegatedFileSystem.iterateStatus(path, options, action);
+  }
+
+  @Override
+  public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    mDelegatedFileSystem.iterateStatus(ufsPath, options, action);
   }
 
   @Override

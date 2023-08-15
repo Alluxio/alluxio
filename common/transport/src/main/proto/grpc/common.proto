@@ -156,3 +156,9 @@ message BuildVersion {
   /** the git revision at the time of building */
   optional string revision = 2;
 }
+
+message UfsUrlMessage {
+  optional string scheme = 1;
+  optional string authority = 2;
+  repeated string pathComponents = 3;
+}

@@ -11,11 +11,14 @@
 
 package alluxio.util.io;
 
+import static alluxio.uri.UfsUrl.SLASH_SEPARATOR;
+
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
+import alluxio.uri.UfsUrl;
 import alluxio.util.OSUtils;
 
 import com.google.common.base.CharMatcher;
@@ -467,5 +470,44 @@ public final class PathUtils {
       }
     }
     return paths;
+  }
+
+  /**
+   * Returns the path of concatenating two String paths, handle the shash between them.
+   * pathA = "/a/b/", pathB = "/c/d/", return "/a/b/c/d/"
+   * pathA = "/a/b", pathB = "c/d", return "/a/b/c/d"
+   *
+   * @param pathA path A to be concatenated
+   * @param pathB path B to be concatenated
+   * @return a String of path
+   */
+  public static String concatStringPath(String pathA, String pathB) {
+    Preconditions.checkArgument(pathA != null && !pathA.isEmpty());
+    Preconditions.checkArgument(pathB != null && !pathB.isEmpty());
+    if (pathA.endsWith(SLASH_SEPARATOR) && pathB.startsWith(SLASH_SEPARATOR)) {
+      return pathA.substring(0, pathA.length() - 1) + pathB;
+    } else if (!pathA.endsWith(SLASH_SEPARATOR) && !pathB.startsWith(SLASH_SEPARATOR)) {
+      return pathA + SLASH_SEPARATOR + pathB;
+    } else {
+      return pathA + pathB;
+    }
+  }
+
+  /**
+   * Concatenates root dir with another dir.
+   * @param rootDir the directory of root mount point of alluxio
+   * @param inputDir the directory to be concatenated
+   * @return a concatenated String, i.e., an absolute path
+   */
+  public static String concatWithRootDir(String rootDir, String inputDir) {
+    if (inputDir.contains(UfsUrl.SCHEME_SEPARATOR))  {
+      return inputDir;
+    } else {
+      if (rootDir.contains(UfsUrl.SCHEME_SEPARATOR))  {
+        return PathUtils.concatStringPath(rootDir, inputDir);
+      } else {
+        return "file://" + PathUtils.concatStringPath(rootDir, inputDir);
+      }
+    }
   }
 }

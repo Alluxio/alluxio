@@ -60,6 +60,7 @@ import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.uri.UfsUrl;
 import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.io.PathUtils;
@@ -245,6 +246,18 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
+  public URIStatus getStatus(UfsUrl ufsPath, final GetStatusPOptions options) {
+    return callWithReturn(() -> {
+      String pathStr = ufsPath.toString();
+      UfsStatus ufsStatus = mUfs.get().getStatus(pathStr, GetStatusOptions.defaults()
+              .setIncludeRealContentHash(options.getIncludeRealContentHash()));
+      // TODO(Tony Sun): In the future,
+      //  avoid using AlluxioURI in this method and avoid string copies as much as possible
+      return transformStatus(ufsStatus, pathStr);
+    });
+  }
+
+  @Override
   public List<URIStatus> listStatus(AlluxioURI path, final ListStatusPOptions options) {
     return callWithReturn(() -> {
       ListOptions ufsOptions = ListOptions.defaults();
@@ -260,6 +273,40 @@ public class UfsBaseFileSystem implements FileSystem {
         URIStatus uriStatus = transformStatus(ufsStatus,
             PathUtils.concatPath(path.toString(), ufsStatus.getName()));
         uriStatusList.add(uriStatus);
+      }
+      return uriStatusList;
+    });
+  }
+
+  @Override
+  public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options) {
+    return callWithReturn(() -> {
+      ListOptions ufsOptions = ListOptions.defaults();
+      if (options.hasRecursive()) {
+        ufsOptions.setRecursive(options.getRecursive());
+      }
+      UfsStatus[] ufsStatuses;
+      if (ufsPath.getScheme().equals("file")) {
+        ufsStatuses = mUfs.get().listStatus(ufsPath.getFullPath(), ufsOptions);
+      } else {
+        ufsStatuses = mUfs.get().listStatus(ufsPath.toString(), ufsOptions);
+      }
+      if (ufsStatuses == null || ufsStatuses.length == 0) {
+        return Collections.emptyList();
+      }
+      List<URIStatus> uriStatusList = new ArrayList<>();
+      if (ufsPath.getScheme().equals("file")) {
+        for (UfsStatus ufsStatus : ufsStatuses) {
+          URIStatus uriStatus = transformStatus(ufsStatus,
+              PathUtils.concatPath(ufsPath.getFullPath(), ufsStatus.getName()));
+          uriStatusList.add(uriStatus);
+        }
+      } else {
+        for (UfsStatus ufsStatus : ufsStatuses) {
+          URIStatus uriStatus = transformStatus(ufsStatus,
+              PathUtils.concatPath(ufsPath.toString(), ufsStatus.getName()));
+          uriStatusList.add(uriStatus);
+        }
       }
       return uriStatusList;
     });
@@ -282,6 +329,40 @@ public class UfsBaseFileSystem implements FileSystem {
             PathUtils.concatPath(path.toString(), ufsStatus.getName()));
         action.accept(uriStatus);
       }
+    });
+  }
+
+  @Override
+  public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
+      Consumer<? super URIStatus> action) {
+    call(() -> {
+      ListOptions ufsOptions = ListOptions.defaults();
+      if (options.hasRecursive()) {
+        ufsOptions.setRecursive(options.getRecursive());
+      }
+      UfsStatus[] ufsStatuses;
+      if (ufsPath.getScheme().equals("file")) {
+        ufsStatuses = mUfs.get().listStatus(ufsPath.getFullPath(), ufsOptions);
+      } else {
+        ufsStatuses = mUfs.get().listStatus(ufsPath.toString(), ufsOptions);
+      }
+      URIStatus uriStatus = null;
+      if (ufsStatuses == null || ufsStatuses.length == 0) {
+        return;
+      }
+      // ufsStatuses is neither null nor empty, so uriStatus is not null.
+      if (ufsPath.getScheme().equals("file")) {
+        for (UfsStatus ufsStatus : ufsStatuses) {
+          uriStatus = transformStatus(ufsStatus,
+              PathUtils.concatPath(ufsPath.getFullPath(), ufsStatus.getName()));
+        }
+      } else {
+        for (UfsStatus ufsStatus : ufsStatuses) {
+          uriStatus = transformStatus(ufsStatus,
+              PathUtils.concatPath(ufsPath.toString(), ufsStatus.getName()));
+        }
+      }
+      action.accept(uriStatus);
     });
   }
 
