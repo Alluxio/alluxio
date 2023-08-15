@@ -517,7 +517,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       }
       long endOperation = CommonUtils.getCurrentMs();
       return new WorkerBenchDataPoint(
-              mBaseParameters.mIndex, Thread.currentThread().getId(),
+              mBaseParameters.mIndex, String.valueOf(Thread.currentThread().getId()),
               startOperation, endOperation - startOperation, bytesRead);
     }
 
