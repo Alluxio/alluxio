@@ -314,13 +314,14 @@ func checkAndSaveUrl(files []File, menuMap map[string]struct{}, errMsgs []string
 				errMsgs = append(errMsgs, fmt.Sprintf("error msg: docs %v with url %v is ended with %v, please replace %v with %v", subfile.Title, subfile.URL, mdType, mdType, htmlType))
 			}
 			// ignore the folder path
-			if subfile.URL != "" {
-				// replace the url ending to .md in order to compare with actually list of docs in directory of docs
-				subfilePath := strings.Replace(subfile.URL, htmlType, mdType, 1)
-				menuMap[subfilePath] = struct{}{}
+			if subfile.URL == "" {
+				//recall the function until subfile.subFiles is empty
+				checkAndSaveUrl(subfile.Subfiles, menuMap, errMsgs)
+				continue
 			}
-			//recall the function until file.subFiles is empty
-			checkAndSaveUrl(file.Subfiles, menuMap, errMsgs)
+			// replace the url ending to .md in order to compare with actually list of docs in directory of docs
+			subfilePath := strings.Replace(subfile.URL, htmlType, mdType, 1)
+			menuMap[subfilePath] = struct{}{}
 		}
 	}
 }
