@@ -56,7 +56,7 @@ public class UfsUrlTest {
   }
 
   @Test
-  public void UfsUrlCtorTest() {
+  public void UfsUrlCtor() {
     String scheme1 = "abc";
     String authority1 = "127.0.0.1:4567";
     String path1 = "/";
@@ -64,6 +64,15 @@ public class UfsUrlTest {
     assertEquals(scheme1, ufsUrl1.getScheme());
     assertEquals(authority1, ufsUrl1.getAuthority().get().toString());
     assertEquals(path1, ufsUrl1.getFullPath());
+
+    String scheme2 = "file";
+    String authority2 = "";
+    String path2 = "/testDir/testFile";
+    UfsUrl ufsUrl2 = new UfsUrl(scheme2, authority2, path2);
+    assertEquals(scheme2, ufsUrl2.getScheme());
+    assertEquals(authority2, ufsUrl2.getAuthority().get().toString());
+    assertEquals(path2, ufsUrl2.getFullPath());
+    assertEquals(scheme2 + "://" + authority2 + path2, ufsUrl2.toString());
   }
 
   /**

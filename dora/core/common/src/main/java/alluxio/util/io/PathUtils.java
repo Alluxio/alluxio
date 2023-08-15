@@ -499,7 +499,7 @@ public final class PathUtils {
    * @param inputDir the directory to be concatenated
    * @return a concatenated String, i.e., an absolute path
    */
-  public static String concatRootDir(String rootDir, String inputDir) {
+  public static String concatWithRootDir(String rootDir, String inputDir) {
     if (inputDir.contains(UfsUrl.SCHEME_SEPARATOR))  {
       return inputDir;
     } else {

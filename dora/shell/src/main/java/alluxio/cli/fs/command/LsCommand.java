@@ -369,7 +369,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     String rootDir = mFsContext.getClusterConf().getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     for (String dirArg : args) {
-      String processedDirArg = PathUtils.concatRootDir(rootDir, dirArg);
+      String processedDirArg = PathUtils.concatWithRootDir(rootDir, dirArg);
       UfsUrl ufsPath = UfsUrl.createInstance(processedDirArg);
       runWildCardCmd(ufsPath, cl);
     }

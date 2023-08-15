@@ -19,8 +19,8 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FilenameUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -110,6 +110,7 @@ public class UfsUrl {
       while (start < inputUrl.length() && inputUrl.charAt(start) == SLASH_SEPARATOR.charAt(0)) {
         start++;
       }
+      // TODO(Tony Sun): remove the copy in next pr
       path = FilenameUtils.normalizeNoEndSeparator(inputUrl.substring(start));
 
       // scheme, authority, pathComponents are always not null.
@@ -117,7 +118,7 @@ public class UfsUrl {
       mAuthority = authority;
 
       if (path.isEmpty()) {
-        mPathComponents = new ArrayList<>();
+        mPathComponents = Collections.emptyList();
       } else {
         mPathComponents = Arrays.asList(path.split(SLASH_SEPARATOR));
       }
@@ -199,11 +200,15 @@ public class UfsUrl {
         "Alluxio 3.x no longer supports alluxio:// scheme,"
             + " please input the UFS path directly like hdfs://host:port/path");
     String[] arrayOfPath = path.split(SLASH_SEPARATOR);
+    int notEmpty = 0;
+    while (notEmpty < arrayOfPath.length && arrayOfPath[notEmpty].isEmpty()) {
+      notEmpty++;
+    }
     List<String> pathComponentsList = Arrays.asList(arrayOfPath);
     mProto = UfsUrlMessage.newBuilder()
         .setScheme(scheme)
         .setAuthority(authority)
-        .addAllPathComponents(pathComponentsList)
+        .addAllPathComponents(pathComponentsList.subList(notEmpty, pathComponentsList.size()))
         .build();
   }
 
@@ -241,6 +246,18 @@ public class UfsUrl {
   }
 
   /**
+   * return the UfsUrl String representation.
+   * <p>
+   * e.g.
+   * <ul>
+   *   <li>scheme="abc", authority="localhost:19998", path="/d/e/f",
+   *   toString() -> "abc://localhost:19998/d/e/f".
+   *   </li>
+   *   <li>scheme="file", authority="", path="/testDir/testFile",
+   *   toString() -> "file:///testDir/testFile".
+   *   </li>
+   * </ul>
+   *
    * @return the String representation of the {@link UfsUrl}
    */
   public String toString() {
