@@ -21,7 +21,7 @@
   </parent>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>303-SNAPSHOT</version>
+  <version>304-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -36,7 +36,7 @@
   <scm>
     <connection>scm:git:git@github.com:alluxio/alluxio.git</connection>
     <developerConnection>scm:git:git@github.com:alluxio/alluxio.git</developerConnection>
-    <tag>alluxio-parent-303-SNAPSHOT</tag>
+    <tag>alluxio-parent-304-SNAPSHOT</tag>
     <url>scm:git:git@github.com:alluxio/alluxio.git</url>
   </scm>
   <issueManagement>
@@ -1202,7 +1202,7 @@
                   <version>${maven.version}</version>
                 </requireMavenVersion>
                 <requireJavaVersion>
-                  <version>${java.version}</version>
+                  <version>[1.8, 1.9)</version>
                 </requireJavaVersion>
               </rules>
             </configuration>
@@ -1683,6 +1683,30 @@
         -->
         <create.dependency.reduced.pom>true</create.dependency.reduced.pom>
       </properties>
+      <build>
+        <plugins>
+          <!-- Precompile golang binaries for CLI -->
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>Build Golang CLI</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <phase>compile</phase>
+                <configuration>
+                  <executable>${build.path}/cli/build-cli.sh</executable>
+                  <arguments>
+                    <argument>-a</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 </project>

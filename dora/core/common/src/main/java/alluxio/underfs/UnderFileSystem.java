@@ -13,7 +13,6 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.PositionReader;
-import alluxio.SyncInfo;
 import alluxio.annotation.PublicApi;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
@@ -869,49 +868,6 @@ public interface UnderFileSystem extends Closeable, AsyncUfsClient {
    * @return true if this type of UFS supports flush, false otherwise
    */
   boolean supportsFlush() throws IOException;
-
-  /**
-   * Whether this type of UFS supports active sync.
-   *
-   * @return true if this type of UFS supports active sync, false otherwise
-   */
-  boolean supportsActiveSync();
-
-  /**
-   * Return the active sync info for the specified syncPoints.
-   *
-   * @return active sync info consisting of what changed for these sync points
-   */
-  SyncInfo getActiveSyncInfo() throws IOException;
-
-  /**
-   * Add Sync Point.
-   *
-   * @param uri ufs uri to start
-   */
-  void startSync(AlluxioURI uri) throws IOException;
-
-  /**
-   * Stop Sync Point.
-   *
-   * @param uri ufs uri to stop
-   */
-  void stopSync(AlluxioURI uri) throws IOException;
-
-  /**
-   * Start Active Sync.
-   *
-   * @param txId the transaction id to start receiving event
-   * @return true if active sync started
-   */
-  boolean startActiveSyncPolling(long txId) throws IOException;
-
-  /**
-   * Stop Active Sync.
-   *
-   * @return true if active sync stopped
-   */
-  boolean stopActiveSyncPolling() throws IOException;
 
   /**
    * Gets a temporary token according to path, sid, effect and action.

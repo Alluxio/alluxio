@@ -38,10 +38,6 @@ public class LoadCommandIntegrationTest extends AbstractFileSystemShellTest {
       new LocalAlluxioClusterResource.Builder()
           .setNumWorkers(1)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB")
-          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, 1)
-          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS, Constants.MEDIUM_HDD)
-          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_MEDIUMTYPE, Constants.MEDIUM_HDD)
-          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA, "2GB")
           .build();
 
   @Test

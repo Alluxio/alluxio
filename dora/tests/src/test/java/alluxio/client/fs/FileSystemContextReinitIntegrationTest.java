@@ -52,7 +52,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   @Before
   public void before() throws Exception {
     mContext = FileSystemContext.create(Configuration.global());
-    mContext.getClientContext().loadConf(mContext.getMasterAddress(), true, true);
+    mContext.getClientContext().loadConf(mContext.getMasterAddress(), true);
     updateHash();
 
     FileSystemContextReinitializer reinit = Whitebox.getInternalState(mContext,
@@ -63,14 +63,14 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   @Test
   public void noConfUpdateAndNoRestart() throws Exception {
     triggerAndWaitSync();
-    checkHash(false, false);
+    checkHash(false);
   }
 
   @Test
   public void restartWithoutConfUpdate() throws Exception {
     restartMasters();
     triggerAndWaitSync();
-    checkHash(false, false);
+    checkHash(false);
   }
 
   @Test
@@ -118,17 +118,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
         .get(KEY_TO_UPDATE));
   }
 
-  private void checkPathConfBeforeUpdate() {
-    Assert.assertFalse(mContext.getClientContext().getPathConf().getConfiguration(
-        PATH_TO_UPDATE, KEY_TO_UPDATE).isPresent());
-  }
-
-  private void checkPathConfAfterUpdate() {
-    Assert.assertEquals(UPDATED_VALUE, mContext.getClientContext().getPathConf().getConfiguration(
-        PATH_TO_UPDATE, KEY_TO_UPDATE).get().get(KEY_TO_UPDATE));
-  }
-
-  private void checkHash(boolean clusterConfHashUpdated, boolean pathConfHashUpdated) {
+  private void checkHash(boolean clusterConfHashUpdated) {
     // Use Equals and NotEquals so that when test fails, the hashes are printed out for comparison.
     if (clusterConfHashUpdated) {
       Assert.assertNotEquals(mClusterConfHash,
@@ -137,18 +127,9 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
       Assert.assertEquals(mClusterConfHash,
           mContext.getClientContext().getClusterConfHash());
     }
-
-    if (pathConfHashUpdated) {
-      Assert.assertNotEquals(mPathConfHash,
-          mContext.getClientContext().getPathConfHash());
-    } else {
-      Assert.assertEquals(mPathConfHash,
-          mContext.getClientContext().getPathConfHash());
-    }
   }
 
   private void updateHash() {
     mClusterConfHash = mContext.getClientContext().getClusterConfHash();
-    mPathConfHash = mContext.getClientContext().getPathConfHash();
   }
 }
