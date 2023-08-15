@@ -19,11 +19,6 @@
                 url: /en/core-services/Data-Caching.html
               - title: Metadata Cache & Invalidation
                 url: /en/core-services/Metadata-Caching.html
-    - title: Glossary
-      url: /en/introduction/Glossary.html
-    - title: Release Notes
-      url: /en/introducion/Release-Notes.html
-    - title: Available Documentation Versions
 
 - title: Get Started
   buttonTitle: Get_Started
