@@ -53,7 +53,7 @@ public class FileSystemReadonlyIntegrationTest {
   @Before
   public void before() throws Exception {
     FileSystemContext fsCtx = FileSystemContext.create(Configuration.global());
-    fsCtx.getClientContext().loadConf(fsCtx.getMasterAddress(), true);
+    fsCtx.getClientContext().loadConf(fsCtx.getMasterAddress());
     mFileSystem = sLocalAlluxioClusterResource.get().getClient(fsCtx);
   }
 
