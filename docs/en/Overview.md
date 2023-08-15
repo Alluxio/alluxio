@@ -15,6 +15,10 @@ Check out our [Quick Start Guide]({{ '/en/deploy/Get-Started.html' | relativize_
 ### Install Alluxio Cluster with HA
 Follow [Install Alluxio Cluster with HA]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}) to deploy an Alluxio cluster with High Availability (HA), which is achieved by running multiple Alluxio master processes on different nodes in the system.
 
+### Install Alluxio on Docker
+
+Go to [Install Alluxio on Docker]({{ '/en/deploy/Install-Alluxio-On-Docker.html' | relativize_urll }}) for instructions on how to run an Alluxio cluster with a couple of `docker run` commands, using the [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/){:target="_blank"} Docker image available on Dockerhub.
+
 ### Install Alluxio on Kubernetes
 See [Install Alluxio on Kubernetes]({{ '/en/kubernetes/Install-Alluxio-On-Kubernetes.html' | relativize_url }}) on how to install Alluxio on Kubernetes via 
 [Helm](https://helm.sh/), a kubernetes package manager, and [Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/), a kubernetes extension for managing applications.
