@@ -67,12 +67,16 @@
       url: /en/ufs/HDFS.html
     - title: Aliyun OSS
       url: /en/ufs/Aliyun-OSS.html
-    - title: Azure Blob Store
-      url: /en/ufs/Azure-Blob-Store.html
-    - title: Azure Data Lake Storage
-      url: /en/ufs/Azure-Data-Lake.html
-    - title: Azure Data Lake Storage Gen2
-      url: /en/ufs/Azure-Data-Lake-Gen2.html
+    - subfiles: 
+          - title: Azure
+            buttonTitle: Azure
+            subfiles:
+              - title: Azure Blob Store
+                url: /en/ufs/Azure-Blob-Store.html
+              - title: Azure Data Lake Storage
+                url: /en/ufs/Azure-Data-Lake.html
+              - title: Azure Data Lake Storage Gen2
+                url: /en/ufs/Azure-Data-Lake-Gen2.html
     - title: CephFS
       url: /en/ufs/CephFS.html
     - title: CephObjectStorage
