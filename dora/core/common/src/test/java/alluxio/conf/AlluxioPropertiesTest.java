@@ -178,7 +178,9 @@ public class AlluxioPropertiesTest {
 
   @Test
   public void mergePropertiesWithHigherPriority() {
-    PropertyKey key1 = stringBuilder("key1").setDefaultValue("default_value1").build();
+    PropertyKey key1 = stringBuilder("key1")
+        .setDefaultValue("default_value1")
+        .buildUnregistered();
     mProperties.put(key1, "value1", Source.CLUSTER_DEFAULT);
     mProperties.put(mKeyWithValue, "not_affected", Source.CLUSTER_DEFAULT);
     AlluxioProperties toMerge = new AlluxioProperties();
@@ -192,7 +194,9 @@ public class AlluxioPropertiesTest {
 
   @Test
   public void mergePropertiesWithEqualPriority() {
-    PropertyKey key2 = stringBuilder("key2").setDefaultValue("default_value2").build();
+    PropertyKey key2 = stringBuilder("key2")
+        .setDefaultValue("default_value2")
+        .buildUnregistered();
     mProperties.put(key2, "value2", Source.RUNTIME);
     mProperties.put(mKeyWithValue, "not_affected", Source.CLUSTER_DEFAULT);
     AlluxioProperties toMerge = new AlluxioProperties();
@@ -206,7 +210,10 @@ public class AlluxioPropertiesTest {
 
   @Test
   public void mergePropertiesWithLowerPriority() {
-    PropertyKey key2 = stringBuilder("key2").setDefaultValue("default_value2").build();
+    PropertyKey key2 = stringBuilder("key2")
+        .setDefaultValue("default_value2")
+        .setIsBuiltIn(false)
+        .build();
     mProperties.put(key2, "value2", Source.RUNTIME);
     AlluxioProperties toMerge = new AlluxioProperties();
     toMerge.put(key2, "value2_merged", Source.CLUSTER_DEFAULT);
