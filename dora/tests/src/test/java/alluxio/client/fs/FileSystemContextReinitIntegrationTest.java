@@ -78,7 +78,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
     FileSystemContext fsContext = FileSystemContext.create(Configuration.global());
     try (CloseableResource<BlockWorkerClient> client =
         fsContext.acquireBlockWorkerClient(mLocalAlluxioClusterResource.get().getWorkerAddress())) {
-      fsContext.reinit(true, true);
+      fsContext.reinit(true);
       fsContext.acquireBlockWorkerClient(mLocalAlluxioClusterResource.get().getWorkerAddress())
           .close();
     }
