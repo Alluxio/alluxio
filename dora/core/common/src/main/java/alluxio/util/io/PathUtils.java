@@ -18,6 +18,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
+import alluxio.uri.UfsUrl;
 import alluxio.util.OSUtils;
 
 import com.google.common.base.CharMatcher;
@@ -489,6 +490,24 @@ public final class PathUtils {
       return pathA + SLASH_SEPARATOR + pathB;
     } else {
       return pathA + pathB;
+    }
+  }
+
+  /**
+   * Concatenates root dir with another dir.
+   * @param rootDir the directory of root mount point of alluxio
+   * @param inputDir the directory to be concatenated
+   * @return a concatenated String, i.e., an absolute path
+   */
+  public static String concatRootDir(String rootDir, String inputDir) {
+    if (inputDir.contains(UfsUrl.SCHEME_SEPARATOR))  {
+      return inputDir;
+    } else {
+      if (rootDir.contains(UfsUrl.SCHEME_SEPARATOR))  {
+        return PathUtils.concatStringPath(rootDir, inputDir);
+      } else {
+        return "file://" + PathUtils.concatStringPath(rootDir, inputDir);
+      }
     }
   }
 }
