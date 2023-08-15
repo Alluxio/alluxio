@@ -28,6 +28,10 @@ import alluxio.grpc.Scope;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import org.apache.commons.cli.CommandLine;
 
@@ -51,11 +55,8 @@ import java.util.stream.Collectors;
  * Prints Alluxio capacity information.
  */
 public class CapacityCommand {
-  private static final int INDENT_SIZE = 4;
-
   private BlockMasterClient mBlockMasterClient;
   private PrintStream mPrintStream;
-  private int mIndentationLevel = 0;
   private long mSumCapacityBytes;
   private long mSumUsedBytes;
   private Map<String, Long> mSumCapacityBytesOnTierMap;
@@ -63,6 +64,8 @@ public class CapacityCommand {
   private TreeMap<String, Map<String, String>> mCapacityTierInfoMap;
   private Map<String, Map<String, String>> mUsedTierInfoMap;
 
+  private ObjectMapper mMapper;
+  private ObjectNode mCapacityInfo;
   private static final String LIVE_WORKER_STATE = "In Service";
   private static final String LOST_WORKER_STATE = "Out of Service";
 
@@ -118,17 +121,20 @@ public class CapacityCommand {
       workerInfoList = mBlockMasterClient.getWorkerReport(options);
     }
     if (workerInfoList.size() == 0) {
-      print("No workers found.");
+      mPrintStream.println("No workers found.");
       return;
     }
     Collections.sort(workerInfoList, new WorkerInfo.LastContactSecComparator());
 
     collectWorkerInfo(workerInfoList);
-    printAggregatedInfo(options);
-    printWorkerInfo(workerInfoList);
+    generateAggregatedInfo(options);
+    generateWorkerInfo(workerInfoList);
     if (workerRegisterToAllMasters) {
       printWorkerAllMasterConnectionInfo(allMastersWorkerInfo);
     }
+    mPrintStream.printf("Capacity information for %s workers:%n",
+            options.getWorkerRange().toString().toLowerCase());
+    mPrintStream.println(mMapper.writerWithDefaultPrettyPrinter().writeValueAsString(mCapacityInfo));
   }
 
   /**
@@ -177,36 +183,44 @@ public class CapacityCommand {
    *
    * @param options GetWorkerReportOptions to check if input is invalid
    */
-  private void printAggregatedInfo(GetWorkerReportOptions options) {
-    mIndentationLevel = 0;
-    print(String.format("Capacity information for %s workers: ",
-        options.getWorkerRange().toString().toLowerCase()));
+  private void generateAggregatedInfo(GetWorkerReportOptions options) throws JsonProcessingException {
+    ObjectNode capacityMetrics = mMapper.createObjectNode();
+    ObjectNode totalCapacity = mMapper.createObjectNode();
+    ObjectNode usedCapacity = mMapper.createObjectNode();
 
-    mIndentationLevel++;
-    print("Total Capacity: " + FormatUtils.getSizeFromBytes(mSumCapacityBytes));
-    mIndentationLevel++;
+    ArrayNode totalCapacityTiers = mMapper.createArrayNode();
     for (Map.Entry<String, Long> totalBytesTier : mSumCapacityBytesOnTierMap.entrySet()) {
       long value = totalBytesTier.getValue();
-      print("Tier: " + totalBytesTier.getKey()
-          + "  Size: " + FormatUtils.getSizeFromBytes(value));
+      ObjectNode totalCapacityPerTier = mMapper.createObjectNode();
+      totalCapacityPerTier.put("Tier", totalBytesTier.getKey());
+      totalCapacityPerTier.put("Size", FormatUtils.getSizeFromBytes(value));
+      totalCapacityTiers.add(totalCapacityPerTier);
     }
-    mIndentationLevel--;
 
-    print("Used Capacity: "
-        + FormatUtils.getSizeFromBytes(mSumUsedBytes));
-    mIndentationLevel++;
+    ArrayNode usedCapacityTiers = mMapper.createArrayNode();
     for (Map.Entry<String, Long> usedBytesTier : mSumUsedBytesOnTierMap.entrySet()) {
       long value = usedBytesTier.getValue();
-      print("Tier: " + usedBytesTier.getKey()
-          + "  Size: " + FormatUtils.getSizeFromBytes(value));
+      ObjectNode usedCapacityPerTier = mMapper.createObjectNode();
+      usedCapacityPerTier.put("Tier", usedBytesTier.getKey());
+      usedCapacityPerTier.put("Size", FormatUtils.getSizeFromBytes(value));
+      usedCapacityTiers.add(usedCapacityPerTier);
     }
-    mIndentationLevel--;
+
+    totalCapacity.put("All", FormatUtils.getSizeFromBytes(mSumCapacityBytes));
+    totalCapacity.set("Tiers", totalCapacityTiers);
+    usedCapacity.put("All", FormatUtils.getSizeFromBytes(mSumUsedBytes));
+    usedCapacity.set("Tiers", usedCapacityTiers);
+
+    capacityMetrics.set("Total Capacity", totalCapacity);
+    capacityMetrics.set("Used Capacity", usedCapacity);
 
     if (mSumCapacityBytes != 0) {
       int usedPercentage = (int) (100L * mSumUsedBytes / mSumCapacityBytes);
-      print(String.format("Used Percentage: " + "%s%%", usedPercentage));
-      print(String.format("Free Percentage: " + "%s%%", 100 - usedPercentage));
+      capacityMetrics.put("Used Percentage", String.format("%s%%", usedPercentage));
+      capacityMetrics.put("Free Percentage", String.format("%s%%", 100 - usedPercentage));
     }
+
+    mCapacityInfo.set("Capacity Metrics", capacityMetrics);
   }
 
   private String getMasterAddressesString(Set<java.net.InetSocketAddress> addresses) {
@@ -296,96 +310,64 @@ public class CapacityCommand {
    *
    * @param workerInfoList the worker info list to get info from
    */
-  private void printWorkerInfo(List<WorkerInfo> workerInfoList) {
-    mIndentationLevel = 0;
+  private void generateWorkerInfo(List<WorkerInfo> workerInfoList) {
+    boolean isShort = false;
     if (mCapacityTierInfoMap.size() == 0) {
       return;
     } else if (mCapacityTierInfoMap.size() == 1) {
-      // TODO(jiacheng): test BOTH long and short output
-      // Do not print Total value when only one tier exists
-      printShortWorkerInfo(workerInfoList);
-      return;
+      isShort = true;
     }
+
+    ArrayNode workerInfo = mMapper.createArrayNode();
     Set<String> tiers = mCapacityTierInfoMap.keySet();
-    String tiersInfo = String.format(Strings.repeat("%-14s", tiers.size()), tiers.toArray());
-    String longInfoFormat = getInfoFormat(workerInfoList, false);
-    print(String.format("%n" + longInfoFormat,
-        "Worker Name", "State", "Last Heartbeat", "Storage", "Total", tiersInfo,
-        "Version", "Revision"));
 
     for (WorkerInfo info : workerInfoList) {
-      String workerName = info.getAddress().getHost();
+      ObjectNode infoPerWorker = mMapper.createObjectNode();
 
-      long usedBytes = info.getUsedBytes();
-      long capacityBytes = info.getCapacityBytes();
+      ArrayNode tiersInfo = mMapper.createArrayNode();
 
-      String usedPercentageInfo = "";
-      if (capacityBytes != 0) {
-        int usedPercentage = (int) (100L * usedBytes / capacityBytes);
-        usedPercentageInfo = String.format(" (%s%%)", usedPercentage);
+      if (isShort) {
+        // TODO(jiacheng): test BOTH long and short output
+        // Do not print Total value when only one tier exists
+        ObjectNode tierInfo = mMapper.createObjectNode();
+        tierInfo.put("Tier",
+                mCapacityTierInfoMap.firstKey());
+        tierInfo.put("Capacity",
+                FormatUtils.getSizeFromBytes(info.getCapacityBytes()));
+        tierInfo.put("Used",
+                FormatUtils.getSizeFromBytes(info.getUsedBytes()));
+        if (info.getCapacityBytes() != 0) {
+          tierInfo.put("Used percentage",
+                  String.format(" (%s%%)", (int) (100L * info.getUsedBytes() / info.getCapacityBytes())));
+        }
+        tiersInfo.add(tierInfo);
+      } else {
+        for (String tier : tiers){
+          ObjectNode tierInfo = mMapper.createObjectNode();
+          tierInfo.put("Tier", tier);
+          tierInfo.put("Capacity",
+                  getWorkerFormattedTierValues(mCapacityTierInfoMap, info.getAddress().getHost()));
+          tierInfo.put("Used",
+                  getWorkerFormattedTierValues(mUsedTierInfoMap, info.getAddress().getHost()));
+          if (info.getCapacityBytes() != 0) {
+            tierInfo.put("Used percentage",
+                    String.format("%s%%", (int) (100L * info.getUsedBytes() / info.getCapacityBytes())));
+          }
+          tiersInfo.add(tierInfo);
+        }
       }
 
-      String capacityTierInfo = getWorkerFormattedTierValues(mCapacityTierInfoMap, workerName);
-      String usedTierInfo = getWorkerFormattedTierValues(mUsedTierInfoMap, workerName);
+      infoPerWorker.put("Worker Name", info.getAddress().getHost());
+      infoPerWorker.put("State", info.getState());
+      infoPerWorker.put("Last Heartbeat", info.getLastContactSec());
+      infoPerWorker.set("tiers", tiersInfo);
+      infoPerWorker.put("Version", info.getVersion());
+      infoPerWorker.put("Revision", info.getRevision());
 
-      print(String.format(longInfoFormat, workerName, info.getState(),
-          info.getLastContactSec(), "capacity",
-          FormatUtils.getSizeFromBytes(capacityBytes), capacityTierInfo,
-          info.getVersion(), info.getRevision()));
-      print(String.format(longInfoFormat, "", "", "", "used",
-          FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo, usedTierInfo,
-          "", ""));
+      workerInfo.add(infoPerWorker);
     }
-  }
 
-  /**
-   * Prints worker information when only one tier exists.
-   *
-   * @param workerInfoList the worker info list to get info from
-   */
-  private void printShortWorkerInfo(List<WorkerInfo> workerInfoList) {
-    String tier = String.format("%-16s", mCapacityTierInfoMap.firstKey());
-    String shortInfoFormat = getInfoFormat(workerInfoList, true);
-    print(String.format("%n" + shortInfoFormat,
-        "Worker Name", "State", "Last Heartbeat", "Storage", tier, "Version", "Revision"));
-
-    for (WorkerInfo info : workerInfoList) {
-      long capacityBytes = info.getCapacityBytes();
-      long usedBytes = info.getUsedBytes();
-
-      String usedPercentageInfo = "";
-      if (capacityBytes != 0) {
-        int usedPercentage = (int) (100L * usedBytes / capacityBytes);
-        usedPercentageInfo = String.format(" (%s%%)", usedPercentage);
-      }
-      print(String.format(shortInfoFormat, info.getAddress().getHost(), info.getState(),
-          info.getLastContactSec(), "capacity",
-          String.format("%-16s", FormatUtils.getSizeFromBytes(capacityBytes)),
-          info.getVersion(), info.getRevision()));
-      print(String.format(shortInfoFormat, "", "", "", "used",
-          String.format("%-16s", FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo),
-          "", ""));
-    }
-  }
-
-  /**
-   * Gets the info format according to the longest worker name.
-   * @param workerInfoList the worker info list to get info from
-   * @param isShort whether exists only one tier
-   * @return the info format for printing long/short worker info
-   */
-  private String getInfoFormat(List<WorkerInfo> workerInfoList, boolean isShort) {
-    int maxWorkerNameLength = workerInfoList.stream().map(w -> w.getAddress().getHost().length())
-        .max(Comparator.comparing(Integer::intValue)).get();
-    int firstIndent = 16;
-    if (firstIndent <= maxWorkerNameLength) {
-      // extend first indent according to the longest worker name by default 5
-      firstIndent = maxWorkerNameLength + 5;
-    }
-    if (isShort) {
-      return "%-" + firstIndent + "s %-15s %-16s %-13s %s %-16s %-40s";
-    }
-    return "%-" + firstIndent + "s %-15s %-16s %-13s %-16s %s %-16s %-40s";
+    mCapacityInfo.set("Worker Information", workerInfo);
   }
 
   /**
@@ -450,6 +432,9 @@ public class CapacityCommand {
     // TierInfoMap is of form Map<Tier_Name, Map<Worker_Name, Worker_Tier_Value>>
     mCapacityTierInfoMap = new TreeMap<>(FileSystemAdminShellUtils::compareTierNames);
     mUsedTierInfoMap = new TreeMap<>(FileSystemAdminShellUtils::compareTierNames);
+
+    mMapper = new ObjectMapper();
+    mCapacityInfo = mMapper.createObjectNode();
   }
 
   /**
@@ -458,8 +443,7 @@ public class CapacityCommand {
    * @param text information to print
    */
   private void print(String text) {
-    String indent = Strings.repeat(" ", mIndentationLevel * INDENT_SIZE);
-    mPrintStream.println(indent + text);
+    mPrintStream.println(text);
   }
 
   /**
