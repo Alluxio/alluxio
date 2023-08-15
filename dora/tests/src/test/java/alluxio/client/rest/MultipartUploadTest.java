@@ -106,7 +106,7 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   /**
-   * Initiates a multipart upload.
+   * Initiate a multipart upload.
    *
    * @return the upload id
    */
@@ -132,7 +132,7 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   /**
-   * Uploads parts.
+   * Upload parts.
    *
    * @param uploadId the upload id
    * @param objects the objects to upload
@@ -168,7 +168,7 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   /**
-   * complete multipart upload.
+   * Complete multipart upload.
    * @param uploadId the upload id
    * @param partList the list of part number
    * @throws Exception
@@ -186,7 +186,7 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   /**
-   * complete multipart upload with 50 objects.
+   * Complete multipart upload with 50 objects.
    * @throws Exception
    */
   @Test
@@ -216,7 +216,7 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   /**
-   * complete multipart upload with an empty part list.
+   * Complete multipart upload with an empty part list.
    * @throws Exception
    */
   @Test
@@ -230,7 +230,7 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   /**
-   * complete multipart upload with the subset of uploaded parts.
+   * Complete multipart upload with the subsequence of uploaded parts.
    * @throws Exception
    */
   @Test
@@ -254,7 +254,7 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   /**
-   * complete multipart upload with the invalid part list.
+   * Complete multipart upload with non-existent part number.
    * @throws Exception
    */
   @Test
@@ -285,7 +285,7 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   /**
-   * complete multipart upload with the invalid part order.
+   * Complete multipart upload with invalid part order.
    * @throws Exception
    */
   @Test
@@ -329,7 +329,7 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   /**
-   * complete multipart upload with the part size smaller than the limitation.
+   * Complete multipart upload with the part size smaller than the minimum.
    * @throws Exception
    */
   @Test
@@ -354,7 +354,7 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   /**
-   * complete multipart upload with non-existent upload id.
+   * Complete multipart upload with non-existent upload id.
    * @throws Exception
    */
   @Test
@@ -370,7 +370,7 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   /**
-   * abort multipart upload.
+   * Abort multipart upload.
    * @throws Exception
    */
   @Test
@@ -389,7 +389,7 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   /**
-   * abort multipart upload with non-existent upload id.
+   * Abort multipart upload with non-existent upload id.
    * @throws Exception
    */
   @Test
@@ -405,7 +405,7 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   /**
-   * get default options with username {@code CustomersName@amazon.com}.
+   * Get default options with username {@code CustomersName@amazon.com}.
    * @return
    */
   @Override
