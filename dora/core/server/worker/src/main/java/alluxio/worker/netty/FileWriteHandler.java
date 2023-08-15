@@ -45,10 +45,6 @@ public class FileWriteHandler extends AbstractWriteHandler<BlockWriteRequestCont
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final DoraWorker mWorker;
-  /** An object storing the mapping of tier aliases to ordinals. */
-  private final StorageTierAssoc mStorageTierAssoc = new DefaultStorageTierAssoc(
-      PropertyKey.WORKER_TIERED_STORE_LEVELS,
-      PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS);
 
   /**
    * Creates an instance of {@link FileWriteHandler}.
