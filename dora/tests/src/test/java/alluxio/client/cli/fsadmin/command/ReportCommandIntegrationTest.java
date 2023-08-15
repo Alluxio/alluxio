@@ -11,6 +11,7 @@
 
 package alluxio.client.cli.fsadmin.command;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.cli.fsadmin.command.ReportCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 
@@ -24,6 +25,8 @@ import org.junit.Test;
  */
 public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
+  @DoraTestTodoItem(owner = "jiacheng", action = DoraTestTodoItem.Action.FIX,
+      comment = "need to check if this command will still exist in Dora")
   @Ignore
   public void masterNotRunning() throws Exception {
     mLocalAlluxioCluster.stopMasters();
