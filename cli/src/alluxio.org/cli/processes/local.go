@@ -25,10 +25,7 @@ var Local = &LocalProcess{
 	},
 	Processes: []env.Process{
 		Master,
-		JobMaster,
 		Worker,
-		JobWorker,
-		Proxy,
 	},
 }
 
