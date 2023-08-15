@@ -23,6 +23,9 @@ import java.nio.file.Path;
 import java.util.Optional;
 import javax.annotation.Nullable;
 
+/**
+ * Fuse command line options.
+ */
 public class FuseCliOptions {
   @Parameter(
       names = {"-m", "--mount-point"},
@@ -75,7 +78,7 @@ public class FuseCliOptions {
   protected boolean mHelp = false;
 
   // Though this converts to an AlluxioURI, it's actually a UFS URI, because life is a lie :-)
-  private class UfsUriOptionConverter extends BaseValueConverter<AlluxioURI> {
+  private static class UfsUriOptionConverter extends BaseValueConverter<AlluxioURI> {
     UfsUriOptionConverter(String optionName) {
       super(optionName);
     }
@@ -94,18 +97,30 @@ public class FuseCliOptions {
     }
   }
 
+  /**
+   * @return the mount point on the local file system where Alluxio Fuse will be mounted
+   */
   public Optional<Path> getMountPoint() {
     return Optional.ofNullable(mMountPoint);
   }
 
+  /**
+   * @return URI of root UFS which is mapped to {@code /} in Alluxio namespace
+   */
   public Optional<AlluxioURI> getRootUfsUri() {
     return Optional.ofNullable(mRootUfsUri);
   }
 
+  /**
+   * @return if update check is enabled
+   */
   public Optional<Boolean> getUpdateCheck() {
     return Optional.ofNullable(mUpdateCheck);
   }
 
+  /**
+   * @return if user specified {@code --help}
+   */
   public Optional<Boolean> getHelp() {
     return Optional.ofNullable(mHelp);
   }
@@ -121,6 +136,9 @@ public class FuseCliOptions {
     return Optional.ofNullable(mMountCliOptions);
   }
 
+  /**
+   * @return options for this mount point
+   */
   public Optional<MountOptions> getMountOptions() {
     return getMountCliOptions().map(MountCliOptions::getMountOptions);
   }

@@ -34,10 +34,18 @@ public class MountOptions {
 
   protected final Map<String, String> mMountOptions;
 
+  /**
+   * Constructor.
+   *
+   * @param optionsMap a map contains option keys and values
+   */
   public MountOptions(Map<String, String> optionsMap) {
     mMountOptions = optionsMap;
   }
 
+  /**
+   * A set recognized option keys. Note inheriting classes may define their own set of keys.
+   */
   protected Set<String> getAlluxioFuseSpecificMountOptionKeys() {
     return ImmutableSet.of(
         FUSE_VERSION_OPTION_NAME,
@@ -48,26 +56,45 @@ public class MountOptions {
     );
   }
 
+  /**
+   * @return fuse version
+   * @see alluxio.jnifuse.utils.LibfuseVersion
+   */
   public Optional<String> getFuseVersion() {
     return Optional.ofNullable(mMountOptions.get(FUSE_VERSION_OPTION_NAME));
   }
 
+  /**
+   * @return list of data cache directories
+   */
   public Optional<String> getDataCacheDirs() {
     return Optional.ofNullable(mMountOptions.get(DATA_CACHE_DIRS_OPTION_NAME));
   }
 
+  /**
+   * @return list of capacities of data cache directories
+   */
   public Optional<String> getDataCacheSizes() {
     return Optional.ofNullable(mMountOptions.get(DATA_CACHE_SIZES_OPTION_NAME));
   }
 
+  /**
+   * @return size of metadata cache
+   */
   public Optional<String> getMetadataCacheSize() {
     return Optional.ofNullable(mMountOptions.get(METADATA_CACHE_SIZE_OPTION_NAME));
   }
 
+  /**
+   * @return expiration time of metadata entries
+   */
   public Optional<String> getMetadataCacheExpireTime() {
     return Optional.ofNullable(mMountOptions.get(METADATA_CACHE_EXPIRE_TIME_OPTION_NAME));
   }
 
+  /**
+   * @return map of recognized alluxio properties and values not specific to Alluxio Fuse
+   */
   public Map<String, String> getAlluxioOptions() {
     return Maps.filterKeys(mMountOptions, PropertyKey::isValid);
   }

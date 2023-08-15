@@ -76,11 +76,17 @@ public class MountCliOptions {
     }
   }
 
+  /**
+   * @return mount options
+   */
   public MountOptions getMountOptions() {
     Map<String, String> map = getOptionsMap();
     return new MountOptions(map);
   }
 
+  /**
+   * @return raw key-value map of mount options
+   */
   @VisibleForTesting
   public Map<String, String> getOptionsMap() {
     return mMountOptions.stream()
