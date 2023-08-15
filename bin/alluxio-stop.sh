@@ -12,5 +12,6 @@
 
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
-# temporary placeholder that redirects to alluxio-stop-bash.sh to prepare for golangCli branch merge
-"${BIN}/alluxio-stop-bash.sh" "$@"
+echo "The alluxio-stop.sh script is deprecated. Use the \"bin/alluxio process stop\" command to stop processes."
+
+"${BIN}"/alluxio process stop "$@"
