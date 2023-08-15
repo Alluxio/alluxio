@@ -114,7 +114,6 @@ public class UfsUrlTest {
    */
   @Test
   public void getDepthTests() {
-    assertEquals(0, UfsUrl.createInstance(".").getDepth());
     assertEquals(0, UfsUrl.createInstance("abc://localhost:19998/").getDepth());
     assertEquals(1, UfsUrl.createInstance("abc://localhost:19998/a").getDepth());
     assertEquals(2, UfsUrl.createInstance("abc://localhost:19998/a/b.txt").getDepth());

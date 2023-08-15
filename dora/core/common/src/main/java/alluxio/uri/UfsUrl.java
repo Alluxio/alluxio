@@ -81,6 +81,8 @@ public class UfsUrl {
         scheme = inputUrl.substring(start, schemeSplitIndex);
         start += scheme.length();
       }
+      Preconditions.checkArgument(!scheme.isEmpty(), "scheme is not allowed to be empty,"
+          + "please input again.");
       Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
           "Alluxio 3.x no longer supports alluxio:// scheme,"
               + " please input the UFS path directly like hdfs://host:port/path");
@@ -176,6 +178,11 @@ public class UfsUrl {
    * @param proto the proto of the UfsUrl
    */
   private UfsUrl(UfsUrlMessage proto) {
+    Preconditions.checkArgument(!proto.getScheme().isEmpty(), "scheme is not allowed to be empty,"
+        + "please input again.");
+    Preconditions.checkArgument(!proto.getScheme().equalsIgnoreCase("alluxio"),
+        "Alluxio 3.x no longer supports alluxio:// scheme,"
+            + " please input the UFS path directly like hdfs://host:port/path");
     mProto = proto;
   }
 
@@ -186,6 +193,11 @@ public class UfsUrl {
    * @param path the path component of the UfsUrl
    */
   public UfsUrl(String scheme, String authority, String path) {
+    Preconditions.checkArgument(!scheme.isEmpty(), "scheme is not allowed to be empty,"
+        + "please input again.");
+    Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
+        "Alluxio 3.x no longer supports alluxio:// scheme,"
+            + " please input the UFS path directly like hdfs://host:port/path");
     String[] arrayOfPath = path.split(SLASH_SEPARATOR);
     List<String> pathComponentsList = Arrays.asList(arrayOfPath);
     mProto = UfsUrlMessage.newBuilder()
