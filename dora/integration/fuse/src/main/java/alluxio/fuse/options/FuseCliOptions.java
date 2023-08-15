@@ -59,7 +59,8 @@ public class FuseCliOptions {
           + "Disabled by default when connecting to Alluxio system cache or Dora cache. "
           + "Enabled by default when connecting an under storage directly.",
       arity = 0,
-      required = false
+      required = false,
+      hidden = true
   )
   @Nullable
   protected Boolean mUpdateCheck = null;
