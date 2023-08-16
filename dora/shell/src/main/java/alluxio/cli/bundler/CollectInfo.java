@@ -243,6 +243,7 @@ public class CollectInfo extends AbstractShell {
   private List<String> cmdLineToArgs(CommandLine cmd) {
     List<String> args = new ArrayList<>();
     for (Option opt : cmd.getOptions()) {
+      System.out.format("Option: %s%n", opt);
       if (opt.equals(LOCAL_OPTION) || opt.equals(THREAD_NUM_OPTION)) {
         continue;
       }
