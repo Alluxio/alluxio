@@ -37,9 +37,8 @@ var Master = &MasterProcess{
 }
 
 const (
-	confAlluxioMasterAuditLoggerType       = "alluxio.master.audit.logger.type"
-	confAlluxioMasterJournalFolder         = "alluxio.master.journal.folder"
-	confAlluxioMasterJournalInitFromBackup = "alluxio.master.journal.init.from.backup"
+	confAlluxioMasterAuditLoggerType = "alluxio.master.audit.logger.type"
+	confAlluxioMasterJournalFolder   = "alluxio.master.journal.folder"
 
 	envAlluxioAuditMasterLogger = "ALLUXIO_AUDIT_MASTER_LOGGER"
 	envAlluxioMasterLogger      = "ALLUXIO_MASTER_LOGGER"
@@ -58,8 +57,6 @@ var (
 
 type MasterProcess struct {
 	*env.BaseProcess
-
-	JournalBackupFile string
 }
 
 func (p *MasterProcess) Base() *env.BaseProcess {
@@ -81,7 +78,6 @@ func (p *MasterProcess) SetEnvVars(envVar *viper.Viper) {
 
 func (p *MasterProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
 	cmd.Use = p.Name
-	cmd.Flags().StringVar(&p.JournalBackupFile, "journal-backup-file", "", "Path to journal backup file to restore the master from")
 	return cmd
 }
 
@@ -99,9 +95,6 @@ func (p *MasterProcess) Start(cmd *env.StartProcessCommand) error {
 	masterJavaOpts := env.Env.EnvVar.GetString(p.JavaOptsEnvVarKey)
 	cmdArgs = append(cmdArgs, strings.Split(masterJavaOpts, " ")...)
 
-	if p.JournalBackupFile != "" {
-		cmdArgs = append(cmdArgs, strings.TrimSpace(fmt.Sprintf(env.JavaOptFormat, confAlluxioMasterJournalInitFromBackup, p.JournalBackupFile)))
-	}
 	// specify a default of -Xmx8g if no memory setting is specified
 	const xmxOpt = "-Xmx"
 	if !strings.Contains(masterJavaOpts, xmxOpt) && !strings.Contains(masterJavaOpts, "MaxRAMPercentage") {
