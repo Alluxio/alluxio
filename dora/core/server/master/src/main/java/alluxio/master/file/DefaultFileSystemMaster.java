@@ -2223,7 +2223,10 @@ public class DefaultFileSystemMaster extends CoreMaster
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
       for (int i = inodesToDelete.size() - 1; i >= 0; i--) {
-        rpcContext.throwIfCancelled();
+        if (rpcContext.isCancelled()) {
+          inodesToDelete.set(i, null);
+          continue;
+        }
         Pair<AlluxioURI, LockedInodePath> inodePairToDelete = inodesToDelete.get(i);
         AlluxioURI alluxioUriToDelete = inodePairToDelete.getFirst();
         Inode inodeToDelete = inodePairToDelete.getSecond().getInode();
