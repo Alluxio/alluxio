@@ -16,13 +16,13 @@ import alluxio.cli.CommandUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.util.HashUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -42,9 +42,8 @@ public class StaticMembershipManager implements MembershipManager {
   /**
    * @param conf
    * @return StaticMembershipManager
-   * @throws IOException
    */
-  public static StaticMembershipManager create(AlluxioConfiguration conf) throws IOException {
+  public static StaticMembershipManager create(AlluxioConfiguration conf) {
     // user conf/workers, use default port
     String workerListFile = conf.getString(
         PropertyKey.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE);
@@ -70,14 +69,14 @@ public class StaticMembershipManager implements MembershipManager {
    * @param configFile
    * @param conf
    * @return list of parsed WorkerInfos
-   * @throws IOException
+   * @throws NotFoundRuntimeException if the config file is not found
    */
   private static List<WorkerInfo> parseWorkerAddresses(
-      String configFile, AlluxioConfiguration conf) throws IOException {
+      String configFile, AlluxioConfiguration conf) {
     List<WorkerNetAddress> workerAddrs = new ArrayList<>();
     File file = new File(configFile);
     if (!file.exists()) {
-      throw new FileNotFoundException("Not found for static worker config file:" + configFile);
+      throw new NotFoundRuntimeException("Not found for static worker config file:" + configFile);
     }
     Set<String> workerHostnames = CommandUtils.readNodeList("", configFile);
     for (String workerHostname : workerHostnames) {

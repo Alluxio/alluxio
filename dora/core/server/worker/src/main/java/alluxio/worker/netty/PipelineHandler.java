@@ -74,16 +74,16 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
 
     // UFS Handlers
     pipeline.addLast("ufsFileWriteHandler", new UfsFileWriteHandler(
-        NettyExecutors.FILE_WRITER_EXECUTOR, mUfsManager));
+        NettyExecutors.UFS_WRITER_EXECUTOR, mUfsManager));
     // Unsupported Message Handler
     pipeline.addLast("unsupportedMessageHandler", new UnsupportedMessageHandler());
   }
 
   private void addBlockHandlerForDora(ChannelPipeline pipeline) {
     pipeline.addLast("fileReadHandler",
-        new FileReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR, mDoraWorker, mFileTransferType));
+        new FileReadHandler(NettyExecutors.READER_EXECUTOR, mDoraWorker, mFileTransferType));
     //TODO(JiamingMai): WriteHandle also needs to be replaced, but it has not been implemented yet
     pipeline.addLast("fileWriteHandler",
-        new FileWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mDoraWorker));
+        new FileWriteHandler(NettyExecutors.WRITER_EXECUTOR, mDoraWorker));
   }
 }

@@ -59,7 +59,6 @@ import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -568,13 +567,6 @@ public interface FileSystem extends Closeable {
       throws IOException, AlluxioException;
 
   /**
-   * Lists all the actively synced paths.
-   *
-   * @return a list of actively synced paths
-   */
-  List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException;
-
-  /**
    * Convenience method for {@link #openFile(AlluxioURI, OpenFilePOptions)} with default options.
    *
    * @param path the file to read from
@@ -728,20 +720,6 @@ public interface FileSystem extends Closeable {
    * @throws FileDoesNotExistException if the given file does not exist
    */
   void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries, SetAclPOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException;
-
-  /**
-   * Starts the active syncing process on an Alluxio path.
-   * @param path the path to sync
-   */
-  void startSync(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException;
-
-  /**
-   * Stops the active syncing process on an Alluxio path.
-   * @param path the path to stop syncing
-   */
-  void stopSync(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**

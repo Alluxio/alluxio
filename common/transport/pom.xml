@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -15,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-common</artifactId>
-    <version>303-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-transport</artifactId>
   <packaging>jar</packaging>
@@ -33,7 +34,6 @@
   </properties>
 
   <dependencies>
-    <!-- External dependencies -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -56,62 +56,7 @@
     </dependency>
   </dependencies>
 
-  <profiles>
-    <profile>
-      <id>generate</id>
-      <properties>
-        <skip.protoc>false</skip.protoc>
-      </properties>
-      <build>
-        <plugins>
-          <!-- Cleans the generated java files, prior to regenerating them from the proto/grpc definitions.  -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-clean-plugin</artifactId>
-            <configuration>
-              <filesets>
-                <fileset>
-                  <directory>src/main/java/alluxio/proto</directory>
-                  <followSymlinks>false</followSymlinks>
-                  <includes>
-                    <include>**/*.java</include>
-                  </includes>
-                </fileset>
-                <fileset>
-                  <directory>src/main/java/alluxio/grpc</directory>
-                  <followSymlinks>false</followSymlinks>
-                  <includes>
-                    <include>**/*.java</include>
-                  </includes>
-                </fileset>
-              </filesets>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>java11</id>
-      <activation>
-        <jdk>11</jdk>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>javax.annotation</groupId>
-          <artifactId>javax.annotation-api</artifactId>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
-
   <build>
-    <extensions>
-      <extension>
-        <groupId>kr.motd.maven</groupId>
-        <artifactId>os-maven-plugin</artifactId>
-        <version>1.6.2</version>
-      </extension>
-    </extensions>
     <plugins>
       <plugin>
         <groupId>org.xolstice.maven.plugins</groupId>
@@ -176,5 +121,60 @@
         </configuration>
       </plugin>
     </plugins>
+    <extensions>
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>1.6.2</version>
+      </extension>
+    </extensions>
   </build>
+
+  <profiles>
+    <profile>
+      <id>generate</id>
+      <properties>
+        <skip.protoc>false</skip.protoc>
+      </properties>
+      <build>
+        <plugins>
+          <!-- Cleans the generated java files, prior to regenerating them from the proto/grpc definitions.  -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-clean-plugin</artifactId>
+            <configuration>
+              <filesets>
+                <fileset>
+                  <directory>src/main/java/alluxio/proto</directory>
+                  <followSymlinks>false</followSymlinks>
+                  <includes>
+                    <include>**/*.java</include>
+                  </includes>
+                </fileset>
+                <fileset>
+                  <directory>src/main/java/alluxio/grpc</directory>
+                  <followSymlinks>false</followSymlinks>
+                  <includes>
+                    <include>**/*.java</include>
+                  </includes>
+                </fileset>
+              </filesets>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>java11</id>
+      <activation>
+        <jdk>11</jdk>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>javax.annotation</groupId>
+          <artifactId>javax.annotation-api</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 </project>

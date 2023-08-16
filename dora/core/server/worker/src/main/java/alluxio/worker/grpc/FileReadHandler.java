@@ -98,7 +98,7 @@ public class FileReadHandler implements StreamObserver<ReadRequest> {
     mDataReaderExecutor = executorService;
     mResponseObserver = responseObserver;
     mSerializingExecutor =
-        new SerializingExecutor(GrpcExecutors.BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR);
+        new SerializingExecutor(GrpcExecutors.READER_SERIALIZED_RUNNER_EXECUTOR);
     mWorker = worker;
     mIsReaderBufferPooled =
         Configuration.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED);

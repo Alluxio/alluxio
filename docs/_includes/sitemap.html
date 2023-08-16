@@ -15,13 +15,15 @@
     </div>
     <div id="{{item.buttonTitle}}" class="collapse scrollable-content" >
         {% for files in item.subfiles %}
+        {% if files.url !=null %}
         <div>
             <a class="collapse-items" href="{{site.baseurl}}{{ files.url }}" >{{ files.title }}</a>
         </div>
-        {% endfor %}
-        {% if item.subitems %}
-        {% include sitemap.html map=item.subitems %}
         {% endif %}
+        {% if files.subfiles %}
+        {% include sitemap.html map= files.subfiles %}
+        {% endif %}
+        {% endfor %}
     </div>
     {% endif %}
     {% endfor %}

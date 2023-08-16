@@ -40,7 +40,6 @@ import alluxio.job.JobRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -164,13 +163,6 @@ public interface FileSystemMasterClient extends Client {
    * @return the next blockId for the file
    */
   long getNewBlockIdForFile(AlluxioURI path) throws AlluxioStatusException;
-
-  /**
-   * get the list of paths that are currently being actively synced.
-   *
-   * @return the list of paths
-   */
-  List<SyncPointInfo> getSyncPathList() throws AlluxioStatusException;
 
   /**
    * Performs a specific action on each {@code URIStatus} in the result of {@link #listStatus}.
@@ -299,22 +291,6 @@ public interface FileSystemMasterClient extends Client {
    * @throws NotFoundException if the path does not exist
    */
   void setAttribute(AlluxioURI path, SetAttributePOptions options) throws AlluxioStatusException;
-
-  /**
-   * Start the active syncing process for a specified path.
-   *
-   * @param path the file or directory to be synced
-   * @throws AlluxioStatusException
-   */
-  void startSync(AlluxioURI path) throws AlluxioStatusException;
-
-  /**
-   * Stop the active syncing process for a specified path.
-   *
-   * @param path the file or directory to stop syncing
-   * @throws AlluxioStatusException
-   */
-  void stopSync(AlluxioURI path) throws AlluxioStatusException;
 
   /**
    * Schedules the async persistence of the given file.
