@@ -11,13 +11,6 @@
 
 package alluxio.worker.dora;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-
 import alluxio.AlluxioURI;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
@@ -26,20 +19,7 @@ import alluxio.client.file.cache.PageMetaStore;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
-import alluxio.grpc.CompleteFilePOptions;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.FileInfo;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadFileFailure;
-import alluxio.grpc.Route;
-import alluxio.grpc.RouteFailure;
-import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.UfsReadOptions;
-import alluxio.grpc.WriteOptions;
+import alluxio.grpc.*;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.io.BufferUtils;
@@ -66,6 +46,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.Assert.*;
 
 public class PagedDoraWorkerTest {
   private PagedDoraWorker mWorker;
@@ -153,7 +135,7 @@ public class PagedDoraWorkerTest {
       byte[] readBuffer = new byte[length];
       while (in.read(readBuffer) != -1) {
       }
-      Assert.assertArrayEquals(buffer, readBuffer);
+      assertArrayEquals(buffer, readBuffer);
     }
   }
 
@@ -248,7 +230,7 @@ public class PagedDoraWorkerTest {
       byte[] readBuffer = new byte[length];
       while (in.read(readBuffer) != -1) {
       }
-      Assert.assertArrayEquals(buffer, readBuffer);
+      assertArrayEquals(buffer, readBuffer);
     }
   }
 
@@ -280,7 +262,7 @@ public class PagedDoraWorkerTest {
       byte[] readBuffer = new byte[length];
       while (in.read(readBuffer) != -1) {
       }
-      Assert.assertArrayEquals(buffer, readBuffer);
+      assertArrayEquals(buffer, readBuffer);
     }
   }
 
@@ -378,7 +360,7 @@ public class PagedDoraWorkerTest {
       byte[] readBuffer = new byte[length];
       while (in.read(readBuffer) != -1) {
       }
-      Assert.assertArrayEquals(buffer, readBuffer);
+      assertArrayEquals(buffer, readBuffer);
     }
   }
 
@@ -572,13 +554,19 @@ public class PagedDoraWorkerTest {
     mTestFolder.newFolder("root/d1");
     mTestFolder.newFolder("root/d1/d1");
     mTestFolder.newFolder("root/d2");
+    String[] answerRecursiveOpen= {"d1","d2","d1/d1"};
+    String[] answerNonRecursiveOpen= {"d1","d2"};
     UfsStatus[] listResult =
         mWorker.listStatus(rootPath, ListStatusPOptions.newBuilder().setRecursive(true).build());
-    assertEquals(3, listResult.length);
+    String[] tmp = UfsStatus.convertToNames(listResult);
+//    assertEquals(3, listResult.length);
+    assertArrayEquals(answerRecursiveOpen, tmp);
     assertFalse(mWorker.getMetaManager().listCached(rootPath, true).isPresent());
     listResult =
         mWorker.listStatus(rootPath, ListStatusPOptions.newBuilder().setRecursive(false).build());
-    assertEquals(2, listResult.length);
+    tmp = UfsStatus.convertToNames(listResult);
+//    assertEquals(2, listResult.length);
+    assertArrayEquals(answerNonRecursiveOpen, tmp);
   }
 
   @Test
@@ -597,8 +585,10 @@ public class PagedDoraWorkerTest {
     assertEquals(1, listResult.length);
 
     FileInfo fileInfo = mWorker.getGrpcFileInfo(f.getPath(), 0);
-    loadFileData(f.getPath());
+//    loadFileData(f.getPath());
+//    assertNotNull(fileInfo);
     assertNotNull(fileInfo);
+    loadFileData(f.getPath()); // load file data into cache
 
     // Assert that page cache, metadata cache & list cache all cached data properly
     assertTrue(mWorker.getMetaManager().getFromMetaStore(f.getPath()).isPresent());
@@ -641,5 +631,24 @@ public class PagedDoraWorkerTest {
 
     mWorker.completeFile(testFile.getPath(), CompleteFilePOptions.getDefaultInstance(),
         handle.getUUID().toString());
+  }
+
+  @Test
+  public void testExists() throws Exception {
+    File rootFolder = mTestFolder.newFolder("root");
+    String rootPath = rootFolder.getAbsolutePath();
+    mTestFolder.newFolder("root/d1");
+    assertTrue(mWorker.exists(rootPath, ExistsPOptions.getDefaultInstance()));
+    assertTrue(mWorker.exists(rootPath + "/d1", ExistsPOptions.getDefaultInstance()));
+
+    mWorker.delete(rootPath + "/d1", DeletePOptions.getDefaultInstance());
+    assertFalse(mWorker.exists(rootPath + "/d1", ExistsPOptions.getDefaultInstance()));
+    mWorker.delete(rootPath, DeletePOptions.getDefaultInstance());
+    assertFalse(mWorker.exists(rootPath, ExistsPOptions.getDefaultInstance()));
+  }
+
+  @Test
+  public void testRename() throws Exception {
+
   }
 }
