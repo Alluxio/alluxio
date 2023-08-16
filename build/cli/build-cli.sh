@@ -14,13 +14,13 @@ set -eu
 
 CLI_DIR=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
-# mapping of GOOS/GOARCH value to uname value
-declare -A ALL_OS
-ALL_OS["linux"]="Linux"
-ALL_OS["darwin"]="Darwin"
-declare -A ALL_ARCH
-ALL_ARCH["amd64"]="x86_64"
-ALL_ARCH["arm64"]="aarch64"
+# tuple of GOOS, GOARCH, and combined uname value for binary name
+OS_ARCH_TUPLES=(
+"linux amd64 Linux-x86_64"
+"darwin amd64 Darwin-x86_64"
+"linux arm64 Linux-aarch64"
+"darwin arm64 Darwin-aarch64"
+)
 
 MAIN_PATH="cli/main.go"
 USAGE="Usage: build-cli.sh [-a]
@@ -49,11 +49,10 @@ main() {
   if [[ ${build_all} == "false" ]]; then
     GO111MODULE=on go build -o "${cliBinDir}/alluxioCli-$(uname)-$(uname -m)" "${MAIN_PATH}"
   else
-    for osKey in "${!ALL_OS[@]}"; do
-      for archKey in "${!ALL_ARCH[@]}"; do
-        echo "Building executable for ${osKey} ${archKey}"
-        GO111MODULE=on GOOS="${osKey}" GOARCH="${archKey}" go build -o "${cliBinDir}/alluxioCli-${ALL_OS[$osKey]}-${ALL_ARCH[$archKey]}" "${MAIN_PATH}"
-      done
+    for val in "${OS_ARCH_TUPLES[@]}"; do
+      IFS=" " read -r -a tuple <<< "${val}"
+      echo "Building executable for ${tuple[0]} ${tuple[1]}"
+      GO111MODULE=on GOOS="${tuple[0]}" GOARCH="${tuple[1]}" go build -o "${cliBinDir}/alluxioCli-${tuple[2]}" "${MAIN_PATH}"
     done
   fi
 }

@@ -9,11 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.fuse.ufs;
+package alluxio.client.fuse.dora;
 
 import static jnr.constants.platform.OpenFlags.O_WRONLY;
 
 import alluxio.client.file.options.FileSystemOptions;
+import alluxio.conf.Configuration;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
@@ -25,31 +26,23 @@ import org.junit.Assert;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-public abstract class AbstractFuseFileSystemTest extends AbstractTest {
+public abstract class AbstractFuseFileSystemTest extends AbstractFuseDoraTest {
   protected AlluxioJniFuseFileSystem mFuseFs;
   protected AlluxioFuseUtils.CloseableFuseFileInfo mFileInfo;
   protected FileStat mFileStat;
 
-  /**
-   * Runs FUSE with UFS related tests with different configuration combinations.
-   *
-   * @param localDataCacheEnabled     whether local data cache is enabled
-   * @param localMetadataCacheEnabled whether local metadata cache is enabled
-   */
-  public AbstractFuseFileSystemTest(boolean localDataCacheEnabled,
-      boolean localMetadataCacheEnabled) {
-    super(localDataCacheEnabled, localMetadataCacheEnabled);
-  }
-
   @Override
   public void beforeActions() {
-    final FuseOptions fuseOptions = FuseOptions.Builder.fromConfig(mContext.getClusterConf())
-        .setFileSystemOptions(FileSystemOptions.Builder.fromConf(mConf)
+    final FileSystemOptions fileSystemOptions =
+        FileSystemOptions.Builder
+            .fromConf(mContext.getClusterConf())
             .setUfsFileSystemOptions(mUfsOptions)
-            .build())
-        .setUpdateCheckEnabled(false)
-        .build();
-    mFuseFs = new AlluxioJniFuseFileSystem(mContext, mFileSystem, fuseOptions);
+            .build();
+    mFuseFs = new AlluxioJniFuseFileSystem(mContext, mFileSystem,
+        FuseOptions.Builder.fromConfig(Configuration.global())
+            .setFileSystemOptions(fileSystemOptions)
+            .setUpdateCheckEnabled(false)
+            .build());
     mFileStat = FileStat.of(ByteBuffer.allocateDirect(256));
     mFileInfo = new AlluxioFuseUtils.CloseableFuseFileInfo();
   }
@@ -71,7 +64,7 @@ public abstract class AbstractFuseFileSystemTest extends AbstractTest {
     Assert.assertEquals(0, mFuseFs.create(path, DEFAULT_MODE.toShort(), mFileInfo.get()));
     ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(size);
     Assert.assertEquals(size,
-        mFuseFs.write(FILE, buffer, size, 0, mFileInfo.get()));
+        mFuseFs.write(path, buffer, size, 0, mFileInfo.get()));
     Assert.assertEquals(0, mFuseFs.release(path, mFileInfo.get()));
   }
 }

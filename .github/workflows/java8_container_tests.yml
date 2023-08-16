@@ -1,4 +1,7 @@
-name: Java 8 Unit Tests
+name: Java 8 Container Tests
+
+# This build runs integration tests using testcontainers
+# The user executing the test command must have access to a running docker daemon
 
 on: [pull_request]
 
@@ -11,9 +14,7 @@ jobs:
       matrix:
         modules:
           - >-
-            !alluxio.client.**,!alluxio.master.**
-          - >-
-            alluxio.client.**,alluxio.master.**
+            alluxio.membership.**
 
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.title, 'DOCFIX') &&
@@ -46,7 +47,8 @@ jobs:
           mkdir -p ~/.m2
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
-          ALLUXIO_DOCKER_MVN_PROJECT_LIST=\!assembly/client,\!assembly/server,\!dora/tests/integration,\!dora/tests/testcontainers,\!dora/microbench,\!webui \
+          ALLUXIO_DOCKER_ID=0 \
+          ALLUXIO_DOCKER_MVN_PROJECT_LIST=dora/tests/testcontainers \
           ALLUXIO_DOCKER_MVN_TESTS=${{ matrix.modules }} \
           dev/github/run_docker.sh
         timeout-minutes: 60
