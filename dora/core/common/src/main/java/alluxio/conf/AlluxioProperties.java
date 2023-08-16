@@ -156,6 +156,30 @@ public class AlluxioProperties {
   }
 
   /**
+   * Merges properties from another instance. If a property exists
+   * both in the new and current configuration, the one from the new configuration wins if
+   * its priority is higher or equal than the existing one.
+   *
+   * @param properties the properties to merge from
+   */
+  public void merge(AlluxioProperties properties) {
+    if (properties == null || properties.userKeySet().isEmpty()) {
+      return;
+    }
+    for (Map.Entry<PropertyKey, Optional<Object>> entry : properties.mUserProps.entrySet()) {
+      PropertyKey key = entry.getKey();
+      Optional<Object> value = entry.getValue();
+      Source thatSource = properties.getSource(entry.getKey());
+      Source thisSource = getSource(key);
+      if (!mUserProps.containsKey(key) || thatSource.compareTo(thisSource) >= 0) {
+        mUserProps.put(key, value);
+        mSources.put(key, thatSource);
+      }
+    }
+    mHash.markOutdated();
+  }
+
+  /**
    * Remove the value set for key.
    *
    * @param key key to remove

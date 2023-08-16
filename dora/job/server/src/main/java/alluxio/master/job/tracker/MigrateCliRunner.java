@@ -73,7 +73,7 @@ public class MigrateCliRunner extends AbstractCmdRunner {
   public CmdInfo runDistCp(AlluxioURI srcPath, AlluxioURI dstPath,
                            boolean overwrite, int batchSize, long jobControlId) throws IOException {
     long submissionTime = System.currentTimeMillis();
-    AlluxioConfiguration conf = mFsContext.getPathConf(dstPath);
+    AlluxioConfiguration conf = mFsContext.getClusterConf();
     WriteType writeType = conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     List<Pair<String, String>> filePool = new ArrayList<>(batchSize);
 

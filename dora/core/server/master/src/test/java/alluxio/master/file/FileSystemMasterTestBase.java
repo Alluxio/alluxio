@@ -154,6 +154,11 @@ public class FileSystemMasterTestBase {
           put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, AlluxioTestDirectory
               .createTemporaryDirectory("FileSystemMasterTest").getAbsolutePath());
           put(PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED, false);
+          put(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS, 2);
+          put(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(0),
+              Constants.MEDIUM_MEM);
+          put(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(1),
+              Constants.MEDIUM_SSD);
         }
       }, Configuration.modifiableGlobal());
 
@@ -191,7 +196,6 @@ public class FileSystemMasterTestBase {
     mUnderFS = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     mNestedFileContext = CreateFileContext.mergeFrom(
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB)
-            .setWriteType(WritePType.MUST_CACHE)
             .setRecursive(true));
     mJournalFolder = mTestFolder.newFolder().getAbsolutePath();
     startServices();
@@ -326,8 +330,7 @@ public class FileSystemMasterTestBase {
     // write the file
     WritePType writeType = createFileContext.getOptions().getWriteType();
     if (info.getUfsPath() != null && (
-        writeType == WritePType.CACHE_THROUGH || writeType == WritePType.THROUGH
-            || writeType == WritePType.ASYNC_THROUGH)) {
+        writeType == WritePType.CACHE_THROUGH || writeType == WritePType.THROUGH)) {
       Files.createFile(Paths.get(info.getUfsPath()));
     }
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB,

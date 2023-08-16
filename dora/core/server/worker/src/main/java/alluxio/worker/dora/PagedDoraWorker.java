@@ -30,6 +30,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
@@ -256,7 +257,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         mMembershipManager.join(new WorkerInfo().setAddress(mAddress));
         mWorkerId.set(HashUtils.hashAsLong(mAddress.dumpMainInfo()));
         break;
-      } catch (IOException ioe) {
+      } catch (UnavailableRuntimeException ioe) {
+        /* We should only expect such exception when situation such as
+         * etcd hasn't started up yet when alluxio components and etcd
+         * are starting up at same time. In such case we keep retrying.
+         */
         if (!retry.attempt()) {
           throw ioe;
         }
@@ -529,7 +534,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                   .setRetryable(t.isRetryable() && permissionCheckSucceeded)
                   .setMessage(t.getMessage()).build());
             }
-          }, GrpcExecutors.BLOCK_READER_EXECUTOR);
+          }, GrpcExecutors.READER_EXECUTOR);
           futures.add(loadFuture);
         } catch (RejectedExecutionException ex) {
           LOG.warn("BlockDataReaderExecutor overloaded.");
@@ -541,7 +546,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         }
       }
     }
-    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_READER_EXECUTOR);
+    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.READER_EXECUTOR);
   }
 
   protected void loadData(String ufsPath, long mountId, long length)
@@ -601,7 +606,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             }
             errors.add(builder.build());
           }
-        }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+        }, GrpcExecutors.WRITER_EXECUTOR);
         futures.add(future);
       } catch (IOException e) {
         // ignore close error
@@ -614,7 +619,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         errors.add(builder.build());
       }
     }
-    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.WRITER_EXECUTOR);
   }
 
   protected UnderFileSystem getUnderFileSystem(String ufsPath) {
@@ -665,7 +670,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             }
             errors.add(builder.build());
           }
-        }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+        }, GrpcExecutors.WRITER_EXECUTOR);
         futures.add(future);
       } catch (IOException e) {
         // ignore close error
@@ -678,7 +683,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         errors.add(builder.build());
       }
     }
-    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.WRITER_EXECUTOR);
   }
 
   @Override

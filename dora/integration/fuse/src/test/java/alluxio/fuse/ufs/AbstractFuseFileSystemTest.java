@@ -43,12 +43,12 @@ public abstract class AbstractFuseFileSystemTest extends AbstractTest {
 
   @Override
   public void beforeActions() {
-    final FuseOptions fuseOptions = FuseOptions.create(
-        mContext.getClusterConf(),
-        FileSystemOptions.Builder.fromConf(mConf)
-            .setUfsFileSystemOptions(mUfsOptions).build(),
-        false
-    );
+    final FuseOptions fuseOptions = FuseOptions.Builder.fromConfig(mContext.getClusterConf())
+        .setFileSystemOptions(FileSystemOptions.Builder.fromConf(mConf)
+            .setUfsFileSystemOptions(mUfsOptions)
+            .build())
+        .setUpdateCheckEnabled(false)
+        .build();
     mFuseFs = new AlluxioJniFuseFileSystem(mContext, mFileSystem, fuseOptions);
     mFileStat = FileStat.of(ByteBuffer.allocateDirect(256));
     mFileInfo = new AlluxioFuseUtils.CloseableFuseFileInfo();

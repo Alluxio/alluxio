@@ -275,15 +275,11 @@ func getSingleRegexMatch(re *regexp.Regexp, l string) (string, error) {
 	return namedMatch, nil
 }
 
-type Subfile struct {
-	Title string `yaml:"title"`
-	URL   string `yaml:"url"`
-}
-
 type File struct {
-	ButtonTitle string    `yaml:"buttonTitle"`
-	Subfiles    []Subfile `yaml:"subfiles"`
-	Subitems    []File    `yaml:"subitems"`
+	Title       string `yaml:"title"`
+	URL         string `yaml:"url"`
+	ButtonTitle string `yaml:"buttonTitle"`
+	Subfiles    []File `yaml:"subfiles"`
 }
 
 // get url from menuPath with two checks one is the buttonTitle check and the second is the url end checks
@@ -317,12 +313,16 @@ func checkAndSaveUrl(files []File, menuMap map[string]struct{}, errMsgs []string
 			if strings.HasSuffix(subfile.URL, mdType) {
 				errMsgs = append(errMsgs, fmt.Sprintf("error msg: docs %v with url %v is ended with %v, please replace %v with %v", subfile.Title, subfile.URL, mdType, mdType, htmlType))
 			}
+			// ignore the folder path
+			if subfile.URL == "" {
+				//recall the function until subfile.subFiles is empty
+				checkAndSaveUrl(subfile.Subfiles, menuMap, errMsgs)
+				continue
+			}
 			// replace the url ending to .md in order to compare with actually list of docs in directory of docs
 			subfilePath := strings.Replace(subfile.URL, htmlType, mdType, 1)
 			menuMap[subfilePath] = struct{}{}
 		}
-		//recall the function until file.subitem is empty
-		checkAndSaveUrl(file.Subitems, menuMap, errMsgs)
 	}
 }
 
@@ -359,7 +359,6 @@ func checkUrlMatch(docsPath, checkPath string, menuListOfURL map[string]struct{}
 	}); err != nil {
 		return fmt.Errorf("error walking thorugh %v with message: \n %v", docsPath, err)
 	}
-	// check the diff
 	switch {
 	case len(menuListOfURL) > len(filePaths):
 		result := compareDiff(menuListOfURL, filePaths)

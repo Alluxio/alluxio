@@ -71,7 +71,6 @@ public class ServiceDiscoveryRecipe {
    * @param clusterIdentifier
    */
   public ServiceDiscoveryRecipe(AlluxioEtcdClient client, String clusterIdentifier) {
-    client.connect();
     mAlluxioEtcdClient = client;
     mClusterIdentifier = clusterIdentifier;
     mRegisterPathPrefix = String.format("%s%s%s", BASE_PATH,

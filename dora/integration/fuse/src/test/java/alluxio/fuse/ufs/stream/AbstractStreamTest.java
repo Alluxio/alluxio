@@ -18,6 +18,8 @@ import alluxio.client.file.URIStatus;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.LaunchUserGroupAuthPolicy;
 import alluxio.fuse.file.FuseFileStream;
+import alluxio.fuse.file.FuseStreamFactory;
+import alluxio.fuse.file.SimpleFuseStreamFactory;
 import alluxio.fuse.ufs.AbstractTest;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -37,7 +39,7 @@ import java.util.UUID;
 public abstract class AbstractStreamTest extends AbstractTest {
   protected static final Mode DEFAULT_MODE = new Mode(
       Mode.Bits.ALL, Mode.Bits.READ, Mode.Bits.READ);
-  protected FuseFileStream.Factory mStreamFactory;
+  protected FuseStreamFactory mStreamFactory;
 
   /**
    * Runs {@link AbstractStreamTest} with different configuration combinations.
@@ -54,7 +56,7 @@ public abstract class AbstractStreamTest extends AbstractTest {
     AuthPolicy authPolicy = LaunchUserGroupAuthPolicy.create(mFileSystem,
         mContext.getClusterConf(), Optional.empty());
     authPolicy.init();
-    mStreamFactory = new FuseFileStream.Factory(mFileSystem, authPolicy);
+    mStreamFactory = new SimpleFuseStreamFactory(mFileSystem, authPolicy);
   }
 
   @Override

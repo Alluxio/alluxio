@@ -313,7 +313,7 @@ message CopyResponse {
 
 message WriteOptions {
   optional bool overwrite = 1;
-  optional grpc.file.WritePType write_type = 2;
+  optional grpc.file.WritePType write_type = 2 [default = CACHE_THROUGH];
   optional bool check_content = 3;
 }
 
