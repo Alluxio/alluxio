@@ -33,6 +33,7 @@ JniFuseFileSystem::JniFuseFileSystem(JNIEnv *env, jobject obj) {
   this->chownOper = new ChownOperation(this);
   this->createOper = new CreateOperation(this);
   this->flushOper = new FlushOperation(this);
+  this->fsyncOper = new FsyncOperation(this);
   this->getattrOper = new GetattrOperation(this);
   this->getxattrOper = new GetxattrOperation(this);
   this->listxattrOper = new ListxattrOperation(this);
@@ -59,6 +60,7 @@ JniFuseFileSystem::~JniFuseFileSystem() {
   delete this->chownOper;
   delete this->createOper;
   delete this->flushOper;
+  delete this->fsyncOper;
   delete this->getattrOper;
   delete this->getxattrOper;
   delete this->listxattrOper;

@@ -22,6 +22,7 @@ class ChmodOperation;
 class ChownOperation;
 class CreateOperation;
 class FlushOperation;
+class FsyncOperation;
 class GetattrOperation;
 class GetxattrOperation;
 class ListxattrOperation;
@@ -62,6 +63,7 @@ class JniFuseFileSystem {
   ChownOperation *chownOper;
   CreateOperation *createOper;
   FlushOperation *flushOper;
+  FsyncOperation *fsyncOper;
   GetattrOperation *getattrOper;
   GetxattrOperation *getxattrOper;
   ListxattrOperation *listxattrOper;

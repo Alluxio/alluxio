@@ -54,6 +54,10 @@ int flush_wrapper(const char *path, struct fuse_file_info *fi) {
   return jnifuse::JniFuseFileSystem::getInstance()->flushOper->call(path, fi);
 }
 
+int fsync_wrapper(const char *path, int datasync, struct fuse_file_info *fi) {
+  return jnifuse::JniFuseFileSystem::getInstance()->fsyncOper->call(path, datasync, fi);
+}
+
 int getattr_wrapper(const char *path, struct stat *stbuf, struct fuse_file_info *fi) {
   LOGD("getattr %s", path);
 
@@ -201,6 +205,10 @@ int create_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi) {
 
 int flush_wrapper(const char *path, struct fuse_file_info *fi) {
   return jnifuse::JniFuseFileSystem::getInstance()->flushOper->call(path, fi);
+}
+
+int fsync_wrapper(const char *path, int datasync, struct fuse_file_info *fi) {
+  return jnifuse::JniFuseFileSystem::getInstance()->fsyncOper->call(path, datasync, fi);
 }
 
 int getattr_wrapper(const char *path, struct stat *stbuf) {

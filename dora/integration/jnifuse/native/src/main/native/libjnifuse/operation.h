@@ -72,6 +72,12 @@ class FlushOperation : public Operation {
   int call(const char *path, struct fuse_file_info *fi);
 };
 
+class FsyncOperation : public Operation {
+ public:
+  FsyncOperation(JniFuseFileSystem *fs);
+  int call(const char *path, int datasync, struct fuse_file_info *fi);
+};
+
 class ReleaseOperation : public Operation {
  public:
   ReleaseOperation(JniFuseFileSystem *fs);

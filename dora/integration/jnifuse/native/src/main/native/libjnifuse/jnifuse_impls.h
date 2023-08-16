@@ -23,6 +23,7 @@ int chmod_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi);
 int chown_wrapper(const char *path, uid_t uid, gid_t gid, struct fuse_file_info *fi);
 int create_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi);
 int flush_wrapper(const char *path, struct fuse_file_info *fi);
+int fsync_wrapper(const char *path, int datasync, struct fuse_file_info *fi);
 int getattr_wrapper(const char *path, struct stat *stbuf, struct fuse_file_info *fi);
 #ifdef __APPLE__
 int getxattr_wrapper(const char *path, const char *name, char *value, size_t size, uint32_t position);
@@ -60,6 +61,7 @@ int chmod_wrapper(const char *path, mode_t mode);
 int chown_wrapper(const char *path, uid_t uid, gid_t gid);
 int create_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi);
 int flush_wrapper(const char *path, struct fuse_file_info *fi);
+int fsync_wrapper(const char *path, int datasync, struct fuse_file_info *fi);
 int getattr_wrapper(const char *path, struct stat *stbuf);
 #ifdef __APPLE__
 int getxattr_wrapper(const char *path, const char *name, char *value, size_t size, uint32_t position);

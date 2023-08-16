@@ -49,6 +49,7 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
   jnifuse_oper.chown = chown_wrapper;
   jnifuse_oper.create = create_wrapper;
   jnifuse_oper.flush = flush_wrapper;
+  jnifuse_oper.fsync = fsync_wrapper;
   jnifuse_oper.getattr = getattr_wrapper;
   jnifuse_oper.getxattr = getxattr_wrapper;
   jnifuse_oper.listxattr = listxattr_wrapper;
@@ -69,7 +70,7 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
   jnifuse_oper.write = write_wrapper;
 
  // libfuse3: conn_info_opts can no longer be passed into fuse_main directly
- // for details, search for "The treatment of low-level options has been made more consistent" in 
+ // for details, search for "The treatment of low-level options has been made more consistent" in
  // https://github.com/libfuse/libfuse/blob/master/ChangeLog.rst#libfuse-300-2016-12-08
 #if FUSE_USE_VERSION >= 30
   jnifuse_oper.init = init_wrapper;

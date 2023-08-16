@@ -251,6 +251,12 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
   }
 
+  public int fsyncCallback(String path, int datasync, ByteBuffer fi) {
+    System.out.println("Fsync: no-op");
+    return 0;
+//    return -ErrorCodes.ENOTSUP();
+  }
+
   public int releaseCallback(String path, ByteBuffer fi) {
     try {
       return release(path, FuseFileInfo.of(fi));

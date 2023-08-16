@@ -190,6 +190,33 @@ int FlushOperation::call(const char *path, struct fuse_file_info *fi) {
   return ret;
 }
 
+FsyncOperation::FsyncOperation(JniFuseFileSystem *fs) {
+  LOGE("Calling fsync");
+  this->fs = fs;
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;ILjava/nio/ByteBuffer;)I";
+  this->methodID = env->GetMethodID(this->clazz, "fsyncCallback", signature);
+  LOGE("Calling fsync end");
+}
+
+int FsyncOperation::call(const char *path, int datasync, struct fuse_file_info *fi) {
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
+  jstring jspath = env->NewStringUTF(path);
+  jobject fibuf =
+      env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
+  LOGE("aaa");
+
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, datasync, fibuf);
+  LOGE("bbb");
+
+  env->DeleteLocalRef(jspath);
+  env->DeleteLocalRef(fibuf);
+
+  return ret;
+}
+
 ReleaseOperation::ReleaseOperation(JniFuseFileSystem *fs) {
   this->fs = fs;
   JNIEnv *env = AttachCurrentThreadIfNeeded();
