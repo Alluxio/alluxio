@@ -217,8 +217,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       int randomMax = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
       // this 1000 is a tmp length, determined the randomness of the random read test
       for (int i = 0; i < 1000; i++) {
-          mOffsets[i] = randomNumInRange(rand, 0, fileSize - 1 - randomMin);
-          mLengths[i] = randomNumInRange(rand, randomMin,
+        mOffsets[i] = randomNumInRange(rand, 0, fileSize - 1 - randomMin);
+        mLengths[i] = randomNumInRange(rand, randomMin,
                   Integer.min(fileSize - mOffsets[i], randomMax));
       }
     }
@@ -479,8 +479,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     private WorkerBenchDataPoint applyOperation() throws IOException {
       Path filePath = mFilePaths[mTargetFileIndex];
 
-
-
       long startOperation = CommonUtils.getCurrentMs();
       if (mInStream == null) {
         mInStream = mFs.open(filePath);
@@ -497,7 +495,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         // here seems if the length is smaller than buffer length, the stress bench
         // will still read length for the buffer length
         // Maybe with some special params will cause inaccuracy
-        // TODO: do something different when read length is smaller than buffer length
+        // TODO(xinyu): do something different when read length is smaller than buffer length
         while (length > 0) {
           int actualReadLength = mInStream
               .read(offset, mBuffer, 0, mBuffer.length);
