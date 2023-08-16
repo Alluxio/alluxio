@@ -649,6 +649,11 @@ public class PagedDoraWorkerTest {
 
   @Test
   public void testRename() throws Exception {
-
+    File file = mTestFolder.newFile("testRenameSrc");
+    String srcPath = file.getAbsolutePath();
+    String dstPath = mTestFolder.newFile("testRenameDst").getAbsolutePath();
+    mWorker.rename(srcPath, dstPath, RenamePOptions.getDefaultInstance());
+    assertFalse(mWorker.exists(srcPath, ExistsPOptions.getDefaultInstance()));
+    assertTrue(mWorker.exists(dstPath, ExistsPOptions.getDefaultInstance()));
   }
 }
