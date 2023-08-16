@@ -212,6 +212,17 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     Random rand = new Random();
     if (mParameters.mIsRandom) {
       rand = new Random(mParameters.mRandomSeed);
+
+      // Continue init other aspects of the file read operation
+      // TODO(jiacheng): do we want a new randomness for every read?
+      int randomMin = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
+      int randomMax = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
+      // this 1000 is a tmp length, determined the randomness of the random read test
+      for (int i = 0; i < 1000; i++) {
+          mOffsets[i] = randomNumInRange(rand, 0, fileSize - 1 - randomMin);
+          mLengths[i] = randomNumInRange(rand, randomMin,
+                  Integer.min(fileSize - mOffsets[i], randomMax));
+      }
     }
 
     for (int i = 0; i < clusterSize; i++) {
@@ -222,19 +233,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
         int index = i * threads + j;
         mFilePaths[index] = filePath;
-
-        // Continue init other aspects of the file read operation
-        // TODO(jiacheng): do we want a new randomness for every read?
-        if (mParameters.mIsRandom) {
-          int randomMin = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
-          int randomMax = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
-          mOffsets[index] = randomNumInRange(rand, 0, fileSize - 1 - randomMin);
-          mLengths[index] = randomNumInRange(rand, randomMin,
-                  Integer.min(fileSize - mOffsets[i], randomMax));
-        } else {
-          mOffsets[index] = 0;
-          mLengths[index] = fileSize;
-        }
       }
     }
     LOG.info("{} file paths generated", mFilePaths.length);
@@ -398,6 +396,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   private final class BenchThread implements Callable<Void> {
     private final BenchContext mContext;
     private final int mTargetFileIndex;
+    private int mRandomIndex;
     private final FileSystem mFs;
     private final byte[] mBuffer;
     private final WorkerBenchTaskResult mResult;
@@ -415,6 +414,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       mResult.setParameters(mParameters);
       mResult.setBaseParameters(mBaseParameters);
       mIsRandomRead = mParameters.mIsRandom;
+      mRandomIndex = 0;
     }
 
     @Override
@@ -480,8 +480,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
      */
     private WorkerBenchDataPoint applyOperation() throws IOException {
       Path filePath = mFilePaths[mTargetFileIndex];
-      int offset = mOffsets[mTargetFileIndex];
-      int length = mLengths[mTargetFileIndex];
+
+
 
       long startOperation = CommonUtils.getCurrentMs();
       if (mInStream == null) {
@@ -490,6 +490,16 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
       int bytesRead = 0;
       if (mIsRandomRead) {
+        int offset = mOffsets[mRandomIndex];
+        int length = mLengths[mRandomIndex];
+        mRandomIndex += 1;
+        if (mRandomIndex == mOffsets.length) {
+          mRandomIndex = 0;
+        }
+        // here seems if the length is smaller than buffer length, the stress bench
+        // will still read length for the buffer length
+        // Maybe with some special params will cause inaccuracy
+        // TODO: do something different when read length is smaller than buffer length
         while (length > 0) {
           int actualReadLength = mInStream
               .read(offset, mBuffer, 0, mBuffer.length);
