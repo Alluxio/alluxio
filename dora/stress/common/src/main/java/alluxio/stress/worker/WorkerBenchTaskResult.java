@@ -39,8 +39,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
   private long mEndMs;
   private long mIOBytes;
   private List<String> mErrors;
-  private List<WorkerBenchDataPoint> mDataPoints;
-  private List<Long> mDurationPercentiles;
+  private final List<WorkerBenchDataPoint> mDataPoints;
   private List<Long> mThroughputPercentiles;
 
   /**
@@ -50,7 +49,6 @@ public final class WorkerBenchTaskResult implements TaskResult {
     // Default constructor required for json deserialization
     mErrors = new ArrayList<>();
     mDataPoints = new ArrayList<>();
-    mDurationPercentiles = new ArrayList<>();
     mThroughputPercentiles = new ArrayList<>();
   }
 
@@ -174,20 +172,6 @@ public final class WorkerBenchTaskResult implements TaskResult {
   /**
    * @return 100 percentiles for durations of all I/O operations
    */
-  public List<Long> getDurationPercentiles() {
-    return mDurationPercentiles;
-  }
-
-  /**
-   * @param percentiles 100 percentiles for durations of all I/O operations
-   */
-  public void setDurationPercentiles(List<Long> percentiles) {
-    mDurationPercentiles = percentiles;
-  }
-
-  /**
-   * @return 100 percentiles for durations of all I/O operations
-   */
   public List<Long> getThroughputPercentiles() {
     return mThroughputPercentiles;
   }
@@ -203,14 +187,6 @@ public final class WorkerBenchTaskResult implements TaskResult {
    * From the collected operation data, calculates 100 percentiles.
    */
   public void calculatePercentiles() {
-    Histogram durationHistogram = new Histogram(
-        FormatUtils.parseTimeSize(mParameters.mDuration),
-        StressConstants.TIME_HISTOGRAM_PRECISION);
-    mDataPoints.forEach(stat -> durationHistogram.recordValue(stat.getDuration()));
-    for (int i = 0; i <= 100; i++) {
-      mDurationPercentiles.add(durationHistogram.getValueAtPercentile(i));
-    }
-
     Histogram throughputHistogram = new Histogram(
             FormatUtils.parseSpaceSize(mParameters.mFileSize),
             StressConstants.TIME_HISTOGRAM_PRECISION);
