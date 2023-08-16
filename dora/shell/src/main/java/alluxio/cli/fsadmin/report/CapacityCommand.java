@@ -338,7 +338,7 @@ public class CapacityCommand {
                 FormatUtils.getSizeFromBytes(info.getUsedBytes()));
         if (info.getCapacityBytes() != 0) {
           tierInfo.put("Used percentage",
-                  String.format(" (%s%%)", (int) (100L * info.getUsedBytes() / info.getCapacityBytes())));
+                  String.format(" %s%%", (int) (100L * info.getUsedBytes() / info.getCapacityBytes())));
         }
         tiersInfo.add(tierInfo);
       } else {
