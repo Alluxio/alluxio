@@ -209,10 +209,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     int threads = mParameters.mThreads;
     List<BlockWorkerInfo> workers = mFsContext.getCachedWorkers();
 
-    Random rand = new Random();
     if (mParameters.mIsRandom) {
-      rand = new Random(mParameters.mRandomSeed);
-
+      Random rand = new Random(mParameters.mRandomSeed);
       // Continue init other aspects of the file read operation
       // TODO(jiacheng): do we want a new randomness for every read?
       int randomMin = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
