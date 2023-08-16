@@ -79,7 +79,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     UserState us = UserState.Factory.create(Configuration.global());
     mFsContext = FileSystemContext.create(us.getSubject(), Configuration.global());
-    mWriteAlluxio = CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE)
+    mWriteAlluxio = CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
         .setRecursive(true).build();
     mWriteUnderStore = CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH)
         .setRecursive(true).build();

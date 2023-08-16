@@ -16,7 +16,6 @@ import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
-import alluxio.grpc.WritePType;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -33,7 +32,7 @@ import java.io.IOException;
 public final class ChgrpCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void chgrp() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", 10);
     sFsShell.run("chgrp", "group1", "/testFile");
     String group = sFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
     Assert.assertEquals("group1", group);
@@ -47,8 +46,7 @@ public final class ChgrpCommandIntegrationTest extends AbstractFileSystemShellTe
    */
   @Test
   public void chgrpRecursive() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/testFile",
-        WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/testFile", 10);
     // "chgrp -R group1 /testDir" should apply to both dir and child file
     sFsShell.run("chgrp", "-R", "group1", "/testDir");
     String group = sFileSystem.getStatus(new AlluxioURI("/testDir")).getGroup();
@@ -66,12 +64,9 @@ public final class ChgrpCommandIntegrationTest extends AbstractFileSystemShellTe
    */
   @Test
   public void chgrpWildcard() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/foo/testFile1",
-        WritePType.MUST_CACHE, 10);
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/foo/testFile2",
-        WritePType.MUST_CACHE, 10);
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/bar/testFile3",
-        WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/foo/testFile1", 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/foo/testFile2", 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/bar/testFile3", 10);
 
     sFsShell.run("chgrp", "group1", "/testDir/*/testFile*");
     String group = sFileSystem.getStatus(new AlluxioURI("/testDir/foo/testFile1")).getGroup();

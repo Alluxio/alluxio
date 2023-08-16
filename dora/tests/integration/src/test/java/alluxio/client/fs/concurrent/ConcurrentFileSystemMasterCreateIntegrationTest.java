@@ -155,33 +155,6 @@ public class ConcurrentFileSystemMasterCreateIntegrationTest extends BaseIntegra
     }
   }
 
-  /**
-   * Test concurrent create of non-persisted directory. Directory is created as MUST_CACHE then
-   * files are created under that directory.
-   */
-  @Test
-  public void concurrentCreateNonPersistedDir() throws Exception {
-    final int numThreads = CONCURRENCY_FACTOR;
-    // 7 nested components to create (2 seconds each).
-    final long limitMs = 14 * SLEEP_MS * CONCURRENCY_FACTOR / 2;
-    AlluxioURI[] paths = new AlluxioURI[numThreads];
-
-    // Create the existing path with MUST_CACHE, so subsequent creates have to persist the dirs.
-    mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"), CreateDirectoryPOptions
-        .newBuilder().setRecursive(true).setWriteType(WritePType.MUST_CACHE).build());
-
-    for (int i = 0; i < numThreads; i++) {
-      paths[i] =
-          new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
-    }
-    List<Throwable> errors = ConcurrentFileSystemMasterUtils
-        .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.CREATE, paths,
-            limitMs);
-    if (!errors.isEmpty()) {
-      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
-    }
-  }
-
   @Test
   public void concurrentLoadFileMetadata() throws Exception {
     runLoadMetadata(null, false, true, false);
@@ -190,11 +163,6 @@ public class ConcurrentFileSystemMasterCreateIntegrationTest extends BaseIntegra
   @Test
   public void concurrentLoadFileMetadataExistingDir() throws Exception {
     runLoadMetadata(WritePType.CACHE_THROUGH, false, true, false);
-  }
-
-  @Test
-  public void concurrentLoadFileMetadataNonPersistedDir() throws Exception {
-    runLoadMetadata(WritePType.MUST_CACHE, false, true, false);
   }
 
   @Test

@@ -17,7 +17,6 @@ import alluxio.ProjectConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
-import alluxio.master.backcompat.ops.AsyncPersist;
 import alluxio.master.backcompat.ops.CreateDirectory;
 import alluxio.master.backcompat.ops.CreateFile;
 import alluxio.master.backcompat.ops.Delete;
@@ -61,7 +60,6 @@ public final class BackwardsCompatibilityJournalGenerator {
       .add(new CreateDirectory(),
           new CreateFile(),
           new Mount(),
-          new AsyncPersist(),
           new Delete(),
           new PersistFile(),
           new PersistDirectory(),

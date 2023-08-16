@@ -437,7 +437,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     };
 
     CreateDirectoryPOptions options = CreateDirectoryPOptions.newBuilder().setRecursive(true)
-        .setWriteType(WritePType.MUST_CACHE).build();
+        .build();
     for (String directory : directories) {
       mFileSystem.createDirectory(new AlluxioURI(directory), options);
     }

@@ -67,7 +67,7 @@ public final class ConcurrentFileInStreamIntegrationTest extends BaseIntegration
         Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MAX) * 10;
     AlluxioURI uniqPath = new AlluxioURI(PathUtils.uniqPath());
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath.getPath(), BLOCK_SIZE * 2,
-        CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).setRecursive(true)
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).setRecursive(true)
             .build());
 
     List<Runnable> threads = new ArrayList<>();

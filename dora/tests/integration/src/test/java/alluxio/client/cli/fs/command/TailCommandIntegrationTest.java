@@ -33,14 +33,14 @@ import java.io.IOException;
 public final class TailCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void tailEmptyFile() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/emptyFile", WritePType.MUST_CACHE, 0);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/emptyFile", WritePType.CACHE_THROUGH, 0);
     int ret = sFsShell.run("tail", "/emptyFile");
     Assert.assertEquals(0, ret);
   }
 
   @Test
   public void tailLargeFile() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 2048);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH, 2048);
     sFsShell.run("tail", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(1024, 1024);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
@@ -54,7 +54,7 @@ public final class TailCommandIntegrationTest extends AbstractFileSystemShellTes
 
   @Test
   public void tailSmallFile() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH, 10);
     sFsShell.run("tail", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(10);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
@@ -80,7 +80,7 @@ public final class TailCommandIntegrationTest extends AbstractFileSystemShellTes
 
   @Test
   public void tailFileWithUserSpecifiedBytes() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 2048);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH, 2048);
     sFsShell.run("tail", "-c", "2000", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(48, 2000);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
@@ -88,7 +88,7 @@ public final class TailCommandIntegrationTest extends AbstractFileSystemShellTes
 
   @Test
   public void tailFileWithUserSpecifiedBytesWithUnit() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE,
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.CACHE_THROUGH,
         10000);
     sFsShell.run("tail", "-c", "2KB", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(10000 - 2048, 2048);

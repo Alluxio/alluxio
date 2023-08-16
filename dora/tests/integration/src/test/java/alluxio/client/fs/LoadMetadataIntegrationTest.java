@@ -115,7 +115,7 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
     fileWriter.write("test");
     fileWriter.close();
     FileOutStream stream = mFileSystem.createFile(new AlluxioURI("/mnt/mustcache/dir1/dir2/file1"),
-        CreateFilePOptions.newBuilder().setRecursive(true).setWriteType(WritePType.MUST_CACHE)
+        CreateFilePOptions.newBuilder().setRecursive(true).setWriteType(WritePType.CACHE_THROUGH)
             .build());
     stream.write("test".getBytes(StandardCharsets.UTF_8));
     stream.close();

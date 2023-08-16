@@ -55,9 +55,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   @Parameters
   public static Object[] dataFileInStreamIntegrationTest() {
     return new Object[] {
-        WriteType.ASYNC_THROUGH,
         WriteType.CACHE_THROUGH,
-        WriteType.MUST_CACHE,
         WriteType.THROUGH,
     };
   }

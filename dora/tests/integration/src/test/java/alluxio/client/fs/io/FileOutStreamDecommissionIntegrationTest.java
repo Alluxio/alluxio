@@ -52,7 +52,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -78,14 +77,12 @@ public class FileOutStreamDecommissionIntegrationTest {
           .build();
   private FileSystem mFileSystem = null;
   private CreateFilePOptions mWriteBoth;
-  private CreateFilePOptions mWriteAlluxio;
   private OpenFilePOptions mReadNoCache;
   private OpenFilePOptions mReadCachePromote;
   private String mTestPath;
   private ExecutorService mThreadPool;
 
   private String mCacheThroughFilePath;
-  private String mMustCacheFilePath;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -104,17 +101,11 @@ public class FileOutStreamDecommissionIntegrationTest {
             .setWriteType(WritePType.CACHE_THROUGH)
             .setWorkerLocation(GrpcUtils.toProto(worker1))
             .setRecursive(true).build();
-    mWriteAlluxio = CreateFilePOptions.newBuilder()
-            .setBlockSizeBytes(BLOCK_SIZE)
-            .setWriteType(WritePType.MUST_CACHE)
-            .setWorkerLocation(GrpcUtils.toProto(worker1))
-            .setRecursive(true).build();
     mReadCachePromote =
             OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
     mReadNoCache = OpenFilePOptions.newBuilder().setReadType(ReadPType.NO_CACHE).build();
     mTestPath = PathUtils.uniqPath();
     mCacheThroughFilePath = mTestPath + "/file_BOTH";
-    mMustCacheFilePath = mTestPath + "/file_CACHE";
     mThreadPool = Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("decommission-worker-%d", true));
   }
@@ -128,7 +119,6 @@ public class FileOutStreamDecommissionIntegrationTest {
   private List<CreateFilePOptions> getOptionSet() {
     List<CreateFilePOptions> ret = new ArrayList<>(2);
     ret.add(mWriteBoth);
-    ret.add(mWriteAlluxio);
     return ret;
   }
 
@@ -420,85 +410,5 @@ public class FileOutStreamDecommissionIntegrationTest {
       }
     }
     assertEquals(readLength, LENGTH);
-  }
-
-  @Test
-  /*
-   * When there is an active stream writing to one worker, decommission that worker.
-   * Then we make the stream wait a bit and realize that worker is no longer available.
-   * The stream is not able to continue because the cache target is gone.
-   */
-  public void halfStreamMustCacheDecommission() throws Exception {
-    AlluxioURI uri = new AlluxioURI(mMustCacheFilePath);
-
-    FileSystemContext context = FileSystemContext
-            .create(new TestUserState("test", Configuration.global()).getSubject(),
-                    Configuration.global());
-    List<WorkerInfo> clusterWorkers = context.acquireBlockMasterClientResource()
-            .get().getWorkerInfoList();
-    assertEquals(2, clusterWorkers.size());
-
-    WorkerNetAddress workerToDecommission = mLocalAlluxioClusterResource.get().getWorkerAddress();
-    CountDownLatch streamActive = new CountDownLatch(1);
-    CountDownLatch workerDecommissioned = new CountDownLatch(1);
-    mThreadPool.submit(() -> {
-      try {
-        streamActive.await();
-        DecommissionWorkerPOptions decomOptions = DecommissionWorkerPOptions.newBuilder()
-                .setWorkerHostname(workerToDecommission.getHost())
-                .setWorkerWebPort(workerToDecommission.getWebPort())
-                .setCanRegisterAgain(true).build();
-        context.acquireBlockMasterClientResource().get().decommissionWorker(decomOptions);
-        List<WorkerInfo> updatedWorkers = context.acquireBlockMasterClientResource()
-                .get().getWorkerInfoList();
-        assertEquals(1, updatedWorkers.size());
-        workerDecommissioned.countDown();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    });
-
-    // This stream is able to find the undecommissioned worker and use that to write to UFS
-    FileOutStream os = mFileSystem.createFile(uri, mWriteAlluxio);
-    byte[] ret = new byte[1024];
-    // This has created the block stream that reads from the target worker
-    int writeLength = 0;
-
-    boolean released = false;
-    while (writeLength < LENGTH) {
-      // 2 blocks on the same worker, decommission at the end of one BlockStream
-      // so when the FileStream continues, create the 2nd block stream where there's only one
-      // usable worker that does not have the block
-      if (writeLength == BLOCK_SIZE && !released) {
-        streamActive.countDown();
-        released = true;
-
-        // Wait a bit for the decommission to take effect
-        // After the worker is decommissioned, the stream can successfully complete
-        workerDecommissioned.await();
-
-        // Wait a bit for the worker list to refresh in the FileSystemContext
-        SleepUtils.sleepMs(CLIENT_WORKER_LIST_REFRESH_INTERVAL);
-        // The client realizes the target worker is decommissioned
-        List<BlockWorkerInfo> usableWorkers = context.getCachedWorkers();
-        assertEquals(1, usableWorkers.size());
-        // Continue the stream, the stream is not able to continue because the worker is
-        // no longer available
-        assertThrows(IOException.class, () -> {
-          os.write(ret);
-        });
-        break;
-      }
-      os.write(ret);
-      writeLength += ret.length;
-    }
-    os.close();
-
-    // The worker has been decommissioned so the block locations are all empty
-    // No cache readable for the client
-    URIStatus statusAfterRead = context.acquireMasterClientResource()
-            .get().getStatus(uri, GetStatusPOptions.getDefaultInstance());
-    // The stream was not successful so the length is 0
-    assertEquals(0, statusAfterRead.getLength());
   }
 }

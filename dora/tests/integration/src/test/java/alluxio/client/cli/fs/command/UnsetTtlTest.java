@@ -34,7 +34,7 @@ public final class UnsetTtlTest extends AbstractFileSystemShellTest {
   public void unsetTtl() throws Exception {
     String filePath = "/testFile";
     AlluxioURI uri = new AlluxioURI("/testFile");
-    FileSystemTestUtils.createByteFile(sFileSystem, filePath, WritePType.MUST_CACHE, 1);
+    FileSystemTestUtils.createByteFile(sFileSystem, filePath, WritePType.CACHE_THROUGH, 1);
     assertEquals(Constants.NO_TTL, sFileSystem.getStatus(uri).getTtl());
 
     // unsetTTL on a file originally with no TTL will leave the TTL unchanged.

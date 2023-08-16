@@ -16,7 +16,6 @@ import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
-import alluxio.grpc.WritePType;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -33,7 +32,7 @@ import java.io.IOException;
 public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void chmod() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", 10);
     sFsShell.run("chmod", "777", "/testFile");
     int permission = sFileSystem.getStatus(new AlluxioURI("/testFile")).getMode();
     Assert.assertEquals((short) 0777, permission);
@@ -47,8 +46,7 @@ public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTe
    */
   @Test
   public void chmodRecursively() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/testFile",
-        WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/testFile", 10);
     sFsShell.run("chmod", "-R", "777", "/testDir");
     int permission = sFileSystem.getStatus(new AlluxioURI("/testDir")).getMode();
     Assert.assertEquals((short) 0777, permission);
@@ -61,7 +59,7 @@ public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void chmodSymbolic() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", 10);
     sFsShell.run("chmod", "a=rwx", "/testFile");
     int permission = sFileSystem.getStatus(new AlluxioURI("/testFile")).getMode();
     Assert.assertEquals((short) 0777, permission);
@@ -75,10 +73,8 @@ public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTe
    */
   @Test
   public void chmodWildCard() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/testFile1",
-        WritePType.MUST_CACHE, 10);
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir2/testFile2",
-        WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/testFile1", 10);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testDir2/testFile2", 10);
     sFsShell.run("chmod", "a=rwx", "/testDir*/testFile*");
     int permission = sFileSystem.getStatus(new AlluxioURI("/testDir/testFile1")).getMode();
     Assert.assertEquals((short) 0777, permission);

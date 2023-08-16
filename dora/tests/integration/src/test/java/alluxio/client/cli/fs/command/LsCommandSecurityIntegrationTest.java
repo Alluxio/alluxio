@@ -58,9 +58,9 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
     FileSystem fs = sLocalAlluxioCluster.getClient(FileSystemContext
         .create(new TestUserState("test_user_ls", Configuration.global()).getSubject(),
             Configuration.global()));
-    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.CACHE_THROUGH, 10);
     FileSystemTestUtils
-        .createByteFile(fs, "/testRoot/testDir/testFileB", WritePType.MUST_CACHE, 20);
+        .createByteFile(fs, "/testRoot/testDir/testFileB", WritePType.CACHE_THROUGH, 20);
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileC", WritePType.THROUGH, 30);
   }
 
@@ -171,9 +171,9 @@ public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemSh
         .create(new TestUserState("test_user_ls", Configuration.global()).getSubject(),
             Configuration.global()));
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testDir/testFileB",
-        WritePType.MUST_CACHE, 20);
+        WritePType.CACHE_THROUGH, 20);
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFile",
-        WritePType.MUST_CACHE, size, size);
+        WritePType.CACHE_THROUGH, size, size);
 
     sFsShell.run("ls", "--sort", "path", "/testRoot");
     // CHECKSTYLE.OFF: LineLengthExceed - Improve readability

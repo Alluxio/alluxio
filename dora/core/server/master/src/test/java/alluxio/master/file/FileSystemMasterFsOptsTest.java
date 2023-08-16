@@ -22,7 +22,7 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedClientUserResource;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
-import alluxio.client.WriteType;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.Configuration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
@@ -63,12 +63,12 @@ import alluxio.wire.FileInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.Closeable;
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -78,23 +78,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "remove FileSystemMaster unit testcases")
+@Ignore
 @RunWith(Parameterized.class)
 public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
 
   public FileSystemMasterFsOptsTest(InodeStore.Factory factory) {
     mInodeStoreFactory = factory;
-  }
-
-  @Test
-  public void createFileMustCacheThenCacheThrough() throws Exception {
-    File file = mTestFolder.newFile();
-    AlluxioURI path = new AlluxioURI("/test");
-    mFileSystemMaster.createFile(path,
-        CreateFileContext.defaults().setWriteType(WriteType.MUST_CACHE));
-
-    mThrown.expect(FileAlreadyExistsException.class);
-    mFileSystemMaster.createFile(path,
-        CreateFileContext.defaults().setWriteType(WriteType.MUST_CACHE));
   }
 
   @Test

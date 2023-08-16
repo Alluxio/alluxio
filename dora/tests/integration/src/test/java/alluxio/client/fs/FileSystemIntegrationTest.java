@@ -346,7 +346,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   @Test
   public void testMultiSetAttribute() throws Exception {
     AlluxioURI testFile = new AlluxioURI("/test1");
-    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 512);
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, 512);
     long expectedTtl = Configuration.getMs(PropertyKey.USER_FILE_CREATE_TTL);
     URIStatus stat = mFileSystem.getStatus(testFile);
     assertEquals("TTL should be equal to configuration", expectedTtl, stat.getTtl());
@@ -385,7 +385,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   @Test
   public void testTtlActionSetAttribute() throws Exception {
     AlluxioURI testFile = new AlluxioURI("/test1");
-    FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 512);
+    FileSystemTestUtils.createByteFile(mFileSystem, testFile, 512);
     TtlAction expectedAction =
         Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class);
     URIStatus stat = mFileSystem.getStatus(testFile);

@@ -27,7 +27,6 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
-import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.job.JobMaster;
@@ -142,8 +141,7 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
    * @param bytes file size
    */
   protected void copyToLocalWithBytes(int bytes) throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", WritePType.MUST_CACHE,
-        bytes);
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", bytes);
     sFsShell.run("copyToLocal", "/testFile",
         sLocalAlluxioCluster.getAlluxioHome() + "/testFile");
     assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",

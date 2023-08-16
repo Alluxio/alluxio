@@ -683,14 +683,14 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
 
       AlluxioURI dir1 = new AlluxioURI("/dir1");
       fs.createDirectory(dir1,
-          CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
+          CreateDirectoryPOptions.newBuilder().build());
       AlluxioURI backup1 = metaClient
           .backup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
               .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false)).build())
           .getBackupUri();
       AlluxioURI dir2 = new AlluxioURI("/dir2");
       fs.createDirectory(dir2,
-          CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
+          CreateDirectoryPOptions.newBuilder().build());
       AlluxioURI backup2 = metaClient
           .backup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
               .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(false)).build())
@@ -746,7 +746,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
 
     AlluxioURI dir1 = new AlluxioURI("/dir1");
     mCluster.getFileSystemClient().createDirectory(dir1,
-        CreateDirectoryPOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build());
+        CreateDirectoryPOptions.newBuilder().build());
 
     AlluxioURI backupUri = waitForBackup(BackupPRequest.newBuilder()
         .setOptions(BackupPOptions.newBuilder().setLocalFileSystem(true)).build());

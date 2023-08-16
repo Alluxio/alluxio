@@ -116,7 +116,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
       .setProperty(PropertyKey.S3_REST_AUTHENTICATION_ENABLED, // TODO(czhu) refactor this key name
           false) // default, disables AWS "Authorization" header signature validation
       .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, "1KB")
-      .setProperty(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.MUST_CACHE.name()) // skip UFS
+      .setProperty(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.CACHE_THROUGH.name()) // skip UFS
       .setProperty(PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE, "0")
       .setProperty(PropertyKey.PROXY_S3_TAGGING_RESTRICTIONS_ENABLED, true) // default
       .setProperty(PropertyKey.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED, false) // default

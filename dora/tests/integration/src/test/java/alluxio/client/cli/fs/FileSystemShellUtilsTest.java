@@ -101,7 +101,7 @@ public final class FileSystemShellUtilsTest {
    * @return the test directory
    */
   public static String resetFileHierarchy(FileSystem fs) throws IOException, AlluxioException {
-    return resetFileHierarchy(fs, WritePType.MUST_CACHE);
+    return resetFileHierarchy(fs, WritePType.CACHE_THROUGH);
   }
 
   /**
