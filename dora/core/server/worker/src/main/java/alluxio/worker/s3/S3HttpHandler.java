@@ -18,6 +18,7 @@ import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.s3.S3ErrorResponse;
 import alluxio.worker.dora.DoraWorker;
 
+import com.esotericsoftware.minlog.Log;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
+import javax.annotation.Nullable;
 
 /**
  * Handles S3 HTTP request.
@@ -84,8 +86,7 @@ public class S3HttpHandler extends ChannelInboundHandlerAdapter {
             mAsyncAuditLogWriter);
 
         // Handle request async
-        if (!mHandler.getS3Task().getOPType().equals(S3NettyBaseTask.OpType.PutObject)
-            && Configuration.getBoolean(PropertyKey.WORKER_S3_ASYNC_PROCESS_ENABLED)) {
+        if (Configuration.getBoolean(PropertyKey.WORKER_S3_ASYNC_PROCESS_ENABLED)) {
           S3NettyBaseTask.OpTag opTag = mHandler.getS3Task().mOPType.getOpTag();
           ExecutorService es =
               (ExecutorService) (opTag == S3NettyBaseTask.OpTag.LIGHT ? mLightPool : mHeavyPool);
@@ -96,10 +97,12 @@ public class S3HttpHandler extends ChannelInboundHandlerAdapter {
           response = mHandler.getS3Task().continueTask();
         }
       } else if (msg instanceof HttpContent) {
+        HttpContent content = (HttpContent) msg;
         // if the req handle async, we skip the Empty content.
         if (!mAsyncHandle) {
-          HttpContent content = (HttpContent) msg;
           response = mHandler.getS3Task().handleContent(content);
+        } else {
+          mHandler.addContent(content);
         }
       } else {
         HttpResponse errorResponse =
@@ -122,7 +125,7 @@ public class S3HttpHandler extends ChannelInboundHandlerAdapter {
     }
   }
 
-  static class AsyncS3NettyTask implements Runnable {
+  private static class AsyncS3NettyTask implements Runnable {
     private final S3NettyHandler mHandler;
 
     public AsyncS3NettyTask(S3NettyHandler handler) {
@@ -133,6 +136,18 @@ public class S3HttpHandler extends ChannelInboundHandlerAdapter {
     public void run() {
       try {
         HttpResponse asyncResponse = mHandler.getS3Task().continueTask();
+        // if it has got the response already, no need to process content, just return it
+        if (asyncResponse == null) {
+          asyncResponse = processContent(asyncResponse);
+        }
+        // if still no response, generate the error response
+        if (asyncResponse == null) {
+          asyncResponse =
+              S3ErrorResponse.generateS3ErrorResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR,
+                  String.format("Failed to handle s3 request %s with %s",
+                      mHandler.getS3Task().getOPType().name(), mHandler.getRequest().uri()),
+                  HttpHeaderValues.TEXT_PLAIN);
+        }
         mHandler.processHttpResponse(asyncResponse);
       } catch (Throwable th) {
         HttpResponse errorResponse =
@@ -140,7 +155,31 @@ public class S3HttpHandler extends ChannelInboundHandlerAdapter {
         mHandler.processHttpResponse(errorResponse);
       } finally {
         ReferenceCountUtil.release(mHandler.getRequest());
+        while (mHandler.remainContent()) {
+          try {
+            HttpContent content = mHandler.getLatestContent();
+            ReferenceCountUtil.release(content);
+          } catch (InterruptedException e) {
+            Log.warn("skip");
+          }
+        }
       }
+    }
+
+    @Nullable
+    private HttpResponse processContent(HttpResponse asyncResponse) throws InterruptedException {
+      HttpContent content;
+      while ((content = mHandler.getLatestContent()) != null) {
+        try {
+          asyncResponse = mHandler.getS3Task().handleContent(content);
+          if (asyncResponse != null) {
+            break;
+          }
+        } finally {
+          ReferenceCountUtil.release(content);
+        }
+      }
+      return asyncResponse;
     }
   }
 }

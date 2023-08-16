@@ -72,6 +72,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -88,7 +90,7 @@ public class S3NettyHandler {
   private final String mBucket;
   private final String mObject;
   private final HttpRequest mRequest;
-  private HttpContent mContent;
+  private BlockingQueue<HttpContent> mContentQueue;
   private HttpResponse mResponse;
   private final ChannelHandlerContext mContext;
   private final QueryStringDecoder mQueryDecoder;
@@ -219,6 +221,7 @@ public class S3NettyHandler {
     // Reject unsupported subresources.
     rejectUnsupportedResources();
     // Init utils
+    mContentQueue = new LinkedBlockingQueue<>();
 
     // TODO(wyy) init directories
     // Initiate the S3 API MPU metadata directories
@@ -505,8 +508,30 @@ public class S3NettyHandler {
    * get HTTP content of this request.
    * @return HTTP content
    */
-  public ByteBuf getRequestContent() {
-    return mContent.content();
+  public HttpContent getLatestContent() throws InterruptedException {
+    if (mContentQueue != null) {
+      return mContentQueue.take();
+    }
+    return null;
+  }
+
+  /**
+   * @return Does there exists content in the content queue
+   */
+  public boolean remainContent() {
+    return !mContentQueue.isEmpty();
+  }
+
+  /**
+   * Adds content to the content queue.
+   * @param content
+   * @return the result of adding content
+   */
+  public boolean addContent(HttpContent content) {
+    if (mContentQueue != null) {
+      return mContentQueue.offer(content);
+    }
+    return false;
   }
 
   /**

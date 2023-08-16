@@ -51,6 +51,7 @@ public class S3ObjectTest extends RestApiTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.WORKER_S3_REST_ENABLED, true)
+          .setProperty(PropertyKey.WORKER_S3_ASYNC_PROCESS_ENABLED, true)
           .setProperty(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL,
               "0s")  //always sync the metadata
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)

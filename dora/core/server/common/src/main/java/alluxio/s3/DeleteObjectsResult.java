@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3;
+package alluxio.s3;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -70,8 +70,11 @@ public class DeleteObjectsResult {
     mErrored = errored;
   }
 
+  /**
+   * An object representing Deleted result in DeleteObjects result.
+   */
   @JacksonXmlRootElement(localName = "Deleted")
-  static class DeletedObject {
+  public static class DeletedObject {
 
     @JacksonXmlProperty(localName = "Key")
     private String mKey;
@@ -85,60 +88,97 @@ public class DeleteObjectsResult {
     @JacksonXmlProperty(localName = "VersionId")
     private String mVersionId;
 
+    /**
+     * Constructs a {@link DeletedObject}.
+     */
     public DeletedObject() { }
 
-    public DeletedObject(String key) {
-      mKey = key;
-    }
-
+    /**
+     * @return the successfully deleted object key
+     */
     @JacksonXmlProperty(localName = "Key")
     public String getKey() {
       return mKey;
     }
 
+    /**
+     * Sets the key of successfully deleted object.
+     *
+     * @param key the key name of objects
+     */
     @JacksonXmlProperty(localName = "Key")
     public void setKey(String key) {
       mKey = key;
     }
 
+    /**
+     * @return the DeleteMarker
+     */
     @JacksonXmlProperty(localName = "DeleteMarker")
     public String getDeleteMarker() {
       return mDeleteMarker;
     }
 
+    /**
+     * Sets the delete marker of this delete result.
+     *
+     * @param marker the DeleteMarker
+     */
     @JacksonXmlProperty(localName = "DeleteMarker")
     public void setDeleteMarker(String marker) {
       mDeleteMarker = marker;
     }
 
+    /**
+     * @return the DeleteMarkerVersionId
+     */
     @JacksonXmlProperty(localName = "DeleteMarkerVersionId")
     public String getDeleteMarkerVersionId() {
       return mDeleteMarkerVersionId;
     }
 
+    /**
+     * Sets the version id of delete marker.
+     *
+     * @param deleteMarkerVersionId the version id of DeleteMarker
+     */
     @JacksonXmlProperty(localName = "DeleteMarkerVersionId")
     public void setDeleteMarkerVersionId(String deleteMarkerVersionId) {
       mDeleteMarkerVersionId = deleteMarkerVersionId;
     }
 
+    /**
+     * @return the VersionId
+     */
     @JacksonXmlProperty(localName = "VersionId")
     public String getVersionId() {
       return mVersionId;
     }
 
+    /**
+     * Sets the version id of deleted object.
+     *
+     * @param versionId the version id of object
+     */
     @JacksonXmlProperty(localName = "VersionId")
     public void setVersionId(String versionId) {
       mVersionId = versionId;
     }
   }
 
+  /**
+   * An object representing error result in DeleteObjects result.
+   */
   @JacksonXmlRootElement(localName = "Error")
-  static class ErrorObject {
+  public static class ErrorObject {
     public String mKey;
     public String mCode;
     public String mMessage;
     public String mVersionId;
 
+    /**
+     * Constructs a {@link ErrorObject}.
+     */
     public ErrorObject() {
       mKey = "";
       mCode = "";
@@ -146,41 +186,73 @@ public class DeleteObjectsResult {
       mVersionId = "";
     }
 
+    /**
+     * @return the key of error object
+     */
     @JacksonXmlProperty(localName = "Key")
     public String getKey() {
       return mKey;
     }
 
+    /**
+     * @return the code of error object
+     */
     @JacksonXmlProperty(localName = "Code")
     public String getCode() {
       return mCode;
     }
 
+    /**
+     * @return the error message of error object
+     */
     @JacksonXmlProperty(localName = "Message")
     public String getMessage() {
       return mMessage;
     }
 
+    /**
+     * @return the version id of error object
+     */
     @JacksonXmlProperty(localName = "VersionId")
     public String getVersionId() {
       return mVersionId;
     }
 
+    /**
+     * Sets the key of error object.
+     *
+     * @param key the key of object
+     */
     @JacksonXmlProperty(localName = "Key")
     public void setKey(String key) {
       mKey = key;
     }
 
+    /**
+     * Sets the code of this result.
+     *
+     * @param code the code
+     */
     @JacksonXmlProperty(localName = "Code")
     public void setCode(String code) {
       mCode = code;
     }
 
+    /**
+     * Sets the error message of this result.
+     *
+     * @param message
+     */
     @JacksonXmlProperty(localName = "Message")
     public void setMessage(String message) {
       mMessage = message;
     }
 
+    /**
+     * Sets the version id.
+     *
+     * @param versionId
+     */
     @JacksonXmlProperty(localName = "VersionId")
     public void setVersionId(String versionId) {
       mVersionId = versionId;
