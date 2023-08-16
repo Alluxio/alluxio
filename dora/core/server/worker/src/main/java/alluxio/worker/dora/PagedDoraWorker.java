@@ -30,6 +30,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.Command;
@@ -91,6 +92,7 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.task.CopyHandler;
 import alluxio.worker.task.DeleteHandler;
+import alluxio.worker.task.ValidateHandler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -593,6 +595,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               AuthenticatedClientUser.set(readOptions.getUser());
             }
             checkCopyPermission(route.getSrc(), route.getDst());
+            if (!ValidateHandler.validate(route, writeOptions, srcFs, dstFs)) {
+              // Skip copy if there is a failure during validation.
+              RouteFailure.Builder builder =
+                  RouteFailure.newBuilder().setRoute(route).setIsSkip(true).setCode(0);
+              errors.add(builder.build());
+              return;
+            }
             CopyHandler.copy(route, writeOptions, srcFs, dstFs);
           } catch (Throwable t) {
             boolean permissionCheckSucceeded = !(t instanceof AccessControlException);
@@ -600,7 +609,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
             RouteFailure.Builder builder =
                 RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value())
-                    .setRetryable(e.isRetryable() && permissionCheckSucceeded);
+                    .setRetryable(e.isRetryable() && permissionCheckSucceeded)
+                    .setIsSkip(false);
             if (e.getMessage() != null) {
               builder.setMessage(e.getMessage());
             }
@@ -648,6 +658,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               AuthenticatedClientUser.set(readOptions.getUser());
             }
             checkMovePermission(route.getSrc(), route.getDst());
+            if (!ValidateHandler.validate(route, writeOptions, srcFs, dstFs)) {
+              throw new FailedPreconditionRuntimeException("File " + route.getDst()
+                  + " is already in UFS");
+            }
             CopyHandler.copy(route, writeOptions, srcFs, dstFs);
             try {
               DeleteHandler.delete(new AlluxioURI(route.getSrc()), srcFs);
