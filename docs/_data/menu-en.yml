@@ -60,6 +60,8 @@
         url: /en/compute/Presto.html
       - title: Trino
         url: /en/compute/Trino.html
+      - title: Tensorflow
+        url: /en/compute/Tensorflow.html
 
   - title: Storage Integrations
     buttonTitle: Storage_Integrations
