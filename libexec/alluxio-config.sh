@@ -15,7 +15,7 @@
 
 # resolve links - $0 may be a softlink
 this="${BASH_SOURCE-$0}"
-common_bin=$(cd   -- "$(dirname -- "${this}")" && pwd )
+common_bin=$(cd -P -- "$(dirname -- "${this}")" && pwd -P)
 script="$(basename -- "${this}")"
 this="${common_bin}/${script}"
 
