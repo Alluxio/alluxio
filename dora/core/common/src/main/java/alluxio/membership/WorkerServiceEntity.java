@@ -19,8 +19,11 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.InstanceCreator;
 import com.google.gson.annotations.Expose;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
 
 /**
  * Entity class including all the information to register to Etcd
@@ -46,6 +49,11 @@ public class WorkerServiceEntity extends DefaultServiceEntity {
   @Expose
   @com.google.gson.annotations.SerializedName("GenerationNumber")
   int mGenerationNum = -1;
+
+  /**
+   * CTOR for WorkerServiceEntity.
+   */
+  public WorkerServiceEntity() {}
 
   /**
    * CTOR  for WorkerServiceEntity with given WorkerNetAddress.
@@ -92,16 +100,14 @@ public class WorkerServiceEntity extends DefaultServiceEntity {
     return Objects.hashCode(mAddress, mServiceEntityName);
   }
 
-  /**
-   * Convert from a json string to a WorkerServiceEntity object.
-   * @param jsonStr
-   * @return WorkerServiceEntity
-   * @throws JsonSyntaxException
-   */
-  public static WorkerServiceEntity fromJson(String jsonStr) throws JsonSyntaxException {
+  @Override
+  public void deserialize(byte[] buf) {
+    WorkerServiceEntity obj = this;
+    InstanceCreator<DefaultServiceEntity> creator = type -> obj;
     Gson gson = new GsonBuilder()
         .excludeFieldsWithoutExposeAnnotation()
+        .registerTypeAdapter(WorkerServiceEntity.class, creator)
         .create();
-    return gson.fromJson(jsonStr, WorkerServiceEntity.class);
+    gson.fromJson(new InputStreamReader(new ByteArrayInputStream(buf)), WorkerServiceEntity.class);
   }
 }
