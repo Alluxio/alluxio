@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -119,11 +120,9 @@ public abstract class AbstractUfsManager implements UfsManager {
    * @return the UFS instance
    */
   public UnderFileSystem getOrAdd(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
-    return getOrAddWithRecorder(ufsUri, ufsConf, Recorder.noopRecorder());
-  }
-
-  protected Key generateKey(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
-    return new Key(ufsUri, ufsConf.getMountSpecificConf());
+    Key key = generateKey(ufsUri, ufsConf);
+    return get(key)
+        .orElseGet(() -> add(key, ufsUri, ufsConf, Recorder.noopRecorder()));
   }
 
   /**
@@ -138,49 +137,51 @@ public abstract class AbstractUfsManager implements UfsManager {
   private UnderFileSystem getOrAddWithRecorder(AlluxioURI ufsUri,
       UnderFileSystemConfiguration ufsConf, Recorder recorder) {
     Key key = generateKey(ufsUri, ufsConf);
+    return get(key)
+        .orElseGet(() -> add(key, ufsUri, ufsConf, recorder));
+  }
+
+  protected Key generateKey(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
+    return new Key(ufsUri, ufsConf.getMountSpecificConf());
+  }
+
+  // On cache miss, synchronize the creation to ensure ufs is only created once
+  private synchronized UnderFileSystem add(Key key, AlluxioURI ufsUri,
+      UnderFileSystemConfiguration ufsConf, Recorder recorder) {
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
       recorder.record("Using cached instance of UFS {} identified by key {}",
           cachedFs.getClass().getSimpleName(), key.toString());
       return cachedFs;
     }
-    // On cache miss, synchronize the creation to ensure ufs is only created once
-    synchronized (mLock) {
-      cachedFs = mUnderFileSystemMap.get(key);
-      if (cachedFs != null) {
-        recorder.record("Using cached instance of UFS {} identified by key {}",
-            cachedFs.getClass().getSimpleName(), key.toString());
-        return cachedFs;
-      }
-      UnderFileSystem fs = UnderFileSystem.Factory.createWithRecorder(
-          ufsUri.toString(), ufsConf, recorder);
+    UnderFileSystem fs = UnderFileSystem.Factory.createWithRecorder(
+        ufsUri.toString(), ufsConf, recorder);
 
-      // Detect whether to use managed blocking on UFS operations.
-      boolean useManagedBlocking = fs.isObjectStorage();
-      if (ufsConf.isSet(PropertyKey.MASTER_UFS_MANAGED_BLOCKING_ENABLED)) {
-        useManagedBlocking = ufsConf.getBoolean(PropertyKey.MASTER_UFS_MANAGED_BLOCKING_ENABLED);
-      }
-      // Wrap UFS under managed blocking forwarder if required.
-      if (useManagedBlocking) {
-        fs = new ManagedBlockingUfsForwarder(fs);
-      }
-      mCloser.register(fs);
-      try {
-        connectUfs(fs);
-        tryUseFileSystem(fs, ufsUri.getPath());
-      } catch (Exception e) {
-        String message = String.format(
-            "Failed to perform initial connect to UFS %s: %s", ufsUri, e);
-        recorder.record(message);
-        LOG.warn(message);
-        throw new RuntimeException(e);
-      }
-      if (mUnderFileSystemMap.putIfAbsent(key, fs) != null) {
-        // This shouldn't occur unless our synchronization is incorrect
-        LOG.warn("UFS already existed in UFS manager");
-      }
-      return fs;
+    // Detect whether to use managed blocking on UFS operations.
+    boolean useManagedBlocking = fs.isObjectStorage();
+    if (ufsConf.isSet(PropertyKey.MASTER_UFS_MANAGED_BLOCKING_ENABLED)) {
+      useManagedBlocking = ufsConf.getBoolean(PropertyKey.MASTER_UFS_MANAGED_BLOCKING_ENABLED);
     }
+    // Wrap UFS under managed blocking forwarder if required.
+    if (useManagedBlocking) {
+      fs = new ManagedBlockingUfsForwarder(fs);
+    }
+    mCloser.register(fs);
+    try {
+      connectUfs(fs);
+      tryUseFileSystem(fs, ufsUri.getPath());
+    } catch (Exception e) {
+      String message = String.format(
+          "Failed to perform initial connect to UFS %s: %s", ufsUri, e);
+      recorder.record(message);
+      LOG.warn(message);
+      throw new RuntimeException(e);
+    }
+    if (mUnderFileSystemMap.putIfAbsent(key, fs) != null) {
+      // This shouldn't occur unless our synchronization is incorrect
+      LOG.warn("UFS already existed in UFS manager");
+    }
+    return fs;
   }
 
   /**
@@ -223,6 +224,22 @@ public abstract class AbstractUfsManager implements UfsManager {
     // TODO(binfan): check the refcount of this ufs in mUnderFileSystemMap and remove it if this is
     // no more used. Currently, it is possibly used by out mount too.
     mMountIdToUfsInfoMap.remove(mountId);
+  }
+
+  /**
+   * Gets an instance for the given UFS URI and configuration, if such exists.
+   *
+   * @param ufsUri the URI of the UFS
+   * @param ufsConf the configuration for the UFS
+   * @return a UFS instance, or none if not registered
+   */
+  public Optional<UnderFileSystem> get(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
+    Key key = generateKey(ufsUri, ufsConf);
+    return get(key);
+  }
+
+  protected Optional<UnderFileSystem> get(Key key) {
+    return Optional.ofNullable(mUnderFileSystemMap.get(key));
   }
 
   @Override

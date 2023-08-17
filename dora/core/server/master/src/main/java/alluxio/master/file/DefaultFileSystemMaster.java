@@ -742,13 +742,6 @@ public class DefaultFileSystemMaster extends CoreMaster
             () -> mAsyncAuditLogWriter != null
                     ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
       }
-      if (Configuration.getBoolean(PropertyKey.UNDERFS_CLEANUP_ENABLED)) {
-        getExecutorService().submit(
-            new HeartbeatThread(HeartbeatContext.MASTER_UFS_CLEANUP, new UfsCleaner(this),
-                () -> new FixedIntervalSupplier(
-                    Configuration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL)),
-                Configuration.global(), mMasterContext.getUserState()));
-      }
       mScheduler.start();
     }
   }

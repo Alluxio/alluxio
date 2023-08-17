@@ -313,7 +313,7 @@ message CopyResponse {
 
 message WriteOptions {
   optional bool overwrite = 1;
-  optional grpc.file.WritePType write_type = 2;
+  optional grpc.file.WritePType write_type = 2 [default = CACHE_THROUGH];
   optional bool check_content = 3;
 }
 
@@ -324,6 +324,7 @@ message RouteFailure {
   // A developer-facing error message
   optional string message = 3;
   optional bool retryable = 4;
+  optional bool is_skip = 5;
 }
 
 // next available id: 2

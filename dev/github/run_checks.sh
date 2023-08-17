@@ -29,5 +29,9 @@ JAVA_HOME=/usr/local/openjdk-8
 PATH=$JAVA_HOME/bin:$PATH
 mvn -Duser.home=/home/jenkins -T 4C clean install -DskipTests
 
+# compile go cli
+./build/cli/build-cli.sh
+
 ./dev/scripts/check-docs.sh
 ./dev/scripts/build-artifact.sh ufsVersionCheck
+./dev/scripts/build-artifact.sh tarball --dryRun

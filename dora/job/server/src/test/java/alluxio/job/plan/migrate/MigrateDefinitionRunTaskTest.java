@@ -137,24 +137,6 @@ public final class MigrateDefinitionRunTaskTest {
     runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.CACHE_THROUGH);
     verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), ArgumentMatchers
         .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH).build()));
-
-    runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.MUST_CACHE);
-    verify(mMockFileSystem).createFile(eq(new AlluxioURI(TEST_DESTINATION)), ArgumentMatchers
-        .eq(CreateFilePOptions.newBuilder().setWriteType(WritePType.MUST_CACHE).build()));
-  }
-
-  /**
-   * Tests the edge case where performing an WriteType.AsyncThrough with deleteSource of a
-   * persisted file writes the move synchronously.
-   */
-  @Test
-  public void writeTypeAsyncThroughPersistedTest() throws Exception {
-    FileInfo fileInfo = new FileInfo();
-    fileInfo.setPersisted(true);
-    when(mMockFileSystem.getStatus(eq(new AlluxioURI(TEST_SOURCE))))
-        .thenReturn(new URIStatus(fileInfo));
-
-    runTask(TEST_SOURCE, TEST_SOURCE, TEST_DESTINATION, WriteType.ASYNC_THROUGH);
   }
 
   @Test

@@ -12,5 +12,16 @@
 
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
-# temporary placeholder that redirects to alluxio-start-bash.sh to prepare for golangCli branch merge
-"${BIN}/alluxio-start-bash.sh" "$@"
+echo "The alluxio-start.sh script is deprecated. Use the \"bin/alluxio process start\" command to start processes."
+
+# while the leading argument starts with a -, continue to parse flags
+# this will skip the mount related arguments that are no longer relevant and would cause an error to the new start command
+startArgs=()
+for arg in "$@"; do
+  startArgs+=("${arg}")
+  if [[ "${arg}" != -* ]]; then
+    break
+  fi
+done
+
+"${BIN}"/alluxio process start "${startArgs[@]}"

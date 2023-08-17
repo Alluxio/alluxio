@@ -540,11 +540,10 @@ public class FileSystemContext implements Closeable {
    * Blocks until there is no active RPCs.
    *
    * @param updateClusterConf whether cluster level configuration should be updated
-   * @param updatePathConf whether path level configuration should be updated
    * @throws UnavailableException when failed to load configuration from master
    * @throws IOException when failed to close the context
    */
-  public void reinit(boolean updateClusterConf, boolean updatePathConf)
+  public void reinit(boolean updateClusterConf)
       throws UnavailableException, IOException {
     try (Closeable r = mReinitializer.allow()) {
       InetSocketAddress masterAddr;
@@ -554,7 +553,7 @@ public class FileSystemContext implements Closeable {
         throw new UnavailableException("Failed to get master address during reinitialization", e);
       }
       try {
-        getClientContext().loadConf(masterAddr, updateClusterConf);
+        getClientContext().loadConf(masterAddr);
       } catch (AlluxioStatusException e) {
         // Failed to load configuration from meta master, maybe master is being restarted,
         // or their is a temporary network problem, give up reinitialization. The heartbeat thread
@@ -562,8 +561,7 @@ public class FileSystemContext implements Closeable {
         throw new UnavailableException(String.format("Failed to load configuration from "
             + "meta master (%s) during reinitialization", masterAddr), e);
       }
-      LOG.debug("Reinitializing FileSystemContext: update cluster conf: {}, update path conf:"
-          + " {}", updateClusterConf, updatePathConf);
+      LOG.debug("Reinitializing FileSystemContext: update cluster conf: {}", updateClusterConf);
       closeContext();
       ReconfigurableRegistry.update();
       initContext(getClientContext(), mMasterAddresses != null

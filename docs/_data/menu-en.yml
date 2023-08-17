@@ -31,10 +31,16 @@
       url: /en/deploy/Install-Alluxio-Cluster-with-HA.html
     - title: Install Alluxio on K8s
       url: /en/kubernetes/Install-Alluxio-On-Kubernetes.html
-
+  
 - title: Compute Integrations
   buttonTitle: Compute_Integrations
   subfiles:
+    - title: Presto
+      url: /en/compute/Presto.html
+    - title: Presto on Iceberg (Experimental)
+      url: /en/compute/Presto-Iceberg.html
+    - title: Trino
+      url: /en/compute/Trino.html
     - title: Apache Spark
       url: /en/compute/Spark.html
     - title: Apache Hadoop MapReduce
@@ -43,12 +49,8 @@
       url: /en/compute/Flink.html
     - title: Apache Hive
       url: /en/compute/Hive.html
-    - title: Presto on Iceberg (Experimental)
-      url: /en/compute/Presto-Iceberg.html
-    - title: Presto
-      url: /en/compute/Presto.html
-    - title: Trino
-      url: /en/compute/Trino.html
+    - title: Tensorflow
+      url: /en/compute/Tensorflow.html
 
 - title: Storage Integrations
   buttonTitle: Storage_Integrations

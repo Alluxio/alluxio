@@ -1199,6 +1199,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The number of files failed to be copied by copy commands")
           .setMetricType(MetricType.COUNTER)
           .build();
+
+  public static final MetricKey MASTER_JOB_COPY_SKIP_FILE_COUNT =
+      new Builder("Master.JobCopySkipFileCount")
+          .setDescription("The number of files skipped to be copied by copy commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
   public static final MetricKey MASTER_JOB_COPY_SIZE =
       new Builder("Master.JobCopyFileSize")
           .setDescription("The total block size copied by copy commands")

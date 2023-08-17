@@ -101,10 +101,9 @@ public class ClientContext {
    * updates are detected on client side.
    *
    * @param address the address to load cluster defaults from
-   * @param loadClusterConf whether to load cluster level configuration
    * @throws AlluxioStatusException
    */
-  public synchronized void loadConf(InetSocketAddress address, boolean loadClusterConf)
+  public synchronized void loadConf(InetSocketAddress address)
       throws AlluxioStatusException {
     // TODO(yyong) so far remove it, will check if it is required to change for improvement.
     return;
