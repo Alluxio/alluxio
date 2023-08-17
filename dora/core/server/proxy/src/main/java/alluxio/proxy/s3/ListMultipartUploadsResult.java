@@ -52,7 +52,7 @@ public class ListMultipartUploadsResult {
             ))
             .collect(Collectors.toList());
         /*
-        TODO(pkuweblab): 3.x haven't supported XAttr yet
+        TODO(pkuweblab): 3.x haven't supported XAttr yet, so can't mark Upload.key as object name
         .filter(status -> {
           if (status.getXAttr() == null
               || !status.getXAttr().containsKey(S3Constants.UPLOADS_BUCKET_XATTR_KEY)
