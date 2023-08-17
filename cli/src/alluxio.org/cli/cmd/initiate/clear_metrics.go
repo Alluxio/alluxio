@@ -42,7 +42,7 @@ func (c *ClearMetricsCommand) Base() *env.BaseJavaCommand {
 
 func (c *ClearMetricsCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   ClearMetrics.CommandName,
+		Use:   c.CommandName,
 		Short: "Clear the metrics",
 		Long: "Clear the metrics of the whole cluster by default. " +
 			"Users can pass in options to decide metrics of which nodes to be cleared.",

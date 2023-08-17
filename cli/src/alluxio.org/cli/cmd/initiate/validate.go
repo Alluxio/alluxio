@@ -38,7 +38,7 @@ func (c *ValidateCommand) Base() *env.BaseJavaCommand {
 
 func (c *ValidateCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   Validate.CommandName,
+		Use:   c.CommandName,
 		Short: "Validate Alluxio conf or environment and exit",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {

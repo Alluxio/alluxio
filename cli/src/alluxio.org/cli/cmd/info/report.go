@@ -40,7 +40,7 @@ func (c *ReportCommand) Base() *env.BaseJavaCommand {
 
 func (c *ReportCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [arg]", Report.CommandName),
+		Use:   fmt.Sprintf("%v [arg]", c.CommandName),
 		Short: "Reports Alluxio running cluster information",
 		Long: `Reports Alluxio running cluster information
 [arg] can be one of the following values:

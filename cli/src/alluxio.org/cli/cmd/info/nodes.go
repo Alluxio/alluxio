@@ -36,7 +36,7 @@ func (c *NodesCommand) Base() *env.BaseJavaCommand {
 
 func (c *NodesCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   Nodes.CommandName,
+		Use:   c.CommandName,
 		Short: "Show all registered workers' status",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {

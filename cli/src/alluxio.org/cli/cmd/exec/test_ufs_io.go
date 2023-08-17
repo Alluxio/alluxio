@@ -44,8 +44,9 @@ func (c *TestUfsIOCommand) Base() *env.BaseJavaCommand {
 
 func (c *TestUfsIOCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use: "ufsIOTest",
-		Short: "A benchmarking tool for the I/O between Alluxio and UFS.\n" +
+		Use:   c.CommandName,
+		Short: "A benchmarking tool for the I/O between Alluxio and UFS.",
+		Long: "A benchmarking tool for the I/O between Alluxio and UFS." +
 			"This test will measure the I/O throughput between Alluxio workers and the specified UFS path. " +
 			"Each worker will create concurrent clients to first generate test files of the specified size " +
 			"then read those files. The write/read I/O throughput will be measured in the process.",
