@@ -19,10 +19,10 @@ var Service = &env.Service{
 	Name:        "init",
 	Description: "Initiation operations, including format, clear metrics, clear cache, copy directory, and validate",
 	Commands: []env.Command{
-		Format,
 		ClearMetrics,
 		ClearOSCache,
 		CopyDir,
+		Format,
 		Validate,
 	},
 }
