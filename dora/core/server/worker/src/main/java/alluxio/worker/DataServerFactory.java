@@ -18,12 +18,14 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.underfs.UfsManager;
+import alluxio.util.OSUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.grpc.DoraWorkerClientServiceHandler;
 import alluxio.worker.grpc.GrpcDataServer;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
@@ -81,6 +83,9 @@ public class DataServerFactory {
       domainSocketPath =
           PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
     }
+    Preconditions.checkState(domainSocketPath.length() < OSUtils.getDomainSocketMaxPathLength(),
+        "The longest domain socket path possible on this host is %d bytes.",
+        OSUtils.getDomainSocketMaxPathLength());
     LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
     BlockWorkerGrpc.BlockWorkerImplBase blockWorkerService;
     if (worker instanceof DoraWorker) {
