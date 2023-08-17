@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 	"os/exec"
 
+	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 )
 
@@ -28,12 +29,11 @@ func (c *ClearOSCacheCommand) ToCommand() *cobra.Command {
 		Args:  cobra.NoArgs,
 		Short: "Clear OS buffer cache of the machine",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			syncCommand := exec.Command("sync")
-			if err := syncCommand.Run(); err != nil {
-				return err
+			if err := exec.Command("sync").Run(); err != nil {
+				return stacktrace.Propagate(err, "error running sync")
 			}
 			if err := ioutil.WriteFile("/proc/sys/vm/drop_caches", []byte("3"), 0644); err != nil {
-				return err
+				return stacktrace.Propagate(err, "error running drop_caches")
 			}
 			return nil
 		},

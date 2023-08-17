@@ -9,20 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package initiate
+package metadata
 
 import (
 	"alluxio.org/cli/env"
 )
 
 var Service = &env.Service{
-	Name:        "init",
-	Description: "Initialization operations such as format and validate",
+	Name:        "metadata",
+	Description: "Metadata operations such as load",
 	Commands: []env.Command{
-		//ClearMetrics,
-		ClearOSCache,
-		// CopyDir,
-		// Format,
-		Validate,
+		Load,
 	},
 }

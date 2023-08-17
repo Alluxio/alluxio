@@ -20,7 +20,7 @@ import (
 	"alluxio.org/cli/env"
 )
 
-var Validate = &ClearMetricsCommand{
+var Validate = &ValidateCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "validate",
 		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
