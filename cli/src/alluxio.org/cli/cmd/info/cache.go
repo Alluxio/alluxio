@@ -42,7 +42,7 @@ func (c *CacheCommand) Base() *env.BaseJavaCommand {
 
 func (c *CacheCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   Cache.CommandName,
+		Use:   c.CommandName,
 		Short: "Reports worker capacity information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {

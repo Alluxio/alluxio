@@ -23,5 +23,6 @@ var Service = &env.Service{
 		TestHdfsMount,
 		TestRun,
 		TestUfs,
+		TestUfsIO,
 	},
 }

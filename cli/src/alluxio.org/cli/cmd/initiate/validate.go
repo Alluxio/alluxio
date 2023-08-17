@@ -9,41 +9,54 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package info
+package initiate
 
 import (
+	"fmt"
+
+	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
-var Version = &VersionCommand{
+var Validate = &ClearMetricsCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "version",
-		JavaClassName: "alluxio.cli.Version",
+		CommandName:   "validate",
+		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
 	},
 }
 
-type VersionCommand struct {
+type ValidateCommand struct {
 	*env.BaseJavaCommand
+	validateType string
 }
 
-func (c *VersionCommand) Base() *env.BaseJavaCommand {
+func (c *ValidateCommand) Base() *env.BaseJavaCommand {
 	return c.BaseJavaCommand
 }
 
-func (c *VersionCommand) ToCommand() *cobra.Command {
+func (c *ValidateCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   c.CommandName,
-		Short: "Print Alluxio version and exit.",
+		Short: "Validate Alluxio conf or environment and exit",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
 	})
+	cmd.Flags().StringVar(&c.validateType, "type", "",
+		"Decide the type to validate. Valid inputs: [conf, env]")
 	return cmd
 }
 
-func (c *VersionCommand) Run(args []string) error {
+func (c *ValidateCommand) Run(args []string) error {
+	if c.validateType == "conf" {
+		c.JavaClassName = "alluxio.cli.ValidateConf"
+	} else if c.validateType == "env" {
+		c.JavaClassName = "alluxio.cli.ValidateEnv"
+	} else {
+		return stacktrace.NewError("Invalid validate type. Valid inputs: [conf, env]")
+	}
 	return c.Base().Run(args)
 }

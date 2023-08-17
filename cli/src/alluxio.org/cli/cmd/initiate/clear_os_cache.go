@@ -9,41 +9,34 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package info
+package initiate
 
 import (
-	"github.com/spf13/cobra"
+	"io/ioutil"
+	"os/exec"
 
-	"alluxio.org/cli/env"
+	"github.com/spf13/cobra"
 )
 
-var Version = &VersionCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "version",
-		JavaClassName: "alluxio.cli.Version",
-	},
-}
+var ClearOSCache = &ClearOSCacheCommand{}
 
-type VersionCommand struct {
-	*env.BaseJavaCommand
-}
+type ClearOSCacheCommand struct{}
 
-func (c *VersionCommand) Base() *env.BaseJavaCommand {
-	return c.BaseJavaCommand
-}
-
-func (c *VersionCommand) ToCommand() *cobra.Command {
-	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   c.CommandName,
-		Short: "Print Alluxio version and exit.",
+func (c *ClearOSCacheCommand) ToCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "clearOSCache",
 		Args:  cobra.NoArgs,
+		Short: "Clear OS buffer cache of the machine",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return c.Run(args)
+			syncCommand := exec.Command("sync")
+			if err := syncCommand.Run(); err != nil {
+				return err
+			}
+			if err := ioutil.WriteFile("/proc/sys/vm/drop_caches", []byte("3"), 0644); err != nil {
+				return err
+			}
+			return nil
 		},
-	})
+	}
 	return cmd
-}
-
-func (c *VersionCommand) Run(args []string) error {
-	return c.Base().Run(args)
 }

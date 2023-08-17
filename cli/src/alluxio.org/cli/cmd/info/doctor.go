@@ -12,31 +12,36 @@
 package info
 
 import (
+	"fmt"
+
+	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
+	"alluxio.org/cli/cmd/names"
 	"alluxio.org/cli/env"
 )
 
-var Version = &VersionCommand{
+var Doctor = &DoctorCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "version",
-		JavaClassName: "alluxio.cli.Version",
+		CommandName:   "doctor",
+		JavaClassName: names.FileSystemAdminShellJavaClass,
+		Parameters:    []string{"doctor"},
 	},
 }
 
-type VersionCommand struct {
+type DoctorCommand struct {
 	*env.BaseJavaCommand
 }
 
-func (c *VersionCommand) Base() *env.BaseJavaCommand {
+func (c *DoctorCommand) Base() *env.BaseJavaCommand {
 	return c.BaseJavaCommand
 }
 
-func (c *VersionCommand) ToCommand() *cobra.Command {
+func (c *DoctorCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   c.CommandName,
-		Short: "Print Alluxio version and exit.",
-		Args:  cobra.NoArgs,
+		Use:   fmt.Sprintf("%v [type]", Doctor.CommandName),
+		Short: "Runs doctor configuration or storage command",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
@@ -44,6 +49,12 @@ func (c *VersionCommand) ToCommand() *cobra.Command {
 	return cmd
 }
 
-func (c *VersionCommand) Run(args []string) error {
-	return c.Base().Run(args)
+func (c *DoctorCommand) Run(args []string) error {
+	var javaArgs []string
+	if args[0] == "configuration" || args[0] == "storage" {
+		javaArgs = append(javaArgs, args[0])
+	} else if args[0] != "all" {
+		return stacktrace.NewError("Invalid doctor type. Valid types: [all, configuration, storage]")
+	}
+	return c.Base().Run(javaArgs)
 }

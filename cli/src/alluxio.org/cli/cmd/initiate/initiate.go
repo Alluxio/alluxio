@@ -9,22 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package info
+package initiate
 
 import (
 	"alluxio.org/cli/env"
 )
 
 var Service = &env.Service{
-	Name:        "info",
-	Description: "Retrieve and/or display info about the running Alluxio cluster",
+	Name:        "init",
+	Description: "Initiation operations, including format, clear metrics, clear cache, copy directory, and validate",
 	Commands: []env.Command{
-		Cache,
-		Collect,
-		Doctor,
-		Master,
-		Nodes,
-		Report,
-		Version,
+		ClearMetrics,
+		ClearOSCache,
+		// CopyDir,
+		// Format,
+		Validate,
 	},
 }

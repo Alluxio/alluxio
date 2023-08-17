@@ -25,6 +25,7 @@ import (
 	"alluxio.org/cli/cmd/fs"
 	"alluxio.org/cli/cmd/generate"
 	"alluxio.org/cli/cmd/info"
+	"alluxio.org/cli/cmd/initiate"
 	"alluxio.org/cli/cmd/job"
 	"alluxio.org/cli/cmd/journal"
 	"alluxio.org/cli/cmd/process"
@@ -57,6 +58,7 @@ func main() {
 		exec.Service,
 		fs.Service,
 		generate.Service,
+		initiate.Service,
 		info.Service,
 		job.Service,
 		journal.Service,
