@@ -265,8 +265,8 @@ public class UfsUrl {
    * @return the String representation of the {@link UfsUrl}
    */
   public String toString() {
-    // TODO(Yichuan Sun): too many copies. The worst case copies more than three times.
-    StringBuilder stringBuilder = new StringBuilder();
+    StringBuilder stringBuilder = new StringBuilder(mProto.getScheme().length()
+        + SCHEME_SEPARATOR.length() + mProto.getAuthority().length() + getFullPath().length());
     stringBuilder.append(mProto.getScheme());
     stringBuilder.append(SCHEME_SEPARATOR);
     stringBuilder.append(mProto.getAuthority());
@@ -327,6 +327,7 @@ public class UfsUrl {
    * @return a full path string
    */
   public String getFullPath() {
+    // TODO(Yichuan Sun): Does it need to pre-calculate the StringBuilder size?
     StringBuilder sb = new StringBuilder();
     sb.append(SLASH_SEPARATOR);
     int n = mProto.getPathComponentsList().size();
