@@ -484,8 +484,6 @@ public final class PathUtils {
   public static String concatStringPath(String pathA, String pathB) {
     Preconditions.checkArgument(pathA != null && !pathA.isEmpty());
     Preconditions.checkArgument(pathB != null && !pathB.isEmpty());
-//    pathA = pathA.trim();
-//    pathB = pathB.trim();
     if (pathA.endsWith(SLASH_SEPARATOR) && pathB.startsWith(SLASH_SEPARATOR)) {
       return pathA.substring(0, pathA.length() - 1) + pathB;
     } else if (!pathA.endsWith(SLASH_SEPARATOR) && !pathB.startsWith(SLASH_SEPARATOR)) {
