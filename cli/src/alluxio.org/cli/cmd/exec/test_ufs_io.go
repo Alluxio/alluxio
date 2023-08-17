@@ -32,9 +32,9 @@ type TestUfsIOCommand struct {
 	*env.BaseJavaCommand
 	path         string
 	ioSize       string
-	threads      string
+	threads      int
 	cluster      bool
-	clusterLimit string
+	clusterLimit int
 	javaOpt      []string
 }
 
@@ -58,12 +58,12 @@ func (c *TestUfsIOCommand) ToCommand() *cobra.Command {
 		"specifies the path to write/read temporary data in.")
 	cmd.Flags().StringVar(&c.ioSize, "io-size", "4G",
 		"specifies the amount of data each thread writes/reads.")
-	cmd.Flags().StringVar(&c.threads, "threads", "4",
+	cmd.Flags().IntVar(&c.threads, "threads", 4,
 		"specifies the number of threads to concurrently use on each worker.")
 	cmd.Flags().BoolVar(&c.cluster, "cluster", false,
 		"specifies the benchmark is run in the Alluxio cluster.\n"+
 			"If not specified, this benchmark will run locally.")
-	cmd.Flags().StringVar(&c.clusterLimit, "cluster-limit", "0",
+	cmd.Flags().IntVar(&c.clusterLimit, "cluster-limit", 0,
 		"specifies how many Alluxio workers to run the benchmark concurrently.\n"+
 			"If >0, it will only run on that number of workers.\n"+
 			"If 0, it will run on all available cluster workers.\n"+
@@ -81,6 +81,10 @@ func (c *TestUfsIOCommand) ToCommand() *cobra.Command {
 }
 
 func (c *TestUfsIOCommand) Run(args []string) error {
+	if c.threads <= 0 {
+		return stacktrace.NewError("Flag --threads should be a positive number.")
+	}
+
 	var javaArgs []string
 	if c.path != "" {
 		javaArgs = append(javaArgs, "--path", c.path)
@@ -88,18 +92,9 @@ func (c *TestUfsIOCommand) Run(args []string) error {
 	if c.ioSize != "" {
 		javaArgs = append(javaArgs, "--io-size", c.ioSize)
 	}
-	if c.threads != "" {
-		_, err := strconv.Atoi(c.threads)
-		if err != nil {
-			return stacktrace.Propagate(err, "Flag --threads should be a number.")
-		}
-		javaArgs = append(javaArgs, "--threads", c.threads)
-	}
+	javaArgs = append(javaArgs, "--threads", strconv.Itoa(c.threads))
 	if c.cluster != false {
-		javaArgs = append(javaArgs, "--cluster")
-		if c.clusterLimit != "" {
-			javaArgs = append(javaArgs, "--cluster-limit", c.clusterLimit)
-		}
+		javaArgs = append(javaArgs, "--cluster", "--cluster-limit", strconv.Itoa(c.clusterLimit))
 	}
 	for _, option := range c.javaOpt {
 		javaArgs = append(javaArgs, "--java-opt", "\""+option+"\"")

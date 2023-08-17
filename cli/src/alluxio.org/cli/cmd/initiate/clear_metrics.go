@@ -14,10 +14,10 @@ package initiate
 import (
 	"strconv"
 
-	"alluxio.org/cli/cmd/names"
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
+	"alluxio.org/cli/cmd/names"
 	"alluxio.org/cli/env"
 )
 

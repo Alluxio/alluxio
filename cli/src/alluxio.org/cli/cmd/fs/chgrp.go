@@ -14,8 +14,9 @@ package fs
 import (
 	"fmt"
 
-	"alluxio.org/cli/env"
 	"github.com/spf13/cobra"
+
+	"alluxio.org/cli/env"
 )
 
 func Chgrp(className string) env.Command {
