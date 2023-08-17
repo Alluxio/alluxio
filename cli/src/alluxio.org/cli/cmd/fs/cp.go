@@ -13,7 +13,6 @@ package fs
 
 import (
 	"strconv"
-	"strings"
 
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
@@ -62,46 +61,12 @@ use the recursive flag to copy directories`,
 	return cmd
 }
 
-const (
-	localScheme = "file://"
-)
-
 func (c *CopyCommand) Run(args []string) error {
-	src, dst := args[0], args[1]
-	if strings.HasPrefix(src, localScheme) && strings.HasPrefix(dst, localScheme) {
-		return stacktrace.NewError("both src and dst paths are local file paths")
-	}
-	var cmd string
-	if strings.HasPrefix(src, localScheme) {
-		cmd = "copyFromLocal"
-		if c.preserve {
-			return stacktrace.NewError("cannot set preserve flag when copying from local file path")
-		}
-		if c.isRecursive {
-			return stacktrace.NewError("cannot set recursive flag when copying from local file path")
-		}
-	} else if strings.HasPrefix(dst, localScheme) {
-		cmd = "copyToLocal"
-		if c.preserve {
-			return stacktrace.NewError("cannot set preserve flag when copying to local file path")
-		}
-		if c.isRecursive {
-			return stacktrace.NewError("cannot set recursive flag when copying to local file path")
-		}
-		if c.threads != 0 {
-			return stacktrace.NewError("cannot set thread flag when copying to local file path")
-		}
-	} else {
-		cmd = "cp"
-		if c.bufferSize != "" {
-			return stacktrace.NewError("can only set buffer-size flag when copying to or from a local file path")
-		}
-	}
 	if c.threads < 0 {
 		return stacktrace.NewError("thread value must be positive but was %v", c.threads)
 	}
 
-	javaArgs := []string{cmd}
+	javaArgs := []string{"cp"}
 	if c.bufferSize != "" {
 		javaArgs = append(javaArgs, "--buffersize", c.bufferSize)
 	}
