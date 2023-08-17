@@ -11,9 +11,6 @@
 
 package alluxio.proxy.s3;
 
-import alluxio.s3.S3ErrorCode;
-import alluxio.s3.S3Exception;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -49,7 +46,7 @@ public class CompleteMultipartUploadRequest {
    * @param parts the list of Part objects
    */
   public CompleteMultipartUploadRequest(List<Part> parts) {
-    this(parts, false);
+    setParts(parts);
   }
 
   /**
@@ -58,7 +55,9 @@ public class CompleteMultipartUploadRequest {
    *
    * @param parts the list of Part objects
    * @param ignoreValidation flag to skip Part validation
+   * @deprecated always ignore valdateion
    */
+  @Deprecated
   public CompleteMultipartUploadRequest(List<Part> parts, boolean ignoreValidation) {
     if (ignoreValidation) {
       mParts = parts;
@@ -82,25 +81,6 @@ public class CompleteMultipartUploadRequest {
   @JacksonXmlProperty(localName = "Part")
   public void setParts(List<Part> parts) {
     mParts = parts;
-    validateParts();
-  }
-
-  private void validateParts() {
-    if (mParts.size() <= 1) { return; }
-    try {
-      int prevPartNum = mParts.get(0).getPartNumber();
-      for (Part part : mParts.subList(1, mParts.size())) {
-        if (prevPartNum + 1 != part.getPartNumber()) {
-          throw new S3Exception(S3ErrorCode.INVALID_PART_ORDER);
-        }
-        prevPartNum = part.getPartNumber();
-      }
-    } catch (S3Exception e) {
-      // IllegalArgumentException will be consumed by IOException from the
-      // jersey library when parsing the XML into this object
-      // - the underlying S3Exception will be the throwable cause for the IOException
-      throw new IllegalArgumentException(e);
-    }
   }
 
   /**

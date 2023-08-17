@@ -12,7 +12,6 @@
 package alluxio.proxy.s3;
 
 import alluxio.client.file.URIStatus;
-import alluxio.s3.S3Constants;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -48,6 +47,12 @@ public class ListMultipartUploadsResult {
   public static ListMultipartUploadsResult buildFromStatuses(String bucket,
                                                              List<URIStatus> children) {
     List<ListMultipartUploadsResult.Upload> uploads = children.stream()
+            .map(status -> new Upload(status.getName(), status.getName(),
+                S3RestUtils.toS3Date(status.getLastModificationTimeMs())
+            ))
+            .collect(Collectors.toList());
+        /*
+        TODO(pkuweblab): 3.x haven't supported XAttr yet
         .filter(status -> {
           if (status.getXAttr() == null
               || !status.getXAttr().containsKey(S3Constants.UPLOADS_BUCKET_XATTR_KEY)
@@ -64,7 +69,7 @@ public class ListMultipartUploadsResult {
             status.getName(),
             S3RestUtils.toS3Date(status.getLastModificationTimeMs())
         ))
-        .collect(Collectors.toList());
+        .collect(Collectors.toList());*/
     return new ListMultipartUploadsResult(bucket, uploads);
   }
 

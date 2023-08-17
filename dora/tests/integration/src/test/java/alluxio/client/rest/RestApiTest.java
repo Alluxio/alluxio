@@ -12,6 +12,7 @@
 package alluxio.client.rest;
 
 import alluxio.Constants;
+import alluxio.proxy.s3.CompleteMultipartUploadRequest;
 import alluxio.s3.S3Constants;
 import alluxio.testutils.BaseIntegrationTest;
 
@@ -19,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.BaseEncoding;
 
 import java.security.MessageDigest;
+import java.util.HashMap;
 import java.util.Map;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.HttpMethod;
@@ -32,49 +34,79 @@ public abstract class RestApiTest extends BaseIntegrationTest {
   protected int mPort;
   protected String mBaseUri = Constants.REST_API_PREFIX;
 
-  protected TestCase newTestCase(String bucket, Map<String, String> params,
+  protected TestCase executeTestCase(String bucket, Map<String, String> params,
                                  String httpMethod, TestCaseOptions options) throws Exception {
-    return new TestCase(mHostname, mPort, mBaseUri, bucket, params, httpMethod,
-        options);
+    return new TestCase(mHostname, mPort, mBaseUri, bucket, params, httpMethod, options).execute();
   }
 
   protected TestCase createBucketTestCase(String bucket) throws Exception {
-    return newTestCase(bucket, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth());
+    return executeTestCase(bucket, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth());
   }
 
-  protected TestCase createObjectTestCase(String bucket, byte[] object) throws Exception {
-    return newTestCase(bucket, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth()
+  protected TestCase createObjectTestCase(String uri, byte[] object, String uploadId,
+                                          Integer partNumber) throws Exception {
+    Map<String, String> params = new HashMap<>();
+    params.put("uploadId", uploadId);
+    params.put("partNumber", partNumber.toString());
+    return executeTestCase(uri, params, HttpMethod.PUT, getDefaultOptionsWithAuth()
         .setBody(object)
         .setMD5(computeObjectChecksum(object)));
   }
 
-  protected TestCase createObjectTestCase(String bucket, TestCaseOptions options)
-      throws Exception {
-    return newTestCase(bucket, NO_PARAMS, HttpMethod.PUT, options);
+  protected TestCase createObjectTestCase(String uri, byte[] object) throws Exception {
+    return executeTestCase(uri, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth()
+        .setBody(object)
+        .setMD5(computeObjectChecksum(object)));
   }
 
-  protected TestCase copyObjectTestCase(String sourcePath, String targetPath) throws Exception {
-    return newTestCase(targetPath, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth()
+  protected TestCase createObjectTestCase(String uri, TestCaseOptions options)
+      throws Exception {
+    return executeTestCase(uri, NO_PARAMS, HttpMethod.PUT, options);
+  }
+
+  protected TestCase copyObjectTestCase(String sourceUri, String targetUri) throws Exception {
+    return executeTestCase(targetUri, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth()
         .addHeader(S3Constants.S3_METADATA_DIRECTIVE_HEADER,
             S3Constants.Directive.REPLACE.name())
-        .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, sourcePath));
+        .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, sourceUri));
   }
 
   protected TestCase deleteTestCase(String uri) throws Exception {
-    return newTestCase(uri, NO_PARAMS, HttpMethod.DELETE, getDefaultOptionsWithAuth());
+    return executeTestCase(uri, NO_PARAMS, HttpMethod.DELETE, getDefaultOptionsWithAuth());
   }
 
   protected TestCase headTestCase(String uri) throws Exception {
-    return newTestCase(uri, NO_PARAMS, HttpMethod.HEAD, getDefaultOptionsWithAuth());
+    return executeTestCase(uri, NO_PARAMS, HttpMethod.HEAD, getDefaultOptionsWithAuth());
   }
 
   protected TestCase getTestCase(String uri) throws Exception {
-    return newTestCase(uri, NO_PARAMS, HttpMethod.GET, getDefaultOptionsWithAuth());
+    return executeTestCase(uri, NO_PARAMS, HttpMethod.GET, getDefaultOptionsWithAuth());
   }
 
   protected TestCase listTestCase(String uri, Map<String, String> params) throws Exception {
-    return newTestCase(uri, params, HttpMethod.GET,
+    return executeTestCase(uri, params, HttpMethod.GET,
         getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE));
+  }
+
+  protected TestCase initiateMultipartUploadTestCase(String uri) throws Exception {
+    return executeTestCase(
+        uri, ImmutableMap.of("uploads", ""), HttpMethod.POST,
+        getDefaultOptionsWithAuth());
+  }
+
+  protected TestCase completeMultipartUploadTestCase(
+      String objectUri, String uploadId, CompleteMultipartUploadRequest request) throws Exception {
+    return executeTestCase(
+        objectUri, ImmutableMap.of("uploadId", uploadId), HttpMethod.POST,
+        getDefaultOptionsWithAuth()
+            .setBody(request)
+            .setContentType(TestCaseOptions.XML_CONTENT_TYPE));
+  }
+
+  protected TestCase abortMultipartUploadTestCase(String uri, String uploadId) throws Exception {
+    return executeTestCase(
+        uri, ImmutableMap.of("uploadId", uploadId), HttpMethod.DELETE,
+        getDefaultOptionsWithAuth());
   }
 
   protected TestCaseOptions getDefaultOptionsWithAuth(@NotNull String user) {
@@ -86,7 +118,7 @@ public abstract class RestApiTest extends BaseIntegrationTest {
     return getDefaultOptionsWithAuth(TEST_USER);
   }
 
-  private String computeObjectChecksum(byte[] objectContent) throws Exception {
+  protected String computeObjectChecksum(byte[] objectContent) throws Exception {
     MessageDigest md5Hash = MessageDigest.getInstance("MD5");
     byte[] md5Digest = md5Hash.digest(objectContent);
     return BaseEncoding.base64().encode(md5Digest);

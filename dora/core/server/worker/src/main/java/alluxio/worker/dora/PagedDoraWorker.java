@@ -816,6 +816,21 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   public void rename(String src, String dst, RenamePOptions options)
       throws IOException, AccessControlException {
     try {
+      boolean overWrite = options.getS3SyntaxOptions().getOverwrite();
+      if (mUfs.exists(dst)) {
+        if (!overWrite) {
+          throw new RuntimeException(
+              new FileAlreadyExistsException("File already exists but no overwrite flag"));
+        } else {
+          mMetaManager.removeFromMetaStore(dst);
+          if (mUfs.getStatus(dst).isFile()) {
+            mUfs.deleteFile(dst);
+          } else {
+            mUfs.deleteDirectory(dst, DeleteOptions.RECURSIVE);
+          }
+        }
+      }
+
       UfsStatus status = mUfs.getStatus(src);
       if (status.isFile()) {
         mUfs.renameFile(src, dst);

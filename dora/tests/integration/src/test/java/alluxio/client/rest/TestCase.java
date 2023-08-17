@@ -52,7 +52,7 @@ public final class TestCase {
   private final Map<String, String> mParameters;
   private final String mMethod;
   private final TestCaseOptions mOptions;
-  private final HttpURLConnection mConnection;
+  private HttpURLConnection mConnection;
 
   /**
    * Creates a new instance of {@link TestCase}.
@@ -76,7 +76,6 @@ public final class TestCase {
     mParameters = parameters;
     mMethod = method;
     mOptions = options;
-    mConnection =  execute();
   }
 
   /**
@@ -130,34 +129,41 @@ public final class TestCase {
   }
 
   /**
+   * @return the specified-type instance from the InputStream of HttpURLConnection
+   */
+  public <T> T getResponse(Class<T> valueType) throws Exception {
+    return XML_MAPPER.readValue(getResponse(), valueType);
+  }
+
+  /**
    * Runs the test case and returns the {@link HttpURLConnection}.
    */
-  public HttpURLConnection execute() throws Exception {
-    HttpURLConnection connection = (HttpURLConnection) createURL().openConnection();
-    connection.setRequestMethod(mMethod);
+  public TestCase execute() throws Exception {
+    mConnection = (HttpURLConnection) createURL().openConnection();
+    mConnection.setRequestMethod(mMethod);
     for (Map.Entry<String, String> entry : mOptions.getHeaders().entrySet()) {
-      connection.setRequestProperty(entry.getKey(), entry.getValue());
+      mConnection.setRequestProperty(entry.getKey(), entry.getValue());
     }
     if (mOptions.getBody() != null) {
-      connection.setDoOutput(true);
+      mConnection.setDoOutput(true);
       switch (mOptions.getContentType()) {
         case TestCaseOptions.XML_CONTENT_TYPE: // encode as XML string
-          try (OutputStream os = connection.getOutputStream()) {
+          try (OutputStream os = mConnection.getOutputStream()) {
             os.write(XML_MAPPER.writeValueAsBytes(mOptions.getBody()));
           }
           break;
         case TestCaseOptions.JSON_CONTENT_TYPE: // encode as JSON string
-          try (OutputStream os = connection.getOutputStream()) {
+          try (OutputStream os = mConnection.getOutputStream()) {
             os.write(JSON_MAPPER.writeValueAsBytes(mOptions.getBody()));
           }
           break;
         case TestCaseOptions.OCTET_STREAM_CONTENT_TYPE: // encode as-is
-          try (OutputStream os = connection.getOutputStream()) {
+          try (OutputStream os = mConnection.getOutputStream()) {
             os.write((byte[]) mOptions.getBody());
           }
           break;
         case TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE: // encode string using the charset
-          try (OutputStream os = connection.getOutputStream()) {
+          try (OutputStream os = mConnection.getOutputStream()) {
             os.write(((String) mOptions.getBody()).getBytes(mOptions.getCharset()));
           }
           break;
@@ -168,8 +174,9 @@ public final class TestCase {
       }
     }
 
-    connection.connect();
-    return connection;
+    mConnection.connect();
+    mConnection.getResponseCode();
+    return this;
   }
 
   /**
@@ -180,7 +187,8 @@ public final class TestCase {
    */
   @Deprecated
   public HttpURLConnection executeAndAssertSuccess() throws Exception {
-    HttpURLConnection connection = execute();
+    execute();
+    HttpURLConnection connection = this.mConnection;
     if (Response.Status.Family.familyOf(connection.getResponseCode())
         != Response.Status.Family.SUCCESSFUL) {
       InputStream errorStream = connection.getErrorStream();
