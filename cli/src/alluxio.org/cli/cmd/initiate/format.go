@@ -12,17 +12,26 @@
 package initiate
 
 import (
-	"alluxio.org/cli/env"
+	"github.com/spf13/cobra"
 )
 
-var Service = &env.Service{
-	Name:        "init",
-	Description: "Initiation operations, including format, clear metrics, clear cache, copy directory, and validate",
-	Commands: []env.Command{
-		Format,
-		ClearMetrics,
-		ClearOSCache,
-		CopyDir,
-		Validate,
-	},
+var Format = &FormatCommand{}
+
+type FormatCommand struct {
+	only bool
+}
+
+func (c *FormatCommand) ToCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "format",
+		Args:  cobra.NoArgs,
+		Short: "Format Alluxio master and all workers",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// TODO: format command
+			return nil
+		},
+	}
+	cmd.Flags().BoolVarP(&c.only, "s", "s", false,
+		"if -s specified, only format if underfs is local and doesn't already exist")
+	return cmd
 }

@@ -12,17 +12,22 @@
 package initiate
 
 import (
-	"alluxio.org/cli/env"
+	"github.com/spf13/cobra"
 )
 
-var Service = &env.Service{
-	Name:        "init",
-	Description: "Initiation operations, including format, clear metrics, clear cache, copy directory, and validate",
-	Commands: []env.Command{
-		Format,
-		ClearMetrics,
-		ClearOSCache,
-		CopyDir,
-		Validate,
-	},
+var CopyDir = &CopyDirCommand{}
+
+type CopyDirCommand struct{}
+
+func (c *CopyDirCommand) ToCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "copyDir [path]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Copy a path to all master/worker nodes",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// TODO: copy_dir command
+			return nil
+		},
+	}
+	return cmd
 }
