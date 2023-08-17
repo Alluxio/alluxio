@@ -238,7 +238,6 @@ public class UfsUrl {
   /**
    * @return the pathComponents List of the {@link UfsUrl}
    */
-  // TODO(Tony Sun): In the future Consider whether pathComponents should be extracted as a class.
   public List<String> getPathComponents() {
     return mProto.getPathComponentsList();
   }
@@ -266,6 +265,7 @@ public class UfsUrl {
    * @return the String representation of the {@link UfsUrl}
    */
   public String toString() {
+    // TODO(Yichuan Sun): too many copies. The worst case copies more than three times.
     StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append(mProto.getScheme());
     stringBuilder.append(SCHEME_SEPARATOR);
@@ -404,21 +404,26 @@ public class UfsUrl {
     while (nonEmptyIndex < suffixArray.length && suffixArray[nonEmptyIndex].isEmpty())  {
       nonEmptyIndex++;
     }
-    List<String> suffixComponentsList;
+    List<String> suffixComponentsList = Arrays.asList(suffixArray);
+    List<String> noEmptyElemSuffixComponentsList;
     if (nonEmptyIndex == 0) {
-      suffixComponentsList = Arrays.asList(suffixArray);
+      noEmptyElemSuffixComponentsList = suffixComponentsList;
     } else {
-      // TODO(Tony Sun): optimize the performance later
-      suffixComponentsList = Arrays.asList(
-          Arrays.copyOfRange(
-              suffixArray,
-              nonEmptyIndex, suffixArray.length));
+      noEmptyElemSuffixComponentsList = suffixComponentsList.subList(nonEmptyIndex,
+          suffixComponentsList.size());
     }
     List<String> pathComponents = mProto.getPathComponentsList();
     return new UfsUrl(UfsUrlMessage.newBuilder()
         .setScheme(mProto.getScheme())
         .setAuthority(mProto.getAuthority())
         .addAllPathComponents(pathComponents)
-        .addAllPathComponents(suffixComponentsList).build());
+        .addAllPathComponents(noEmptyElemSuffixComponentsList).build());
+  }
+
+  public UfsUrl joinUnsafe(String suffix) {
+    String path = getFullPath();
+    StringBuilder sb = new StringBuilder(path.length() + 1 + suffix.length());
+    return new UfsUrl(toProto().getScheme(), toProto().getAuthority(),
+        sb.append(path).append(SLASH_SEPARATOR).append(suffix).toString());
   }
 }

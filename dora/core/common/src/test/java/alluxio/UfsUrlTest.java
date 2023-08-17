@@ -397,7 +397,42 @@ public class UfsUrlTest {
     assertEquals(UfsUrl.createInstance("abc:/a"), UfsUrl.createInstance("abc:/a").join(""));
   }
 
-  // TODO(Tony Sun): Does it need to add a joinUnsafe method? it is widely used.
+//  @Test
+//  public void joinUnsafeTests() {
+////    System.out.println(FilenameUtils.normalizeNoEndSeparator("//a") == null ? "??" : "");
+////    assertEquals(UfsUrl.createInstance("file://a"),
+////        UfsUrl.createInstance("file://").joinUnsafe("a"));
+//    assertEquals(UfsUrl.createInstance("file://a/b"),
+//        UfsUrl.createInstance("file://a").joinUnsafe("b"));
+//    assertEquals(UfsUrl.createInstance("file:/a/b"),
+//        UfsUrl.createInstance("file:/a").joinUnsafe("b"));
+//    assertEquals(UfsUrl.createInstance("file:/a/b.txt"),
+//        UfsUrl.createInstance("file:/a").joinUnsafe("/b.txt"));
+//    assertEquals(UfsUrl.createInstance("abc:/a/b.txt"),
+//        UfsUrl.createInstance("abc:/a").joinUnsafe("/b.txt"));
+//    assertEquals(UfsUrl.createInstance("file://a/b"),
+//        UfsUrl.createInstance("file://a").joinUnsafe("///b///"));
+//
+////    final String pathWithSpecialChar = "����,��b����$o����[| =B����";
+////    assertEquals(UfsUrl.createInstance("file://" + pathWithSpecialChar),
+////        UfsUrl.createInstance("file://").joinUnsafe(pathWithSpecialChar));
+//
+////    final String pathWithSpecialCharAndColon = "����,��b����$o����[| =B��:��";
+////    assertEquals(UfsUrl.createInstance("file://" + pathWithSpecialCharAndColon),
+////        UfsUrl.createInstance("file://").joinUnsafe(pathWithSpecialCharAndColon));
+//
+//    // The following joins are not "safe", because the new path component requires normalization.
+//    assertNotEquals(UfsUrl.createInstance("file://a/c"),
+//        UfsUrl.createInstance("file://a").joinUnsafe("b/../c"));
+//    assertNotEquals(UfsUrl.createInstance("file:/a/b.txt"),
+//        UfsUrl.createInstance("file:/a").joinUnsafe("/c/../b.txt"));
+//    assertNotEquals(UfsUrl.createInstance("abc:/a/b.txt"),
+//        UfsUrl.createInstance("file:/abc:/a/c.txt").joinUnsafe("/../b.txt"));
+//
+//    // join empty string
+//    assertEquals(UfsUrl.createInstance("file://a"),
+//        UfsUrl.createInstance("file://a").joinUnsafe(""));
+//  }
 
   /**
    * Tests the {@link UfsUrl#createInstance(String)} constructor to work with file URIs

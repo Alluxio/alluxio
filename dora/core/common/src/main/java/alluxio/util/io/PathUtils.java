@@ -473,7 +473,7 @@ public final class PathUtils {
   }
 
   /**
-   * Returns the path of concatenating two String paths, handle the shash between them.
+   * Returns the path of concatenating two String paths, handle the slash between them.
    * pathA = "/a/b/", pathB = "/c/d/", return "/a/b/c/d/"
    * pathA = "/a/b", pathB = "c/d", return "/a/b/c/d"
    *
@@ -509,5 +509,24 @@ public final class PathUtils {
         return "file://" + PathUtils.concatStringPath(rootDir, inputDir);
       }
     }
+  }
+
+  /**
+   * Normalize the path component of the {@link AlluxioURI}, by replacing all "//" and "\\" with
+   * "/", and trimming trailing slash from non-root path (ignoring windows drive).
+   * From Alluxio.normalizePath(String).
+   *
+   * @param path the path to normalize
+   * @return the normalized path
+   */
+  public static String normalizeStringPath(String path) {
+    while (path.contains("//")) {
+      path = path.replace("//", "/");
+    }
+    int minLength = 1;
+    while (path.length() > minLength && path.endsWith("/")) {
+      path = path.substring(0, path.length() - 1);
+    }
+    return path;
   }
 }
