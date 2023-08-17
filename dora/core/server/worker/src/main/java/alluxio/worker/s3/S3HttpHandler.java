@@ -18,7 +18,6 @@ import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.s3.S3ErrorResponse;
 import alluxio.worker.dora.DoraWorker;
 
-import com.esotericsoftware.minlog.Log;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -138,7 +137,7 @@ public class S3HttpHandler extends ChannelInboundHandlerAdapter {
         HttpResponse asyncResponse = mHandler.getS3Task().continueTask();
         // if it has got the response already, no need to process content, just return it
         if (asyncResponse == null) {
-          asyncResponse = processContent(asyncResponse);
+          asyncResponse = processContent();
         }
         // if still no response, generate the error response
         if (asyncResponse == null) {
@@ -160,15 +159,16 @@ public class S3HttpHandler extends ChannelInboundHandlerAdapter {
             HttpContent content = mHandler.getLatestContent();
             ReferenceCountUtil.release(content);
           } catch (InterruptedException e) {
-            Log.warn("skip");
+            LOG.warn("skip uncaught content.");
           }
         }
       }
     }
 
     @Nullable
-    private HttpResponse processContent(HttpResponse asyncResponse) throws InterruptedException {
+    private HttpResponse processContent() throws InterruptedException {
       HttpContent content;
+      HttpResponse asyncResponse = null;
       while ((content = mHandler.getLatestContent()) != null) {
         try {
           asyncResponse = mHandler.getS3Task().handleContent(content);
