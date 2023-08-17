@@ -809,7 +809,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               new FileAlreadyExistsException("File already exists but no overwrite flag"));
         } else {
           mMetaManager.removeFromMetaStore(dst);
-//          UfsStatus status = mUfs.getStatus(dst);
           if (mUfs.getStatus(dst).isFile()) {
             mUfs.deleteFile(dst);
           } else {
