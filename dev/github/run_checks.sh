@@ -25,12 +25,13 @@ fi
 export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
 
 # Always use java 8 to compile the source code
-JAVA_HOME_BACKUP=${JAVA_HOME}
-PATH_BACKUP=${PATH}
 JAVA_HOME=/usr/local/openjdk-8
 PATH=$JAVA_HOME/bin:$PATH
-mvn -Duser.home=/home/jenkins -T 4C clean install -DskipTests ${mvn_args}
+mvn -Duser.home=/home/jenkins -T 4C clean install -DskipTests
+
+# compile go cli
+./build/cli/build-cli.sh
 
 ./dev/scripts/check-docs.sh
 ./dev/scripts/build-artifact.sh ufsVersionCheck
-
+./dev/scripts/build-artifact.sh tarball --dryRun

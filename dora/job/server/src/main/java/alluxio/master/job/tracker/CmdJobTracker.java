@@ -16,7 +16,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.CmdConfig;
-import alluxio.job.cmd.load.LoadCliConfig;
 import alluxio.job.cmd.migrate.MigrateCliConfig;
 import alluxio.job.cmd.persist.PersistCmdConfig;
 import alluxio.job.wire.CmdStatusBlock;
@@ -47,7 +46,6 @@ public class CmdJobTracker {
   private static final Logger LOG = LoggerFactory.getLogger(CmdJobTracker.class);
   private final Map<Long, CmdInfo> mInfoMap = new ConcurrentHashMap<>(0, 0.95f,
       Math.max(8, 2 * Runtime.getRuntime().availableProcessors()));
-  private final DistLoadCliRunner mDistLoadCliRunner;
   private final MigrateCliRunner mMigrateCliRunner;
   private final PersistRunner mPersistRunner;
   protected FileSystemContext mFsContext;
@@ -61,7 +59,6 @@ public class CmdJobTracker {
   public CmdJobTracker(FileSystemContext fsContext,
                    JobMaster jobMaster) {
     mFsContext = fsContext;
-    mDistLoadCliRunner = new DistLoadCliRunner(mFsContext, jobMaster);
     mMigrateCliRunner = new MigrateCliRunner(mFsContext, jobMaster);
     mPersistRunner = new PersistRunner(mFsContext, jobMaster);
   }
@@ -69,16 +66,13 @@ public class CmdJobTracker {
   /**
    * Constructor with runner providers.
    * @param fsContext Filesystem context
-   * @param distLoadCliRunner DistributedLoad runner
    * @param migrateCliRunner DistributedCopy runner
    * @param persistRunner Persist runner
    */
   public CmdJobTracker(FileSystemContext fsContext,
-                       DistLoadCliRunner distLoadCliRunner,
                        MigrateCliRunner migrateCliRunner,
                        PersistRunner persistRunner) {
     mFsContext = fsContext;
-    mDistLoadCliRunner = distLoadCliRunner;
     mMigrateCliRunner = migrateCliRunner;
     mPersistRunner = persistRunner;
   }
@@ -97,19 +91,6 @@ public class CmdJobTracker {
           throws JobDoesNotExistException, IOException {
     CmdInfo cmdInfo;
     switch (cmdConfig.getOperationType()) {
-      case DIST_LOAD:
-        LoadCliConfig loadCliConfig = (LoadCliConfig) cmdConfig;
-        int batchSize = loadCliConfig.getBatchSize();
-        AlluxioURI filePath = new AlluxioURI(loadCliConfig.getFilePath());
-        int replication = loadCliConfig.getReplication();
-        Set<String> workerSet = loadCliConfig.getWorkerSet();
-        Set<String> excludedWorkerSet = loadCliConfig.getExcludedWorkerSet();
-        Set<String> localityIds =  loadCliConfig.getLocalityIds();
-        Set<String> excludedLocalityIds = loadCliConfig.getExcludedLocalityIds();
-        boolean directCache = loadCliConfig.getDirectCache();
-        cmdInfo = mDistLoadCliRunner.runDistLoad(batchSize, filePath, replication, workerSet,
-                excludedWorkerSet, localityIds, excludedLocalityIds, directCache, jobControlId);
-        break;
       case DIST_CP:
         MigrateCliConfig migrateCliConfig = (MigrateCliConfig) cmdConfig;
         AlluxioURI srcPath = new AlluxioURI(migrateCliConfig.getSource());

@@ -9,12 +9,7 @@ This documentation shows how to install Alluxio (Dora) on Kubernetes via
 a kubernetes extension for managing applications.
 
 We recommend using the operator to deploy Alluxio on Kubernetes. However, 
-if some required permissions are missing, consider using helm chart instead.
-
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/FlvbekK_xG0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/zwhMwiYmO8M" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+if some required permissions are missing, consider using helm chart instead. 
 
 ## Prerequisites
 

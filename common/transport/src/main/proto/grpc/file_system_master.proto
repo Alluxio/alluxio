@@ -11,11 +11,11 @@ import "grpc/fscommon.proto";
 import "proto/journal/file.proto";
 
 enum WritePType {
-  MUST_CACHE = 1;
-  TRY_CACHE = 2;
+  MUST_CACHE = 1 [deprecated = true];
+  TRY_CACHE = 2 [deprecated = true];
   CACHE_THROUGH = 3;
   THROUGH = 4;
-  ASYNC_THROUGH = 5;
+  ASYNC_THROUGH = 5 [deprecated = true];
   NONE = 6;
 }
 
@@ -117,7 +117,7 @@ message CreateDirectoryPOptions {
   optional bool recursive = 1;
   optional bool allowExists = 2;
   optional PMode mode = 3;
-  optional WritePType writeType = 4;
+  optional WritePType writeType = 4 [default = CACHE_THROUGH];
   optional FileSystemMasterCommonPOptions commonOptions = 5;
   map<string, bytes> xattr = 6;
   optional XAttrPropagationStrategy xattrPropStrat = 7 [default = NEW_PATHS];
@@ -142,7 +142,7 @@ message CreateFilePOptions {
   optional int32 replicationMin = 5;
   optional int32 replicationDurable = 6;
   optional int32 writeTier = 7;
-  optional WritePType writeType = 8;
+  optional WritePType writeType = 8 [default = CACHE_THROUGH];
   optional FileSystemMasterCommonPOptions commonOptions = 9;
   optional int64 persistenceWaitTime = 10;
   map<string, bytes> xattr = 11;
@@ -152,6 +152,7 @@ message CreateFilePOptions {
   // If specified, the data will be written to the certain worker
   optional grpc.WorkerNetAddress workerLocation = 15;
   optional bool isAtomicWrite = 16;
+  optional bool useMultipartUpload = 17;
 }
 message CreateFilePRequest {
   /** the path of the file */
@@ -224,16 +225,6 @@ enum SyncPointStatus {
   Syncing = 1;
   Initially_Synced = 2;
 }
-
-message SyncPointInfo {
-  optional string syncPointUri = 1;
-  optional SyncPointStatus syncStatus = 2;
-}
-
-message GetSyncPathListPResponse {
-  repeated SyncPointInfo syncPaths= 1;
-}
-message GetSyncPathListPRequest {}
 
 message ListStatusPResponse {
   repeated FileInfo fileInfos = 1;
@@ -551,24 +542,6 @@ message ScheduleAsyncPersistencePRequest {
   optional ScheduleAsyncPersistencePOptions options = 2;
 }
 
-message StartSyncPResponse {}
-message StartSyncPOptions {
-  optional FileSystemMasterCommonPOptions commonOptions = 1;
-}
-message StartSyncPRequest {
-  optional string path = 1;
-  optional StartSyncPOptions options = 2;
-}
-
-message StopSyncPResponse {}
-message StopSyncPOptions {
-  optional FileSystemMasterCommonPOptions commonOptions = 1;
-}
-message StopSyncPRequest {
-  optional string path = 1;
-  optional StopSyncPOptions options = 2;
-}
-
 message UnmountPResponse {}
 message UnmountPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
@@ -641,7 +614,7 @@ message CopyJobPOptions {
   optional bool verify = 2;
   optional bool partialListing = 3;
   optional bool overwrite = 4;
-  optional WritePType writeType = 5;
+  optional WritePType writeType = 5 [default = CACHE_THROUGH];
   optional bool check_content = 6;
 }
 
@@ -650,7 +623,7 @@ message MoveJobPOptions {
   optional bool verify = 2;
   optional bool partialListing = 3;
   optional bool overwrite = 4;
-  optional WritePType writeType = 5;
+  optional WritePType writeType = 5 [default = CACHE_THROUGH];
   optional bool check_content = 6;
 }
 
@@ -738,11 +711,6 @@ service FileSystemMasterClientService {
   rpc GetMountTable(GetMountTablePRequest) returns (GetMountTablePResponse);
 
   /**
-   * Returns a list of paths that are being actively synced by Alluxio
-   */
-  rpc GetSyncPathList(GetSyncPathListPRequest) returns (GetSyncPathListPResponse);
-
-  /**
    * Generates a new block id for the given file.
    */
   rpc GetNewBlockIdForFile(GetNewBlockIdForFilePRequest) returns (GetNewBlockIdForFilePResponse);
@@ -806,16 +774,6 @@ service FileSystemMasterClientService {
    * Sets file or directory attributes.
    */
   rpc SetAttribute(SetAttributePRequest) returns (SetAttributePResponse);
-
-  /**
-   * Start the active syncing of the directory or file
-   */
-  rpc StartSync(StartSyncPRequest) returns (StartSyncPResponse);
-
-  /**
-   * Start the active syncing of the directory or file
-   */
-  rpc StopSync(StopSyncPRequest) returns (StopSyncPResponse);
 
   /**
    * Deletes an existing "mount point", voiding the Alluxio namespace at the given path. The path

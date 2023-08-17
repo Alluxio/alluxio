@@ -424,8 +424,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
    * 2. At each step, the iterator finds the RocksDB is closing and aborts voluntarily.
    *
    * This iterator is used in:
-   * 1. {@link BlockIntegrityChecker} to iterate all existing blocks
-   * 2. Journal dumping like checkpoint/backup sequences
+   * 1. Journal dumping like checkpoint/backup sequences
    */
   public CloseableIterator<Block> getCloseableIterator() {
     try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {

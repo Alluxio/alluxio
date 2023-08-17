@@ -128,8 +128,7 @@ scrape_configs:
 
 To read other components' metrics, use the respective pod role label and web port label.
 
-{% accordion PrometheusOnK8s %}
-{% collapsible Worker metrics %}
+#### Worker metrics
 An example configuration reading worker metrics
 ```yaml
 scrape_configs:
@@ -174,9 +173,8 @@ scrape_configs:
         action: replace
         target_label: cluster_name
 ```
-{% endcollapsible %}
 
-{% collapsible Job master metrics %}
+#### Job master metrics 
 An example configuration reading job master metrics
 ```yaml
 scrape_configs:
@@ -221,9 +219,8 @@ scrape_configs:
         action: replace
         target_label: cluster_name
 ```
-{% endcollapsible %}
 
-{% collapsible Job worker metrics %}
+#### Job worker metrics 
 An example configuration reading job worker metrics
 ```yaml
 scrape_configs:
@@ -244,7 +241,6 @@ scrape_configs:
         regex: true
       # Use the value of prometheus.io/path in podAnnotation for endpoint
       - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
-        action: replace
         target_label: __metrics_path__
         regex: (.+)
       # Use the value of prometheus.io/workerWebPort in podAnnotation for port
@@ -268,8 +264,6 @@ scrape_configs:
         action: replace
         target_label: cluster_name
 ```
-{% endcollapsible %}
-{% endaccordion %}
 
 ### Get Metrics Snapshot
 

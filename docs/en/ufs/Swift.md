@@ -5,17 +5,55 @@ title: Swift
 
 
 This guide describes how to configure Alluxio with an under storage system supporting the
-[Swift API](http://docs.openstack.org/developer/swift/).
+[Swift API](https://wiki.openstack.org/wiki/Swift){:target="_blank"}.
 
 Swift is a highly available, distributed, eventually consistent object/blob store. Organizations can use Swift to store lots of data efficiently, safely, and cheaply.
 
+For more information about Swift, please read its [documentation](http://docs.openstack.org/developer/swift/){:target="_blank"}.
+
+## Prerequisites
+
+If you haven't already, please see [Prerequisites]({{ '/en/ufs/Storage-Overview.html#prerequisites' | relativize_url }}) before you get started.
+
+In preparation for using Swift with Alluxio:
+<table class="table table-striped">
+    <tr>
+        <td markdown="span" style="width:30%">`<SWIFT_BUCKET>`</td>
+        <td markdown="span">[Create a new Swift bucket](https://docs.openstack.org/newton/user-guide/cli-swift-create-containers.html){:target="_blank"} or use an existing bucket</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<SWIFT_DIRECTORY>`</td>
+        <td markdown="span">The directory you want to use in the bucket, either by creating a new directory or using an existing one</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<SWIFT_USER>`</td>
+        <td markdown="span"></td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<SWIFT_TENANT>`</td>
+        <td markdown="span"></td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<SWIFT_PASSWORD>`</td>
+        <td markdown="span"></td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<SWIFT_AUTH_URL>`</td>
+        <td markdown="span"></td>
+    </tr><tr>
+        <td markdown="span" style="width:30%">`<SWIFT_AUTH_METHOD>`</td>
+        <td markdown="span"></td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<SWIFT_REGION>`</td>
+        <td markdown="span"></td>
+    </tr>
+</table>
+
+
 ## Basic Setup
 
-A Swift bucket can be mounted to the Alluxio either at the root of the namespace, or at a nested directory.
-
-Configure Alluxio to use under storage systems by modifying
-`conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
-template.
+To use Swift as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
 
 ```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
@@ -24,79 +62,50 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.dora.client.ufs.root=swift://<bucket>/<folder>
-fs.swift.user=<swift-user>
-fs.swift.tenant=<swift-tenant>
-fs.swift.password=<swift-user-password>
-fs.swift.auth.url=<swift-auth-url>
-fs.swift.auth.method=<swift-auth-model>
+alluxio.dora.client.ufs.root=swift://<SWIFT_BUCKET>/<SWIFT_DIRECTORY>
+fs.swift.user=<SWIFT_USER>
+fs.swift.tenant=<SWIFT_TENANT>
+fs.swift.password=<SWIFT_PASSWORD>
+fs.swift.auth.url=<SWIFT_AUTH_URL>
+fs.swift.auth.method=<SWIFT_AUTH_METHOD>
 ```
-
-Replace `<bucket>/<folder>` with an existing Swift bucket location. Possible values of
-`<swift-use-public>` are `true`, `false`. Possible values of `<swift-auth-model>` are `keystonev3`,
-`keystone`, `tempauth`, `swiftauth`. 
 
 When using either keystone authentication, the following parameter can optionally be set:
 
 ```properties
-fs.swift.region=<swift-preferred-region>
+fs.swift.region=<SWIFT_REGION>
 ```
 
 On the successful authentication, Keystone will return two access URLs: public and private. If
 Alluxio is used inside company network and Swift is located on the same network it is advised to set
 value of `<swift-use-public>`  to `false`.
 
-## Options for Swift Object Storage
+### Options for Swift Object Storage
 
-Using the Swift module makes [Ceph Object Storage](https://ceph.com/ceph-storage/object-storage/)
-and [IBM SoftLayer](https://www.ibm.com/cloud/object-storage) Object Storage as under storage options
-for Alluxio. To use Ceph, the [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/) module must
+Using the Swift module makes [Ceph Object Storage](https://ceph.com/ceph-storage/object-storage/){:target="_blank"}
+and [IBM SoftLayer Object Storage](https://www.ibm.com/cloud/object-storage){:target="_blank"} as under storage options
+for Alluxio. To use Ceph, the [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/){:target="_blank"} module must
 be deployed.
+
+See [CephObjectStorage Integration with Alluxio]({{ '/en/ufs/CephObjectStorage.html' | relativize_url }}).
 
 ## Running Alluxio Locally with Swift
 
-Start an Alluxio cluster:
+Once you have configured Alluxio to Swift, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
 
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
-```
-
-This should start an Alluxio master and an Alluxio worker. You can see the master UI at
-[http://localhost:19999](http://localhost:19999).
-
-Run a simple example program:
-
-```shell
-$ ./bin/alluxio runTests
-```
-
-Visit your Swift bucket to verify the files and directories created
-by Alluxio exist. For this test, you should see files named like:
-
-```
-<bucket>/<folder>/default_tests_files/BASIC_CACHE_THROUGH
-```
-
-To stop Alluxio, you can run:
-
-```shell
-$ ./bin/alluxio-stop.sh local
-```
-
-## Running functional tests
+## Running Functional Tests
 
 The following command can be used to test if the given Swift credentials are valid.
 Developers can also use it to run functional tests against a Swift endpoint 
 to validate the contract between Alluxio and Swift.
 
 ```shell
-$ ./bin/alluxio runUfsTests --path swift://<bucket> \
+$ ./bin/alluxio runUfsTests --path swift://<SWIFT_BUCKET> \
   -Dfs.swift.user=<SWIFT_USER> \
   -Dfs.swift.tenant=<SWIFT_TENANT> \
   -Dfs.swift.password=<SWIFT_PASSWORD> \
-  -Dfs.swift.auth.url=<AUTH_URL> \
-  -Dfs.swift.auth.method=<AUTH_METHOD> 
+  -Dfs.swift.auth.url=<SWIFT_AUTH_URL> \
+  -Dfs.swift.auth.method=<SWIFT_AUTH_METHOD> 
 ```
 
 ## Advanced Setup

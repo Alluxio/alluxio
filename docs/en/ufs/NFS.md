@@ -4,25 +4,25 @@ title: NFS
 ---
 
 
-This guide describes the instructions to configure [NFS](http://nfs.sourceforge.net) as Alluxio's under
+This guide describes the instructions to configure [NFS](http://nfs.sourceforge.net){:target="_blank"} as Alluxio's under
 storage system.
 
 Network File System (NFS) is a distributed file system protocol that allows a client computer to access files over a network as if they were located on its local storage. NFS enables file sharing and remote file access between systems in a networked environment.
 
 You'll need to have a configured and running installation of NFS for the rest of this guide.
 If you need to get your own NFS installation up and running, we recommend taking a look at the
-[NFS-HOW TO](http://nfs.sourceforge.net/nfs-howto/)
+[NFS-HOW TO](http://nfs.sourceforge.net/nfs-howto/){:target="_blank"}.
 
 ## Prerequisites
 
-The prerequisite for this part is that you have a version of
-[Java 8](https://adoptopenjdk.net/releases.html?variant=openjdk8&jvmVariant=hotspot)
-installed.
+If you haven't already, please see [Prerequisites]({{ '/en/ufs/Storage-Overview.html#prerequisites' | relativize_url }}) before you get started.
+
+Make sure that you have a version of
+[Java 8](https://adoptopenjdk.net/releases.html?variant=openjdk8&jvmVariant=hotspot){:target="_blank"} installed.
 
 Turn on remote login service so that `ssh localhost` can succeed. To avoid the need to
 repeatedly input the password, you can add the public SSH key for the host into
-`~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more
-details.
+`~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html){:target="_blank"} for more details.
 
 ## Creating NFS mount point
 
@@ -36,17 +36,15 @@ Please mount your nfs share like this.
 $ sudo mount -o actimeo=0 nfshost:/nfsdir /mnt/nfs
 ```
 
-## Configuring Alluxio
+## Basic Setup
 
-Configure Alluxio to use under storage systems by modifying
-`conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
-template.
+To use NFS as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
 
 ```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-Assume we have mounted NFS share at `/mnt/nfs` on all Alluxio masters and workers, the following lines should be exist within the `conf/alluxio-site.properties` file.
+Assume we have mounted NFS share at `/mnt/nfs` on all Alluxio masters and workers, modify `conf/alluxio-site.properties` to include:
 
 ```properties
 alluxio.master.hostname=localhost
@@ -55,32 +53,11 @@ alluxio.dora.client.ufs.root=/mnt/nfs
 
 ## Running Alluxio with NFS
 
-Run the following command to start Alluxio filesystem.
-
-```shell
-$ ./bin/alluxio-mount.sh SudoMount
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
-```
-
-To verify that Alluxio is running, you can visit
-[http://localhost:19999](http://localhost:19999), or see the log in the `logs` folder.
-
-Run a simple example program:
-
-```shell
-$ ./bin/alluxio runTests
-```
+Once you have configured Alluxio to NFS, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
 
 Visit your NFS volume at `/mnt/nfs` to verify the files and directories created by Alluxio exist.
 For this test, you should see files named:
 
 ```
 /mnt/nfs/default_tests_files/BASIC_CACHE_THROUGH
-```
-
-Stop Alluxio by running:
-
-```shell
-$ ./bin/alluxio-stop.sh local
 ```

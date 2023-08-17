@@ -42,6 +42,7 @@ import alluxio.master.PollingMasterInquireClient;
 import alluxio.master.SingleMasterInquireClient;
 import alluxio.master.ZkMasterInquireClient;
 import alluxio.master.journal.JournalType;
+import alluxio.membership.MembershipType;
 import alluxio.multi.process.PortCoordination.ReservedPort;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
@@ -97,8 +98,8 @@ import javax.security.auth.Subject;
 @ThreadSafe
 public final class MultiProcessCluster {
   public static final int PORTS_PER_MASTER = 3;
-  public static final int PORTS_PER_WORKER = 3;
-  private static final int MASTER_START_DELAY_MS = 500; // in ms
+  public static final int PORTS_PER_WORKER = 5;
+  private static final int MASTER_START_DELAY_MS = 5000; // in ms
 
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
   private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
@@ -724,6 +725,8 @@ public final class MultiProcessCluster {
     int rpcPort = getNewPort();
     int dataPort = getNewPort();
     int webPort = getNewPort();
+    int httpPort = getNewPort();
+    int restPort = getNewPort();
 
     Map<PropertyKey, Object> conf = new HashMap<>();
     conf.put(PropertyKey.LOGGER_TYPE, "WORKER_LOGGER");
@@ -734,11 +737,15 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.WORKER_RPC_PORT, rpcPort);
     conf.put(PropertyKey.WORKER_WEB_PORT, webPort);
     conf.put(PropertyKey.WORKER_DATA_PORT, dataPort);
+    conf.put(PropertyKey.WORKER_HTTP_SERVER_PORT, httpPort);
+    conf.put(PropertyKey.WORKER_REST_PORT, restPort);
     conf.put(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, workerMetaStoreDir.getAbsolutePath());
 
     conf.put(PropertyKey.DORA_CLIENT_UFS_ROOT, PathUtils.concatPath(mWorkDir, "underFSStorage"));
     conf.put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
     conf.put(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true);
+
+    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.NOOP);
 
     Worker worker = mCloser.register(new Worker(logsDir, conf));
     mWorkers.add(worker);

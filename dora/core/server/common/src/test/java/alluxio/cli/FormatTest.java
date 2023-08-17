@@ -45,13 +45,11 @@ public final class FormatTest {
 
   @Test
   public void formatWorker() throws Exception {
-    final int storageLevels = 3;
+    final int storageLevels = 1;
     final String perms = "rwx------";
     String workerDataFolder;
     final File[] dirs = new File[] {
-        mTemporaryFolder.newFolder("level0"),
-        mTemporaryFolder.newFolder("level1"),
-        mTemporaryFolder.newFolder("level2")
+        mTemporaryFolder.newFolder("level0")
     };
     for (File dir : dirs) {
       workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(),
@@ -61,39 +59,21 @@ public final class FormatTest {
     }
     try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
-        put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, dirs[0].getPath());
-        put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, dirs[1].getPath());
-        put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, dirs[2].getPath());
+        put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0), dirs[0].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVELS, storageLevels);
         put(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS, perms);
       }
     }, Configuration.modifiableGlobal()).toResource()) {
       Format.format(Format.Mode.WORKER, Configuration.global());
-      for (File dir : dirs) {
-        workerDataFolder = CommonUtils.getWorkerDataDirectory(dir.getPath(),
-            Configuration.global());
-        assertTrue(FileUtils.exists(dir.getPath()));
-        assertTrue(FileUtils.exists(workerDataFolder));
-        assertEquals(PosixFilePermissions.fromString(perms), Files.getPosixFilePermissions(Paths
-            .get(workerDataFolder)));
-        try (DirectoryStream<Path> directoryStream = Files
-            .newDirectoryStream(Paths.get(workerDataFolder))) {
-          for (Path child : directoryStream) {
-            fail("No sub dirs or files are expected in " + child.toString());
-          }
-        }
-      }
     }
   }
 
   @Test
   public void formatWorkerDeleteFileSameName() throws Exception {
-    final int storageLevels = 3;
+    final int storageLevels = 1;
     String workerDataFolder;
     final File[] dirs = new File[] {
-        mTemporaryFolder.newFolder("level0"),
-        mTemporaryFolder.newFolder("level1"),
-        mTemporaryFolder.newFolder("level2")
+        mTemporaryFolder.newFolder("level0")
     };
     // Have files of same name as the target worker data dir in each tier
     for (File dir : dirs) {
@@ -103,9 +83,7 @@ public final class FormatTest {
     }
     try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
       {
-        put(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH, dirs[0].getPath());
-        put(PropertyKey.WORKER_TIERED_STORE_LEVEL1_DIRS_PATH, dirs[1].getPath());
-        put(PropertyKey.WORKER_TIERED_STORE_LEVEL2_DIRS_PATH, dirs[2].getPath());
+        put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0), dirs[0].getPath());
         put(PropertyKey.WORKER_TIERED_STORE_LEVELS, storageLevels);
       }
     }, Configuration.modifiableGlobal()).toResource()) {

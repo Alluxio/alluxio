@@ -1199,6 +1199,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The number of files failed to be copied by copy commands")
           .setMetricType(MetricType.COUNTER)
           .build();
+
+  public static final MetricKey MASTER_JOB_COPY_SKIP_FILE_COUNT =
+      new Builder("Master.JobCopySkipFileCount")
+          .setDescription("The number of files skipped to be copied by copy commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
   public static final MetricKey MASTER_JOB_COPY_SIZE =
       new Builder("Master.JobCopyFileSize")
           .setDescription("The total block size copied by copy commands")
@@ -1211,37 +1217,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(true)
           .build();
   // Distributed command related metrics
-  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_SUCCESS =
-      new Builder("Master.JobDistributedLoadSuccess")
-          .setDescription("The number of successful DistributedLoad operations")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_FAIL =
-      new Builder("Master.JobDistributedLoadFail")
-          .setDescription("The number of failed DistributedLoad operations")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_CANCEL =
-      new Builder("Master.JobDistributedLoadCancel")
-          .setDescription("The number of cancelled DistributedLoad operations")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_FILE_COUNT =
-      new Builder("Master.JobDistributedLoadFileCount")
-          .setDescription("The number of files by DistributedLoad operations")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_FILE_SIZE =
-      new Builder("Master.JobDistributedLoadFileSizes")
-          .setDescription("The total file size by DistributedLoad operations")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_RATE =
-      new Builder("Master.JobDistributedLoadRate")
-          .setDescription("The average DistributedLoad loading rate")
-          .setMetricType(MetricType.METER)
-          .setIsClusterAggregated(true)
-          .build();
   public static final MetricKey MASTER_MIGRATE_JOB_SUCCESS =
       new Builder("Master.MigrateJobSuccess")
           .setDescription("The number of successful MigrateJob operations")
@@ -2078,41 +2053,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey WORKER_CACHE_MANAGER_THREAD_ACTIVE_COUNT =
-      new Builder("Worker.CacheManagerThreadActiveCount")
-          .setDescription("The approximate number of block cache "
-              + "threads that are actively executing tasks in the cache manager thread pool")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_CACHE_MANAGER_THREAD_CURRENT_COUNT =
-      new Builder("Worker.CacheManagerThreadCurrentCount")
-          .setDescription("The current number of cache threads in the cache manager thread pool")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_CACHE_MANAGER_THREAD_QUEUE_WAITING_TASK_COUNT =
-      new Builder("Worker.CacheManagerThreadQueueWaitingTaskCount")
-          .setDescription("The current number of tasks waiting in the work queue "
-              + "in the cache manager thread pool, bounded by "
-              + PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_CACHE_MANAGER_THREAD_MAX_COUNT =
-      new Builder("Worker.CacheManagerThreadMaxCount")
-          .setDescription("The maximum allowed number of block cache "
-              + "thread in the cache manager thread pool")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_CACHE_MANAGER_COMPLETED_TASK_COUNT =
-      new Builder("Worker.CacheManagerCompleteTaskCount")
-          .setDescription("The approximate total number of block cache tasks "
-              + "that have completed execution")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
   public static final MetricKey WORKER_BLOCK_READER_THREAD_ACTIVE_COUNT =
       new Builder("Worker.BlockReaderThreadActiveCount")
           .setDescription("The approximate number of block read "
@@ -2275,6 +2215,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_EXTERNAL_REQUESTS =
+      new Builder("Client.CacheBytesExternalRequests")
+          .setDescription("Total number of requests to read from external storage.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS =
       new Builder("Client.CachePageReadCacheTimeNanos")
           .setDescription("Time in nanoseconds taken to read a page from the client cache "
@@ -2287,6 +2233,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Time in nanoseconds taken to read a page from external source "
               + "when the cache misses.")
           .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_POSITION_READ_FALLBACK =
+      new Builder("Client.CacheBytesPositionReadFallback")
+          .setDescription("Total number of position read fallback to external storage.")
+          .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_BYTES_DISCARDED =
@@ -2313,6 +2265,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_PAGES_INVALIDATED =
+      new Builder("Client.CachePagesInvalidated")
+          .setDescription("Total number of pages invalidated by TTL rules")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
+
   public static final MetricKey CLIENT_CACHE_PAGES_EVICTED =
       new Builder("Client.CachePagesEvicted")
           .setDescription("Total number of pages evicted from the client cache.")
@@ -2329,6 +2288,12 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Client.CacheHitRate")
           .setDescription("Cache hit rate: (# bytes read from cache) / (# bytes requested).")
           .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_HIT_REQUESTS =
+      new Builder("Client.CacheHitRequests")
+          .setDescription("Total number of requests of hitting the cache.")
+          .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_SPACE_AVAILABLE =

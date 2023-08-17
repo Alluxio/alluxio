@@ -44,7 +44,6 @@ import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 
 import java.io.IOException;
 import java.util.List;
@@ -176,11 +175,6 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
-    return mDelegatedFileSystem.getSyncPathList();
-  }
-
-  @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
       IOException, AlluxioException {
@@ -195,7 +189,8 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options) {
+  public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options)
+      throws FileDoesNotExistException {
     return mDelegatedFileSystem.openPositionRead(path, options);
   }
 
@@ -225,18 +220,6 @@ public class DelegatingFileSystem implements FileSystem {
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
     mDelegatedFileSystem.setAcl(path, action, entries, options);
-  }
-
-  @Override
-  public void startSync(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
-    mDelegatedFileSystem.startSync(path);
-  }
-
-  @Override
-  public void stopSync(AlluxioURI path)
-      throws FileDoesNotExistException, IOException, AlluxioException {
-    mDelegatedFileSystem.stopSync(path);
   }
 
   @Override

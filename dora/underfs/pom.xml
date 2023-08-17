@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -15,12 +16,18 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>302-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs</artifactId>
   <packaging>pom</packaging>
   <name>Alluxio Under File System</name>
   <description>Parent POM for different implementations of Alluxio under file system</description>
+
+  <properties>
+    <!-- These need to be defined here as well as in the parent pom so that mvn can run
+         properly from sub-project directories -->
+    <build.path>${project.parent.parent.basedir}/build</build.path>
+  </properties>
 
   <modules>
     <module>abfs</module>
@@ -42,14 +49,7 @@
     <module>obs</module>
   </modules>
 
-  <properties>
-    <!-- These need to be defined here as well as in the parent pom so that mvn can run
-         properly from sub-project directories -->
-    <build.path>${project.parent.parent.basedir}/build</build.path>
-  </properties>
-
   <dependencies>
-    <!-- External dependencies -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -66,9 +66,9 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.gaul</groupId>
-      <artifactId>s3proxy</artifactId>
-      <scope>test</scope>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -76,9 +76,9 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-slf4j-impl</artifactId>
-      <scope>provided</scope>
+      <groupId>org.gaul</groupId>
+      <artifactId>s3proxy</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -91,14 +91,14 @@
           <executions>
             <execution>
               <id>shade</id>
-              <phase>package</phase>
               <goals>
                 <goal>shade</goal>
               </goals>
+              <phase>package</phase>
               <configuration>
                 <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
                 <transformers>
-                  <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                  <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                 </transformers>
                 <filters>
                   <filter>
@@ -106,6 +106,10 @@
                     <excludes>
                       <exclude>LICENSE</exclude>
                       <exclude>META-INF/LICENSE</exclude>
+                      <exclude>META-INF/LICENSE.*</exclude>
+                      <exclude>META-INF/license/*</exclude>
+                      <exclude>META-INF/NOTICE</exclude>
+                      <exclude>META-INF/NOTICE.*</exclude>
                       <exclude>META-INF/*.SF</exclude>
                       <exclude>META-INF/*.DSA</exclude>
                       <exclude>META-INF/*.RSA</exclude>

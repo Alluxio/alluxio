@@ -32,7 +32,7 @@ import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.TestPlanConfig;
-import alluxio.job.cmd.load.LoadCliConfig;
+import alluxio.job.cmd.persist.PersistCmdConfig;
 import alluxio.job.plan.PlanConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
@@ -190,8 +190,7 @@ public final class JobMasterTest {
 
   @Test
   public void submitAndList() throws Exception {
-    CmdConfig config = new LoadCliConfig("/path/to/load", 3, 1, Collections.EMPTY_SET,
-            Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, true);
+    CmdConfig config = new PersistCmdConfig("/path/to/persist", 3, true, "hdfs://path");
     List<Long> jobIdList = new ArrayList<>();
     for (long i = 0; i < TEST_JOB_MASTER_JOB_CAPACITY; i++) {
       long jobControlId = mJobMaster.submit(config);
