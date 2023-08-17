@@ -47,8 +47,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -136,6 +138,21 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
   // Setting GCS owner via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setOwner(String path, String user, String group) {}
+
+  @Override
+  public void setAttribute(String path, String name, byte[] value) throws IOException {
+    Map<String, String> newMetadata = new HashMap<>();
+    newMetadata.put(name, new String(value));
+    BlobId blobId = BlobId.of(mBucketName, path);
+    Blob blob = mStorageClient.get(blobId);
+    if (blob == null) {
+      LOG.warn("The object {} was not found in {}.", path, mBucketName);
+      return;
+    }
+
+    Storage.BlobTargetOption precondition = Storage.BlobTargetOption.generationMatch();
+    blob.toBuilder().setMetadata(newMetadata).build().update(precondition);
+  }
 
   // Setting GCS mode via Alluxio is not supported yet. This is a no-op.
   @Override

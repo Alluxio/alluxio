@@ -608,7 +608,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
 
   @Override
   public void setAttribute(String path, String name, byte[] value) throws IOException {
-    throw new UnimplementedRuntimeException("Position read is not implemented");
+    throw new UnimplementedRuntimeException("set attribute is not implemented");
   }
 
   @Override
