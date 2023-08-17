@@ -26,14 +26,22 @@ profiles:
         - underFSStorage
       fileList:
         - bin/alluxio
-        - bin/alluxio-common.sh
-        - bin/alluxio-masters.sh
-        - bin/alluxio-monitor.sh
+        - bin/alluxio-bash
+        - bin/alluxio-common-bash.sh
+        - bin/alluxio-masters-bash.sh
+        - bin/alluxio-monitor-bash.sh
+        - bin/alluxio-mount-bash.sh
         - bin/alluxio-mount.sh
+        - bin/alluxio-start-bash.sh
         - bin/alluxio-start.sh
+        - bin/alluxio-stop-bash.sh
         - bin/alluxio-stop.sh
-        - bin/alluxio-workers.sh
-        - bin/launch-process
+        - bin/alluxio-workers-bash.sh
+        - bin/launch-process-bash
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Darwin-aarch64
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Darwin-x86_64
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Linux-aarch64
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Linux-x86_64
         - conf/alluxio-env.sh.template
         - conf/alluxio-site.properties.template
         - conf/core-site.xml.template
@@ -74,14 +82,22 @@ profiles:
         - underFSStorage
       fileList:
         - bin/alluxio
-        - bin/alluxio-common.sh
-        - bin/alluxio-masters.sh
-        - bin/alluxio-monitor.sh
+        - bin/alluxio-bash
+        - bin/alluxio-common-bash.sh
+        - bin/alluxio-masters-bash.sh
+        - bin/alluxio-monitor-bash.sh
+        - bin/alluxio-mount-bash.sh
         - bin/alluxio-mount.sh
+        - bin/alluxio-start-bash.sh
         - bin/alluxio-start.sh
+        - bin/alluxio-stop-bash.sh
         - bin/alluxio-stop.sh
-        - bin/alluxio-workers.sh
-        - bin/launch-process
+        - bin/alluxio-workers-bash.sh
+        - bin/launch-process-bash
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Darwin-aarch64
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Darwin-x86_64
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Linux-aarch64
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Linux-x86_64
         - conf/alluxio-env.sh.template
         - conf/alluxio-site.properties.template
         - conf/core-site.xml.template
@@ -122,14 +138,22 @@ profiles:
         - underFSStorage
       fileList:
         - bin/alluxio
-        - bin/alluxio-common.sh
-        - bin/alluxio-masters.sh
-        - bin/alluxio-monitor.sh
+        - bin/alluxio-bash
+        - bin/alluxio-common-bash.sh
+        - bin/alluxio-masters-bash.sh
+        - bin/alluxio-monitor-bash.sh
+        - bin/alluxio-mount-bash.sh
         - bin/alluxio-mount.sh
+        - bin/alluxio-start-bash.sh
         - bin/alluxio-start.sh
+        - bin/alluxio-stop-bash.sh
         - bin/alluxio-stop.sh
-        - bin/alluxio-workers.sh
-        - bin/launch-process
+        - bin/alluxio-workers-bash.sh
+        - bin/launch-process-bash
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Darwin-aarch64
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Darwin-x86_64
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Linux-aarch64
+        - cli/src/alluxio.org/cli/bin/alluxioCli-Linux-x86_64
         - conf/alluxio-env.sh.template
         - conf/alluxio-site.properties.template
         - conf/core-site.xml.template

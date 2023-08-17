@@ -15,13 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
-import alluxio.exception.runtime.InvalidArgumentRuntimeException;
-import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -38,8 +33,6 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Objects;
@@ -62,36 +55,13 @@ public final class CopyHandler {
    */
   public static void copy(Route route, WriteOptions writeOptions,
       FileSystem srcFs, FileSystem dstFs) {
-
     AlluxioURI src = new AlluxioURI(route.getSrc());
     AlluxioURI dst = new AlluxioURI(route.getDst());
-    URIStatus dstStatus = null;
     URIStatus sourceStatus;
-    try {
-      dstStatus = dstFs.getStatus(dst, GET_STATUS_OPTIONS);
-    } catch (FileNotFoundException | NotFoundRuntimeException ignore) {
-      // ignored
-    } catch (FileDoesNotExistException ignore) {
-      // should not happen
-    } catch (AlluxioException | IOException e) {
-      throw new InternalRuntimeException(e);
-    }
     try {
       sourceStatus = srcFs.getStatus(src, GET_STATUS_OPTIONS);
     } catch (Exception e) {
       throw AlluxioRuntimeException.from(e);
-    }
-    if (dstStatus != null && dstStatus.isFolder() && sourceStatus.isFolder()) {
-      // skip copy if it's already a folder there
-      return;
-    }
-    if (dstStatus != null && !dstStatus.isFolder() && !writeOptions.getOverwrite()) {
-      throw new FailedPreconditionRuntimeException("File " + route.getDst() + " is already in UFS");
-    }
-    if (dstStatus != null && (dstStatus.isFolder() != sourceStatus.isFolder())) {
-      throw new InvalidArgumentRuntimeException(
-          "Can't replace target because type is not compatible. Target is " + dstStatus
-              + ", Source is " + sourceStatus);
     }
 
     if (sourceStatus.isFolder()) {
@@ -103,7 +73,6 @@ public final class CopyHandler {
         throw AlluxioRuntimeException.from(e);
       }
     }
-
     long copiedLength = copyFile(src, dst, srcFs, dstFs, writeOptions.getWriteType());
     if (writeOptions.getCheckContent()) {
       if (!checkLengthAndContentHash(sourceStatus, dst, dstFs, copiedLength)) {

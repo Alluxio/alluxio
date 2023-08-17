@@ -1199,6 +1199,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The number of files failed to be copied by copy commands")
           .setMetricType(MetricType.COUNTER)
           .build();
+
+  public static final MetricKey MASTER_JOB_COPY_SKIP_FILE_COUNT =
+      new Builder("Master.JobCopySkipFileCount")
+          .setDescription("The number of files skipped to be copied by copy commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
   public static final MetricKey MASTER_JOB_COPY_SIZE =
       new Builder("Master.JobCopyFileSize")
           .setDescription("The total block size copied by copy commands")
@@ -2044,41 +2050,6 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Worker.BlockRemoverRemovingBlocksSize")
           .setDescription("The size of blocks is being removed from this worker at a moment "
               + "by asynchronous block remover.")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_CACHE_MANAGER_THREAD_ACTIVE_COUNT =
-      new Builder("Worker.CacheManagerThreadActiveCount")
-          .setDescription("The approximate number of block cache "
-              + "threads that are actively executing tasks in the cache manager thread pool")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_CACHE_MANAGER_THREAD_CURRENT_COUNT =
-      new Builder("Worker.CacheManagerThreadCurrentCount")
-          .setDescription("The current number of cache threads in the cache manager thread pool")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_CACHE_MANAGER_THREAD_QUEUE_WAITING_TASK_COUNT =
-      new Builder("Worker.CacheManagerThreadQueueWaitingTaskCount")
-          .setDescription("The current number of tasks waiting in the work queue "
-              + "in the cache manager thread pool, bounded by "
-              + PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_CACHE_MANAGER_THREAD_MAX_COUNT =
-      new Builder("Worker.CacheManagerThreadMaxCount")
-          .setDescription("The maximum allowed number of block cache "
-              + "thread in the cache manager thread pool")
-          .setMetricType(MetricType.GAUGE)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey WORKER_CACHE_MANAGER_COMPLETED_TASK_COUNT =
-      new Builder("Worker.CacheManagerCompleteTaskCount")
-          .setDescription("The approximate total number of block cache tasks "
-              + "that have completed execution")
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();

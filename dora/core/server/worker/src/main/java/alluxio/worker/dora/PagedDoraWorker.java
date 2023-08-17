@@ -30,6 +30,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
+import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
@@ -90,6 +92,7 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.task.CopyHandler;
 import alluxio.worker.task.DeleteHandler;
+import alluxio.worker.task.ValidateHandler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -256,7 +259,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         mMembershipManager.join(new WorkerInfo().setAddress(mAddress));
         mWorkerId.set(HashUtils.hashAsLong(mAddress.dumpMainInfo()));
         break;
-      } catch (IOException ioe) {
+      } catch (UnavailableRuntimeException ioe) {
+        /* We should only expect such exception when situation such as
+         * etcd hasn't started up yet when alluxio components and etcd
+         * are starting up at same time. In such case we keep retrying.
+         */
         if (!retry.attempt()) {
           throw ioe;
         }
@@ -529,7 +536,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                   .setRetryable(t.isRetryable() && permissionCheckSucceeded)
                   .setMessage(t.getMessage()).build());
             }
-          }, GrpcExecutors.BLOCK_READER_EXECUTOR);
+          }, GrpcExecutors.READER_EXECUTOR);
           futures.add(loadFuture);
         } catch (RejectedExecutionException ex) {
           LOG.warn("BlockDataReaderExecutor overloaded.");
@@ -541,7 +548,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         }
       }
     }
-    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_READER_EXECUTOR);
+    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.READER_EXECUTOR);
   }
 
   protected void loadData(String ufsPath, long mountId, long length)
@@ -588,6 +595,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               AuthenticatedClientUser.set(readOptions.getUser());
             }
             checkCopyPermission(route.getSrc(), route.getDst());
+            if (!ValidateHandler.validate(route, writeOptions, srcFs, dstFs)) {
+              // Skip copy if there is a failure during validation.
+              RouteFailure.Builder builder =
+                  RouteFailure.newBuilder().setRoute(route).setIsSkip(true).setCode(0);
+              errors.add(builder.build());
+              return;
+            }
             CopyHandler.copy(route, writeOptions, srcFs, dstFs);
           } catch (Throwable t) {
             boolean permissionCheckSucceeded = !(t instanceof AccessControlException);
@@ -595,13 +609,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
             RouteFailure.Builder builder =
                 RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value())
-                    .setRetryable(e.isRetryable() && permissionCheckSucceeded);
+                    .setRetryable(e.isRetryable() && permissionCheckSucceeded)
+                    .setIsSkip(false);
             if (e.getMessage() != null) {
               builder.setMessage(e.getMessage());
             }
             errors.add(builder.build());
           }
-        }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+        }, GrpcExecutors.WRITER_EXECUTOR);
         futures.add(future);
       } catch (IOException e) {
         // ignore close error
@@ -614,7 +629,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         errors.add(builder.build());
       }
     }
-    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.WRITER_EXECUTOR);
   }
 
   protected UnderFileSystem getUnderFileSystem(String ufsPath) {
@@ -643,6 +658,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               AuthenticatedClientUser.set(readOptions.getUser());
             }
             checkMovePermission(route.getSrc(), route.getDst());
+            if (!ValidateHandler.validate(route, writeOptions, srcFs, dstFs)) {
+              throw new FailedPreconditionRuntimeException("File " + route.getDst()
+                  + " is already in UFS");
+            }
             CopyHandler.copy(route, writeOptions, srcFs, dstFs);
             try {
               DeleteHandler.delete(new AlluxioURI(route.getSrc()), srcFs);
@@ -665,7 +684,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             }
             errors.add(builder.build());
           }
-        }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+        }, GrpcExecutors.WRITER_EXECUTOR);
         futures.add(future);
       } catch (IOException e) {
         // ignore close error
@@ -678,7 +697,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         errors.add(builder.build());
       }
     }
-    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.WRITER_EXECUTOR);
   }
 
   @Override

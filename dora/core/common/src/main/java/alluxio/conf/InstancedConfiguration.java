@@ -17,15 +17,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 
-import alluxio.conf.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -242,6 +239,15 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     mProperties.merge(properties, source);
   }
 
+  /**
+   * Merges map of properties into the current alluxio properties.
+   *
+   * @param properties map of keys to values
+   */
+  public void merge(AlluxioProperties properties) {
+    mProperties.merge(properties);
+  }
+
   @Override
   public Set<PropertyKey> keySet() {
     return mProperties.keySet();
@@ -386,9 +392,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     checkTimeouts();
     checkUserFileBufferBytes();
     checkZkConfiguration();
-    checkTieredLocality();
-    checkTieredStorage();
-    checkMasterThrottleThresholds();
     checkCheckpointZipConfig();
   }
 
@@ -526,61 +529,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   /**
-   * Checks that tiered locality configuration is consistent.
-   *
-   * @throws IllegalStateException if invalid tiered locality configuration is encountered
-   */
-  private void checkTieredLocality() {
-    // Check that any custom tiers set by alluxio.locality.{custom_tier}=value are also defined in
-    // the tier ordering defined by alluxio.locality.order.
-    Set<String> tiers = Sets.newHashSet(getList(PropertyKey.LOCALITY_ORDER));
-    Set<PropertyKey> predefinedKeys = new HashSet<>(PropertyKey.defaultKeys());
-    for (PropertyKey key : mProperties.keySet()) {
-      if (predefinedKeys.contains(key)) {
-        // Skip non-templated keys.
-        continue;
-      }
-      Matcher matcher = Template.LOCALITY_TIER.match(key.toString());
-      if (matcher.matches() && matcher.group(1) != null) {
-        String tierName = matcher.group(1);
-        if (!tiers.contains(tierName)) {
-          throw new IllegalStateException(
-              String.format("Tier %s is configured by %s, but does not exist in the tier list %s "
-                  + "configured by %s", tierName, key, tiers, PropertyKey.LOCALITY_ORDER));
-        }
-      }
-    }
-  }
-
-  /**
-   * Checks that tiered storage configuration on worker is consistent with the global configuration.
-   *
-   * @throws IllegalStateException if invalid tiered storage configuration is encountered
-   */
-  @VisibleForTesting
-  void checkTieredStorage() {
-    int globalTiers = getInt(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS);
-    Set<String> globalTierAliasSet = new HashSet<>();
-    for (int i = 0; i < globalTiers; i++) {
-      globalTierAliasSet.add(
-          getString(PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS.format(i)));
-    }
-    int workerTiers = getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
-    checkState(workerTiers <= globalTiers,
-        "%s tiers on worker (configured by %s), larger than global %s tiers (configured by %s) ",
-        workerTiers, PropertyKey.WORKER_TIERED_STORE_LEVELS,
-        globalTiers, PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS);
-    for (int i = 0; i < workerTiers; i++) {
-      PropertyKey key = Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(i);
-      String alias = getString(key);
-      checkState(globalTierAliasSet.contains(alias),
-          "Alias \"%s\" on tier %s on worker (configured by %s) is not found in global tiered "
-              + "storage setting: %s",
-          alias, i, key, String.join(", ", globalTierAliasSet));
-    }
-  }
-
-  /**
    * @throws IllegalStateException if invalid checkpoint zip configuration parameters are found
    */
   private void checkCheckpointZipConfig() {
@@ -590,89 +538,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       throw new IllegalStateException(String.format("Zip compression level for property key %s"
           + " must be between -1 and 9 inclusive",
           PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL.getName()));
-    }
-  }
-
-  /**
-   * @throws IllegalStateException if invalid throttle threshold parameters are found
-   */
-  private void checkMasterThrottleThresholds() {
-    boolean heapUsedRatioThresholdValid
-        = (Double
-        .compare(0,
-            getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO)) < 0
-        && Double
-        .compare(getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO),
-        getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO)) < 0
-        && Double
-        .compare(getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO),
-        getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO)) < 0
-        && Double
-        .compare(getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO),
-            1) <= 0);
-    if (!heapUsedRatioThresholdValid) {
-      throw new IllegalStateException(
-          String.format("The heap used ratio thresholds are not set correctly, the values should"
-                  + " be between 0 and 1, it is expected: ACTIVE < STRESSED < OVERLOADED,"
-                  + " while they are ACTIVE({}), STRESSED({}), OVERLOADED({})",
-              getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO),
-              getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO),
-              getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO)));
-    }
-
-    boolean cpuUsedRatioThresholdValid
-        = (Double
-        .compare(0,
-            getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO)) < 0
-        && Double
-        .compare(getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO),
-            getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO)) < 0
-        && Double
-        .compare(getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO),
-            getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO)) < 0
-        && Double
-        .compare(getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO),
-            1) <= 0);
-    if (!cpuUsedRatioThresholdValid) {
-      throw new IllegalStateException(
-          String.format("The cpu used ratio thresholds are not set correctly, the values should"
-                  + " be between 0 and 1, it is expected: ACTIVE < STRESSED < OVERLOADED,"
-                  + " while they are ACTIVE({}), STRESSED({}), OVERLOADED({})",
-              getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO),
-              getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO),
-              getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO)));
-    }
-
-    boolean heapGCTimeThresholdValid
-        = (0 < getMs(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME)
-        && getMs(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME)
-        < getMs(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_GC_TIME)
-        && getMs(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_GC_TIME)
-        < getMs(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME));
-    if (!heapGCTimeThresholdValid) {
-      throw new IllegalStateException(
-          String.format("The heap GC extra time threshold is not set correctly,"
-                  + " it is expected: ACTIVE < STRESSED < OVERLOADED, while they are "
-                  + "ACTIVE({}), STRESSED({}), OVERLOADED({})",
-              getMs(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME),
-              getMs(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_GC_TIME),
-              getMs(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME)));
-    }
-
-    boolean rpcQueueSizeThresholdValid
-        = (0 < getInt(PropertyKey.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE)
-        && getInt(PropertyKey.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE)
-        < getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE)
-        && getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE)
-        < getInt(PropertyKey.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE));
-    if (!rpcQueueSizeThresholdValid) {
-      throw new IllegalStateException(
-          String.format("The rpc queue size threshold is not set correctly,"
-                  + " it is expected: ACTIVE < STRESSED < OVERLOADED, while they are "
-                  + "ACTIVE({}), STRESSED({}), OVERLOADED({})",
-              getInt(PropertyKey.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE),
-              getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE),
-              getInt(PropertyKey.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE)));
     }
   }
 

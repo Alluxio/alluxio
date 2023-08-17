@@ -33,7 +33,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -243,17 +242,6 @@ public abstract class AbstractLocalAlluxioCluster {
     // Creates ufs dir. This must be called before starting UFS with UnderFileSystemCluster.create()
     UnderFileSystemUtils.mkdirIfNotExists(ufs, underfsAddress);
     UnderFileSystemUtils.mkdirIfNotExists(doraUfs, doraUfsRoot);
-
-    // Creates storage dirs for worker
-    int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
-    for (int level = 0; level < numLevel; level++) {
-      PropertyKey tierLevelDirPath =
-          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
-      String[] dirPaths = Configuration.getString(tierLevelDirPath).split(",");
-      for (String dirPath : dirPaths) {
-        FileUtils.createDir(dirPath);
-      }
-    }
 
     formatJournal();
   }
