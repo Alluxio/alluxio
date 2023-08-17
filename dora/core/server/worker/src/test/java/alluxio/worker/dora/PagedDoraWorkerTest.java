@@ -732,7 +732,7 @@ public class PagedDoraWorkerTest {
   private void loadFileData(String path)
       throws ExecutionException, InterruptedException, TimeoutException, IOException,
       AccessControlException {
-    UfsStatus ufsStatus = mWorker.getUfs().getStatus(path);
+    UfsStatus ufsStatus = mWorker.getUfsInstance(path).getStatus(path);
     ufsStatus.setUfsFullPath(new AlluxioURI(path));
     ListenableFuture<List<LoadFileFailure>> load =
         mWorker.load(true, Collections.singletonList(ufsStatus),
