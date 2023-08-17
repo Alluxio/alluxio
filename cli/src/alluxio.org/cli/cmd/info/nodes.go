@@ -12,40 +12,40 @@
 package info
 
 import (
-	"alluxio.org/cli/cmd/names"
 	"github.com/spf13/cobra"
 
+	"alluxio.org/cli/cmd/names"
 	"alluxio.org/cli/env"
 )
 
-var Master = &MasterCommand{
+var Nodes = &NodesCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "master",
-		JavaClassName: names.FileSystemShellJavaClass,
-		Parameters:    []string{"masterInfo"},
+		CommandName:   "nodes",
+		JavaClassName: names.FileSystemAdminShellJavaClass,
+		Parameters:    []string{"nodes", "status"},
 	},
 }
 
-type MasterCommand struct {
+type NodesCommand struct {
 	*env.BaseJavaCommand
 }
 
-func (c *MasterCommand) Base() *env.BaseJavaCommand {
+func (c *NodesCommand) Base() *env.BaseJavaCommand {
 	return c.BaseJavaCommand
 }
 
-func (c *MasterCommand) ToCommand() *cobra.Command {
+func (c *NodesCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   Master.CommandName,
-		Short: "Prints information regarding master fault tolerance such as leader address and list of master addresses",
+		Use:   Nodes.CommandName,
+		Short: "Show all registered workers' status",
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return c.Run(nil)
+			return c.Run(args)
 		},
 	})
 	return cmd
 }
 
-func (c *MasterCommand) Run(_ []string) error {
-	// TODO: output in a serializable format
-	return c.Base().Run(nil)
+func (c *NodesCommand) Run(args []string) error {
+	return c.Base().Run(args)
 }
