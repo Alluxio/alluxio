@@ -431,16 +431,13 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
         if (prevPartNum >= part.getPartNumber()) {
           throw new S3Exception(S3ErrorCode.INVALID_PART_ORDER);
         }
-        prevPartNum = part.getPartNumber();
-      }
-
-      for (CompleteMultipartUploadRequest.Part part :
-          requestParts.subList(0, requestParts.size() - 1)) {
-        if (uploadedPartsMap.get(part.getPartNumber()).getLength() < Configuration.getBytes(
+        if (uploadedPartsMap.get(prevPartNum).getLength() < Configuration.getBytes(
             PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
           throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
         }
+        prevPartNum = part.getPartNumber();
       }
+
       List<URIStatus> validParts =
           requestParts.stream().map(part -> uploadedPartsMap.get(part.getPartNumber()))
               .collect(Collectors.toList());

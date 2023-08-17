@@ -65,6 +65,7 @@ function main {
   # configure anything that's relative to ${HOME}.
   run_args+=" -e HOME=${home}"
   run_args+=" -v ${ALLUXIO_DOCKER_M2}:${home}/.m2"
+  run_args+=" -v /var/run/docker.sock:/var/run/docker.sock"
   run_args+=" -e npm_config_cache=${home}/.npm"
   run_args+=" -e MAVEN_CONFIG=${home}/.m2"
 

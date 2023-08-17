@@ -121,7 +121,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       callStreamObserver =
           new DataMessageServerStreamObserver<>(callStreamObserver, mReadResponseMarshaller);
     }
-    FileReadHandler readHandler = new FileReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR,
+    FileReadHandler readHandler = new FileReadHandler(GrpcExecutors.READER_EXECUTOR,
         mWorker, callStreamObserver);
     callStreamObserver.setOnReadyHandler(readHandler::onReady);
     return readHandler;
@@ -142,7 +142,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
         }
         LoadFileResponse.Builder response = LoadFileResponse.newBuilder();
         return response.addAllFailures(fail).setStatus(taskStatus).build();
-      }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+      }, GrpcExecutors.WRITER_EXECUTOR);
       RpcUtils.invoke(LOG, future, "loadFile", "request=%s", responseObserver, request);
     } catch (Exception e) {
       LOG.debug(String.format("Failed to load file %s: ", request.getUfsStatusList()), e);
@@ -164,7 +164,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
         }
         CopyResponse.Builder response = CopyResponse.newBuilder();
         return response.addAllFailures(fail).setStatus(taskStatus).build();
-      }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+      }, GrpcExecutors.WRITER_EXECUTOR);
       RpcUtils.invoke(LOG, future, "loadFile", "request=%s", responseObserver, request);
     } catch (Exception e) {
       LOG.debug(String.format("Failed to load file %s: ", request.getRoutesList()), e);
@@ -186,7 +186,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
         }
         MoveResponse.Builder response = MoveResponse.newBuilder();
         return response.addAllFailures(fail).setStatus(taskStatus).build();
-      }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+      }, GrpcExecutors.WRITER_EXECUTOR);
       RpcUtils.invoke(LOG, future, "moveFile", "request=%s", responseObserver, request);
     } catch (Exception e) {
       LOG.debug(String.format("Failed to move file %s: ", request.getRoutesList()), e);

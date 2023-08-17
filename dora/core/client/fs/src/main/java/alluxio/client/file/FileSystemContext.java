@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import static java.util.stream.Collectors.toList;
 
-import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.BlockMasterClient;
@@ -27,7 +26,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ReconfigurableRegistry;
-import alluxio.conf.path.SpecificPathConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
@@ -447,11 +445,7 @@ public class FileSystemContext implements Closeable {
     mBlockMasterClientPool = new BlockMasterClientPool(mMasterClientContext);
     mBlockWorkerClientPoolMap = new ConcurrentHashMap<>();
     mUriValidationEnabled = ctx.getUriValidationEnabled();
-    try {
-      mMembershipManager = MembershipManager.Factory.create(getClusterConf());
-    } catch (IOException ex) {
-      LOG.error("Failed to set membership manager.", ex);
-    }
+    mMembershipManager = MembershipManager.Factory.create(getClusterConf());
   }
 
   /**
@@ -546,11 +540,10 @@ public class FileSystemContext implements Closeable {
    * Blocks until there is no active RPCs.
    *
    * @param updateClusterConf whether cluster level configuration should be updated
-   * @param updatePathConf whether path level configuration should be updated
    * @throws UnavailableException when failed to load configuration from master
    * @throws IOException when failed to close the context
    */
-  public void reinit(boolean updateClusterConf, boolean updatePathConf)
+  public void reinit(boolean updateClusterConf)
       throws UnavailableException, IOException {
     try (Closeable r = mReinitializer.allow()) {
       InetSocketAddress masterAddr;
@@ -560,7 +553,7 @@ public class FileSystemContext implements Closeable {
         throw new UnavailableException("Failed to get master address during reinitialization", e);
       }
       try {
-        getClientContext().loadConf(masterAddr, updateClusterConf, updatePathConf);
+        getClientContext().loadConf(masterAddr);
       } catch (AlluxioStatusException e) {
         // Failed to load configuration from meta master, maybe master is being restarted,
         // or their is a temporary network problem, give up reinitialization. The heartbeat thread
@@ -568,8 +561,7 @@ public class FileSystemContext implements Closeable {
         throw new UnavailableException(String.format("Failed to load configuration from "
             + "meta master (%s) during reinitialization", masterAddr), e);
       }
-      LOG.debug("Reinitializing FileSystemContext: update cluster conf: {}, update path conf:"
-          + " {}", updateClusterConf, updatePathConf);
+      LOG.debug("Reinitializing FileSystemContext: update cluster conf: {}", updateClusterConf);
       closeContext();
       ReconfigurableRegistry.update();
       initContext(getClientContext(), mMasterAddresses != null
@@ -608,19 +600,6 @@ public class FileSystemContext implements Closeable {
    */
   public AlluxioConfiguration getClusterConf() {
     return getClientContext().getClusterConf();
-  }
-
-  /**
-   * The path level configuration is a {@link SpecificPathConfiguration}.
-   *
-   * If path level configuration has never been loaded from meta master yet, it will be loaded.
-   *
-   * @param path the path to get the configuration for
-   * @return the path level configuration for the specific path
-   */
-  public AlluxioConfiguration getPathConf(AlluxioURI path) {
-    return new SpecificPathConfiguration(getClientContext().getClusterConf(),
-        getClientContext().getPathConf(), path);
   }
 
   /**

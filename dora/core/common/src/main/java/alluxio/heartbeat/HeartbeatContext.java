@@ -38,7 +38,6 @@ public final class HeartbeatContext {
       "Job Worker Command Handling";
   public static final String MASTER_THROTTLE = "Master Throttle";
   public static final String MASTER_ACTIVE_UFS_SYNC = "Master Active UFS Sync";
-  public static final String MASTER_BLOCK_INTEGRITY_CHECK = "Master Block Integrity Check";
   public static final String MASTER_CHECKPOINT_SCHEDULING = "Master Checkpoint Scheduling";
   public static final String MASTER_CLUSTER_METRICS_UPDATER = "Master Cluster Metrics Updater";
   public static final String MASTER_DAILY_BACKUP = "Master Daily Backup";
@@ -59,7 +58,6 @@ public final class HeartbeatContext {
   public static final String MASTER_TABLE_TRANSFORMATION_MONITOR =
       "Master Table Transformation Monitor";
   public static final String MASTER_TTL_CHECK = "Master TTL Check";
-  public static final String MASTER_UFS_CLEANUP = "Master Ufs Cleanup";
   public static final String MASTER_UPDATE_CHECK = "Master Update Check";
   public static final String META_MASTER_SYNC = "Meta Master Sync";
   public static final String PROXY_META_MASTER_SYNC = "Proxy MetaMaster Sync";
@@ -85,7 +83,6 @@ public final class HeartbeatContext {
     MASTER_POLICY_ACTION_SCHEDULER(103),
     MASTER_THROTTLE(104),
     MASTER_ACTIVE_UFS_SYNC(105),
-    MASTER_BLOCK_INTEGRITY_CHECK(106),
     MASTER_CHECKPOINT_SCHEDULING(107),
     MASTER_CLUSTER_METRICS_UPDATER(108),
     MASTER_DAILY_BACKUP(109),
@@ -103,7 +100,6 @@ public final class HeartbeatContext {
     MASTER_REPLICATION_CHECK(121),
     MASTER_TABLE_TRANSFORMATION_MONITOR(122),
     MASTER_TTL_CHECK(123),
-    MASTER_UFS_CLEANUP(124),
     MASTER_UPDATE_CHECK(125),
     META_MASTER_SYNC(126),
 
@@ -132,7 +128,6 @@ public final class HeartbeatContext {
     sTimerClasses.put(JOB_MASTER_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(JOB_WORKER_COMMAND_HANDLING, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_ACTIVE_UFS_SYNC, SLEEPING_TIMER_CLASS);
-    sTimerClasses.put(MASTER_BLOCK_INTEGRITY_CHECK, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_CHECKPOINT_SCHEDULING, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_CLUSTER_METRICS_UPDATER, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_DAILY_BACKUP, SLEEPING_TIMER_CLASS);
@@ -151,7 +146,6 @@ public final class HeartbeatContext {
     sTimerClasses.put(MASTER_REPLICATION_CHECK, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_TABLE_TRANSFORMATION_MONITOR, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_TTL_CHECK, SLEEPING_TIMER_CLASS);
-    sTimerClasses.put(MASTER_UFS_CLEANUP, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_UPDATE_CHECK, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(META_MASTER_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(PROXY_META_MASTER_SYNC, SLEEPING_TIMER_CLASS);

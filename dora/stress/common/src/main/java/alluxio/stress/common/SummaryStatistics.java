@@ -14,12 +14,11 @@ package alluxio.stress.common;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.stress.StressConstants;
 import alluxio.stress.graph.LineGraph;
-import alluxio.stress.master.MasterBenchSummary;
 
 import java.util.Arrays;
 
 /**
- * Statistics class for {@link MasterBenchSummary}.
+ * Statistics class.
  */
 public class SummaryStatistics {
   /** number of successes. */
