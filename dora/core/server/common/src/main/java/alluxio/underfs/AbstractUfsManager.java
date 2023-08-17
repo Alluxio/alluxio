@@ -122,7 +122,7 @@ public abstract class AbstractUfsManager implements UfsManager {
   public UnderFileSystem getOrAdd(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
     Key key = generateKey(ufsUri, ufsConf);
     return get(key)
-        .orElseGet(() -> add(ufsUri, ufsConf, Recorder.noopRecorder()));
+        .orElseGet(() -> add(key, ufsUri, ufsConf, Recorder.noopRecorder()));
   }
 
   /**
@@ -138,7 +138,7 @@ public abstract class AbstractUfsManager implements UfsManager {
       UnderFileSystemConfiguration ufsConf, Recorder recorder) {
     Key key = generateKey(ufsUri, ufsConf);
     return get(key)
-        .orElseGet(() -> add(ufsUri, ufsConf, recorder));
+        .orElseGet(() -> add(key, ufsUri, ufsConf, recorder));
   }
 
   protected Key generateKey(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
@@ -146,9 +146,8 @@ public abstract class AbstractUfsManager implements UfsManager {
   }
 
   // On cache miss, synchronize the creation to ensure ufs is only created once
-  private synchronized UnderFileSystem add(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf,
-      Recorder recorder) {
-    Key key = generateKey(ufsUri, ufsConf);
+  private synchronized UnderFileSystem add(Key key, AlluxioURI ufsUri,
+      UnderFileSystemConfiguration ufsConf, Recorder recorder) {
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
       recorder.record("Using cached instance of UFS {} identified by key {}",
