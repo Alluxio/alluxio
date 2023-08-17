@@ -60,23 +60,6 @@ public class FileSystemOptions {
     }
 
     /**
-     * Copies options from an existing {@link FileSystemOptions} object.
-     *
-     * @param source source options to copy from
-     * @return builder
-     */
-    public static Builder copyFrom(FileSystemOptions source) {
-      Builder builder = new Builder();
-      builder.setDataCacheEnabled(source.isDataCacheEnabled())
-          .setDoraCacheEnabled(source.isDoraCacheEnabled())
-          .setMetadataCacheEnabled(source.isMetadataCacheEnabled())
-          .setUfsFallbackEnabled(source.isUfsFallbackEnabled());
-      source.getUfsFileSystemOptions()
-          .ifPresent(builder::setUfsFileSystemOptions);
-      return builder;
-    }
-
-    /**
      * @return whether client metadata cache is enabled
      */
     public boolean isMetadataCacheEnabled() {
