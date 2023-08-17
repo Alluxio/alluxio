@@ -173,7 +173,7 @@ public class UfsUrlTest {
    * from its different components.
    */
   @Test
-  public void constructFromComponentsTests() {
+  public void constructFromComponents() {
     String scheme = "xyz";
     String authority = "127.0.0.1:90909";
     String path = "/a/../b/c.txt";
@@ -384,7 +384,6 @@ public class UfsUrlTest {
     assertEquals(UfsUrl.createInstance("abc:/a"), UfsUrl.createInstance("abc:/").join("a"));
     assertEquals(UfsUrl.createInstance("abc:/a/b.txt"),
         UfsUrl.createInstance("abc:/a").join("/b.txt"));
-//    assertEquals(UfsUrl.createInstance("/a/b"),UfsUrl.createInstance("/a").joinUnsafe("///b///"));
 
     final String pathWithSpecialChar = "����,��b����$o����[| =B����";
     assertEquals(UfsUrl.createInstance("abc:/" + pathWithSpecialChar),
@@ -427,9 +426,6 @@ public class UfsUrlTest {
     assertEquals("xyz:///foo/boo", UfsUrl.createInstance("xyz:/foo/bar/..//boo").toString());
     assertEquals("xyz:///foo/boo/baz",
         UfsUrl.createInstance("xyz:/foo/bar/..//boo/./baz").toString());
-//    assertEquals("xyz:///../foo/boo",
-//        UfsUrl.createInstance("xyz:/../foo/bar/..//boo").toString());
-//    assertEquals("xyz:///../foo/boo", UfsUrl.createInstance("xyz:/.././foo/boo").toString());
     assertEquals("xyz:///foo/boo", UfsUrl.createInstance("xyz:./foo/boo").toString());
 
     assertEquals("foo://bar boo:8080/abc/c",
