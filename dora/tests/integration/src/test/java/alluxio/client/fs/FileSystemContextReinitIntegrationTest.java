@@ -17,11 +17,8 @@ import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.ConfigHashSync;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemContextReinitializer;
-import alluxio.client.meta.MetaMasterConfigClient;
-import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.MasterClientContext;
 import alluxio.resource.CloseableResource;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -100,12 +97,6 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
     mLocalAlluxioClusterResource.get().stopMasters();
     Configuration.set(KEY_TO_UPDATE, UPDATED_VALUE);
     mLocalAlluxioClusterResource.get().startMasters();
-  }
-
-  private void updatePathConf() throws Exception {
-    MetaMasterConfigClient client = new RetryHandlingMetaMasterConfigClient(
-        MasterClientContext.newBuilder(mContext.getClientContext()).build());
-    client.setPathConfiguration(PATH_TO_UPDATE, KEY_TO_UPDATE, UPDATED_VALUE.name());
   }
 
   private void checkClusterConfBeforeUpdate() {

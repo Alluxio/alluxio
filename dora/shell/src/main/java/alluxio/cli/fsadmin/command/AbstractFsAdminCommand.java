@@ -30,7 +30,6 @@ public abstract class AbstractFsAdminCommand implements Command {
   protected final FileSystemMasterClient mFsClient;
   protected final BlockMasterClient mBlockClient;
   protected final MetaMasterClient mMetaClient;
-  protected final MetaMasterConfigClient mMetaConfigClient;
   protected final MetricsMasterClient mMetricsClient;
   protected final PrintStream mPrintStream;
   protected final JournalMasterClient mMasterJournalMasterClient;
@@ -41,7 +40,6 @@ public abstract class AbstractFsAdminCommand implements Command {
     mFsClient = context.getFsClient();
     mBlockClient = context.getBlockClient();
     mMetaClient = context.getMetaClient();
-    mMetaConfigClient = context.getMetaConfigClient();
     mMasterJournalMasterClient = context.getJournalMasterClientForMaster();
     mMetricsClient = context.getMetricsClient();
     mJobMasterJournalMasterClient = context.getJournalMasterClientForJobMaster();

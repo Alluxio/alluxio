@@ -33,7 +33,6 @@ public class Context implements Closeable {
   private final FileSystemMasterClient mFsClient;
   private final BlockMasterClient mBlockClient;
   private final MetaMasterClient mMetaClient;
-  private final MetaMasterConfigClient mMetaConfigClient;
   private final MetricsMasterClient mMetricsClient;
   private JournalMasterClient mMasterJournalMasterClient;
   private JournalMasterClient mJobMasterJournalMasterClient;
@@ -45,7 +44,6 @@ public class Context implements Closeable {
    * @param fsClient filesystem master client
    * @param blockClient block master client
    * @param metaClient meta master client
-   * @param metaConfigClient meta configuration master client
    * @param masterJournalMasterClient journal master client for master
    * @param metricsClient metrics master client
    * @param jobMasterJournalMasterClient journal master client for job_master
@@ -53,7 +51,7 @@ public class Context implements Closeable {
    * @param printStream print stream to write to
    */
   public Context(FileSystemMasterClient fsClient, BlockMasterClient blockClient,
-      MetaMasterClient metaClient, MetaMasterConfigClient metaConfigClient,
+      MetaMasterClient metaClient,
       MetricsMasterClient metricsClient,
       JournalMasterClient masterJournalMasterClient,
       JournalMasterClient jobMasterJournalMasterClient, JobMasterClient jobMasterClient,
@@ -65,8 +63,6 @@ public class Context implements Closeable {
         mBlockClient = Preconditions.checkNotNull(blockClient, "blockClient"));
     mCloser.register(
         mMetaClient = Preconditions.checkNotNull(metaClient, "metaClient"));
-    mCloser.register(
-        mMetaConfigClient = Preconditions.checkNotNull(metaConfigClient, "metaConfigClient"));
     mCloser.register(
         mMetricsClient = Preconditions.checkNotNull(metricsClient, "metricsClient"));
     mCloser.register(mMasterJournalMasterClient =
@@ -98,13 +94,6 @@ public class Context implements Closeable {
    */
   public MetaMasterClient getMetaClient() {
     return mMetaClient;
-  }
-
-  /**
-   * @return the meta master configuration client
-   */
-  public MetaMasterConfigClient getMetaConfigClient() {
-    return mMetaConfigClient;
   }
 
   /**
