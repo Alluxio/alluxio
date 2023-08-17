@@ -148,7 +148,6 @@ public class S3BucketTask extends S3BaseTask {
           }
 
           final List<URIStatus> buckets = objects.stream()
-                  .filter((uri) -> uri.getOwner().equals(user))
                   // debatable (?) potentially breaks backcompat(?)
                   .filter(URIStatus::isFolder)
                   .collect(Collectors.toList());
@@ -212,10 +211,7 @@ public class S3BucketTask extends S3BaseTask {
           try {
             List<URIStatus> children = mHandler.getMetaFS().listStatus(new AlluxioURI(
                     S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR));
-            final List<URIStatus> uploadIds = children.stream()
-                    .filter((uri) -> uri.getOwner().equals(user))
-                    .collect(Collectors.toList());
-            return ListMultipartUploadsResult.buildFromStatuses(bucket, uploadIds);
+            return ListMultipartUploadsResult.buildFromStatuses(bucket, children);
           } catch (Exception e) {
             throw S3RestUtils.toBucketS3Exception(e, bucket, auditContext);
           }

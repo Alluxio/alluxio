@@ -214,6 +214,7 @@ public class MultipartUploadTest extends RestApiTest {
     Assert.assertFalse(mFileSystem.exists(tmpDir));
     getTestCase(OBJECT_KEY).checkResponse(String.join("", objects).getBytes());
   }
+
   /**
    * Complete multipart upload with an empty part list.
    * @throws Exception
