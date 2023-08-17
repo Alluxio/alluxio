@@ -280,7 +280,9 @@ $ mvn test -pl underfs/hdfs
 ```shell
 # build and run test on HDFS under storage module for Hadoop 2.7.0
 $ mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
+```
 
+```shell
 # build and run test on HDFS under storage module for Hadoop 3.0.0
 $ mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
 ```
@@ -303,7 +305,7 @@ To have the logs output to STDOUT, append the following arguments to the `mvn` c
 
 The FUSE tests are ignored if the `libfuse` library is missing.
 To run those tests, please install the libraries referenced in
-[the Alluxio FUSE documentation]({{ '/en/fuse-sdk/Overview-Fuse-Sdk.html' | relativize_url }}).
+[the Alluxio FUSE documentation]({{ '/en/fuse-sdk/FUSE-SDK-Overview.html' | relativize_url }}).
 
 ## Modifying a gRPC definition
 

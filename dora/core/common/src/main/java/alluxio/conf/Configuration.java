@@ -13,7 +13,7 @@ package alluxio.conf;
 
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
-import alluxio.conf.path.PathConfiguration;
+import alluxio.conf.reference.ReferenceProperty;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
@@ -41,11 +41,11 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
@@ -430,6 +430,18 @@ public final class Configuration
   }
 
   /**
+   * Compares and swap the two conf.
+   *
+   * @param conf the old config
+   * @param newConf the new config
+   * @return whether the compare and set successful
+   */
+  public static boolean compareAndSetServerConfigReference(InstancedConfiguration conf,
+      InstancedConfiguration newConf) {
+    return SERVER_CONFIG_REFERENCE.compareAndSet(conf, newConf);
+  }
+
+  /**
    * Loads configuration from meta master in one RPC.
    *
    * @param address the meta master address
@@ -504,33 +516,6 @@ public final class Configuration
   }
 
   /**
-   * Loads the path level configuration from the get configuration response.
-   *
-   * Only client scope properties will be loaded.
-   *
-   * @param response the get configuration RPC response
-   * @param clusterConf cluster level configuration
-   * @return the loaded path level configuration
-   */
-  public static PathConfiguration getPathConf(GetConfigurationPResponse response,
-      AlluxioConfiguration clusterConf) {
-    String clientVersion = clusterConf.getString(PropertyKey.VERSION);
-    LOG.debug("Alluxio client (version {}) is trying to load path level configurations",
-        clientVersion);
-    Map<String, AlluxioConfiguration> pathConfs = new HashMap<>();
-    response.getPathConfigsMap().forEach((path, conf) -> {
-      Properties props = filterAndLoadProperties(conf.getPropertiesList(), Scope.CLIENT,
-          (key, value) -> String.format("Loading property: %s (%s) -> %s for path %s",
-              key, key.getScope(), value, path));
-      AlluxioProperties properties = new AlluxioProperties();
-      properties.merge(props, Source.PATH_DEFAULT);
-      pathConfs.put(path, new InstancedConfiguration(properties, true));
-    });
-    LOG.debug("Alluxio client has loaded path level configurations");
-    return PathConfiguration.create(pathConfs);
-  }
-
-  /**
    * Filters and loads properties with a certain scope from the property list returned by grpc.
    * The given scope should only be {@link Scope#WORKER} or {@link Scope#CLIENT}.
    *
@@ -593,6 +578,7 @@ public final class Configuration
           Optional<Properties> properties = loadProperties(fileInputStream);
           if (properties.isPresent()) {
             alluxioProperties.merge(properties.get(), Source.siteProperty(file));
+            overloadWithReferenceProperty(alluxioProperties);
             conf = new InstancedConfiguration(alluxioProperties);
             conf.validate();
             SERVER_CONFIG_REFERENCE.set(conf);
@@ -614,6 +600,7 @@ public final class Configuration
           Optional<Properties> properties = loadProperties(stream);
           if (properties.isPresent()) {
             alluxioProperties.merge(properties.get(), Source.siteProperty(resource.getPath()));
+            overloadWithReferenceProperty(alluxioProperties);
             conf = new InstancedConfiguration(alluxioProperties);
             conf.validate();
             SERVER_CONFIG_REFERENCE.set(conf);
@@ -625,6 +612,14 @@ public final class Configuration
     }
     conf.validate();
     SERVER_CONFIG_REFERENCE.set(conf);
+  }
+
+  private static void overloadWithReferenceProperty(AlluxioProperties alluxioProperties) {
+    // try to load from classpath
+    for (final ReferenceProperty property : ServiceLoader.load(ReferenceProperty.class,
+        ReferenceProperty.class.getClassLoader())) {
+      alluxioProperties.merge(property.getProperties(), Source.REFERENCE);
+    }
   }
 
   /**

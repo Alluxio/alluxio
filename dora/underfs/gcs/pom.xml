@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -15,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>302-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-gcs</artifactId>
   <name>Alluxio Under File System - GCS</name>
@@ -28,22 +29,18 @@
   </properties>
 
   <dependencies>
-    <!-- External dependencies -->
-    <dependency>
-      <groupId>net.java.dev.jets3t</groupId>
-      <artifactId>jets3t</artifactId>
-    </dependency>
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-storage</artifactId>
-      <version>1.79.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
-
-    <!-- Internal dependencies -->
+    <dependency>
+      <groupId>net.java.dev.jets3t</groupId>
+      <artifactId>jets3t</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -51,7 +48,6 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -68,16 +64,16 @@
         <artifactId>maven-shade-plugin</artifactId>
       </plugin>
       <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
         <inherited>false</inherited>
         <executions>
           <execution>
             <id>Copy liob jars selectively</id>
-            <phase>install</phase>
             <goals>
               <goal>exec</goal>
             </goals>
+            <phase>install</phase>
             <configuration>
               <executable>${build.path}/lib/copy_jars.sh</executable>
               <arguments>

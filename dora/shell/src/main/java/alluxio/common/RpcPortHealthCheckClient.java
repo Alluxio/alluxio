@@ -58,6 +58,26 @@ public class RpcPortHealthCheckClient implements HealthCheckClient {
     mUserState = UserState.Factory.create(mConf);
   }
 
+  protected Supplier<RetryPolicy> getRetryPolicySupplier() {
+    return mRetryPolicySupplier;
+  }
+
+  protected InetSocketAddress getNodeAddress() {
+    return mNodeAddress;
+  }
+
+  protected ServiceType getServiceType() {
+    return mServiceType;
+  }
+
+  protected AlluxioConfiguration getConfiguration() {
+    return mConf;
+  }
+
+  protected UserState getUserState() {
+    return mUserState;
+  }
+
   @Override
   public boolean isServing() {
     RetryPolicy retry = mRetryPolicySupplier.get();

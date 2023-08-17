@@ -73,7 +73,11 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
+  /** The executor service for the streaming upload. */
   private final Supplier<ListeningExecutorService> mStreamingUploadExecutor;
+
+  /** The executor service for the multipart upload. */
+  private final Supplier<ListeningExecutorService> mMultipartUploadExecutor;
 
   private StsOssClientProvider mClientProvider;
 
@@ -129,11 +133,23 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     mBucketName = bucketName;
+
+    // Initialize the executor service for the streaming upload.
     mStreamingUploadExecutor = Suppliers.memoize(() -> {
       int numTransferThreads =
           conf.getInt(PropertyKey.UNDERFS_OSS_STREAMING_UPLOAD_THREADS);
       ExecutorService service = ExecutorServiceFactories
           .fixedThreadPool("alluxio-oss-streaming-upload-worker",
+              numTransferThreads).create();
+      return MoreExecutors.listeningDecorator(service);
+    });
+
+    // Initialize the executor service for the multipart upload.
+    mMultipartUploadExecutor = Suppliers.memoize(() -> {
+      int numTransferThreads =
+          conf.getInt(PropertyKey.UNDERFS_OSS_MULTIPART_UPLOAD_THREADS);
+      ExecutorService service = ExecutorServiceFactories
+          .fixedThreadPool("alluxio-oss-multipart-upload-worker",
               numTransferThreads).create();
       return MoreExecutors.listeningDecorator(service);
     });
@@ -207,6 +223,10 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     if (mUfsConf.getBoolean(PropertyKey.UNDERFS_OSS_STREAMING_UPLOAD_ENABLED)) {
       return new OSSLowLevelOutputStream(mBucketName, key, mClient,
           mStreamingUploadExecutor.get(), mUfsConf);
+    }
+    else if (mUfsConf.getBoolean(PropertyKey.UNDERFS_OSS_MULTIPART_UPLOAD_ENABLED)) {
+      return new OSSMultipartUploadOutputStream(mBucketName, key, mClient,
+          mMultipartUploadExecutor.get(), mUfsConf);
     }
     return new OSSOutputStream(mBucketName, key, mClient,
         mUfsConf.getList(PropertyKey.TMP_DIRS));

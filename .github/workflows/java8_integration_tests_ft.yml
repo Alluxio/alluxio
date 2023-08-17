@@ -1,5 +1,10 @@
 name: Java 8 Fault Tolerant Integration Tests
 
+# This build runs the fault tolerance specific integration tests in the dora/tests module
+# The key differences between this build and the default integration test build are
+# - Only runs integration tests with prefix alluxio.server.ft
+# - Sets fork count to 1 to prevent flakey errors due to running concurrent tests; default count is 2
+
 on: [pull_request]
 
 jobs:
@@ -48,9 +53,9 @@ jobs:
           ALLUXIO_DOCKER_FORK_COUNT=1 \
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
-          ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!dora/shaded/client,!dora/integration/tools/hms,!dora/integration/yarn,!assembly/client,!assembly/server,!dora/table/server/underdb/glue,!dora/underfs/hdfs,!dora/underfs/ozone,!dora/underfs/adl,!dora/underfs/abfs,!dora/underfs/cosn,!dora/underfs/wasb,!dora/underfs/cos,!dora/underfs/kodo,!dora/underfs/oss,!dora/underfs/swift \
-          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl dora/tests
+          ALLUXIO_DOCKER_MVN_PROJECT_LIST=dora/tests \
+          ALLUXIO_DOCKER_MVN_TESTS=${{ matrix.modules }} \
+          dev/github/run_docker.sh
         timeout-minutes: 60
 
       - name: Archive artifacts

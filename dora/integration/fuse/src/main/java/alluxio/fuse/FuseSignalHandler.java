@@ -26,13 +26,13 @@ public class FuseSignalHandler implements SignalHandler {
   /**
    * Use to umount Fuse application during stop.
    */
-  private FuseUmountable mFuseUmountable;
+  private final AlluxioJniFuseFileSystem mFuseUmountable;
 
   /**
    * Constructs the new {@link FuseSignalHandler}.
    * @param fuseUmountable mounted fuse application
    */
-  public FuseSignalHandler(FuseUmountable fuseUmountable) {
+  public FuseSignalHandler(AlluxioJniFuseFileSystem fuseUmountable) {
     mFuseUmountable = fuseUmountable;
   }
 

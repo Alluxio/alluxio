@@ -26,13 +26,16 @@ public enum WriteType {
    * Write the file, guaranteeing the data is written to Alluxio storage or failing the operation.
    * The data will be written to the highest tier in a worker's storage. Data will not be
    * persisted to the under storage.
+   *
+   * @deprecated This write type is deprecated as of v3.0 and not recommended for use.
    */
+  @Deprecated
   MUST_CACHE(1),
   /**
    * Write the file and try to cache it.
    *
    * @deprecated This write type is deprecated as of v0.8 and not recommended for use. Use either
-   * {@link #MUST_CACHE} or {@link #CACHE_THROUGH} depending on your data persistence
+   * {@link #CACHE_THROUGH} or {@link #THROUGH} depending on your data persistence
    * requirements.
    */
   @Deprecated
@@ -48,7 +51,10 @@ public enum WriteType {
   THROUGH(4),
   /**
    * [Experimental] Write the file asynchronously to the under fs.
+   *
+   * @deprecated This write type is deprecated as of v3.0 and not recommended for use.
    */
+  @Deprecated
   ASYNC_THROUGH(5),
   /**
    * Do not store the data in Alluxio or Under Storage. This write type should only be used for
@@ -79,8 +85,6 @@ public enum WriteType {
   public UnderStorageType getUnderStorageType() {
     if (isThrough()) {
       return UnderStorageType.SYNC_PERSIST;
-    } else if (isAsync()) {
-      return UnderStorageType.ASYNC_PERSIST;
     }
     return UnderStorageType.NO_PERSIST;
   }
@@ -93,21 +97,11 @@ public enum WriteType {
   }
 
   /**
-   * @return true if by this write type data will be persisted <em>asynchronously</em> to under
-   * storage (e.g., {@link #ASYNC_THROUGH}), false otherwise
-   */
-  public boolean isAsync() {
-    return mValue == ASYNC_THROUGH.mValue;
-  }
-
-  /**
    * @return true if by this write type data will be cached in Alluxio space (e.g.,
-   * {@link #MUST_CACHE}, {@link #CACHE_THROUGH}, {@link #TRY_CACHE}, or
-   * {@link #ASYNC_THROUGH}), false otherwise
+   * {@link #CACHE_THROUGH}, {@link #TRY_CACHE}, false otherwise
    */
   public boolean isCache() {
-    return (mValue == MUST_CACHE.mValue) || (mValue == CACHE_THROUGH.mValue)
-            || (mValue == TRY_CACHE.mValue) || (mValue == ASYNC_THROUGH.mValue);
+    return (mValue == CACHE_THROUGH.mValue) || (mValue == TRY_CACHE.mValue);
   }
 
   /**

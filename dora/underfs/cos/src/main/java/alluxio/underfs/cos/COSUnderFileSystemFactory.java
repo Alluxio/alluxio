@@ -37,7 +37,8 @@ public class COSUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
-    Preconditions.checkNotNull(path, "path");
+    Preconditions.checkNotNull(path, "Unable to create UnderFileSystem instance:"
+        + " URI path should not be null");
 
     if (checkCOSCredentials(conf)) {
       try {

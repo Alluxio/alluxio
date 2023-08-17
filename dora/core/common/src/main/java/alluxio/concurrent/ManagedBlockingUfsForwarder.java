@@ -13,7 +13,6 @@ package alluxio.concurrent;
 
 import alluxio.AlluxioURI;
 import alluxio.PositionReader;
-import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.AlluxioConfiguration;
@@ -561,36 +560,6 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   @Override
   public boolean supportsFlush() throws IOException {
     return mUfs.supportsFlush();
-  }
-
-  @Override
-  public boolean supportsActiveSync() {
-    return mUfs.supportsActiveSync();
-  }
-
-  @Override
-  public SyncInfo getActiveSyncInfo() throws IOException {
-    return mUfs.getActiveSyncInfo();
-  }
-
-  @Override
-  public void startSync(AlluxioURI uri) throws IOException {
-    mUfs.startSync(uri);
-  }
-
-  @Override
-  public void stopSync(AlluxioURI uri) throws IOException {
-    mUfs.stopSync(uri);
-  }
-
-  @Override
-  public boolean startActiveSyncPolling(long txId) throws IOException {
-    return mUfs.startActiveSyncPolling(txId);
-  }
-
-  @Override
-  public boolean stopActiveSyncPolling() throws IOException {
-    return mUfs.stopActiveSyncPolling();
   }
 
   @Override

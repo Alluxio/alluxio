@@ -28,14 +28,6 @@ import java.util.List;
 public final class ClientTestUtils {
 
   /**
-   * Sets small buffer sizes so that Alluxio does not run out of heap space.
-   */
-  public static void setSmallBufferSizes(InstancedConfiguration conf) {
-    conf.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "4KB");
-    conf.set(PropertyKey.USER_FILE_BUFFER_BYTES, "4KB");
-  }
-
-  /**
    * Resets the client to its initial state, re-initializing Alluxio contexts.
    *
    * This method should only be used as a cleanup mechanism between tests.

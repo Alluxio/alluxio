@@ -177,6 +177,52 @@ public class AlluxioPropertiesTest {
   }
 
   @Test
+  public void mergePropertiesWithHigherPriority() {
+    PropertyKey key1 = stringBuilder("key1")
+        .setDefaultValue("default_value1")
+        .buildUnregistered();
+    mProperties.put(key1, "value1", Source.CLUSTER_DEFAULT);
+    mProperties.put(mKeyWithValue, "not_affected", Source.CLUSTER_DEFAULT);
+    AlluxioProperties toMerge = new AlluxioProperties();
+    toMerge.put(key1, "value1_merged", Source.RUNTIME);
+    mProperties.merge(toMerge);
+    assertEquals(Source.RUNTIME, mProperties.getSource(key1));
+    assertEquals("value1_merged", mProperties.get(key1));
+    assertEquals(Source.CLUSTER_DEFAULT, mProperties.getSource(mKeyWithValue));
+    assertEquals("not_affected", mProperties.get(mKeyWithValue));
+  }
+
+  @Test
+  public void mergePropertiesWithEqualPriority() {
+    PropertyKey key2 = stringBuilder("key2")
+        .setDefaultValue("default_value2")
+        .buildUnregistered();
+    mProperties.put(key2, "value2", Source.RUNTIME);
+    mProperties.put(mKeyWithValue, "not_affected", Source.CLUSTER_DEFAULT);
+    AlluxioProperties toMerge = new AlluxioProperties();
+    toMerge.put(key2, "value2_merged", Source.RUNTIME);
+    mProperties.merge(toMerge);
+    assertEquals(Source.RUNTIME, mProperties.getSource(key2));
+    assertEquals("value2_merged", mProperties.get(key2));
+    assertEquals(Source.CLUSTER_DEFAULT, mProperties.getSource(mKeyWithValue));
+    assertEquals("not_affected", mProperties.get(mKeyWithValue));
+  }
+
+  @Test
+  public void mergePropertiesWithLowerPriority() {
+    PropertyKey key2 = stringBuilder("key2")
+        .setDefaultValue("default_value2")
+        .setIsBuiltIn(false)
+        .build();
+    mProperties.put(key2, "value2", Source.RUNTIME);
+    AlluxioProperties toMerge = new AlluxioProperties();
+    toMerge.put(key2, "value2_merged", Source.CLUSTER_DEFAULT);
+    mProperties.merge(toMerge);
+    assertEquals(Source.RUNTIME, mProperties.getSource(key2));
+    assertEquals("value2", mProperties.get(key2));
+  }
+
+  @Test
   public void hash() {
     String hash0 = mProperties.hash();
 

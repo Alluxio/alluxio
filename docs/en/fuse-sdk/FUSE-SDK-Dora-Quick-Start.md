@@ -21,7 +21,7 @@ Limitations:
 
 Launch FUSE SDK with the same configuration (same `<ALLUXIO_HOME>/conf/`) as launching the Alluxio cluster.
 Other configuration is the same as launching a standalone FUSE SDK.
-```console
+```shell
 $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o option
 ```
 `<under_storage_dataset>` should be exactly the same as the configured `alluxio.dora.client.ufs.root`.

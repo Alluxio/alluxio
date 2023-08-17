@@ -1,5 +1,10 @@
 name: Java 8 Integration Tests (w/ webui)
 
+# This build runs the integration tests in the dora/tests module that require the web UI
+# The key differences between this build and the default integration test build are
+# - Only runs integration tests with prefix alluxio.web
+# - Adds webui to the project list
+
 on: [pull_request]
 
 jobs:
@@ -44,9 +49,9 @@ jobs:
           mkdir -p ~/.m2
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
-          ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!dora/shaded/client,!dora/integration/tools/hms,!dora/integration/yarn,!assembly/client,!assembly/server \
-          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl dora/tests
+          ALLUXIO_DOCKER_MVN_PROJECT_LIST=dora/tests,webui \
+          ALLUXIO_DOCKER_MVN_TESTS=${{ matrix.modules }} \
+          dev/github/run_docker.sh
         timeout-minutes: 60
 
       - name: Archive artifacts

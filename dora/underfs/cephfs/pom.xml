@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -15,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>302-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-cephfs</artifactId>
   <name>Alluxio Under File System - CephFS</name>
@@ -26,15 +27,11 @@
   </properties>
 
   <dependencies>
-    <!-- External dependencies -->
     <dependency>
       <groupId>io.github.opendataio</groupId>
       <artifactId>libcephfs</artifactId>
-      <version>0.0.1</version>
       <scope>provided</scope>
     </dependency>
-
-    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -42,7 +39,6 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -69,16 +65,16 @@
         <artifactId>maven-shade-plugin</artifactId>
       </plugin>
       <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
         <inherited>false</inherited>
         <executions>
           <execution>
             <id>copy-lib-jars-selectively</id>
-            <phase>install</phase>
             <goals>
               <goal>exec</goal>
             </goals>
+            <phase>install</phase>
             <configuration>
               <executable>${build.path}/lib/copy_jars.sh</executable>
               <arguments>
@@ -106,4 +102,3 @@
     </plugins>
   </build>
 </project>
-

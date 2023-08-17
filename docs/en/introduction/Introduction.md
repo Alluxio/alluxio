@@ -3,6 +3,10 @@ layout: global
 title: Introduction
 ---
 
+Check out these 2 short videos to learn about the existing data problems that Alluxio is designed to solve and where Alluxio sits in the big data ecosystem:
+* ▶️ [The Problem To Be Solved](https://www.youtube.com/watch?v=_zenG90idAA){:target="_blank"} (3:06)
+* ▶️ [What Is Alluxio?](https://www.youtube.com/watch?v=py-kfEGRDZA){:target="_blank"} (2:50)
+
 ## About Alluxio
 
 Alluxio is world's first open source [data orchestration technology](https://www.alluxio.io/blog/data-orchestration-the-missing-piece-in-the-data-world/)

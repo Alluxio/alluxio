@@ -114,7 +114,6 @@ message Chunk {
 enum RequestType {
   ALLUXIO_BLOCK = 0;
   UFS_FILE = 1;
-  UFS_FALLBACK_BLOCK = 2;
 }
 
 // The read request.
@@ -155,7 +154,6 @@ message WriteRequestCommand {
   optional bool flush = 5;
   // Cancel, close and error will be handled by standard gRPC stream APIs.
   optional alluxio.proto.dataserver.CreateUfsFileOptions create_ufs_file_options = 6;
-  optional alluxio.proto.dataserver.CreateUfsBlockOptions create_ufs_block_options = 7;
   optional string medium_type = 8;
   optional bool pin_on_create = 9;
   optional int64 space_to_reserve = 10;
@@ -315,7 +313,7 @@ message CopyResponse {
 
 message WriteOptions {
   optional bool overwrite = 1;
-  optional grpc.file.WritePType write_type = 2;
+  optional grpc.file.WritePType write_type = 2 [default = CACHE_THROUGH];
   optional bool check_content = 3;
 }
 
@@ -326,6 +324,7 @@ message RouteFailure {
   // A developer-facing error message
   optional string message = 3;
   optional bool retryable = 4;
+  optional bool is_skip = 5;
 }
 
 // next available id: 2

@@ -51,7 +51,6 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -227,11 +226,6 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
-    public List<SyncPointInfo> getSyncPathList() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
@@ -273,16 +267,6 @@ public abstract class AbstractAuthPolicyTest {
     @Override
     public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
         SetAclPOptions options) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void startSync(AlluxioURI path) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void stopSync(AlluxioURI path) {
       throw new UnsupportedOperationException();
     }
 

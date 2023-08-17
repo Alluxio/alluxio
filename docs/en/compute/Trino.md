@@ -3,6 +3,9 @@ layout: global
 title: Running Trino with Alluxio
 ---
 
+This guide describes how to configure [Trino](https://trino.io/) to access Alluxio.
+
+## Overview
 [Trino](https://trino.io/)
 is an open source distributed SQL query engine for running interactive analytic queries
 on data at a large scale.
@@ -49,7 +52,7 @@ Put the Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into the directory
 (this directory may differ across versions) on all Trino servers. Restart the Trino workers and
 coordinator:
 
-```console
+```shell
 $ ${Trino_HOME}/bin/launcher restart
 ```
 
@@ -67,14 +70,14 @@ You can download a data file (e.g., `ml-100k.zip`) from
 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/).
 Unzip this file and upload the file `u.user` into `/ml-100k/` in Alluxio:
 
-```console
+```shell
 $ ./bin/alluxio fs mkdir /ml-100k
 $ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
 ```
 
 Create an external Hive table pointing to the Alluxio file location.
 
-```
+```sql
 hive> CREATE TABLE u_user (
   userid INT,
   age INT,
@@ -94,7 +97,7 @@ You can see the directory and files that Hive creates by viewing the Alluxio Web
 Ensure your Hive Metastore service is running. Hive Metastore listens on port `9083` by
 default. If it is not running, execute the following command to start the metastore:
 
-```console
+```shell
 $ ${HIVE_HOME}/bin/hive --service metastore
 ```
 
@@ -103,7 +106,7 @@ $ ${HIVE_HOME}/bin/hive --service metastore
 Start your Trino server. Trino server runs on port `8080` by default (configurable with
 `http-server.http.port` in `${Trino_HOME}/etc/config.properties` ):
 
-```console
+```shell
 $ ${Trino_HOME}/bin/launcher run
 ```
 
@@ -117,9 +120,9 @@ directly).
 
 Run a single query (replace `localhost:8080` with your actual Trino server hostname and port):
 
-```console
+```shell
 $ ./trino --server localhost:8080 --execute "use default; select * from u_user limit 10;" \
-  --catalog hive --debug
+    --catalog hive --debug
 ```
 
 ## Advanced Setup
@@ -131,9 +134,8 @@ To configure additional Alluxio properties, you can append the conf path (i.e.
 to Trino's JVM config at `etc/jvm.config` under Trino folder. The advantage of this approach is to
 have all the Alluxio properties set within the same file of `alluxio-site.properties`.
 
-```bash
-...
--Xbootclasspath/a:<path-to-alluxio-conf>
+```shell
+$ -Xbootclasspath/a:<path-to-alluxio-conf>
 ```
 
 Alternatively, add Alluxio properties to the Hadoop configuration files
@@ -141,7 +143,7 @@ Alternatively, add Alluxio properties to the Hadoop configuration files
 file `${Trino_HOME}/etc/catalog/hive.properties` to point to the Hadoop resource locations for
 every Trino worker. 
 
-```
+```properties
 hive.config.resources=/<PATH_TO_CONF>/core-site.xml,/<PATH_TO_CONF>/hdfs-site.xml
 ```
 
@@ -168,7 +170,7 @@ which is contained by `hive.config.resources`.
 ```
 
 For information about how to connect to Alluxio HA cluster using Zookeeper-based leader election,
-please refer to [HA mode client configuration parameters]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters).
+please refer to [HA mode client configuration parameters]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters-or-java-options).
 
 #### Example: change default Alluxio write type
 
