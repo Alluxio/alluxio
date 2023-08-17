@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * This class represents a UFS URL in the Alluxio system.
@@ -74,25 +73,27 @@ public class UfsUrl {
       String path = null;
 
       int start = 0;
-      int schemeSplitIndex = inputUrl.indexOf(SCHEME_SEPARATOR, start);
-      if (schemeSplitIndex == -1) {
-        scheme = "";
-      } else {
-        scheme = inputUrl.substring(start, schemeSplitIndex);
-        start += scheme.length();
+
+      int firstSlash = inputUrl.indexOf(SLASH_SEPARATOR);
+      int firstColon = inputUrl.indexOf(COLON_SEPARATOR);
+
+      if (firstColon != -1) {
+        if (firstSlash == -1) {
+          // have colon, while have no slash
+          scheme = inputUrl.substring(0, firstColon);
+          start = firstColon + 1;
+        } else if (firstColon < firstSlash) {
+          // have colon and slash, colon is in front of slash -> have scheme
+          start = firstSlash;
+          scheme = inputUrl.substring(0, firstColon);
+        } // have colon and slash, colon is back of slash -> illegal, have no scheme
       }
-      Preconditions.checkArgument(!scheme.isEmpty(), "scheme is not allowed to be empty,"
-          + "please input again.");
+
+      Preconditions.checkArgument(scheme != null && !scheme.isEmpty(),
+          "scheme is not allowed to be empty, please input again.");
       Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
           "Alluxio 3.x no longer supports alluxio:// scheme,"
               + " please input the UFS path directly like hdfs://host:port/path");
-      Preconditions.checkArgument(!scheme.isEmpty(), "scheme is not allowed to be empty,"
-          + "please input again.");
-
-      // unified address "://" and "//"
-      while (start < inputUrl.length() && inputUrl.charAt(start) == COLON_SEPARATOR.charAt(0))  {
-        start++;
-      }
 
       if (inputUrl.startsWith(DOUBLE_SLASH_SEPARATOR, start)
           && start + DOUBLE_SLASH_SEPARATOR.length() < inputUrl.length()) {
@@ -182,7 +183,7 @@ public class UfsUrl {
    */
   private UfsUrl(UfsUrlMessage proto) {
     Preconditions.checkArgument(!proto.getScheme().isEmpty(), "scheme is not allowed to be empty,"
-        + "please input again.");
+        + " please input again.");
     Preconditions.checkArgument(!proto.getScheme().equalsIgnoreCase("alluxio"),
         "Alluxio 3.x no longer supports alluxio:// scheme,"
             + " please input the UFS path directly like hdfs://host:port/path");
@@ -197,10 +198,11 @@ public class UfsUrl {
    */
   public UfsUrl(String scheme, String authority, String path) {
     Preconditions.checkArgument(!scheme.isEmpty(), "scheme is not allowed to be empty,"
-        + "please input again.");
+        + " please input again.");
     Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
         "Alluxio 3.x no longer supports alluxio:// scheme,"
             + " please input the UFS path directly like hdfs://host:port/path");
+    path = FilenameUtils.normalizeNoEndSeparator(path);
     String[] arrayOfPath = path.split(SLASH_SEPARATOR);
     int notEmpty = 0;
     while (notEmpty < arrayOfPath.length && arrayOfPath[notEmpty].isEmpty()) {
@@ -225,11 +227,8 @@ public class UfsUrl {
   /**
    * @return the authority of the {@link UfsUrl}
    */
-  public Optional<Authority> getAuthority() {
-    if (!mProto.hasAuthority()) {
-      return Optional.empty();
-    }
-    return Optional.of(Authority.fromString(mProto.getAuthority()));
+  public Authority getAuthority() {
+    return Authority.fromString(mProto.getAuthority());
   }
 
   /**
@@ -265,11 +264,7 @@ public class UfsUrl {
   public String toString() {
     StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append(mProto.getScheme());
-    if (!mProto.getScheme().isEmpty()) {
-      stringBuilder.append(SCHEME_SEPARATOR);
-    } else {
-      stringBuilder.append(DOUBLE_SLASH_SEPARATOR);
-    }
+    stringBuilder.append(SCHEME_SEPARATOR);
     stringBuilder.append(mProto.getAuthority());
     stringBuilder.append(getFullPath());
     return stringBuilder.toString();
@@ -368,7 +363,9 @@ public class UfsUrl {
    */
   public String getName() {
     List<String> pathComponents = getPathComponents();
-    Preconditions.checkArgument(!pathComponents.isEmpty());
+    if (pathComponents.isEmpty()) {
+      return "";
+    }
     return pathComponents.get(pathComponents.size() - 1);
   }
 
@@ -385,10 +382,7 @@ public class UfsUrl {
     if (!Objects.equals(getScheme(), ufsUrl.getScheme())) {
       return false;
     }
-    // TODO(Tony Sun): optimize the performance later
-    // Both of the ufsUrls has the same scheme and authority, so just need to compare their paths.
-    return PathUtils.hasPrefix(PathUtils.normalizePath(ufsUrl.getFullPath(), SLASH_SEPARATOR),
-        PathUtils.normalizePath(getFullPath(), SLASH_SEPARATOR));
+    return PathUtils.hasPrefix(ufsUrl.getFullPath(), this.getFullPath());
   }
 
   /**
