@@ -86,10 +86,14 @@ public class UfsUrl {
           // have colon and slash, colon is in front of slash -> have scheme
           start = firstSlash;
           scheme = inputUrl.substring(0, firstColon);
-        } // have colon and slash, colon is back of slash -> illegal, have no scheme
+        } else { // have colon and slash, colon is back of slash -> illegal, have empty scheme
+          scheme = "";
+        }
+      } else {
+        scheme = "";
       }
 
-      Preconditions.checkArgument(scheme != null && !scheme.isEmpty(),
+      Preconditions.checkArgument(!scheme.isEmpty(),
           "scheme is not allowed to be empty, please input again.");
       Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
           "Alluxio 3.x no longer supports alluxio:// scheme,"
