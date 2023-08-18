@@ -263,6 +263,9 @@ public interface FileSystem extends Closeable {
   void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
 
+  void createDirectory(UfsUrl ufsPath, CreateDirectoryPOptions options)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
+
   /**
    * Convenience method for {@link #createFile(AlluxioURI, CreateFilePOptions)} with default
    * options.

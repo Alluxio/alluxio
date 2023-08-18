@@ -172,6 +172,22 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
+  public void createDirectory(UfsUrl ufsPath, CreateDirectoryPOptions options) {
+    call(() -> {
+      // TODO(Tony Sun): remove toAlluxioURI() in the future
+      MkdirsOptions ufsOptions = MkdirsOptions.defaults(mFsContext
+          .getPathConf(ufsPath.toAlluxioURI()));
+      if (options.hasMode()) {
+        ufsOptions.setMode(Mode.fromProto(options.getMode()));
+      }
+      if (options.hasRecursive()) {
+        ufsOptions.setCreateParent(options.getRecursive());
+      }
+      mUfs.get().mkdirs(ufsPath.toString(), ufsOptions);
+    });
+  }
+
+  @Override
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options) {
     return callWithReturn(() -> {
       // TODO(lu) deal with other options e.g. owner/group/acl/ensureAtomic
