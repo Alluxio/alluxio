@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
@@ -107,6 +108,16 @@ public class KodoUnderFileSystem extends ObjectUnderFileSystem {
   // No ACL integration currently, no-op
   @Override
   public void setOwner(String path, String user, String group) {}
+
+  @Override
+  public void setObjectTagging(String path, String name, String value) throws IOException {
+    throw new UnimplementedRuntimeException("set attribute is not implemented");
+  }
+
+  @Override
+  public Map<String, String> getObjectTags(String path) throws IOException {
+    throw new UnimplementedRuntimeException("get attribute is not implemented");
+  }
 
   // No ACL integration currently, no-op
   @Override

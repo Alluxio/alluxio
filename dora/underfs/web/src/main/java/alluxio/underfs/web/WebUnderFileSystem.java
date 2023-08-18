@@ -47,6 +47,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -352,6 +353,11 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public void setAttribute(String path, String name, byte[] value) throws IOException {
+    throw new IOException(mUnsupportedMsg);
+  }
+
+  @Override
+  public Map<String, String> getAttribute(String path) throws IOException {
     throw new IOException(mUnsupportedMsg);
   }
 

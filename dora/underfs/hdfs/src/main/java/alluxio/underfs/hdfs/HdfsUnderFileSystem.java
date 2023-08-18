@@ -67,6 +67,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -742,6 +743,19 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       LOG.warn("Failed to set XAttr for {} with name: {}, value: {}: {}. "
               + "Running Alluxio as superuser is required to modify attributes of local files",
           path, name, new String(value), e.toString());
+      throw e;
+    }
+  }
+
+  @Override
+  public Map<String, String> getAttribute(String path) throws IOException {
+    FileSystem hdfs = getFs();
+    try {
+      Map<String, byte[]> attrMap = hdfs.getXAttrs(new Path(path));
+      return attrMap.entrySet().stream().collect(HashMap::new,
+          (map, entry) -> map.put(entry.getKey(), new String(entry.getValue())), HashMap::putAll);
+    } catch (IOException e) {
+      LOG.warn("Failed to get XAttr for {}.", path);
       throw e;
     }
   }

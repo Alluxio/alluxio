@@ -338,6 +338,16 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public void setAttribute(String path, String name, byte[] value) throws IOException {
+    mUfs.setAttribute(path, name, value);
+  }
+
+  @Override
+  public Map<String, String> getAttribute(String path) throws IOException {
+    return mUfs.getAttribute(path);
+  }
+
+  @Override
   public void setMode(String path, short mode) throws IOException {
     mUfs.setMode(path, mode);
   }

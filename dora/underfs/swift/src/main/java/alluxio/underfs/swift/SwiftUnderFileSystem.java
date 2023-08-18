@@ -49,6 +49,7 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -206,6 +207,16 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   // Setting Swift owner via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setOwner(String path, String user, String group) {}
+
+  @Override
+  public void setObjectTagging(String path, String name, String value) throws IOException {
+    throw new UnimplementedRuntimeException("set attribute is not implemented");
+  }
+
+  @Override
+  public Map<String, String> getObjectTags(String path) throws IOException {
+    throw new UnimplementedRuntimeException("get attribute is not implemented");
+  }
 
   // Setting Swift mode via Alluxio is not supported yet. This is a no-op.
   @Override

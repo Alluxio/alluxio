@@ -53,7 +53,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
@@ -150,7 +152,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
   public void setMode(String path, short mode) {}
 
   @Override
-  public void setAttribute(String path, String name, byte[] value) throws IOException {
+  public void setObjectTagging(String path, String name, String value) throws IOException {
     GetObjectTaggingRequest getTaggingReq = new GetObjectTaggingRequest(mBucketNameInternal, path);
     GetObjectTaggingResult taggingResult = mClient.getObjectTagging(getTaggingReq);
     List<Tag> tagList = taggingResult.getTagSet();
@@ -158,15 +160,25 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
     for (Tag tag : tagList) {
       if (tag.getKey().equals(name)) {
         existed = true;
-        tag.setValue(new String(value));
+        tag.setValue(value);
       }
     }
     if (!existed) {
-      Tag tag = new Tag(name, new String(value));
+      Tag tag = new Tag(name, value);
       tagList.add(tag);
     }
     mClient.setObjectTagging(
         new SetObjectTaggingRequest(mBucketNameInternal, path, new ObjectTagging(tagList)));
+  }
+
+  @Override
+  public Map<String, String> getObjectTags(String path) throws IOException {
+    GetObjectTaggingRequest getTaggingReq = new GetObjectTaggingRequest(mBucketNameInternal, path);
+    GetObjectTaggingResult taggingResult = mClient.getObjectTagging(getTaggingReq);
+    List<Tag> tagList = taggingResult.getTagSet();
+    return tagList.stream()
+        .collect(HashMap::new, (map, tag) -> map.put(tag.getKey(), tag.getValue()),
+            HashMap::putAll);
   }
 
   @Override

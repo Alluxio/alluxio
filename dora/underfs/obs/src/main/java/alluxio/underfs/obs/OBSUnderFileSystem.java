@@ -43,6 +43,7 @@ import com.obs.services.model.MultipartUploadListing;
 import com.obs.services.model.ObjectListing;
 import com.obs.services.model.ObjectMetadata;
 import com.obs.services.model.ObsObject;
+import com.obs.services.model.SetObjectMetadataRequest;
 import com.obs.services.model.fs.RenameRequest;
 import com.obs.services.model.fs.RenameResult;
 import org.slf4j.Logger;
@@ -53,7 +54,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -186,6 +189,25 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   // No ACL integration currently, no-op
   @Override
   public void setOwner(String path, String user, String group) {
+  }
+
+  @Override
+  public void setObjectTagging(String path, String name, String value) throws IOException {
+    SetObjectMetadataRequest request = new SetObjectMetadataRequest(mBucketName, path);
+    request.addUserMetadata(name, value);
+    mClient.setObjectMetadata(request);
+  }
+
+  @Override
+  public Map<String, String> getObjectTags(String path) throws IOException {
+    try {
+      ObjectMetadata metadata = mClient.getObjectMetadata(mBucketName, path);
+      return metadata.getMetadata().entrySet().stream().collect(HashMap::new,
+          (map, entry) -> map.put(entry.getKey(), String.valueOf(entry.getValue())),
+          HashMap::putAll);
+    } catch (ObsException e) {
+      throw new IOException("Failed to get attribute of the object", e);
+    }
   }
 
   // No ACL integration currently, no-op

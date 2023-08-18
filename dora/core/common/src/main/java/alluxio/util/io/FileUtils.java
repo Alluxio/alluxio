@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystems;
@@ -47,9 +48,12 @@ import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.nio.file.attribute.UserPrincipal;
 import java.nio.file.attribute.UserPrincipalLookupService;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -98,9 +102,38 @@ public final class FileUtils {
     }
   }
 
-  public static void changeLocalFileAttribute(String filePath, String name, byte[] value) {
+  public static void changeLocalFileUserDefinedAttribute(String filePath, String name,
+                                                         byte[] value) {
     try {
-      Files.setAttribute(Paths.get(filePath), name, value);
+      UserDefinedFileAttributeView attributeView =
+          Files.getFileAttributeView(Paths.get(filePath), UserDefinedFileAttributeView.class);
+      attributeView.write(name, ByteBuffer.wrap(value));
+    } catch (UnsupportedOperationException e) {
+      throw new UnimplementedRuntimeException(e, ErrorType.External);
+    } catch (ClassCastException|IllegalArgumentException e) {
+      throw new InvalidArgumentRuntimeException(e);
+    } catch (SecurityException e) {
+      throw new PermissionDeniedRuntimeException(e);
+    } catch (IOException e) {
+      throw new UnknownRuntimeException(e);
+    }
+  }
+
+  public static Map<String, String> getLocalFileUserDefinedAttribute(String filePath) {
+    try {
+      UserDefinedFileAttributeView attributeView =
+          Files.getFileAttributeView(Paths.get(filePath), UserDefinedFileAttributeView.class);
+      Map<String, String> attrMap = new HashMap<>();
+      for (String attributeName : attributeView.list()) {
+        int attributeSize = attributeView.size(attributeName);
+        ByteBuffer attributeBuffer = ByteBuffer.allocate(attributeSize);
+        attributeView.read(attributeName, attributeBuffer);
+        attributeBuffer.flip();
+
+        String attributeValue = new String(attributeBuffer.array(), 0, attributeSize);
+        attrMap.put(attributeName, attributeValue);
+      }
+      return attrMap;
     } catch (UnsupportedOperationException e) {
       throw new UnimplementedRuntimeException(e, ErrorType.External);
     } catch (ClassCastException|IllegalArgumentException e) {

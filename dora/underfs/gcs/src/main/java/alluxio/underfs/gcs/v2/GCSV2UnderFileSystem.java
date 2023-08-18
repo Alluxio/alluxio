@@ -140,9 +140,9 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
   public void setOwner(String path, String user, String group) {}
 
   @Override
-  public void setAttribute(String path, String name, byte[] value) throws IOException {
+  public void setObjectTagging(String path, String name, String value) throws IOException {
     Map<String, String> newMetadata = new HashMap<>();
-    newMetadata.put(name, new String(value));
+    newMetadata.put(name, value);
     BlobId blobId = BlobId.of(mBucketName, path);
     Blob blob = mStorageClient.get(blobId);
     if (blob == null) {
@@ -152,6 +152,17 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
 
     Storage.BlobTargetOption precondition = Storage.BlobTargetOption.generationMatch();
     blob.toBuilder().setMetadata(newMetadata).build().update(precondition);
+  }
+
+  @Override
+  public Map<String, String> getObjectTags(String path) throws IOException {
+    BlobId blobId = BlobId.of(mBucketName, path);
+    Blob blob = mStorageClient.get(blobId);
+    if (blob == null) {
+      LOG.warn("The object {} was not found in {}.", path, mBucketName);
+      return null;
+    }
+    return blob.getMetadata();
   }
 
   // Setting GCS mode via Alluxio is not supported yet. This is a no-op.

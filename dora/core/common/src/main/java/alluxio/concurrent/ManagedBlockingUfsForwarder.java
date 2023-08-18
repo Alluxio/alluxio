@@ -558,6 +558,27 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
+  public void setAttribute(String path, String name, byte[] value) throws IOException {
+    new ManagedBlockingUfsMethod<Void>() {
+      @Override
+      public Void execute() throws IOException {
+        mUfs.setAttribute(path, name, value);
+        return null;
+      }
+    }.get();
+  }
+
+  @Override
+  public Map<String, String> getAttribute(String path) throws IOException {
+    return new ManagedBlockingUfsMethod<Map<String, String>>() {
+      @Override
+      public Map<String, String> execute() throws IOException {
+        return mUfs.getAttribute(path);
+      }
+    }.get();
+  }
+
+  @Override
   public boolean supportsFlush() throws IOException {
     return mUfs.supportsFlush();
   }

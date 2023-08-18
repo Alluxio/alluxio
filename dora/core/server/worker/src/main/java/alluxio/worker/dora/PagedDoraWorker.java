@@ -410,12 +410,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @param ufsFullPath
    * @return a FileInfo
    */
-  public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath) {
+  public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath)
+      throws IOException {
     String filename = new AlluxioURI(ufsFullPath).getName();
     String relativePath = CommonUtils.stripPrefixIfPresent(ufsFullPath, mRootUFS);
     if (!relativePath.startsWith(AlluxioURI.SEPARATOR)) {
       relativePath = AlluxioURI.SEPARATOR + relativePath;
     }
+    Map<String, String> xattrMap = mUfs.getAttribute(ufsFullPath);
 
     alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
         .setUfsType(mUfs.getUnderFSType())
@@ -429,6 +431,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         .setGroup(status.getGroup())
         .setCompleted(true)
         .setPersisted(true);
+    if (xattrMap != null) {
+      for (Map.Entry<String, String> entry : xattrMap.entrySet()) {
+        infoBuilder.putXattr(entry.getKey(), ByteString.copyFromUtf8(entry.getValue()));
+      }
+    }
     if (status instanceof UfsFileStatus) {
       UfsFileStatus fileStatus = (UfsFileStatus) status;
       infoBuilder.setLength(fileStatus.getContentLength())
@@ -465,7 +472,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @param ufsFullPath the full ufs path
    * @return the file status
    */
-  public DoraMeta.FileStatus buildFileStatusFromUfsStatus(UfsStatus status, String ufsFullPath) {
+  public DoraMeta.FileStatus buildFileStatusFromUfsStatus(UfsStatus status, String ufsFullPath)
+      throws IOException {
     return DoraMeta.FileStatus.newBuilder()
         .setFileInfo(buildFileInfoFromUfsStatus(status, ufsFullPath))
         .setTs(System.nanoTime())
@@ -890,6 +898,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       mUfs.setOwner(path, null, options.getGroup());
     } else if (options.getXattrCount() > 0) {
       Map<String, ByteString> xattr = options.getXattrMap();
+      for (Map.Entry<String, ByteString> attr : xattr.entrySet()) {
+        mUfs.setAttribute(path, attr.getKey(), attr.getValue().toByteArray());
+      }
     }
     mMetaManager.loadFromUfs(path);
     mMetaManager.invalidateListingCacheOfParent(path);

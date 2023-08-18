@@ -16,6 +16,7 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
@@ -32,6 +33,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
+import io.grpc.Status;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -582,6 +584,27 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     return retryOnException(() -> isDirectory(path),
         () -> "check if " + path + " is a directory");
   }
+
+  @Override
+  public void setAttribute(String path, String name, byte[] value) throws IOException {
+    setObjectTagging(stripPrefixIfPresent(path), name, new String(value));
+  }
+
+  @Override
+  public Map<String, String> getAttribute(String path) throws IOException {
+    try {
+      return getObjectTags(stripPrefixIfPresent(path));
+    } catch (AlluxioRuntimeException e) {
+      if (e.getStatus().equals(Status.NOT_FOUND)) {
+        return null;
+      }
+      throw e;
+    }
+  }
+
+  protected abstract void setObjectTagging(String path, String name, String value) throws IOException;
+
+  protected abstract Map<String, String> getObjectTags(String path) throws IOException;
 
   @Override
   public boolean isFile(String path) throws IOException {

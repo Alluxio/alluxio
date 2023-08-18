@@ -60,6 +60,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -456,7 +457,13 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
   @Override
   public void setAttribute(String path, String name, byte[] value) throws IOException {
     path = stripPath(path);
-    FileUtils.changeLocalFileAttribute(path, name, value);
+    FileUtils.changeLocalFileUserDefinedAttribute(path, name, value);
+  }
+
+  @Override
+  public Map<String, String> getAttribute(String path) throws IOException {
+    path = stripPath(path);
+    return FileUtils.getLocalFileUserDefinedAttribute(path);
   }
 
   @Override

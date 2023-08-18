@@ -47,17 +47,23 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.internal.ServiceUtils;
 import com.amazonaws.services.s3.model.AccessControlList;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsResult;
+import com.amazonaws.services.s3.model.GetObjectTaggingRequest;
+import com.amazonaws.services.s3.model.GetObjectTaggingResult;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.ObjectTagging;
 import com.amazonaws.services.s3.model.Owner;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.model.SetObjectTaggingRequest;
+import com.amazonaws.services.s3.model.Tag;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.util.AwsHostNameUtils;
@@ -98,8 +104,10 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -484,6 +492,40 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   // Setting S3 owner via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setOwner(String path, String user, String group) {}
+
+  @Override
+  public void setObjectTagging(String path, String name, String value) throws IOException {
+    GetObjectTaggingRequest getTaggingReq = new GetObjectTaggingRequest(mBucketName, path);
+    GetObjectTaggingResult taggingResult = mClient.getObjectTagging(getTaggingReq);
+    List<Tag> tagList = taggingResult.getTagSet();
+    boolean existed = false;
+    for (Tag tag : tagList) {
+      if (tag.getKey().equals(name)) {
+        existed = true;
+        tag.setValue(value);
+      }
+    }
+    if (!existed) {
+      Tag tag = new Tag(name, value);
+      tagList.add(tag);
+    }
+    mClient.setObjectTagging(
+        new SetObjectTaggingRequest(mBucketName, path, new ObjectTagging(tagList)));
+  }
+
+  @Override
+  public Map<String, String> getObjectTags(String path) throws IOException {
+    try {
+      GetObjectTaggingRequest getTaggingReq = new GetObjectTaggingRequest(mBucketName, path);
+      GetObjectTaggingResult taggingResult = mClient.getObjectTagging(getTaggingReq);
+      List<Tag> tagList = taggingResult.getTagSet();
+      return tagList.stream()
+          .collect(HashMap::new, (map, tag) -> map.put(tag.getKey(), tag.getValue()),
+              HashMap::putAll);
+    } catch (AmazonClientException e) {
+      throw AlluxioS3Exception.from(e);
+    }
+  }
 
   // Setting S3 mode via Alluxio is not supported yet. This is a no-op.
   @Override
