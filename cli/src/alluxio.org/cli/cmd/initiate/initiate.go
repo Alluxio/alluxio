@@ -22,7 +22,7 @@ var Service = &env.Service{
 		ClearMetrics,
 		ClearOSCache,
 		// CopyDir,
-		// Format,
+		Format,
 		Validate,
 	},
 }

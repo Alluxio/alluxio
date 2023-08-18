@@ -46,9 +46,9 @@ func NewHostnamesFile(name string) *HostnamesFile {
 	}
 }
 
-// runSshCommand parses hostnames from the hosts files such as `conf/masters` and `conf/workers`
+// RunSshCommand parses hostnames from the hosts files such as `conf/masters` and `conf/workers`
 // For each hostname, create a SSH client and run the given command
-func runSshCommand(command string, hostGroups ...string) error {
+func RunSshCommand(command string, hostGroups ...string) error {
 	// prepare client config, ssh port info
 	config, port, err := prepareCommand()
 	if err != nil {
