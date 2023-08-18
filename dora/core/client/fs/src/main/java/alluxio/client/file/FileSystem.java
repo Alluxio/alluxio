@@ -277,6 +277,11 @@ public interface FileSystem extends Closeable {
     return createFile(path, CreateFilePOptions.getDefaultInstance());
   }
 
+  default FileOutStream createFile(UfsUrl ufsPath)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+    return createFile(ufsPath, CreateFilePOptions.getDefaultInstance());
+  }
+
   /**
    * Creates a file.
    *
@@ -287,6 +292,9 @@ public interface FileSystem extends Closeable {
    * @throws InvalidPathException if the path is invalid
    */
   FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
+
+  FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
 
   /**

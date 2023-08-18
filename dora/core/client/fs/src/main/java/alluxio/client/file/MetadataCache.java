@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.uri.UfsUrl;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
@@ -183,6 +184,10 @@ public final class MetadataCache {
    */
   public void invalidate(String path) {
     mCache.invalidate(path);
+  }
+
+  public void invalidate(UfsUrl ufsPath) {
+    mCache.invalidate(ufsPath.getFullPath());
   }
 
   /**

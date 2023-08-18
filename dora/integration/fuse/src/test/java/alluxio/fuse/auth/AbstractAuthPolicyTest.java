@@ -142,6 +142,12 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
+    public FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options)
+        throws IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void delete(AlluxioURI path, DeletePOptions options)
         throws IOException,
         AlluxioException {

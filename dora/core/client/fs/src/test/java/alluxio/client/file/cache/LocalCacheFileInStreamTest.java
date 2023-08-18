@@ -838,6 +838,12 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options)
+        throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void delete(AlluxioURI path, DeletePOptions options)
         throws DirectoryNotEmptyException, FileDoesNotExistException, IOException,
         AlluxioException {

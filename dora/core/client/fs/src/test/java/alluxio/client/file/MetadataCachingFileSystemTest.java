@@ -367,6 +367,21 @@ public class MetadataCachingFileSystemTest {
     }
 
     @Override
+    public FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options) {
+      URIStatus status = new URIStatus(
+          new FileInfo()
+              .setPath(NOT_EXIST_FILE.getPath())
+              .setCompleted(true));
+      // TODO(Yichuan Sun): remove toAlluxioURI in the future
+      mFileStatusMap.put(ufsPath.toAlluxioURI(), status);
+      try {
+        return new MockFileOutStream(mContext);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
     public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options) {
       URIStatus status = new URIStatus(
           new FileInfo()

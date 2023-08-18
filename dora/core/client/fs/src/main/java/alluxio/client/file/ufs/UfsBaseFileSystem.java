@@ -190,6 +190,24 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
+  public FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options) {
+    return callWithReturn(() -> {
+      CreateOptions ufsOptions = CreateOptions.defaults(
+          mFsContext.getPathConf(ufsPath.toAlluxioURI()));
+      if (options.hasMode()) {
+        ufsOptions.setMode(Mode.fromProto(options.getMode()));
+      }
+      if (options.hasRecursive()) {
+        ufsOptions.setCreateParent(options.getRecursive());
+      }
+      if (options.hasIsAtomicWrite()) {
+        ufsOptions.setEnsureAtomic(options.getIsAtomicWrite());
+      }
+      return new UfsFileOutStream(mUfs.get().create(ufsPath.getFullPath(), ufsOptions));
+    });
+  }
+
+  @Override
   public void delete(AlluxioURI path, DeletePOptions options) {
     call(() -> {
       String ufsPath = path.toString();

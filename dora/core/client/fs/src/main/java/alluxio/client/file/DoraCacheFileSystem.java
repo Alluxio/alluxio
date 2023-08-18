@@ -343,6 +343,40 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   }
 
   @Override
+  public FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+    try {
+      CreateFilePOptions mergedOptions = FileSystemOptionsUtils.createFileDefaults(
+          mFsContext.getPathConf(ufsPath.toAlluxioURI())).toBuilder().mergeFrom(options).build();
+      Pair<URIStatus, String> result = mDoraClient.createFile(ufsPath.toString(), mergedOptions);
+      URIStatus status = result.getFirst();
+      String uuid = result.getSecond();
+
+      LOG.debug("Create file {}, options: {}", ufsPath.getFullPath(), mergedOptions);
+      OutStreamOptions outStreamOptions = new OutStreamOptions(mergedOptions, mFsContext,
+          mFsContext.getPathConf(ufsPath.toAlluxioURI()));
+      outStreamOptions.setUfsPath(status.getUfsPath());
+      outStreamOptions.setMountId(status.getMountId());
+      outStreamOptions.setAcl(status.getAcl());
+
+      FileOutStream ufsOutStream;
+      if (mClientWriteToUFSEnabled) {
+        ufsOutStream = mDelegatedFileSystem.createFile(ufsPath, options);
+      } else {
+        ufsOutStream = null;
+      }
+      return mDoraClient.getOutStream(
+          ufsPath.toAlluxioURI(), mFsContext, outStreamOptions, ufsOutStream, uuid);
+      // TODO(Yichuan Sun): Is it too wide?
+    } catch (Exception e) {
+      UFS_FALLBACK_COUNTER.inc();
+      LOG.debug("Dora client CreateFile error ({} times). Fall back to UFS.",
+          UFS_FALLBACK_COUNTER.getCount(), e);
+      return mDelegatedFileSystem.createFile(ufsPath, options);
+    }
+  }
+
+  @Override
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);

@@ -115,6 +115,14 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
   }
 
   @Override
+  public FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options)
+      throws IOException, AlluxioException {
+    mMetadataCache.invalidate(ufsPath.getParentURL());
+    mMetadataCache.invalidate(ufsPath);
+    return mDelegatedFileSystem.createFile(ufsPath, options);
+  }
+
+  @Override
   public void delete(AlluxioURI path, DeletePOptions options)
       throws IOException,
       AlluxioException {

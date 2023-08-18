@@ -235,6 +235,15 @@ public class FileSystemCache {
     }
 
     @Override
+    public FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options)
+        throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+      if (mClosed) {
+        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
+      }
+      return super.createFile(ufsPath, options);
+    }
+
+    @Override
     public void delete(AlluxioURI path, DeletePOptions options) throws DirectoryNotEmptyException,
         FileDoesNotExistException, IOException, AlluxioException {
       if (mClosed) {
