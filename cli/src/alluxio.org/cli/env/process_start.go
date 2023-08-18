@@ -25,7 +25,7 @@ type StartProcessCommand struct {
 func (c *StartProcessCommand) ToCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   StartProcessName,
-		Short: "Starts a process",
+		Short: "Starts one or more processes",
 	}
 	cmd.PersistentFlags().BoolVarP(&c.SkipKillOnStart, "skip-kill-prev", "N", false, "Avoid killing previous running processes when starting")
 	cmd.PersistentFlags().BoolVarP(&c.AsyncStart, "async", "a", false, "Asynchronously start processes without monitoring for start completion")
