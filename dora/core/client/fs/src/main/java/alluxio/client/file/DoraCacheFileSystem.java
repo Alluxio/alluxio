@@ -402,6 +402,24 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   }
 
   @Override
+  public void delete(UfsUrl ufsPath, DeletePOptions options)
+      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
+    try {
+      DeletePOptions mergedOptions = FileSystemOptionsUtils.deleteDefaults(
+          mFsContext.getPathConf(ufsPath.toAlluxioURI())).toBuilder().mergeFrom(options).build();
+      mDoraClient.delete(ufsPath.toString(), mergedOptions);
+    } catch (RuntimeException ex) {
+      if (!mUfsFallbackEnabled) {
+        throw ex;
+      }
+      UFS_FALLBACK_COUNTER.inc();
+      LOG.debug("Dora client delete error ({} times). Fall back to UFS.",
+          UFS_FALLBACK_COUNTER.getCount(), ex);
+      mDelegatedFileSystem.delete(ufsPath, options);
+    }
+  }
+
+  @Override
   public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     AlluxioURI srcUfsFullPath = convertAlluxioPathToUFSPath(src);

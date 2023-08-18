@@ -104,6 +104,12 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
+  public void delete(UfsUrl ufsPath, DeletePOptions options)
+      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
+    mDelegatedFileSystem.delete(ufsPath, options);
+  }
+
+  @Override
   public boolean exists(AlluxioURI path, ExistsPOptions options)
       throws InvalidPathException, IOException, AlluxioException {
     return mDelegatedFileSystem.exists(path, options);

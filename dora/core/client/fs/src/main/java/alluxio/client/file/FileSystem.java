@@ -315,6 +315,9 @@ public interface FileSystem extends Closeable {
   void delete(AlluxioURI path, DeletePOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException;
 
+  void delete(UfsUrl ufsUrl, DeletePOptions options)
+      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException;
+
   /**
    * Convenience method for {@link #exists(AlluxioURI, ExistsPOptions)} with default options.
    *

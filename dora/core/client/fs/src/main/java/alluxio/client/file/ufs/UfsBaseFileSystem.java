@@ -222,6 +222,22 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
+  public void delete(UfsUrl ufsPath, DeletePOptions options) {
+    call(() -> {
+      String path = ufsPath.toString();
+      if (mUfs.get().isFile(path)) {
+        mUfs.get().deleteFile(path);
+        return;
+      }
+      DeleteOptions ufsOptions = DeleteOptions.defaults();
+      if (options.hasRecursive()) {
+        ufsOptions.setRecursive(options.getRecursive());
+      }
+      mUfs.get().deleteDirectory(path, ufsOptions);
+    });
+  }
+
+  @Override
   public boolean exists(AlluxioURI path, final ExistsPOptions options) {
     return Boolean.TRUE.equals(callWithReturn(() -> mUfs.get().exists(path.toString())));
   }

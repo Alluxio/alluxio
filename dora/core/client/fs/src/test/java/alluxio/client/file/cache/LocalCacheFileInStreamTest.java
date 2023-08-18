@@ -851,6 +851,13 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public void delete(UfsUrl ufsPath, DeletePOptions options)
+        throws DirectoryNotEmptyException, FileDoesNotExistException, IOException,
+        AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public boolean exists(AlluxioURI path, ExistsPOptions options)
         throws InvalidPathException, IOException, AlluxioException {
       throw new UnsupportedOperationException();

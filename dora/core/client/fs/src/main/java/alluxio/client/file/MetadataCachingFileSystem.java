@@ -132,6 +132,15 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
   }
 
   @Override
+  public void delete(UfsUrl ufsPath, DeletePOptions options)
+      throws IOException,
+      AlluxioException {
+    mMetadataCache.invalidate(ufsPath.getParentURL());
+    mMetadataCache.invalidate(ufsPath);
+    mDelegatedFileSystem.delete(ufsPath, options);
+  }
+
+  @Override
   public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options)
       throws IOException, AlluxioException {
     mMetadataCache.invalidate(src.getParent());

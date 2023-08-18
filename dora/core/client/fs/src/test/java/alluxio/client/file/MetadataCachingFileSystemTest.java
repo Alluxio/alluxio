@@ -390,6 +390,11 @@ public class MetadataCachingFileSystemTest {
     }
 
     @Override
+    public void delete(UfsUrl ufsPath, DeletePOptions options) {
+      mFileStatusMap.remove(ufsPath.toAlluxioURI());
+    }
+
+    @Override
     public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options) {
       mFileStatusMap.put(dst, mFileStatusMap.remove(src));
     }

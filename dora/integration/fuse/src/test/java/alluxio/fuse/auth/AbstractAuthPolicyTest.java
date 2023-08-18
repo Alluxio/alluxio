@@ -155,6 +155,13 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
+    public void delete(UfsUrl ufsPath, DeletePOptions options)
+        throws IOException,
+        AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public boolean exists(AlluxioURI path, ExistsPOptions options)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();

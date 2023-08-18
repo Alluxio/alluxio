@@ -253,6 +253,15 @@ public class FileSystemCache {
     }
 
     @Override
+    public void delete(UfsUrl ufsPath, DeletePOptions options) throws DirectoryNotEmptyException,
+        FileDoesNotExistException, IOException, AlluxioException {
+      if (mClosed) {
+        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
+      }
+      super.delete(ufsPath, options);
+    }
+
+    @Override
     public boolean exists(AlluxioURI path, ExistsPOptions options)
         throws InvalidPathException, IOException, AlluxioException {
       if (mClosed) {
