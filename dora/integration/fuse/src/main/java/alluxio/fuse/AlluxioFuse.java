@@ -185,6 +185,11 @@ public class AlluxioFuse {
       }
     }
 
+    return createJniFuseSystem(fsContext, fs, fuseOptions);
+  }
+
+  protected AlluxioJniFuseFileSystem createJniFuseSystem(
+      FileSystemContext fsContext, FileSystem fs, FuseOptions fuseOptions) {
     return new AlluxioJniFuseFileSystem(fsContext, fs, fuseOptions);
   }
 
