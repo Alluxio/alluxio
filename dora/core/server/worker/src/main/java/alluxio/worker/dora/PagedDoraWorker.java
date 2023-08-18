@@ -245,6 +245,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     // TODO(bowen): once we set up a worker discovery service in place of master, remove this
     // TODO(lucy): temporary fallback logic during transition of removing master dependency
     if (mMembershipManager instanceof NoOpMembershipManager) {
+      LOG.info("Using Master for heartbeating..");
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
               mResourceCloser.register(new BlockMasterSync()),
@@ -268,6 +269,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
     while (true) {
       try {
+        LOG.info("{} membership manager starts joining...",
+            mConf.get(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE));
         mMembershipManager.join(new WorkerInfo().setAddress(mAddress));
         mWorkerId.set(HashUtils.hashAsLong(mAddress.dumpMainInfo()));
         break;

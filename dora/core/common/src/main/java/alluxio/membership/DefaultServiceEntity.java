@@ -11,42 +11,45 @@
 
 package alluxio.membership;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
 import io.etcd.jetcd.support.CloseableClient;
 
 import java.io.Closeable;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  * Base Entity class including information to register to Etcd
  * when using EtcdMembershipManager.
+ * It will be serialized to JSON format to store on etcd, including
+ * only those fields with marked @Expose annotation.
  */
-@ThreadSafe
-public class ServiceEntity implements Closeable {
+public abstract class DefaultServiceEntity implements Closeable {
   private CloseableClient mKeepAliveClient;
   // (package visibility) to do keep alive(heartbeating),
   // initialized at time of service registration
-  AlluxioEtcdClient.Lease mLease;
+  private AlluxioEtcdClient.Lease mLease = null;
+  @Expose
+  @com.google.gson.annotations.SerializedName("ServiceEntityName")
   protected String mServiceEntityName; // unique service alias
   // revision number of kv pair of registered entity on etcd, used for CASupdate
   protected long mRevision;
   public final ReentrantLock mLock = new ReentrantLock();
+  // For {@link ServiceDiscoveryRecipe#RetryKeepAliveObserver}
+  // to act on events such as lease keepalive connection ended or errors.
+  // {@link ServiceDiscoveryRecipe#checkAllForReconnect} will periodically
+  // check and resume the connection.
   public AtomicBoolean mNeedReconnect = new AtomicBoolean(false);
-
-  /**
-   * CTOR for ServiceEntity.
-   */
-  public ServiceEntity() {}
 
   /**
    * CTOR for ServiceEntity with given ServiceEntity name.
    * @param serviceEntityName
    */
-  public ServiceEntity(String serviceEntityName) {
+  public DefaultServiceEntity(String serviceEntityName) {
     mServiceEntityName = serviceEntityName;
   }
 
@@ -75,23 +78,55 @@ public class ServiceEntity implements Closeable {
   }
 
   /**
-   * Serialize the ServiceEntity to output stream.
-   * @param dos
-   * @throws IOException
+   * @return lease
    */
-  public void serialize(DataOutputStream dos) throws IOException {
-    dos.writeUTF(mServiceEntityName);
-    dos.writeLong(mRevision);
+  public AlluxioEtcdClient.Lease getLease() {
+    return mLease;
   }
 
   /**
-   * Deserialize the ServiceEntity from input stream.
-   * @param dis
-   * @throws IOException
+   * Set lease.
+   * @param lease
    */
-  public void deserialize(DataInputStream dis) throws IOException {
-    mServiceEntityName = dis.readUTF();
-    mRevision = dis.readLong();
+  @GuardedBy("mLock")
+  public void setLease(AlluxioEtcdClient.Lease lease) {
+    mLease = lease;
+  }
+
+  /**
+   * Get the revision number of currently registered DefaultServiceEntity
+   * on ETCD.
+   * @return revision number
+   */
+  public long getRevisionNumber() {
+    return mRevision;
+  }
+
+  /**
+   * Set revision number.
+   * @param revisionNumber
+   */
+  public void setRevisionNumber(long revisionNumber) {
+    mRevision = revisionNumber;
+  }
+
+  /**
+   * @return lock for atomically modifying certain fields
+   */
+  ReentrantLock getLock() {
+    return mLock;
+  }
+
+  /**
+   * Convert a DefaultServiceEntity into a json string.
+   * @param entity
+   * @return json string
+   */
+  public static String toJson(DefaultServiceEntity entity) {
+    Gson gson = new GsonBuilder()
+        .excludeFieldsWithoutExposeAnnotation()
+        .create();
+    return gson.toJson(entity);
   }
 
   @Override

@@ -103,7 +103,7 @@ public class AlluxioEtcdClient {
     List<String> endpointsList = conf.getList(PropertyKey.ETCD_ENDPOINTS);
     mEndpoints = endpointsList.toArray(new String[0]);
     mServiceDiscovery = new ServiceDiscoveryRecipe(this, clusterName);
-    // TODO(lucy) add more options as needed for io.etcd.jetcd.ClientBuidler
+    // TODO(lucy) add more options as needed for io.etcd.jetcd.ClientBuilder
     // to control underneath grpc parameters.
     mClient = Client.builder().endpoints(mEndpoints)
         .build();
