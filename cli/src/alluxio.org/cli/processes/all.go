@@ -25,10 +25,7 @@ var All = &AllProcess{
 	},
 	Processes: []env.Process{
 		Masters,
-		JobMasters,
 		Workers,
-		JobWorkers,
-		Proxies,
 	},
 }
 

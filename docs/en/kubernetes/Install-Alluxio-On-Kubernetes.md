@@ -286,3 +286,7 @@ Uninstall Dora cluster as follows:
 ```shell
 $ helm delete dora
 ```
+
+## Metrics
+
+See [Metrics On Kubernetes]({{ '/en/kubernetes/Metrics-On-Kubernetes.html' | relativize_url }}) for information on how to configure and get metrics of different metrics sinks from Alluxio deployed on Kubernetes.

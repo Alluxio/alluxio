@@ -13,7 +13,7 @@ developers, or post questions on [Github issues](https://github.com/Alluxio/allu
 
 ## Where are the Alluxio logs?
 
-Alluxio generates Master, Worker and Client logs under the dir `${ALLUXIO_HOME}/logs`. See [Basic Logging]({{ '/en/operation/Basic-Logging.html' | relativize_url }}) for more information. You can find details about [Server Logs]({{ '/en/operation/Basic-Logging.html#server-logs' | relativize_url }}) and [Application Logs]({{ '/en/operation/Basic-Logging.html#application-logs' | relativize_url }}).
+Alluxio generates Master, Worker and Client logs under the dir `${ALLUXIO_HOME}/logs`. See [Logging]({{ '/en/operation/Logging.html' | relativize_url }}) for more information. You can find details about [Server Logs]({{ '/en/operation/Logging.html#server-logs' | relativize_url }}) and [Application Logs]({{ '/en/operation/Logging.html#application-logs' | relativize_url }}).
 
 ## Alluxio remote debug
 

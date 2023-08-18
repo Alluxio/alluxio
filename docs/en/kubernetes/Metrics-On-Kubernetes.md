@@ -3,7 +3,7 @@ layout: global
 title: Metrics System On Kubernetes
 ---
 
-For general information about the metrics of Alluxio, refer to [Metrics-System]({{ '/en/operation/Metrics-System.html' | relativize_url }}).
+For general information about the metrics of Alluxio, refer to [Metrics System]({{ '/en/operation/Metrics-System.html' | relativize_url }}).
 
 To deploy Alluxio on Kubernetes, refer to [Install Alluxio on Kubernetes]({{ '/en/kubernetes/Install-Alluxio-On-Kubernetes.html' | relativize_url }}).
 

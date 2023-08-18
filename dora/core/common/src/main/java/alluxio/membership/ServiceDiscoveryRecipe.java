@@ -11,9 +11,11 @@
 
 package alluxio.membership;
 
+import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.resource.LockResource;
+import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.base.Preconditions;
@@ -32,8 +34,6 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -48,6 +48,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -60,9 +61,10 @@ public class ServiceDiscoveryRecipe {
   final AlluxioEtcdClient mAlluxioEtcdClient;
   private final ScheduledExecutorService mExecutor;
   private final String mClusterIdentifier;
-  // Will look like /ServiceDiscovery/<mClusterIdentifier>
-  private final String mRegisterPathPrefix;
-  private final ConcurrentHashMap<String, ServiceEntity> mRegisteredServices
+  // e.g. /ServiceDiscovery/<mClusterIdentifier>
+  private final Supplier<String> mRegisterPathPrefix
+      = CommonUtils.memoize(this::constructRegisterPathPrefix);
+  private final ConcurrentHashMap<String, DefaultServiceEntity> mRegisteredServices
       = new ConcurrentHashMap<>();
 
   /**
@@ -70,11 +72,9 @@ public class ServiceDiscoveryRecipe {
    * @param client
    * @param clusterIdentifier
    */
-  public ServiceDiscoveryRecipe(AlluxioEtcdClient client, String clusterIdentifier) {
+  ServiceDiscoveryRecipe(AlluxioEtcdClient client, String clusterIdentifier) {
     mAlluxioEtcdClient = client;
     mClusterIdentifier = clusterIdentifier;
-    mRegisterPathPrefix = String.format("%s%s%s", BASE_PATH,
-        MembershipManager.PATH_SEPARATOR, mClusterIdentifier);
     mExecutor = Executors.newSingleThreadScheduledExecutor(
         ThreadFactoryUtils.build("service-discovery-checker", false));
     mExecutor.scheduleWithFixedDelay(this::checkAllForReconnect,
@@ -83,34 +83,47 @@ public class ServiceDiscoveryRecipe {
   }
 
   /**
+   * Construct registerPathPrefix for first time.
+   * @return
+   */
+  private String constructRegisterPathPrefix() {
+    return String.format("%s%s%s", BASE_PATH,
+        MembershipManager.PATH_SEPARATOR, mClusterIdentifier);
+  }
+
+  private String getRegisterPathPrefix() {
+    return mRegisterPathPrefix.get();
+  }
+
+  /**
    * Apply for a new lease or extend expired lease for
-   * given ServiceEntity in atomic fashion.
+   * given DefaultServiceEntity in atomic fashion.
    * Atomicity:
-   * creation of given ServiceEntity entry on etcd is handled by etcd transaction
+   * creation of given DefaultServiceEntity entry on etcd is handled by etcd transaction
    * iff the version = 0 which means when there's no such key present.
    * (expired lease will automatically delete the kv attached with it on etcd)
-   * update of the ServiceEntity fields(lease,revision num) is guarded by
-   * lock within ServiceEntity instance.
+   * update of the DefaultServiceEntity fields(lease,revision num) is guarded by
+   * lock within DefaultServiceEntity instance.
    * @param service
    * @throws IOException
    */
-  private void newLeaseInternal(ServiceEntity service) throws IOException {
-    try (LockResource lockResource = new LockResource(service.mLock)) {
-      if (service.mLease != null && !mAlluxioEtcdClient.isLeaseExpired(service.mLease)) {
-        LOG.info("Lease attached with service:{} is not expired, bail from here.");
+  private void newLeaseInternal(DefaultServiceEntity service) throws IOException {
+    try (LockResource lockResource = new LockResource(service.getLock())) {
+      if (service.getLease() != null && !mAlluxioEtcdClient.isLeaseExpired(service.getLease())) {
+        LOG.info("Lease attached with service:{} is not expired, bail from here.",
+            service.getServiceEntityName());
         return;
       }
-      String path = service.mServiceEntityName;
-      String fullPath = new StringBuffer().append(mRegisterPathPrefix)
+      String path = service.getServiceEntityName();
+      String fullPath = new StringBuffer().append(getRegisterPathPrefix())
           .append(MembershipManager.PATH_SEPARATOR)
           .append(path).toString();
-      try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+      try {
         AlluxioEtcdClient.Lease lease = mAlluxioEtcdClient.createLease();
         Txn txn = mAlluxioEtcdClient.getEtcdClient().getKVClient().txn();
         ByteSequence keyToPut = ByteSequence.from(fullPath, StandardCharsets.UTF_8);
-        DataOutputStream dos = new DataOutputStream(baos);
-        service.serialize(dos);
-        ByteSequence valToPut = ByteSequence.from(baos.toByteArray());
+        String serializedJsonStr = DefaultServiceEntity.toJson(service);
+        ByteSequence valToPut = ByteSequence.from(serializedJsonStr, StandardCharsets.UTF_8);
         CompletableFuture<TxnResponse> txnResponseFut = txn
             .If(new Cmp(keyToPut, Cmp.Op.EQUAL, CmpTarget.version(0L)))
             .Then(Op.put(keyToPut, valToPut, PutOption.newBuilder()
@@ -132,8 +145,8 @@ public class ServiceDiscoveryRecipe {
         Preconditions.checkState(!kvs.isEmpty(), "No such service entry found.");
         long latestRevision = kvs.stream().mapToLong(kv -> kv.getModRevision())
             .max().getAsLong();
-        service.mRevision = latestRevision;
-        service.mLease = lease;
+        service.setRevisionNumber(latestRevision);
+        service.setLease(lease);
         startHeartBeat(service);
       } catch (ExecutionException | InterruptedException ex) {
         throw new IOException("Exception in new-ing lease for service:" + service, ex);
@@ -144,8 +157,8 @@ public class ServiceDiscoveryRecipe {
   /**
    * Register service and start keeping-alive.
    * Atomicity:
-   * So the same-named ServiceEntity registration atomicity on etcd is guaranteed
-   * in {@link ServiceDiscoveryRecipe#newLeaseInternal(ServiceEntity)},
+   * So the same-named DefaultServiceEntity registration atomicity on etcd is guaranteed
+   * in {@link ServiceDiscoveryRecipe#newLeaseInternal(DefaultServiceEntity)},
    * by etcd transaction semantics. We ensure that
    * if #newLeaseInternal succeeded, it's safe to track in mRegisteredServices map.
    * Other threads within same process or other processes trying to
@@ -153,22 +166,22 @@ public class ServiceDiscoveryRecipe {
    * @param service
    * @throws IOException
    */
-  public void registerAndStartSync(ServiceEntity service) throws IOException {
+  public void registerAndStartSync(DefaultServiceEntity service) throws IOException {
     LOG.info("registering service : {}", service);
     if (mRegisteredServices.containsKey(service.getServiceEntityName())) {
-      throw new AlreadyExistsException("Service " + service.mServiceEntityName
+      throw new AlreadyExistsException("Service " + service.getServiceEntityName()
           + " already registered.");
     }
     newLeaseInternal(service);
-    ServiceEntity existEntity = mRegisteredServices.putIfAbsent(
+    DefaultServiceEntity existEntity = mRegisteredServices.putIfAbsent(
         service.getServiceEntityName(), service);
     if (existEntity != null) {
       // We should never reach here as if concurrent new lease creation for service
       // on etcd will not succeed for both race parties.
-      try (ServiceEntity entity = service) {
+      try (DefaultServiceEntity entity = service) {
         // someone is already in register service map, close myself before throw exception.
       }
-      throw new AlreadyExistsException("Service " + service.mServiceEntityName
+      throw new AlreadyExistsException("Service " + service.getServiceEntityName()
           + " already registered.");
     }
   }
@@ -179,12 +192,12 @@ public class ServiceDiscoveryRecipe {
    * @throws IOException
    */
   public void unregisterService(String serviceIdentifier) throws IOException {
-    ServiceEntity entity = mRegisteredServices.remove(serviceIdentifier);
+    DefaultServiceEntity entity = mRegisteredServices.remove(serviceIdentifier);
     if (entity != null) {
       // It is ok to ignore the declared IOException from closing
-      // removed ServiceEntity from the map. As internal resource
+      // removed DefaultServiceEntity from the map. As internal resource
       // closing doesn't throw IOException at all.
-      try (ServiceEntity service = entity) {
+      try (DefaultServiceEntity service = entity) {
         LOG.info("Service unregistered:{}", service);
       }
     } else {
@@ -197,7 +210,7 @@ public class ServiceDiscoveryRecipe {
    * [It won't register services registered through other instances(other processes)]
    */
   public void unregisterAll() {
-    for (Map.Entry<String, ServiceEntity> entry : mRegisteredServices.entrySet()) {
+    for (Map.Entry<String, DefaultServiceEntity> entry : mRegisteredServices.entrySet()) {
       try {
         unregisterService(entry.getKey());
       } catch (IOException ex) {
@@ -208,15 +221,15 @@ public class ServiceDiscoveryRecipe {
 
   /**
    * Get the registered service value as ByteBuffer.
-   * @param serviceEntityName
+   * @param DefaultServiceEntityName
    * @return ByteBuffer container serialized content
    * @throws IOException
    */
-  public ByteBuffer getRegisteredServiceDetail(String serviceEntityName)
+  public ByteBuffer getRegisteredServiceDetail(String DefaultServiceEntityName)
       throws IOException {
-    String fullPath = new StringBuffer().append(mRegisterPathPrefix)
+    String fullPath = new StringBuffer().append(getRegisterPathPrefix())
         .append(MembershipManager.PATH_SEPARATOR)
-        .append(serviceEntityName).toString();
+        .append(DefaultServiceEntityName).toString();
     byte[] val = mAlluxioEtcdClient.getForPath(fullPath);
     return ByteBuffer.wrap(val);
   }
@@ -226,34 +239,32 @@ public class ServiceDiscoveryRecipe {
    * TODO(lucy) we need to handle the cases where txn failed bcos of
    * lease expiration.
    * Atomicity:
-   * update of given ServiceEntity on etcd is handled by etcd transaction
+   * update of given DefaultServiceEntity on etcd is handled by etcd transaction
    * on comparing the revision number for a CAS semantic update.
-   * update of the ServiceEntity fields is guarded by update lock within
-   * ServiceEntity instance.
+   * update of the DefaultServiceEntity fields is guarded by update lock within
+   * DefaultServiceEntity instance.
    * @param service
    * @throws IOException
    */
-  public void updateService(ServiceEntity service) throws IOException {
+  public void updateService(DefaultServiceEntity service) throws IOException {
     LOG.info("Updating service : {}", service);
-    if (!mRegisteredServices.containsKey(service.mServiceEntityName)) {
-      Preconditions.checkNotNull(service.mLease, "Service not attach with lease");
-      throw new NoSuchElementException("Service " + service.mServiceEntityName
+    if (!mRegisteredServices.containsKey(service.getServiceEntityName())) {
+      Preconditions.checkNotNull(service.getLease(), "Service not attach with lease");
+      throw new NoSuchElementException("Service " + service.getServiceEntityName()
           + " not registered, please register first.");
     }
-    String fullPath = new StringBuffer().append(mRegisterPathPrefix)
+    String fullPath = new StringBuffer().append(getRegisterPathPrefix())
         .append(MembershipManager.PATH_SEPARATOR)
-        .append(service.mServiceEntityName).toString();
-    try (LockResource lockResource = new LockResource(service.mLock);
-         ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+        .append(service.getServiceEntityName()).toString();
+    try (LockResource lockResource = new LockResource(service.getLock())) {
       Txn txn = mAlluxioEtcdClient.getEtcdClient().getKVClient().txn();
       ByteSequence keyToPut = ByteSequence.from(fullPath, StandardCharsets.UTF_8);
-      DataOutputStream dos = new DataOutputStream(baos);
-      service.serialize(dos);
-      ByteSequence valToPut = ByteSequence.from(baos.toByteArray());
+      String serializedJsonStr = DefaultServiceEntity.toJson(service);
+      ByteSequence valToPut = ByteSequence.from(serializedJsonStr, StandardCharsets.UTF_8);
       CompletableFuture<TxnResponse> txnResponseFut = txn
-          .If(new Cmp(keyToPut, Cmp.Op.EQUAL, CmpTarget.modRevision(service.mRevision)))
+          .If(new Cmp(keyToPut, Cmp.Op.EQUAL, CmpTarget.modRevision(service.getRevisionNumber())))
           .Then(Op.put(keyToPut, valToPut, PutOption.newBuilder()
-              .withLeaseId(service.mLease.mLeaseId).build()))
+              .withLeaseId(service.getLease().mLeaseId).build()))
           .Then(Op.get(keyToPut, GetOption.DEFAULT))
           .Else(Op.get(keyToPut, GetOption.DEFAULT))
           .commit();
@@ -275,7 +286,7 @@ public class ServiceDiscoveryRecipe {
       if (service.getKeepAliveClient() == null) {
         startHeartBeat(service);
       }
-      // This should be a no-op, as the we should not overwrite any other values.
+      // This should be a no-op, as we should not overwrite any other values.
       mRegisteredServices.put(service.getServiceEntityName(), service);
     } catch (ExecutionException ex) {
       throw new IOException("ExecutionException in registering service:" + service, ex);
@@ -288,16 +299,16 @@ public class ServiceDiscoveryRecipe {
    * Start heartbeating(keepalive) for the given service.
    * @param service
    */
-  private void startHeartBeat(ServiceEntity service) {
+  private void startHeartBeat(DefaultServiceEntity service) {
     CloseableClient keepAliveClient = mAlluxioEtcdClient.getEtcdClient().getLeaseClient()
-        .keepAlive(service.mLease.mLeaseId, new RetryKeepAliveObserver(service));
+        .keepAlive(service.getLease().mLeaseId, new RetryKeepAliveObserver(service));
     service.setKeepAliveClient(keepAliveClient);
   }
 
   class RetryKeepAliveObserver implements StreamObserver<LeaseKeepAliveResponse> {
-    public ServiceEntity mService;
+    public DefaultServiceEntity mService;
 
-    public RetryKeepAliveObserver(ServiceEntity service) {
+    public RetryKeepAliveObserver(DefaultServiceEntity service) {
       mService = service;
     }
 
@@ -310,14 +321,14 @@ public class ServiceDiscoveryRecipe {
     @Override
     public void onError(Throwable t) {
       LOG.error("onError for Lease for service:{}, leaseId:{}. Setting status to reconnect",
-          mService, mService.mLease.mLeaseId, t);
+          mService, mService.getLease().mLeaseId, t);
       mService.mNeedReconnect.compareAndSet(false, true);
     }
 
     @Override
     public void onCompleted() {
       LOG.warn("onCompleted for Lease for service:{}, leaseId:{}. Setting status to reconnect",
-          mService, mService.mLease.mLeaseId);
+          mService, mService.getLease().mLeaseId);
       mService.mNeedReconnect.compareAndSet(false, true);
     }
   }
@@ -328,7 +339,7 @@ public class ServiceDiscoveryRecipe {
    */
   public Map<String, ByteBuffer> getAllLiveServices() throws IOException {
     Map<String, ByteBuffer> ret = new HashMap<>();
-    List<KeyValue> children = mAlluxioEtcdClient.getChildren(mRegisterPathPrefix);
+    List<KeyValue> children = mAlluxioEtcdClient.getChildren(getRegisterPathPrefix());
     for (KeyValue kv : children) {
       ret.put(kv.getKey().toString(StandardCharsets.UTF_8),
           ByteBuffer.wrap(kv.getValue().getBytes()));
@@ -337,22 +348,23 @@ public class ServiceDiscoveryRecipe {
   }
 
   /**
-   * Periodically check if any ServiceEntity's lease got expired and needs
+   * Periodically check if any DefaultServiceEntity's lease got expired and needs
    * to renew the lease with new keepalive client.
    */
   private void checkAllForReconnect() {
-    // No need for lock over all services, just individual ServiceEntity is enough
-    for (Map.Entry<String, ServiceEntity> entry : mRegisteredServices.entrySet()) {
-      ServiceEntity entity = entry.getValue();
-      try (LockResource lockResource = new LockResource(entry.getValue().mLock)) {
-        if (entity.mNeedReconnect.get()) {
-          try {
-            LOG.info("Start reconnect for service:{}", entity.getServiceEntityName());
-            newLeaseInternal(entity);
-            entity.mNeedReconnect.set(false);
-          } catch (IOException e) {
-            LOG.info("Failed trying to new the lease for service:{}", entity, e);
-          }
+    // No need for lock over all services, just individual DefaultServiceEntity is enough
+    for (Map.Entry<String, DefaultServiceEntity> entry : mRegisteredServices.entrySet()) {
+      DefaultServiceEntity entity = entry.getValue();
+      // Only party that will do reconnect is this function, so we do a loosely check on
+      // mNeedReconnect, anyway we got a DefaultServiceEntity#mLock inside newLeaseInternal
+      // to do an atomic lease recreate.
+      if (entity.mNeedReconnect.get()) {
+        try {
+          LOG.info("Start reconnect for service:{}", entity.getServiceEntityName());
+          newLeaseInternal(entity);
+          entity.mNeedReconnect.set(false);
+        } catch (IOException | UnavailableRuntimeException e) {
+          LOG.info("Failed trying to new the lease for service:{}", entity, e);
         }
       }
     }

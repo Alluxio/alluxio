@@ -9,22 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package info
+package metadata
 
 import (
 	"alluxio.org/cli/env"
 )
 
 var Service = &env.Service{
-	Name:        "info",
-	Description: "Retrieve and/or display info about the running Alluxio cluster",
+	Name:        "metadata",
+	Description: "Metadata operations such as load",
 	Commands: []env.Command{
-		Cache,
-		Collect,
-		Doctor,
-		Master,
-		Nodes,
-		Report,
-		Version,
+		Load,
 	},
 }

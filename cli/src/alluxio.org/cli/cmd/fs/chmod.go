@@ -9,41 +9,53 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package info
+package fs
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
-var Version = &VersionCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "version",
-		JavaClassName: "alluxio.cli.Version",
-	},
+func Chmod(className string) env.Command {
+	return &ChmodCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "chmod",
+			JavaClassName: className,
+		},
+	}
 }
 
-type VersionCommand struct {
+type ChmodCommand struct {
 	*env.BaseJavaCommand
+	recursive bool
 }
 
-func (c *VersionCommand) Base() *env.BaseJavaCommand {
+func (c *ChmodCommand) Base() *env.BaseJavaCommand {
 	return c.BaseJavaCommand
 }
 
-func (c *VersionCommand) ToCommand() *cobra.Command {
+func (c *ChmodCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   c.CommandName,
-		Short: "Print Alluxio version and exit.",
-		Args:  cobra.NoArgs,
+		Use:   fmt.Sprintf("%s <mode> <path>", c.CommandName),
+		Short: "Changes the permission of a file or directory specified by args",
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
 	})
+	cmd.Flags().BoolVarP(&c.recursive, "recursive", "R", false,
+		"change the permission recursively")
 	return cmd
 }
 
-func (c *VersionCommand) Run(args []string) error {
+func (c *ChmodCommand) Run(args []string) error {
+	var javaArgs []string
+	if c.recursive {
+		javaArgs = append(javaArgs, "-R")
+	}
+	javaArgs = append(javaArgs, args...)
 	return c.Base().Run(args)
 }
