@@ -153,8 +153,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     // and offsets
     mFilePaths = new Path[numFiles];
     // set random offsets and lengths if enabled
-    mLengths = new Integer[numFiles];
-    mOffsets = new Integer[numFiles];
+    mLengths = new Integer[mParameters.mRandomSequenceLength];
+    mOffsets = new Integer[mParameters.mRandomSequenceLength];
 
     generateTestFilePaths(basePath);
 
@@ -216,7 +216,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       int randomMin = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
       int randomMax = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
       // this 1000 is a tmp length, determined the randomness of the random read test
-      for (int i = 0; i < 1000; i++) {
+      for (int i = 0; i < mParameters.mRandomSequenceLength; i++) {
         mOffsets[i] = randomNumInRange(rand, 0, fileSize - 1 - randomMin);
         mLengths[i] = randomNumInRange(rand, randomMin,
                   Integer.min(fileSize - mOffsets[i], randomMax));
