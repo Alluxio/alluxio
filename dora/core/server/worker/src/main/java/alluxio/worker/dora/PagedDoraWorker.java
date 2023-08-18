@@ -140,7 +140,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final long mPageSize;
   protected final AlluxioConfiguration mConf;
   private final BlockMasterClientPool mBlockMasterClientPool;
-  private final String mRootUFS;
   private FileSystemContext mFsContext;
   private MkdirsOptions mMkdirsRecursive;
   private MkdirsOptions mMkdirsNonRecursive;
@@ -179,9 +178,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
     mWorkerId = workerId;
     mConf = conf;
-    mRootUFS = mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     mUfsManager = mResourceCloser.register(new DoraUfsManager());
-    mUfsManager.getOrAdd(new AlluxioURI(mRootUFS),
+    String rootUFS = mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
+    mUfsManager.getOrAdd(new AlluxioURI(rootUFS),
         UnderFileSystemConfiguration.defaults(mConf));
     mFsContext = mResourceCloser.register(fileSystemContext);
     mUfsStreamCache = new UfsInputStreamCache();
@@ -427,16 +426,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath) {
     UnderFileSystem ufs = getUfsInstance(ufsFullPath);
     String filename = new AlluxioURI(ufsFullPath).getName();
-    String relativePath = CommonUtils.stripPrefixIfPresent(ufsFullPath, mRootUFS);
-    if (!relativePath.startsWith(AlluxioURI.SEPARATOR)) {
-      relativePath = AlluxioURI.SEPARATOR + relativePath;
-    }
 
     alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
         .setUfsType(ufs.getUnderFSType())
         .setFileId(ufsFullPath.hashCode())
         .setName(filename)
-        .setPath(relativePath)
+        .setPath(ufsFullPath)
         .setUfsPath(ufsFullPath)
         .setMode(status.getMode())
         .setFolder(status.isDirectory())

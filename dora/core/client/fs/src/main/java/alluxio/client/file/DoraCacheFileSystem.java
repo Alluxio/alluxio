@@ -143,6 +143,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
           mFsContext.getClusterConf()).toBuilder().mergeFrom(options).build();
 
       final URIStatus status = mDoraClient.getStatus(ufsFullPath.toString(), mergedOptions);
+      // convert to proto and then back to get a clone of the object
+      // as it may be cached by a `MetadataCachingFileSystem`, while we need to mutate its fields
       FileInfo info = GrpcUtils.fromProto(GrpcUtils.toProto(status.getFileInfo()));
       info.setPath(convertUfsPathToAlluxioPath(new AlluxioURI(info.getUfsPath())).getPath());
       URIStatus statusWithRelativeAlluxioPath = new URIStatus(info, status.getCacheContext());
