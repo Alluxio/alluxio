@@ -226,6 +226,15 @@ public class FileSystemCache {
     }
 
     @Override
+    public void createDirectory(UfsUrl ufsPath, CreateDirectoryPOptions options)
+        throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+      if (mClosed) {
+        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
+      }
+      super.createDirectory(ufsPath, options);
+    }
+
+    @Override
     public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
         throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
       if (mClosed) {

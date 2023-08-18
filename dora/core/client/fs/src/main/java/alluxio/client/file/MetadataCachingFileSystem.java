@@ -107,6 +107,14 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
   }
 
   @Override
+  public void createDirectory(UfsUrl ufsPath, CreateDirectoryPOptions options)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+    mMetadataCache.invalidate(ufsPath.getParentURL());
+    mMetadataCache.invalidate(ufsPath);
+    mDelegatedFileSystem.createDirectory(ufsPath, options);
+  }
+
+  @Override
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws IOException, AlluxioException {
     mMetadataCache.invalidate(path.getParent());

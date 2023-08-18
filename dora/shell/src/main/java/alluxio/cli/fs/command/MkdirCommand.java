@@ -11,13 +11,15 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.uri.UfsUrl;
+import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -49,13 +51,14 @@ public final class MkdirCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
+    String rootDir = mFsContext.getClusterConf().getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     for (String path : args) {
-      AlluxioURI inputPath = new AlluxioURI(path);
-
+      String concatPath = PathUtils.concatWithRootDir(rootDir, path);
+      UfsUrl ufsUrl = UfsUrl.createInstance(concatPath);
       CreateDirectoryPOptions options =
           CreateDirectoryPOptions.newBuilder().setRecursive(true).build();
-      mFileSystem.createDirectory(inputPath, options);
-      System.out.println("Successfully created directory " + inputPath);
+      mFileSystem.createDirectory(ufsUrl, options);
+      System.out.println("Successfully created directory " + ufsUrl);
     }
     return 0;
   }
