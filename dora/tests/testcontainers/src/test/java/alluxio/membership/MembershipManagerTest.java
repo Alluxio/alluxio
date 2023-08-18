@@ -129,7 +129,6 @@ public class MembershipManagerTest {
     Configuration.set(PropertyKey.ETCD_ENDPOINTS, getClientEndpoints());
     MembershipManager membershipManager = MembershipManager.Factory.create(Configuration.global());
     Assert.assertTrue(membershipManager instanceof EtcdMembershipManager);
-//    TieredIdentity ti = TieredIdentityFactory.localIdentity(Configuration.global());
     WorkerInfo wkr1 = new WorkerInfo().setAddress(new WorkerNetAddress()
         .setHost("worker1").setContainerHost("containerhostname1")
         .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
@@ -152,7 +151,7 @@ public class MembershipManagerTest {
     List<WorkerInfo> allMembers = membershipManager.getAllMembers().stream()
         .sorted(Comparator.comparing(w -> w.getAddress().getHost()))
         .collect(Collectors.toList());
-    Assert.assertEquals(allMembers, wkrs);
+    Assert.assertEquals(wkrs, allMembers);
 
     membershipManager.stopHeartBeat(wkr2);
     Configuration.set(PropertyKey.ETCD_ENDPOINTS, getClientEndpoints());
@@ -167,7 +166,7 @@ public class MembershipManagerTest {
         }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
     List<WorkerInfo> expectedFailedList = new ArrayList<>();
     expectedFailedList.add(wkr2);
-    Assert.assertEquals(membershipManager.getFailedMembers(), expectedFailedList);
+    Assert.assertEquals(expectedFailedList, membershipManager.getFailedMembers());
     List<WorkerInfo> actualLiveMembers = membershipManager.getLiveMembers().stream()
         .sorted(Comparator.comparing(w -> w.getAddress().getHost()))
         .collect(Collectors.toList());
@@ -287,6 +286,6 @@ public class MembershipManagerTest {
         .map(w -> w.getAddress().getHost())
         .sorted()
         .collect(Collectors.toList());
-    Assert.assertEquals(allMemberHosts, wkrHosts);
+    Assert.assertEquals(wkrHosts, allMemberHosts);
   }
 }
