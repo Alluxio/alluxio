@@ -18,7 +18,6 @@ import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
@@ -34,7 +33,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * An abstraction of block store on worker.
  */
-public interface BlockStore extends Closeable, SessionCleanable {
+public interface BlockStore extends Closeable {
 
   /**
    * Initialize the block store.

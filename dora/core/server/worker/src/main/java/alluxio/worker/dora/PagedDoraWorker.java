@@ -908,10 +908,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mMetaManager.invalidateListingCacheOfParent(path);
   }
 
-  @Override
-  public void cleanupSession(long sessionId) {
-  }
-
   private class BlockMasterSync implements HeartbeatExecutor {
     @Override
     public void heartbeat(long timeLimitMs) throws InterruptedException {

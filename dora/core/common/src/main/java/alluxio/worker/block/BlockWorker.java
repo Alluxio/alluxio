@@ -28,7 +28,6 @@ import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.DataWorker;
-import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -42,7 +41,7 @@ import java.util.concurrent.CompletableFuture;
  */
 // TODO(jiacheng): This class is not removed yet because it is still used by client code
 //  like FileSystemContext. It should be removed with the client side Block API code.
-public interface BlockWorker extends DataWorker, SessionCleanable {
+public interface BlockWorker extends DataWorker {
   /**
    * Aborts the temporary block created by the session.
    *
