@@ -14,7 +14,7 @@ package alluxio.master.job;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
-import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
@@ -547,7 +547,7 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
     }
 
     @Override
-    public ListenableFuture<LoadResponse> run(BlockWorkerClient workerClient) {
+    public ListenableFuture<LoadResponse> run(WorkerClient workerClient) {
       LoadRequest.Builder request1 = LoadRequest
           .newBuilder()
           .addAllBlocks(mBlocks);

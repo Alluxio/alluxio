@@ -11,6 +11,7 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -34,7 +35,7 @@ public class TestBufferCachingGrpcDataReader extends BufferCachingGrpcDataReader
   private int mTotalChunkNum = -1;
 
   TestBufferCachingGrpcDataReader(WorkerNetAddress address,
-      CloseableResource<BlockWorkerClient> client, long dataTimeoutMs,
+      CloseableResource<WorkerClient> client, long dataTimeoutMs,
       ReadRequest readRequest, GrpcBlockingStream<ReadRequest, ReadResponse> stream,
       int chunkSize, int blockSize) {
     super(address, client, dataTimeoutMs, readRequest, stream);

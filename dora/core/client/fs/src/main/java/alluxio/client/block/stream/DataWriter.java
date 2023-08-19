@@ -17,8 +17,6 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.RequestType;
-import alluxio.util.CommonUtils;
-import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -29,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Optional;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -56,35 +55,18 @@ public interface DataWriter extends Closeable, Cancelable {
     public static DataWriter create(FileSystemContext context, long blockId, long blockSize,
         WorkerNetAddress address, OutStreamOptions options) throws IOException {
       AlluxioConfiguration alluxioConf = context.getClusterConf();
-      boolean workerIsLocal = CommonUtils.isLocalHost(address, alluxioConf);
       boolean nettyTransEnabled =
           alluxioConf.getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
-
-      if (workerIsLocal) {
-        LOG.debug("Creating worker process local output stream for block {} @ {}",
-            blockId, address);
-        return BlockWorkerDataWriter.create(context, blockId, blockSize, options);
-      }
-      LOG.debug("Doesn't create worker process local output stream for block {} @ {} "
-          + "(data locates in local worker: {}, client locates in local worker process: {})",
-          blockId, address, workerIsLocal, context.hasProcessLocalWorker());
-
-      boolean domainSocketSupported = NettyUtils.isDomainSocketSupported(address);
       if (nettyTransEnabled) {
-        LOG.debug("Creating netty output stream for block {} @ {} from client {} "
-                + "(data locates in local worker: {}, domainSocketSupported: {})",
-            blockId, address, NetworkAddressUtils.getClientHostName(alluxioConf),
-            workerIsLocal, domainSocketSupported);
+        LOG.debug("Creating netty output stream for block {} @ {} from client {} ",
+            blockId, address, NetworkAddressUtils.getClientHostName(alluxioConf));
         // TODO(JiamingMai): implement the netty writer here
         return NettyDataWriter
             .create(context, address, blockId, blockSize, RequestType.ALLUXIO_BLOCK,
                 options);
       }
-
-      LOG.debug("Creating gRPC output stream for block {} @ {} from client {} "
-          + "(data locates in local worker: {}, domainSocketSupported: {})",
-          blockId, address, NetworkAddressUtils.getClientHostName(alluxioConf),
-          workerIsLocal, domainSocketSupported);
+      LOG.debug("Creating gRPC output stream for block {} @ {} from client {} ",
+          blockId, address, NetworkAddressUtils.getClientHostName(alluxioConf));
       return GrpcDataWriter
           .create(context, address, blockId, blockSize, RequestType.ALLUXIO_BLOCK,
               options);

@@ -11,7 +11,7 @@
 
 package alluxio.scheduler.job;
 
-import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.MoreObjects;
@@ -76,7 +76,7 @@ public abstract class Task<V> implements Comparable<Task> {
   /**
    * run the task.
    */
-  protected abstract ListenableFuture<V> run(BlockWorkerClient client);
+  protected abstract ListenableFuture<V> run(WorkerClient client);
 
   private ListenableFuture<V> mResponseFuture;
   private TaskStat mTaskStat;
@@ -121,7 +121,7 @@ public abstract class Task<V> implements Comparable<Task> {
    * @param client worker client
    * @param workerInfo the worker information
    */
-  public void execute(BlockWorkerClient client, WorkerInfo workerInfo) {
+  public void execute(WorkerClient client, WorkerInfo workerInfo) {
     mMyWorker = workerInfo;
     mResponseFuture = run(client);
   }

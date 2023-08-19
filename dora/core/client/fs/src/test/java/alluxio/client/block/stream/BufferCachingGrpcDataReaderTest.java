@@ -12,6 +12,7 @@
 package alluxio.client.block.stream;
 
 import alluxio.Constants;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -35,7 +36,7 @@ public class BufferCachingGrpcDataReaderTest {
   @Before
   public void before() throws Exception {
     WorkerNetAddress address = new WorkerNetAddress();
-    BlockWorkerClient client = Mockito.mock(BlockWorkerClient.class);
+    WorkerClient client = Mockito.mock(WorkerClient.class);
     GrpcBlockingStream<ReadRequest, ReadResponse> unusedStream
         = new GrpcBlockingStream<>(client::readBlock, 5, "test message");
     ReadRequest readRequest = ReadRequest.newBuilder().setOffset(0).setLength(BLOCK_SIZE)

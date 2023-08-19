@@ -9,8 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.block.stream;
+package alluxio.client.file.dora;
 
+import alluxio.client.block.stream.StreamSerializationClientInterceptor;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
@@ -84,15 +85,15 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nullable;
 
 /**
- * Default implementation of {@link BlockWorkerClient}.
+ * Default implementation of {@link WorkerClient}.
  */
-public class DefaultBlockWorkerClient implements BlockWorkerClient {
+public class DefaultWorkerClient implements WorkerClient {
   private static final Logger LOG =
-      LoggerFactory.getLogger(DefaultBlockWorkerClient.class.getName());
+      LoggerFactory.getLogger(DefaultWorkerClient.class.getName());
 
-  private static final ResourceLeakDetector<DefaultBlockWorkerClient> DETECTOR =
+  private static final ResourceLeakDetector<DefaultWorkerClient> DETECTOR =
       AlluxioResourceLeakDetectorFactory.instance()
-          .newResourceLeakDetector(DefaultBlockWorkerClient.class);
+          .newResourceLeakDetector(DefaultWorkerClient.class);
 
   private GrpcChannel mStreamingChannel;
   private GrpcChannel mRpcChannel;
@@ -104,7 +105,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private final BlockWorkerGrpc.BlockWorkerFutureStub mRpcFutureStub;
 
   @Nullable
-  private final ResourceLeakTracker<DefaultBlockWorkerClient> mTracker;
+  private final ResourceLeakTracker<DefaultWorkerClient> mTracker;
 
   /**
    * Creates a client instance for communicating with block worker.
@@ -113,7 +114,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
    * @param address     the address of the worker
    * @param alluxioConf Alluxio configuration
    */
-  public DefaultBlockWorkerClient(UserState userState, GrpcServerAddress address,
+  public DefaultWorkerClient(UserState userState, GrpcServerAddress address,
       AlluxioConfiguration alluxioConf) throws IOException {
     RetryPolicy retryPolicy = RetryUtils.defaultClientRetry();
     UnauthenticatedException lastException = null;
@@ -154,7 +155,7 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     mTracker = DETECTOR.track(this);
   }
 
-  protected DefaultBlockWorkerClient(UserState userState, GrpcServerAddress address,
+  protected DefaultWorkerClient(UserState userState, GrpcServerAddress address,
       AlluxioConfiguration alluxioConf, GrpcChannel streamingChannel, GrpcChannel rpcChannel)
       throws IOException {
     mStreamingChannel = streamingChannel;

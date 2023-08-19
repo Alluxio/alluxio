@@ -66,7 +66,6 @@ public abstract class AbstractFuseDoraTest {
           .setProperty(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false)
           .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
           .setProperty(PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT)
-          .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, "PAGE")
           .setProperty(PropertyKey.WORKER_PAGE_STORE_TYPE, "LOCAL")
           .setProperty(PropertyKey.WORKER_PAGE_STORE_DIRS, PAGING_STORE_DIR)
           .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, "10GB")

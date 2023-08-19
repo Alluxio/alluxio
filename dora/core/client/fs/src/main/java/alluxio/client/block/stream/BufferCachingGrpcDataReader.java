@@ -12,6 +12,7 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.ReadRequest;
@@ -47,7 +48,7 @@ public class BufferCachingGrpcDataReader {
   private static final Logger LOG = LoggerFactory.getLogger(BufferCachingGrpcDataReader.class);
 
   private final WorkerNetAddress mAddress;
-  private final CloseableResource<BlockWorkerClient> mClient;
+  private final CloseableResource<WorkerClient> mClient;
   private final long mDataTimeoutMs;
   private final ReadRequest mReadRequest;
   private final GrpcBlockingStream<ReadRequest, ReadResponse> mStream;
@@ -76,7 +77,7 @@ public class BufferCachingGrpcDataReader {
    */
   @VisibleForTesting
   protected BufferCachingGrpcDataReader(WorkerNetAddress address,
-      CloseableResource<BlockWorkerClient> client, long dataTimeoutMs,
+      CloseableResource<WorkerClient> client, long dataTimeoutMs,
       ReadRequest readRequest, GrpcBlockingStream<ReadRequest, ReadResponse> stream) {
     mAddress = address;
     Objects.requireNonNull(client);
@@ -206,7 +207,7 @@ public class BufferCachingGrpcDataReader {
         .getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
     long dataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_READ_TIMEOUT);
 
-    CloseableResource<BlockWorkerClient> client = context.acquireBlockWorkerClient(address);
+    CloseableResource<WorkerClient> client = context.acquireWorkerClient(address);
 
     String desc = "BufferCachingGrpcDataReader";
     if (LOG.isDebugEnabled()) { // More detailed description when debug logging is enabled

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.block.stream;
+package alluxio.client.file.dora;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -36,8 +36,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * when the thread is done using the client.
  */
 @ThreadSafe
-public class BlockWorkerClientPool extends DynamicResourcePool<BlockWorkerClient> {
-  private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerClientPool.class);
+public class WorkerClientPool extends DynamicResourcePool<WorkerClient> {
+  private static final Logger LOG = LoggerFactory.getLogger(WorkerClientPool.class);
   private final UserState mUserState;
   private final GrpcServerAddress mAddress;
   private static final int WORKER_CLIENT_POOL_GC_THREADPOOL_SIZE = 10;
@@ -57,7 +57,7 @@ public class BlockWorkerClientPool extends DynamicResourcePool<BlockWorkerClient
    * @param maxCapacity the maximum capacity of the pool
    * @param alluxioConf Alluxio configuration
    */
-  public BlockWorkerClientPool(UserState userState, GrpcServerAddress address, int minCapacity,
+  public WorkerClientPool(UserState userState, GrpcServerAddress address, int minCapacity,
       int maxCapacity, AlluxioConfiguration alluxioConf) {
     super(Options.defaultOptions().setMinCapacity(minCapacity).setMaxCapacity(maxCapacity)
         .setGcExecutor(GC_EXECUTOR));
@@ -78,14 +78,14 @@ public class BlockWorkerClientPool extends DynamicResourcePool<BlockWorkerClient
   }
 
   @Override
-  protected void closeResource(BlockWorkerClient client) throws IOException {
+  protected void closeResource(WorkerClient client) throws IOException {
     LOG.debug("Block worker client for {} closed.", mAddress);
     client.close();
   }
 
   @Override
-  protected BlockWorkerClient createNewResource() throws IOException {
-    return BlockWorkerClient.Factory.create(mUserState, mAddress, mConf);
+  protected WorkerClient createNewResource() throws IOException {
+    return WorkerClient.Factory.create(mUserState, mAddress, mConf);
   }
 
   /**
@@ -95,7 +95,7 @@ public class BlockWorkerClientPool extends DynamicResourcePool<BlockWorkerClient
    * @return true if the client is active (i.e. connected)
    */
   @Override
-  protected boolean isHealthy(BlockWorkerClient client) {
+  protected boolean isHealthy(WorkerClient client) {
     return client.isHealthy();
   }
 
@@ -105,7 +105,7 @@ public class BlockWorkerClientPool extends DynamicResourcePool<BlockWorkerClient
   }
 
   @Override
-  protected boolean shouldGc(ResourceInternal<BlockWorkerClient> clientResourceInternal) {
+  protected boolean shouldGc(ResourceInternal<WorkerClient> clientResourceInternal) {
     return System.currentTimeMillis() - clientResourceInternal.getLastAccessTimeMs()
         > mConf.getMs(PropertyKey.USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS);
   }

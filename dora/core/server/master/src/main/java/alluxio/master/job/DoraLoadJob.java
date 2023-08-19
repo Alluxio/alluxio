@@ -15,7 +15,7 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 import alluxio.AlluxioURI;
-import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
@@ -592,7 +592,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     }
 
     @Override
-    protected ListenableFuture<LoadFileResponse> run(BlockWorkerClient workerClient) {
+    protected ListenableFuture<LoadFileResponse> run(WorkerClient workerClient) {
       LOG.info("Start running task:{} on worker:{}", toString(), getMyRunningWorker());
       LoadFileRequest.Builder loadFileReqBuilder = LoadFileRequest.newBuilder();
       for (UfsStatus ufsStatus : mFilesToLoad) {

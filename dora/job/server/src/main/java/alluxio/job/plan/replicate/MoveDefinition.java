@@ -12,7 +12,7 @@
 package alluxio.job.plan.replicate;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.exception.status.NotFoundException;
@@ -104,8 +104,8 @@ public final class MoveDefinition
 
     MoveBlockRequest request = MoveBlockRequest.newBuilder().setBlockId(blockId)
         .setMediumType(config.getMediumType()).build();
-    try (CloseableResource<BlockWorkerClient> blockWorker =
-             context.getFsContext().acquireBlockWorkerClient(localNetAddress)) {
+    try (CloseableResource<WorkerClient> blockWorker =
+             context.getFsContext().acquireWorkerClient(localNetAddress)) {
       blockWorker.get().moveBlock(request);
     }
     return null;

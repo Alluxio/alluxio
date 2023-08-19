@@ -11,7 +11,7 @@
 
 package alluxio.master.scheduler;
 
-import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerInfo;
@@ -45,5 +45,5 @@ public interface WorkerProvider {
    * @return a worker client
    * @throws AlluxioRuntimeException if failed to get worker client
    */
-  CloseableResource<BlockWorkerClient> getWorkerClient(WorkerNetAddress address);
+  CloseableResource<WorkerClient> getWorkerClient(WorkerNetAddress address);
 }

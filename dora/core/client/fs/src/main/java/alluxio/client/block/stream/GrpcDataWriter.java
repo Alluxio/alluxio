@@ -12,6 +12,7 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -61,7 +62,7 @@ public final class GrpcDataWriter implements DataWriter {
   /** Uses a long flush timeout since flush in S3 streaming upload may take a long time. */
   private final long mWriterFlushTimeoutMs;
 
-  private final CloseableResource<BlockWorkerClient> mClient;
+  private final CloseableResource<WorkerClient> mClient;
   private final WorkerNetAddress mAddress;
   private final WriteRequestCommand mPartialRequest;
   private final long mChunkSize;
@@ -89,7 +90,7 @@ public final class GrpcDataWriter implements DataWriter {
       throws IOException {
     long chunkSize = context.getClusterConf()
         .getBytes(PropertyKey.USER_STREAMING_WRITER_CHUNK_SIZE_BYTES);
-    CloseableResource<BlockWorkerClient> grpcClient = context.acquireBlockWorkerClient(address);
+    CloseableResource<WorkerClient> grpcClient = context.acquireWorkerClient(address);
     try {
       return new GrpcDataWriter(context, address, id, length, chunkSize, type, options, grpcClient);
     } catch (Exception e) {
@@ -112,7 +113,7 @@ public final class GrpcDataWriter implements DataWriter {
    */
   private GrpcDataWriter(FileSystemContext context, final WorkerNetAddress address, long id,
       long length, long chunkSize, RequestType type, OutStreamOptions options,
-      CloseableResource<BlockWorkerClient> client) throws IOException {
+      CloseableResource<WorkerClient> client) throws IOException {
     mAddress = address;
     AlluxioConfiguration conf = context.getClusterConf();
     mDataTimeoutMs = conf.getMs(PropertyKey.USER_STREAMING_DATA_WRITE_TIMEOUT);

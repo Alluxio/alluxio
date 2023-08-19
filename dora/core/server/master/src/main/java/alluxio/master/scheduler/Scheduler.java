@@ -15,7 +15,7 @@ import static java.lang.String.format;
 
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.Configuration;
@@ -500,7 +500,7 @@ public final class Scheduler {
   @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE",
       justification = "Already performed null check")
   public class WorkerInfoHub {
-    public Map<WorkerInfoIdentity, CloseableResource<BlockWorkerClient>>
+    public Map<WorkerInfoIdentity, CloseableResource<WorkerClient>>
         mActiveWorkers = ImmutableMap.of();
     private final WorkerProvider mWorkerProvider;
 
@@ -525,7 +525,7 @@ public final class Scheduler {
         LOG.debug("Kick start task for worker:{}, taskQ size:{}",
             workerInfo.mWorkerInfo.getAddress().getHost(),
             tasksQ.size());
-        CloseableResource<BlockWorkerClient> blkWorkerClientResource
+        CloseableResource<WorkerClient> blkWorkerClientResource
             = mActiveWorkers.get(workerInfo);
         if (blkWorkerClientResource == null) {
           LOG.warn("Didn't find corresponding BlockWorkerClient for workerInfo:{}",
@@ -621,12 +621,12 @@ public final class Scheduler {
           return;
         }
 
-        ImmutableMap.Builder<WorkerInfoIdentity, CloseableResource<BlockWorkerClient>>
+        ImmutableMap.Builder<WorkerInfoIdentity, CloseableResource<WorkerClient>>
             updatedWorkers = ImmutableMap.builder();
         for (WorkerInfoIdentity workerInfoId : workerInfoIds) {
           try {
             if (mActiveWorkers.get(workerInfoId) != null) {
-              CloseableResource<BlockWorkerClient> workerClient = Preconditions.checkNotNull(
+              CloseableResource<WorkerClient> workerClient = Preconditions.checkNotNull(
                   mActiveWorkers.get(workerInfoId));
               updatedWorkers.put(workerInfoId, workerClient);
             } else {
@@ -640,11 +640,11 @@ public final class Scheduler {
           }
         }
         // Close clients connecting to lost workers
-        for (Map.Entry<WorkerInfoIdentity, CloseableResource<BlockWorkerClient>> entry :
+        for (Map.Entry<WorkerInfoIdentity, CloseableResource<WorkerClient>> entry :
             mActiveWorkers.entrySet()) {
           WorkerInfoIdentity workerInfoId = entry.getKey();
           if (!workerInfoIds.contains(workerInfoId)) {
-            CloseableResource<BlockWorkerClient> resource = entry.getValue();
+            CloseableResource<WorkerClient> resource = entry.getValue();
             resource.close();
             LOG.debug("Closed BlockWorkerClient to lost worker {}", workerInfoId);
           }

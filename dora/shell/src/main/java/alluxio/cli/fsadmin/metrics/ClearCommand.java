@@ -16,7 +16,7 @@ import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.InvalidArgumentException;
@@ -251,8 +251,8 @@ public final class ClearCommand extends AbstractFsAdminCommand {
   private void clearWorkerMetrics(WorkerNetAddress worker,
       FileSystemContext context) throws IOException {
 
-    try (CloseableResource<BlockWorkerClient> blockWorkerClient =
-             context.acquireBlockWorkerClient(worker)) {
+    try (CloseableResource<WorkerClient> blockWorkerClient =
+             context.acquireWorkerClient(worker)) {
       blockWorkerClient.get().clearMetrics(ClearMetricsRequest.newBuilder().build());
     }
     System.out.printf("Successfully cleared metrics of worker %s.%n", worker.getHost());

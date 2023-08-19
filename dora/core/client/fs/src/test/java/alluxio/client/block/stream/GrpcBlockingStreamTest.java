@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.exception.status.UnauthenticatedException;
@@ -54,7 +55,7 @@ public final class GrpcBlockingStreamTest {
 
   private static final String TEST_MESSAGE = "test message";
 
-  private BlockWorkerClient mClient;
+  private WorkerClient mClient;
   private ClientCallStreamObserver<WriteRequest> mRequestObserver;
   private ClientResponseObserver<WriteRequest, WriteResponse> mResponseObserver;
   private GrpcBlockingStream<WriteRequest, WriteResponse> mStream;
@@ -65,7 +66,7 @@ public final class GrpcBlockingStreamTest {
    */
   @Before
   public void before() {
-    mClient = mock(BlockWorkerClient.class);
+    mClient = mock(WorkerClient.class);
     mRequestObserver = mock(ClientCallStreamObserver.class);
     when(mClient.writeBlock(any(StreamObserver.class))).thenAnswer((args) -> {
       mResponseObserver = args.getArgument(0, ClientResponseObserver.class);

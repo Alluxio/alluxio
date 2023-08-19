@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
-import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.Configuration;
@@ -103,7 +103,7 @@ public final class SchedulerTest {
   public void testGetActiveWorkers() throws IOException {
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
-    CloseableResource<BlockWorkerClient> blockWorkerClient = mock(CloseableResource.class);
+    CloseableResource<WorkerClient> blockWorkerClient = mock(CloseableResource.class);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
     Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
@@ -123,7 +123,7 @@ public final class SchedulerTest {
                 new WorkerNetAddress().setHost("worker1").setRpcPort(1234)),
             new WorkerInfo().setId(2).setAddress(
                 new WorkerNetAddress().setHost("worker2").setRpcPort(1234))));
-    when(fileSystemContext.acquireBlockWorkerClient(any())).thenReturn(blockWorkerClient);
+    when(fileSystemContext.acquireWorkerClient(any())).thenReturn(blockWorkerClient);
     assertEquals(0, scheduler
         .getActiveWorkers().size());
     scheduler.updateWorkers();
@@ -253,8 +253,8 @@ public final class SchedulerTest {
     when(fileSystemContext.getClusterConf()).thenReturn(conf);
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
-    CloseableResource<BlockWorkerClient> blockWorkerClientResource = mock(CloseableResource.class);
-    BlockWorkerClient blockWorkerClient = mock(BlockWorkerClient.class);
+    CloseableResource<WorkerClient> blockWorkerClientResource = mock(CloseableResource.class);
+    WorkerClient workerClient = mock(WorkerClient.class);
     when(fsMaster.getWorkerInfoList())
         .thenReturn(ImmutableList.of(
             new WorkerInfo().setId(1).setAddress(
@@ -290,10 +290,10 @@ public final class SchedulerTest {
         .thenReturn(fileInfos)
         .thenReturn(fileWithBlockLocations(fileInfos, 0.95))
         .thenReturn(fileWithBlockLocations(fileInfos, 1.1));
-    when(fileSystemContext.acquireBlockWorkerClient(any())).thenReturn(blockWorkerClientResource);
-    when(blockWorkerClientResource.get()).thenReturn(blockWorkerClient);
+    when(fileSystemContext.acquireWorkerClient(any())).thenReturn(blockWorkerClientResource);
+    when(blockWorkerClientResource.get()).thenReturn(workerClient);
     AtomicInteger iteration = new AtomicInteger();
-    when(blockWorkerClient.load(any())).thenAnswer(invocation -> {
+    when(workerClient.load(any())).thenAnswer(invocation -> {
       LoadRequest request = invocation.getArgument(0);
       return buildResponseFuture(request, iteration);
     });
@@ -379,8 +379,8 @@ public final class SchedulerTest {
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
-    CloseableResource<BlockWorkerClient> blockWorkerClientResource = mock(CloseableResource.class);
-    BlockWorkerClient blockWorkerClient = mock(BlockWorkerClient.class);
+    CloseableResource<WorkerClient> blockWorkerClientResource = mock(CloseableResource.class);
+    WorkerClient workerClient = mock(WorkerClient.class);
     ImmutableList.Builder<WorkerInfo> workerInfos = ImmutableList.builder();
     for (int i = 0; i < 1000; i++) {
       workerInfos.add(new WorkerInfo().setId(i).setAddress(
@@ -392,9 +392,9 @@ public final class SchedulerTest {
     when(fsMaster.listStatus(any(), any()))
         .thenReturn(fileInfos);
 
-    when(fileSystemContext.acquireBlockWorkerClient(any())).thenReturn(blockWorkerClientResource);
-    when(blockWorkerClientResource.get()).thenReturn(blockWorkerClient);
-    when(blockWorkerClient.load(any())).thenAnswer(invocation -> {
+    when(fileSystemContext.acquireWorkerClient(any())).thenReturn(blockWorkerClientResource);
+    when(blockWorkerClientResource.get()).thenReturn(workerClient);
+    when(workerClient.load(any())).thenAnswer(invocation -> {
       LoadResponse.Builder response = LoadResponse.newBuilder().setStatus(TaskStatus.SUCCESS);
       SettableFuture<LoadResponse> responseFuture = SettableFuture.create();
       responseFuture.set(response.build());
@@ -429,16 +429,16 @@ public final class SchedulerTest {
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
-    CloseableResource<BlockWorkerClient> blockWorkerClientResource = mock(CloseableResource.class);
-    BlockWorkerClient blockWorkerClient = mock(BlockWorkerClient.class);
+    CloseableResource<WorkerClient> blockWorkerClientResource = mock(CloseableResource.class);
+    WorkerClient workerClient = mock(WorkerClient.class);
     when(fsMaster.getWorkerInfoList())
         .thenReturn(ImmutableList.of(
             new WorkerInfo().setId(1).setAddress(
                 new WorkerNetAddress().setHost("worker1").setRpcPort(1234)),
             new WorkerInfo().setId(2).setAddress(
                 new WorkerNetAddress().setHost("worker2").setRpcPort(1234))));
-    when(fileSystemContext.acquireBlockWorkerClient(any())).thenReturn(blockWorkerClientResource);
-    when(blockWorkerClientResource.get()).thenReturn(blockWorkerClient);
+    when(fileSystemContext.acquireWorkerClient(any())).thenReturn(blockWorkerClientResource);
+    when(blockWorkerClientResource.get()).thenReturn(workerClient);
     List<FileInfo> fileInfos = generateRandomFileInfo(100, 10, 64 * Constants.MB);
     when(fsMaster.listStatus(any(), any()))
         // Non-retryable exception, first load job should fail
@@ -461,7 +461,7 @@ public final class SchedulerTest {
         .contains("FAILED")) {
       Thread.sleep(1000);
     }
-    when(blockWorkerClient.load(any())).thenAnswer(invocation -> {
+    when(workerClient.load(any())).thenAnswer(invocation -> {
       LoadResponse.Builder response = LoadResponse.newBuilder().setStatus(TaskStatus.SUCCESS);
       SettableFuture<LoadResponse> responseFuture = SettableFuture.create();
       responseFuture.set(response.build());

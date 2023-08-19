@@ -11,7 +11,7 @@
 
 package alluxio.master.scheduler;
 
-import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
@@ -59,9 +59,9 @@ public class DefaultWorkerProvider implements WorkerProvider {
   }
 
   @Override
-  public CloseableResource<BlockWorkerClient> getWorkerClient(WorkerNetAddress address) {
+  public CloseableResource<WorkerClient> getWorkerClient(WorkerNetAddress address) {
     try {
-      return mContext.acquireBlockWorkerClient(address);
+      return mContext.acquireWorkerClient(address);
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
     }

@@ -15,7 +15,7 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 import alluxio.AlluxioURI;
-import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
@@ -541,7 +541,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     }
 
     @Override
-    public ListenableFuture<MoveResponse> run(BlockWorkerClient workerClient) {
+    public ListenableFuture<MoveResponse> run(WorkerClient workerClient) {
       MoveRequest.Builder request = MoveRequest
           .newBuilder()
           .addAllRoutes(mRoutes);
