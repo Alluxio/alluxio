@@ -14,8 +14,8 @@ package alluxio.client.fs;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.TestLoggerRule;
-import alluxio.client.file.dora.WorkerClient;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.conf.Configuration;
 import alluxio.resource.CloseableResource;
 import alluxio.security.user.TestUserState;

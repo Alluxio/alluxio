@@ -148,7 +148,6 @@ public class AlluxioWorkerProcess implements WorkerProcess {
       List<Callable<Void>> callables = ImmutableList.of(() -> {
         if (worker instanceof DoraWorker) {
           mRegistry.add(DoraWorker.class, worker);
-          mRegistry.addAlias(DataWorker.class, worker);
           return null;
         } else {
           throw new UnsupportedOperationException(worker.getClass().getCanonicalName()
@@ -163,17 +162,17 @@ public class AlluxioWorkerProcess implements WorkerProcess {
         mWebServer =
             new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
                 Configuration.global()), this,
-                mRegistry.get(DataWorker.class));
+                mRegistry.get(DoraWorker.class));
       }
 
       // Setup GRPC server
       mDataServer = dataServerFactory.createRemoteGrpcDataServer(
-          mRegistry.get(DataWorker.class));
+          mRegistry.get(DoraWorker.class));
 
       // Setup domain socket data server
       if (isDomainSocketEnabled()) {
         mDomainSocketDataServer = dataServerFactory.createDomainSocketDataServer(
-            mRegistry.get(DataWorker.class));
+            mRegistry.get(DoraWorker.class));
       }
 
       // Setup Netty Data Server
@@ -296,7 +295,7 @@ public class AlluxioWorkerProcess implements WorkerProcess {
     }
 
     // Start serving RPC, this will block
-    AtomicReference<Long> workerId = mRegistry.get(DataWorker.class).getWorkerId();
+    AtomicReference<Long> workerId = mRegistry.get(DoraWorker.class).getWorkerId();
     LOG.info("Alluxio worker started. id={}, bindHost={}, connectHost={}, rpcPort={}, webPort={}",
         workerId,
         NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, Configuration.global()),
@@ -367,7 +366,7 @@ public class AlluxioWorkerProcess implements WorkerProcess {
   public boolean waitForReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",
-          () -> isServing() && mRegistry.get(DataWorker.class).getWorkerId() != null
+          () -> isServing() && mRegistry.get(DoraWorker.class).getWorkerId() != null
               && mWebServer != null && mWebServer.getServer().isRunning(),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;

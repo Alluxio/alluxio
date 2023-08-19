@@ -16,8 +16,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.DataWorker;
 import alluxio.worker.WorkerProcess;
+import alluxio.worker.dora.DoraWorker;
 
 import com.google.common.base.Preconditions;
 import org.eclipse.jetty.servlet.DefaultServlet;
@@ -56,7 +56,7 @@ public final class WorkerWebServer extends WebServer {
    * @param worker block worker to manage blocks
    */
   public WorkerWebServer(InetSocketAddress webAddress, final WorkerProcess workerProcess,
-      DataWorker worker) {
+      DoraWorker worker) {
     this(webAddress, workerProcess, worker, FileSystem.Factory.create());
   }
 
@@ -69,7 +69,7 @@ public final class WorkerWebServer extends WebServer {
    * @param fileSystem the filesystem
    */
   public WorkerWebServer(InetSocketAddress webAddress, final WorkerProcess workerProcess,
-      DataWorker worker, FileSystem fileSystem) {
+      DoraWorker worker, FileSystem fileSystem) {
     super("Alluxio worker web service", webAddress);
     Preconditions.checkNotNull(worker, "Block worker cannot be null");
     // REST configuration

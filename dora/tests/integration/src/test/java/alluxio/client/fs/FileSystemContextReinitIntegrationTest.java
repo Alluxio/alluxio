@@ -13,10 +13,10 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
-import alluxio.client.file.dora.WorkerClient;
 import alluxio.client.file.ConfigHashSync;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemContextReinitializer;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.resource.CloseableResource;

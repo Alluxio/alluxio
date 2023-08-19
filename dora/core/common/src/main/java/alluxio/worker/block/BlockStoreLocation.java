@@ -24,6 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Currently, there is an assumption that the medium type and the tier alias are not set at the
  * same time.
  */
+// TODO(binfan): this will be removed after masterside cleanup completes
 @ThreadSafe
 public final class BlockStoreLocation {
 
