@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Optional;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

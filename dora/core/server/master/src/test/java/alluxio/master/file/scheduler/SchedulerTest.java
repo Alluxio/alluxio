@@ -25,8 +25,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
-import alluxio.client.file.dora.WorkerClient;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;

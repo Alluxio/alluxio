@@ -11,8 +11,8 @@
 
 package alluxio.master.scheduler;
 
-import alluxio.client.file.dora.WorkerClient;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.membership.MembershipManager;
 import alluxio.resource.CloseableResource;
