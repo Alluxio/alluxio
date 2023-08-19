@@ -47,7 +47,6 @@ import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.CountingRetry;
 import alluxio.security.authentication.AuthType;
-import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
@@ -189,7 +188,6 @@ public class BlockMasterClientTest {
   @Test
   public void getId() throws Exception {
     WorkerNetAddress testExistsAddress = new WorkerNetAddress();
-    testExistsAddress.setTieredIdentity(new TieredIdentity(new ArrayList<>()));
     WorkerNetAddress testNonExistsAddress = new WorkerNetAddress();
     testNonExistsAddress.setHost("1.2.3.4");
     long workerId = 1L;

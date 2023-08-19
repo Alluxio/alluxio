@@ -32,7 +32,6 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
-import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -44,7 +43,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -56,25 +54,13 @@ import java.util.Set;
 public class BatchedJobDefinitionTest {
   private static final String TEST_URI = "/test";
   private static final WorkerNetAddress WORKER_ADDR_0 =
-      new WorkerNetAddress().setHost("host0")
-          .setTieredIdentity(
-              new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack1"))));
+      new WorkerNetAddress().setHost("host0");
   private static final WorkerNetAddress WORKER_ADDR_1 =
-      new WorkerNetAddress().setHost("host1")
-          .setTieredIdentity(
-              new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack1"))));
+      new WorkerNetAddress().setHost("host1");
   private static final WorkerNetAddress WORKER_ADDR_2 =
-      new WorkerNetAddress().setHost("host2")
-          .setTieredIdentity(
-              new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack2"))));
+      new WorkerNetAddress().setHost("host2");
   private static final WorkerNetAddress WORKER_ADDR_3 =
-      new WorkerNetAddress().setHost("host3")
-          .setTieredIdentity(
-              new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack2"))));
+      new WorkerNetAddress().setHost("host3");
 
   private static final List<WorkerInfo> JOB_WORKERS = new ImmutableList.Builder<WorkerInfo>()
       .add(new WorkerInfo().setId(0).setAddress(WORKER_ADDR_0))
