@@ -55,7 +55,6 @@ import alluxio.web.WebServer;
 import alluxio.wire.BackupStatus;
 
 import com.codahale.metrics.Timer;
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -24,7 +24,6 @@ import alluxio.grpc.ConfigStatus;
 import alluxio.grpc.Scope;
 import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
-import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.wire.ConfigCheckReport;
@@ -39,7 +38,6 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**

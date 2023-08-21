@@ -17,8 +17,6 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import java.util.Arrays;
-
 /**
  * Unit tests for {@link Authority}.
  */
@@ -94,5 +92,4 @@ public class AuthorityTest {
     assertEquals("ebj@logical", authority.toString());
     assertEquals("logical", authority.getLogicalName());
   }
-
 }

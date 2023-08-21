@@ -11,7 +11,6 @@
 
 package alluxio.hadoop;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -20,7 +19,6 @@ import alluxio.TestLoggerRule;
 import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 
 import org.junit.After;
 import org.junit.Ignore;

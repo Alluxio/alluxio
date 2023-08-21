@@ -13,8 +13,6 @@ package alluxio.master.meta;
 
 import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupPStatus;
 import alluxio.grpc.BackupStatusPRequest;

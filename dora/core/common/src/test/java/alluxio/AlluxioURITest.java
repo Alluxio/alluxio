@@ -169,7 +169,6 @@ public class AlluxioURITest {
     assertEquals("host1:526,host2:54325,host3:624", authority.getMasterAddresses());
   }
 
-
   /**
    * Tests the {@link AlluxioURI#AlluxioURI(String)} constructor with query parameter.
    */

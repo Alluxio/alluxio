@@ -14,7 +14,6 @@ package alluxio.hadoop;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -29,7 +28,6 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
-import alluxio.SystemPropertyRule;
 import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
@@ -178,7 +176,6 @@ public class AbstractFileSystemTest {
       assertTrue(fs instanceof FileSystem);
     }
   }
-
 
   @Test
   public void resetContextUsingMultiMasterUris() throws Exception {
