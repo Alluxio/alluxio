@@ -47,16 +47,16 @@ func NewHostnamesFile(name string) *HostnamesFile {
 }
 
 // RunSshCommand parses hostnames from the hosts files such as `conf/masters` and `conf/workers`
-// For each hostname, create a SSH client and run the given command
+// For each hostname, create an SSH client and run the given command
 func RunSshCommand(command string, hostGroups ...string) error {
 	// prepare client config, ssh port info
-	config, port, err := prepareCommand()
+	config, port, err := PrepareCommand()
 	if err != nil {
 		return stacktrace.Propagate(err, "prepare command failed")
 	}
 
 	// get list of masters or workers, or both
-	hosts, err := getHostnames(hostGroups)
+	hosts, err := GetHostnames(hostGroups)
 	if err != nil {
 		return stacktrace.Propagate(err, "cannot read host names")
 	}
@@ -126,7 +126,7 @@ func RunSshCommand(command string, hostGroups ...string) error {
 	return nil
 }
 
-func prepareCommand() (*ssh.ClientConfig, int, error) {
+func PrepareCommand() (*ssh.ClientConfig, int, error) {
 	// get the current user
 	cu, err := user.Current()
 	if err != nil {
@@ -189,7 +189,7 @@ const (
 	HostGroupWorkers = "workers"
 )
 
-func getHostnames(hostGroups []string) ([]string, error) {
+func GetHostnames(hostGroups []string) ([]string, error) {
 	var hosts []string
 	for _, hostGroup := range hostGroups {
 		switch hostGroup {
