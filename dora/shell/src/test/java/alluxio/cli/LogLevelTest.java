@@ -28,7 +28,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.master.MasterInquireClient;
 import alluxio.uri.MultiMasterAuthority;
-import alluxio.uri.ZookeeperAuthority;
 import alluxio.wire.WorkerNetAddress;
 
 import org.apache.commons.cli.CommandLine;
@@ -94,34 +93,6 @@ public class LogLevelTest {
   }
 
   @Test
-  public void parseZooKeeperHAMasterTarget() throws Exception {
-    String masterAddress = "masters-1:2181";
-    mConf.set(PropertyKey.ZOOKEEPER_ENABLED, true);
-    mConf.set(PropertyKey.ZOOKEEPER_ADDRESS, masterAddress);
-
-    CommandLine mockCommandLine = mock(CommandLine.class);
-    String[] mockArgs = new String[]{"--target", "master"};
-    when(mockCommandLine.getArgs()).thenReturn(mockArgs);
-    when(mockCommandLine.hasOption(LogLevel.TARGET_OPTION_NAME)).thenReturn(true);
-    when(mockCommandLine.getOptionValue(LogLevel.TARGET_OPTION_NAME)).thenReturn(mockArgs[1]);
-    try (MockedStatic<MasterInquireClient.Factory> mockFactory =
-        mockStatic(MasterInquireClient.Factory.class)) {
-      MasterInquireClient mockInquireClient = mock(MasterInquireClient.class);
-      when(mockInquireClient.getPrimaryRpcAddress()).thenReturn(
-          new InetSocketAddress("masters-1", mConf.getInt(PropertyKey.MASTER_RPC_PORT)));
-      when(mockInquireClient.getConnectDetails())
-          .thenReturn(() -> new ZookeeperAuthority(masterAddress));
-      mockFactory.when(() -> MasterInquireClient.Factory.create(any(), any()))
-          .thenReturn(mockInquireClient);
-
-      List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
-      assertEquals(1, targets.size());
-      assertEquals(new LogLevel.TargetInfo("masters-1", MASTER_WEB_PORT, "master"),
-          targets.get(0));
-    }
-  }
-
-  @Test
   public void parseEmbeddedHAMasterTarget() throws Exception {
     String masterAddresses = "masters-1:19200,masters-2:19200";
     mConf.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, masterAddresses);
@@ -144,31 +115,6 @@ public class LogLevelTest {
       List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
       assertEquals(1, targets.size());
       assertEquals(new LogLevel.TargetInfo("masters-1", MASTER_WEB_PORT, "master"),
-          targets.get(0));
-    }
-  }
-
-  @Test
-  public void parseZooKeeperHAJobMasterTarget() throws Exception {
-    mConf.set(PropertyKey.ZOOKEEPER_ENABLED, true);
-    mConf.set(PropertyKey.ZOOKEEPER_ADDRESS, "masters-1:2181");
-
-    CommandLine mockCommandLine = mock(CommandLine.class);
-    String[] mockArgs = new String[]{"--target", "job_master"};
-    when(mockCommandLine.getArgs()).thenReturn(mockArgs);
-    when(mockCommandLine.hasOption(LogLevel.TARGET_OPTION_NAME)).thenReturn(true);
-    when(mockCommandLine.getOptionValue(LogLevel.TARGET_OPTION_NAME)).thenReturn(mockArgs[1]);
-    try (MockedStatic<JobMasterClient.Factory> mockFactory =
-        mockStatic(JobMasterClient.Factory.class)) {
-      JobMasterClient mockJobClient = mock(JobMasterClient.class);
-      when(mockJobClient.getRemoteSockAddress()).thenReturn(new InetSocketAddress("masters-2",
-          mConf.getInt(PropertyKey.JOB_MASTER_RPC_PORT)));
-      when(mockJobClient.getRemoteHostName()).thenReturn("masters-2");
-      mockFactory.when(() -> JobMasterClient.Factory.create(any())).thenReturn(mockJobClient);
-
-      List<LogLevel.TargetInfo> targets = LogLevel.parseOptTarget(mockCommandLine, mConf);
-      assertEquals(1, targets.size());
-      assertEquals(new LogLevel.TargetInfo("masters-2", JOB_MASTER_WEB_PORT, "job_master"),
           targets.get(0));
     }
   }

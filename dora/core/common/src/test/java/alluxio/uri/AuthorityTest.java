@@ -29,18 +29,10 @@ public class AuthorityTest {
     assertTrue(Authority.fromString("localhost:19998") instanceof SingleMasterAuthority);
     assertTrue(Authority.fromString("127.0.0.1:19998") instanceof SingleMasterAuthority);
 
-    assertTrue(Authority.fromString("zk@host:2181") instanceof ZookeeperAuthority);
-    assertTrue(Authority.fromString("zk@host1:2181,127.0.0.2:2181,12.43.214.53:2181")
-        instanceof ZookeeperAuthority);
-    assertTrue(Authority.fromString("zk@host1:2181;host2:2181;host3:2181")
-        instanceof ZookeeperAuthority);
-
     assertTrue(Authority.fromString("") instanceof NoAuthority);
     assertTrue(Authority.fromString(null) instanceof NoAuthority);
 
     assertTrue(Authority.fromString("ebj@logical") instanceof EmbeddedLogicalAuthority);
-
-    assertTrue(Authority.fromString("zk@logical") instanceof ZookeeperLogicalAuthority);
 
     assertTrue(Authority.fromString("localhost") instanceof UnknownAuthority);
     assertTrue(Authority.fromString("f3,321:sad") instanceof UnknownAuthority);
@@ -96,34 +88,6 @@ public class AuthorityTest {
   }
 
   @Test
-  public void zookeeperAuthorityTest() {
-    ZookeeperAuthority authority = (ZookeeperAuthority) Authority.fromString("zk@host:2181");
-    assertEquals("zk@host:2181", authority.toString());
-    assertEquals("host:2181", authority.getZookeeperAddress());
-
-    authority = (ZookeeperAuthority) Authority
-        .fromString("zk@127.0.0.1:2181,127.0.0.2:2181,127.0.0.3:2181");
-    assertEquals("zk@127.0.0.1:2181,127.0.0.2:2181,127.0.0.3:2181", authority.toString());
-    assertEquals("127.0.0.1:2181,127.0.0.2:2181,127.0.0.3:2181", authority.getZookeeperAddress());
-
-    authority = (ZookeeperAuthority) Authority.fromString("zk@host1:2181;host2:2181;host3:2181");
-    assertEquals("zk@host1:2181,host2:2181,host3:2181", authority.toString());
-    assertEquals("host1:2181,host2:2181,host3:2181", authority.getZookeeperAddress());
-
-    authority = (ZookeeperAuthority) Authority.fromString("zk@host1:2181+host2:2181+host3:2181");
-    assertEquals("zk@host1:2181,host2:2181,host3:2181", authority.toString());
-    assertEquals("host1:2181,host2:2181,host3:2181", authority.getZookeeperAddress());
-  }
-
-  @Test
-  public void zookeeperLogicalAuthorityTest() {
-    ZookeeperLogicalAuthority authority =
-        (ZookeeperLogicalAuthority) Authority.fromString("zk@logical");
-    assertEquals("zk@logical", authority.toString());
-    assertEquals("logical", authority.getLogicalName());
-  }
-
-  @Test
   public void embeddedLogicalAuthorityTest() {
     EmbeddedLogicalAuthority authority =
         (EmbeddedLogicalAuthority) Authority.fromString("ebj@logical");
@@ -131,16 +95,4 @@ public class AuthorityTest {
     assertEquals("logical", authority.getLogicalName());
   }
 
-  @Test
-  public void mixedDelimiters() {
-    String normalized = "a:0,b:0,c:0";
-    for (String test : Arrays.asList(
-        "zk@a:0;b:0+c:0",
-        "zk@a:0,b:0;c:0",
-        "zk@a:0+b:0,c:0"
-    )) {
-      assertEquals(normalized,
-          ((ZookeeperAuthority) Authority.fromString(test)).getZookeeperAddress());
-    }
-  }
 }

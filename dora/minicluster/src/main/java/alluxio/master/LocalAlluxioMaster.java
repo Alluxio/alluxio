@@ -33,7 +33,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Constructs an isolated master. Primary users of this class are the {@link LocalAlluxioCluster}
- * and {@link MultiMasterLocalAlluxioCluster}.
  *
  * Isolated is defined as having its own root directory, and port.
  */

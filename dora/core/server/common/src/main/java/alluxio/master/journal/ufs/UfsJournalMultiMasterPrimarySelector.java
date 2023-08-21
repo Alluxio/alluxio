@@ -79,8 +79,7 @@ public final class UfsJournalMultiMasterPrimarySelector extends AbstractPrimaryS
     } else {
       mLeaderFolder = leaderPath + AlluxioURI.SEPARATOR;
     }
-    mConnectionErrorPolicy = Configuration.getEnum(
-        PropertyKey.ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY, ZookeeperConnectionErrorPolicy.class);
+    mConnectionErrorPolicy = ZookeeperConnectionErrorPolicy.STANDARD;
 
     mLeaderZkSessionId = NOT_A_LEADER;
 
@@ -228,10 +227,6 @@ public final class UfsJournalMultiMasterPrimarySelector extends AbstractPrimaryS
     CuratorFrameworkFactory.Builder curatorBuilder = CuratorFrameworkFactory.builder();
     curatorBuilder.connectString(mZookeeperAddress);
     curatorBuilder.retryPolicy(new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
-    curatorBuilder
-        .sessionTimeoutMs((int) Configuration.getMs(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT));
-    curatorBuilder.connectionTimeoutMs(
-        (int) Configuration.getMs(PropertyKey.ZOOKEEPER_CONNECTION_TIMEOUT));
     // Force compatibility mode to support writing to 3.4.x servers.
     curatorBuilder.zk34CompatibilityMode(true);
     // Prevent using container parents as it breaks compatibility with 3.4.x servers.

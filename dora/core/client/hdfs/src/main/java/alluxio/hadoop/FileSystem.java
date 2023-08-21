@@ -20,8 +20,6 @@ import alluxio.uri.EmbeddedLogicalAuthority;
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.UnknownAuthority;
-import alluxio.uri.ZookeeperAuthority;
-import alluxio.uri.ZookeeperLogicalAuthority;
 
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.conf.Configuration;
@@ -66,7 +64,7 @@ public class FileSystem extends AbstractFileSystem {
 
   @Override
   protected boolean isZookeeperMode() {
-    return mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
+    return false;
   }
 
   @Override
@@ -74,17 +72,10 @@ public class FileSystem extends AbstractFileSystem {
     AlluxioURI alluxioUri = new AlluxioURI(uri.toString());
     Map<String, Object> alluxioConfProperties = new HashMap<>();
 
-    if (alluxioUri.getAuthority() instanceof ZookeeperAuthority) {
-      ZookeeperAuthority authority = (ZookeeperAuthority) alluxioUri.getAuthority();
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(),
-              authority.getZookeeperAddress());
-    } else if (alluxioUri.getAuthority() instanceof SingleMasterAuthority) {
+    if (alluxioUri.getAuthority() instanceof SingleMasterAuthority) {
       SingleMasterAuthority authority = (SingleMasterAuthority) alluxioUri.getAuthority();
       alluxioConfProperties.put(PropertyKey.MASTER_HOSTNAME.getName(), authority.getHost());
       alluxioConfProperties.put(PropertyKey.MASTER_RPC_PORT.getName(), authority.getPort());
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
       // Unset the embedded journal related configuration
       // to support alluxio URI has the highest priority
       alluxioConfProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES.getName(), null);
@@ -93,9 +84,6 @@ public class FileSystem extends AbstractFileSystem {
       MultiMasterAuthority authority = (MultiMasterAuthority) alluxioUri.getAuthority();
       alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
               authority.getMasterAddresses());
-      // Unset the zookeeper configuration to support alluxio URI has the highest priority
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
     } else if (alluxioUri.getAuthority() instanceof EmbeddedLogicalAuthority) {
       EmbeddedLogicalAuthority authority = (EmbeddedLogicalAuthority) alluxioUri.getAuthority();
       String masterNamesConfKey = PropertyKey.Template.MASTER_LOGICAL_NAMESERVICES
@@ -115,27 +103,6 @@ public class FileSystem extends AbstractFileSystem {
 
       alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
           masterRpcAddress.toString());
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
-    } else if (alluxioUri.getAuthority() instanceof ZookeeperLogicalAuthority) {
-      ZookeeperLogicalAuthority authority = (ZookeeperLogicalAuthority) alluxioUri.getAuthority();
-      String zkNodesConfKey = PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_NAMESERVICES
-          .format(authority.getLogicalName()).getName();
-      String[] zkNodeNames = conf.getTrimmedStrings(zkNodesConfKey);
-      Preconditions.checkArgument(zkNodeNames.length != 0,
-          "Invalid uri. You must set %s to use the logical name", zkNodesConfKey);
-
-      StringJoiner zkAddress = new StringJoiner(",");
-      for (String zkName : zkNodeNames) {
-        String name = PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_ADDRESS
-            .format(authority.getLogicalName(), zkName).getName();
-        String address = conf.get(name);
-        Preconditions.checkArgument(address != null, "You need to set %s", name);
-        zkAddress.add(address);
-      }
-
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), zkAddress.toString());
     }
     return alluxioConfProperties;
   }

@@ -14,7 +14,6 @@ package alluxio.master;
 import alluxio.Constants;
 import alluxio.exception.status.UnavailableException;
 import alluxio.uri.Authority;
-import alluxio.uri.ZookeeperAuthority;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -270,7 +269,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
 
     @Override
     public Authority toAuthority() {
-      return new ZookeeperAuthority(mZkAddress);
+      return null;
     }
 
     @Override

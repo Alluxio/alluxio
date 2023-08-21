@@ -25,34 +25,6 @@ import java.util.function.Consumer;
  */
 public interface PrimarySelector {
   /**
-   * Factory for creating primary selectors.
-   */
-  final class Factory {
-    /**
-     * @return a primary selector based on zookeeper configuration
-     */
-    public static PrimarySelector createZkPrimarySelector() {
-      String zkAddress = Configuration.getString(PropertyKey.ZOOKEEPER_ADDRESS);
-      String zkElectionPath = Configuration.getString(PropertyKey.ZOOKEEPER_ELECTION_PATH);
-      String zkLeaderPath = Configuration.getString(PropertyKey.ZOOKEEPER_LEADER_PATH);
-      return new UfsJournalMultiMasterPrimarySelector(zkAddress, zkElectionPath, zkLeaderPath);
-    }
-
-    /**
-     * @return a job master primary selector based on zookeeper configuration
-     */
-    public static PrimarySelector createZkJobPrimarySelector() {
-      String zkAddress = Configuration.getString(PropertyKey.ZOOKEEPER_ADDRESS);
-      String zkElectionPath = Configuration.getString(
-          PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH);
-      String zkLeaderPath = Configuration.getString(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH);
-      return new UfsJournalMultiMasterPrimarySelector(zkAddress, zkElectionPath, zkLeaderPath);
-    }
-
-    private Factory() {} // Not intended for instantiation.
-  }
-
-  /**
    * Starts the primary selector.
    *
    * @param localAddress the address of the local master

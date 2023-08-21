@@ -40,21 +40,13 @@ public interface Authority extends Comparable<Authority>, Serializable {
     if (authority == null || authority.length() == 0) {
       return NoAuthority.INSTANCE;
     }
-    Matcher matcher = ZOOKEEPER_AUTH.matcher(authority);
-    if (matcher.matches()) {
-      return new ZookeeperAuthority(matcher.group(1).replaceAll("[;+]", ","));
-    }
-    matcher = SINGLE_MASTER_AUTH.matcher(authority);
+    Matcher matcher = SINGLE_MASTER_AUTH.matcher(authority);
     if (matcher.matches()) {
       return new SingleMasterAuthority(matcher.group(1), Integer.parseInt(matcher.group(2)));
     }
     matcher = MULTI_MASTERS_AUTH.matcher(authority);
     if (matcher.matches()) {
       return new MultiMasterAuthority(authority.replaceAll("[;+]", ","));
-    }
-    matcher = LOGICAL_ZOOKEEPER_AUTH.matcher(authority);
-    if (matcher.matches()) {
-      return new ZookeeperLogicalAuthority(matcher.group(1));
     }
     matcher = LOGICAL_MASTER_AUTH.matcher(authority);
     if (matcher.matches()) {

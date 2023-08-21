@@ -121,13 +121,6 @@ public final class MetaMasterClientServiceHandler
             masterInfo.addAllWorkerAddresses(mMetaMaster.getWorkerAddresses().stream()
                 .map(Address::toProto).collect(Collectors.toList()));
             break;
-          case ZOOKEEPER_ADDRESSES:
-            if (Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
-              masterInfo.addAllZookeeperAddresses(
-                  Arrays.asList(Configuration.getString(PropertyKey.ZOOKEEPER_ADDRESS)
-                      .split(",")));
-            }
-            break;
           case RAFT_ADDRESSES:
             if (mMetaMaster.getMasterContext().getJournalSystem() instanceof RaftJournalSystem) {
               List<String> raftAddresses =

@@ -214,9 +214,9 @@ public class InstancedConfigurationTest {
 
   @Test
   public void isSet() {
-    assertFalse(mConfiguration.isSet(PropertyKey.ZOOKEEPER_ADDRESS));
-    mConfiguration.set(PropertyKey.ZOOKEEPER_ADDRESS, "address");
-    assertTrue(mConfiguration.isSet(PropertyKey.ZOOKEEPER_ADDRESS));
+    assertFalse(mConfiguration.isSet(PropertyKey.MASTER_HOSTNAME));
+    mConfiguration.set(PropertyKey.MASTER_HOSTNAME, "address");
+    assertTrue(mConfiguration.isSet(PropertyKey.MASTER_HOSTNAME));
   }
 
   @Test
