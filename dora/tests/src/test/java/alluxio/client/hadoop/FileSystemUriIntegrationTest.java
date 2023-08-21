@@ -14,7 +14,6 @@ package alluxio.client.hadoop;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.hadoop.FileSystem;
-import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
 import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
@@ -42,23 +41,6 @@ public class FileSystemUriIntegrationTest extends BaseIntegrationTest {
   @After
   public void after() throws Exception {
     mCluster.destroy();
-  }
-
-  @Test
-  public void zookeeperUriTest() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.ZOOKEEPER_URI)
-        .setClusterName("ZookeeperUriFileSystemIntegrationTest")
-        .setNumMasters(3)
-        .setNumWorkers(2)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
-        .build();
-    mCluster.start();
-    // Get the zookeeper address
-    ZkMasterConnectDetails connectDetails =
-        (ZkMasterConnectDetails) mCluster.getMasterInquireClient().getConnectDetails();
-    String zkAddress = connectDetails.getZkAddress();
-
-    testConnection("zk@" + zkAddress);
   }
 
   @Test

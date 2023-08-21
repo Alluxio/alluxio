@@ -40,7 +40,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.master.PollingMasterInquireClient;
 import alluxio.master.SingleMasterInquireClient;
-import alluxio.master.ZkMasterInquireClient;
 import alluxio.master.journal.JournalType;
 import alluxio.membership.MembershipType;
 import alluxio.multi.process.PortCoordination.ReservedPort;
