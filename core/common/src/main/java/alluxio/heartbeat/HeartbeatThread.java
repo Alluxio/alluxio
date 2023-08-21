@@ -12,6 +12,7 @@
 package alluxio.heartbeat;
 
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Reconfigurable;
 import alluxio.conf.ReconfigurableRegistry;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.UserState;
@@ -86,7 +87,9 @@ public final class HeartbeatThread implements Runnable {
     mConfiguration = conf;
     mUserState = userState;
     mStatus = Status.INIT;
-    ReconfigurableRegistry.register(mTimer);
+    if (mTimer instanceof Reconfigurable) {
+      ReconfigurableRegistry.register((Reconfigurable) mTimer);
+    }
   }
 
   /**
@@ -157,7 +160,9 @@ public final class HeartbeatThread implements Runnable {
       LOG.error("Uncaught exception in heartbeat executor, Heartbeat Thread shutting down", e);
     } finally {
       mStatus = Status.STOPPED;
-      ReconfigurableRegistry.unregister(mTimer);
+      if (mTimer instanceof Reconfigurable) {
+        ReconfigurableRegistry.unregister((Reconfigurable) mTimer);
+      }
       mExecutor.close();
     }
   }

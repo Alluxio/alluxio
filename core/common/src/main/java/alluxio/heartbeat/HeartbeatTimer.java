@@ -11,33 +11,10 @@
 
 package alluxio.heartbeat;
 
-import alluxio.conf.PropertyKey;
-import alluxio.conf.Reconfigurable;
-
-import java.util.Map;
-
 /**
  * An interface for heartbeat timers. The {@link HeartbeatThread} calls the {@link #tick()} method.
  */
-public interface HeartbeatTimer extends Reconfigurable {
-
-  /**
-   * When this object needs to be reconfigured
-   * due to external configuration change etc.,
-   * this function will be invoked.
-   *
-   * @param changedProperties the changed properties
-   */
-  default void update(Map<PropertyKey, Object> changedProperties) {
-  }
-
-  /**
-   * When this object needs to be reconfigured
-   * due to external configuration change etc.,
-   * this function will be invoked.
-   */
-  default void update() {
-  }
+public interface HeartbeatTimer {
 
   /**
    * Waits until next heartbeat should be executed.

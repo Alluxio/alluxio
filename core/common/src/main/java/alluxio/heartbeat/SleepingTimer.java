@@ -11,6 +11,8 @@
 
 package alluxio.heartbeat;
 
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Reconfigurable;
 import alluxio.time.Sleeper;
 import alluxio.time.SteppingThreadSleeper;
 
@@ -19,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -27,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class can be used for executing heartbeats periodically.
  */
 @NotThreadSafe
-public class SleepingTimer implements HeartbeatTimer {
+public class SleepingTimer implements HeartbeatTimer, Reconfigurable {
   protected long mPreviousTickedMs = -1;
   private final String mThreadName;
   protected final Logger mLogger;
@@ -80,6 +83,11 @@ public class SleepingTimer implements HeartbeatTimer {
         () -> Duration.ofMillis(mIntervalSupplier.getNextInterval(mPreviousTickedMs, now)));
     mPreviousTickedMs = mClock.millis();
     return mIntervalSupplier.getRunLimit(mPreviousTickedMs);
+  }
+
+  @Override
+  public void update(Map<PropertyKey, Object> changedProperties) {
+    update();
   }
 
   @Override
