@@ -163,7 +163,7 @@ public enum ExceptionMessage {
   // configuration
   UNABLE_TO_DETERMINE_MASTER_HOSTNAME("Cannot run {0}; Unable to determine {1} address. Please "
       + "modify " + Constants.SITE_PROPERTIES + " to utilize internal HA by "
-      + "setting {5}=[comma-separated alluxio {1} addresses]"),
+      + "setting {2}=[comma-separated alluxio {1} addresses]"),
   DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Alluxio properties file does not exist"),
   INVALID_CONFIGURATION_KEY("Invalid property key {0}"),
   INVALID_CONFIGURATION_VALUE("Invalid value {0} for configuration key {1}"),
