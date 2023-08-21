@@ -49,10 +49,12 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
+import org.apache.hadoop.fs.CommonConfigurationKeys;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.Trash;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.security.SecurityUtil;
@@ -69,6 +71,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -111,6 +114,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   private final LoadingCache<String, FileSystem> mUserFs;
   protected final HdfsAclProvider mHdfsAclProvider;
 
+  private final boolean mTrashEnable;
+  private final LoadingCache<FileSystem, Optional<Trash>> mFsTrash;
+
   /**
    * Factory method to constructs a new HDFS {@link UnderFileSystem} instance.
    *
@@ -139,6 +145,21 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   protected HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
       Configuration hdfsConf, boolean useLoadingCache) {
     super(ufsUri, conf);
+
+    mTrashEnable = alluxio.conf.Configuration.getBoolean(
+        PropertyKey.UNDERFS_HDFS_TRASH_ENABLE);
+    LOG.info(PropertyKey.UNDERFS_HDFS_TRASH_ENABLE.getName() + " is set to {}", mTrashEnable);
+    mFsTrash = CacheBuilder.newBuilder().build(new CacheLoader<FileSystem, Optional<Trash>>() {
+      @Override
+      public Optional<Trash> load(FileSystem fs) throws Exception {
+        Configuration configuration = fs.getConf();
+        long interval = configuration.getLong(CommonConfigurationKeys.FS_TRASH_INTERVAL_KEY, 0);
+        if (interval == 0) {
+          return Optional.empty();
+        }
+        return Optional.of(new Trash(fs, configuration));
+      }
+    });
 
     // Create the supported HdfsAclProvider if possible.
     HdfsAclProvider hdfsAclProvider = new NoopHdfsAclProvider();
@@ -333,12 +354,12 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
 
   @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
-    return isDirectory(path) && delete(path, options.isRecursive());
+    return isDirectory(path) && delete(path, options.isRecursive(), true);
   }
 
   @Override
   public boolean deleteFile(String path) throws IOException {
-    return isFile(path) && delete(path, false);
+    return isFile(path) && delete(path, false, false);
   }
 
   @Override
@@ -751,15 +772,28 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
    *
    * @param path file or directory path
    * @param recursive whether to delete path recursively
+   * @param isDirectory whether path is a directory
    * @return true, if succeed
    */
-  private boolean delete(String path, boolean recursive) throws IOException {
+  private boolean delete(String path, boolean recursive, boolean isDirectory) throws IOException {
     IOException te = null;
     FileSystem hdfs = getFs();
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attempt()) {
       try {
-        return hdfs.delete(new Path(path), recursive);
+        Path hdfsPath = new Path(path);
+        if (!mTrashEnable) {
+          return hdfs.delete(hdfsPath, recursive);
+        }
+        Optional<Trash> trash = getTrash(hdfs);
+        if (!trash.isPresent()) {
+          return hdfs.delete(hdfsPath, recursive);
+        }
+        // move to trash
+        if (isDirectory && !recursive && hdfs.listStatus(hdfsPath).length != 0) {
+          return false;
+        }
+        return trash.get().moveToTrash(hdfsPath);
       } catch (IOException e) {
         LOG.warn("Attempt count {} : {}", retryPolicy.getAttemptCount(), e.toString());
         te = e;
@@ -831,6 +865,17 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       return mUserFs.get(HDFS_USER);
     } catch (ExecutionException e) {
       throw new IOException("Failed get FileSystem for " + mUri, e.getCause());
+    }
+  }
+
+  private Optional<Trash> getTrash(FileSystem fs) throws IOException {
+    if (!mTrashEnable) {
+      return Optional.empty();
+    }
+    try {
+      return mFsTrash.get(fs);
+    } catch (ExecutionException e) {
+      throw new IOException("Failed get Trash for " + fs.getUri(), e.getCause());
     }
   }
 }
