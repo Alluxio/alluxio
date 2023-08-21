@@ -72,9 +72,6 @@ public class PortCoordination {
   public static final List<ReservedPort> CONFIG_CHECKER_MULTI_MASTERS_EMBEDDED_HA = allocate(2, 0);
 
   public static final List<ReservedPort> MULTI_PROCESS_SIMPLE_CLUSTER = allocate(1, 1);
-  public static final List<ReservedPort> MULTI_PROCESS_ZOOKEEPER = allocate(3, 2);
-
-  public static final List<ReservedPort> JOBSERVICE_FAULT_TOLERANCE_SHELL = allocate(2, 1);
 
   public static final List<ReservedPort> JOURNAL_STOP_SINGLE_MASTER = allocate(1, 0);
   public static final List<ReservedPort> JOURNAL_STOP_MULTI_MASTER = allocate(3, 0);
@@ -92,10 +89,6 @@ public class PortCoordination {
   public static final List<ReservedPort> BACKUP_EMERGENCY_HA_1 = allocate(3, 0);
   public static final List<ReservedPort> BACKUP_EMERGENCY_HA_2 = allocate(3, 0);
 
-  public static final List<ReservedPort> ZOOKEEPER_FAILURE = allocate(2, 1);
-  public static final List<ReservedPort> ZOOKEEPER_CONNECTION_POLICY_STANDARD = allocate(2, 0);
-  public static final List<ReservedPort> ZOOKEEPER_CONNECTION_POLICY_SESSION = allocate(2, 0);
-
   public static final List<ReservedPort> CHECKPOINT = allocate(2, 0);
 
   public static final List<ReservedPort> TRIGGERED_UFS_CHECKPOINT = allocate(1, 1);
@@ -104,7 +97,6 @@ public class PortCoordination {
   public static final List<ReservedPort> BACKWARDS_COMPATIBILITY = allocate(1, 1);
 
   public static final List<ReservedPort> MULTI_MASTER_URI = allocate(3, 1);
-  public static final List<ReservedPort> ZOOKEEPER_URI = allocate(3, 2);
 
   public static final List<ReservedPort> QUORUM_SHELL = allocate(3, 0);
   public static final List<ReservedPort> QUORUM_SHELL_INFO = allocate(3, 0);

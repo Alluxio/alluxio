@@ -11,10 +11,7 @@
 
 package alluxio.master;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.NodeState;
-import alluxio.master.journal.ufs.UfsJournalMultiMasterPrimarySelector;
 import alluxio.util.interfaces.Scoped;
 
 import java.net.InetSocketAddress;
