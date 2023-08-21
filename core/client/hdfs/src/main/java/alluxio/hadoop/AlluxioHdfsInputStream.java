@@ -51,12 +51,21 @@ public class AlluxioHdfsInputStream extends FileInStream {
 
   @Override
   public int read(ByteBuffer buf) throws IOException {
+    // @see <a href="https://github.com/apache/hadoop/blob/rel/release-3.3.6/
+    // * hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/
+    // * fs/FSDataInputStream.java#L154">FSDataInputStream.java</a>
     if (mInput.getWrappedStream() instanceof ByteBufferReadable) {
       return mInput.read(buf);
     } else {
       int off = buf.position();
       int len = buf.remaining();
-      byte[] byteArray = new byte[len];
+      byte[] byteArray;
+      if (buf.hasArray()) {
+        byteArray = buf.array();
+      } else {
+        byteArray = new byte[len];
+      }
+
       int totalBytesRead = read(byteArray);
       if (totalBytesRead <= 0) {
         return totalBytesRead;
