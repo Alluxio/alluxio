@@ -167,7 +167,7 @@ public final class MultiProcessCluster {
         PropertyKey.MASTER_JOURNAL_TYPE,
         Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class));
     mDeployMode = journalType == JournalType.EMBEDDED ? DeployMode.EMBEDDED
-        : numMasters > 1 ? DeployMode.ZOOKEEPER_HA : DeployMode.UFS_NON_HA;
+        :  DeployMode.UFS_NON_HA;
   }
 
   /**
@@ -237,13 +237,6 @@ public final class MultiProcessCluster {
             com.google.common.base.Joiner.on(",").join(journalAddresses));
         mProperties.put(PropertyKey.MASTER_RPC_ADDRESSES,
             com.google.common.base.Joiner.on(",").join(rpcAddresses));
-        break;
-      case ZOOKEEPER_HA:
-        mCuratorServer = mCloser.register(
-                new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
-        mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
-        mProperties.put(PropertyKey.ZOOKEEPER_ENABLED, true);
-        mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
         break;
       default:
         throw new IllegalStateException("Unknown deploy mode: " + mDeployMode);
@@ -571,8 +564,6 @@ public final class MultiProcessCluster {
         Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, journalAddresses);
         Configuration.set(PropertyKey.MASTER_RPC_ADDRESSES, rpcAddresses);
         break;
-      case ZOOKEEPER_HA: // zk will take care of fault tolerance
-        break;
       default: // UFS_NON_HA: can't remove the only master in the cluster
         throw new IllegalStateException("Unimplemented deploy mode: " + mDeployMode);
     }
@@ -798,12 +789,6 @@ public final class MultiProcessCluster {
           return new SingleMasterInquireClient(InetSocketAddress.createUnresolved(
               mMasterAddresses.get(0).getHostname(), mMasterAddresses.get(0).getRpcPort()));
         }
-      case ZOOKEEPER_HA:
-        return ZkMasterInquireClient.getClient(mCuratorServer.getConnectString(),
-            Configuration.getString(PropertyKey.ZOOKEEPER_ELECTION_PATH),
-            Configuration.getString(PropertyKey.ZOOKEEPER_LEADER_PATH),
-            Configuration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT),
-            Configuration.getBoolean(PropertyKey.ZOOKEEPER_AUTH_ENABLED));
       default:
         throw new IllegalStateException("Unknown deploy mode: " + mDeployMode);
     }
@@ -875,7 +860,7 @@ public final class MultiProcessCluster {
    */
   public enum DeployMode {
     EMBEDDED,
-    UFS_NON_HA, ZOOKEEPER_HA
+    UFS_NON_HA
   }
 
   /**
@@ -903,8 +888,6 @@ public final class MultiProcessCluster {
      * @return the builder
      */
     public Builder addProperty(PropertyKey key, Object value) {
-      Preconditions.checkState(!key.equals(PropertyKey.ZOOKEEPER_ENABLED),
-          "Enable Zookeeper via #setDeployMode instead of #addProperty");
       mProperties.put(key, value);
       return this;
     }

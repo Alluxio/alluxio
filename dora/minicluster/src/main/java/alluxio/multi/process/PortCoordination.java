@@ -58,6 +58,7 @@ public class PortCoordination {
   public static final List<ReservedPort> EMBEDDED_JOURNAL_NEW_MEMBER = allocate(6, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_UNAVAILABLE_MASTER = allocate(5, 0);
 
+  public static final List<ReservedPort> FAULT_TOLERANCE = allocate(2, 1);
   public static final List<ReservedPort> JOURNAL_MIGRATION = allocate(3, 1);
 
   public static final List<ReservedPort> BACKUP_RESTORE_EMBEDDED = allocate(3, 1);
@@ -72,6 +73,8 @@ public class PortCoordination {
 
   public static final List<ReservedPort> MULTI_PROCESS_SIMPLE_CLUSTER = allocate(1, 1);
   public static final List<ReservedPort> MULTI_PROCESS_ZOOKEEPER = allocate(3, 2);
+
+  public static final List<ReservedPort> JOBSERVICE_FAULT_TOLERANCE_SHELL = allocate(2, 1);
 
   public static final List<ReservedPort> JOURNAL_STOP_SINGLE_MASTER = allocate(1, 0);
   public static final List<ReservedPort> JOURNAL_STOP_MULTI_MASTER = allocate(3, 0);

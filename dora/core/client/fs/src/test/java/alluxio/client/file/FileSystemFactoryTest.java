@@ -27,7 +27,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.MasterInquireClient;
 import alluxio.security.User;
 import alluxio.uri.MultiMasterAuthority;
-import alluxio.uri.ZookeeperAuthority;
 
 import org.junit.After;
 import org.junit.Before;
@@ -37,9 +36,7 @@ import org.junit.Test;
 import java.io.Closeable;
 import java.io.IOException;
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import javax.security.auth.Subject;
 
@@ -82,26 +79,6 @@ public class FileSystemFactoryTest {
           MasterInquireClient.Factory.getConnectDetails(conf);
       // Make sure we have a MultiMaster authority
       assertTrue(connectDetails.toAuthority() instanceof MultiMasterAuthority);
-      fileSystemCacheTest();
-    } catch (IOException e) {
-      fail("Unable to set system properties");
-    }
-  }
-
-  @Test
-  public void zkFileSystemCacheTest()  {
-    Map<String, String> sysProps = new HashMap<>();
-    sysProps.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), Boolean.toString(true));
-    sysProps.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), "zk@192.168.0.5");
-    sysProps.put(PropertyKey.ZOOKEEPER_ELECTION_PATH.getName(), "/alluxio/leader");
-
-    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      Configuration.reloadProperties();
-      AlluxioConfiguration conf = Configuration.global();
-      MasterInquireClient.ConnectDetails connectDetails =
-          MasterInquireClient.Factory.getConnectDetails(conf);
-      // Make sure we have a Zookeeper authority
-      assertTrue(connectDetails.toAuthority() instanceof ZookeeperAuthority);
       fileSystemCacheTest();
     } catch (IOException e) {
       fail("Unable to set system properties");

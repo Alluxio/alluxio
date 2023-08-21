@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -220,6 +221,17 @@ public final class MultiMasterEmbeddedJournalLocalAlluxioCluster
     return true;
   }
 
+  /**
+   * Waits for the a new master to start until a timeout occurs.
+   *
+   * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
+   */
+
+  public void waitForNewMaster(int timeoutMs)
+      throws TimeoutException, InterruptedException {
+    waitForPrimaryMasterServing(timeoutMs);
+  }
+  
   /**
    * Waits for the primary master to start until a timeout occurs.
    *

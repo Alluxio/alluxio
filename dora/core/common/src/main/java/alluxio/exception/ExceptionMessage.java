@@ -162,8 +162,7 @@ public enum ExceptionMessage {
 
   // configuration
   UNABLE_TO_DETERMINE_MASTER_HOSTNAME("Cannot run {0}; Unable to determine {1} address. Please "
-      + "modify " + Constants.SITE_PROPERTIES + " to either set {2}, configure zookeeper with "
-      + "{3}=true and {4}=[comma-separated zookeeper master addresses], or utilize internal HA by "
+      + "modify " + Constants.SITE_PROPERTIES + " to utilize internal HA by "
       + "setting {5}=[comma-separated alluxio {1} addresses]"),
   DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Alluxio properties file does not exist"),
   INVALID_CONFIGURATION_KEY("Invalid property key {0}"),

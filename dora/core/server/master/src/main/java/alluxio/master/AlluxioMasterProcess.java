@@ -483,11 +483,7 @@ public class AlluxioMasterProcess extends MasterProcess {
       JournalSystem journalSystem = new JournalSystem.Builder()
           .setLocation(journalLocation).build(ProcessType.MASTER);
       final PrimarySelector primarySelector;
-      if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
-            "Raft-based embedded journal and Zookeeper cannot be used at the same time.");
-        primarySelector = PrimarySelector.Factory.createZkPrimarySelector();
-      } else if (journalSystem instanceof RaftJournalSystem) {
+      if (journalSystem instanceof RaftJournalSystem) {
         primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
       } else {
         primarySelector = new UfsJournalSingleMasterPrimarySelector();
