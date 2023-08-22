@@ -25,10 +25,7 @@ import alluxio.proxy.s3.S3RestUtils;
 import alluxio.s3.S3ErrorCode;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
-import javax.ws.rs.core.Response.Status;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
@@ -41,6 +38,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import javax.ws.rs.core.Response.Status;
 
 public class MultipartUploadTest extends RestApiTest {
   private FileSystem mFileSystem;

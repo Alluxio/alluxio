@@ -48,9 +48,22 @@ import alluxio.s3.S3RangeSpec;
 import alluxio.s3.TaggingData;
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+
+import com.codahale.metrics.Timer;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.base.Preconditions;
+import com.google.common.io.BaseEncoding;
+import com.google.common.io.ByteStreams;
+import com.google.common.primitives.Longs;
+import com.google.common.util.concurrent.RateLimiter;
+import com.google.protobuf.ByteString;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -67,20 +80,9 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
-import com.codahale.metrics.Timer;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.common.base.Preconditions;
-import com.google.common.io.BaseEncoding;
-import com.google.common.io.ByteStreams;
-import com.google.common.primitives.Longs;
-import com.google.common.util.concurrent.RateLimiter;
-import com.google.protobuf.ByteString;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * S3 Tasks to handle object level request.

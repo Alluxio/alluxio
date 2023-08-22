@@ -13,9 +13,14 @@ package alluxio.client.rest;
 
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.s3.S3Error;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.Response;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.base.Joiner;
+import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -25,12 +30,9 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.common.base.Joiner;
-import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.Response;
 
 /**
  * Represents a REST API test case.

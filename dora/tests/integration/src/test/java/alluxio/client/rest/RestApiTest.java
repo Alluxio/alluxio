@@ -15,13 +15,15 @@ import alluxio.Constants;
 import alluxio.proxy.s3.CompleteMultipartUploadRequest;
 import alluxio.s3.S3Constants;
 import alluxio.testutils.BaseIntegrationTest;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.HttpMethod;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.io.BaseEncoding;
+
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.io.BaseEncoding;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.HttpMethod;
 
 public abstract class RestApiTest extends BaseIntegrationTest {
   protected static final Map<String, String> NO_PARAMS = ImmutableMap.of();

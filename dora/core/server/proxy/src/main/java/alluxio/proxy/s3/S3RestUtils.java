@@ -44,14 +44,16 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
 import alluxio.util.ThreadUtils;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.security.auth.Subject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
+
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.Cache;
+import com.google.common.util.concurrent.RateLimiter;
+import com.google.protobuf.ByteString;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.DateFormat;
@@ -66,14 +68,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.cache.Cache;
-import com.google.common.util.concurrent.RateLimiter;
-import com.google.protobuf.ByteString;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.security.auth.Subject;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 
 /**
  * Utilities for handling S3 REST calls.
