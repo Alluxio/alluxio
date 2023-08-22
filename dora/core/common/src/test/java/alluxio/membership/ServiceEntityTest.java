@@ -24,8 +24,9 @@ public final class ServiceEntityTest {
         .setHost("worker1").setContainerHost("containerhostname1")
         .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
         .setDomainSocketPath("/var/lib/domain.sock"));
-    String str = DefaultServiceEntity.toJson(entity);
-    DefaultServiceEntity deserialized = WorkerServiceEntity.fromJson(str);
+    byte[] jsonBytes = entity.serialize();
+    DefaultServiceEntity deserialized = new WorkerServiceEntity();
+    deserialized.deserialize(jsonBytes);
     Assert.assertEquals(deserialized, entity);
   }
 }

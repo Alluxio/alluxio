@@ -13,11 +13,15 @@ package alluxio.membership;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.InstanceCreator;
 import com.google.gson.annotations.Expose;
 import io.etcd.jetcd.support.CloseableClient;
 
+import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.concurrent.GuardedBy;
@@ -33,6 +37,9 @@ public abstract class DefaultServiceEntity implements Closeable {
   // (package visibility) to do keep alive(heartbeating),
   // initialized at time of service registration
   private AlluxioEtcdClient.Lease mLease = null;
+  // TTL and timeout for lease
+  private long mLeaseTTLInSec = AlluxioEtcdClient.DEFAULT_LEASE_TTL_IN_SEC;
+  private long mLeaseTimeoutInSec = AlluxioEtcdClient.DEFAULT_TIMEOUT_IN_SEC;
   @Expose
   @com.google.gson.annotations.SerializedName("ServiceEntityName")
   protected String mServiceEntityName; // unique service alias
@@ -44,6 +51,11 @@ public abstract class DefaultServiceEntity implements Closeable {
   // {@link ServiceDiscoveryRecipe#checkAllForReconnect} will periodically
   // check and resume the connection.
   public AtomicBoolean mNeedReconnect = new AtomicBoolean(false);
+
+  /**
+   * CTOR for DefaultServiceEntity.
+   */
+  public DefaultServiceEntity() {}
 
   /**
    * CTOR for ServiceEntity with given ServiceEntity name.
@@ -118,15 +130,60 @@ public abstract class DefaultServiceEntity implements Closeable {
   }
 
   /**
-   * Convert a DefaultServiceEntity into a json string.
-   * @param entity
-   * @return json string
+   * Get the TTL for lease in seconds.
+   * @return TTL
    */
-  public static String toJson(DefaultServiceEntity entity) {
+  public long getLeaseTTLInSec() {
+    return mLeaseTTLInSec;
+  }
+
+  /**
+   * Set the TTL for lease in seconds.
+   * @param ttl
+   */
+  public void setLeaseTTLInSec(long ttl) {
+    mLeaseTTLInSec = ttl;
+  }
+
+  /**
+   * Get the timeout for lease in seconds.
+   * @return timeout
+   */
+  public long getLeaseTimeoutInSec() {
+    return mLeaseTimeoutInSec;
+  }
+
+  /**
+   * Set the timeout for lease in seconds.
+   * @param timeout
+   */
+  public void setLeaseTimeoutInSec(long timeout) {
+    mLeaseTimeoutInSec = timeout;
+  }
+
+  /**
+   * Serialize the ServiceEntity to bytes.
+   * @return serialized data
+   */
+  public byte[] serialize() {
     Gson gson = new GsonBuilder()
         .excludeFieldsWithoutExposeAnnotation()
         .create();
-    return gson.toJson(entity);
+    return gson.toJson(this).getBytes(StandardCharsets.UTF_8);
+  }
+
+  /**
+   * Deserialize the ServiceEntity from bytes.
+   * @param buf
+   */
+  public void deserialize(byte[] buf) {
+    DefaultServiceEntity obj = this;
+    InstanceCreator<DefaultServiceEntity> creator = type -> obj;
+    Gson gson = new GsonBuilder()
+        .excludeFieldsWithoutExposeAnnotation()
+        .registerTypeAdapter(DefaultServiceEntity.class, creator)
+        .create();
+    gson.fromJson(new InputStreamReader(new ByteArrayInputStream(buf)), DefaultServiceEntity.class);
   }
 
   @Override

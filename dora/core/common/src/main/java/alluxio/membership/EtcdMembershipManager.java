@@ -26,8 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -89,12 +89,11 @@ public class EtcdMembershipManager implements MembershipManager {
         .append(getRingPathPrefix())
         .append(entity.getServiceEntityName()).toString();
     byte[] existingEntityBytes = mAlluxioEtcdClient.getForPath(pathOnRing);
-    String entityJson = DefaultServiceEntity.toJson(entity);
+    byte[] serializedEntity = entity.serialize();
     // If there's existing entry, check if it's me.
     if (existingEntityBytes != null) {
-      String existingEntityJson = new String(existingEntityBytes);
       // It's not me, something is wrong.
-      if (!existingEntityJson.equals(entityJson)) {
+      if (!Arrays.equals(existingEntityBytes, serializedEntity)) {
         // Might be regression of different formatted value of workerinfo is registered.
         throw new AlreadyExistsException(
             "Some other member with same id registered on the ring, bail.");
@@ -102,8 +101,7 @@ public class EtcdMembershipManager implements MembershipManager {
       // It's me, go ahead to start heartbeating.
     } else {
       // If haven't created myself onto the ring before, create now.
-      mAlluxioEtcdClient.createForPath(pathOnRing,
-          Optional.of(DefaultServiceEntity.toJson(entity).getBytes(StandardCharsets.UTF_8)));
+      mAlluxioEtcdClient.createForPath(pathOnRing, Optional.of(serializedEntity));
     }
     // 2) start heartbeat
     mAlluxioEtcdClient.mServiceDiscovery.registerAndStartSync(entity);
@@ -123,8 +121,8 @@ public class EtcdMembershipManager implements MembershipManager {
     List<KeyValue> childrenKvs = mAlluxioEtcdClient.getChildren(getRingPathPrefix());
     for (KeyValue kv : childrenKvs) {
       try {
-        WorkerServiceEntity entity = WorkerServiceEntity.fromJson(
-            kv.getValue().toString(StandardCharsets.UTF_8));
+        WorkerServiceEntity entity = new WorkerServiceEntity();
+        entity.deserialize(kv.getValue().getBytes());
         fullMembers.add(entity);
       } catch (JsonParseException ex) {
         // Ignore
@@ -138,8 +136,8 @@ public class EtcdMembershipManager implements MembershipManager {
     for (Map.Entry<String, ByteBuffer> entry : mAlluxioEtcdClient.mServiceDiscovery
         .getAllLiveServices().entrySet()) {
       try {
-        String jsonStr = StandardCharsets.UTF_8.decode(entry.getValue()).toString();
-        WorkerServiceEntity entity = WorkerServiceEntity.fromJson(jsonStr);
+        WorkerServiceEntity entity = new WorkerServiceEntity();
+        entity.deserialize(entry.getValue().array());
         liveMembers.add(entity);
       } catch (JsonSyntaxException ex) {
         // Ignore
