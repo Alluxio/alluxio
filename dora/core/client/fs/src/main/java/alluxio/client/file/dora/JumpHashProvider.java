@@ -37,7 +37,7 @@ import javax.annotation.Nullable;
 /**
  * An impl of JumpConsistentHash.
  */
-public class JumpConsistentHashProvider {
+public class JumpHashProvider {
   private static final HashFunction HASH_FUNCTION = murmur3_32_fixed();
   private final int mMaxAttempts;
   private final long mWorkerInfoUpdateIntervalNs;
@@ -68,18 +68,18 @@ public class JumpConsistentHashProvider {
       new AtomicReference<>(ImmutableList.of());
   /**
    * Requirements for interacting with this map:
-   * 1. This hash ring is lazy initialized (cannot init in the constructor).
+   * 1. This bucket list is lazy initialized (cannot init in the constructor).
    *    Multiple threads may try to enter the init section, and it should be only initialized once.
-   * 2. This hash ring is timestamped. After the TTL expires, we need to compare the worker
-   *    list with the current available workers and possibly rebuild the hash ring.
-   * 3. While the hash ring is being updated, readers should see a stale hash ring
+   * 2. This bucket list is timestamped. After the TTL expires, we need to compare the worker
+   *    list with the current available workers and possibly rebuild the bucket list.
+   * 3. While the bucket list is being updated, readers should see a stale bucket list
    *    without blocking.
    *
    * Thread safety guarantees:
    * 1. At lazy-init time, mutual exclusion is provided by `synchronized(mInitLock)`
    *    and double-checking. At this stage it is guarded by `mInitLock`.
-   * 2. After init, updating the hash ring is guarded by an optimistic lock using CAS(timestamp).
-   *    There will be no blocking but a read may see a stale ring.
+   * 2. After init, updating the bucket list is guarded by an optimistic lock using CAS(timestamp).
+   *    There will be no blocking but a read may see a stale bucket list.
    *    At this stage it is guarded by `mLastUpdatedTimestamp`.
    */
   @Nullable
@@ -93,14 +93,13 @@ public class JumpConsistentHashProvider {
    * @param maxAttempts the max attempts
    * @param workerListTtlMs interval between retries
    */
-  public JumpConsistentHashProvider(int maxAttempts, long workerListTtlMs) {
+  public JumpHashProvider(int maxAttempts, long workerListTtlMs) {
     mMaxAttempts = maxAttempts;
     mWorkerInfoUpdateIntervalNs = workerListTtlMs * Constants.MS_NANO;
   }
 
   /**
-   * Initializes or refreshes the worker list using the given list of workers and number of
-   * virtual nodes.
+   * Initializes or refreshes the worker list using the given list of workers.
    * <br>
    * Thread safety:
    * If called concurrently by two or more threads, only one of the callers will actually
@@ -145,7 +144,7 @@ public class JumpConsistentHashProvider {
   }
 
   /**
-   * Lazily initializes the hash ring.
+   * Lazily initializes the bucket list.
    * Only one caller gets to initialize the map while all others are blocked.
    * After the initialization, the map must not be null.
    */
@@ -164,7 +163,7 @@ public class JumpConsistentHashProvider {
   }
 
   private boolean hasWorkerListChanged(List<BlockWorkerInfo> workerInfoList,
-                                       List<BlockWorkerInfo> anotherWorkerInfoList) {
+      List<BlockWorkerInfo> anotherWorkerInfoList) {
     if (workerInfoList == anotherWorkerInfoList) {
       return false;
     }
@@ -176,11 +175,11 @@ public class JumpConsistentHashProvider {
   }
 
   /**
-   * Finds multiple workers from the hash ring.
+   * Finds multiple workers from the buckets.
    *
    * @param key the key to use for hashing
    * @param count the expected number of workers
-   * @return a list of workers following the hash ring
+   * @return a list of workers following the worker list
    */
   public List<BlockWorkerInfo> getMultiple(String key, int count) {
     Set<BlockWorkerInfo> workers = new HashSet<>();

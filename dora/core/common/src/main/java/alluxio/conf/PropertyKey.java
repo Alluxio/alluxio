@@ -5644,6 +5644,39 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_KETAMA_HASH_REPLICAS =
+      intBuilder(Name.USER_KETAMA_HASH_REPLICAS)
+          .setDefaultValue(200)
+          .setDescription("This is the value of replicas in the ketama hashing "
+              + "algorithm. When workers changes, it will guarantee the hash table is "
+              + "changed only in a minimal. The value of replicas should be X times "
+              + "the physical nodes in the cluster, where X is a balance between "
+              + "efficiency and cost.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_MAGLEV_HASH_LOOKUP_SIZE =
+      intBuilder(Name.USER_MAGLEV_HASH_LOOKUP_SIZE)
+          .setDefaultValue(65537)
+          .setDescription("This is the size of the lookup table in the maglev hashing "
+              + "algorithm. It must be a prime number. In the maglev hashing, "
+              + "it will generate a lookup table for workers. "
+              + "The bigger the size of the lookup table, "
+              + "the smaller the variance of this hashing algorithm will be. "
+              + "But bigger look up table will consume more time and memory")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_MULTI_PROBE_HASH_PROBE_NUM =
+      intBuilder(Name.USER_MULTI_PROBE_HASH_PROBE_NUM)
+          .setDefaultValue(21)
+          .setDescription("This is the number of probes in the multi-probe hashing "
+              + "algorithm. In the multi-probe hashing algorithm, the bigger the number of probes, "
+              + "the smaller the variance of this hashing algorithm will be. But more probes "
+              + "will consume more time and memory")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       enumBuilder(Name.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
           .setDefaultValue(WriteType.CACHE_THROUGH)
@@ -8205,6 +8238,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.report.version.enabled";
     public static final String USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT =
         "alluxio.user.consistent.hash.virtual.node.count";
+    public static final String USER_KETAMA_HASH_REPLICAS =
+        "alluxio.user.ketama.hash.replicas";
+    public static final String USER_MAGLEV_HASH_LOOKUP_SIZE =
+        "alluxio.user.maglev.hash.lookup.size";
+    public static final String USER_MULTI_PROBE_HASH_PROBE_NUM =
+        "alluxio.user.multi.probe.hash.probe.num";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";

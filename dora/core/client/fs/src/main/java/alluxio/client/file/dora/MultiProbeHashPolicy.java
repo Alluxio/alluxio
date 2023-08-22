@@ -25,34 +25,25 @@ import java.util.List;
 /**
  * An impl of WorkerLocationPolicy.
  *
- * A policy where a file path is matched to worker(s) by a consistenct hashing algorithm.
+ * A policy where a file path is matched to worker(s) by the multi-probe algorithm.
  * The hash algorithm makes sure the same path maps to the same worker sequence.
- * On top of that, consistent hashing makes sure worker membership changes incur minimal
+ * On top of that, this hashing algorithm makes sure worker membership changes incur minimal
  * hash changes.
  */
-public class ConsistentHashPolicy implements WorkerLocationPolicy {
-  private static final Logger LOG = LoggerFactory.getLogger(ConsistentHashPolicy.class);
-  private static final ConsistentHashProvider HASH_PROVIDER =
-      new ConsistentHashProvider(100, Constants.SECOND_MS);
-  /**
-   * This is the number of virtual nodes in the consistent hashing algorithm.
-   * In a consistent hashing algorithm, on membership changes, some virtual nodes are
-   * re-distributed instead of rebuilding the whole hash table.
-   * This guarantees the hash table is changed only in a minimal.
-   * In order to achieve that, the number of virtual nodes should be X times the physical nodes
-   * in the cluster, where X is a balance between redistribution granularity and size.
-   */
-  private final int mNumVirtualNodes;
+public class MultiProbeHashPolicy implements WorkerLocationPolicy {
+  private static final Logger LOG = LoggerFactory.getLogger(MultiProbeHashPolicy.class);
+  private final MultiProbeHashProvider mHashProvider;
 
   /**
-   * Constructs a new {@link ConsistentHashPolicy}.
+   * Constructs a new {@link MultiProbeHashPolicy}.
    *
    * @param conf the configuration used by the policy
    */
-  public ConsistentHashPolicy(AlluxioConfiguration conf) {
+  public MultiProbeHashPolicy(AlluxioConfiguration conf) {
     LOG.debug("%s is chosen for user worker hash algorithm",
         conf.getString(PropertyKey.USER_WORKER_SELECTION_POLICY));
-    mNumVirtualNodes = conf.getInt(PropertyKey.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT);
+    mHashProvider = new MultiProbeHashProvider(100, Constants.SECOND_MS,
+        conf.getInt(PropertyKey.USER_MULTI_PROBE_HASH_PROBE_NUM));
   }
 
   @Override
@@ -63,8 +54,8 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
           "Not enough workers in the cluster %d workers in the cluster but %d required",
           blockWorkerInfos.size(), count));
     }
-    HASH_PROVIDER.refresh(blockWorkerInfos, mNumVirtualNodes);
-    List<BlockWorkerInfo> workers = HASH_PROVIDER.getMultiple(fileId, count);
+    mHashProvider.refresh(blockWorkerInfos);
+    List<BlockWorkerInfo> workers = mHashProvider.getMultiple(fileId, count);
     if (workers.size() != count) {
       throw new ResourceExhaustedException(String.format(
           "Found %d workers from the hash ring but %d required", blockWorkerInfos.size(), count));
