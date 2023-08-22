@@ -13,14 +13,9 @@ package alluxio.client.rest;
 
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.s3.S3Error;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.common.base.Joiner;
-import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -30,9 +25,12 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.Response;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.base.Joiner;
+import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
 
 /**
  * Represents a REST API test case.
@@ -52,7 +50,7 @@ public final class TestCase {
   private final Map<String, String> mParameters;
   private final String mMethod;
   private final TestCaseOptions mOptions;
-  private final HttpURLConnection mConnection;
+  private HttpURLConnection mConnection;
 
   /**
    * Creates a new instance of {@link TestCase}.
@@ -76,7 +74,6 @@ public final class TestCase {
     mParameters = parameters;
     mMethod = method;
     mOptions = options;
-    mConnection =  execute();
   }
 
   /**
@@ -130,8 +127,62 @@ public final class TestCase {
   }
 
   /**
-   * Runs the test case and returns the {@link HttpURLConnection}.
+   * @return the specified-type instance from the InputStream of HttpURLConnection
    */
+  public <T> T getResponse(Class<T> valueType) throws Exception {
+    return XML_MAPPER.readValue(getResponse(), valueType);
+  }
+
+  /**
+   * Runs the test case and returns the {@link TestCase}.
+   */
+  public TestCase run() throws Exception {
+    mConnection = (HttpURLConnection) createURL().openConnection();
+    mConnection.setRequestMethod(mMethod);
+    for (Map.Entry<String, String> entry : mOptions.getHeaders().entrySet()) {
+      mConnection.setRequestProperty(entry.getKey(), entry.getValue());
+    }
+    if (mOptions.getBody() != null) {
+      mConnection.setDoOutput(true);
+      switch (mOptions.getContentType()) {
+        case TestCaseOptions.XML_CONTENT_TYPE: // encode as XML string
+          try (OutputStream os = mConnection.getOutputStream()) {
+            os.write(XML_MAPPER.writeValueAsBytes(mOptions.getBody()));
+          }
+          break;
+        case TestCaseOptions.JSON_CONTENT_TYPE: // encode as JSON string
+          try (OutputStream os = mConnection.getOutputStream()) {
+            os.write(JSON_MAPPER.writeValueAsBytes(mOptions.getBody()));
+          }
+          break;
+        case TestCaseOptions.OCTET_STREAM_CONTENT_TYPE: // encode as-is
+          try (OutputStream os = mConnection.getOutputStream()) {
+            os.write((byte[]) mOptions.getBody());
+          }
+          break;
+        case TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE: // encode string using the charset
+          try (OutputStream os = mConnection.getOutputStream()) {
+            os.write(((String) mOptions.getBody()).getBytes(mOptions.getCharset()));
+          }
+          break;
+        default:
+          throw new InvalidArgumentException(String.format(
+              "No mapper available for content type %s in TestCaseOptions!",
+              mOptions.getContentType()));
+      }
+    }
+
+    mConnection.connect();
+    mConnection.getResponseCode();
+    return this;
+  }
+
+  /**
+   * Runs the test case and returns the {@link HttpURLConnection}.
+   *
+   * @deprecated use run() instead.
+   */
+  @Deprecated
   public HttpURLConnection execute() throws Exception {
     HttpURLConnection connection = (HttpURLConnection) createURL().openConnection();
     connection.setRequestMethod(mMethod);

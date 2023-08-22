@@ -44,17 +44,14 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
 import alluxio.util.ThreadUtils;
-
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.cache.Cache;
-import com.google.common.primitives.Longs;
-import com.google.common.util.concurrent.RateLimiter;
-import com.google.protobuf.ByteString;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.security.auth.Subject;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.DateFormat;
@@ -69,14 +66,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.security.auth.Subject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.Cache;
+import com.google.common.util.concurrent.RateLimiter;
+import com.google.protobuf.ByteString;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utilities for handling S3 REST calls.
@@ -359,6 +356,7 @@ public final class S3RestUtils {
     final AlluxioURI metaUri = new AlluxioURI(
         S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId));
     URIStatus metaStatus = metaFs.getStatus(metaUri);
+    /*  TODO(pkuweblab): 3.x haven't supported XAttr yet
     if (metaStatus.getXAttr() == null
         || !metaStatus.getXAttr().containsKey(S3Constants.UPLOADS_FILE_ID_XATTR_KEY)) {
       //TODO(czhu): determine intended behavior in this edge-case
@@ -370,6 +368,7 @@ public final class S3RestUtils {
       throw new RuntimeException(
           "Alluxio mismatched file ID for multipart-upload with upload ID: " + uploadId);
     }
+     */
     return new ArrayList<>(Arrays.asList(multipartTempDirStatus, metaStatus));
   }
 

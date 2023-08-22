@@ -12,8 +12,8 @@
 package alluxio.proxy.s3;
 
 import alluxio.client.file.URIStatus;
-import alluxio.s3.S3Constants;
-
+import java.util.List;
+import java.util.stream.Collectors;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -21,9 +21,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Implementation of ListMultipartUploadsResult according to
@@ -48,6 +45,12 @@ public class ListMultipartUploadsResult {
   public static ListMultipartUploadsResult buildFromStatuses(String bucket,
                                                              List<URIStatus> children) {
     List<ListMultipartUploadsResult.Upload> uploads = children.stream()
+        .map(status -> new Upload(status.getName(), status.getName(),
+            S3RestUtils.toS3Date(status.getLastModificationTimeMs())
+        ))
+        .collect(Collectors.toList());
+        /*
+        TODO(pkuweblab): 3.x haven't supported XAttr yet, so can't mark Upload.key as object name
         .filter(status -> {
           if (status.getXAttr() == null
               || !status.getXAttr().containsKey(S3Constants.UPLOADS_BUCKET_XATTR_KEY)
@@ -65,6 +68,7 @@ public class ListMultipartUploadsResult {
             S3RestUtils.toS3Date(status.getLastModificationTimeMs())
         ))
         .collect(Collectors.toList());
+        */
     return new ListMultipartUploadsResult(bucket, uploads);
   }
 
