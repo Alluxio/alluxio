@@ -18,10 +18,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"alluxio.org/cli/processes"
-	"alluxio.org/log"
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
+
+	"alluxio.org/cli/processes"
+	"alluxio.org/log"
 )
 
 var CopyDir = &CopyDirCommand{}
