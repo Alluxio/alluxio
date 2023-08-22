@@ -117,7 +117,7 @@ public class UfsUrl {
       while (start < inputUrl.length() && inputUrl.charAt(start) == SLASH_SEPARATOR.charAt(0)) {
         start++;
       }
-      // TODO(Tony Sun): remove the copy in next pr
+      // TODO(Tony Sun): remove the copy in the future
       path = FilenameUtils.normalizeNoEndSeparator(inputUrl.substring(start));
 
       // scheme, authority, pathComponents are always not null.
@@ -308,7 +308,6 @@ public class UfsUrl {
    *
    * @return parent UfsUrl
    */
-  // TODO(Jiacheng Liu): try to avoid the copy by a RelativeUrl class
   public UfsUrl getParentURL() {
     if (mProto.getPathComponentsList().size() == 0) {
       return null;
@@ -317,7 +316,7 @@ public class UfsUrl {
     return new UfsUrl(UfsUrlMessage.newBuilder()
         .setScheme(mProto.getScheme())
         .setAuthority(mProto.getAuthority())
-        // TODO(Jiacheng Liu): how many copies are there. Improve the performance in the future.
+        // sublist returns a view, not a copy
         .addAllPathComponents(pathComponents.subList(0, pathComponents.size() - 1)).build());
   }
 
@@ -327,10 +326,18 @@ public class UfsUrl {
    * @return a full path string
    */
   public String getFullPath() {
-    // TODO(Yichuan Sun): Does it need to pre-calculate the StringBuilder size?
-    StringBuilder sb = new StringBuilder();
-    sb.append(SLASH_SEPARATOR);
+    int pathSize = 1;
     int n = mProto.getPathComponentsList().size();
+    for (int i = 0; i < n - 1; i++) {
+      pathSize += 1 + mProto.getPathComponents(i).length();
+    }
+    if (n - 1 >= 0) {
+      pathSize += mProto.getPathComponents(n - 1).length();
+    }
+
+    StringBuilder sb = new StringBuilder(pathSize);
+
+    sb.append(SLASH_SEPARATOR);
     // Then sb is not empty.
     for (int i = 0; i < n - 1; i++) {
       sb.append(mProto.getPathComponents(i));
