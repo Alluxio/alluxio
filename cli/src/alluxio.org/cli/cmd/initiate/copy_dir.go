@@ -61,14 +61,8 @@ func (c *CopyDirCommand) ToCommand() *cobra.Command {
 				log.Logger.Infof("RSYNCing directory %s to %s", args[0], host)
 
 				// src path needs to end with a slash, but dst path needs to end without the slash
-				var srcDir, dstDir string
-				if strings.HasSuffix(absolutePath, "/") {
-					srcDir = absolutePath
-					dstDir = strings.TrimRight(absolutePath, "/")
-				} else {
-					srcDir = absolutePath + "/"
-					dstDir = absolutePath
-				}
+				dstDir := strings.TrimRight(absolutePath, "/")
+				srcDir := dstDir + "/"
 
 				cmd := exec.Command("rsync", "-az", srcDir,
 					fmt.Sprintf("%s:%s", host, dstDir))
