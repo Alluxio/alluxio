@@ -924,7 +924,8 @@ public class ListStatusTest extends RestApiTest {
   public void listAllBuckets() throws Exception {
     createBucketTestCase("bucket2");
     createBucketTestCase("bucket3");
-    ListAllMyBucketsResult response = listTestCase("", NO_PARAMS).getResponse(ListAllMyBucketsResult.class);
+    ListAllMyBucketsResult response =
+        listTestCase("", NO_PARAMS).getResponse(ListAllMyBucketsResult.class);
     response.getBuckets().sort((b1, b2) -> b1.getName().compareTo(b2.getName()));
 
     Assert.assertEquals(3, response.getBuckets().size());
