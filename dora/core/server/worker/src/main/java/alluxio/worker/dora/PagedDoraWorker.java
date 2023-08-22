@@ -410,14 +410,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @param ufsFullPath
    * @return a FileInfo
    */
-  public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath)
+  public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath,
+                                                          Map<String, String> xattrMap)
       throws IOException {
     String filename = new AlluxioURI(ufsFullPath).getName();
     String relativePath = CommonUtils.stripPrefixIfPresent(ufsFullPath, mRootUFS);
     if (!relativePath.startsWith(AlluxioURI.SEPARATOR)) {
       relativePath = AlluxioURI.SEPARATOR + relativePath;
     }
-    Map<String, String> xattrMap = mUfs.getAttribute(ufsFullPath);
 
     alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
         .setUfsType(mUfs.getUnderFSType())
@@ -470,12 +470,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    *
    * @param status the ufs status
    * @param ufsFullPath the full ufs path
+   * @param xattrMap the map of file xAttrs
    * @return the file status
    */
-  public DoraMeta.FileStatus buildFileStatusFromUfsStatus(UfsStatus status, String ufsFullPath)
+  public DoraMeta.FileStatus buildFileStatusFromUfsStatus(UfsStatus status, String ufsFullPath,
+                                                          Map<String, String> xattrMap)
       throws IOException {
     return DoraMeta.FileStatus.newBuilder()
-        .setFileInfo(buildFileInfoFromUfsStatus(status, ufsFullPath))
+        .setFileInfo(buildFileInfoFromUfsStatus(status, ufsFullPath, xattrMap))
         .setTs(System.nanoTime())
         .build();
   }
@@ -514,7 +516,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     List<LoadFileFailure> errors = Collections.synchronizedList(new ArrayList<>());
     for (UfsStatus status : ufsStatuses) {
       String ufsFullPath = status.getUfsFullPath().toString();
-      DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath);
+      Map<String, String> xattrMap = mUfs.getAttribute(ufsFullPath);
+      DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath, xattrMap);
       mMetaManager.put(ufsFullPath, fs);
       // We use the ufs status sent from master to construct the file metadata,
       // and that ufs status might be stale.
@@ -759,7 +762,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                                 group,
                                 createOption.getMode().toShort(),
                                 DUMMY_BLOCK_SIZE);
-      info = buildFileInfoFromUfsStatus(status, path);
+      info = buildFileInfoFromUfsStatus(status, path, null);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -896,7 +899,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       mUfs.setOwner(path, options.getOwner(), null);
     } else if (options.hasGroup()) {
       mUfs.setOwner(path, null, options.getGroup());
-    } else if (options.getXattrCount() > 0) {
+    }
+    if (options.getXattrCount() > 0) {
       Map<String, ByteString> xattr = options.getXattrMap();
       for (Map.Entry<String, ByteString> attr : xattr.entrySet()) {
         mUfs.setAttribute(path, attr.getKey(), attr.getValue().toByteArray());

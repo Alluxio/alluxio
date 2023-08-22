@@ -359,16 +359,10 @@ public final class S3RestUtils {
     final AlluxioURI metaUri = new AlluxioURI(
         S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId));
     URIStatus metaStatus = metaFs.getStatus(metaUri);
-    if (metaStatus.getXAttr() == null
-        || !metaStatus.getXAttr().containsKey(S3Constants.UPLOADS_FILE_ID_XATTR_KEY)) {
+    if (metaStatus.getXAttr() == null) {
       //TODO(czhu): determine intended behavior in this edge-case
       throw new RuntimeException(
           "Alluxio is missing multipart-upload metadata for upload ID: " + uploadId);
-    }
-    if (Longs.fromByteArray(metaStatus.getXAttr().get(S3Constants.UPLOADS_FILE_ID_XATTR_KEY))
-        != multipartTempDirStatus.getFileId()) {
-      throw new RuntimeException(
-          "Alluxio mismatched file ID for multipart-upload with upload ID: " + uploadId);
     }
     return new ArrayList<>(Arrays.asList(multipartTempDirStatus, metaStatus));
   }

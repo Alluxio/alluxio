@@ -592,10 +592,19 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public Map<String, String> getAttribute(String path) throws IOException {
+    path = stripPrefixIfPresent(path);
     try {
-      return getObjectTags(stripPrefixIfPresent(path));
+      return getObjectTags(path);
     } catch (AlluxioRuntimeException e) {
-      if (e.getStatus().equals(Status.NOT_FOUND)) {
+      if (e.getStatus().getCode() != Status.Code.NOT_FOUND) {
+        throw e;
+      }
+    }
+
+    try {
+      return getObjectTags(convertToFolderName(path));
+    } catch (AlluxioRuntimeException e) {
+      if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {
         return null;
       }
       throw e;

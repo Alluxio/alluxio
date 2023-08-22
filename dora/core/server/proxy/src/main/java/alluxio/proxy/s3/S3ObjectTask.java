@@ -921,8 +921,6 @@ public class S3ObjectTask extends S3BaseTask {
                 ByteString.copyFrom(mHandler.getBucket(), S3Constants.XATTR_STR_CHARSET));
             xattrMap.put(S3Constants.UPLOADS_OBJECT_XATTR_KEY,
                 ByteString.copyFrom(mHandler.getObject(), S3Constants.XATTR_STR_CHARSET));
-            xattrMap.put(S3Constants.UPLOADS_FILE_ID_XATTR_KEY, ByteString.copyFrom(
-                Longs.toByteArray(userFs.getStatus(multipartTemporaryDir).getFileId())));
             try (FileOutStream fos = mHandler.getMetaFS().createFile(
                 new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
                 CreateFilePOptions.newBuilder()
@@ -940,6 +938,7 @@ public class S3ObjectTask extends S3BaseTask {
             }
             SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
                 .setOwner(user)
+                .putAllXattr(xattrMap)
                 .build();
             mHandler.getMetaFS().setAttribute(new AlluxioURI(
                 S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)), attrPOptions);
