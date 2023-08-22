@@ -14,6 +14,9 @@ package alluxio.s3;
 import alluxio.RestUtils;
 import alluxio.client.file.URIStatus;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -27,7 +30,7 @@ import java.util.stream.Collectors;
 @JacksonXmlRootElement(localName = "ListAllMyBucketsResult")
 public class ListAllMyBucketsResult {
   private List<Bucket> mBuckets;
-
+  public ListAllMyBucketsResult() {} // For deserialization only
   /**
    * Creates a {@link ListAllMyBucketsResult}.
    *
@@ -48,15 +51,18 @@ public class ListAllMyBucketsResult {
   public List<Bucket> getBuckets() {
     return mBuckets;
   }
-
+  @JacksonXmlProperty(localName = "Bucket")
+  public void setBuckets(List<Bucket> buckets) {
+    mBuckets = buckets;
+  }
   /**
    * The Bucket object.
    */
   @JacksonXmlRootElement(localName = "Bucket")
-  public class Bucket {
+  public static class Bucket {
     private String mName;
     private String mCreationDate;
-
+    public Bucket() {} // For deserialization only
     private Bucket(String name, String creationDate) {
       mName = name;
       mCreationDate = creationDate;
@@ -76,6 +82,16 @@ public class ListAllMyBucketsResult {
     @JacksonXmlProperty(localName = "CreationDate")
     public String getCreationDate() {
       return mCreationDate;
+    }
+
+    @JacksonXmlProperty(localName = "Name")
+    public void setName(String name) {
+      mName = name;
+    }
+
+    @JacksonXmlProperty(localName = "CreationDate")
+    public void setCreationDate(String creationDate) {
+      mCreationDate = creationDate;
     }
   }
 }
