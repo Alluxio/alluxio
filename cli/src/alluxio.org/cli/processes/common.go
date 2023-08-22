@@ -50,7 +50,7 @@ func NewHostnamesFile(name string) *HostnamesFile {
 // For each hostname, create an SSH client and run the given command
 func RunSshCommand(command string, hostGroups ...string) error {
 	// prepare client config, ssh port info
-	config, port, err := PrepareCommand()
+	config, port, err := prepareCommand()
 	if err != nil {
 		return stacktrace.Propagate(err, "prepare command failed")
 	}
@@ -126,7 +126,7 @@ func RunSshCommand(command string, hostGroups ...string) error {
 	return nil
 }
 
-func PrepareCommand() (*ssh.ClientConfig, int, error) {
+func prepareCommand() (*ssh.ClientConfig, int, error) {
 	// get the current user
 	cu, err := user.Current()
 	if err != nil {
