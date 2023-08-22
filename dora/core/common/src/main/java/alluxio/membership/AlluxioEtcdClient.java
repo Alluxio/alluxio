@@ -78,6 +78,7 @@ public class AlluxioEtcdClient {
 
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioEtcdClient.class);
   private static final Lock INSTANCE_LOCK = new ReentrantLock();
+  public static final String BASE_PATH = "/ServiceDiscovery";
   public static final long DEFAULT_LEASE_TTL_IN_SEC = 2L;
   public static final long DEFAULT_TIMEOUT_IN_SEC = 2L;
   public static final int RETRY_TIMES = 3;
@@ -102,7 +103,8 @@ public class AlluxioEtcdClient {
     String clusterName = conf.getString(PropertyKey.ALLUXIO_CLUSTER_NAME);
     List<String> endpointsList = conf.getList(PropertyKey.ETCD_ENDPOINTS);
     mEndpoints = endpointsList.toArray(new String[0]);
-    mServiceDiscovery = new ServiceDiscoveryRecipe(this, clusterName);
+    mServiceDiscovery = new ServiceDiscoveryRecipe(this,
+        String.format("%s%s%s", BASE_PATH, MembershipManager.PATH_SEPARATOR, clusterName));
     // TODO(lucy) add more options as needed for io.etcd.jetcd.ClientBuilder
     // to control underneath grpc parameters.
     mClient = Client.builder().endpoints(mEndpoints)
