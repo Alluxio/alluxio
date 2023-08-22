@@ -104,9 +104,13 @@ var (
 		configKey: "alluxio.master.hostname",
 		EnvVar:    "ALLUXIO_MASTER_HOSTNAME",
 	}
-	confAlluxioMasterMountTableRootUfs = &AlluxioConfigEnvVar{
+	ConfAlluxioMasterMountTableRootUfs = &AlluxioConfigEnvVar{
 		configKey: "alluxio.master.mount.table.root.ufs",
 		EnvVar:    "ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS",
+	}
+	ConfAlluxioMasterJournalType = &AlluxioConfigEnvVar{
+		configKey: "alluxio.master.journal.type",
+		EnvVar:    "ALLUXIO_MASTER_JOURNAL_TYPE",
 	}
 	confAlluxioWorkerRamdiskSize = &AlluxioConfigEnvVar{
 		configKey: "alluxio.worker.ramdisk.size",

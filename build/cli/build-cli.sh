@@ -12,7 +12,7 @@
 
 set -eu
 
-CLI_DIR=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+CWD=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 # tuple of GOOS, GOARCH, and combined uname value for binary name
 OS_ARCH_TUPLES=(
@@ -41,10 +41,22 @@ main() {
     esac
   done
 
-  cliBinDir="${CLI_DIR}/../../cli/src/alluxio.org/cli/bin"
+  # check go and its version
+  if ! command -v go > /dev/null; then
+    echo "Could not run the command 'go'. Please check that it is installed and accessible from \$PATH"
+    exit 1
+  fi
+  go_version=$(go version)
+  if [[ ! ${go_version} =~ ^go\ version\ go1\.(18|19|[2-9][0-9]) ]]; then
+    echo "Go version must be 1.18 or later, but got ${go_version}"
+    exit 1
+  fi
+
+  cliBinDir="${CWD}/../../cli/src/alluxio.org/cli/bin"
   mkdir -p "${cliBinDir}"
 
-  cd "${CLI_DIR}/../../cli/src/alluxio.org/"
+  cd "${CWD}/../../cli/src/alluxio.org/"
+  go mod tidy
 
   if [[ ${build_all} == "false" ]]; then
     GO111MODULE=on go build -o "${cliBinDir}/alluxioCli-$(uname)-$(uname -m)" "${MAIN_PATH}"

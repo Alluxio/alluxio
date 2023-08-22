@@ -191,16 +191,10 @@ done
 
 case "${WHAT}" in
   all)
-    stop_proxies
-    stop_job_workers
     stop_workers
-    stop_job_masters
     stop_masters
     ;;
   local)
-    stop_proxy
-    stop_job_worker
-    stop_job_master
     stop_worker
     stop_master
     ;;
