@@ -123,7 +123,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
             + "be prepared for each test thread."
             + "# The threads will keeping reading for 30s including a 10s warmup."
             + "# So the result captures I/O performance from the last 20s.",
-        "$ bin/alluxio runClass alluxio.stress.cli.worker.StressWorkerBench \\\n"
+        "$ bin/alluxio exec class alluxio.stress.cli.worker.StressWorkerBench -- \\\n"
             + "--threads 32 --base alluxio:///stress-worker-base --file-size 100m \\\n"
             + "--warmup 10s --duration 30s --cluster\n"
     ));
