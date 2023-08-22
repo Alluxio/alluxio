@@ -204,24 +204,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
    * @param basePath base dir where the files should be prepared
    */
   public void generateTestFilePaths(Path basePath) throws IOException {
-    int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
     int clusterSize = mBaseParameters.mClusterLimit;
     int threads = mParameters.mThreads;
     List<BlockWorkerInfo> workers = mFsContext.getCachedWorkers();
-
-    if (mParameters.mIsRandom) {
-      Random rand = new Random(mParameters.mRandomSeed);
-      // Continue init other aspects of the file read operation
-      // TODO(jiacheng): do we want a new randomness for every read?
-      int randomMin = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
-      int randomMax = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
-      // this 1000 is a tmp length, determined the randomness of the random read test
-      for (int i = 0; i < mParameters.mRandomSequenceLength; i++) {
-        mOffsets[i] = randomNumInRange(rand, 0, fileSize - 1 - randomMin);
-        mLengths[i] = randomNumInRange(rand, randomMin,
-                  Integer.min(fileSize - mOffsets[i], randomMax));
-      }
-    }
 
     for (int i = 0; i < clusterSize; i++) {
       BlockWorkerInfo localWorker = workers.get(i);
@@ -399,6 +384,10 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     private final byte[] mBuffer;
     private final WorkerBenchTaskResult mResult;
     private final boolean mIsRandomRead;
+    private final Random mRandom;
+    private final int mRandomMax;
+    private final int mRandomMin;
+    private final int mFileSize;
 
     private FSDataInputStream mInStream;
 
@@ -413,6 +402,10 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       mResult.setBaseParameters(mBaseParameters);
       mIsRandomRead = mParameters.mIsRandom;
       mRandomIndex = 0;
+      mRandom = new Random(mParameters.mRandomSeed);
+      mRandomMin = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
+      mRandomMax = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
+      mFileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize) ;
     }
 
     @Override
@@ -486,8 +479,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
       int bytesRead = 0;
       if (mIsRandomRead) {
-        int offset = mOffsets[mRandomIndex];
-        int length = mLengths[mRandomIndex];
+        int offset = randomNumInRange(mRandom, 0, mFileSize - 1 - mRandomMin);
+        int length = randomNumInRange(mRandom, mRandomMin, Integer.min(mFileSize - offset, mRandomMax));
         mRandomIndex += 1;
         if (mRandomIndex == mOffsets.length) {
           mRandomIndex = 0;
