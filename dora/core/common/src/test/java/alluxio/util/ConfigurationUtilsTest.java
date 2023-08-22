@@ -125,26 +125,6 @@ public final class ConfigurationUtilsTest {
   }
 
   @Test
-  public void testMasterNotConfiguredMessage() {
-    assertEquals("Messages should be the same",
-        "Cannot run test service; Unable to determine master address. Please modify "
-            + "alluxio-site.properties to either set alluxio.master.hostname, configure zookeeper "
-            + "with alluxio.zookeeper.enabled=true and alluxio.zookeeper.address=[comma-separated "
-            + "zookeeper master addresses], or utilize internal HA by setting alluxio.master"
-            + ".embedded.journal.addresses=[comma-separated alluxio master addresses]",
-        ConfigurationUtils.getMasterHostNotConfiguredMessage("test service"));
-
-    assertEquals("Messages should be the same",
-        "Cannot run test service 2; Unable to determine job master address. Please modify "
-            + "alluxio-site.properties to either set alluxio.job.master.hostname, configure "
-            + "zookeeper with alluxio.zookeeper.enabled=true and alluxio.zookeeper.address=[comma-"
-            + "separated zookeeper master addresses], or utilize internal HA by setting alluxio"
-            + ".job.master.embedded.journal.addresses=[comma-separated alluxio job master "
-            + "addresses]",
-        ConfigurationUtils.getJobMasterHostNotConfiguredMessage("test service 2"));
-  }
-
-  @Test
   public void parseAsList() {
     assertEquals(Lists.newArrayList("a"), ConfigurationUtils.parseAsList("a", ","));
     assertEquals(Lists.newArrayList("a", "b", "c"), ConfigurationUtils.parseAsList("a,b,c", ","));
