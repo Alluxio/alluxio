@@ -181,6 +181,7 @@ public final class TestCase {
 
   /**
    * Runs the test case and returns the {@link HttpURLConnection}.
+   *
    * @deprecated use run() instead.
    */
   @Deprecated

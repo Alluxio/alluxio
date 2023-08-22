@@ -82,7 +82,7 @@ func (p *MultiProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 }
 
 func (p *MultiProcess) Start(cmd *env.StartProcessCommand) error {
-	return runSshCommand(
+	return RunSshCommand(
 		addStartFlags(cmd,
 			process.Service.Name,
 			env.StartProcessName,
@@ -91,7 +91,7 @@ func (p *MultiProcess) Start(cmd *env.StartProcessCommand) error {
 }
 
 func (p *MultiProcess) Stop(cmd *env.StopProcessCommand) error {
-	return runSshCommand(
+	return RunSshCommand(
 		addStopFlags(cmd,
 			process.Service.Name,
 			env.StopProcessName,

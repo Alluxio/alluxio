@@ -12,6 +12,7 @@
 package alluxio.client.rest;
 
 import alluxio.Constants;
+import alluxio.proxy.s3.CompleteMultipartUploadRequest;
 import alluxio.s3.S3Constants;
 import alluxio.testutils.BaseIntegrationTest;
 
@@ -19,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.BaseEncoding;
 
 import java.security.MessageDigest;
+import java.util.HashMap;
 import java.util.Map;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.HttpMethod;
@@ -33,7 +35,7 @@ public abstract class RestApiTest extends BaseIntegrationTest {
   protected String mBaseUri = Constants.REST_API_PREFIX;
 
   protected TestCase runTestCase(String bucket, Map<String, String> params,
-                                     String httpMethod, TestCaseOptions options) throws Exception {
+                                 String httpMethod, TestCaseOptions options) throws Exception {
     return new TestCase(mHostname, mPort, mBaseUri, bucket, params, httpMethod, options).run();
   }
 
@@ -74,6 +76,37 @@ public abstract class RestApiTest extends BaseIntegrationTest {
   protected TestCase listTestCase(String uri, Map<String, String> params) throws Exception {
     return runTestCase(uri, params, HttpMethod.GET,
         getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE));
+  }
+
+  protected TestCase initiateMultipartUploadTestCase(String uri) throws Exception {
+    return runTestCase(
+        uri, ImmutableMap.of("uploads", ""), HttpMethod.POST,
+        getDefaultOptionsWithAuth());
+  }
+
+  protected TestCase completeMultipartUploadTestCase(
+      String objectUri, String uploadId, CompleteMultipartUploadRequest request) throws Exception {
+    return runTestCase(
+        objectUri, ImmutableMap.of("uploadId", uploadId), HttpMethod.POST,
+        getDefaultOptionsWithAuth()
+            .setBody(request)
+            .setContentType(TestCaseOptions.XML_CONTENT_TYPE));
+  }
+
+  protected TestCase abortMultipartUploadTestCase(String uri, String uploadId) throws Exception {
+    return runTestCase(
+        uri, ImmutableMap.of("uploadId", uploadId), HttpMethod.DELETE,
+        getDefaultOptionsWithAuth());
+  }
+
+  protected TestCase uploadPartTestCase(String uri, byte[] object, String uploadId,
+                                        Integer partNumber) throws Exception {
+    Map<String, String> params = new HashMap<>();
+    params.put("uploadId", uploadId);
+    params.put("partNumber", partNumber.toString());
+    return runTestCase(uri, params, HttpMethod.PUT, getDefaultOptionsWithAuth()
+        .setBody(object)
+        .setMD5(computeObjectChecksum(object)));
   }
 
   protected TestCaseOptions getDefaultOptionsWithAuth(@NotNull String user) {
