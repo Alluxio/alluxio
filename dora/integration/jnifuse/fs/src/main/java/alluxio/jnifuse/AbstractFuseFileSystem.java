@@ -120,12 +120,12 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   }
 
   private int execMount(String[] arg) {
-
-    AddressResolverOptions addressResolverOptions = new AddressResolverOptions();
+    loadNecessaryClasses();
     return mLibFuse.fuse_main_real(this, arg.length, arg);
   }
 
   private void loadNecessaryClasses() {
+    LOG.info("Loading necessary classes...");
     try {
       String[] classesToLoad = {
           "io.vertx.core.dns.AddressResolverOptions"
