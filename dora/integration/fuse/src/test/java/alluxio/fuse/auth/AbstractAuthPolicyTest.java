@@ -155,6 +155,12 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
+    public boolean exists(UfsUrl ufsPath, ExistsPOptions options)
+        throws IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void free(AlluxioURI path, FreePOptions options)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();

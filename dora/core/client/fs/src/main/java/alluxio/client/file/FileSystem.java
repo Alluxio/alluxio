@@ -336,6 +336,29 @@ public interface FileSystem extends Closeable {
       throws InvalidPathException, IOException, AlluxioException;
 
   /**
+   * Convenience method for {@link #exists(UfsUrl, ExistsPOptions)} with default options.
+   *
+   * @param ufsPath the path in question
+   * @return true if the path exists, false otherwise
+   * @throws InvalidPathException if the path is invalid
+   */
+  default boolean exists(UfsUrl ufsPath)
+      throws InvalidPathException, IOException, AlluxioException {
+    return exists(ufsPath, ExistsPOptions.getDefaultInstance());
+  }
+
+  /**
+   * Checks whether a path exists in Alluxio space.
+   *
+   * @param ufsPath the path in UFS
+   * @param options options to associate with this operation
+   * @return true if the path exists, false otherwise
+   * @throws InvalidPathException if the path is invalid
+   */
+  boolean exists(UfsUrl ufsPath, ExistsPOptions options)
+      throws InvalidPathException, IOException, AlluxioException;
+
+  /**
    * Convenience method for {@link #free(AlluxioURI, FreePOptions)} with default options.
    *
    * @param path the path to free in Alluxio space

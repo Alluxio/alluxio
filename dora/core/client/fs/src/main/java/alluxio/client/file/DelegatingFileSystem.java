@@ -103,6 +103,11 @@ public class DelegatingFileSystem implements FileSystem {
     return mDelegatedFileSystem.exists(path, options);
   }
 
+  public boolean exists(UfsUrl ufsPath, ExistsPOptions options)
+      throws InvalidPathException, IOException, AlluxioException {
+    return mDelegatedFileSystem.exists(ufsPath, options);
+  }
+
   @Override
   public void free(AlluxioURI path, FreePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {

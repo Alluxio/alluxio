@@ -851,6 +851,12 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public boolean exists(UfsUrl ufsPath, ExistsPOptions options)
+        throws InvalidPathException, IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void free(AlluxioURI path, FreePOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();

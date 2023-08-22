@@ -440,6 +440,24 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   }
 
   @Override
+  public boolean exists(UfsUrl ufsPath, ExistsPOptions options)
+      throws InvalidPathException, IOException, AlluxioException {
+    try {
+      ExistsPOptions mergedOptions = FileSystemOptionsUtils.existsDefaults(
+          mFsContext.getPathConf(ufsPath.toAlluxioURI())).toBuilder().mergeFrom(options).build();
+      return mDoraClient.exists(ufsPath.toString(), mergedOptions);
+    } catch (RuntimeException exception) {
+      if (!mUfsFallbackEnabled) {
+        throw exception;
+      }
+      UFS_FALLBACK_COUNTER.inc();
+      LOG.debug("Dora client exists error ({} times). Fall back to UFS.",
+          UFS_FALLBACK_COUNTER.getCount(), exception);
+      return mDelegatedFileSystem.exists(ufsPath, options);
+    }
+  }
+
+  @Override
   public void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);

@@ -211,6 +211,11 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
+  public boolean exists(UfsUrl ufsPath, final ExistsPOptions options) {
+    return Boolean.TRUE.equals(callWithReturn(() -> mUfs.get().exists(ufsPath.toString())));
+  }
+
+  @Override
   public void free(AlluxioURI path, final FreePOptions options) {
     throw new UnsupportedOperationException();
   }

@@ -253,6 +253,15 @@ public class FileSystemCache {
     }
 
     @Override
+    public boolean exists(UfsUrl ufsPath, ExistsPOptions options)
+        throws InvalidPathException, IOException, AlluxioException {
+      if (mClosed) {
+        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
+      }
+      return super.exists(ufsPath, options);
+    }
+
+    @Override
     public void free(AlluxioURI path, FreePOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
       if (mClosed) {
