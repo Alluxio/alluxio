@@ -20,6 +20,9 @@ import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.StatusSummary;
 import alluxio.util.CommonUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -66,101 +69,75 @@ public class JobServiceMetricsCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
+    ObjectMapper mapper = new ObjectMapper();
+    ObjectNode jobServiceInfo = mapper.createObjectNode();
+
+    ArrayNode masterInfo = mapper.createArrayNode();
     List<JobMasterStatus> allMasterStatus = mJobMasterClient.getAllMasterStatus();
-    String masterFormat = getMasterInfoFormat(allMasterStatus);
-    mPrintStream.printf(masterFormat, "Master Address", "State", "Start Time",
-        "Version", "Revision");
     for (JobMasterStatus masterStatus : allMasterStatus) {
-      NetAddress address = masterStatus.getMasterAddress();
-      mPrintStream.printf(masterFormat,
-          address.getHost() + ":" + address.getRpcPort(),
-          masterStatus.getState(),
-          DATETIME_FORMAT.format(Instant.ofEpochMilli(masterStatus.getStartTime())),
-          masterStatus.getVersion().getVersion(),
-          masterStatus.getVersion().getRevision());
+      ObjectNode master = mapper.createObjectNode();
+      master.put("Host", masterStatus.getMasterAddress().getHost());
+      master.put("Port", masterStatus.getMasterAddress().getRpcPort());
+      master.put("State", masterStatus.getState());
+      master.put("Start Time", DATETIME_FORMAT.format(Instant.ofEpochMilli(masterStatus.getStartTime())));
+      master.put("Version", masterStatus.getVersion().getVersion());
+      master.put("Revision", masterStatus.getVersion().getRevision());
+      masterInfo.add(master);
     }
-    mPrintStream.println();
+    jobServiceInfo.set("Masters", masterInfo);
 
+    ArrayNode workerInfo = mapper.createArrayNode();
     List<JobWorkerHealth> allWorkerHealth = mJobMasterClient.getAllWorkerHealth();
-    String workerFormat = getWorkerInfoFormat(allWorkerHealth);
-    mPrintStream.printf(workerFormat, "Job Worker", "Version", "Revision", "Task Pool Size",
-        "Unfinished Tasks", "Active Tasks", "Load Avg");
-
     for (JobWorkerHealth workerHealth : allWorkerHealth) {
-      mPrintStream.printf(workerFormat,
-          workerHealth.getHostname(), workerHealth.getVersion().getVersion(),
-          workerHealth.getVersion().getRevision(),
-          workerHealth.getTaskPoolSize(), workerHealth.getUnfinishedTasks(),
-          workerHealth.getNumActiveTasks(),
-          StringUtils.join(workerHealth.getLoadAverage(), ", "));
+      ObjectNode worker = mapper.createObjectNode();
+      worker.put("Host", workerHealth.getHostname());
+      worker.put("Version", workerHealth.getVersion().getVersion());
+      worker.put("Revision", workerHealth.getVersion().getRevision());
+      worker.put("Task Pool Size", workerHealth.getTaskPoolSize());
+      worker.put("Unfinished Tasks", workerHealth.getUnfinishedTasks());
+      worker.put("Active Tasks", workerHealth.getNumActiveTasks());
+      ObjectNode lAverage = mapper.createObjectNode();
+      List<Double> loadAverage = workerHealth.getLoadAverage();
+      lAverage.put("1 minute", loadAverage.get(0));
+      lAverage.put("5 minutes", loadAverage.get(1));
+      lAverage.put("15 minutes", loadAverage.get(2));
+      worker.set("Load Average", lAverage);
+      workerInfo.add(worker);
     }
-    mPrintStream.println();
+    jobServiceInfo.set("Workers", workerInfo);
 
+    ArrayNode jobStatusInfo = mapper.createArrayNode();
     JobServiceSummary jobServiceSummary = mJobMasterClient.getJobServiceSummary();
-
     Collection<StatusSummary> jobStatusSummaries = jobServiceSummary.getSummaryPerStatus();
-
     for (StatusSummary statusSummary : jobStatusSummaries) {
-      mPrintStream.print(String.format("Status: %-10s", statusSummary.getStatus()));
-      mPrintStream.println(String.format("Count: %s", statusSummary.getCount()));
+      ObjectNode status = mapper.createObjectNode();
+      status.put("Status", statusSummary.getStatus().toString());
+      status.put("Count", statusSummary.getCount());
+      jobStatusInfo.add(status);
     }
+    jobServiceInfo.set("Job Status", jobStatusInfo);
 
-    mPrintStream.println();
-    mPrintStream.println(String.format("%s Most Recently Modified Jobs:",
-        JobServiceSummary.RECENT_LENGTH));
+    ObjectNode recentJobInfo = mapper.createObjectNode();
+    recentJobInfo.set("Recent Modified", getJobInfos(jobServiceSummary.getRecentActivities()));
+    recentJobInfo.set("Recent Failed", getJobInfos(jobServiceSummary.getRecentFailures()));
+    recentJobInfo.set("Longest running", getJobInfos(jobServiceSummary.getLongestRunning()));
+    jobServiceInfo.set(String.format("Top %s jobs", JobServiceSummary.RECENT_LENGTH), recentJobInfo);
 
-    List<JobInfo> lastActivities = jobServiceSummary.getRecentActivities();
-    printJobInfos(lastActivities);
-
-    mPrintStream.println(String.format("%s Most Recently Failed Jobs:",
-        JobServiceSummary.RECENT_LENGTH));
-
-    List<JobInfo> lastFailures = jobServiceSummary.getRecentFailures();
-    printJobInfos(lastFailures);
-
-    mPrintStream.println(String.format("%s Longest Running Jobs:",
-        JobServiceSummary.RECENT_LENGTH));
-
-    List<JobInfo> longestRunning = jobServiceSummary.getLongestRunning();
-    printJobInfos(longestRunning);
-
+    mPrintStream.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jobServiceInfo));
     return 0;
   }
 
-  private String getMasterInfoFormat(List<JobMasterStatus> masters) {
-    int maxNameLength = 16;
-    if (masters.size() > 0) {
-      maxNameLength = masters.stream().map(m -> m.getMasterAddress().getHost().length() + 6)
-          .max(Comparator.comparing(Integer::intValue)).get();
-    }
-    // hostname:port + state + startTime + version + revision
-    return "%-" + maxNameLength + "s %-8s %-16s %-32s %-8s%n";
-  }
-
-  private String getWorkerInfoFormat(List<JobWorkerHealth> workers) {
-    int maxNameLength = 16;
-    if (workers.size() > 0) {
-      maxNameLength = workers.stream().map(w -> w.getHostname().length())
-          .max(Comparator.comparing(Integer::intValue)).get();
-    }
-    int firstIndent = 16;
-    if (firstIndent <= maxNameLength) {
-      // extend first indent according to the longest worker name
-      firstIndent = maxNameLength + 6;
-    }
-
-    // hostname + version + revision + poolSize + unfinishedTasks + activeTasks + loadAvg
-    return "%-" + firstIndent + "s %-32s %-8s %-14s %-16s %-12s %s%n";
-  }
-
-  private void printJobInfos(List<JobInfo> jobInfos) {
+  private ArrayNode getJobInfos(List<JobInfo> jobInfos) {
+    ObjectMapper mapper = new ObjectMapper();
+    ArrayNode result = mapper.createArrayNode();
     for (JobInfo jobInfo : jobInfos) {
-      mPrintStream.print(String.format("Timestamp: %-30s",
-          CommonUtils.convertMsToDate(jobInfo.getLastUpdated(), mDateFormatPattern)));
-      mPrintStream.print(String.format("Id: %-20s", jobInfo.getId()));
-      mPrintStream.print(String.format("Name: %-20s", jobInfo.getName()));
-      mPrintStream.println(String.format("Status: %s", jobInfo.getStatus()));
+      ObjectNode jInfo = mapper.createObjectNode();
+      jInfo.put("Timestamp", CommonUtils.convertMsToDate(jobInfo.getLastUpdated(), mDateFormatPattern));
+      jInfo.put("Id", jobInfo.getId());
+      jInfo.put("Name", jobInfo.getName());
+      jInfo.put("Status", jobInfo.getStatus().toString());
+      result.add(jInfo);
     }
-    mPrintStream.println();
+    return result;
   }
 }

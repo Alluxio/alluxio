@@ -16,6 +16,9 @@ import alluxio.grpc.MetricValue;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.FormatUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.math.DoubleMath;
 
 import java.io.IOException;
@@ -35,7 +38,6 @@ public class MetricsCommand {
   private static final String THROUGHPUT_METRIC_IDENTIFIER = "Throughput";
   private static final DecimalFormat DECIMAL_FORMAT
       = new DecimalFormat("###,###.#####", new DecimalFormatSymbols(Locale.US));
-  private static final String INFO_FORMAT = "%s  (Type: %s, Value: %s)%n";
 
   private final MetricsMasterClient mMetricsMasterClient;
   private final PrintStream mPrintStream;
@@ -58,6 +60,9 @@ public class MetricsCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
+    ObjectMapper mapper = new ObjectMapper();
+    ArrayNode metricsInfo = mapper.createArrayNode();
+
     mMetricsMap = mMetricsMasterClient.getMetrics();
     SortedSet<String> names = new TreeSet<>(mMetricsMap.keySet());
     for (String name : names) {
@@ -82,8 +87,14 @@ public class MetricsCommand {
           strValue = String.valueOf(doubleValue);
         }
       }
-      mPrintStream.printf(INFO_FORMAT, name, metricValue.getMetricType(), strValue);
+      ObjectNode metric = mapper.createObjectNode();
+      metric.put("Name", name);
+      metric.put("Type", metricValue.getMetricType().toString());
+      metric.put("Value", strValue);
+      metricsInfo.add(metric);
     }
+
+    mPrintStream.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(metricsInfo));
     return 0;
   }
 

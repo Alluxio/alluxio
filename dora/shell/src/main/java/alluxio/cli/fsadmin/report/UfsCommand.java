@@ -14,8 +14,12 @@ package alluxio.cli.fsadmin.report;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.util.FormatUtils;
 import alluxio.wire.MountPointInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Comparator;
 import java.util.Map;
 
@@ -40,55 +44,45 @@ public class UfsCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    Map<String, MountPointInfo> mountTable = mFileSystemMasterClient.getMountTable();
-    System.out.println("Alluxio under storage system information:");
-    printMountInfo(mountTable);
-    return 0;
-  }
+    ObjectMapper mapper = new ObjectMapper();
+    ArrayNode ufsInfo = mapper.createArrayNode();
 
-  /**
-   * Prints mount information for a mount table.
-   *
-   * @param mountTable the mount table to get information from
-   */
-  public static void printMountInfo(Map<String, MountPointInfo> mountTable) {
+    Map<String, MountPointInfo> mountTable = mFileSystemMasterClient.getMountTable();
     for (Map.Entry<String, MountPointInfo> entry : mountTable.entrySet()) {
+      ObjectNode mountInfo = mapper.createObjectNode();
+
       String mountPoint = entry.getKey();
       MountPointInfo mountPointInfo = entry.getValue();
-
       long capacityBytes = mountPointInfo.getUfsCapacityBytes();
       long usedBytes = mountPointInfo.getUfsUsedBytes();
-
       String usedPercentageInfo = "";
       if (capacityBytes > 0) {
         int usedPercentage = (int) (100.0 * usedBytes / capacityBytes);
         usedPercentageInfo = String.format("(%s%%)", usedPercentage);
       }
 
-      String leftAlignFormat = getAlignFormat(mountTable);
+      mountInfo.put("URI", mountPointInfo.getUfsUri());
+      mountInfo.put("Mount Point", mountPoint);
+      mountInfo.put("UFS Type", mountPointInfo.getUfsType());
+      mountInfo.put("Total Capacity", FormatUtils.getSizeFromBytes(capacityBytes));
+      mountInfo.put("Used Capacity", FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo);
+      mountInfo.put("Readonly", mountPointInfo.getReadOnly());
+      mountInfo.put("Shared", mountPointInfo.getShared());
 
-      System.out.format(leftAlignFormat, mountPointInfo.getUfsUri(), mountPoint,
-          mountPointInfo.getUfsType(), FormatUtils.getSizeFromBytes(capacityBytes),
-          FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo,
-          mountPointInfo.getReadOnly() ? "" : "not ",
-          mountPointInfo.getShared() ? "" : "not ");
-      System.out.println("properties=" + mountPointInfo.getProperties() + ")");
+      ArrayNode props = mapper.createArrayNode();
+      Map<String, String> properties = mountPointInfo.getProperties();
+      for (Map.Entry<String, String> property : properties.entrySet()) {
+        ObjectNode prop = mapper.createObjectNode();
+        prop.put("key", property.getKey());
+        prop.put("value", property.getValue());
+        props.add(prop);
+      }
+      mountInfo.set("Properties", props);
+
+      ufsInfo.add(mountInfo);
     }
-  }
 
-  /**
-   * Gets the align format according to the longest mount point/under storage path.
-   * @param mountTable the mount table to get information from
-   * @return the align format for printing mounted info
-   */
-  private static String getAlignFormat(Map<String, MountPointInfo> mountTable) {
-    int mountPointLength = mountTable.entrySet().stream().map(w -> w.getKey().length())
-        .max(Comparator.comparing(Integer::intValue)).get();
-    int usfLength = mountTable.entrySet().stream().map(w -> w.getValue().getUfsUri().length())
-        .max(Comparator.comparing(Integer::intValue)).get();
-
-    String leftAlignFormat = "%-" + usfLength + "s  on  %-" + mountPointLength
-        + "s  (%s, capacity=%s, used=%s, %sread-only, %sshared, ";
-    return leftAlignFormat;
+    System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(ufsInfo));
+    return 0;
   }
 }

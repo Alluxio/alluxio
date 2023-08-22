@@ -23,6 +23,9 @@ import alluxio.util.FormatUtils;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
 import java.io.IOException;
@@ -38,12 +41,9 @@ import java.util.TreeMap;
  * Prints Alluxio cluster summarized information.
  */
 public class SummaryCommand {
-  private static final int INDENT_SIZE = 4;
-
-  private int mIndentationLevel = 0;
-  private MetaMasterClient mMetaMasterClient;
-  private BlockMasterClient mBlockMasterClient;
-  private PrintStream mPrintStream;
+  private final MetaMasterClient mMetaMasterClient;
+  private final BlockMasterClient mBlockMasterClient;
+  private final PrintStream mPrintStream;
   private final String mDateFormatPattern;
 
   /**
@@ -68,121 +68,110 @@ public class SummaryCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    print("Alluxio cluster summary: ");
-    printMetaMasterInfo();
-    printBlockMasterInfo();
-    return 0;
-  }
+    ObjectMapper mapper = new ObjectMapper();
+    ObjectNode summeryInfo = mapper.createObjectNode();
 
-  /**
-   * Prints Alluxio meta master information.
-   */
-  private void printMetaMasterInfo() throws IOException {
-    mIndentationLevel++;
     Set<MasterInfoField> masterInfoFilter = new HashSet<>(Arrays
-        .asList(MasterInfoField.LEADER_MASTER_ADDRESS, MasterInfoField.WEB_PORT,
-            MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
-            MasterInfoField.UP_TIME_MS, MasterInfoField.VERSION,
-            MasterInfoField.SAFE_MODE, MasterInfoField.ZOOKEEPER_ADDRESSES,
-            MasterInfoField.RAFT_JOURNAL, MasterInfoField.RAFT_ADDRESSES,
-            MasterInfoField.MASTER_VERSION));
+            .asList(MasterInfoField.LEADER_MASTER_ADDRESS, MasterInfoField.WEB_PORT,
+                    MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
+                    MasterInfoField.UP_TIME_MS, MasterInfoField.VERSION,
+                    MasterInfoField.SAFE_MODE, MasterInfoField.ZOOKEEPER_ADDRESSES,
+                    MasterInfoField.RAFT_JOURNAL, MasterInfoField.RAFT_ADDRESSES,
+                    MasterInfoField.MASTER_VERSION));
     MasterInfo masterInfo = mMetaMasterClient.getMasterInfo(masterInfoFilter);
 
-    print("Master Address: " + masterInfo.getLeaderMasterAddress());
-    print("Web Port: " + masterInfo.getWebPort());
-    print("Rpc Port: " + masterInfo.getRpcPort());
-    print("Started: " + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs(),
-        mDateFormatPattern));
-    print("Uptime: " + CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()));
-    print("Version: " + masterInfo.getVersion());
-    print("Safe Mode: " + masterInfo.getSafeMode());
+    summeryInfo.put("Master Address", masterInfo.getLeaderMasterAddress());
+    summeryInfo.put("Web Port", masterInfo.getWebPort());
+    summeryInfo.put("Rpc Port", masterInfo.getRpcPort());
+    summeryInfo.put("Started", CommonUtils.convertMsToDate(masterInfo.getStartTimeMs(), mDateFormatPattern));
+    summeryInfo.put("Uptime", CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()));
+    summeryInfo.put("Version", masterInfo.getVersion());
+    summeryInfo.put("Safe Mode", masterInfo.getSafeMode());
 
+    ObjectNode zooKeeper = mapper.createObjectNode();
     List<String> zookeeperAddresses = masterInfo.getZookeeperAddressesList();
+    ArrayNode zkAddresses = mapper.createArrayNode();
     if (zookeeperAddresses == null || zookeeperAddresses.isEmpty()) {
-      print("Zookeeper Enabled: false");
+      zooKeeper.put("Enabled", "false");
     } else {
-      print("Zookeeper Enabled: true");
-      print("Zookeeper Addresses: ");
-      mIndentationLevel++;
-      for (String zkAddress : zookeeperAddresses) {
-        print(zkAddress);
+      zooKeeper.put("Enabled", "true");
+      for (String zookeeperAddress : zookeeperAddresses) {
+        zkAddresses.add(zookeeperAddress);
       }
-      mIndentationLevel--;
     }
+    zooKeeper.set("Addresses", zkAddresses);
+    summeryInfo.set("Zookeeper", zooKeeper);
 
-    if (masterInfo.getRaftJournal()) {
-      print("Raft-based Journal: true");
-      print("Raft Journal Addresses: ");
-      mIndentationLevel++;
-      for (String raftAddress : masterInfo.getRaftAddressList()) {
-        print(raftAddress);
-      }
-      mIndentationLevel--;
+    ObjectNode raftJournal = mapper.createObjectNode();
+    ArrayNode raftAddresses = mapper.createArrayNode();
+    if (!masterInfo.getRaftJournal()) {
+      raftJournal.put("Enabled", "false");
     } else {
-      print("Raft-based Journal: false");
+      raftJournal.put("Enabled", "true");
+      for (String raftAddress : masterInfo.getRaftAddressList()) {
+        raftAddresses.add(raftAddress);
+      }
     }
-    String formatString = "%-32s %-8s %-32s";
-    print(String.format(formatString, "Master Address", "State", "Version"));
+    raftJournal.set("Addresses", raftAddresses);
+    summeryInfo.set("Raft Journal", raftJournal);
+
+    ArrayNode mVersions = mapper.createArrayNode();
     for (MasterVersion masterVersion: masterInfo.getMasterVersionsList()) {
       NetAddress address = masterVersion.getAddresses();
-      print(String.format(formatString,
-              address.getHost() + ":" + address.getRpcPort(),
-          masterVersion.getState(),
-          masterVersion.getVersion()));
+      ObjectNode mVersion = mapper.createObjectNode();
+      mVersion.put("Host", masterVersion.getAddresses().getHost());
+      mVersion.put("Port", masterVersion.getAddresses().getRpcPort());
+      mVersion.put("State", masterVersion.getState());
+      mVersion.put("Version", masterVersion.getVersion());
+      mVersions.add(mVersion);
     }
-  }
+    summeryInfo.set("Master status", mVersions);
 
-  /**
-   * Prints Alluxio block master information.
-   */
-  private void printBlockMasterInfo() throws IOException {
     Set<BlockMasterInfoField> blockMasterInfoFilter = new HashSet<>(Arrays
-        .asList(BlockMasterInfoField.LIVE_WORKER_NUM, BlockMasterInfoField.LOST_WORKER_NUM,
-            BlockMasterInfoField.CAPACITY_BYTES, BlockMasterInfoField.USED_BYTES,
-            BlockMasterInfoField.FREE_BYTES, BlockMasterInfoField.CAPACITY_BYTES_ON_TIERS,
-            BlockMasterInfoField.USED_BYTES_ON_TIERS));
+            .asList(BlockMasterInfoField.LIVE_WORKER_NUM, BlockMasterInfoField.LOST_WORKER_NUM,
+                    BlockMasterInfoField.CAPACITY_BYTES, BlockMasterInfoField.USED_BYTES,
+                    BlockMasterInfoField.FREE_BYTES, BlockMasterInfoField.CAPACITY_BYTES_ON_TIERS,
+                    BlockMasterInfoField.USED_BYTES_ON_TIERS));
     BlockMasterInfo blockMasterInfo = mBlockMasterClient.getBlockMasterInfo(blockMasterInfoFilter);
 
-    print("Live Workers: " + blockMasterInfo.getLiveWorkerNum());
-    print("Lost Workers: " + blockMasterInfo.getLostWorkerNum());
+    summeryInfo.put("Live Workers", blockMasterInfo.getLiveWorkerNum());
+    summeryInfo.put("Lost Workers", blockMasterInfo.getLostWorkerNum());
 
-    print("Total Capacity: "
-        + FormatUtils.getSizeFromBytes(blockMasterInfo.getCapacityBytes()));
-
-    mIndentationLevel++;
+    ArrayNode totalCapacity = mapper.createArrayNode();
+    ObjectNode allTotalCapacity = mapper.createObjectNode();
+    allTotalCapacity.put("Tier", "ALL");
+    allTotalCapacity.put("Size", FormatUtils.getSizeFromBytes(blockMasterInfo.getCapacityBytes()));
+    totalCapacity.add(allTotalCapacity);
     Map<String, Long> totalCapacityOnTiers = new TreeMap<>((a, b)
-        -> (FileSystemAdminShellUtils.compareTierNames(a, b)));
+            -> (FileSystemAdminShellUtils.compareTierNames(a, b)));
     totalCapacityOnTiers.putAll(blockMasterInfo.getCapacityBytesOnTiers());
     for (Map.Entry<String, Long> capacityBytesTier : totalCapacityOnTiers.entrySet()) {
-      print("Tier: " + capacityBytesTier.getKey()
-          + "  Size: " + FormatUtils.getSizeFromBytes(capacityBytesTier.getValue()));
+      ObjectNode tierTotalCapacity = mapper.createObjectNode();
+      tierTotalCapacity.put("Tier", capacityBytesTier.getKey());
+      tierTotalCapacity.put("Size", FormatUtils.getSizeFromBytes(capacityBytesTier.getValue()));
+      totalCapacity.add(tierTotalCapacity);
     }
+    summeryInfo.set("Total Capacity", totalCapacity);
 
-    mIndentationLevel--;
-    print("Used Capacity: "
-        + FormatUtils.getSizeFromBytes(blockMasterInfo.getUsedBytes()));
-
-    mIndentationLevel++;
+    ArrayNode usedCapacity = mapper.createArrayNode();
+    ObjectNode allUsedCapacity = mapper.createObjectNode();
+    allUsedCapacity.put("Tier", "ALL");
+    allUsedCapacity.put("Size", FormatUtils.getSizeFromBytes(blockMasterInfo.getUsedBytes()));
+    usedCapacity.add(allUsedCapacity);
     Map<String, Long> usedCapacityOnTiers = new TreeMap<>((a, b)
-        -> (FileSystemAdminShellUtils.compareTierNames(a, b)));
+            -> (FileSystemAdminShellUtils.compareTierNames(a, b)));
     usedCapacityOnTiers.putAll(blockMasterInfo.getUsedBytesOnTiers());
     for (Map.Entry<String, Long> usedBytesTier: usedCapacityOnTiers.entrySet()) {
-      print("Tier: " + usedBytesTier.getKey()
-          + "  Size: " + FormatUtils.getSizeFromBytes(usedBytesTier.getValue()));
+      ObjectNode tierUsedCapacity = mapper.createObjectNode();
+      tierUsedCapacity.put("Tier", usedBytesTier.getKey());
+      tierUsedCapacity.put("Size", FormatUtils.getSizeFromBytes(usedBytesTier.getValue()));
+      usedCapacity.add(tierUsedCapacity);
     }
+    summeryInfo.set("Used Capacity", usedCapacity);
 
-    mIndentationLevel--;
-    print("Free Capacity: "
-        + FormatUtils.getSizeFromBytes(blockMasterInfo.getFreeBytes()));
-  }
+    summeryInfo.put("Free Capacity", FormatUtils.getSizeFromBytes(blockMasterInfo.getFreeBytes()));
 
-  /**
-   * Prints indented information.
-   *
-   * @param text information to print
-   */
-  private void print(String text) {
-    String indent = Strings.repeat(" ", mIndentationLevel * INDENT_SIZE);
-    mPrintStream.println(indent + text);
+    mPrintStream.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(summeryInfo));
+    return 0;
   }
 }
