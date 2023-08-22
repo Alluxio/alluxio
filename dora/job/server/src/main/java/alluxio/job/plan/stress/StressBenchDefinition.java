@@ -127,8 +127,9 @@ public final class StressBenchDefinition
       RunTaskContext runTaskContext) throws Exception {
     List<String> command = new ArrayList<>(3 + config.getArgs().size());
     command.add(Configuration.get(PropertyKey.HOME) + "/bin/alluxio");
-    command.add("runClass");
+    command.add("exec class");
     command.add(config.getClassName());
+    command.add("--");
 
     // the cluster will run distributed tasks
     command.add(BaseParameters.DISTRIBUTED_FLAG);
