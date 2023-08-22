@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import javax.annotation.Nullable;
 
 /**
  * This class represents a UFS URL in the Alluxio system.
@@ -93,8 +94,7 @@ public class UfsUrl {
         scheme = "";
       }
 
-      Preconditions.checkArgument(!scheme.isEmpty(),
-          "scheme is not allowed to be empty, please input again.");
+      Preconditions.checkArgument(!scheme.isEmpty(), "empty scheme: %s", inputUrl);
       Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
           "Alluxio 3.x no longer supports alluxio:// scheme,"
               + " please input the UFS path directly like hdfs://host:port/path");
@@ -183,6 +183,7 @@ public class UfsUrl {
 
   /**
    * Constructs an {@link UfsUrl} from components.
+   *
    * @param proto the proto of the UfsUrl
    */
   private UfsUrl(UfsUrlMessage proto) {
@@ -196,17 +197,38 @@ public class UfsUrl {
 
   /**
    * Constructs an {@link UfsUrl} from components.
-   * @param scheme the scheme of the path
+   *
+   * @param scheme    the scheme of the path
    * @param authority the authority of the path
-   * @param path the path component of the UfsUrl
+   * @param path      the path component of the UfsUrl
    */
   public UfsUrl(String scheme, String authority, String path) {
-    Preconditions.checkArgument(!scheme.isEmpty(), "scheme is not allowed to be empty,"
-        + " please input again.");
+    UfsUrl ufsUrl = new UfsUrl(scheme, authority, path, true);
+    mProto = ufsUrl.toProto();
+  }
+
+  /**
+   * Constructs an {@link UfsUrl} from components.
+   *
+   * @param scheme    the scheme of the path
+   * @param authority the authority of the path
+   * @param path      the path component of the UfsUrl
+   * @param checkNormalization  the parameter to decide whether normalize the path string
+   */
+  public UfsUrl(String scheme, String authority, String path, boolean checkNormalization) {
+    Preconditions.checkArgument(!scheme.isEmpty(), "empty scheme: %s",
+        scheme + authority + path);
     Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
         "Alluxio 3.x no longer supports alluxio:// scheme,"
             + " please input the UFS path directly like hdfs://host:port/path");
-    path = FilenameUtils.normalizeNoEndSeparator(path);
+
+    path = PathUtils.normalizeStringPath(path);
+    if (checkNormalization) {
+      // TODO(Tony Sun): too many copies, remove it in the future
+      java.net.URI uri = java.net.URI.create(path);
+      path = uri.normalize().getPath();
+    }
+
     String[] arrayOfPath = path.split(SLASH_SEPARATOR);
     int notEmpty = 0;
     while (notEmpty < arrayOfPath.length && arrayOfPath[notEmpty].isEmpty()) {
@@ -288,7 +310,7 @@ public class UfsUrl {
    * @return true if equal, false if not equal
    */
   public boolean equals(Object o) {
-    if (this == o)  {
+    if (this == o) {
       return true;
     }
     if (!(o instanceof UfsUrl)) {
@@ -299,15 +321,16 @@ public class UfsUrl {
   }
 
   /**
-   * Gets parent UfsUrl of current UfsUrl.
+   * Gets parent UfsUrl of current UfsUrl or null if at root.
    * <p>
    * e.g.
    * <ul>
    *   <li>getParentURL(abc://1.2.3.4:19998/xy z/a b c) -> abc://1.2.3.4:19998/xy z</li>
    * </ul>
    *
-   * @return parent UfsUrl
+   * @return parent UfsUrl or null if at root
    */
+  @Nullable
   public UfsUrl getParentURL() {
     if (mProto.getPathComponentsList().size() == 0) {
       return null;
@@ -326,6 +349,7 @@ public class UfsUrl {
    * @return a full path string
    */
   public String getFullPath() {
+    // calculate the memory allocation first to reduce copies of StringBuilder
     int pathSize = 1;
     int n = mProto.getPathComponentsList().size();
     for (int i = 0; i < n - 1; i++) {
@@ -343,7 +367,7 @@ public class UfsUrl {
       sb.append(mProto.getPathComponents(i));
       sb.append(SLASH_SEPARATOR);
     }
-    if (n - 1 >= 0)  {
+    if (n - 1 >= 0) {
       sb.append(mProto.getPathComponents(n - 1));
     }
     return sb.toString();
@@ -384,6 +408,7 @@ public class UfsUrl {
   /**
    * Returns true if the current UfsUrl is an ancestor of another UfsUrl.
    * otherwise, return false.
+   *
    * @param ufsUrl potential children to check
    * @return true the current ufsUrl is an ancestor of the ufsUrl
    */
@@ -409,7 +434,7 @@ public class UfsUrl {
     }
     String[] suffixArray = suffix.split(SLASH_SEPARATOR);
     int nonEmptyIndex = 0;
-    while (nonEmptyIndex < suffixArray.length && suffixArray[nonEmptyIndex].isEmpty())  {
+    while (nonEmptyIndex < suffixArray.length && suffixArray[nonEmptyIndex].isEmpty()) {
       nonEmptyIndex++;
     }
     List<String> suffixComponentsList = Arrays.asList(suffixArray);
@@ -428,10 +453,17 @@ public class UfsUrl {
         .addAllPathComponents(noEmptyElemSuffixComponentsList).build());
   }
 
+  /**
+   * Append additional path elements to the end of an {@link UfsUrl}. This does not check if
+   * the new path needs normalization, and is less CPU intensive than {@link #join(String)}.
+   *
+   * @param suffix the suffix to add
+   * @return the new {@link UfsUrl}
+   */
   public UfsUrl joinUnsafe(String suffix) {
     String path = getFullPath();
     StringBuilder sb = new StringBuilder(path.length() + 1 + suffix.length());
     return new UfsUrl(toProto().getScheme(), toProto().getAuthority(),
-        sb.append(path).append(SLASH_SEPARATOR).append(suffix).toString());
+        sb.append(path).append(SLASH_SEPARATOR).append(suffix).toString(), false);
   }
 }

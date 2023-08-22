@@ -512,9 +512,9 @@ public final class PathUtils {
   }
 
   /**
-   * Normalize the path component of the {@link AlluxioURI}, by replacing all "//" and "\\" with
-   * "/", and trimming trailing slash from non-root path (ignoring windows drive).
-   * From Alluxio.normalizePath(String).
+   * Normalize the path component of the {@link AlluxioURI}, by replacing all "//" with
+   * "/", and trimming trailing slash from non-root path.
+   * From AlluxioURI.normalizePath(String).
    *
    * @param path the path to normalize
    * @return the normalized path

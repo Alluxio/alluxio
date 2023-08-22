@@ -158,13 +158,24 @@ public class UfsUrlTest {
   }
 
   /**
+   * Tests the {@link UfsUrl#createInstance(String)} constructor for URL without scheme.
+   */
+  @Test
+  public void pathWithoutSchemeException() {
+    String path =  "/ ";
+    mException.expect(IllegalArgumentException.class);
+    mException.expectMessage(String.format("empty scheme: %s", path));
+    UfsUrl ufsUrl = UfsUrl.createInstance(path);
+  }
+
+  /**
    * Tests the {@link UfsUrl#createInstance(String)} constructor for URL with spaces.
    */
   @Test
-  public void pathWithWhiteSpacesException() {
-    String path =  "/ ";
+  public void pathWithReverseSequenceColonAndSlashException() {
+    String path =  "abc/:";
     mException.expect(IllegalArgumentException.class);
-    mException.expectMessage("scheme is not allowed to be empty, please input again.");
+    mException.expectMessage(String.format("empty scheme: %s", path));
     UfsUrl ufsUrl = UfsUrl.createInstance(path);
   }
 
@@ -331,6 +342,11 @@ public class UfsUrlTest {
         UfsUrl.createInstance("abc:/a/b/../c").getParentURL());
     assertEquals(UfsUrl.createInstance("abc://localhost:80/a"),
         UfsUrl.createInstance("abc://localhost:80/a/b/../c").getParentURL());
+
+    assertNull(UfsUrl.createInstance("abc:").getParentURL());
+    assertNull(UfsUrl.createInstance("abc:/").getParentURL());
+    assertNull(UfsUrl.createInstance("abc://").getParentURL());
+    assertNull(UfsUrl.createInstance("abc:///").getParentURL());
   }
 
   /**
@@ -397,42 +413,41 @@ public class UfsUrlTest {
     assertEquals(UfsUrl.createInstance("abc:/a"), UfsUrl.createInstance("abc:/a").join(""));
   }
 
-//  @Test
-//  public void joinUnsafeTests() {
-////    System.out.println(FilenameUtils.normalizeNoEndSeparator("//a") == null ? "??" : "");
-////    assertEquals(UfsUrl.createInstance("file://a"),
-////        UfsUrl.createInstance("file://").joinUnsafe("a"));
-//    assertEquals(UfsUrl.createInstance("file://a/b"),
-//        UfsUrl.createInstance("file://a").joinUnsafe("b"));
-//    assertEquals(UfsUrl.createInstance("file:/a/b"),
-//        UfsUrl.createInstance("file:/a").joinUnsafe("b"));
-//    assertEquals(UfsUrl.createInstance("file:/a/b.txt"),
-//        UfsUrl.createInstance("file:/a").joinUnsafe("/b.txt"));
-//    assertEquals(UfsUrl.createInstance("abc:/a/b.txt"),
-//        UfsUrl.createInstance("abc:/a").joinUnsafe("/b.txt"));
-//    assertEquals(UfsUrl.createInstance("file://a/b"),
-//        UfsUrl.createInstance("file://a").joinUnsafe("///b///"));
-//
-////    final String pathWithSpecialChar = "����,��b����$o����[| =B����";
-////    assertEquals(UfsUrl.createInstance("file://" + pathWithSpecialChar),
-////        UfsUrl.createInstance("file://").joinUnsafe(pathWithSpecialChar));
-//
-////    final String pathWithSpecialCharAndColon = "����,��b����$o����[| =B��:��";
-////    assertEquals(UfsUrl.createInstance("file://" + pathWithSpecialCharAndColon),
-////        UfsUrl.createInstance("file://").joinUnsafe(pathWithSpecialCharAndColon));
-//
-//    // The following joins are not "safe", because the new path component requires normalization.
-//    assertNotEquals(UfsUrl.createInstance("file://a/c"),
-//        UfsUrl.createInstance("file://a").joinUnsafe("b/../c"));
-//    assertNotEquals(UfsUrl.createInstance("file:/a/b.txt"),
-//        UfsUrl.createInstance("file:/a").joinUnsafe("/c/../b.txt"));
-//    assertNotEquals(UfsUrl.createInstance("abc:/a/b.txt"),
-//        UfsUrl.createInstance("file:/abc:/a/c.txt").joinUnsafe("/../b.txt"));
-//
-//    // join empty string
-//    assertEquals(UfsUrl.createInstance("file://a"),
-//        UfsUrl.createInstance("file://a").joinUnsafe(""));
-//  }
+  @Test
+  public void joinUnsafeTests() {
+    assertEquals(UfsUrl.createInstance("file:/a"),
+        UfsUrl.createInstance("file:/").joinUnsafe("a"));
+    assertEquals(UfsUrl.createInstance("file://a/b"),
+        UfsUrl.createInstance("file://a").joinUnsafe("b"));
+    assertEquals(UfsUrl.createInstance("file:/a/b"),
+        UfsUrl.createInstance("file:/a").joinUnsafe("b"));
+    assertEquals(UfsUrl.createInstance("file:/a/b.txt"),
+        UfsUrl.createInstance("file:/a").joinUnsafe("/b.txt"));
+    assertEquals(UfsUrl.createInstance("abc:/a/b.txt"),
+        UfsUrl.createInstance("abc:/a").joinUnsafe("/b.txt"));
+    assertEquals(UfsUrl.createInstance("file://a/b"),
+        UfsUrl.createInstance("file://a").joinUnsafe("///b///"));
+
+    final String pathWithSpecialChar = "����,��b����$o����[| =B����";
+    assertEquals(UfsUrl.createInstance("file:/" + pathWithSpecialChar),
+        UfsUrl.createInstance("file:/").joinUnsafe(pathWithSpecialChar));
+
+    final String pathWithSpecialCharAndColon = "����,��b����$o����[| =B��:��";
+    assertEquals(UfsUrl.createInstance("file:/" + pathWithSpecialCharAndColon),
+        UfsUrl.createInstance("file:/").joinUnsafe(pathWithSpecialCharAndColon));
+
+    // The following joins are not "safe", because the new path component requires normalization.
+    assertNotEquals(UfsUrl.createInstance("file://a/c"),
+        UfsUrl.createInstance("file://a").joinUnsafe("b/../c"));
+    assertNotEquals(UfsUrl.createInstance("file:/a/b.txt"),
+        UfsUrl.createInstance("file:/a").joinUnsafe("/c/../b.txt"));
+    assertNotEquals(UfsUrl.createInstance("abc:/a/b.txt"),
+        UfsUrl.createInstance("file:/abc:/a/c.txt").joinUnsafe("/../b.txt"));
+
+    // join empty string
+    assertEquals(UfsUrl.createInstance("file://a"),
+        UfsUrl.createInstance("file://a").joinUnsafe(""));
+  }
 
   /**
    * Tests the {@link UfsUrl#createInstance(String)} constructor to work with file URIs
