@@ -21,8 +21,8 @@ var Service = &env.Service{
 	Commands: []env.Command{
 		//ClearMetrics,
 		ClearOSCache,
-		// CopyDir,
-		// Format,
+		CopyDir,
+		Format,
 		Validate,
 	},
 }

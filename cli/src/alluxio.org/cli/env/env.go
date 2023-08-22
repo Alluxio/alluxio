@@ -159,7 +159,8 @@ func InitAlluxioEnv(rootPath string, jarEnvVars map[string]string, appendClasspa
 	for _, c := range []*AlluxioConfigEnvVar{
 		confAlluxioRamFolder,
 		confAlluxioMasterHostname,
-		confAlluxioMasterMountTableRootUfs,
+		ConfAlluxioMasterMountTableRootUfs,
+		ConfAlluxioMasterJournalType,
 		confAlluxioWorkerRamdiskSize,
 	} {
 		alluxioJavaOpts += c.ToJavaOpt(envVar, false) // optional user provided java opts
