@@ -28,9 +28,9 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.proxy.s3.S3RestServiceHandler;
 import alluxio.proxy.s3.S3RestUtils;
+import alluxio.s3.ListAllMyBucketsResult;
 import alluxio.s3.ListBucketOptions;
 import alluxio.s3.ListBucketResult;
-import alluxio.s3.S3Error;
 import alluxio.s3.S3ErrorCode;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -38,7 +38,6 @@ import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.ModeParser;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -47,11 +46,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestRule;
 
-import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
 
 public class ListStatusTest extends RestApiTest {
@@ -905,15 +902,6 @@ public class ListStatusTest extends RestApiTest {
   }
 
   /**
-   * Lists objects without authorization.
-   */
-  @Test
-  public void listBucketUnauthorized() throws Exception {
-//  TODO(dongxinran): this unit test will be completed after
-//   setAttribute of createDirecotory is fixed.
-  }
-
-  /**
    * Heads a non-existent bucket and lists objects in a non-existent bucket.
    */
   @Test
@@ -924,15 +912,24 @@ public class ListStatusTest extends RestApiTest {
     headTestCase(bucketName).checkResponseCode(Response.Status.NOT_FOUND.getStatusCode());
 
     // Lists objects in a non-existent bucket.
-    HttpURLConnection connection2 = new TestCase(mHostname, mPort, mBaseUri,
-        bucketName, NO_PARAMS, HttpMethod.GET,
-        getDefaultOptionsWithAuth())
-        .execute();
-    // Verify 404 HTTP status & NoSuchBucket S3 error code
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), connection2.getResponseCode());
-    S3Error response =
-        new XmlMapper().readerFor(S3Error.class).readValue(connection2.getErrorStream());
-    Assert.assertEquals(bucketName, response.getResource());
-    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
+    listTestCase(bucketName, NO_PARAMS)
+        .checkResponseCode(Response.Status.NOT_FOUND.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_BUCKET);
+  }
+
+  /**
+   * Lists all buckets.
+   */
+  @Test
+  public void listAllBuckets() throws Exception {
+    createBucketTestCase("bucket2");
+    createBucketTestCase("bucket3");
+    ListAllMyBucketsResult response = listTestCase("", NO_PARAMS).getResponse(ListAllMyBucketsResult.class);
+    response.getBuckets().sort((b1, b2) -> b1.getName().compareTo(b2.getName()));
+
+    Assert.assertEquals(3, response.getBuckets().size());
+    Assert.assertEquals("bucket", response.getBuckets().get(0).getName());
+    Assert.assertEquals("bucket2", response.getBuckets().get(1).getName());
+    Assert.assertEquals("bucket3", response.getBuckets().get(2).getName());
   }
 }

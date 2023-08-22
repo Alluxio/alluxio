@@ -32,48 +32,47 @@ public abstract class RestApiTest extends BaseIntegrationTest {
   protected int mPort;
   protected String mBaseUri = Constants.REST_API_PREFIX;
 
-  protected TestCase newTestCase(String bucket, Map<String, String> params,
-                                 String httpMethod, TestCaseOptions options) throws Exception {
-    return new TestCase(mHostname, mPort, mBaseUri, bucket, params, httpMethod,
-        options);
+  protected TestCase runTestCase(String bucket, Map<String, String> params,
+                                     String httpMethod, TestCaseOptions options) throws Exception {
+    return new TestCase(mHostname, mPort, mBaseUri, bucket, params, httpMethod, options).run();
   }
 
   protected TestCase createBucketTestCase(String bucket) throws Exception {
-    return newTestCase(bucket, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth());
+    return runTestCase(bucket, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth());
   }
 
-  protected TestCase createObjectTestCase(String bucket, byte[] object) throws Exception {
-    return newTestCase(bucket, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth()
+  protected TestCase createObjectTestCase(String uri, byte[] object) throws Exception {
+    return runTestCase(uri, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth()
         .setBody(object)
         .setMD5(computeObjectChecksum(object)));
   }
 
-  protected TestCase createObjectTestCase(String bucket, TestCaseOptions options)
+  protected TestCase createObjectTestCase(String uri, TestCaseOptions options)
       throws Exception {
-    return newTestCase(bucket, NO_PARAMS, HttpMethod.PUT, options);
+    return runTestCase(uri, NO_PARAMS, HttpMethod.PUT, options);
   }
 
-  protected TestCase copyObjectTestCase(String sourcePath, String targetPath) throws Exception {
-    return newTestCase(targetPath, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth()
+  protected TestCase copyObjectTestCase(String sourceUri, String targetUri) throws Exception {
+    return runTestCase(targetUri, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth()
         .addHeader(S3Constants.S3_METADATA_DIRECTIVE_HEADER,
             S3Constants.Directive.REPLACE.name())
-        .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, sourcePath));
+        .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, sourceUri));
   }
 
   protected TestCase deleteTestCase(String uri) throws Exception {
-    return newTestCase(uri, NO_PARAMS, HttpMethod.DELETE, getDefaultOptionsWithAuth());
+    return runTestCase(uri, NO_PARAMS, HttpMethod.DELETE, getDefaultOptionsWithAuth());
   }
 
   protected TestCase headTestCase(String uri) throws Exception {
-    return newTestCase(uri, NO_PARAMS, HttpMethod.HEAD, getDefaultOptionsWithAuth());
+    return runTestCase(uri, NO_PARAMS, HttpMethod.HEAD, getDefaultOptionsWithAuth());
   }
 
   protected TestCase getTestCase(String uri) throws Exception {
-    return newTestCase(uri, NO_PARAMS, HttpMethod.GET, getDefaultOptionsWithAuth());
+    return runTestCase(uri, NO_PARAMS, HttpMethod.GET, getDefaultOptionsWithAuth());
   }
 
   protected TestCase listTestCase(String uri, Map<String, String> params) throws Exception {
-    return newTestCase(uri, params, HttpMethod.GET,
+    return runTestCase(uri, params, HttpMethod.GET,
         getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE));
   }
 
