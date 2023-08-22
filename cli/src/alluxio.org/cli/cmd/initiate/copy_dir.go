@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/user"
 	"path/filepath"
 	"strings"
 
@@ -53,12 +52,6 @@ func (c *CopyDirCommand) ToCommand() *cobra.Command {
 				return stacktrace.Propagate(err, "cannot find absolute path")
 			}
 
-			// hypothesize all hosts use the same username
-			cu, err := user.Current()
-			if err != nil {
-				return stacktrace.Propagate(err, "cannot find current user")
-			}
-
 			var errs []error
 			for _, host := range hosts {
 				if host == myHost {
@@ -77,7 +70,7 @@ func (c *CopyDirCommand) ToCommand() *cobra.Command {
 				}
 
 				cmd := exec.Command("rsync", "-az", srcDir,
-					fmt.Sprintf("%s@%s:%s", cu.Username, host, dstDir))
+					fmt.Sprintf("%s:%s", host, dstDir))
 				log.Logger.Infof("Command: %s", cmd)
 				if err := cmd.Run(); err != nil {
 					log.Logger.Error("Error: %s", err)
