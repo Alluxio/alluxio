@@ -72,7 +72,6 @@ public class DoraPositionReaderIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.DORA_CLIENT_UFS_ROOT, UFS_ROOT)
           .setProperty(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false)
           .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
-          .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, "PAGE")
           .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, Constants.KB)
           .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, "1GB")
           .setProperty(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true)

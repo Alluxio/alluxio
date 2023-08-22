@@ -15,7 +15,6 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.MetastoreType;
-import alluxio.worker.block.BlockStoreType;
 
 /**
  * Utilities to detect features that Alluxio is running with.
@@ -114,6 +113,6 @@ public final class FeatureUtils {
    * @return true, if page store is enabled
    */
   public static boolean isPageStoreEnabled() {
-    return Configuration.get(PropertyKey.WORKER_BLOCK_STORE_TYPE) == BlockStoreType.PAGE;
+    return true;
   }
 }

@@ -16,7 +16,6 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -92,7 +91,6 @@ public class BatchedJobDefinitionTest {
 
   private JobServerContext mJobServerContext;
   private FileSystem mMockFileSystem;
-  private BlockStoreClient mMockBlockStore;
   private FileSystemContext mMockFsContext;
 
   @Before

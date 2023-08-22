@@ -91,7 +91,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   private final DoraWorker mWorker;
 
   /**
-   * Creates a new implementation of gRPC BlockWorker interface.
+   * Creates a new implementation of gRPC DorakWorker interface.
    * @param doraWorker the DoraWorker object
    */
   @Inject

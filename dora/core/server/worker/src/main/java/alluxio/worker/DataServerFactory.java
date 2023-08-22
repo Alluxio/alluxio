@@ -57,15 +57,9 @@ public class DataServerFactory {
    * @param dataWorker the dora worker
    * @return the remoteGrpcServer
    */
-  public DataServer createRemoteGrpcDataServer(DataWorker dataWorker) {
+  public DataServer createRemoteGrpcDataServer(DoraWorker dataWorker) {
     BlockWorkerGrpc.BlockWorkerImplBase blockWorkerService;
-    if (dataWorker instanceof DoraWorker) {
-      blockWorkerService =
-          new DoraWorkerClientServiceHandler((DoraWorker) dataWorker);
-    } else {
-      throw new UnsupportedOperationException(dataWorker.getClass().getCanonicalName()
-          + " is no longer supported in Alluxio 3.x");
-    }
+    blockWorkerService = new DoraWorkerClientServiceHandler(dataWorker);
     return new GrpcDataServer(
         mConnectAddress.getHostName(), mGRpcBindAddress, blockWorkerService);
   }
@@ -74,7 +68,7 @@ public class DataServerFactory {
    * @param worker the dora worker
    * @return the domain socket data server
    */
-  public DataServer createDomainSocketDataServer(DataWorker worker) {
+  public DataServer createDomainSocketDataServer(DoraWorker worker) {
     String domainSocketPath =
         Configuration.getString(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
     if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
@@ -83,13 +77,7 @@ public class DataServerFactory {
     }
     LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
     BlockWorkerGrpc.BlockWorkerImplBase blockWorkerService;
-    if (worker instanceof DoraWorker) {
-      blockWorkerService =
-          new DoraWorkerClientServiceHandler((DoraWorker) worker);
-    } else {
-      throw new UnsupportedOperationException(worker.getClass().getCanonicalName()
-          + " is no longer supported in Alluxio 3.x");
-    }
+    blockWorkerService = new DoraWorkerClientServiceHandler(worker);
     GrpcDataServer domainSocketDataServer = new GrpcDataServer(mConnectAddress.getHostName(),
         new DomainSocketAddress(domainSocketPath), blockWorkerService);
     // Share domain socket so that clients can access it.

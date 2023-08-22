@@ -22,6 +22,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 
 import alluxio.ClientContext;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.conf.Configuration;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.ReadRequest;
@@ -57,7 +58,7 @@ public final class GrpcDataReaderTest {
 
   private FileSystemContext mContext;
   private WorkerNetAddress mAddress;
-  private BlockWorkerClient mClient;
+  private WorkerClient mClient;
   private GrpcDataReader.Factory mFactory;
   private ClientCallStreamObserver<ReadRequest> mRequestObserver;
 
@@ -72,9 +73,9 @@ public final class GrpcDataReaderTest {
         ReadRequest.newBuilder().setBlockId(BLOCK_ID).setChunkSize(CHUNK_SIZE);
     mFactory = new GrpcDataReader.Factory(mContext, mAddress, readRequestBuilder);
 
-    mClient = mock(BlockWorkerClient.class);
+    mClient = mock(WorkerClient.class);
     mRequestObserver = mock(ClientCallStreamObserver.class);
-    when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(
+    when(mContext.acquireWorkerClient(mAddress)).thenReturn(
         new NoopClosableResource<>(mClient));
     when(mClient.readBlock(any(StreamObserver.class))).thenReturn(mRequestObserver);
     when(mRequestObserver.isReady()).thenReturn(true);
@@ -203,7 +204,7 @@ public final class GrpcDataReaderTest {
    * @param offset the offset
    * @param length the length
    */
-  private void validateReadRequestSent(final BlockWorkerClient client, long offset, long length,
+  private void validateReadRequestSent(final WorkerClient client, long offset, long length,
       boolean closed, int chunkSize) throws TimeoutException, InterruptedException {
     ArgumentCaptor<ReadRequest> requestCaptor = ArgumentCaptor.forClass(ReadRequest.class);
     verify(mRequestObserver, atLeastOnce()).onNext(requestCaptor.capture());
@@ -240,7 +241,7 @@ public final class GrpcDataReaderTest {
    * @param end the end position to calculate the checksum
    * @return the checksum
    */
-  private long setReadResponses(final BlockWorkerClient client, final long length,
+  private long setReadResponses(final WorkerClient client, final long length,
       final long start, final long end) {
     long checksum = 0;
     long pos = 0;

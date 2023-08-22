@@ -29,8 +29,7 @@ import alluxio.grpc.WriteOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsStatus;
 import alluxio.wire.FileInfo;
-import alluxio.worker.DataWorker;
-import alluxio.worker.SessionCleanable;
+import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -38,12 +37,13 @@ import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
 /**
  * A block worker in the Alluxio system.
  */
-public interface DoraWorker extends DataWorker, SessionCleanable {
+public interface DoraWorker extends Worker {
   /**
    * Gets the file information.
    *
@@ -187,4 +187,9 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @param options the options of this operation
    */
   void setAttribute(String path, SetAttributePOptions options) throws IOException;
+
+  /**
+   * @return the worker id
+   */
+  AtomicReference<Long> getWorkerId();
 }

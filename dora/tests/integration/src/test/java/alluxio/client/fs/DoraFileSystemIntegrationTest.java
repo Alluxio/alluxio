@@ -69,7 +69,6 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
           .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, Constants.MB * 16 / 2)
           .setProperty(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED, true)
-          .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, "PAGE")
           .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, Constants.KB)
           .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, "1GB")
           .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.NOOP)

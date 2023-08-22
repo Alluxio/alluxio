@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.block.stream;
+package alluxio.client.file.dora;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.CacheRequest;
@@ -63,7 +63,7 @@ import java.util.Iterator;
 /**
  * gRPC client for worker communication.
  */
-public interface BlockWorkerClient extends Closeable {
+public interface WorkerClient extends Closeable {
 
   /**
    * Factory for block worker client.
@@ -75,12 +75,12 @@ public interface BlockWorkerClient extends Closeable {
      * @param userState the user subject
      * @param address the address of the worker
      * @param alluxioConf Alluxio configuration
-     * @return a new {@link BlockWorkerClient}
+     * @return a new {@link WorkerClient}
      */
-    public static BlockWorkerClient create(UserState userState, GrpcServerAddress address,
+    public static WorkerClient create(UserState userState, GrpcServerAddress address,
         AlluxioConfiguration alluxioConf)
         throws IOException {
-      return new DefaultBlockWorkerClient(userState, address, alluxioConf);
+      return new DefaultWorkerClient(userState, address, alluxioConf);
     }
   }
 

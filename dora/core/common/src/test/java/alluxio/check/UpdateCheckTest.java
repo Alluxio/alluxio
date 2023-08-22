@@ -18,7 +18,6 @@ import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.MetastoreType;
 import alluxio.util.EnvironmentUtils;
 import alluxio.util.OSUtils;
-import alluxio.worker.block.BlockStoreType;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.util.EC2MetadataUtils;
@@ -269,13 +268,8 @@ public class UpdateCheckTest {
   @Test
   public void featureStringPageStore() {
     List<String> info = new ArrayList<>();
-    Configuration.set(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.PAGE);
     UpdateCheck.addUserAgentFeatures(info);
     Assert.assertTrue(listContainsTarget(info, UpdateCheck.PAGE_STORE_KEY));
-    Configuration.set(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.FILE);
-    info.clear();
-    UpdateCheck.addUserAgentFeatures(info);
-    Assert.assertFalse(listContainsTarget(info, UpdateCheck.PAGE_STORE_KEY));
   }
 
   @Test

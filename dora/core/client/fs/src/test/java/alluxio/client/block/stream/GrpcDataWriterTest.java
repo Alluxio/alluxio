@@ -24,6 +24,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -76,7 +77,7 @@ public final class GrpcDataWriterTest {
 
   private FileSystemContext mContext;
   private WorkerNetAddress mAddress;
-  private BlockWorkerClient mClient;
+  private WorkerClient mClient;
   private ClientCallStreamObserver<WriteRequest> mRequestObserver;
   private InstancedConfiguration mConf = Configuration.copyGlobal();
   private ClientContext mClientContext;
@@ -93,9 +94,9 @@ public final class GrpcDataWriterTest {
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = mock(WorkerNetAddress.class);
 
-    mClient = mock(BlockWorkerClient.class);
+    mClient = mock(WorkerClient.class);
     mRequestObserver = mock(ClientCallStreamObserver.class);
-    when(mContext.acquireBlockWorkerClient(mAddress)).thenReturn(
+    when(mContext.acquireWorkerClient(mAddress)).thenReturn(
         new NoopClosableResource<>(mClient));
     when(mContext.getClientContext()).thenReturn(mClientContext);
     when(mContext.getClusterConf()).thenReturn(mConf);
@@ -188,10 +189,10 @@ public final class GrpcDataWriterTest {
 
   @Test
   public void closedBlockWorkerClientTest() throws IOException {
-    CloseableResource<BlockWorkerClient> resource = Mockito.mock(CloseableResource.class);
+    CloseableResource<WorkerClient> resource = Mockito.mock(CloseableResource.class);
     when(resource.get()).thenReturn(mClient);
     FileSystemContext context = PowerMockito.mock(FileSystemContext.class);
-    when(context.acquireBlockWorkerClient(any(WorkerNetAddress.class))).thenReturn(resource);
+    when(context.acquireWorkerClient(any(WorkerNetAddress.class))).thenReturn(resource);
     when(context.getClusterConf()).thenReturn(mConf);
     mConf.set(PropertyKey.USER_STREAMING_WRITER_CLOSE_TIMEOUT, "1");
     GrpcDataWriter writer = GrpcDataWriter.create(context, mAddress, BLOCK_ID, 0,
@@ -274,7 +275,7 @@ public final class GrpcDataWriterTest {
    * @param checksumEnd the end position to calculate the checksum
    * @return the checksum of the data read starting from checksumStart
    */
-  private long verifyWriteRequests(final BlockWorkerClient client, final long checksumStart,
+  private long verifyWriteRequests(final WorkerClient client, final long checksumStart,
       final long checksumEnd) {
     try {
       ArgumentCaptor<WriteRequest> requestCaptor = ArgumentCaptor.forClass(WriteRequest.class);

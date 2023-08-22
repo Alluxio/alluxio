@@ -17,7 +17,6 @@ import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.GrpcDataReader;
 import alluxio.client.file.DoraFileOutStream;
 import alluxio.client.file.FileOutStream;
@@ -181,8 +180,8 @@ public class DoraCacheClient {
    */
   public List<URIStatus> listStatus(String path, ListStatusPOptions options)
       throws PermissionDeniedException {
-    try (CloseableResource<BlockWorkerClient> client =
-             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+    try (CloseableResource<WorkerClient> client =
+             mContext.acquireWorkerClient(getWorkerNetAddress(path))) {
       List<URIStatus> result = new ArrayList<>();
       client.get().listStatus(ListStatusPRequest.newBuilder().setPath(path)
               .setOptions(options).build())
@@ -210,8 +209,8 @@ public class DoraCacheClient {
 
   protected URIStatus getStatusByGrpc(String path, GetStatusPOptions options)
       throws PermissionDeniedException {
-    try (CloseableResource<BlockWorkerClient> client =
-             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+    try (CloseableResource<WorkerClient> client =
+             mContext.acquireWorkerClient(getWorkerNetAddress(path))) {
       GetStatusPRequest request = GetStatusPRequest.newBuilder()
           .setPath(path)
           .setOptions(options)
@@ -232,8 +231,8 @@ public class DoraCacheClient {
    */
   public Pair<URIStatus, String> createFile(String path, CreateFilePOptions options)
       throws PermissionDeniedException {
-    try (CloseableResource<BlockWorkerClient> client =
-             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+    try (CloseableResource<WorkerClient> client =
+             mContext.acquireWorkerClient(getWorkerNetAddress(path))) {
       CreateFilePRequest request = CreateFilePRequest.newBuilder()
           .setPath(path)
           .setOptions(options)
@@ -257,8 +256,8 @@ public class DoraCacheClient {
    */
   public void completeFile(String path, CompleteFilePOptions options, String uuid)
       throws PermissionDeniedException {
-    try (CloseableResource<BlockWorkerClient> client =
-             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+    try (CloseableResource<WorkerClient> client =
+             mContext.acquireWorkerClient(getWorkerNetAddress(path))) {
       CompleteFilePRequest request = CompleteFilePRequest.newBuilder()
           .setPath(path)
           .setOptions(options)
@@ -277,8 +276,8 @@ public class DoraCacheClient {
    * @param options
    */
   public void delete(String path, DeletePOptions options) throws PermissionDeniedException {
-    try (CloseableResource<BlockWorkerClient> client =
-             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+    try (CloseableResource<WorkerClient> client =
+             mContext.acquireWorkerClient(getWorkerNetAddress(path))) {
       DeletePRequest request = DeletePRequest.newBuilder()
           .setPath(path)
           .setOptions(options)
@@ -298,8 +297,8 @@ public class DoraCacheClient {
    */
   public void rename(String src, String dst, RenamePOptions options)
       throws PermissionDeniedException {
-    try (CloseableResource<BlockWorkerClient> client =
-             mContext.acquireBlockWorkerClient(getWorkerNetAddress(src))) {
+    try (CloseableResource<WorkerClient> client =
+             mContext.acquireWorkerClient(getWorkerNetAddress(src))) {
       RenamePRequest request = RenamePRequest.newBuilder()
           .setPath(src)
           .setDstPath(dst)
@@ -319,8 +318,8 @@ public class DoraCacheClient {
    */
   public void createDirectory(String path, CreateDirectoryPOptions options)
       throws PermissionDeniedException {
-    try (CloseableResource<BlockWorkerClient> client =
-             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+    try (CloseableResource<WorkerClient> client =
+             mContext.acquireWorkerClient(getWorkerNetAddress(path))) {
       CreateDirectoryPRequest request = CreateDirectoryPRequest.newBuilder()
           .setPath(path)
           .setOptions(options)
@@ -343,8 +342,8 @@ public class DoraCacheClient {
    */
   public boolean exists(String path, ExistsPOptions options)
       throws InvalidPathException, IOException, AlluxioException {
-    try (CloseableResource<BlockWorkerClient> client =
-             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+    try (CloseableResource<WorkerClient> client =
+             mContext.acquireWorkerClient(getWorkerNetAddress(path))) {
       ExistsPRequest request = ExistsPRequest.newBuilder()
           .setPath(path)
           .setOptions(options)
@@ -366,8 +365,8 @@ public class DoraCacheClient {
    */
   public void setAttribute(String path, SetAttributePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    try (CloseableResource<BlockWorkerClient> client =
-             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+    try (CloseableResource<WorkerClient> client =
+             mContext.acquireWorkerClient(getWorkerNetAddress(path))) {
       SetAttributePRequest request = SetAttributePRequest.newBuilder()
           .setPath(path)
           .setOptions(options)

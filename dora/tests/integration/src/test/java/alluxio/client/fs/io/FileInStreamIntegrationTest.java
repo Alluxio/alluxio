@@ -33,7 +33,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileBlockInfo;
-import alluxio.worker.block.BlockStoreType;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
@@ -47,8 +46,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -69,14 +66,6 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   private static final int MAX_LEN = BLOCK_SIZE * 4 + 1;
   private static final int DELTA = BLOCK_SIZE / 2;
 
-  @Parameterized.Parameters(name = "{index}_BlockStoreType_{0}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {
-        {BlockStoreType.PAGE},
-        {BlockStoreType.FILE}
-    });
-  }
-
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource;
 
@@ -91,22 +80,17 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  public FileInStreamIntegrationTest(BlockStoreType blockStoreType) {
+  public FileInStreamIntegrationTest() {
     LocalAlluxioClusterResource.Builder builder = new LocalAlluxioClusterResource.Builder()
-        .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, blockStoreType)
-        .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
-
-    if (blockStoreType == BlockStoreType.PAGE) {
-      builder
-          // todo(bowen): this one has to be overridden with a much larger value as
-          //  local cache opens a local file on every get call, even for 1 byte read,
-          //  which makes small reads extremely slow
-          .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
-          .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, ImmutableList.of(100 * Constants.MB))
-          .setProperty(PropertyKey.WORKER_PAGE_STORE_DIRS,
-              ImmutableList.of(AlluxioTestDirectory.createTemporaryDirectory("page_store")
-                  .getAbsolutePath()));
-    }
+        .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
+        // todo(bowen): this one has to be overridden with a much larger value as
+        //  local cache opens a local file on every get call, even for 1 byte read,
+        //  which makes small reads extremely slow
+        .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
+        .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, ImmutableList.of(100 * Constants.MB))
+        .setProperty(PropertyKey.WORKER_PAGE_STORE_DIRS,
+            ImmutableList.of(AlluxioTestDirectory.createTemporaryDirectory("page_store")
+                .getAbsolutePath()));
     mLocalAlluxioClusterResource = builder.build();
   }
 

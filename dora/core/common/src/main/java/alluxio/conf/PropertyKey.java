@@ -54,7 +54,6 @@ import alluxio.security.authentication.AuthType;
 import alluxio.underfs.ChecksumType;
 import alluxio.util.FormatUtils;
 import alluxio.util.compression.DirectoryMarshaller;
-import alluxio.worker.block.BlockStoreType;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -3957,12 +3956,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_BLOCK_STORE_TYPE =
-      enumBuilder(Name.WORKER_BLOCK_STORE_TYPE, BlockStoreType.class)
-          .setDefaultValue(BlockStoreType.PAGE)
-          .setDescription("The implementation of LocalBlockStore that can be instantiated.")
-          .setScope(Scope.WORKER)
-          .build();
   public static final PropertyKey WORKER_CONTAINER_HOSTNAME =
       stringBuilder(Name.WORKER_CONTAINER_HOSTNAME)
           .setDescription("The container hostname if worker is running in a container.")
@@ -7826,7 +7819,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_BIND_HOST = "alluxio.worker.bind.host";
     public static final String WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
         "alluxio.worker.block.heartbeat.interval";
-    public static final String WORKER_BLOCK_STORE_TYPE = "alluxio.worker.block.store.type";
     public static final String WORKER_CONTAINER_HOSTNAME =
         "alluxio.worker.container.hostname";
     public static final String WORKER_DATA_FOLDER = "alluxio.worker.data.folder";

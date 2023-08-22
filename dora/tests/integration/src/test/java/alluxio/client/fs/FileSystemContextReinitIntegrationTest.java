@@ -13,10 +13,10 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
-import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.ConfigHashSync;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemContextReinitializer;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.resource.CloseableResource;
@@ -73,10 +73,10 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   @Test
   public void blockWorkerClientReinit() throws Exception {
     FileSystemContext fsContext = FileSystemContext.create(Configuration.global());
-    try (CloseableResource<BlockWorkerClient> client =
-        fsContext.acquireBlockWorkerClient(mLocalAlluxioClusterResource.get().getWorkerAddress())) {
+    try (CloseableResource<WorkerClient> client =
+        fsContext.acquireWorkerClient(mLocalAlluxioClusterResource.get().getWorkerAddress())) {
       fsContext.reinit(true);
-      fsContext.acquireBlockWorkerClient(mLocalAlluxioClusterResource.get().getWorkerAddress())
+      fsContext.acquireWorkerClient(mLocalAlluxioClusterResource.get().getWorkerAddress())
           .close();
     }
   }

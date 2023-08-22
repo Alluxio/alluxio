@@ -13,6 +13,7 @@ package alluxio.client.block.stream;
 
 import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.dora.WorkerClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.DataMessage;
@@ -56,7 +57,7 @@ public final class GrpcDataReader implements DataReader {
 
   private final long mDataTimeoutMs;
   private final boolean mDetailedMetricsEnabled;
-  private final CloseableResource<BlockWorkerClient> mClient;
+  private final CloseableResource<WorkerClient> mClient;
   private final ReadRequest mReadRequest;
   private final WorkerNetAddress mAddress;
 
@@ -83,7 +84,7 @@ public final class GrpcDataReader implements DataReader {
     mDataTimeoutMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_DATA_READ_TIMEOUT);
     mDetailedMetricsEnabled = alluxioConf.getBoolean(PropertyKey.USER_BLOCK_READ_METRICS_ENABLED);
     mMarshaller = new ReadResponseMarshaller();
-    mClient = context.acquireBlockWorkerClient(address);
+    mClient = context.acquireWorkerClient(address);
     mCloseWaitMs = alluxioConf.getMs(PropertyKey.USER_STREAMING_READER_CLOSE_TIMEOUT);
     int readerBufferSizeMessages = alluxioConf
         .getInt(PropertyKey.USER_STREAMING_READER_BUFFER_SIZE_MESSAGES);
