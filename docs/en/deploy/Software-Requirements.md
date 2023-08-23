@@ -21,7 +21,7 @@ Listed below are the generic requirements to run Alluxio locally or as a cluster
   based on benchmark results when running on [AWS Graviton processors](https://aws.amazon.com/ec2/graviton/) (ex. [r6g instances](https://aws.amazon.com/ec2/instance-types/r6g/))
   versus [AWS 3rd generation AMD EPYC processors](https://aws.amazon.com/ec2/amd/) (ex. [r6a instances](https://aws.amazon.com/ec2/instance-types/r6a/)).
 
-### Master Requirements
+## Master Requirements
 
 There are Alluxio-specific requirements for cluster nodes running the master process.
 
@@ -40,7 +40,7 @@ Running Alluxio at scale and under high load will increase these requirements.
     * Inbound TCP 19200 - The Alluxio master's default port for internal leader election
     * Inbound TCP 20003 - The Alluxio job master's default port for internal leader election
 
-### Worker Requirements
+## Worker Requirements
 
 There are Alluxio-specific requirements for cluster nodes running the worker process:
 
@@ -55,7 +55,7 @@ There are Alluxio-specific requirements for cluster nodes running the worker pro
   * Inbound TCP 30003 - The Alluxio job worker's default web UI
     port: `http://<worker-hostname>:30003`
 
-### Fuse Requirements
+## Fuse Requirements
 
 There are Alluxio-specific requirements for nodes running the fuse process.
 

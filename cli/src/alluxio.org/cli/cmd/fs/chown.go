@@ -9,53 +9,53 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package job
+package fs
 
 import (
-	"strconv"
+	"fmt"
 
-	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
-	"alluxio.org/cli/cmd/names"
 	"alluxio.org/cli/env"
 )
 
-var Cancel = &CancelCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "cancel",
-		JavaClassName: names.JobShellJavaClass,
-	},
+func Chown(className string) env.Command {
+	return &ChownCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "chown",
+			JavaClassName: className,
+		},
+	}
 }
 
-type CancelCommand struct {
+type ChownCommand struct {
 	*env.BaseJavaCommand
-	jobId int
+	recursive bool
 }
 
-func (c *CancelCommand) Base() *env.BaseJavaCommand {
+func (c *ChownCommand) Base() *env.BaseJavaCommand {
 	return c.BaseJavaCommand
 }
 
-func (c *CancelCommand) ToCommand() *cobra.Command {
+func (c *ChownCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   Cancel.CommandName,
-		Short: "Cancels a job asynchronously.",
+		Use:   fmt.Sprintf("%s <owner>[:<group>] <path>", c.CommandName),
+		Short: "Changes the owner of a file or directory specified by args",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
 	})
-	const id = "id"
-	cmd.Flags().IntVar(&c.jobId, id, 0, "Determine a job ID to cancel")
-	cmd.MarkFlagRequired(id)
+	cmd.Flags().BoolVarP(&c.recursive, "recursive", "R", false,
+		"change the owner recursively")
 	return cmd
 }
 
-func (c *CancelCommand) Run(args []string) error {
-	if c.jobId <= 0 {
-		return stacktrace.NewError("Flag --id should be a positive integer")
+func (c *ChownCommand) Run(args []string) error {
+	var javaArgs []string
+	if c.recursive {
+		javaArgs = append(javaArgs, "-R")
 	}
-	javaArgs := []string{"cancel", strconv.Itoa(c.jobId)}
-	return c.Base().Run(javaArgs)
+	javaArgs = append(javaArgs, args...)
+	return c.Base().Run(args)
 }

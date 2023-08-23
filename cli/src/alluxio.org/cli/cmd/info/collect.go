@@ -52,7 +52,7 @@ const dateFormat = "2006-01-02T15:04:05"
 
 func (c *CollectCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [command]", Collect.CommandName),
+		Use:   fmt.Sprintf("%v [command]", c.CommandName),
 		Short: "Collects information such as logs, config, metrics, and more from the running Alluxio cluster and bundle into a single tarball",
 		Long: `Collects information such as logs, config, metrics, and more from the running Alluxio cluster and bundle into a single tarball
 [command] must be one of the following values:

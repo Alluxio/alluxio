@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package job
+package info
 
 import (
 	"github.com/spf13/cobra"
@@ -18,25 +18,26 @@ import (
 	"alluxio.org/cli/env"
 )
 
-var Leader = &LeaderCommand{
+var Nodes = &NodesCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "leader",
-		JavaClassName: names.JobShellJavaClass,
+		CommandName:   "nodes",
+		JavaClassName: names.FileSystemAdminShellJavaClass,
+		Parameters:    []string{"nodes", "status"},
 	},
 }
 
-type LeaderCommand struct {
+type NodesCommand struct {
 	*env.BaseJavaCommand
 }
 
-func (c *LeaderCommand) Base() *env.BaseJavaCommand {
+func (c *NodesCommand) Base() *env.BaseJavaCommand {
 	return c.BaseJavaCommand
 }
 
-func (c *LeaderCommand) ToCommand() *cobra.Command {
+func (c *NodesCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   Leader.CommandName,
-		Short: "Prints the hostname of the job master service leader.",
+		Use:   c.CommandName,
+		Short: "Show all registered workers' status",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
@@ -45,7 +46,6 @@ func (c *LeaderCommand) ToCommand() *cobra.Command {
 	return cmd
 }
 
-func (c *LeaderCommand) Run(args []string) error {
-	javaArgs := []string{"leader"}
-	return c.Base().Run(javaArgs)
+func (c *NodesCommand) Run(args []string) error {
+	return c.Base().Run(args)
 }

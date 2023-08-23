@@ -22,7 +22,7 @@ type StopProcessCommand struct {
 func (c *StopProcessCommand) ToCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   StopProcessName,
-		Short: "Stops a process",
+		Short: "Stops one or more processes",
 	}
 	cmd.PersistentFlags().BoolVarP(&c.SoftKill, "soft", "s", false, "Soft kill only, don't forcibly kill the process")
 

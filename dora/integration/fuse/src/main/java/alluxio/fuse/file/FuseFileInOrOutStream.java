@@ -46,6 +46,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   // only one of them should exist
   private Optional<FuseFileInStream> mInStream = Optional.empty();
   private Optional<FuseFileOutStream> mOutStream;
+  private volatile boolean mClosed = false;
 
   /**
    * Creates a {@link FuseFileInOrOutStream}.
@@ -149,10 +150,19 @@ public class FuseFileInOrOutStream implements FuseFileStream {
 
   @Override
   public synchronized void close() {
+    if (mClosed) {
+      return;
+    }
+    mClosed = true;
     if (mInStream.isPresent()) {
       mInStream.get().close();
       return;
     }
     mOutStream.ifPresent(FuseFileOutStream::close);
+  }
+
+  @Override
+  public boolean isClosed() {
+    return mClosed;
   }
 }

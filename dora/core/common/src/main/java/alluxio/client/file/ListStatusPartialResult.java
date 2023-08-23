@@ -42,7 +42,14 @@ public class ListStatusPartialResult {
   private final boolean mTruncated;
   private final long mFileCount;
 
-  private ListStatusPartialResult(List<URIStatus> listings, boolean isTruncated, long fileCount) {
+  /**
+   * Constructor.
+   *
+   * @param listings
+   * @param isTruncated
+   * @param fileCount
+   */
+  public ListStatusPartialResult(List<URIStatus> listings, boolean isTruncated, long fileCount) {
     mListings = listings;
     mTruncated = isTruncated;
     mFileCount = fileCount;
@@ -64,8 +71,8 @@ public class ListStatusPartialResult {
 
   /**
    * @return the total number of files in the listed directory,
-   *  (i.e. the size of the result if partial listing was not used
-   *  or -1 if the listing was recursive)
+   *     (i.e. the size of the result if partial listing was not used
+   *     or -1 if the listing was recursive)
    */
   public long getFileCount() {
     return mFileCount;

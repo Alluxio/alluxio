@@ -9,53 +9,54 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package job
+package initiate
 
 import (
-	"strconv"
+	"fmt"
 
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
-	"alluxio.org/cli/cmd/names"
 	"alluxio.org/cli/env"
 )
 
-var CmdStatus = &CmdStatusCommand{
+var Validate = &ValidateCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "cmdStatus",
-		JavaClassName: names.JobShellJavaClass,
+		CommandName:   "validate",
+		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
 	},
 }
 
-type CmdStatusCommand struct {
+type ValidateCommand struct {
 	*env.BaseJavaCommand
-	jobControlId int
+	validateType string
 }
 
-func (c *CmdStatusCommand) Base() *env.BaseJavaCommand {
+func (c *ValidateCommand) Base() *env.BaseJavaCommand {
 	return c.BaseJavaCommand
 }
 
-func (c *CmdStatusCommand) ToCommand() *cobra.Command {
+func (c *ValidateCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   CmdStatus.CommandName,
-		Short: "Get the status information for a distributed command.",
+		Use:   c.CommandName,
+		Short: "Validate Alluxio conf or environment and exit",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
 	})
-	const id = "id"
-	cmd.Flags().IntVar(&c.jobControlId, id, 0, "Determine the job control ID to get the status information")
-	cmd.MarkFlagRequired(id)
+	cmd.Flags().StringVar(&c.validateType, "type", "",
+		"Decide the type to validate. Valid inputs: [conf, env]")
 	return cmd
 }
 
-func (c *CmdStatusCommand) Run(args []string) error {
-	if c.jobControlId <= 0 {
-		return stacktrace.NewError("Flag --id should be a positive integer")
+func (c *ValidateCommand) Run(args []string) error {
+	if c.validateType == "conf" {
+		c.JavaClassName = "alluxio.cli.ValidateConf"
+	} else if c.validateType == "env" {
+		c.JavaClassName = "alluxio.cli.ValidateEnv"
+	} else {
+		return stacktrace.NewError("Invalid validate type. Valid inputs: [conf, env]")
 	}
-	javaArgs := []string{"getCmdStatus", strconv.Itoa(c.jobControlId)}
-	return c.Base().Run(javaArgs)
+	return c.Base().Run(args)
 }

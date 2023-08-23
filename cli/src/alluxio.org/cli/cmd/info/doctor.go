@@ -9,36 +9,39 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package job
+package info
 
 import (
+	"fmt"
+
+	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/cmd/names"
 	"alluxio.org/cli/env"
 )
 
-var List = &ListCommand{
+var Doctor = &DoctorCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "list",
-		JavaClassName: names.JobShellJavaClass,
+		CommandName:   "doctor",
+		JavaClassName: names.FileSystemAdminShellJavaClass,
+		Parameters:    []string{"doctor"},
 	},
 }
 
-type ListCommand struct {
+type DoctorCommand struct {
 	*env.BaseJavaCommand
 }
 
-func (c *ListCommand) Base() *env.BaseJavaCommand {
+func (c *DoctorCommand) Base() *env.BaseJavaCommand {
 	return c.BaseJavaCommand
 }
 
-func (c *ListCommand) ToCommand() *cobra.Command {
+func (c *DoctorCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use: List.CommandName,
-		Short: "Prints the IDs of the most recent jobs, running and finished, " +
-			"in the history up to the capacity set in alluxio.job.master.job.capacity",
-		Args: cobra.NoArgs,
+		Use:   fmt.Sprintf("%v [type]", Doctor.CommandName),
+		Short: "Runs doctor configuration or storage command",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
@@ -46,7 +49,12 @@ func (c *ListCommand) ToCommand() *cobra.Command {
 	return cmd
 }
 
-func (c *ListCommand) Run(args []string) error {
-	javaArgs := []string{"ls"}
+func (c *DoctorCommand) Run(args []string) error {
+	var javaArgs []string
+	if args[0] == "configuration" || args[0] == "storage" {
+		javaArgs = append(javaArgs, args[0])
+	} else if args[0] != "all" {
+		return stacktrace.NewError("Invalid doctor type. Valid types: [all, configuration, storage]")
+	}
 	return c.Base().Run(javaArgs)
 }

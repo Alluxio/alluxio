@@ -11,17 +11,66 @@
 
 package job
 
-import "alluxio.org/cli/env"
+import (
+	"github.com/palantir/stacktrace"
+	"github.com/spf13/cobra"
+
+	"alluxio.org/cli/env"
+)
 
 var Service = &env.Service{
 	Name:        "job",
 	Description: "Command line tool for interacting with the job service.",
 	Commands: []env.Command{
-		Cancel,
-		CmdStatus,
-		JobStatus,
-		Leader,
-		List,
 		Load,
 	},
+}
+
+const (
+	progress = "progress"
+	stop     = "stop"
+	submit   = "submit"
+)
+
+var operations = []string{
+	progress,
+	stop,
+	submit,
+}
+
+type BaseJobCommand struct {
+	*env.BaseJavaCommand
+
+	isProgress bool
+	isStop     bool
+	isSubmit   bool
+
+	progressFormat  string
+	progressVerbose bool
+}
+
+func (c *BaseJobCommand) AttachOperationFlags(cmd *cobra.Command) {
+	cmd.Flags().BoolVar(&c.isProgress, progress, false, "View progress of submitted job")
+	cmd.Flags().BoolVar(&c.isStop, stop, false, "Stop running job")
+	cmd.Flags().BoolVar(&c.isSubmit, submit, false, "Submit job")
+	cmd.MarkFlagsMutuallyExclusive(operations...)
+
+	cmd.Flags().StringVar(&c.progressFormat, "format", "TEXT", "[progress] Format of output, either TEXT or JSON")
+	cmd.Flags().BoolVar(&c.progressVerbose, "verbose", false, "[progress] Verbose output")
+}
+
+func (c *BaseJobCommand) OperationWithArgs() ([]string, error) {
+	// rely on MarkFlagsMutuallyExclusive to ensure there is at most one boolean switched to true
+	if c.isProgress {
+		ret := []string{"--" + progress, "--format", c.progressFormat}
+		if c.progressVerbose {
+			ret = append(ret, "--verbose")
+		}
+		return ret, nil
+	} else if c.isStop {
+		return []string{"--" + stop}, nil
+	} else if c.isSubmit {
+		return []string{"--" + submit}, nil
+	}
+	return nil, stacktrace.NewError("Did not specify an operation flag: %v", operations)
 }

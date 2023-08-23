@@ -27,7 +27,10 @@ public final class FuseFileEntry<T extends FuseFileStream>
     implements Closeable {
   private final long mId;
   private final String mPath;
-  private final T mFileStream;
+
+  private T mFileStream;
+
+  private int mOpenOrCreateFlags;
 
   /**
    * Constructs a new {@link FuseFileEntry} for an Alluxio file.
@@ -35,14 +38,30 @@ public final class FuseFileEntry<T extends FuseFileStream>
    * @param id the id of the file
    * @param path the path of the file
    * @param fileStream the in/out stream of the file
+   * @param openOrCreateFlags open or create flags
    */
-  public FuseFileEntry(long id, String path, T fileStream) {
+  public FuseFileEntry(long id, String path, T fileStream, int openOrCreateFlags) {
     Preconditions.checkArgument(id >= 0, "id should not be negative");
     Preconditions.checkArgument(path != null && !path.isEmpty(),
         "path should not be null or empty");
     mFileStream = Preconditions.checkNotNull(fileStream, "file stream cannot be null");
     mId = id;
     mPath = path;
+    mOpenOrCreateFlags = openOrCreateFlags;
+  }
+
+  /**
+   * @return the create or open flags when the file is opened
+   */
+  public int getOpenOrCreateFlags() {
+    return mOpenOrCreateFlags;
+  }
+
+  /**
+   * @param openOrCreateFlags the open or create flags
+   */
+  public void setOpenOrCreateFlags(int openOrCreateFlags) {
+    mOpenOrCreateFlags = openOrCreateFlags;
   }
 
   /**
@@ -66,6 +85,13 @@ public final class FuseFileEntry<T extends FuseFileStream>
    */
   public T getFileStream() {
     return mFileStream;
+  }
+
+  /**
+   * @param fileStream sets the file stream
+   */
+  public void setFileStream(T fileStream) {
+    mFileStream = fileStream;
   }
 
   /**

@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Basic Logging
+title: Logging
 ---
 
 
@@ -17,12 +17,12 @@ Workers are doing, especially when running into any issues. If you do not unders
 search for them in the [Github issues](https://github.com/Alluxio/alluxio/issues){:target="_blank"},
 in the case the problem has been discussed before. 
 You can also join our [Slack channel](https://slackin.alluxio.io/) and seek help there.
-You can find more details about the Alluxio server logs [here]({{ '/en/operation/Basic-Logging.html#server-logs' | relativize_url }}).
+You can find more details about the Alluxio server logs [here]({{ '/en/operation/Logging.html#server-logs' | relativize_url }}).
 
 The client-side logs are helpful when Alluxio service is running but the client cannot connect to the servers.
 Alluxio client emits logging messages through log4j, so the location of the logs is determined by the client side
 log4j configuration used by the application.
-You can find more details about the client-side logs [here]({{ '/en/operation/Basic-Logging.html#application-logs' | relativize_url }}).
+You can find more details about the client-side logs [here]({{ '/en/operation/Logging.html#application-logs' | relativize_url }}).
 
 The user logs in `${ALLUXIO_HOME}/logs/user/` are the logs from running Alluxio shell.
 Each user will have separate log files.

@@ -310,7 +310,7 @@ In the pull request, you should also add documentation on your feature to
 
 There are a few things that new contributors can do to familiarize themselves with Alluxio:
 
-1.  [Run Alluxio locally]({{ '/en/Get-Started.html' | relativize_url }})
+1.  [Run Alluxio locally]({{ '/en/deploy/Get-Started.html' | relativize_url }})
 1.  [Run Alluxio as a cluster with HA]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }})
 1.  Read [Configuration Settings]({{ '/en/operation/Configuration.html' | relativize_url }}) and
 [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }})
