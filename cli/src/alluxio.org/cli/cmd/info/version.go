@@ -34,7 +34,7 @@ func (c *VersionCommand) Base() *env.BaseJavaCommand {
 
 func (c *VersionCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   Version.CommandName,
+		Use:   c.CommandName,
 		Short: "Print Alluxio version and exit.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {

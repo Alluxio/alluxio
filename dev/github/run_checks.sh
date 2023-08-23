@@ -34,3 +34,4 @@ mvn -Duser.home=/home/jenkins -T 4C clean install -DskipTests
 
 ./dev/scripts/check-docs.sh
 ./dev/scripts/build-artifact.sh ufsVersionCheck
+./dev/scripts/build-artifact.sh tarball --dryRun

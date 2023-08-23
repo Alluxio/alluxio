@@ -12,6 +12,7 @@
 package info
 
 import (
+	"alluxio.org/cli/cmd/names"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
@@ -20,7 +21,7 @@ import (
 var Master = &MasterCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "master",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
+		JavaClassName: names.FileSystemShellJavaClass,
 		Parameters:    []string{"masterInfo"},
 	},
 }
@@ -35,7 +36,7 @@ func (c *MasterCommand) Base() *env.BaseJavaCommand {
 
 func (c *MasterCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   Master.CommandName,
+		Use:   c.CommandName,
 		Short: "Prints information regarding master fault tolerance such as leader address and list of master addresses",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(nil)

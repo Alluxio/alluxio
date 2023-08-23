@@ -18,6 +18,7 @@ import alluxio.wire.TieredIdentity.LocalityTier;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.gson.annotations.Expose;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
@@ -34,15 +35,31 @@ public final class WorkerNetAddress implements Serializable {
 
   public static final WorkerNetAddress DUMMY = new WorkerNetAddress();
 
+  @Expose
+  @com.google.gson.annotations.SerializedName("Host")
   private String mHost = "";
+  @Expose
+  @com.google.gson.annotations.SerializedName("ContainerHost")
   private String mContainerHost = "";
+  @Expose
+  @com.google.gson.annotations.SerializedName("RpcPort")
   private int mRpcPort;
+  @Expose
+  @com.google.gson.annotations.SerializedName("DataPort")
   private int mDataPort;
+  @Expose
+  @com.google.gson.annotations.SerializedName("SecureRpcPort")
   private int mSecureRpcPort;
-
+  @Expose
+  @com.google.gson.annotations.SerializedName("NettyDataPort")
   private int mNettyDataPort;
+  @Expose
+  @com.google.gson.annotations.SerializedName("WebPort")
   private int mWebPort;
+  @Expose
+  @com.google.gson.annotations.SerializedName("DomainSocketPath")
   private String mDomainSocketPath = "";
+
   private TieredIdentity mTieredIdentity;
 
   /**

@@ -5,7 +5,7 @@ title: S3 API
 
 
 Alluxio supports a [RESTful API](https://docs.alluxio.io/os/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)
-that is compatible with the basic operations of the Amazon [S3 API](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html).
+that is compatible with the basic operations of the Amazon [S3 API](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html){:target="_blank"}.
 
 The Alluxio S3 API should be used by applications designed to communicate with an S3-like storage
 and would benefit from the other features provided by Alluxio, such as data caching, data
@@ -28,13 +28,13 @@ Alluxio uses `/` as a reserved separator. Therefore, any S3 paths with objects o
 
 ### No Bucket Virtual Hosting
 
-[Virtual hosting of buckets](https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html) is not supported
-in the Alluxio S3 API. Therefore, S3 clients must utilize [path-style requests](https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html#path-style-access)
+[Virtual hosting of buckets](https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html){:target="_blank"} is not supported
+in the Alluxio S3 API. Therefore, S3 clients must utilize [path-style requests](https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html#path-style-access){:target="_blank"}
 (i.e: `http://s3.amazonaws.com/{bucket}/{object}` and NOT `http://{bucket}.s3.amazonaws.com/{object}`).
 
 ### S3 Writes Implicitly Overwrite
 
-As described in the AWS S3 docs for [PutObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html):
+As described in the AWS S3 docs for [PutObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html){:target="_blank"}:
 > _Amazon S3 is a distributed system. If it receives multiple write requests for the same object simultaneously, it overwrites all but the last object written._
 > _Amazon S3 does not provide object locking; if you need this, make sure to build it into your application layer or use versioning instead._
 - Note that at the moment the Alluxio S3 API does not support object versioning
@@ -48,10 +48,10 @@ with if you used the AWS S3 console to create all parent folders for each object
 
 ### Tagging & Metadata Limits
 
-User-defined tags on buckets & objects are limited to 10 and obey the [S3 tag restrictions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-tagging.html).
+User-defined tags on buckets & objects are limited to 10 and obey the [S3 tag restrictions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-tagging.html){:target="_blank"}.
 - Set the property key `alluxio.proxy.s3.tagging.restrictions.enabled=false` to disable this behavior.
 
-The maximum size for user-defined metadata in PUT-requests is 2KB by default in accordance with [S3 object metadata restrictions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html).
+The maximum size for user-defined metadata in PUT-requests is 2KB by default in accordance with [S3 object metadata restrictions](https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingMetadata.html){:target="_blank"}.
 - Set the property key `alluxio.proxy.s3.header.metadata.max.size` to change this behavior.
 
 ### Performance Implications
@@ -69,7 +69,7 @@ It is also recommended to put all the proxy servers behind a load balancer.
     <th>Description</th>
   </tr>
   <tr>
-    <td><a href="https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html">Authorization</a></td>
+    <td><a href="https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html" target="_blank">Authorization</a></td>
     <td>AWS4-HMAC-SHA256
     Credential=<b>{user}</b>/...,
     SignedHeaders=...,
@@ -82,7 +82,7 @@ It is also recommended to put all the proxy servers behind a load balancer.
     Therefore this header is used exclusively to specify an Alluxio ACL username to perform an
     operation with. In order to remain compatible with other S3 clients, the header is still
     expected to follow the
-    <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html">AWS Signature Version 4</a>
+    <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html" target="_blank">AWS Signature Version 4</a>
     format.
     <br/><br/>
     When supplying an access key to an S3 client, put the intended Alluxio ACL username.
@@ -92,7 +92,7 @@ It is also recommended to put all the proxy servers behind a load balancer.
 
 ## Supported S3 API Actions
 
-The following table describes the support status for current [S3 API Actions](https://docs.aws.amazon.com/AmazonS3/latest/API/API_Operations.html):
+The following table describes the support status for current [S3 API Actions](https://docs.aws.amazon.com/AmazonS3/latest/API/API_Operations.html){:target="_blank"}:
 
 <table class="table table-striped">
   <tr>
@@ -102,7 +102,7 @@ The following table describes the support status for current [S3 API Actions](ht
   </tr>
 {% for item in site.data.table.s3-api-supported-actions %}
   <tr>
-    <td><a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_{{ item.action }}.html">{{ item.action }}</a></td>
+    <td><a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_{{ item.action }}.html" target="_blank">{{ item.action }}</a></td>
     <td>
       {% assign headers = item.headers | split: "|" %}
       {% if headers.size == 0 %}
@@ -164,13 +164,13 @@ which pertain to the Alluxio S3 API.
 
 {% navtabs s3_api_actions %}
 {% navtab AWS CLI %}
-You can use the [AWS command line interface](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html)
+You can use the [AWS command line interface](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-welcome.html){:target="_blank"}
 to send S3 API requests to the Alluxio S3 API. Note that you will have to provide the `--endpoint` parameter
 to specify the location of the Alluxio S3 REST API with the server's base URI included
 (i.e: `--endpoint "http://{alluxio.proxy.web.hostname}:{alluxio.proxy.web.port}/api/v1/s3/"`).
 
 As a pre-requisite for operations which involve the `Authorization` header you may need to
-[configure AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html).
+[configure AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html){:target="_blank"}.
 - See the [Authorization header]({{ '/en/api/S3-API.html#global-request-headers' | relativize_url }})
   for details on how Alluxio uses this header
 
@@ -190,8 +190,7 @@ Note that the base URI for the Alluxio S3 API's REST server is `/api/v1/s3/`
 At the moment, access key and secret key validation does not exist for the Alluxio S3 API.
 Therefore the [Authorization header]({{ '/en/api/S3-API.html#global-request-headers' | relativize_url }})
 is used purely to specify the intended user to perform a request. The header follows the
-[AWS Signature Version 4](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html)
-format.
+[AWS Signature Version 4](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html){:target="_blank"} format.
 
 ```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." ...
@@ -199,7 +198,10 @@ $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHead
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [AbortMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_AbortMultipartUpload.html)
+#### AbortMultipartUpload
+
+See [AbortMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_AbortMultipartUpload.html){:target="_blank"} on AWS
+
 {% navtabs abort_multipart_upload %}
 {% navtab AWS CLI %}
 ```shell
@@ -308,7 +310,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [CompleteMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CompleteMultipartUpload.html)
+#### CompleteMultipartUpload
+
+See [CompleteMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CompleteMultipartUpload.html){:target="_blank"} on AWS
+
 {% navtabs complete_multipart_upload %}
 {% navtab AWS CLI %}
 ```shell
@@ -377,7 +382,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [CopyObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CopyObject.html)
+#### CopyObject
+
+See [CopyObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CopyObject.html){:target="_blank"} on AWS
+
 {% navtabs copy_object %}
 {% navtab AWS CLI %}
 ```shell
@@ -455,7 +463,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [CreateBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateBucket.html)
+#### CreateBucket
+
+See [CreateBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateBucket.html){:target="_blank"} on AWS
+
 {% navtabs create_bucket %}
 {% navtab AWS CLI %}
 ```shell
@@ -503,7 +514,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [CreateMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateMultipartUpload.html)
+#### CreateMultipartUpload
+
+See [CreateMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateMultipartUpload.html){:target="_blank"} on AWS
+
 {% navtabs create_multipart_upload %}
 {% navtab AWS CLI %}
 ```shell
@@ -535,7 +549,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [DeleteBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucket.html)
+#### DeleteBucket
+
+See [DeleteBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucket.html){:target="_blank"} on AWS
+
 {% navtabs delete_bucket %}
 {% navtab AWS CLI %}
 ```shell
@@ -616,7 +633,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [DeleteBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucketTagging.html)
+#### DeleteBucketTagging
+
+See [DeleteBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucketTagging.html){:target="_blank"} on AWS
+
 {% navtabs delete_bucket_tagging %}
 {% navtab AWS CLI %}
 ```shell
@@ -687,7 +707,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [DeleteObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObject.html)
+#### DeleteObject
+
+See [DeleteObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObject.html){:target="_blank"} on AWS
+
 {% navtabs delete_object %}
 {% navtab AWS CLI %}
 ```shell
@@ -786,7 +809,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [DeleteObjects](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObjects.html)
+#### DeleteObjects
+
+See [DeleteObjects](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObjects.html){:target="_blank"} on AWS
+
 {% navtabs delete_objects %}
 {% navtab AWS CLI %}
 ```shell
@@ -924,7 +950,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [DeleteObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObjectTagging.html)
+#### DeleteObjectTagging
+
+See [DeleteObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObjectTagging.html){:target="_blank"} on AWS
+
 {% navtabs delete_object_tagging %}
 {% navtab AWS CLI %}
 ```shell
@@ -995,7 +1024,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [GetBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketTagging.html)
+#### GetBucketTagging
+
+See [GetBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketTagging.html){:target="_blank"} on AWS
+
 {% navtabs get_bucket_tagging %}
 {% navtab AWS CLI %}
 ```shell
@@ -1041,7 +1073,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [GetObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html)
+#### GetObject
+
+See [GetObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html){:target="_blank"} on AWS
+
 {% navtabs get_object %}
 {% navtab AWS CLI %}
 ```shell
@@ -1079,7 +1114,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [GetObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObjectTagging.html)
+#### GetObjectTagging
+
+See [GetObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObjectTagging.html){:target="_blank"} on AWS
+
 {% navtabs get_object_tagging %}
 {% navtab AWS CLI %}
 ```shell
@@ -1125,7 +1163,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [HeadBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadBucket.html)
+#### HeadBucket
+
+See [HeadBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadBucket.html){:target="_blank"} on AWS
+
 {% navtabs head_bucket %}
 {% navtab AWS CLI %}
 ```shell
@@ -1146,7 +1187,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [HeadObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadObject.html)
+#### HeadObject
+
+See [HeadObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadObject.html){:target="_blank"} on AWS
+
 {% navtabs head_object %}
 {% navtab AWS CLI %}
 ```shell
@@ -1176,7 +1220,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [ListBuckets](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListBuckets.html)
+#### ListBuckets
+
+See [ListBuckets](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListBuckets.html){:target="_blank"} on AWS
+
 {% navtabs list_buckets %}
 {% navtab AWS CLI %}
 ```shell
@@ -1213,7 +1260,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [ListObjects](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html)
+#### ListObjects
+
+See [ListObjects](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html){:target="_blank"} on AWS
+
 {% navtabs list_objects %}
 {% navtab AWS CLI %}
 ```shell
@@ -1268,7 +1318,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [ListMultipartUploads](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListMultipartUploads.html)
+#### ListMultipartUploads
+
+See [ListMultipartUploads](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListMultipartUploads.html){:target="_blank"} on AWS
+
 {% navtabs list_uploads %}
 {% navtab AWS CLI %}
 ```shell
@@ -1326,7 +1379,10 @@ Server: Jetty(9.4.46.v20220331)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [ListObjectsV2](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html)
+#### ListObjectsV2
+
+See [ListObjectsV2](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html){:target="_blank"} on AWS
+
 {% navtabs list_objects_v2 %}
 {% navtab AWS CLI %}
 ```shell
@@ -1382,7 +1438,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtabs %}
 
 
-#### [ListParts](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListParts.html)
+#### ListParts
+
+See [ListParts](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListParts.html){:target="_blank"} on AWS
+
 {% navtabs list_parts %}
 {% navtab AWS CLI %}
 ```shell
@@ -1431,7 +1490,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [PutBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketTagging.html)
+#### PutBucketTagging
+
+See [PutBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketTagging.html){:target="_blank"} on AWS
+
 {% navtabs put_bucket_tagging %}
 {% navtab AWS CLI %}
 ```shell
@@ -1518,7 +1580,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [PutObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html)
+#### PutObject
+
+See [PutObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html){:target="_blank"} on AWS
+
 {% navtabs put_object %}
 {% navtab AWS CLI %}
 ```shell
@@ -1579,7 +1644,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [PutObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectTagging.html)
+#### PutObjectTagging
+
+See [PutObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectTagging.html){:target="_blank"} on AWS
+
 {% navtabs put_object_tagging %}
 {% navtab AWS CLI %}
 ```shell
@@ -1666,7 +1734,10 @@ Server: Jetty(9.4.43.v20210629)
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [UploadPart](https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPart.html)
+#### UploadPart
+
+See [UploadPart](https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPart.html){:target="_blank"} on AWS
+
 {% navtabs upload_part %}
 {% navtab AWS CLI %}
 ```shell
@@ -1726,7 +1797,10 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 {% endnavtab %}
 {% endnavtabs %}
 
-#### [UploadPartCopy](https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPartCopy.html)
+#### UplaodPartCopy
+
+See [UploadPartCopy](https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPartCopy.html){:target="_blank"} on AWS
+
 {% navtabs upload_part_copy %}
 {% navtab AWS CLI %}
 ```shell
@@ -1776,7 +1850,7 @@ Server: Jetty(9.4.46.v20220331)
 
 Tested for Python 2.7.
 
-#### Create a connection:
+#### Create a connection
 Please note you have to install boto package first.
 
 ```shell
@@ -1798,7 +1872,7 @@ conn = boto.connect_s3(
 )
 ```
 
-#### Authenticating as a user:
+#### Authenticating as a user
 By default, authenticating with no access_key_id uses the user that was used to launch the proxy
 as the user performing the file system actions.
 
@@ -1829,7 +1903,7 @@ conn = boto.connect_s3(
 conn.get_all_buckets()
 ```
 
-#### PUT a small object
+#### Put a small object
 
 ```python
 smallObjectKey = 'small.txt'

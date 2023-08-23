@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.JobProgressReportFormat;
@@ -37,22 +36,12 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Loads a file or directory in Alluxio space, making it resident in Alluxio.
- *
- * @deprecated This command no longer works under the new Dora architecture.
  */
 @ThreadSafe
 @PublicApi
-@Deprecated
 public final class LoadCommand extends AbstractFileSystemCommand {
   private static final JobProgressReportFormat DEFAULT_FORMAT = JobProgressReportFormat.TEXT;
   private static final String JOB_TYPE = "load";
-  private static final Option LOCAL_OPTION =
-      Option.builder()
-          .longOpt("local")
-          .required(false)
-          .hasArg(false)
-          .desc("load the file to local worker.")
-          .build();
   private static final Option SUBMIT_OPTION = Option.builder()
       .longOpt("submit")
       .required(false)
@@ -145,21 +134,17 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         .addOption(PROGRESS_OPTION)
         .addOption(PROGRESS_FORMAT)
         .addOption(PROGRESS_VERBOSE)
-        .addOption(LOCAL_OPTION)
         .addOption(LOAD_METADATA_ONLY);
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    System.out.println("The load command is deprecated under the new  DORA architecture. "
-        + "Please only use it when the cluster has " + PropertyKey.DORA_ENABLED + "=false");
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
 
     if (path.containsWildcard()) {
       throw new UnsupportedOperationException("Load does not support wildcard path");
     }
-    throwIfOldFormat(cl);
 
     if (cl.hasOption(SUBMIT_OPTION.getLongOpt())) {
       OptionalLong bandwidth = OptionalLong.empty();
@@ -191,8 +176,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "For backward compatibility: load [--local] <path>\n"
-        + "For distributed load:\n"
+    return "For distributed load:\n"
         + "\tload <path> --submit "
         + "[--bandwidth N] [--verify] [--partial-listing] [--metadata-only]\n"
         + "\tload <path> --stop\n"
@@ -207,7 +191,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
-    throwIfOldFormat(cl);
     int commands = 0;
     if (cl.hasOption(SUBMIT_OPTION.getLongOpt())) {
       commands++;
@@ -283,13 +266,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       }
       System.out.println("Failed to get progress for load job " + path + ": " + e.getMessage());
       return -1;
-    }
-  }
-
-  private void throwIfOldFormat(CommandLine cl) {
-    if (cl.getOptions().length == 0
-        || (cl.getOptions().length == 1 && cl.hasOption(LOCAL_OPTION.getLongOpt()))) {
-      throw new IllegalArgumentException("load command no longer supports the old format");
     }
   }
 

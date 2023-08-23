@@ -27,6 +27,9 @@ func Cmds(className string) []env.Command {
 	for _, c := range []func(string) env.Command{
 		Cat,
 		Checksum,
+		Chgrp,
+		Chmod,
+		Chown,
 		Cp,
 		Head,
 		Ls,

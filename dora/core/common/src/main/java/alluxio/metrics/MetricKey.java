@@ -1199,6 +1199,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The number of files failed to be copied by copy commands")
           .setMetricType(MetricType.COUNTER)
           .build();
+
+  public static final MetricKey MASTER_JOB_COPY_SKIP_FILE_COUNT =
+      new Builder("Master.JobCopySkipFileCount")
+          .setDescription("The number of files skipped to be copied by copy commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
   public static final MetricKey MASTER_JOB_COPY_SIZE =
       new Builder("Master.JobCopyFileSize")
           .setDescription("The total block size copied by copy commands")
@@ -2251,6 +2257,12 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Client.CachePages")
           .setDescription("Total number of pages in the client cache.")
           .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_PAGES_AGES =
+      new Builder("Client.CachePagesAges")
+          .setDescription("The ages of pages in the client cache.")
+          .setMetricType(MetricType.HISTOGRAM)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_PAGES_DISCARDED =
