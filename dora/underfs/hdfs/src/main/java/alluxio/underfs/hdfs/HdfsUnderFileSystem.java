@@ -49,7 +49,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
-import org.apache.hadoop.fs.CommonConfigurationKeys;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -71,7 +70,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -115,7 +113,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   protected final HdfsAclProvider mHdfsAclProvider;
 
   private final boolean mTrashEnable;
-  private final LoadingCache<FileSystem, Optional<Trash>> mFsTrash;
+  private final LoadingCache<FileSystem, Trash> mFsTrash;
 
   /**
    * Factory method to constructs a new HDFS {@link UnderFileSystem} instance.
@@ -149,10 +147,10 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     mTrashEnable = alluxio.conf.Configuration.getBoolean(
         PropertyKey.UNDERFS_HDFS_TRASH_ENABLED);
     LOG.info(PropertyKey.UNDERFS_HDFS_TRASH_ENABLED.getName() + " is set to {}", mTrashEnable);
-    mFsTrash = CacheBuilder.newBuilder().build(new CacheLoader<FileSystem, Optional<Trash>>() {
+    mFsTrash = CacheBuilder.newBuilder().build(new CacheLoader<FileSystem, Trash>() {
       @Override
-      public Optional<Trash> load(FileSystem fs) throws Exception {
-        return Optional.of(new Trash(fs, fs.getConf()));
+      public Trash load(FileSystem fs) throws Exception {
+        return new Trash(fs, fs.getConf());
       }
     });
 
@@ -780,19 +778,17 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         if (!mTrashEnable) {
           return hdfs.delete(hdfsPath, recursive);
         }
-        Optional<Trash> trash = getTrash(hdfs);
-        if (!trash.isPresent()) {
-          return hdfs.delete(hdfsPath, recursive);
-        }
+        Trash trash = getTrash(hdfs);
         // move to trash
         if (isDirectory && !recursive && hdfs.listStatus(hdfsPath).length != 0) {
           return false;
         }
-        if (trash.get().moveToTrash(hdfsPath)) {
+        if (trash.moveToTrash(hdfsPath)) {
           // moving file to trash succeeded.
           return true;
         } else {
           // if failed to move this file to trash, delete it.
+          LOG.debug("Failed to move '{}' to trash. Now delete it.", path);
           return hdfs.delete(hdfsPath, recursive);
         }
       } catch (IOException e) {
@@ -869,10 +865,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     }
   }
 
-  private Optional<Trash> getTrash(FileSystem fs) throws IOException {
-    if (!mTrashEnable) {
-      return Optional.empty();
-    }
+  private Trash getTrash(FileSystem fs) throws IOException {
     try {
       return mFsTrash.get(fs);
     } catch (ExecutionException e) {
