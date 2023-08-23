@@ -48,7 +48,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class LsCommand extends AbstractFileSystemCommand {
   public static final String IN_ALLUXIO_STATE_DIR = "DIR";
-  public static final String IN_ALLUXIO_STATE_FILE_FORMAT = "%d%%";
+  public static final String IN_ALLUXIO_STATE_FILE = "FILE";
   // Permission: drwxrwxrwx+
   public static final String LS_FORMAT_PERMISSION = "%-12s";
   public static final String LS_FORMAT_FILE_SIZE = "%15s";
@@ -170,7 +170,6 @@ public final class LsCommand extends AbstractFileSystemCommand {
    * @param groupName group name
    * @param size size of the file in bytes
    * @param timestamp the epoch time in ms
-   * @param inAlluxioPercentage whether the file is in Alluxio
    * @param persistenceState the persistence state of the file
    * @param path path of the file or folder
    * @param dateFormatPattern the format to follow when printing dates
@@ -178,7 +177,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
    */
   public static String formatLsString(boolean hSize, boolean acl, boolean isFolder, String
       permission,
-      String userName, String groupName, long size, long timestamp, int inAlluxioPercentage,
+      String userName, String groupName, long size, long timestamp,
       String persistenceState, String path, String dateFormatPattern) {
     String inAlluxioState;
     String sizeStr;
@@ -186,7 +185,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
       inAlluxioState = IN_ALLUXIO_STATE_DIR;
       sizeStr = String.valueOf(size);
     } else {
-      inAlluxioState = String.format(IN_ALLUXIO_STATE_FILE_FORMAT, inAlluxioPercentage);
+      inAlluxioState = IN_ALLUXIO_STATE_FILE;
       sizeStr = hSize ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
     }
 
@@ -216,9 +215,8 @@ public final class LsCommand extends AbstractFileSystemCommand {
         status.isFolder(),
         FormatUtils.formatMode((short) status.getMode(), status.isFolder(), hasExtended),
         status.getOwner(), status.getGroup(), status.getLength(),
-        timestamp, status.getInAlluxioPercentage(),
-        status.getPersistenceState(), status.getPath(),
-        mFsContext.getPathConf(new AlluxioURI(status.getPath())).getString(
+        timestamp, status.getPersistenceState(), status.getPath(),
+        mFsContext.getClusterConf().getString(
             PropertyKey.USER_DATE_FORMAT_PATTERN)));
   }
 

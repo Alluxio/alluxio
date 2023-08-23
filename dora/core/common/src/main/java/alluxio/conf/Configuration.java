@@ -13,7 +13,6 @@ package alluxio.conf;
 
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
-import alluxio.conf.path.PathConfiguration;
 import alluxio.conf.reference.ReferenceProperty;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
@@ -42,7 +41,6 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -515,33 +513,6 @@ public final class Configuration
     updatedConf.validate();
     LOG.debug("Alluxio {} has loaded cluster level configurations", scope);
     return updatedConf;
-  }
-
-  /**
-   * Loads the path level configuration from the get configuration response.
-   *
-   * Only client scope properties will be loaded.
-   *
-   * @param response the get configuration RPC response
-   * @param clusterConf cluster level configuration
-   * @return the loaded path level configuration
-   */
-  public static PathConfiguration getPathConf(GetConfigurationPResponse response,
-      AlluxioConfiguration clusterConf) {
-    String clientVersion = clusterConf.getString(PropertyKey.VERSION);
-    LOG.debug("Alluxio client (version {}) is trying to load path level configurations",
-        clientVersion);
-    Map<String, AlluxioConfiguration> pathConfs = new HashMap<>();
-    response.getPathConfigsMap().forEach((path, conf) -> {
-      Properties props = filterAndLoadProperties(conf.getPropertiesList(), Scope.CLIENT,
-          (key, value) -> String.format("Loading property: %s (%s) -> %s for path %s",
-              key, key.getScope(), value, path));
-      AlluxioProperties properties = new AlluxioProperties();
-      properties.merge(props, Source.PATH_DEFAULT);
-      pathConfs.put(path, new InstancedConfiguration(properties, true));
-    });
-    LOG.debug("Alluxio client has loaded path level configurations");
-    return PathConfiguration.create(pathConfs);
   }
 
   /**

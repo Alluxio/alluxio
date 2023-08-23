@@ -136,4 +136,9 @@ public class FusePositionReader implements FuseFileStream {
       mLockResource.close();
     }
   }
+
+  @Override
+  public boolean isClosed() {
+    return mClosed;
+  }
 }

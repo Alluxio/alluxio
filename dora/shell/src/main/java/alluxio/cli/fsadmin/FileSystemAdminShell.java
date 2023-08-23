@@ -21,7 +21,6 @@ import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.client.job.RetryHandlingJobMasterClient;
 import alluxio.client.journal.RetryHandlingJournalMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
-import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.client.metrics.RetryHandlingMetricsMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -88,7 +87,6 @@ public final class FileSystemAdminShell extends AbstractShell {
         new RetryHandlingFileSystemMasterClient(masterConfig),
         new RetryHandlingBlockMasterClient(masterConfig),
         new RetryHandlingMetaMasterClient(masterConfig),
-        new RetryHandlingMetaMasterConfigClient(masterConfig),
         new RetryHandlingMetricsMasterClient(masterConfig),
         new RetryHandlingJournalMasterClient(masterConfig),
         new RetryHandlingJournalMasterClient(jobMasterConfig),

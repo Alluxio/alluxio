@@ -96,6 +96,10 @@ func buildTarball(opts *buildOpts) error {
 				return stacktrace.Propagate(err, "error creating libexec/version.sh")
 			}
 		}
+		// need to build all golang cli
+		if err := command.New("./build/cli/build-cli.sh -a").WithDir(repoBuildDir).Run(); err != nil {
+			return stacktrace.Propagate(err, "error building golang cli")
+		}
 		// mock creation of client, assembly, and lib jars
 		var mockFiles []string
 		if opts.tarball.ClientJarName != "" {

@@ -208,7 +208,6 @@ public class PagedDoraWorkerTest {
   }
 
   @Test
-  @Ignore
   public void testFolderWithFileCopy()
       throws IOException, ExecutionException, InterruptedException {
     File srcRoot = mTestFolder.newFolder("src");
@@ -258,6 +257,58 @@ public class PagedDoraWorkerTest {
   }
 
   @Test
+  public void testFolderWithFileCopyWithSkip()
+      throws IOException, ExecutionException, InterruptedException {
+    File srcRoot = mTestFolder.newFolder("src");
+    File dstRoot = mTestFolder.newFolder("dst");
+    // create test file under mSrcFolder
+    File a = new File(srcRoot, "a");
+    a.mkdirs();
+    File c = new File(a, "c");
+    c.createNewFile();
+    File d = new File(a, "d");
+    d.createNewFile();
+    File b = new File(dstRoot, "b");
+    b.mkdirs();
+    File dstC = new File(b, "c");
+    File dstD = new File(b, "d");
+    dstD.createNewFile();
+    int length = 10;
+    byte[] buffer = BufferUtils.getIncreasingByteArray(length);
+    BufferUtils.writeBufferToFile(c.getAbsolutePath(), buffer);
+    List<Route> routes = new ArrayList<>();
+    Route route = Route.newBuilder().setDst(dstC.getAbsolutePath()).setSrc(c.getAbsolutePath())
+        .setLength(length).build();
+    Route route2 =
+        Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath()).build();
+    Route route3 =
+        Route.newBuilder().setDst(dstD.getAbsolutePath()).setSrc(d.getAbsolutePath()).build();
+    routes.add(route);
+    routes.add(route2);
+    routes.add(route3);
+    WriteOptions writeOptions =
+        WriteOptions.newBuilder().setOverwrite(false).setCheckContent(true).build();
+    UfsReadOptions read =
+        UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
+    ListenableFuture<List<RouteFailure>> copy = mWorker.copy(routes, read, writeOptions);
+    List<RouteFailure> failures = copy.get();
+
+    assertEquals(1, failures.size());
+    assertTrue(failures.get(0).getIsSkip());
+    Assert.assertTrue(dstC.exists());
+    Assert.assertTrue(b.exists());
+    Assert.assertTrue(b.isDirectory());
+    Assert.assertTrue(dstD.exists());
+    Assert.assertTrue(dstD.isFile());
+    try (InputStream in = Files.newInputStream(dstC.toPath())) {
+      byte[] readBuffer = new byte[length];
+      while (in.read(readBuffer) != -1) {
+      }
+      Assert.assertArrayEquals(buffer, readBuffer);
+    }
+  }
+
+  @Test
   public void testSingleFileMove() throws IOException, ExecutionException, InterruptedException {
     File srcRoot = mTestFolder.newFolder("src");
     File dstRoot = mTestFolder.newFolder("dst");
@@ -287,6 +338,60 @@ public class PagedDoraWorkerTest {
       }
       Assert.assertArrayEquals(buffer, readBuffer);
     }
+  }
+
+  @Test
+  public void testSingleFileCopySkip() throws IOException, ExecutionException,
+      InterruptedException {
+    File srcRoot = mTestFolder.newFolder("src");
+    File dstRoot = mTestFolder.newFolder("dst");
+    // create test file under mSrcFolder
+    File a = new File(srcRoot, "a");
+    a.createNewFile();
+    File b = new File(dstRoot, "b");
+    b.createNewFile();
+    int length = 10;
+    byte[] buffer = BufferUtils.getIncreasingByteArray(length);
+    BufferUtils.writeBufferToFile(a.getAbsolutePath(), buffer);
+    Route route =
+        Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath())
+            .setLength(length).build();
+    WriteOptions writeOptions =
+        WriteOptions.newBuilder().setOverwrite(false).setCheckContent(true).build();
+    UfsReadOptions read =
+        UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
+    ListenableFuture<List<RouteFailure>> copy =
+        mWorker.copy(Collections.singletonList(route), read, writeOptions);
+    List<RouteFailure> failures = copy.get();
+    assertEquals(1, failures.size());
+    assertTrue(failures.get(0).getIsSkip());
+  }
+
+  @Test
+  public void testSingleFileMoveWithFileAlreadyExist() throws IOException, ExecutionException,
+      InterruptedException {
+    File srcRoot = mTestFolder.newFolder("src");
+    File dstRoot = mTestFolder.newFolder("dst");
+    // create test file under mSrcFolder
+    File a = new File(srcRoot, "a");
+    a.createNewFile();
+    File b = new File(dstRoot, "b");
+    b.createNewFile();
+    int length = 10;
+    byte[] buffer = BufferUtils.getIncreasingByteArray(length);
+    BufferUtils.writeBufferToFile(a.getAbsolutePath(), buffer);
+    Route route =
+        Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath())
+            .setLength(length).build();
+    WriteOptions writeOptions =
+        WriteOptions.newBuilder().setOverwrite(false).setCheckContent(true).build();
+    UfsReadOptions read =
+        UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
+    ListenableFuture<List<RouteFailure>> move =
+        mWorker.move(Collections.singletonList(route), read, writeOptions);
+    List<RouteFailure> failures = move.get();
+    assertEquals(1, failures.size());
+    assertFalse(failures.get(0).hasIsSkip());
   }
 
   @Test
@@ -335,18 +440,17 @@ public class PagedDoraWorkerTest {
   }
 
   @Test
-  @Ignore
   public void testFolderWithFileMove()
       throws IOException, ExecutionException, InterruptedException {
     File srcRoot = mTestFolder.newFolder("src");
     File dstRoot = mTestFolder.newFolder("dst");
     // create test file under mSrcFolder
     File a = new File(srcRoot, "a");
-    a.mkdirs();
+    assertTrue(a.mkdirs());
     File c = new File(a, "c");
-    c.createNewFile();
+    assertTrue(c.createNewFile());
     File d = new File(a, "d");
-    d.mkdirs();
+    assertTrue(d.mkdirs());
     File b = new File(dstRoot, "b");
     File dstC = new File(b, "c");
     File dstD = new File(b, "d");
@@ -357,9 +461,9 @@ public class PagedDoraWorkerTest {
     Route route = Route.newBuilder().setDst(dstC.getAbsolutePath()).setSrc(c.getAbsolutePath())
         .setLength(length).build();
     Route route2 =
-        Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath()).build();
-    Route route3 =
         Route.newBuilder().setDst(dstD.getAbsolutePath()).setSrc(d.getAbsolutePath()).build();
+    Route route3 =
+        Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath()).build();
     routes.add(route);
     routes.add(route2);
     routes.add(route3);
@@ -376,7 +480,8 @@ public class PagedDoraWorkerTest {
     Assert.assertTrue(b.isDirectory());
     Assert.assertTrue(dstD.exists());
     Assert.assertTrue(dstD.isDirectory());
-    assertFalse(a.exists());
+    // assertFalse(a.exists()); We don't throw delete failure on the UFS side,
+    // so there is a small chance that directory a will be deleted successfully.
     assertFalse(c.exists());
     assertFalse(d.exists());
     try (InputStream in = Files.newInputStream(dstC.toPath())) {
@@ -627,7 +732,7 @@ public class PagedDoraWorkerTest {
   private void loadFileData(String path)
       throws ExecutionException, InterruptedException, TimeoutException, IOException,
       AccessControlException {
-    UfsStatus ufsStatus = mWorker.getUfs().getStatus(path);
+    UfsStatus ufsStatus = mWorker.getUfsInstance(path).getStatus(path);
     ufsStatus.setUfsFullPath(new AlluxioURI(path));
     ListenableFuture<List<LoadFileFailure>> load =
         mWorker.load(true, Collections.singletonList(ufsStatus),

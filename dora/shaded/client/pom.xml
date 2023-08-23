@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-shaded</artifactId>
-    <version>303-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-shaded-client</artifactId>
   <packaging>jar</packaging>
@@ -181,6 +181,10 @@
                   <excludes>
                     <exclude>LICENSE</exclude>
                     <exclude>META-INF/LICENSE</exclude>
+                    <exclude>META-INF/LICENSE.*</exclude>
+                    <exclude>META-INF/license/*</exclude>
+                    <exclude>META-INF/NOTICE</exclude>
+                    <exclude>META-INF/NOTICE.*</exclude>
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.DSA</exclude>
                     <exclude>META-INF/*.RSA</exclude>
@@ -289,6 +293,10 @@
                 <relocation>
                   <pattern>software/amazon/ion/</pattern>
                   <shadedPattern>${shading.prefix}.software.amazon.ion</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>net/jodah/</pattern>
+                  <shadedPattern>${shading.prefix}.net.jodah.</shadedPattern>
                 </relocation>
               </relocations>
               <transformers>
