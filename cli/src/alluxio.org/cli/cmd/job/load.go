@@ -12,6 +12,7 @@
 package job
 
 import (
+	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/cmd/names"
@@ -19,15 +20,22 @@ import (
 )
 
 var Load = &LoadCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "load",
-		JavaClassName: names.FileSystemShellJavaClass,
+	BaseJobCommand: &BaseJobCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "load",
+			JavaClassName: names.FileSystemShellJavaClass,
+		},
 	},
 }
 
 type LoadCommand struct {
-	*env.BaseJavaCommand
+	*BaseJobCommand
 	path string
+
+	bandwidth      string
+	verify         bool
+	partialListing bool
+	metadataOnly   bool
 }
 
 func (c *LoadCommand) Base() *env.BaseJavaCommand {
@@ -37,19 +45,39 @@ func (c *LoadCommand) Base() *env.BaseJavaCommand {
 func (c *LoadCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Load.CommandName,
-		Short: "Submit load job to Alluxio master, update job options if already exists",
+		Short: "Submit or manage load jobs",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
 	})
 	const path = "path"
-	cmd.Flags().StringVar(&c.path, path, "", "Determine the path of the load job to submit")
+	cmd.Flags().StringVar(&c.path, path, "", "[all] Source path of load operation")
 	cmd.MarkFlagRequired(path)
+	c.AttachOperationFlags(cmd)
+
+	cmd.Flags().StringVar(&c.bandwidth, "bandwidth", "", "[submit] Single worker read bandwidth limit")
+	cmd.Flags().BoolVar(&c.verify, "verify", false, "[submit] Run verification when load finishes and load new files if any")
+	cmd.Flags().BoolVar(&c.partialListing, "partial-listing", false, "[submit] Use partial directory listing, initializing load before reading the entire directory but cannot report on certain progress details")
+	cmd.Flags().BoolVar(&c.metadataOnly, "metadata-only", false, "[submit] Only load file metadata")
 	return cmd
 }
 
-func (c *LoadCommand) Run(args []string) error {
-	javaArgs := []string{"load", c.path, "--submit"}
+func (c *LoadCommand) Run(_ []string) error {
+	opWithArgs, err := c.OperationWithArgs()
+	if err != nil {
+		return stacktrace.Propagate(err, "error parsing operation")
+	}
+	javaArgs := []string{"load", c.path}
+	javaArgs = append(javaArgs, opWithArgs...)
+	if c.bandwidth != "" {
+		javaArgs = append(javaArgs, "--bandwidth", c.bandwidth)
+	}
+	if c.partialListing {
+		javaArgs = append(javaArgs, "--partial-listing")
+	}
+	if c.metadataOnly {
+		javaArgs = append(javaArgs, "--metadata-only")
+	}
 	return c.Base().Run(javaArgs)
 }

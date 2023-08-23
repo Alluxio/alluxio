@@ -21,6 +21,7 @@ import alluxio.proxy.s3.CompleteMultipartUploadRequest;
 import alluxio.proxy.s3.CompleteMultipartUploadRequest.Part;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
 import alluxio.proxy.s3.InitiateMultipartUploadResult;
+import alluxio.proxy.s3.ListPartsResult;
 import alluxio.proxy.s3.S3RestUtils;
 import alluxio.s3.S3ErrorCode;
 import alluxio.testutils.LocalAlluxioClusterResource;
@@ -32,6 +33,7 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.google.common.collect.ImmutableMap;
 import org.gaul.s3proxy.junit.S3ProxyRule;
 import org.junit.After;
 import org.junit.Assert;
@@ -106,7 +108,7 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   /**
-   * Initiate a multipart upload.
+   * Create a bucket and initiate a multipart upload under path "bucket/object".
    *
    * @return the upload id
    */
@@ -413,6 +415,69 @@ public class MultipartUploadTest extends RestApiTest {
         .checkErrorCode(S3ErrorCode.Name.NO_SUCH_UPLOAD);
     // the temporary directory should still exist.
     Assert.assertTrue(mFileSystem.exists(tmpDir));
+  }
+
+  /**
+   * List parts.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void listParts() throws Exception {
+    final int partsNum = 10;
+    final List<String> objects = new ArrayList<>();
+    final List<Integer> parts = new ArrayList<>();
+    final String uploadId = initiateMultipartUpload();
+    for (int i = 1; i <= partsNum; i++) {
+      parts.add(i);
+      objects.add(CommonUtils.randomAlphaNumString(Constants.KB));
+    }
+    Collections.shuffle(parts);
+    uploadParts(uploadId, objects, parts);
+
+    final ListPartsResult listPartsResult =
+        listTestCase(OBJECT_KEY, ImmutableMap.of("uploadId", uploadId))
+            .checkResponseCode(Status.OK.getStatusCode())
+            .getResponse(ListPartsResult.class);
+
+    Assert.assertEquals(AlluxioURI.SEPARATOR + BUCKET_NAME, listPartsResult.getBucket());
+    Assert.assertEquals(OBJECT_NAME, listPartsResult.getKey());
+    Assert.assertEquals(uploadId, listPartsResult.getUploadId());
+    Assert.assertEquals(partsNum, listPartsResult.getParts().size());
+    for (int i = 0; i < partsNum; i++) {
+      Assert.assertEquals(i + 1, listPartsResult.getParts().get(i).getPartNumber());
+      Assert.assertEquals(Constants.KB, listPartsResult.getParts().get(i).getSize());
+    }
+  }
+
+  /**
+   * List parts with non-existent upload id.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void listPartsWithNonExistentUpload() throws Exception {
+    final String uploadId = initiateMultipartUpload();
+    listTestCase(OBJECT_KEY, ImmutableMap.of("uploadId", "wrong"))
+        .checkResponseCode(Status.NOT_FOUND.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_UPLOAD);
+    listTestCase(OBJECT_KEY + AlluxioURI.SEPARATOR, ImmutableMap.of("uploadId", uploadId))
+        .checkResponseCode(Status.NOT_FOUND.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_UPLOAD);
+  }
+
+  /**
+   * List parts with non-existent bucket.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void listPartsWithNonExistentBucket() throws Exception {
+    final String uploadId = initiateMultipartUpload();
+    String objectKey = "wrong" + AlluxioURI.SEPARATOR + OBJECT_NAME;
+    listTestCase(objectKey, ImmutableMap.of("uploadId", uploadId))
+        .checkResponseCode(Status.NOT_FOUND.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_BUCKET);
   }
 
   /**
