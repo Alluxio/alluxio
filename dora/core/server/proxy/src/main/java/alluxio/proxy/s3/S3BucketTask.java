@@ -212,7 +212,10 @@ public class S3BucketTask extends S3BaseTask {
           try {
             List<URIStatus> children = mHandler.getMetaFS().listStatus(new AlluxioURI(
                     S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR));
-            return ListMultipartUploadsResult.buildFromStatuses(bucket, children);
+            final List<URIStatus> uploadIds = children.stream()
+                .filter((uri) -> uri.getOwner().equals(user))
+                .collect(Collectors.toList());
+            return ListMultipartUploadsResult.buildFromStatuses(bucket, uploadIds);
           } catch (Exception e) {
             throw S3RestUtils.toBucketS3Exception(e, bucket, auditContext);
           }
