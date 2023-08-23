@@ -1218,6 +1218,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_HDFS_TRASH_ENABLED =
+      booleanBuilder(Name.UNDERFS_HDFS_TRASH_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If enabled, when a user deletes a file that's stored in HDFS via "
+              + "Alluxio, Alluxio will make use of HDFS's trash and try to move it to the trash "
+              + "directory instead of deleting it directly from HDFS. Note that HDFS must be "
+              + "configured to enable the trash functionality (in 'core-site.xml'). If trashing "
+              + "is not enabled in HDFS, Alluxio will delete the file directly, regardless of "
+              + "this configuration.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_IO_THREADS =
       intBuilder(Name.UNDERFS_IO_THREADS)
           .setDefaultSupplier(() -> Math.max(4, 3 * Runtime.getRuntime().availableProcessors()),
@@ -7233,6 +7245,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
     public static final String UNDERFS_OZONE_PREFIXES = "alluxio.underfs.ozone.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
+    public static final String UNDERFS_HDFS_TRASH_ENABLED = "alluxio.underfs.hdfs.trash.enabled";
     public static final String UNDERFS_IO_THREADS = "alluxio.underfs.io.threads";
     public static final String UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
         "alluxio.underfs.local.skip.broken.symlinks";
