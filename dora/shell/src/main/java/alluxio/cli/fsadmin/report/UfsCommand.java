@@ -14,6 +14,7 @@ package alluxio.cli.fsadmin.report;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.util.FormatUtils;
 import alluxio.wire.MountPointInfo;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -44,45 +45,14 @@ public class UfsCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
-    ArrayNode ufsInfo = mapper.createArrayNode();
-
     Map<String, MountPointInfo> mountTable = mFileSystemMasterClient.getMountTable();
-    for (Map.Entry<String, MountPointInfo> entry : mountTable.entrySet()) {
-      ObjectNode mountInfo = mapper.createObjectNode();
-
-      String mountPoint = entry.getKey();
-      MountPointInfo mountPointInfo = entry.getValue();
-      long capacityBytes = mountPointInfo.getUfsCapacityBytes();
-      long usedBytes = mountPointInfo.getUfsUsedBytes();
-      String usedPercentageInfo = "";
-      if (capacityBytes > 0) {
-        int usedPercentage = (int) (100.0 * usedBytes / capacityBytes);
-        usedPercentageInfo = String.format("(%s%%)", usedPercentage);
-      }
-
-      mountInfo.put("URI", mountPointInfo.getUfsUri());
-      mountInfo.put("Mount Point", mountPoint);
-      mountInfo.put("UFS Type", mountPointInfo.getUfsType());
-      mountInfo.put("Total Capacity", FormatUtils.getSizeFromBytes(capacityBytes));
-      mountInfo.put("Used Capacity", FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo);
-      mountInfo.put("Readonly", mountPointInfo.getReadOnly());
-      mountInfo.put("Shared", mountPointInfo.getShared());
-
-      ArrayNode props = mapper.createArrayNode();
-      Map<String, String> properties = mountPointInfo.getProperties();
-      for (Map.Entry<String, String> property : properties.entrySet()) {
-        ObjectNode prop = mapper.createObjectNode();
-        prop.put("key", property.getKey());
-        prop.put("value", property.getValue());
-        props.add(prop);
-      }
-      mountInfo.set("Properties", props);
-
-      ufsInfo.add(mountInfo);
+    ObjectMapper objectMapper = new ObjectMapper();
+    try {
+      String json = objectMapper.writeValueAsString(mountTable);
+      System.out.println(json);
+    } catch (JsonProcessingException e) {
+      e.printStackTrace();
     }
-
-    System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(ufsInfo));
     return 0;
   }
 }

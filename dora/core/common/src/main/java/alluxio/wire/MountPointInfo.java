@@ -13,6 +13,9 @@ package alluxio.wire;
 
 import alluxio.annotation.PublicApi;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
@@ -27,19 +30,27 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 @PublicApi
 public class MountPointInfo implements Serializable {
+  @JsonIgnore
   private static final long serialVersionUID = -2912330427506888886L;
 
+  @JsonIgnore
   private static final long UNKNOWN_CAPACITY_BYTES = -1;
+  @JsonIgnore
   private static final long UNKNOWN_USED_BYTES = -1;
 
   private String mUfsUri = "";
   private String mUfsType = "";
+  @JsonIgnore
   private long mMountId = 0;
+  @JsonSerialize(using = FileSizeSerializer.class)
+  @JsonProperty("ufsCapacity")
   private long mUfsCapacityBytes = UNKNOWN_CAPACITY_BYTES;
+  @JsonSerialize(using = FileSizeSerializer.class)
+  @JsonProperty("ufsUsed")
   private long mUfsUsedBytes = UNKNOWN_USED_BYTES;
   private boolean mReadOnly;
-  private HashMap<String, String> mProperties = new HashMap<>();
   private boolean mShared;
+  private HashMap<String, String> mProperties = new HashMap<>();
 
   /**
    * Creates a new instance of {@link MountPointInfo}.
