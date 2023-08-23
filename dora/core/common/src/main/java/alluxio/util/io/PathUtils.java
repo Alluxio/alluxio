@@ -510,23 +510,4 @@ public final class PathUtils {
       }
     }
   }
-
-  /**
-   * Normalize the path component of the {@link AlluxioURI}, by replacing all "//" with
-   * "/", and trimming trailing slash from non-root path.
-   * From AlluxioURI.normalizePath(String).
-   *
-   * @param path the path to normalize
-   * @return the normalized path
-   */
-  public static String normalizeStringPath(String path) {
-    while (path.contains("//")) {
-      path = path.replace("//", "/");
-    }
-    int minLength = 1;
-    while (path.length() > minLength && path.endsWith("/")) {
-      path = path.substring(0, path.length() - 1);
-    }
-    return path;
-  }
 }

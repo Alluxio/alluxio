@@ -142,6 +142,29 @@ public class UfsUrl {
     public List<String> getPathComponents() {
       return mPathComponents;
     }
+
+    /**
+     * Normalize the path component of the {@link UfsUrl}, by replacing all "//" with
+     * "/", and trimming trailing slash from non-root path.
+     * From AlluxioURI.normalizePath(String).
+     *
+     * @param path the path to normalize
+     * @return the normalized path
+     */
+    public static String removeRedundantSlashes(String path) {
+      while (path.contains("//")) {
+        path = path.replace("//", "/");
+      }
+      int minLength = 1;
+      while (path.length() > minLength && path.endsWith("/")) {
+        path = path.substring(0, path.length() - 1);
+      }
+      return path;
+    }
+
+    public static String normalizePath(String path) {
+      return path;
+    }
   }
 
   /**
@@ -221,8 +244,8 @@ public class UfsUrl {
     Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
         "Alluxio 3.x no longer supports alluxio:// scheme,"
             + " please input the UFS path directly like hdfs://host:port/path");
-
-    path = PathUtils.normalizeStringPath(path);
+    // TODO(Tony Sun): compose all the normalization function.
+    path = Parser.removeRedundantSlashes(path);
     if (checkNormalization) {
       // TODO(Tony Sun): too many copies, remove it in the future
       java.net.URI uri = java.net.URI.create(path);
