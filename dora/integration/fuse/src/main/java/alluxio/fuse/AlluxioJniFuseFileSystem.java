@@ -71,12 +71,14 @@ import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -120,6 +122,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @VisibleForTesting
   public static final int UNKNOWN_INODES = -1;
 
+  private final boolean mGetAttrOpBlackListEnabled;
+
+  private final Set<String> mGetAttrOpBlackList = new HashSet<>();
+
   /**
    * Creates a new instance of {@link AlluxioJniFuseFileSystem}.
    *
@@ -143,6 +149,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, mConf, this);
     mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
     mUfsEnabled = fuseOptions.getFileSystemOptions().getUfsFileSystemOptions().isPresent();
+    mGetAttrOpBlackListEnabled = mConf.getBoolean(PropertyKey.FUSE_GETATTR_BLACK_LIST_ENABLED);
+    if (mGetAttrOpBlackListEnabled) {
+      mConf.getList(PropertyKey.FUSE_GETATTR_BLACK_LIST)
+          .forEach(file -> mGetAttrOpBlackList.add(file));
+    }
     if (mConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)) {
       try {
         LogUtils.setLogLevel(this.getClass().getName(), org.slf4j.event.Level.DEBUG.toString());
@@ -212,6 +223,11 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   private int getattrInternal(String path, FileStat stat) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    if (mGetAttrOpBlackListEnabled) {
+      if (mGetAttrOpBlackList.contains(uri.getName())) {
+        return -ErrorCodes.ENOENT();
+      }
+    }
     int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;

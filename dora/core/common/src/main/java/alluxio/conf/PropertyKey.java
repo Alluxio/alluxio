@@ -7196,6 +7196,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+
+  public static final PropertyKey FUSE_GETATTR_BLACK_LIST_ENABLED =
+      booleanBuilder(Name.FUSE_GETATTR_BLACK_LIST_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Enable the getattr black list.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_GETATTR_BLACK_LIST =
+      listBuilder(Name.FUSE_GETATTR_BLACK_LIST)
+          .setDefaultValue(".hidden,.hidden_$folder$,.DS_Store,.DS_Store_$folder$,.Trash,"
+              + ".Trash_$folder$,.xdg-volume-info,.xdg-volume-info_$folder$,autorun.inf,"
+              + "autorun.inf_$folder$,.Trash-1000,.Trash-1000_$folder$")
+          .setDescription("The black list of FUSE getattr op. AlluxioJniFuseFileSystem will ignore "
+              + "the files specified by the black list.")
+          .build();
   public static final PropertyKey FUSE_MAX_READER_CONCURRENCY =
       intBuilder(Name.FUSE_MAX_READER_CONCURRENCY)
           .setDefaultValue(128)
@@ -9472,6 +9488,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_SHARED_CACHING_READER_ENABLED
         = "alluxio.fuse.shared.caching.reader.enabled";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
+    public static final String FUSE_GETATTR_BLACK_LIST_ENABLED
+        = "alluxio.fuse.getattr.black.list.enabled";
+    public static final String FUSE_GETATTR_BLACK_LIST = "alluxio.fuse.getattr.black.list";
     public static final String FUSE_MAX_READER_CONCURRENCY =
         "alluxio.fuse.reader.concurrency";
     public static final String FUSE_MOUNT_ALLUXIO_PATH =
