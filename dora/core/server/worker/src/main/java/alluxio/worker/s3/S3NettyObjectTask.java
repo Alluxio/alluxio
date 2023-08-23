@@ -675,9 +675,11 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
               }
               readStream = mChunkEncodingInputStream;
             }
-            long read = ByteStreams.copy(ByteStreams.limit(readStream, buf.readableBytes()),
-                mFileOutStream);
-            mAlreadyRead += read;
+            if (buf.readableBytes() > 0) {
+              long read = ByteStreams.copy(ByteStreams.limit(readStream, buf.readableBytes()),
+                  mFileOutStream);
+              mAlreadyRead += read;
+            }
             if (content instanceof LastHttpContent) {
               mFileOutStream.close();
               if (mAlreadyRead < mToRead) {

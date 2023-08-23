@@ -136,7 +136,7 @@ public class S3HttpHandler extends ChannelInboundHandlerAdapter {
       try {
         HttpResponse asyncResponse = mHandler.getS3Task().continueTask();
         // if the s3 task doesn't need to process content, just return the response.
-        if (mHandler.getS3Task().needContent()) {
+        if (asyncResponse == null && mHandler.getS3Task().needContent()) {
           asyncResponse = processContent();
         }
         mHandler.processHttpResponse(asyncResponse);
