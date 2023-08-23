@@ -28,7 +28,7 @@ public final class FuseFileEntry<T extends FuseFileStream>
   private final long mId;
   private final String mPath;
 
-  private T mFileStream;
+  private volatile T mFileStream;
 
   private int mOpenOrCreateFlags;
 

@@ -47,6 +47,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
 
   // timeout to mount a JNI fuse file system in ms
   private static final int MOUNT_TIMEOUT_MS = 2000;
+  private static final int UNMOUNT_TIMEOUT_MS = 10000;
 
   private final LibFuse mLibFuse = new LibFuse();
   private final AtomicBoolean mMounted = new AtomicBoolean();
@@ -156,7 +157,15 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
       }
     } else {
       try {
-        exitCode = new ProcessBuilder("fusermount", "-u", "-z", mountPath).start().waitFor();
+        Process process = new ProcessBuilder("fusermount", "-u", "-z", mountPath).start();
+        boolean exited = process.waitFor(UNMOUNT_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        if (!exited) {
+          System.out.printf(
+              "Fuse unmount failed. Please run \n$fusermount -u -z %s \nto manually to unmount%n",
+              mMountPoint);
+          throw new FuseException("Fuse unmount timeout after " + UNMOUNT_TIMEOUT_MS + " ms");
+        }
+        exitCode = process.exitValue();
         if (exitCode != 0) {
           throw new Exception(String.format("fusermount returns %d", exitCode));
         }
