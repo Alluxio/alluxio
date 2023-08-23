@@ -57,6 +57,14 @@ public abstract class S3NettyBaseTask {
   }
 
   /**
+   * Return if the S3 API needs to process the content.
+   * @return if true, the S3 API needs to process the content.
+   */
+  public boolean needContent() {
+    return false;
+  }
+
+  /**
    * Run S3 API logic in a customized async way, e.g. delegate the
    * core API logic to another thread and do something while waiting.
    */

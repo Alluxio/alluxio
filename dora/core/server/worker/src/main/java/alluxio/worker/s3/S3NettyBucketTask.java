@@ -344,6 +344,11 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
     }
 
     @Override
+    public boolean needContent() {
+      return true;
+    }
+
+    @Override
     public HttpResponse handleContent(HttpContent content) {
       return NettyRestUtils.call(mHandler.getBucket(), () -> {
         final String user = mHandler.getUser();

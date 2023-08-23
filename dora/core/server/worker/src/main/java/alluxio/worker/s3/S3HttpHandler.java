@@ -135,17 +135,9 @@ public class S3HttpHandler extends ChannelInboundHandlerAdapter {
     public void run() {
       try {
         HttpResponse asyncResponse = mHandler.getS3Task().continueTask();
-        // if it has got the response already, no need to process content, just return it
-        if (asyncResponse == null) {
+        // if the s3 task doesn't need to process content, just return the response.
+        if (mHandler.getS3Task().needContent()) {
           asyncResponse = processContent();
-        }
-        // if still no response, generate the error response
-        if (asyncResponse == null) {
-          asyncResponse =
-              S3ErrorResponse.generateS3ErrorResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR,
-                  String.format("Failed to handle s3 request %s with %s",
-                      mHandler.getS3Task().getOPType().name(), mHandler.getRequest().uri()),
-                  HttpHeaderValues.TEXT_PLAIN);
         }
         mHandler.processHttpResponse(asyncResponse);
       } catch (Throwable th) {
