@@ -152,14 +152,24 @@ public class UfsUrl {
      * @return the normalized path
      */
     public static String removeRedundantSlashes(String path) {
-      while (path.contains("//")) {
-        path = path.replace("//", "/");
+      StringBuilder sb = new StringBuilder(path.length());
+      int i = 0;
+      while (i < path.length()) {
+        if (path.charAt(i) != SLASH_SEPARATOR.charAt(0))  {
+          sb.append(path.charAt(i));
+          i++;
+          continue;
+        }
+        sb.append(SLASH_SEPARATOR);
+        // remove adjacent slashes
+        while (i < path.length()) {
+          if (path.charAt(i) != SLASH_SEPARATOR.charAt(0))  {
+            break;
+          }
+          i++;
+        }
       }
-      int minLength = 1;
-      while (path.length() > minLength && path.endsWith("/")) {
-        path = path.substring(0, path.length() - 1);
-      }
-      return path;
+      return sb.toString();
     }
 
     public static String normalizePath(String path) {
