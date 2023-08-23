@@ -351,6 +351,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
           lastModifiedTime);
     } catch (ServiceException e) {
+      LOG.info("File {} in {} doesn't exist. ", key, mUri);
       return null;
     }
   }
