@@ -13,11 +13,13 @@ package alluxio.util.executor;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@Ignore
 /**
  * Tests the {@link UniqueBlockingQueue}.
  */

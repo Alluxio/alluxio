@@ -40,7 +40,7 @@ public final class HadoopConfigurationUtilsTest {
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
     mConf.merge(
         HadoopConfigurationUtils.getConfigurationFromHadoop(hadoopConfig), Source.RUNTIME);
-    assertFalse(mConf.getBoolean(PropertyKey.MASTER_HOSTNAME));
+    assertEquals("", mConf.getString(PropertyKey.MASTER_HOSTNAME));
   }
 
   /**
