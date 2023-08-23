@@ -515,7 +515,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     List<LoadFileFailure> errors = Collections.synchronizedList(new ArrayList<>());
     for (UfsStatus status : ufsStatuses) {
       String ufsFullPath = status.getUfsFullPath().toString();
-      Map<String, String> xattrMap = mUfs.getAttribute(ufsFullPath);
+      UnderFileSystem ufs = getUfsInstance(ufsFullPath);
+      Map<String, String> xattrMap = ufs.getAttribute(ufsFullPath);
       DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath, xattrMap);
       mMetaManager.put(ufsFullPath, fs);
       // We use the ufs status sent from master to construct the file metadata,
@@ -914,7 +915,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     if (options.getXattrCount() > 0) {
       Map<String, ByteString> xattr = options.getXattrMap();
       for (Map.Entry<String, ByteString> attr : xattr.entrySet()) {
-        mUfs.setAttribute(path, attr.getKey(), attr.getValue().toByteArray());
+        ufs.setAttribute(path, attr.getKey(), attr.getValue().toByteArray());
       }
     }
     mMetaManager.loadFromUfs(path);

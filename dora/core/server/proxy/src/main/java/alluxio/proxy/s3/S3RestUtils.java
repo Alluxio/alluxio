@@ -485,11 +485,11 @@ public final class S3RestUtils {
    */
   public static TaggingData deserializeTags(Map<String, byte[]> xAttr)
       throws IOException {
-    // Fetch the S3 tags from the Inode xAttr
-    if (xAttr == null || !xAttr.containsKey(S3Constants.TAGGING_XATTR_KEY)) {
-      return null;
+    Map<String, String> tagMap = new HashMap<>();
+    for (Map.Entry<String, byte[]> tags : xAttr.entrySet()) {
+        tagMap.put(tags.getKey(), new String(tags.getValue()));
     }
-    return TaggingData.deserialize(xAttr.get(S3Constants.TAGGING_XATTR_KEY));
+    return new TaggingData().addTags(tagMap);
   }
 
   /**

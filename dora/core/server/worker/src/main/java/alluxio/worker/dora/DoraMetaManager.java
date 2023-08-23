@@ -112,7 +112,7 @@ public class DoraMetaManager implements Closeable {
       UnderFileSystem ufs = getUfsInstance(path);
       UfsStatus status = ufs.getStatus(path,
           GetStatusOptions.defaults().setIncludeRealContentHash(mGetRealContentHash));
-      Map<String, String> xattrMap = mUfs.getAttribute(path);
+      Map<String, String> xattrMap = ufs.getAttribute(path);
       DoraMeta.FileStatus fs = mDoraWorker.buildFileStatusFromUfsStatus(status, path, xattrMap);
       return Optional.ofNullable(fs);
     } catch (FileNotFoundException e) {

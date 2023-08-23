@@ -282,7 +282,9 @@ public class S3ObjectTask extends S3BaseTask {
           Map<String, ByteString> xattrMap = new HashMap<>();
           if (tagData != null) {
             try {
-              xattrMap.put(S3Constants.TAGGING_XATTR_KEY, TaggingData.serialize(tagData));
+              for (Map.Entry<String, String> tag : tagData.getTagMap().entrySet()) {
+                xattrMap.put(tag.getKey(), ByteString.copyFromUtf8(tag.getValue()));
+              }
             } catch (Exception e) {
               throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
             }
