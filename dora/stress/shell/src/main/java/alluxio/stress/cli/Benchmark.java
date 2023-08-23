@@ -193,7 +193,8 @@ public abstract class Benchmark<T extends TaskResult> {
       // Spawn a new process
       List<String> command = new ArrayList<>();
       command.add(conf.get(PropertyKey.HOME) + "/bin/alluxio");
-      command.add("exec class");
+      command.add("exec");
+      command.add("class");
       command.add(className);
       command.add("--");
       command.addAll(Arrays.asList(args));
