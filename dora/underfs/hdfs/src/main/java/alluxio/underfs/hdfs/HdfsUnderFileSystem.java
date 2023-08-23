@@ -147,17 +147,12 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     super(ufsUri, conf);
 
     mTrashEnable = alluxio.conf.Configuration.getBoolean(
-        PropertyKey.UNDERFS_HDFS_TRASH_ENABLE);
-    LOG.info(PropertyKey.UNDERFS_HDFS_TRASH_ENABLE.getName() + " is set to {}", mTrashEnable);
+        PropertyKey.UNDERFS_HDFS_TRASH_ENABLED);
+    LOG.info(PropertyKey.UNDERFS_HDFS_TRASH_ENABLED.getName() + " is set to {}", mTrashEnable);
     mFsTrash = CacheBuilder.newBuilder().build(new CacheLoader<FileSystem, Optional<Trash>>() {
       @Override
       public Optional<Trash> load(FileSystem fs) throws Exception {
-        Configuration configuration = fs.getConf();
-        long interval = configuration.getLong(CommonConfigurationKeys.FS_TRASH_INTERVAL_KEY, 0);
-        if (interval == 0) {
-          return Optional.empty();
-        }
-        return Optional.of(new Trash(fs, configuration));
+        return Optional.of(new Trash(fs, fs.getConf()));
       }
     });
 
@@ -793,7 +788,13 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         if (isDirectory && !recursive && hdfs.listStatus(hdfsPath).length != 0) {
           return false;
         }
-        return trash.get().moveToTrash(hdfsPath);
+        if (trash.get().moveToTrash(hdfsPath)) {
+          // moving file to trash succeeded.
+          return true;
+        } else {
+          // if failed to move this file to trash, delete it.
+          return hdfs.delete(hdfsPath, recursive);
+        }
       } catch (IOException e) {
         LOG.warn("Attempt count {} : {}", retryPolicy.getAttemptCount(), e.toString());
         te = e;
