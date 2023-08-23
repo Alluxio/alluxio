@@ -107,6 +107,9 @@ public final class FileUtils {
     try {
       UserDefinedFileAttributeView attributeView =
           Files.getFileAttributeView(Paths.get(filePath), UserDefinedFileAttributeView.class);
+      if (attributeView == null) {
+        throw new UnimplementedRuntimeException("set attribute is not implemented");
+      }
       attributeView.write(name, ByteBuffer.wrap(value));
     } catch (UnsupportedOperationException e) {
       throw new UnimplementedRuntimeException(e, ErrorType.External);
@@ -123,6 +126,9 @@ public final class FileUtils {
     try {
       UserDefinedFileAttributeView attributeView =
           Files.getFileAttributeView(Paths.get(filePath), UserDefinedFileAttributeView.class);
+      if (attributeView == null) {
+        throw new UnimplementedRuntimeException("set attribute is not implemented");
+      }
       Map<String, String> attrMap = new HashMap<>();
       for (String attributeName : attributeView.list()) {
         int attributeSize = attributeView.size(attributeName);
