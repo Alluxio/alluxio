@@ -611,7 +611,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
   }
 
-  protected abstract void setObjectTagging(String path, String name, String value) throws IOException;
+  protected abstract void setObjectTagging(String path, String name, String value)
+      throws IOException;
 
   protected abstract Map<String, String> getObjectTags(String path) throws IOException;
 

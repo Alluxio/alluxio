@@ -422,6 +422,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    *
    * @param status
    * @param ufsFullPath
+   * @param xattrMap
    * @return a FileInfo
    */
   public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath,

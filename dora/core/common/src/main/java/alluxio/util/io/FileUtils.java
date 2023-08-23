@@ -102,6 +102,12 @@ public final class FileUtils {
     }
   }
 
+  /**
+   * Changes local file's user defined file attribute.
+   * @param filePath the file to change attribute
+   * @param name the name of attribute
+   * @param value the value of attribute
+   */
   public static void changeLocalFileUserDefinedAttribute(String filePath, String name,
                                                          byte[] value) {
     try {
@@ -113,7 +119,7 @@ public final class FileUtils {
       attributeView.write(name, ByteBuffer.wrap(value));
     } catch (UnsupportedOperationException e) {
       throw new UnimplementedRuntimeException(e, ErrorType.External);
-    } catch (ClassCastException|IllegalArgumentException e) {
+    } catch (ClassCastException | IllegalArgumentException e) {
       throw new InvalidArgumentRuntimeException(e);
     } catch (SecurityException e) {
       throw new PermissionDeniedRuntimeException(e);
@@ -122,6 +128,12 @@ public final class FileUtils {
     }
   }
 
+  /**
+   * Gets local file's user defined file attribute.
+   *
+   * @param filePath
+   * @return the map of attribute view
+   */
   public static Map<String, String> getLocalFileUserDefinedAttribute(String filePath) {
     try {
       UserDefinedFileAttributeView attributeView =
@@ -142,7 +154,7 @@ public final class FileUtils {
       return attrMap;
     } catch (UnsupportedOperationException e) {
       throw new UnimplementedRuntimeException(e, ErrorType.External);
-    } catch (ClassCastException|IllegalArgumentException e) {
+    } catch (ClassCastException | IllegalArgumentException e) {
       throw new InvalidArgumentRuntimeException(e);
     } catch (SecurityException e) {
       throw new PermissionDeniedRuntimeException(e);

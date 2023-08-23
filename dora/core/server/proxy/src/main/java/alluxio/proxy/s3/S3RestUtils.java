@@ -487,7 +487,7 @@ public final class S3RestUtils {
       throws IOException {
     Map<String, String> tagMap = new HashMap<>();
     for (Map.Entry<String, byte[]> tags : xAttr.entrySet()) {
-        tagMap.put(tags.getKey(), new String(tags.getValue()));
+      tagMap.put(tags.getKey(), new String(tags.getValue()));
     }
     return new TaggingData().addTags(tagMap);
   }
