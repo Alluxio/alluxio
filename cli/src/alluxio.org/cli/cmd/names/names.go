@@ -15,5 +15,4 @@ const (
 	BinAlluxio                    = "bin/alluxio"
 	FileSystemAdminShellJavaClass = "alluxio.cli.fsadmin.FileSystemAdminShell"
 	FileSystemShellJavaClass      = "alluxio.cli.fs.FileSystemShell"
-	JobShellJavaClass             = "alluxio.cli.job.JobShell"
 )
