@@ -28,6 +28,9 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
@@ -820,7 +823,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public void rename(String src, String dst, RenamePOptions options)
-      throws IOException, AccessControlException {
+      throws IOException, AlluxioException {
     UnderFileSystem srcUfs = getUfsInstance(src);
     UnderFileSystem dstUfs = getUfsInstance(dst);
     // use strong reference comparison as UnderFileSystem does not support equality check
@@ -830,20 +833,28 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
 
     try {
-      boolean overWrite = options.hasS3SyntaxOptions()
-          && options.getS3SyntaxOptions().hasOverwrite()
-          && options.getS3SyntaxOptions().getOverwrite();
-      if (dstUfs.exists(dst)) {
-        if (!overWrite) {
-          throw new RuntimeException(
-              new FileAlreadyExistsException("File already exists but no overwrite flag"));
-        } else {
-          mMetaManager.removeFromMetaStore(dst);
-          if (dstUfs.getStatus(dst).isFile()) {
-            dstUfs.deleteFile(dst);
+      if (options.hasS3SyntaxOptions() && options.getS3SyntaxOptions().hasOverwrite()) {
+        // check the existence of dst only when S3 overwrite option exists.
+        try {
+          UfsStatus dstStatus = dstUfs.getStatus(dst);
+          boolean overWrite = options.getS3SyntaxOptions().getOverwrite();
+          if (!overWrite) {
+            throw new FileAlreadyExistsException("File already exists but no overwrite flag");
           } else {
-            dstUfs.deleteDirectory(dst, DeleteOptions.RECURSIVE);
+            if (dstStatus.isFile()) {
+              dstUfs.deleteFile(dst);
+            }
+            if (dstStatus.isDirectory()) {
+              if (dstUfs.listStatus(dst).length > 0) {
+                throw new DirectoryNotEmptyException(
+                    ExceptionMessage.FAILED_UFS_RENAME.getMessage(src, dst));
+              }
+              dstUfs.deleteDirectory(dst, DeleteOptions.RECURSIVE);
+            }
+            mMetaManager.removeFromMetaStore(dst);
           }
+        } catch (FileNotFoundException e) {
+          // do nothing
         }
       }
       UfsStatus status = srcUfs.getStatus(src);
