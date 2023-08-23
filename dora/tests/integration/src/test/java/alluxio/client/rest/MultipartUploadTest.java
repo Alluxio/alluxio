@@ -412,6 +412,35 @@ public class MultipartUploadTest extends RestApiTest {
   }
 
   /**
+   * Complete multipart upload and try to overwrite a non-empty folder.
+   * @throws Exception
+   */
+  @Test
+  public void completeMultipartUploadAndFailToOverwriteFolder() throws Exception {
+    final int partsNum = 10;
+    final List<String> objects = new ArrayList<>();
+    final List<Integer> parts = new ArrayList<>();
+    final List<Part> partList = new ArrayList<>();
+    final String uploadId = initiateMultipartUpload();
+    final String objectKey2=OBJECT_KEY+AlluxioURI.SEPARATOR+"object2";
+
+    for (int i = 1; i <= partsNum; i++) {
+      parts.add(i);
+      partList.add(new Part("", i));
+      objects.add(CommonUtils.randomAlphaNumString(Constants.KB));
+    }
+    Collections.shuffle(parts);
+    uploadParts(uploadId, objects, parts);
+
+    createObjectTestCase(objectKey2, EMPTY_CONTENT).checkResponseCode(Status.OK.getStatusCode());
+    headTestCase(objectKey2).checkResponseCode(Status.OK.getStatusCode());
+    //    Alluxio can't overwrite a non-empty folder
+    completeMultipartUploadTestCase(OBJECT_KEY, uploadId,
+        new CompleteMultipartUploadRequest(partList))
+        .checkResponseCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+  }
+
+  /**
    * Abort multipart upload.
    *
    * @throws Exception
