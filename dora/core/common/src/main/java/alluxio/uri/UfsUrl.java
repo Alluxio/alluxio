@@ -117,7 +117,7 @@ public class UfsUrl {
       while (start < inputUrl.length() && inputUrl.charAt(start) == SLASH_SEPARATOR.charAt(0)) {
         start++;
       }
-      // TODO(Tony Sun): remove the copy in the future
+
       path = FilenameUtils.normalizeNoEndSeparator(inputUrl.substring(start));
 
       // scheme, authority, pathComponents are always not null.
@@ -146,7 +146,7 @@ public class UfsUrl {
     /**
      * Normalize the path component of the {@link UfsUrl}, by replacing all "//" with
      * "/", and trimming trailing slash from non-root path.
-     * From AlluxioURI.normalizePath(String).
+     * It is inspired by AlluxioURI.normalizePath(String).
      *
      * @param path the path to normalize
      * @return the normalized path
@@ -242,6 +242,7 @@ public class UfsUrl {
 
   /**
    * Constructs an {@link UfsUrl} from components.
+   * Note that if checkNormalization is false, it will also remove redundant slashes of path.
    *
    * @param scheme    the scheme of the path
    * @param authority the authority of the path
@@ -254,12 +255,11 @@ public class UfsUrl {
     Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
         "Alluxio 3.x no longer supports alluxio:// scheme,"
             + " please input the UFS path directly like hdfs://host:port/path");
-    // TODO(Tony Sun): compose all the normalization function.
-    path = Parser.removeRedundantSlashes(path);
+
     if (checkNormalization) {
-      // TODO(Tony Sun): too many copies, remove it in the future
-      java.net.URI uri = java.net.URI.create(path);
-      path = uri.normalize().getPath();
+      path = FilenameUtils.normalizeNoEndSeparator(path);
+    } else {
+      path = Parser.removeRedundantSlashes(path);
     }
 
     String[] arrayOfPath = path.split(SLASH_SEPARATOR);
