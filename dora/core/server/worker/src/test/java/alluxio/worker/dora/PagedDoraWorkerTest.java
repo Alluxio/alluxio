@@ -30,11 +30,13 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadFileFailure;
+import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
 import alluxio.grpc.SetAttributePOptions;
@@ -751,5 +753,36 @@ public class PagedDoraWorkerTest {
 
     mWorker.completeFile(testFile.getPath(), CompleteFilePOptions.getDefaultInstance(),
         handle.getUUID().toString());
+  }
+
+  @Test
+  public void testExists() throws Exception {
+    File rootFolder = mTestFolder.newFolder("root");
+    String rootPath = rootFolder.getAbsolutePath();
+    assertTrue(mWorker.exists(rootPath, ExistsPOptions.getDefaultInstance()));
+    String fileContent = "foobar";
+    File f = mTestFolder.newFile("root/f");
+    Files.write(f.toPath(), fileContent.getBytes());
+    assertTrue(mWorker.exists(f.getAbsolutePath(), ExistsPOptions.getDefaultInstance()));
+    mWorker.delete(f.getAbsolutePath(), DeletePOptions.getDefaultInstance());
+    assertFalse(mWorker.exists(f.getAbsolutePath(), ExistsPOptions.getDefaultInstance()));
+    mWorker.delete(rootPath, DeletePOptions.getDefaultInstance());
+    assertFalse(mWorker.exists(rootPath, ExistsPOptions.getDefaultInstance()));
+  }
+
+  @Test
+  public void testRename() throws IOException, AccessControlException {
+    File srcFolder = mTestFolder.newFolder("root");
+    String rootPath = srcFolder.getAbsolutePath();
+    mWorker.rename(rootPath, rootPath + "2", RenamePOptions.getDefaultInstance());
+    assertFalse(mWorker.exists(rootPath, ExistsPOptions.getDefaultInstance()));
+    assertTrue(mWorker.exists(rootPath + "2", ExistsPOptions.getDefaultInstance()));
+    String fileContent = "foobar";
+    File f = mTestFolder.newFile("root2/f");
+    Files.write(f.toPath(), fileContent.getBytes());
+    mWorker.rename(f.getAbsolutePath(), f.getAbsolutePath() + "2",
+        RenamePOptions.getDefaultInstance());
+    assertFalse(mWorker.exists(f.getAbsolutePath(), ExistsPOptions.getDefaultInstance()));
+    assertTrue(mWorker.exists(f.getAbsolutePath() + "2", ExistsPOptions.getDefaultInstance()));
   }
 }
