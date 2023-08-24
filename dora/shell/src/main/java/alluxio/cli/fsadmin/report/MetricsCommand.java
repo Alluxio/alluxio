@@ -16,6 +16,7 @@ import alluxio.grpc.MetricValue;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.FormatUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -23,12 +24,10 @@ import com.google.common.math.DoubleMath;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.Locale;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Prints Alluxio metrics information.
@@ -60,56 +59,14 @@ public class MetricsCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
-    ArrayNode metricsInfo = mapper.createArrayNode();
-
-    mMetricsMap = mMetricsMasterClient.getMetrics();
-    SortedSet<String> names = new TreeSet<>(mMetricsMap.keySet());
-    for (String name : names) {
-      if (!isAlluxioMetric(name)) {
-        continue;
-      }
-      MetricValue metricValue = mMetricsMap.get(name);
-      String strValue;
-      if (metricValue.hasStringValue()) {
-        strValue = metricValue.getStringValue();
-      } else {
-        double doubleValue = metricValue.getDoubleValue();
-        if (name.contains(BYTES_METRIC_IDENTIFIER)) {
-          // Bytes long can be transformed to human-readable format
-          strValue = FormatUtils.getSizeFromBytes((long) doubleValue);
-          if (name.contains(THROUGHPUT_METRIC_IDENTIFIER)) {
-            strValue = strValue + "/MIN";
-          }
-        } else if (DoubleMath.isMathematicalInteger(doubleValue)) {
-          strValue = DECIMAL_FORMAT.format((long) doubleValue);
-        } else {
-          strValue = String.valueOf(doubleValue);
-        }
-      }
-      ObjectNode metric = mapper.createObjectNode();
-      metric.put("Name", name);
-      metric.put("Type", metricValue.getMetricType().toString());
-      metric.put("Value", strValue);
-      metricsInfo.add(metric);
+    ObjectMapper objectMapper = new ObjectMapper();
+    MetricsOutput metricsInfo = new MetricsOutput(mMetricsMasterClient.getMetrics());
+    try {
+      String json = objectMapper.writeValueAsString(metricsInfo);
+      mPrintStream.println(json);
+    } catch (JsonProcessingException e) {
+      e.printStackTrace();
     }
-
-    mPrintStream.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(metricsInfo));
     return 0;
-  }
-
-  /**
-   * Checks if a metric is Alluxio metric.
-   *
-   * @param name name of the metrics to check
-   * @return true if a metric is an Alluxio metric, false otherwise
-   */
-  private boolean isAlluxioMetric(String name) {
-    for (MetricsSystem.InstanceType instance : MetricsSystem.InstanceType.values()) {
-      if (name.startsWith(instance.toString())) {
-        return true;
-      }
-    }
-    return false;
   }
 }
