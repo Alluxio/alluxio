@@ -865,7 +865,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mMetaManager.loadFromUfs(path);
     mMetaManager.invalidateListingCacheOfParent(path);
     if (!success) {
-      new AlreadyExistsException(String.format("%s already exists", path));
+      throw new AlreadyExistsException(String.format("%s already exists", path));
     }
   }
 
