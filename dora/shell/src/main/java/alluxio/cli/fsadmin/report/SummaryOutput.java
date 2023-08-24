@@ -6,7 +6,6 @@ import alluxio.grpc.MasterVersion;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,13 +34,9 @@ public class SummaryOutput {
     private String mFreeCapacity;
 
     private static class SerializableMasterVersion {
-        @JsonProperty("Host")
         private String mHost;
-        @JsonProperty("Port")
         private int mPort;
-        @JsonProperty("State")
         private String mState;
-        @JsonProperty("Version")
         private String mVersion;
 
         public SerializableMasterVersion(MasterVersion masterVersion) {
@@ -56,7 +51,7 @@ public class SummaryOutput {
         }
 
         public void setHost(String host) {
-            this.mHost = host;
+            mHost = host;
         }
 
         public int getPort() {
@@ -64,7 +59,7 @@ public class SummaryOutput {
         }
 
         public void setPort(int port) {
-            this.mPort = port;
+            mPort = port;
         }
 
         public String getState() {
@@ -72,7 +67,7 @@ public class SummaryOutput {
         }
 
         public void setState(String state) {
-            this.mState = state;
+            mState = state;
         }
 
         public String getVersion() {
@@ -80,7 +75,7 @@ public class SummaryOutput {
         }
 
         public void setVersion(String version) {
-            this.mVersion = version;
+            mVersion = version;
         }
     }
 
@@ -130,7 +125,7 @@ public class SummaryOutput {
     }
 
     public void setMasterAddress(String masterAddress) {
-        this.mMasterAddress = masterAddress;
+        mMasterAddress = masterAddress;
     }
 
     public int getWebPort() {
@@ -138,7 +133,7 @@ public class SummaryOutput {
     }
 
     public void setWebPort(int webPort) {
-        this.mWebPort = webPort;
+        mWebPort = webPort;
     }
 
     public int getRpcPort() {
@@ -146,7 +141,7 @@ public class SummaryOutput {
     }
 
     public void setRpcPort(int rpcPort) {
-        this.mRpcPort = rpcPort;
+        mRpcPort = rpcPort;
     }
 
     public String getStarted() {
@@ -154,7 +149,7 @@ public class SummaryOutput {
     }
 
     public void setStarted(String started) {
-        this.mStarted = started;
+        mStarted = started;
     }
 
     public String getUptime() {
@@ -162,7 +157,7 @@ public class SummaryOutput {
     }
 
     public void setUptime(String uptime) {
-        this.mUptime = uptime;
+        mUptime = uptime;
     }
 
     public String getVersion() {
@@ -170,7 +165,7 @@ public class SummaryOutput {
     }
 
     public void setVersion(String version) {
-        this.mVersion = version;
+        mVersion = version;
     }
 
     public boolean ismSafeMode() {
@@ -178,7 +173,7 @@ public class SummaryOutput {
     }
 
     public void setSafeMode(boolean safeMode) {
-        this.mSafeMode = safeMode;
+        mSafeMode = safeMode;
     }
 
     public List<String> getZookeeperAddress() {
@@ -186,7 +181,7 @@ public class SummaryOutput {
     }
 
     public void setZookeeperAddress(List<String> zookeeperAddress) {
-        this.mZookeeperAddress = zookeeperAddress;
+        mZookeeperAddress = zookeeperAddress;
     }
 
     public boolean ismZookeeper() {
@@ -194,7 +189,7 @@ public class SummaryOutput {
     }
 
     public void setZookeeper(boolean mZookeeper) {
-        this.mZookeeper = mZookeeper;
+        mZookeeper = mZookeeper;
     }
 
     public List<String> getRaftJournalAddress() {
@@ -202,7 +197,7 @@ public class SummaryOutput {
     }
 
     public void setRaftJournalAddress(List<String> raftJournalAddress) {
-        this.mRaftJournalAddress = raftJournalAddress;
+        mRaftJournalAddress = raftJournalAddress;
     }
 
     public boolean ismRaftJournal() {
@@ -210,7 +205,7 @@ public class SummaryOutput {
     }
 
     public void setRaftJournal(boolean raftJournal) {
-        this.mRaftJournal = raftJournal;
+        mRaftJournal = raftJournal;
     }
 
     public List<SerializableMasterVersion> getMasterVersions() {
@@ -218,7 +213,7 @@ public class SummaryOutput {
     }
 
     public void setMasterVersions(List<SerializableMasterVersion> masterVersions) {
-        this.mMasterVersions = masterVersions;
+        mMasterVersions = masterVersions;
     }
 
     public int getLiveWorkers() {
@@ -226,7 +221,7 @@ public class SummaryOutput {
     }
 
     public void setLiveWorkers(int liveWorkers) {
-        this.mLiveWorkers = liveWorkers;
+        mLiveWorkers = liveWorkers;
     }
 
     public int getLostWorkers() {
@@ -234,7 +229,7 @@ public class SummaryOutput {
     }
 
     public void setLostWorkers(int lostWorkers) {
-        this.mLostWorkers = lostWorkers;
+        mLostWorkers = lostWorkers;
     }
 
     public String getFreeCapacity() {
@@ -242,7 +237,7 @@ public class SummaryOutput {
     }
 
     public void setFreeCapacity(String freeCapacity) {
-        this.mFreeCapacity = freeCapacity;
+        mFreeCapacity = freeCapacity;
     }
 
     public Map<String, String> getTotalCapacityOnTiers() {
@@ -250,7 +245,7 @@ public class SummaryOutput {
     }
 
     public void setTotalCapacityOnTiers(Map<String, String> totalCapacityOnTiers) {
-        this.mTotalCapacityOnTiers = totalCapacityOnTiers;
+        mTotalCapacityOnTiers = totalCapacityOnTiers;
     }
 
     public Map<String, String> getUsedCapacityOnTiers() {
@@ -258,6 +253,6 @@ public class SummaryOutput {
     }
 
     public void setUsedCapacityOnTiers(Map<String, String> usedCapacityOnTiers) {
-        this.mUsedCapacityOnTiers = usedCapacityOnTiers;
+        mUsedCapacityOnTiers = usedCapacityOnTiers;
     }
 }
