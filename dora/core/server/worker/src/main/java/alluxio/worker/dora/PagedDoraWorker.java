@@ -841,10 +841,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
           } else {
             if (dstStatus.isFile()) {
               dstUfs.deleteFile(dst);
-            }
-            if (dstStatus.isDirectory()) {
+            } else { //dst is a directory
               if (dstUfs.listStatus(dst).length > 0) {
-                throw new AlreadyExistsException("Directory already exists but non-empty");
+                throw new AlreadyExistsException("Non-empty directory already exists");
               }
               dstUfs.deleteDirectory(dst, DeleteOptions.RECURSIVE);
             }
