@@ -29,8 +29,12 @@ public class ListAllMyBucketsResult {
   private List<Bucket> mBuckets;
 
   /**
+   * Creates a {@link ListAllMyBucketsResult} for deserialization only.
+   */
+  public ListAllMyBucketsResult() {}
+
+  /**
    * Creates a {@link ListAllMyBucketsResult}.
-   *
    * @param names names of all of the buckets
    */
   public ListAllMyBucketsResult(List<URIStatus> names) {
@@ -50,13 +54,31 @@ public class ListAllMyBucketsResult {
   }
 
   /**
+   * @param buckets the list of buckets
+   */
+  @JacksonXmlProperty(localName = "Bucket")
+  public void setBuckets(List<Bucket> buckets) {
+    mBuckets = buckets;
+  }
+
+  /**
    * The Bucket object.
    */
   @JacksonXmlRootElement(localName = "Bucket")
-  public class Bucket {
+  public static class Bucket {
     private String mName;
     private String mCreationDate;
 
+    /**
+     * Creates a {@link Bucket} for deserialization only.
+     */
+    public Bucket() {}
+
+    /**
+     * Creates a {@link Bucket}.
+     * @param name the name of the bucket
+     * @param creationDate the creation timestamp for the bucket
+     */
     private Bucket(String name, String creationDate) {
       mName = name;
       mCreationDate = creationDate;
@@ -76,6 +98,22 @@ public class ListAllMyBucketsResult {
     @JacksonXmlProperty(localName = "CreationDate")
     public String getCreationDate() {
       return mCreationDate;
+    }
+
+    /**
+     * @param name the name of the bucket
+     */
+    @JacksonXmlProperty(localName = "Name")
+    public void setName(String name) {
+      mName = name;
+    }
+
+    /**
+     * @param creationDate the creation timestamp for the bucket
+     */
+    @JacksonXmlProperty(localName = "CreationDate")
+    public void setCreationDate(String creationDate) {
+      mCreationDate = creationDate;
     }
   }
 }

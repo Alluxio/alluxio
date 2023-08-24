@@ -53,6 +53,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.Trash;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.security.SecurityUtil;
@@ -111,6 +112,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   private final LoadingCache<String, FileSystem> mUserFs;
   protected final HdfsAclProvider mHdfsAclProvider;
 
+  private final boolean mTrashEnable;
+  private final LoadingCache<FileSystem, Trash> mFsTrash;
+
   /**
    * Factory method to constructs a new HDFS {@link UnderFileSystem} instance.
    *
@@ -139,6 +143,16 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   protected HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
       Configuration hdfsConf, boolean useLoadingCache) {
     super(ufsUri, conf);
+
+    mTrashEnable = alluxio.conf.Configuration.getBoolean(
+        PropertyKey.UNDERFS_HDFS_TRASH_ENABLED);
+    LOG.info(PropertyKey.UNDERFS_HDFS_TRASH_ENABLED.getName() + " is set to {}", mTrashEnable);
+    mFsTrash = CacheBuilder.newBuilder().build(new CacheLoader<FileSystem, Trash>() {
+      @Override
+      public Trash load(FileSystem fs) throws Exception {
+        return new Trash(fs, fs.getConf());
+      }
+    });
 
     // Create the supported HdfsAclProvider if possible.
     HdfsAclProvider hdfsAclProvider = new NoopHdfsAclProvider();
@@ -333,12 +347,12 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
 
   @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
-    return isDirectory(path) && delete(path, options.isRecursive());
+    return isDirectory(path) && delete(path, options.isRecursive(), true);
   }
 
   @Override
   public boolean deleteFile(String path) throws IOException {
-    return isFile(path) && delete(path, false);
+    return isFile(path) && delete(path, false, false);
   }
 
   @Override
@@ -751,15 +765,32 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
    *
    * @param path file or directory path
    * @param recursive whether to delete path recursively
+   * @param isDirectory whether path is a directory
    * @return true, if succeed
    */
-  private boolean delete(String path, boolean recursive) throws IOException {
+  private boolean delete(String path, boolean recursive, boolean isDirectory) throws IOException {
     IOException te = null;
     FileSystem hdfs = getFs();
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attempt()) {
       try {
-        return hdfs.delete(new Path(path), recursive);
+        Path hdfsPath = new Path(path);
+        if (!mTrashEnable) {
+          return hdfs.delete(hdfsPath, recursive);
+        }
+        Trash trash = getTrash(hdfs);
+        // move to trash
+        if (isDirectory && !recursive && hdfs.listStatus(hdfsPath).length != 0) {
+          return false;
+        }
+        if (trash.moveToTrash(hdfsPath)) {
+          // moving file to trash succeeded.
+          return true;
+        } else {
+          // if failed to move this file to trash, delete it.
+          LOG.debug("Failed to move '{}' to trash. Now delete it.", path);
+          return hdfs.delete(hdfsPath, recursive);
+        }
       } catch (IOException e) {
         LOG.warn("Attempt count {} : {}", retryPolicy.getAttemptCount(), e.toString());
         te = e;
@@ -831,6 +862,14 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       return mUserFs.get(HDFS_USER);
     } catch (ExecutionException e) {
       throw new IOException("Failed get FileSystem for " + mUri, e.getCause());
+    }
+  }
+
+  private Trash getTrash(FileSystem fs) throws IOException {
+    try {
+      return mFsTrash.get(fs);
+    } catch (ExecutionException e) {
+      throw new IOException("Failed get Trash for " + fs.getUri(), e.getCause());
     }
   }
 }

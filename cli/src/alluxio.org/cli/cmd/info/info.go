@@ -22,7 +22,6 @@ var Service = &env.Service{
 		Cache,
 		Collect,
 		Doctor,
-		Master,
 		Nodes,
 		Report,
 		Version,

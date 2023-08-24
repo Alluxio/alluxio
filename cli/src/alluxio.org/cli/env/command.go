@@ -13,6 +13,7 @@ package env
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -90,10 +91,14 @@ func (c *BaseJavaCommand) RunJavaClassCmd(args []string) *exec.Cmd {
 }
 
 func (c *BaseJavaCommand) Run(args []string) error {
+	return c.RunWithWriters(args, os.Stdout, os.Stderr)
+}
+
+func (c *BaseJavaCommand) RunWithWriters(args []string, stdout, stderr io.Writer) error {
 	cmd := c.RunJavaClassCmd(args)
 
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
 
 	log.Logger.Debugln(cmd.String())
 	if err := cmd.Run(); err != nil {

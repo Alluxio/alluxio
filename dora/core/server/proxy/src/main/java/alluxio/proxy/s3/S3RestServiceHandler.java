@@ -238,7 +238,7 @@ public final class S3RestServiceHandler {
         }
 
         final List<URIStatus> buckets = objects.stream()
-            .filter((uri) -> uri.getOwner().equals(user))
+            .filter((uri) -> !uri.getName().equals(S3Constants.S3_METADATA_ROOT_DIR))
             // debatable (?) potentially breaks backcompat(?)
             .filter(URIStatus::isFolder)
             .collect(Collectors.toList());

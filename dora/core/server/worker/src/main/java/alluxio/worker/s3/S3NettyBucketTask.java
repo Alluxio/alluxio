@@ -138,6 +138,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
           }
 
           final List<URIStatus> buckets = objects.stream()
+              .filter((uri) -> !uri.getName().equals(S3Constants.S3_METADATA_ROOT_DIR))
               // debatable (?) potentially breaks backcompat(?)
               .filter(URIStatus::isFolder)
               .collect(Collectors.toList());
