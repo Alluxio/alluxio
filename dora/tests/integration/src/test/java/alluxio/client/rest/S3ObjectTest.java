@@ -209,6 +209,7 @@ public class S3ObjectTest extends RestApiTest {
 
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(fullKey, content).checkResponseCode(Status.OK.getStatusCode());
+    getTestCase(fullKey).checkResponseCode(Status.OK.getStatusCode()).checkResponse(content);
     // overwrite this object
     createObjectTestCase(fullKey, content2).checkResponseCode(Status.OK.getStatusCode());
     getTestCase(fullKey).checkResponseCode(Status.OK.getStatusCode()).checkResponse(content2)
@@ -369,6 +370,7 @@ public class S3ObjectTest extends RestApiTest {
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(sourcePath, content).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(targetPath, content2).checkResponseCode(Status.OK.getStatusCode());
+    getTestCase(targetPath).checkResponseCode(Status.OK.getStatusCode()).checkResponse(content2);
     // copy object1 and overwrite object2.
     copyObjectTestCase(sourcePath, targetPath).checkResponseCode(Status.OK.getStatusCode());
     getTestCase(targetPath).checkResponseCode(Status.OK.getStatusCode()).checkResponse(content);
