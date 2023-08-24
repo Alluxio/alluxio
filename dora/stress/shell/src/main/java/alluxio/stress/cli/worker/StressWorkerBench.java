@@ -67,8 +67,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
   private FileSystem[] mCachedFs;
   private Path[] mFilePaths;
-  private Integer[] mOffsets;
-  private Integer[] mLengths;
   private FileSystemContext mFsContext;
 
   /** generate random number in range [min, max] (include both min and max).*/
@@ -153,8 +151,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     // and offsets
     mFilePaths = new Path[numFiles];
     // set random offsets and lengths if enabled
-    mLengths = new Integer[mParameters.mRandomSequenceLength];
-    mOffsets = new Integer[mParameters.mRandomSequenceLength];
 
     generateTestFilePaths(basePath);
 
@@ -482,9 +478,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         int offset = randomNumInRange(mRandom, 0, mFileSize - 1 - mRandomMin);
         int length = randomNumInRange(mRandom, mRandomMin, Integer.min(mFileSize - offset, mRandomMax));
         mRandomIndex += 1;
-        if (mRandomIndex == mOffsets.length) {
-          mRandomIndex = 0;
-        }
         // here seems if the length is smaller than buffer length, the stress bench
         // will still read length for the buffer length
         // Maybe with some special params will cause inaccuracy
