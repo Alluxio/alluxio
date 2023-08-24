@@ -28,7 +28,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
-import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
@@ -719,7 +718,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       // 1. If client disconnects without sending CompleteFile request, we must have a way to
       //    clean up the stale handle.
       // 2. some other abnormal case ...
-      //throw new RuntimeException(new FileAlreadyExistsException("File is already opened"));
+      //throw new FileAlreadyExistsException("File is already opened");
       mOpenFileHandleContainer.remove(path);
       existingHandle.close();
     }
@@ -732,34 +731,28 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     if (options.hasRecursive() && options.getRecursive()) {
       createOption.setCreateParent(true);
     }
-
-    try {
-      // Check if the target file already exists. If yes, return by throwing error.
-      boolean overWrite = options.hasOverwrite() ? options.getOverwrite() : false;
-      boolean exists = ufs.exists(path);
-      if (!overWrite && exists) {
-        throw new RuntimeException(
-            new FileAlreadyExistsException("File already exists but no overwrite flag"));
-      } else if (overWrite) {
-        // client is going to overwrite this file. We need to invalidate the cached meta and data.
-        mMetaManager.removeFromMetaStore(path);
-      }
-
-      // Prepare a "fake" UfsStatus here. Please prepare more fields here.
-      String owner = createOption.getOwner() != null ? createOption.getOwner() : "";
-      String group = createOption.getGroup() != null ? createOption.getGroup() : "";
-      UfsStatus status = new UfsFileStatus(new AlluxioURI(path).toString(),
-                                "",
-                                0,
-                                CommonUtils.getCurrentMs(),
-                                owner,
-                                group,
-                                createOption.getMode().toShort(),
-                                DUMMY_BLOCK_SIZE);
-      info = buildFileInfoFromUfsStatus(status, path);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    // Check if the target file already exists. If yes, return by throwing error.
+    boolean overWrite = options.hasOverwrite() ? options.getOverwrite() : false;
+    boolean exists = ufs.exists(path);
+    if (!overWrite && exists) {
+      throw new AlreadyExistsException("File already exists but no overwrite flag");
+    } else if (overWrite) {
+      // client is going to overwrite this file. We need to invalidate the cached meta and data.
+      mMetaManager.removeFromMetaStore(path);
     }
+
+    // Prepare a "fake" UfsStatus here. Please prepare more fields here.
+    String owner = createOption.getOwner() != null ? createOption.getOwner() : "";
+    String group = createOption.getGroup() != null ? createOption.getGroup() : "";
+    UfsStatus status = new UfsFileStatus(new AlluxioURI(path).toString(),
+                              "",
+                              0,
+                              CommonUtils.getCurrentMs(),
+                              owner,
+                              group,
+                              createOption.getMode().toShort(),
+                              DUMMY_BLOCK_SIZE);
+    info = buildFileInfoFromUfsStatus(status, path);
 
     OutputStream outStream;
     if (mClientWriteToUFSEnabled) {
@@ -796,26 +789,22 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   public void delete(String path, DeletePOptions options) throws IOException,
       AccessControlException {
     UnderFileSystem ufs = getUfsInstance(path);
-    try {
-      mMetaManager.removeFromMetaStore(path);
+    mMetaManager.removeFromMetaStore(path);
 
-      // TODO(hua) Close the open file handle?
-      if (!options.getAlluxioOnly()) {
-        // By being a cache, Dora assume the file exists in UFS when a delete is issued
-        // So if the file does not exist in UFS, an IOException will be thrown here
-        UfsStatus status = ufs.getStatus(path);
-        if (status.isFile()) {
-          ufs.deleteFile(path);
+    // TODO(hua) Close the open file handle?
+    if (!options.getAlluxioOnly()) {
+      // By being a cache, Dora assume the file exists in UFS when a delete is issued
+      // So if the file does not exist in UFS, an IOException will be thrown here
+      UfsStatus status = ufs.getStatus(path);
+      if (status.isFile()) {
+        ufs.deleteFile(path);
+      } else {
+        if (options.hasRecursive() && options.getRecursive()) {
+          ufs.deleteDirectory(path, DeleteOptions.RECURSIVE);
         } else {
-          if (options.hasRecursive() && options.getRecursive()) {
-            ufs.deleteDirectory(path, DeleteOptions.RECURSIVE);
-          } else {
-            ufs.deleteDirectory(path, DeleteOptions.NON_RECURSIVE);
-          }
+          ufs.deleteDirectory(path, DeleteOptions.NON_RECURSIVE);
         }
       }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     }
   }
 
@@ -830,62 +819,53 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       throw new FailedPreconditionException("Cannot rename a file in one UFS to another UFS");
     }
 
-    try {
-      if (options.hasS3SyntaxOptions() && options.getS3SyntaxOptions().hasOverwrite()) {
-        // check the existence of dst only when S3 overwrite option exists.
-        try {
-          UfsStatus dstStatus = dstUfs.getStatus(dst);
-          boolean overWrite = options.getS3SyntaxOptions().getOverwrite();
-          if (!overWrite) {
-            throw new AlreadyExistsException("File already exists but no overwrite flag");
-          } else {
-            if (dstStatus.isFile()) {
-              dstUfs.deleteFile(dst);
-            } else { //dst is a directory
-              if (dstUfs.listStatus(dst).length > 0) {
-                throw new AlreadyExistsException("Non-empty directory already exists");
-              }
-              dstUfs.deleteDirectory(dst, DeleteOptions.RECURSIVE);
+    if (options.hasS3SyntaxOptions() && options.getS3SyntaxOptions().hasOverwrite()) {
+      // check the existence of dst only when S3 overwrite option exists.
+      try {
+        UfsStatus dstStatus = dstUfs.getStatus(dst);
+        boolean overWrite = options.getS3SyntaxOptions().getOverwrite();
+        if (!overWrite) {
+          throw new AlreadyExistsException("File already exists but no overwrite flag");
+        } else {
+          if (dstStatus.isFile()) {
+            dstUfs.deleteFile(dst);
+          } else { //dst is a directory
+            if (dstUfs.listStatus(dst).length > 0) {
+              throw new AlreadyExistsException("Non-empty directory already exists");
             }
-            mMetaManager.removeFromMetaStore(dst);
+            dstUfs.deleteDirectory(dst, DeleteOptions.RECURSIVE);
           }
-        } catch (FileNotFoundException e) {
-          // dst doesn't exist and do nothing
+          mMetaManager.removeFromMetaStore(dst);
         }
+      } catch (FileNotFoundException e) {
+        // dst doesn't exist and do nothing
       }
-      UfsStatus status = srcUfs.getStatus(src);
-      if (status.isFile()) {
-        srcUfs.renameFile(src, dst);
-      } else {
-        srcUfs.renameDirectory(src, dst);
-      }
-      mMetaManager.removeFromMetaStore(src);
-      mMetaManager.loadFromUfs(dst);
-      mMetaManager.invalidateListingCacheOfParent(dst);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     }
+    UfsStatus status = srcUfs.getStatus(src);
+    if (status.isFile()) {
+      srcUfs.renameFile(src, dst);
+    } else {
+      srcUfs.renameDirectory(src, dst);
+    }
+    mMetaManager.removeFromMetaStore(src);
+    mMetaManager.loadFromUfs(dst);
+    mMetaManager.invalidateListingCacheOfParent(dst);
   }
 
   @Override
   public void createDirectory(String path, CreateDirectoryPOptions options)
       throws IOException, AccessControlException {
     UnderFileSystem ufs = getUfsInstance(path);
-    try {
-      boolean success;
-      if (options.hasRecursive() && options.getRecursive()) {
-        success = ufs.mkdirs(path, mMkdirsRecursive);
-      } else {
-        success = ufs.mkdirs(path, mMkdirsNonRecursive);
-      }
-      mMetaManager.loadFromUfs(path);
-      mMetaManager.invalidateListingCacheOfParent(path);
-      if (!success) {
-        throw new RuntimeException(
-            new FileAlreadyExistsException(String.format("%s already exists", path)));
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    boolean success;
+    if (options.hasRecursive() && options.getRecursive()) {
+      success = ufs.mkdirs(path, mMkdirsRecursive);
+    } else {
+      success = ufs.mkdirs(path, mMkdirsNonRecursive);
+    }
+    mMetaManager.loadFromUfs(path);
+    mMetaManager.invalidateListingCacheOfParent(path);
+    if (!success) {
+      new AlreadyExistsException(String.format("%s already exists", path));
     }
   }
 

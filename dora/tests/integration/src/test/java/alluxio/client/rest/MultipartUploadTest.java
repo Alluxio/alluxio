@@ -422,7 +422,7 @@ public class MultipartUploadTest extends RestApiTest {
     final List<Integer> parts = new ArrayList<>();
     final List<Part> partList = new ArrayList<>();
     final String uploadId = initiateMultipartUpload();
-    final String objectKey2=OBJECT_KEY+AlluxioURI.SEPARATOR+"object2";
+    final String objectKey2 = OBJECT_KEY + AlluxioURI.SEPARATOR + "object2";
 
     for (int i = 1; i <= partsNum; i++) {
       parts.add(i);
