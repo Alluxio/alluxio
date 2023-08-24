@@ -577,10 +577,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     List<RouteFailure> errors = Collections.synchronizedList(new ArrayList<>());
 
     for (Route route : routes) {
-      UnderFileSystem srcUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getSrc()),
-          UnderFileSystemConfiguration.defaults(mConf));
-      UnderFileSystem dstUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getDst()),
-          UnderFileSystemConfiguration.defaults(mConf));
+      UnderFileSystem srcUfs = getUnderFileSystem(route.getSrc());
+      UnderFileSystem dstUfs = getUnderFileSystem(route.getDst());
       String srcRoot = new AlluxioURI(route.getSrc()).getRootPath();
       String dstRoot = new AlluxioURI(route.getDst()).getRootPath();
 
