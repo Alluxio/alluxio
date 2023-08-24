@@ -12,7 +12,6 @@
 package alluxio.worker.dora;
 
 import alluxio.exception.AccessControlException;
-import alluxio.exception.AlluxioException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -163,7 +162,7 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @param options the options for this operations
    */
   void rename(String src, String dst, RenamePOptions options)
-      throws IOException, AlluxioException;
+      throws IOException, AccessControlException;
 
   /**
    * Create a directory.

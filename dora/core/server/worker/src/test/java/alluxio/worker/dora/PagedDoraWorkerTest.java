@@ -25,7 +25,7 @@ import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageMetaStore;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
+import alluxio.exception.AccessControlException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -106,7 +106,7 @@ public class PagedDoraWorkerTest {
   @Ignore
   // TODO(elega) fix this broken test
   public void testLoad()
-      throws AlluxioException, ExecutionException, InterruptedException, TimeoutException,
+      throws AccessControlException, ExecutionException, InterruptedException, TimeoutException,
       IOException {
     int numPages = 10;
     long length = mPageSize * numPages;
@@ -532,7 +532,7 @@ public class PagedDoraWorkerTest {
 
   @Test
   public void testGetFileInfo()
-      throws AlluxioException, IOException, ExecutionException, InterruptedException,
+      throws AccessControlException, IOException, ExecutionException, InterruptedException,
       TimeoutException {
     String fileContent = "foobar";
     String updatedFileContent = "foobarbaz";
@@ -589,7 +589,7 @@ public class PagedDoraWorkerTest {
 
   @Test
   public void testGetFileInfoDir()
-      throws AlluxioException, IOException {
+      throws AccessControlException, IOException {
     File f = mTestFolder.newFolder();
 
     alluxio.wire.FileInfo result =
@@ -693,7 +693,7 @@ public class PagedDoraWorkerTest {
 
   @Test
   public void testListCacheConsistency()
-      throws IOException, AlluxioException, ExecutionException, InterruptedException,
+      throws IOException, AccessControlException, ExecutionException, InterruptedException,
       TimeoutException {
     String fileContent = "foobar";
     File rootFolder = mTestFolder.newFolder("root");
@@ -731,7 +731,7 @@ public class PagedDoraWorkerTest {
 
   private void loadFileData(String path)
       throws ExecutionException, InterruptedException, TimeoutException, IOException,
-      AlluxioException {
+      AccessControlException {
     UfsStatus ufsStatus = mWorker.getUfsInstance(path).getStatus(path);
     ufsStatus.setUfsFullPath(new AlluxioURI(path));
     ListenableFuture<List<LoadFileFailure>> load =
