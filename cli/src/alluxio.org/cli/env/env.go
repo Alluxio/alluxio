@@ -239,17 +239,17 @@ var (
 )
 
 func checkJavaVersion(javaPath string) error {
-	// cmd := exec.Command("bash", "-c", fmt.Sprintf("%v -version", javaPath))
-	// javaVer, err := cmd.CombinedOutput()
-	// if err != nil {
-	// 	return stacktrace.Propagate(err, "error finding java version from `%v -version`", javaPath)
-	// }
-	// matches := javaVersionRe.FindStringSubmatch(string(javaVer))
-	// if len(matches) != 2 {
-	// 	return stacktrace.NewError("java version output does not match expected regex pattern %v\n%v", javaVersionRe.String(), string(javaVer))
-	// }
-	// if !requiredVersionRegex.MatchString(matches[1]) {
-	// 	return stacktrace.NewError("Error: Alluxio requires Java 1.8 or 11.0, currently Java %v found.", matches[1])
-	// }
+	cmd := exec.Command("bash", "-c", fmt.Sprintf("%v -version", javaPath))
+	javaVer, err := cmd.CombinedOutput()
+	if err != nil {
+		return stacktrace.Propagate(err, "error finding java version from `%v -version`", javaPath)
+	}
+	matches := javaVersionRe.FindStringSubmatch(string(javaVer))
+	if len(matches) != 2 {
+		return stacktrace.NewError("java version output does not match expected regex pattern %v\n%v", javaVersionRe.String(), string(javaVer))
+	}
+	if !requiredVersionRegex.MatchString(matches[1]) {
+		return stacktrace.NewError("Error: Alluxio requires Java 1.8 or 11.0, currently Java %v found.", matches[1])
+	}
 	return nil
 }
