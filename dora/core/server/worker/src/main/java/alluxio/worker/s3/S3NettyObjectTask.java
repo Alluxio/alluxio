@@ -331,6 +331,11 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
     }
 
     @Override
+    public boolean needContent() {
+      return false;
+    }
+
+    @Override
     public HttpResponse continueTask() {
       return NettyRestUtils.call(getObjectTaskResource(), () -> {
         final String user = mHandler.getUser();
@@ -434,6 +439,11 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
           return new CopyObjectResult(entityTag, System.currentTimeMillis());
         }
       });
+    }
+
+    @Override
+    public HttpResponse handleContent(HttpContent content) {
+      return null;
     }
   } // end of CopyObjectTask
 

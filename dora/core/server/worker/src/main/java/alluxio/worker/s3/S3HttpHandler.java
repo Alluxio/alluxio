@@ -98,10 +98,12 @@ public class S3HttpHandler extends ChannelInboundHandlerAdapter {
       } else if (msg instanceof HttpContent) {
         HttpContent content = (HttpContent) msg;
         // if the req handle async, we skip the Empty content.
-        if (!mAsyncHandle) {
-          response = mHandler.getS3Task().handleContent(content);
-        } else {
-          mHandler.addContent(content);
+        if (mHandler.getS3Task().needContent()) {
+          if (!mAsyncHandle) {
+            response = mHandler.getS3Task().handleContent(content);
+          } else {
+            mHandler.addContent(content);
+          }
         }
       } else {
         HttpResponse errorResponse =
