@@ -30,12 +30,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 @PublicApi
 public class MountPointInfo implements Serializable {
-  @JsonIgnore
   private static final long serialVersionUID = -2912330427506888886L;
 
-  @JsonIgnore
   private static final long UNKNOWN_CAPACITY_BYTES = -1;
-  @JsonIgnore
   private static final long UNKNOWN_USED_BYTES = -1;
 
   private String mUfsUri = "";
@@ -43,10 +40,10 @@ public class MountPointInfo implements Serializable {
   @JsonIgnore
   private long mMountId = 0;
   @JsonSerialize(using = FileSizeSerializer.class)
-  @JsonProperty("ufsCapacity")
+  @JsonProperty("ufsCapacityBytes")
   private long mUfsCapacityBytes = UNKNOWN_CAPACITY_BYTES;
   @JsonSerialize(using = FileSizeSerializer.class)
-  @JsonProperty("ufsUsed")
+  @JsonProperty("ufsUsedBytes")
   private long mUfsUsedBytes = UNKNOWN_USED_BYTES;
   private boolean mReadOnly;
   private boolean mShared;
