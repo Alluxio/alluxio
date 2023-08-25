@@ -587,22 +587,23 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public void setAttribute(String path, String name, byte[] value) throws IOException {
-    setObjectTagging(stripPrefixIfPresent(path), name, new String(value));
+    path = stripPrefixIfPresent(path);
+    if (isDirectory(path)) {
+      setObjectTagging(convertToFolderName(path), name, new String(value));
+    } else {
+      setObjectTagging(path, name, new String(value));
+    }
   }
 
   @Override
   public Map<String, String> getAttribute(String path) throws IOException {
     path = stripPrefixIfPresent(path);
     try {
-      return getObjectTags(path);
-    } catch (AlluxioRuntimeException e) {
-      if (e.getStatus().getCode() != Status.Code.NOT_FOUND) {
-        throw e;
+      if (isDirectory(path)) {
+        return getObjectTags(convertToFolderName(path));
+      } else {
+        return getObjectTags(path);
       }
-    }
-
-    try {
-      return getObjectTags(convertToFolderName(path));
     } catch (AlluxioRuntimeException e) {
       if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {
         return null;
