@@ -518,12 +518,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                   status.asUfsFileStatus().getContentLength());
             } catch (Throwable e) {
               LOG.error("Loading {} failed", status, e);
-              boolean permissionCheckSucceeded = !(e instanceof AccessControlException);
               AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
-              boolean isUnknownException = t instanceof UnknownRuntimeException;
               errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
                   .setCode(t.getStatus().getCode().value())
-                  .setRetryable((t.isRetryable() || isUnknownException) && permissionCheckSucceeded)
+                  .setRetryable(true)
                   .setMessage(t.getMessage()).build());
             }
           }, GrpcExecutors.BLOCK_READER_EXECUTOR);
