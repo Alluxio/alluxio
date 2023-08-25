@@ -5165,7 +5165,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_REPLICATION_MIN =
       intBuilder(Name.USER_FILE_REPLICATION_MIN)
-          .setDefaultValue(0)
+          .setDefaultValue(1)
           .setDescription("The target min replication level of a file in Alluxio space.")
           .setScope(Scope.CLIENT)
           .build();
