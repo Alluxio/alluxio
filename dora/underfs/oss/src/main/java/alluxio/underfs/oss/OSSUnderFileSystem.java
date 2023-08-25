@@ -337,6 +337,12 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       }
       return null;
     }
+
+    @Nullable
+    @Override
+    public Boolean hasNextChunk() {
+      return mResult.isTruncated();
+    }
   }
 
   @Override
@@ -397,6 +403,8 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public void close() throws IOException {
     super.close();
-    mClientProvider.close();
+    if (mClientProvider != null) {
+      mClientProvider.close();
+    }
   }
 }

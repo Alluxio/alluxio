@@ -140,6 +140,13 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       .desc("If specified, only the file metadata are loaded")
       .build();
 
+  private static final Option SKIP_IF_EXISTS = Option.builder()
+      .longOpt("skip-if-exists")
+      .required(false)
+      .hasArg(false)
+      .desc("If specified, skip if exists")
+      .build();
+
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
@@ -168,7 +175,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         .addOption(PROGRESS_FORMAT)
         .addOption(PROGRESS_VERBOSE)
         .addOption(LOCAL_OPTION)
-        .addOption(LOAD_METADATA_ONLY);
+        .addOption(LOAD_METADATA_ONLY)
+        .addOption(SKIP_IF_EXISTS);
   }
 
   @Override
@@ -197,7 +205,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
           bandwidth,
           cl.hasOption(PARTIAL_LISTING_OPTION.getLongOpt()),
           cl.hasOption(VERIFY_OPTION.getLongOpt()),
-          cl.hasOption(LOAD_METADATA_ONLY.getLongOpt()));
+          cl.hasOption(LOAD_METADATA_ONLY.getLongOpt()),
+          cl.hasOption(SKIP_IF_EXISTS.getLongOpt()));
     }
 
     if (cl.hasOption(STOP_OPTION.getLongOpt())) {
@@ -219,7 +228,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     return "For backward compatibility: load [--local] <path>\n"
         + "For distributed load:\n"
         + "\tload <path> --submit "
-        + "[--bandwidth N] [--verify] [--partial-listing] [--metadata-only]\n"
+        + "[--bandwidth N] [--verify] [--partial-listing] [--metadata-only] [--skip-if-exists]\n"
         + "\tload <path> --stop\n"
         + "\tload <path> --progress [--format TEXT|JSON] [--verbose]\n";
   }
@@ -250,10 +259,11 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   }
 
   private int submitLoad(AlluxioURI path, OptionalLong bandwidth,
-      boolean usePartialListing, boolean verify, boolean loadMetadataOnly) {
+      boolean usePartialListing, boolean verify, boolean loadMetadataOnly, boolean skipIfExists) {
     LoadJobPOptions.Builder options = alluxio.grpc.LoadJobPOptions
         .newBuilder().setPartialListing(usePartialListing).setVerify(verify)
-        .setLoadMetadataOnly(loadMetadataOnly);
+        .setLoadMetadataOnly(loadMetadataOnly)
+        .setSkipIfExists(skipIfExists);
     if (bandwidth.isPresent()) {
       options.setBandwidth(bandwidth.getAsLong());
     }

@@ -557,6 +557,29 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
   }
 
+  // Hacked scheduler properties
+  public static final PropertyKey SCHEDULER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD =
+      intBuilder("alluxio.scheduler.dora.load.job.total.failure.count.threshold")
+          .setDefaultValue(-1)
+          .setDescription("-1 -> never fail, otherwise the fail threshold")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey SCHEDULER_DORA_LOAD_JOB_TOTAL_FAILURE_RATIO_THRESHOLD =
+      doubleBuilder("alluxio.scheduler.dora.load.job.total.failure.ratio.threshold")
+          .setDefaultValue(1.00)
+          .setDescription("1.00 -> never fail, (0, 1) -> the percentage threshold")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey SCHEDULER_DORA_LOAD_JOB_RETRIES =
+      intBuilder("alluxio.scheduler.dora.load.job.retries")
+          .setDefaultValue(3)
+          .setDescription("retry count before final failure")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+
   public static final PropertyKey CONF_DIR =
       stringBuilder(Name.CONF_DIR)
           .setDefaultValue(format("${%s}/conf", Name.HOME))
@@ -2358,7 +2381,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_SCHEDULER_INITIAL_DELAY =
       durationBuilder(Name.MASTER_SCHEDULER_INITIAL_WAIT_TIME)
-          .setDefaultValue("10min")
+          .setDefaultValue("1s")
           .setDescription("The initial wait time before the scheduler starts. This grace period "
           + "is added to make sure workers have registered to master successfully.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)

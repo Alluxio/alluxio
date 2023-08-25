@@ -20,6 +20,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadFileFailure;
+import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
@@ -100,12 +101,13 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * Loads the metadata and data of files from UFS to Alluxio.
    *
    * @param loadData true if data should also be loaded, otherwise metadata only
+   * @param skipIfExists true if data loading should be skipped if it's already loaded
    * @param ufsStatuses the files to load
    * @param options
    * @return a list of failed files
    */
-  ListenableFuture<List<LoadFileFailure>> load(
-      boolean loadData, List<UfsStatus> ufsStatuses, UfsReadOptions options)
+  ListenableFuture<LoadFileResponse> load(
+      boolean loadData, boolean skipIfExists, List<UfsStatus> ufsStatuses, UfsReadOptions options)
       throws AccessControlException, IOException;
 
   /**
