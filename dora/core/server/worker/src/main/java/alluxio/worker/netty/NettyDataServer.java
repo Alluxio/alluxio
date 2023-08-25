@@ -179,6 +179,11 @@ public class NettyDataServer implements DataServer {
   }
 
   @Override
+  public SocketAddress getS3BindAddress() {
+    return mHttpChannelFuture.channel().localAddress();
+  }
+
+  @Override
   public boolean isClosed() {
     return mBootstrap.group().isShutdown();
   }

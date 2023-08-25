@@ -109,6 +109,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
   private final AtomicLong mTotalByteCount = new AtomicLong();
   private final AtomicLong mTotalFailureCount = new AtomicLong();
   private final AtomicLong mCurrentFailureCount = new AtomicLong();
+  private final AtomicLong mCurrentSuccessCount = new AtomicLong();
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
   private final Iterable<FileInfo> mFileIterable;
   private Optional<Iterator<FileInfo>> mFileIterator = Optional.empty();
@@ -477,6 +478,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
         }
       }
       addMovedBytes(totalBytes);
+      mCurrentSuccessCount.addAndGet(task.getRoutes().size() - response.getFailuresCount());
       MOVE_FILE_COUNT.inc(
           task.getRoutes().size() - response.getFailuresCount());
       MOVE_SIZE.inc(totalBytes);
@@ -577,6 +579,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     private final double mFailurePercentage;
     private final AlluxioRuntimeException mFailureReason;
     private final long mFailedFileCount;
+    private final long mSuccessFileCount;
     private final Map<String, String> mFailedFilesWithReasons;
     private final String mJobId;
     private final long mStartTime;
@@ -614,6 +617,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
       }
       mFailureReason = job.mFailedReason.orElse(null);
       mFailedFileCount = job.mFailedFiles.size();
+      mSuccessFileCount = job.mCurrentSuccessCount.get();
       if (verbose && mFailedFileCount > 0) {
         mFailedFilesWithReasons = job.mFailedFiles;
       } else {
@@ -677,7 +681,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
           mTotalByteCount == null
               ? "" : format(", %s", FormatUtils.getSizeFromBytes(mTotalByteCount))));
       progress.append(format("\tFiles Failed: %s%n", mFailedFileCount));
-      progress.append(format("\tFiles Succeeded: %s%n", mProcessedFileCount - mFailedFileCount));
+      progress.append(format("\tFiles Succeeded: %s%n", mSuccessFileCount));
       progress.append(format("\tBytes Moved: %s%n", FormatUtils.getSizeFromBytes(mByteCount)));
       if (mThroughput != null) {
         progress.append(format("\tThroughput: %s/s%n",

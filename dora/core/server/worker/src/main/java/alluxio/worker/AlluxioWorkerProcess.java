@@ -224,6 +224,11 @@ public class AlluxioWorkerProcess implements WorkerProcess {
   }
 
   @Override
+  public int getRestS3LocalPort() {
+    return ((InetSocketAddress) mNettyDataServer.getS3BindAddress()).getPort();
+  }
+
+  @Override
   public String getDataDomainSocketPath() {
     if (mDomainSocketDataServer != null) {
       return ((DomainSocketAddress) mDomainSocketDataServer.getBindAddress()).path();

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3;
+package alluxio.s3;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -91,7 +91,7 @@ public class DeleteObjectsRequest {
    * Inner POJO representing an object to delete in the S3 API.
    */
   @JacksonXmlRootElement(localName = "Object")
-  static class DeleteObject {
+  public static class DeleteObject {
     private String mKey;
 
     /**

@@ -20,7 +20,7 @@ import alluxio.s3.NettyRestUtils;
 import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
 
-import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import org.apache.kerby.util.Hex;
 import org.slf4j.Logger;
@@ -120,7 +120,7 @@ public final class StringToSignProducer {
    */
   public static String createSignatureBase(
       SignatureInfo signatureInfo,
-      FullHttpRequest httpRequest
+      HttpRequest httpRequest
   ) throws Exception {
     QueryStringDecoder queryDecoder = new QueryStringDecoder(httpRequest.uri());
     return createSignatureBase(signatureInfo,

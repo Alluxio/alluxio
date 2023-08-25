@@ -26,7 +26,6 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.proxy.s3.S3RestServiceHandler;
 import alluxio.proxy.s3.S3RestUtils;
 import alluxio.s3.ListAllMyBucketsResult;
 import alluxio.s3.ListBucketOptions;
@@ -58,7 +57,7 @@ public class ListStatusTest extends RestApiTest {
 
   @ClassRule
   public static LocalAlluxioClusterResource sResource = new LocalAlluxioClusterResource.Builder()
-      .setIncludeProxy(true)
+      .setProperty(PropertyKey.WORKER_S3_REST_ENABLED, true)
       .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, true) // default
       .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
           AuthType.SIMPLE) // default, getDefaultOptionsWithAuth() sets the "Authorization" header
@@ -82,11 +81,12 @@ public class ListStatusTest extends RestApiTest {
   @Before
   public void before() throws Exception {
     mHostname = sResource.get().getHostname();
-    mPort = sResource.get().getProxyProcess().getWebLocalPort();
+    mPort = sResource.get().getWorkerProcess().getRestS3LocalPort();
     mFileSystemMaster = sResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class);
 
-    mBaseUri = String.format("%s/%s", mBaseUri, S3RestServiceHandler.SERVICE_PREFIX);
+    // Must overwrite mBaseUri with empty string.
+    mBaseUri = "";
 
     // Assign the UFS root path "/" permissions
     Mode mode = ModeParser.parse("777");
