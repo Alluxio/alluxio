@@ -12,6 +12,8 @@
 package env
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -20,6 +22,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 
 	"alluxio.org/log"
 )
@@ -91,18 +94,44 @@ func (c *BaseJavaCommand) RunJavaClassCmd(args []string) *exec.Cmd {
 }
 
 func (c *BaseJavaCommand) Run(args []string) error {
-	return c.RunWithWriters(args, os.Stdout, os.Stderr)
+	return c.RunWithIO(args, nil, os.Stdout, os.Stderr)
 }
 
-func (c *BaseJavaCommand) RunWithWriters(args []string, stdout, stderr io.Writer) error {
+func (c *BaseJavaCommand) RunWithIO(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 	cmd := c.RunJavaClassCmd(args)
 
+	cmd.Stdin = stdin
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
 
 	log.Logger.Debugln(cmd.String())
 	if err := cmd.Run(); err != nil {
 		return stacktrace.Propagate(err, "error running %v", c.CommandName)
+	}
+	return nil
+}
+
+func (c *BaseJavaCommand) RunAndFormat(format string, stdin io.Reader, args []string) error {
+	switch strings.ToLower(format) {
+	case "json":
+		return c.RunWithIO(args, stdin, os.Stdout, os.Stderr)
+	case "yaml":
+		buf := &bytes.Buffer{}
+		if err := c.RunWithIO(args, stdin, buf, os.Stderr); err != nil {
+			io.Copy(os.Stdout, buf)
+			return err
+		}
+		var obj interface{}
+		if err := json.Unmarshal(buf.Bytes(), &obj); err != nil {
+			return stacktrace.Propagate(err, "error unmarshalling json from java command")
+		}
+		if out, err := yaml.Marshal(obj); err == nil {
+			os.Stdout.Write(out)
+		} else {
+			return stacktrace.Propagate(err, "error marshalling yaml")
+		}
+	default:
+		return stacktrace.NewError("unfamiliar output format %s", format)
 	}
 	return nil
 }
