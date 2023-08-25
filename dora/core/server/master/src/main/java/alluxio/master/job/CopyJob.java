@@ -110,6 +110,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   private final AtomicLong mTotalFailureCount = new AtomicLong();
   private final AtomicLong mCurrentFailureCount = new AtomicLong();
   private final AtomicLong mCurrentSkipCount = new AtomicLong();
+  private final AtomicLong mCurrentSuccessCount = new AtomicLong();
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
   private final Iterable<FileInfo> mFileIterable;
   private Optional<Iterator<FileInfo>> mFileIterator = Optional.empty();
@@ -486,6 +487,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
         }
       }
       addCopiedBytes(totalBytes);
+      mCurrentSuccessCount.addAndGet(task.getRoutes().size() - response.getFailuresCount());
       COPY_FILE_COUNT.inc(
           task.getRoutes().size() - response.getFailuresCount());
       COPY_SIZE.inc(totalBytes);
@@ -592,6 +594,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     private final AlluxioRuntimeException mFailureReason;
     private final long mFailedFileCount;
     private final long mSkippedFileCount;
+    private final long mSuccessFileCount;
     private final Map<String, String> mFailedFilesWithReasons;
     private final String mJobId;
     private final long mStartTime;
@@ -630,6 +633,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
       mFailureReason = job.mFailedReason.orElse(null);
       mFailedFileCount = job.mFailedFiles.size();
       mSkippedFileCount = job.mCurrentSkipCount.get();
+      mSuccessFileCount = job.mCurrentSuccessCount.get();
       if (verbose && mFailedFileCount > 0) {
         mFailedFilesWithReasons = job.mFailedFiles;
       } else {
@@ -694,8 +698,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
               ? "" : format(", %s", FormatUtils.getSizeFromBytes(mTotalByteCount))));
       progress.append(format("\tFiles Failed: %s%n", mFailedFileCount));
       progress.append(format("\tFiles Skipped: %s%n", mSkippedFileCount));
-      progress.append(format("\tFiles Succeeded: %s%n", mProcessedFileCount
-          - mFailedFileCount - mSkippedFileCount));
+      progress.append(format("\tFiles Succeeded: %s%n", mSuccessFileCount));
       progress.append(format("\tBytes Copied: %s%n", FormatUtils.getSizeFromBytes(mByteCount)));
       if (mThroughput != null) {
         progress.append(format("\tThroughput: %s/s%n",
