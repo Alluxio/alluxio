@@ -37,6 +37,10 @@ public class FuseOptions {
 
   private final boolean mFastCopyEnabled;
 
+  private final int mOpMaxRetryNum;
+
+  private final long mOpInitRetryWaitTime;
+
   /**
    * Creates the FUSE options.
    *
@@ -105,7 +109,9 @@ public class FuseOptions {
     }
     return new FuseOptions(fileSystemOptions, mountOptions, updateCheckEnabled,
         conf.getBoolean(PropertyKey.FUSE_SPECIAL_COMMAND_ENABLED),
-        conf.getBoolean(PropertyKey.FUSE_FAST_COPY_ENABLED));
+        conf.getBoolean(PropertyKey.FUSE_FAST_COPY_ENABLED),
+        conf.getInt(PropertyKey.FUSE_OP_MAX_RETRY_NUM),
+        conf.getMs(PropertyKey.FUSE_OP_RETRY_INIT_WAIT_TIME));
   }
 
   /**
@@ -118,12 +124,14 @@ public class FuseOptions {
    */
   private FuseOptions(FileSystemOptions fileSystemOptions,
       Set<String> fuseMountOptions, boolean updateCheckEnabled, boolean specialCommandEnabled,
-                      boolean fastCopyEnabled) {
+                      boolean fastCopyEnabled, int opMaxRetryNum, long opInitRetryWaitTime) {
     mFileSystemOptions = Preconditions.checkNotNull(fileSystemOptions);
     mFuseMountOptions = Preconditions.checkNotNull(fuseMountOptions);
     mUpdateCheckEnabled = updateCheckEnabled;
     mSpecialCommandEnabled = specialCommandEnabled;
     mFastCopyEnabled = fastCopyEnabled;
+    mOpMaxRetryNum = opMaxRetryNum;
+    mOpInitRetryWaitTime = opInitRetryWaitTime;
   }
 
   /**
@@ -159,5 +167,19 @@ public class FuseOptions {
    */
   public boolean isFastCopyEnabled() {
     return mFastCopyEnabled;
+  }
+
+  /**
+   * @return FUSE operations max retry number
+   */
+  public int getOpMaxRetryNum() {
+    return mOpMaxRetryNum;
+  }
+
+  /**
+   * @return initial retry wait time for operations
+   */
+  public long getOpInitRetryWaitTime() {
+    return mOpInitRetryWaitTime;
   }
 }

@@ -7323,6 +7323,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
 
+  public static final PropertyKey FUSE_OP_MAX_RETRY_NUM =
+      intBuilder(Name.FUSE_OP_MAX_RETRY_NUM)
+          .setDefaultValue(5)
+          .setDescription("Maximum number of retries for FUSE operations. ")
+          .setScope(Scope.CLIENT)
+          .build();
+
+  public static final PropertyKey FUSE_OP_RETRY_INIT_WAIT_TIME =
+      durationBuilder(Name.FUSE_OP_RETRY_INIT_WAIT_TIME)
+          .setDefaultValue("400ms")
+          .setDescription("Initial retry wait time for FUSE operations retry. ")
+          .setScope(Scope.CLIENT)
+          .build();
+
   //
   // Standalone FUSE process related properties
   //
@@ -9516,6 +9530,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String FUSE_FAST_COPY_ENABLED =
         "alluxio.fuse.fast.copy.enabled";
+
+    public static final String FUSE_OP_MAX_RETRY_NUM =
+        "alluxio.fuse.op.max.retry.num";
+
+    public static final String FUSE_OP_RETRY_INIT_WAIT_TIME =
+        "alluxio.fuse.op.retry.init.wait.time";
 
     //
     // Standalone FUSE process related properties

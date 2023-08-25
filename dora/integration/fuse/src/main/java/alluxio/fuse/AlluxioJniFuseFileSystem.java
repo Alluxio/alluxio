@@ -184,7 +184,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       long fd = mNextOpenFileId.getAndIncrement();
       mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
       fi.fh.set(fd);
-      mOpenedFiles.add(path);
     } catch (NotFoundRuntimeException e) {
       LOG.error("Failed to read {}: path does not exist or is invalid", path, e);
       return -ErrorCodes.ENOENT();
@@ -211,6 +210,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private int getattrInternal(String path, FileStat stat) {
+    waitForFileRelease(path);
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
@@ -362,6 +362,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return -ErrorCodes.EBADFD();
     }
     entry.getFileStream().flush();
+    mOpenedFiles.add(path);
     return 0;
   }
 
@@ -376,18 +377,14 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (entry == null) {
       LOG.error("Failed to release {}: Cannot find fd {}", path, fd);
-      if (mOpenedFiles.contains(path)) {
-        mOpenedFiles.remove(path);
-      }
+      mOpenedFiles.remove(path);
       return -ErrorCodes.EBADFD();
     }
     try {
       entry.getFileStream().close();
     } finally {
       mFileEntries.remove(entry);
-      if (mOpenedFiles.contains(path)) {
-        mOpenedFiles.remove(path);
-      }
+      mOpenedFiles.remove(path);
     }
     return 0;
   }
@@ -524,9 +521,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   private void waitForFileRelease(String path) {
-    int maxRetries = 5;
+    int maxRetries = mFuseOptions.getOpMaxRetryNum();
     int retryCount = 0;
-    long sleepTime = 400L;
+    long sleepTime = mFuseOptions.getOpInitRetryWaitTime();
     while (mOpenedFiles.contains(path) && retryCount < maxRetries) {
       try {
         LOG.debug("The file {} hasn't been released yet. Wait for release and retry the {} time. ",
@@ -642,6 +639,10 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int utimens(String path, long aSec, long aNsec, long mSec, long mNsec) {
+    if (mFuseOptions.isFastCopyEnabled()) {
+      return 0;
+    }
+    waitForFileRelease(path);
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
