@@ -537,7 +537,6 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     }
   }
 
-
   private int chmodInternal(String path, long mode) {
     if (mFuseOptions.isFastCopyEnabled()) {
       // just ignore the chown op when fast copy is enabled

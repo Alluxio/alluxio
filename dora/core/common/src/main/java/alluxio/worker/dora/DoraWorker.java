@@ -19,7 +19,6 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadFileFailure;
 import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;

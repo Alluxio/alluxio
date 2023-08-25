@@ -30,7 +30,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.runtime.UnknownRuntimeException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;

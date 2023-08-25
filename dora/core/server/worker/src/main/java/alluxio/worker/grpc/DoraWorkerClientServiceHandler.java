@@ -38,7 +38,6 @@ import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
-import alluxio.grpc.LoadFileFailure;
 import alluxio.grpc.LoadFileRequest;
 import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.MoveRequest;
