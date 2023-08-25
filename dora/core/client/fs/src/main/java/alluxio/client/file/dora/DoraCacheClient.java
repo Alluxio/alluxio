@@ -411,4 +411,13 @@ public class DoraCacheClient {
   protected BlockWorkerInfo choosePreferredWorker(List<BlockWorkerInfo> workers) {
     return workers.get(0);
   }
+
+  /**
+   * Get Context.
+   *
+   * @return a file system context
+   */
+  public FileSystemContext getContext() {
+    return mContext;
+  }
 }
