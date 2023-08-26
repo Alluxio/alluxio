@@ -7325,14 +7325,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey FUSE_OP_MAX_RETRY_NUM =
       intBuilder(Name.FUSE_OP_MAX_RETRY_NUM)
-          .setDefaultValue(5)
+          .setDefaultValue(6)
           .setDescription("Maximum number of retries for FUSE operations. ")
           .setScope(Scope.CLIENT)
           .build();
 
   public static final PropertyKey FUSE_OP_RETRY_INIT_WAIT_TIME =
       durationBuilder(Name.FUSE_OP_RETRY_INIT_WAIT_TIME)
-          .setDefaultValue("400ms")
+          .setDefaultValue("50ms")
           .setDescription("Initial retry wait time for FUSE operations retry. ")
           .setScope(Scope.CLIENT)
           .build();
