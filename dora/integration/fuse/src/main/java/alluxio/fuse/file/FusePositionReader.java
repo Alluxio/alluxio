@@ -138,6 +138,11 @@ public class FusePositionReader implements FuseFileStream {
   }
 
   @Override
+  public boolean isClosed() {
+    return mClosed;
+  }
+
+  @Override
   public boolean allowWrite() {
     return false;
   }

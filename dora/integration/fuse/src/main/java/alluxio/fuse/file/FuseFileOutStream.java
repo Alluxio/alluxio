@@ -267,6 +267,11 @@ public class FuseFileOutStream implements FuseFileStream {
   }
 
   @Override
+  public boolean isClosed() {
+    return mClosed;
+  }
+
+  @Override
   public boolean allowWrite() {
     return true;
   }

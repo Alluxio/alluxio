@@ -129,4 +129,9 @@ public interface FuseFileStream extends AutoCloseable {
       }
     }
   }
+
+  /**
+   * @return if the stream is closed
+   */
+  boolean isClosed();
 }

@@ -3158,6 +3158,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
 
+  public static final PropertyKey FUSE_SYNC_CLOSE_ENABLED =
+      booleanBuilder("alluxio.user.fuse.sync.close.enabled")
+          .setDefaultValue(false)
+          .setDescription("Hello")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+
+  public static final PropertyKey FUSE_RANDOM_ACCESS_FILE_STREAM_BUFFER_SIZE =
+      intBuilder("alluxio.user.fuse.random.access.file.stream.buffer.size")
+          .setDefaultValue(1 * 1024 * 1024)
+          .setDescription("This buffer size is used in RandomAccessFuseFileStream when copying the "
+              + "UFS file to local and copying the local file to UFS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+
   public static final PropertyKey MASTER_HOSTNAME =
       stringBuilder(Name.MASTER_HOSTNAME)
           .setDescription("The hostname of Alluxio master.")
