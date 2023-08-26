@@ -72,6 +72,11 @@ public interface FuseFileStream extends AutoCloseable {
   void close();
 
   /**
+   * @return if writes are allowed
+   */
+  boolean allowWrite();
+
+  /**
    * Factory for {@link FuseFileInStream}.
    */
   @ThreadSafe

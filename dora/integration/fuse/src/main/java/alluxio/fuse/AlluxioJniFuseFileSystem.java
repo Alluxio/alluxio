@@ -362,7 +362,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return -ErrorCodes.EBADFD();
     }
     entry.getFileStream().flush();
-    mOpenedFiles.add(path);
+    if (entry.getFileStream().allowWrite()) {
+      mOpenedFiles.add(path);
+    }
     return 0;
   }
 

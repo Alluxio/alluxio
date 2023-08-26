@@ -168,4 +168,9 @@ public class FusePositionReadOrOutStream implements FuseFileStream {
         mLockManager, mUri, OpenFlags.O_WRONLY.intValue(), mMode));
     return mOutStream.get();
   }
+
+  @Override
+  public boolean allowWrite() {
+    return true;
+  }
 }

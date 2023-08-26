@@ -155,4 +155,9 @@ public class FuseFileInOrOutStream implements FuseFileStream {
     }
     mOutStream.ifPresent(FuseFileOutStream::close);
   }
+
+  @Override
+  public boolean allowWrite() {
+    return true;
+  }
 }
