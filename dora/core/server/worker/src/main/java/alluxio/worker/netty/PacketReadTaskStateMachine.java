@@ -65,6 +65,11 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
   private final BlockingQueue<SendDataEvent> mFlowControlQueue =
       new ArrayBlockingQueue<>((int) MAX_PACKETS_IN_FLIGHT);
 
+  private final BlockingQueue<String> mWaitForTerminatedSignalQueue =
+      new ArrayBlockingQueue<>(1);
+
+  private boolean mAllDataRead = false;
+
   private final TriggerEventsWithParam mTriggerEventsWithParam;
 
   private final Channel mChannel;
@@ -271,6 +276,7 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
         .getEnd()) {
       // This can happen if the requested read length is greater than the actual length of the
       // block or file starting from the given offset.
+      mAllDataRead = true;
       fireNext(TriggerEvent.OUTPUT_LENGTH_FULFILLED);
       return;
     }
@@ -285,10 +291,7 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
 
   private void onTerminatedNormally() {
     try {
-      while (!mFlowControlQueue.isEmpty()) {
-        // wait for finishing sending data
-        LOG.debug("mFlowControlQueue.size(): {}", mFlowControlQueue.size());
-      }
+      mWaitForTerminatedSignalQueue.take();
       completeRequest(mContext);
       fireNext(TriggerEvent.END);
     } catch (IOException e) {
@@ -488,6 +491,9 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
       if (!future.isSuccess()) {
         LOG.error("Failed to send packet.", future.cause());
         mFlowControlQueue.take();
+        if (mAllDataRead && mFlowControlQueue.isEmpty()) {
+          mWaitForTerminatedSignalQueue.offer("wait for finishing sending data");
+        }
         if (mDataBuffer != null) {
           mDataBuffer.release();
         }
@@ -505,6 +511,9 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
 
       LOG.debug("Taking an object from the flow control queue successfully.");
       mFlowControlQueue.take();
+      if (mAllDataRead && mFlowControlQueue.isEmpty()) {
+        mWaitForTerminatedSignalQueue.offer("wait for finishing sending data");
+      }
       LOG.debug("An object has been taken from the flow control queue successfully.");
     }
   }
