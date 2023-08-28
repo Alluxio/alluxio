@@ -18,6 +18,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.Bits;
@@ -26,6 +27,8 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.s3.DeleteObjectsRequest;
+import alluxio.s3.DeleteObjectsResult;
 import alluxio.s3.ListAllMyBucketsResult;
 import alluxio.s3.ListBucketOptions;
 import alluxio.s3.ListBucketResult;
@@ -35,7 +38,11 @@ import alluxio.s3.S3Constants;
 import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.net.InetAddresses;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +50,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
@@ -90,6 +99,11 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
           }
         case "PUT":
           return new CreateBucketTask(handler, OpType.CreateBucket);
+        case "POST":
+          if (handler.getQueryParameter("delete") != null) {
+            return new DeleteObjectsTask(handler, OpType.DeleteObjects);
+          }
+          break;
         case "HEAD":
           if (!StringUtils.isEmpty(handler.getBucket())) {
             return new HeadBucketTask(handler, OpType.HeadBucket);
@@ -174,7 +188,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
       return NettyRestUtils.call(mHandler.getBucket(), () -> {
         String path = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
         final String user = mHandler.getUser();
-        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        final FileSystem userFs = mHandler.getFileSystemForUser(user);
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, mHandler.getBucket(), null)) {
@@ -246,7 +260,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
     public HttpResponse continueTask() {
       return NettyRestUtils.call(mHandler.getBucket(), () -> {
         final String user = mHandler.getUser();
-        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        final FileSystem userFs = mHandler.getFileSystemForUser(user);
         String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, mHandler.getBucket(), null)) {
@@ -317,6 +331,82 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
     }
   } // end of CreateBucketTask
 
+  private static class DeleteObjectsTask extends S3NettyBucketTask {
+
+    protected DeleteObjectsTask(S3NettyHandler handler, OpType opType) {
+      super(handler, opType);
+    }
+
+    @Override
+    public HttpResponse continueTask() {
+      return NettyRestUtils.call(mHandler.getBucket(), () -> {
+        return null;
+      });
+    }
+
+    @Override
+    public boolean needContent() {
+      return true;
+    }
+
+    @Override
+    public HttpResponse handleContent(HttpContent content) {
+      return NettyRestUtils.call(mHandler.getBucket(), () -> {
+        final String user = mHandler.getUser();
+        final FileSystem userFs = mHandler.getFileSystemForUser(user);
+        String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
+        try (S3AuditContext auditContext = mHandler.createAuditContext(
+            mOPType.name(), user, mHandler.getBucket(), null)) {
+          try {
+            ByteBuf buf = content.content();
+            InputStream readStream = new ByteBufInputStream(buf);
+            DeleteObjectsRequest request = new XmlMapper().readerFor(DeleteObjectsRequest.class)
+                .readValue(readStream);
+            List<DeleteObjectsRequest.DeleteObject> objs = request.getToDelete();
+            List<DeleteObjectsResult.DeletedObject> success = new ArrayList<>();
+            List<DeleteObjectsResult.ErrorObject> errored = new ArrayList<>();
+            objs.sort(Comparator.comparingInt(x -> -1 * x.getKey().length()));
+            objs.forEach(obj -> {
+              try {
+                AlluxioURI uri = new AlluxioURI(bucketPath
+                    + AlluxioURI.SEPARATOR + obj.getKey());
+                DeletePOptions options = DeletePOptions.newBuilder().build();
+                userFs.delete(uri, options);
+                DeleteObjectsResult.DeletedObject del = new DeleteObjectsResult.DeletedObject();
+                del.setKey(obj.getKey());
+                success.add(del);
+              } catch (FileDoesNotExistException | DirectoryNotEmptyException e) {
+              /*
+              FDNE - delete on FDNE should be counted as a success, as there's nothing to do
+              DNE - s3 has no concept dirs - if it _is_ a dir, nothing to delete.
+               */
+                DeleteObjectsResult.DeletedObject del = new DeleteObjectsResult.DeletedObject();
+                del.setKey(obj.getKey());
+                success.add(del);
+              } catch (IOException | AlluxioException e) {
+                DeleteObjectsResult.ErrorObject err = new DeleteObjectsResult.ErrorObject();
+                err.setKey(obj.getKey());
+                err.setMessage(e.getMessage());
+                errored.add(err);
+              }
+            });
+
+            DeleteObjectsResult result = new DeleteObjectsResult();
+            if (!request.getQuiet()) {
+              result.setDeleted(success);
+            }
+            result.setErrored(errored);
+            return result;
+          } catch (IOException e) {
+            LOG.debug("Failed to parse DeleteObjects request:", e);
+            auditContext.setSucceeded(false);
+            return HttpResponseStatus.BAD_REQUEST;
+          }
+        }
+      });
+    }
+  } // end of DeleteObjectsTask
+
   private static class HeadBucketTask extends S3NettyBucketTask {
     protected HeadBucketTask(S3NettyHandler handler, OpType opType) {
       super(handler, opType);
@@ -327,7 +417,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
       return NettyRestUtils.call(mHandler.getBucket(), () -> {
         String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
         final String user = mHandler.getUser();
-        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        final FileSystem userFs = mHandler.getFileSystemForUser(user);
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, mHandler.getBucket(), null)) {
@@ -348,7 +438,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
     public HttpResponse continueTask() {
       return NettyRestUtils.call(mHandler.getBucket(), () -> {
         final String user = mHandler.getUser();
-        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        final FileSystem userFs = mHandler.getFileSystemForUser(user);
         String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(

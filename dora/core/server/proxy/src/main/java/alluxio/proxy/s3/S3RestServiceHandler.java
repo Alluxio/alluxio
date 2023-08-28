@@ -39,6 +39,8 @@ import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.proto.journal.File;
 import alluxio.s3.ChunkedEncodingInputStream;
 import alluxio.s3.CopyObjectResult;
+import alluxio.s3.DeleteObjectsRequest;
+import alluxio.s3.DeleteObjectsResult;
 import alluxio.s3.ListAllMyBucketsResult;
 import alluxio.s3.ListBucketOptions;
 import alluxio.s3.ListBucketResult;

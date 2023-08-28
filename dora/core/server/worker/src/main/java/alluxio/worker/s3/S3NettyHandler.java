@@ -53,7 +53,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.FileRegion;
 import io.netty.handler.codec.http.DefaultHttpContent;
-import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
@@ -72,6 +72,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -87,12 +89,14 @@ public class S3NettyHandler {
   private String mUser;
   private final String mBucket;
   private final String mObject;
-  private final FullHttpRequest mRequest;
+  private final HttpRequest mRequest;
+  private BlockingQueue<HttpContent> mContentQueue;
   private HttpResponse mResponse;
   private final ChannelHandlerContext mContext;
   private final QueryStringDecoder mQueryDecoder;
   private S3NettyBaseTask mS3Task;
   private FileSystem mFsClient;
+  private FileSystem mUserFsClient;
   private DoraWorker mDoraWorker;
   private Stopwatch mStopwatch;
   public AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
@@ -144,7 +148,7 @@ public class S3NettyHandler {
    * @param doraWorker
    * @param asyncAuditLogWriter
    */
-  public S3NettyHandler(String bucket, String object, FullHttpRequest request,
+  public S3NettyHandler(String bucket, String object, HttpRequest request,
                         ChannelHandlerContext ctx, FileSystem fileSystem,
                         DoraWorker doraWorker,
                         AsyncUserAccessAuditLogWriter asyncAuditLogWriter) {
@@ -171,15 +175,15 @@ public class S3NettyHandler {
    * @throws Exception
    *
    */
-  public static S3NettyHandler createHandler(ChannelHandlerContext context, FullHttpRequest request,
+  public static S3NettyHandler createHandler(ChannelHandlerContext context, HttpRequest request,
                                              FileSystem fileSystem, DoraWorker doraWorker,
                                              AsyncUserAccessAuditLogWriter asyncAuditLogWriter)
       throws Exception {
-    String path = request.uri();
+    String path = java.net.URI.create(request.uri()).getPath();
     Stopwatch stopwatch = Stopwatch.createStarted();
     Matcher bucketMatcher = BUCKET_PATH_PATTERN.matcher(path);
     Matcher objectMatcher = OBJECT_PATH_PATTERN.matcher(path);
-    String pathStr = java.net.URI.create(path.substring(1)).getPath();
+    String pathStr = path.substring(1);
     String bucket = null;
     String object = null;
     if (bucketMatcher.matches()) {
@@ -217,6 +221,7 @@ public class S3NettyHandler {
     // Reject unsupported subresources.
     rejectUnsupportedResources();
     // Init utils
+    mContentQueue = new LinkedBlockingQueue<>();
 
     // TODO(wyy) init directories
     // Initiate the S3 API MPU metadata directories
@@ -487,7 +492,7 @@ public class S3NettyHandler {
    * get HTTP request.
    * @return HTTP request
    */
-  public FullHttpRequest getRequest() {
+  public HttpRequest getRequest() {
     return mRequest;
   }
 
@@ -503,8 +508,30 @@ public class S3NettyHandler {
    * get HTTP content of this request.
    * @return HTTP content
    */
-  public ByteBuf getRequestContent() {
-    return mRequest.content();
+  public HttpContent getLatestContent() throws InterruptedException {
+    if (mContentQueue != null) {
+      return mContentQueue.take();
+    }
+    return null;
+  }
+
+  /**
+   * @return Does there exists content in the content queue
+   */
+  public boolean remainContent() {
+    return !mContentQueue.isEmpty();
+  }
+
+  /**
+   * Adds content to the content queue.
+   * @param content
+   * @return the result of adding content
+   */
+  public boolean addContent(HttpContent content) {
+    if (mContentQueue != null) {
+      return mContentQueue.offer(content);
+    }
+    return false;
   }
 
   /**
@@ -572,17 +599,20 @@ public class S3NettyHandler {
    * @param user the {@link Subject} name of the filesystem user
    * @return A {@link FileSystem} with the subject set to the provided user
    */
-  public FileSystem createFileSystemForUser(String user) {
+  public FileSystem getFileSystemForUser(String user) {
     if (user == null) {
       // Used to return the top-level FileSystem view when not using Authentication
       return mFsClient;
     }
 
-    final Subject subject = new Subject();
-    subject.getPrincipals().add(new User(user));
-    // Use local conf to create filesystem rather than fs.getConf()
-    // due to fs conf will be changed by merged cluster conf.
-    return FileSystem.Factory.get(subject, Configuration.global());
+    if (mUserFsClient == null) {
+      final Subject subject = new Subject();
+      subject.getPrincipals().add(new User(user));
+      // Use local conf to create filesystem rather than fs.getConf()
+      // due to fs conf will be changed by merged cluster conf.
+      mUserFsClient = FileSystem.Factory.get(subject, Configuration.global());
+    }
+    return mUserFsClient;
   }
 
   /**

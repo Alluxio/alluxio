@@ -35,8 +35,8 @@ import alluxio.grpc.PMode;
 import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.network.netty.FileTransferType;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.s3.ChunkedEncodingInputStream;
 import alluxio.s3.CopyObjectResult;
+import alluxio.s3.MultiChunkEncodingInputStream;
 import alluxio.s3.NettyRestUtils;
 import alluxio.s3.S3AuditContext;
 import alluxio.s3.S3Constants;
@@ -44,7 +44,6 @@ import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
 import alluxio.s3.S3RangeSpec;
 import alluxio.s3.TaggingData;
-import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -57,20 +56,24 @@ import com.google.common.io.ByteStreams;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.LastHttpContent;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import javax.ws.rs.core.MediaType;
 
@@ -109,7 +112,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
      * @param handler
      * @return S3ObjectTask
      */
-    public static S3NettyObjectTask create(S3NettyHandler handler) {
+    public static S3NettyObjectTask create(S3NettyHandler handler) throws S3Exception {
       switch (handler.getHttpMethod()) {
         case "GET":
           return new GetObjectTask(handler, OpType.GetObject);
@@ -117,7 +120,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
           if (handler.getHeader(S3Constants.S3_COPY_SOURCE_HEADER) != null) {
             return new CopyObjectTask(handler, OpType.CopyObject);
           }
-          return new S3NettyObjectTask(handler, OpType.Unsupported);
+          return new PutObjectTask(handler, OpType.PutObject);
         case "POST":
           break;
         case "HEAD":
@@ -144,13 +147,14 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         Preconditions.checkNotNull(mHandler.getObject(), "required 'object' parameter is missing");
 
         final String user = mHandler.getUser();
-        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        final FileSystem userFs = mHandler.getFileSystemForUser(user);
         String bucketPath = AlluxioURI.SEPARATOR + mHandler.getBucket();
-        String objectPath = PathUtils.concatPath(bucketPath, mHandler.getObject());
+        String objectPath = NettyRestUtils.getFullPath(bucketPath, mHandler.getObject());
         AlluxioURI objectUri = new AlluxioURI(objectPath);
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, mHandler.getBucket(), mHandler.getObject())) {
+          S3NettyHandler.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
           try {
             URIStatus fi = userFs.getStatus(objectUri);
             if (fi.isFolder() && !mHandler.getObject().endsWith(AlluxioURI.SEPARATOR)) {
@@ -203,9 +207,9 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
       return NettyRestUtils.call(getObjectTaskResource(), () -> {
         final String range = mHandler.getHeaderOrDefault("Range", null);
         final String user = mHandler.getUser();
-        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        final FileSystem userFs = mHandler.getFileSystemForUser(user);
         String bucketPath = AlluxioURI.SEPARATOR + mHandler.getBucket();
-        String objectPath = PathUtils.concatPath(bucketPath, mHandler.getObject());
+        String objectPath = NettyRestUtils.getFullPath(bucketPath, mHandler.getObject());
         AlluxioURI objectUri = new AlluxioURI(objectPath);
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
@@ -322,21 +326,26 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
 
   private static final class CopyObjectTask extends PutObjectTask {
 
-    public CopyObjectTask(S3NettyHandler handler, OpType opType) {
+    public CopyObjectTask(S3NettyHandler handler, OpType opType) throws S3Exception {
       super(handler, opType);
+    }
+
+    @Override
+    public boolean needContent() {
+      return false;
     }
 
     @Override
     public HttpResponse continueTask() {
       return NettyRestUtils.call(getObjectTaskResource(), () -> {
         final String user = mHandler.getUser();
-        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        final FileSystem userFs = mHandler.getFileSystemForUser(user);
         final String bucket = mHandler.getBucket();
         final String object = mHandler.getObject();
         Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
         Preconditions.checkNotNull(object, "required 'object' parameter is missing");
         String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
-        String objectPath = PathUtils.concatPath(bucketPath, object);
+        String objectPath = NettyRestUtils.getFullPath(bucketPath, object);
 
         final String copySourceParam = mHandler.getHeader(S3Constants.S3_COPY_SOURCE_HEADER);
         String copySource = !copySourceParam.startsWith(AlluxioURI.SEPARATOR)
@@ -344,6 +353,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, mHandler.getBucket(), mHandler.getObject())) {
+          S3NettyHandler.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
 
           if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
             createDirectory(objectPath, userFs, auditContext);
@@ -430,13 +440,29 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         }
       });
     }
+
+    @Override
+    public HttpResponse handleContent(HttpContent content) {
+      return null;
+    }
   } // end of CopyObjectTask
 
   private static class PutObjectTask extends S3NettyObjectTask {
+    private OutputStream mFileOutStream;
+    private MultiChunkEncodingInputStream mChunkEncodingInputStream;
+    private MessageDigest mMessageDigest;
+    private long mAlreadyRead;
+    private long mToRead;
     // For both PutObject and UploadPart
 
-    public PutObjectTask(S3NettyHandler handler, OpType opType) {
+    public PutObjectTask(S3NettyHandler handler, OpType opType) throws S3Exception {
       super(handler, opType);
+      try {
+        mAlreadyRead = 0;
+        mMessageDigest = MessageDigest.getInstance("MD5");
+      } catch (NoSuchAlgorithmException e) {
+        throw new S3Exception(handler.getRequest().uri(), S3ErrorCode.INTERNAL_ERROR);
+      }
     }
 
     /**
@@ -449,60 +475,26 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
      * @return Response
      * @throws S3Exception
      */
-    public HttpResponse createObject(String objectPath, FileSystem userFs,
-                                 CreateFilePOptions createFilePOptions, S3AuditContext auditContext)
+    public OutputStream createObject(String objectPath, FileSystem userFs,
+                                     CreateFilePOptions createFilePOptions,
+                                     S3AuditContext auditContext)
         throws S3Exception {
       AlluxioURI objectUri = new AlluxioURI(objectPath);
-      final String decodedLengthHeader = mHandler.getHeader("x-amz-decoded-content-length");
-      final String contentLength = mHandler.getHeader("Content-Length");
       try {
-        MessageDigest md5 = MessageDigest.getInstance("MD5");
-
+        final String decodedLengthHeader = mHandler.getHeader("x-amz-decoded-content-length");
+        final String contentLength = mHandler.getHeader("Content-Length");
         // The request body can be in the aws-chunked encoding format, or not encoded at all
         // determine if it's encoded, and then which parts of the stream to read depending on
         // the encoding type.
         boolean isChunkedEncoding = decodedLengthHeader != null;
-        long toRead;
-        ByteBuf buf = mHandler.getRequestContent();
-        InputStream readStream = new ByteBufInputStream(buf);
         if (isChunkedEncoding) {
-          toRead = Long.parseLong(decodedLengthHeader);
-          readStream = new ChunkedEncodingInputStream(readStream);
+          mToRead = Long.parseLong(decodedLengthHeader);
         } else {
-          toRead = Long.parseLong(contentLength);
+          mToRead = Long.parseLong(contentLength);
         }
         FileOutStream os = userFs.createFile(objectUri, createFilePOptions);
-        try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
-          long read = ByteStreams.copy(ByteStreams.limit(readStream, toRead),
-              digestOutputStream);
-          if (read < toRead) {
-            throw new IOException(String.format(
-                "Failed to read all required bytes from the stream. Read %d/%d",
-                read, toRead));
-          }
-        }
-
-        byte[] digest = md5.digest();
-        String base64Digest = BaseEncoding.base64().encode(digest);
-        final String contentMD5 = mHandler.getHeader("Content-MD5");
-        if (contentMD5 != null && !contentMD5.equals(base64Digest)) {
-          // The object may be corrupted, delete the written object and return an error.
-          try {
-            userFs.delete(objectUri, DeletePOptions.newBuilder().setRecursive(true).build());
-          } catch (Exception e2) {
-            // intend to continue and return BAD_DIGEST S3Exception.
-          }
-          throw new S3Exception(objectUri.getPath(), S3ErrorCode.BAD_DIGEST);
-        }
-
-        String entityTag = Hex.encodeHexString(digest);
-        // persist the ETag via xAttr
-        S3NettyHandler.setEntityTag(userFs, objectUri, entityTag);
-
-        HttpResponse response =
-            new DefaultHttpResponse(NettyRestUtils.HTTP_VERSION, HttpResponseStatus.OK);
-        response.headers().set(S3Constants.S3_ETAG_HEADER, entityTag);
-        return response;
+        DigestOutputStream digestOutputStream = new DigestOutputStream(os, mMessageDigest);
+        return digestOutputStream;
       } catch (Exception e) {
         throw NettyRestUtils.toObjectS3Exception(e, objectPath, auditContext);
       }
@@ -616,7 +608,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
       return NettyRestUtils.call(getObjectTaskResource(), () -> {
         // PutObject / UploadPart ...
         final String user = mHandler.getUser();
-        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        final FileSystem userFs = mHandler.getFileSystemForUser(user);
         final String bucket = mHandler.getBucket();
         final String object = mHandler.getObject();
         Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
@@ -625,7 +617,8 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
 
         try (S3AuditContext auditContext =
                  mHandler.createAuditContext(mOPType.name(), user, bucket, object)) {
-          String objectPath = PathUtils.concatPath(bucketPath, object);
+          S3NettyHandler.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
+          String objectPath = NettyRestUtils.getFullPath(bucketPath, object);
 
           if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
             return createDirectory(objectPath, userFs, auditContext);
@@ -656,7 +649,79 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
                   .setOverwrite(true)
                   .setCheckS3BucketPath(true)
                   .build();
-          return createObject(objectPath, userFs, filePOptions, auditContext);
+          mFileOutStream = createObject(objectPath, userFs, filePOptions, auditContext);
+          return null;
+        }
+      });
+    }
+
+    @Override
+    public boolean needContent() {
+      return true;
+    }
+
+    @Override
+    public HttpResponse handleContent(HttpContent content) {
+      return NettyRestUtils.call(getObjectTaskResource(), () -> {
+        final String user = mHandler.getUser();
+        final String bucket = mHandler.getBucket();
+        final String object = mHandler.getObject();
+        final FileSystem userFs = mHandler.getFileSystemForUser(user);
+        String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
+        String objectPath = NettyRestUtils.getFullPath(bucketPath, object);
+        try (S3AuditContext auditContext =
+                 mHandler.createAuditContext(mOPType.name(), user, bucket, object)) {
+          AlluxioURI objectUri = new AlluxioURI(objectPath);
+          final String decodedLengthHeader = mHandler.getHeader("x-amz-decoded-content-length");
+          boolean isChunkedEncoding = decodedLengthHeader != null;
+          try {
+            ByteBuf buf = content.content();
+            InputStream readStream = new ByteBufInputStream(buf);
+            if (isChunkedEncoding) {
+              if (mChunkEncodingInputStream == null) {
+                mChunkEncodingInputStream = new MultiChunkEncodingInputStream(buf);
+              } else {
+                mChunkEncodingInputStream.setCurrentContent(buf);
+              }
+              readStream = mChunkEncodingInputStream;
+            }
+            if (buf.readableBytes() > 0) {
+              long read = ByteStreams.copy(ByteStreams.limit(readStream, buf.readableBytes()),
+                  mFileOutStream);
+              mAlreadyRead += read;
+            }
+            if (content instanceof LastHttpContent) {
+              mFileOutStream.close();
+              if (mAlreadyRead < mToRead) {
+                throw new IOException(String.format(
+                    "Failed to read all required bytes from the stream. Read %d/%d",
+                    mAlreadyRead, mToRead));
+              }
+              byte[] digest = mMessageDigest.digest();
+              String base64Digest = BaseEncoding.base64().encode(digest);
+              final String contentMD5 = mHandler.getHeader("Content-MD5");
+              if (contentMD5 != null && !contentMD5.equals(base64Digest)) {
+                // The object may be corrupted, delete the written object and return an error.
+                try {
+                  userFs.delete(objectUri, DeletePOptions.newBuilder().setRecursive(true).build());
+                } catch (Exception e2) {
+                  // intend to continue and return BAD_DIGEST S3Exception.
+                }
+                throw new S3Exception(objectUri.getPath(), S3ErrorCode.BAD_DIGEST);
+              }
+
+              String entityTag = Hex.encodeHexString(digest);
+              // persist the ETag via xAttr
+              S3NettyHandler.setEntityTag(userFs, objectUri, entityTag);
+              HttpResponse response =
+                  new DefaultHttpResponse(NettyRestUtils.HTTP_VERSION, HttpResponseStatus.OK);
+              response.headers().set(S3Constants.S3_ETAG_HEADER, entityTag);
+              return response;
+            }
+            return null;
+          } catch (Exception e) {
+            throw NettyRestUtils.toObjectS3Exception(e, objectPath, auditContext);
+          }
         }
       });
     }
@@ -676,15 +741,16 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         Preconditions.checkNotNull(mHandler.getObject(), "required 'object' parameter is missing");
 
         final String user = mHandler.getUser();
-        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        final FileSystem userFs = mHandler.getFileSystemForUser(user);
         String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
         // Delete the object.
-        String objectPath = PathUtils.concatPath(bucketPath, mHandler.getObject());
+        String objectPath = NettyRestUtils.getFullPath(bucketPath, mHandler.getObject());
         DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(Configuration
                 .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
             .build();
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             "deleteObject", user, mHandler.getBucket(), mHandler.getObject())) {
+          S3NettyHandler.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
           try {
             userFs.delete(new AlluxioURI(objectPath), options);
           } catch (FileDoesNotExistException | DirectoryNotEmptyException e) {

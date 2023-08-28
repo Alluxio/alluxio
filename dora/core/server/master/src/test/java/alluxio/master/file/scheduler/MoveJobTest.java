@@ -137,7 +137,7 @@ public class MoveJobTest {
         + "\tJob State: RUNNING\n"
         + "\tFiles qualified so far: 25, 31.25GB\n"
         + "\tFiles Failed: 0\n"
-        + "\tFiles Succeeded: 25\n"
+        + "\tFiles Succeeded: 0\n"
         + "\tBytes Moved: 640.00MB\n"
         + "\tFiles failure rate: 0.00%\n";
     assertEquals(expectedTextReport, job.getProgress(JobProgressReportFormat.TEXT, false));
@@ -145,7 +145,7 @@ public class MoveJobTest {
     String expectedJsonReport = "{\"mVerbose\":false,\"mJobState\":\"RUNNING\","
         + "\"mCheckContent\":false,\"mProcessedFileCount\":25,"
         + "\"mByteCount\":671088640,\"mTotalByteCount\":33554432000,"
-        + "\"mFailurePercentage\":0.0,\"mFailedFileCount\":0,"
+        + "\"mFailurePercentage\":0.0,\"mFailedFileCount\":0,\"mSuccessFileCount\":0,"
         + "\"mFailedFilesWithReasons\":{},\"mJobId\":\"1\",\"mStartTime\":1690000000000,"
         + "\"mEndTime\":0}";
     assertEquals(expectedJsonReport, job.getProgress(JobProgressReportFormat.JSON, false));
@@ -162,7 +162,7 @@ public class MoveJobTest {
         + "finished at Tue Nov 14 22:13:20 UTC 2023\n"
         + "\tFiles qualified: 25, 31.25GB\n"
         + "\tFiles Failed: 3\n"
-        + "\tFiles Succeeded: 22\n"
+        + "\tFiles Succeeded: 0\n"
         + "\tBytes Moved: 640.00MB\n"
         + "\tFiles failure rate: 12.00%\n";
     assertEquals(expectedTextReportWithError,

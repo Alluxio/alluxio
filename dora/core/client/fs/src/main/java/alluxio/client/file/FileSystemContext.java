@@ -402,7 +402,7 @@ public class FileSystemContext implements Closeable {
    */
   protected FileSystemContext(AlluxioConfiguration conf, @Nullable BlockWorker blockWorker,
                             @Nullable List<InetSocketAddress> masterAddresses) {
-    mId = IdUtils.createFileSystemContextId();
+    mId = IdUtils.createOrGetAppIdFromConfig(conf);
     mBlockWorker = blockWorker;
     mMasterAddresses = masterAddresses;
     mWorkerRefreshPolicy =

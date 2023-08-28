@@ -29,6 +29,8 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.proto.journal.File;
+import alluxio.s3.DeleteObjectsRequest;
+import alluxio.s3.DeleteObjectsResult;
 import alluxio.s3.ListAllMyBucketsResult;
 import alluxio.s3.ListBucketOptions;
 import alluxio.s3.ListBucketResult;

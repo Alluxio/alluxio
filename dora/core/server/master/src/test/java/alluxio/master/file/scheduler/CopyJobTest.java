@@ -129,7 +129,7 @@ public class CopyJobTest {
         + "\tFiles qualified so far: 25, 31.25GB\n"
         + "\tFiles Failed: 0\n"
         + "\tFiles Skipped: 0\n"
-        + "\tFiles Succeeded: 25\n"
+        + "\tFiles Succeeded: 0\n"
         + "\tBytes Copied: 640.00MB\n"
         + "\tFiles failure rate: 0.00%\n";
     assertEquals(expectedTextReport, job.getProgress(JobProgressReportFormat.TEXT, false));
@@ -138,12 +138,13 @@ public class CopyJobTest {
         + "\"mCheckContent\":false,\"mProcessedFileCount\":25,"
         + "\"mByteCount\":671088640,\"mTotalByteCount\":33554432000,"
         + "\"mFailurePercentage\":0.0,\"mFailedFileCount\":0,\"mSkippedFileCount\":0,"
-        + "\"mFailedFilesWithReasons\":{},\"mJobId\":\"1\",\"mStartTime\":1690000000000,"
-        + "\"mEndTime\":0}";
+        + "\"mSuccessFileCount\":0,\"mFailedFilesWithReasons\":{},\"mJobId\":\"1\","
+        + "\"mStartTime\":1690000000000,\"mEndTime\":0}";
     assertEquals(expectedJsonReport, job.getProgress(JobProgressReportFormat.JSON, false));
     job.addFailure(nextRoutes.get(0).getSrc(), "Test error 1", 2);
     job.addFailure(nextRoutes.get(4).getSrc(), "Test error 2", 2);
     job.addFailure(nextRoutes.get(10).getSrc(),  "Test error 3", 2);
+    job.addSkip();
     job.failJob(new InternalRuntimeException("test"));
     job.setEndTime(1700000000000L);
     assertEquals(JobState.FAILED, job.getJobState());
@@ -154,8 +155,8 @@ public class CopyJobTest {
         + "finished at Tue Nov 14 22:13:20 UTC 2023\n"
         + "\tFiles qualified: 25, 31.25GB\n"
         + "\tFiles Failed: 3\n"
-        + "\tFiles Skipped: 0\n"
-        + "\tFiles Succeeded: 22\n"
+        + "\tFiles Skipped: 1\n"
+        + "\tFiles Succeeded: 0\n"
         + "\tBytes Copied: 640.00MB\n"
         + "\tFiles failure rate: 12.00%\n";
     assertEquals(expectedTextReportWithError,

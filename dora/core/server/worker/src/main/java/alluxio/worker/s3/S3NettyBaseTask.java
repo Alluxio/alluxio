@@ -11,6 +11,7 @@
 
 package alluxio.worker.s3;
 
+import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpResponse;
 
 /**
@@ -45,6 +46,23 @@ public abstract class S3NettyBaseTask {
    * @return HttpResponse (S3 Http response)
    */
   public abstract HttpResponse continueTask();
+
+  /**
+   * Run core S3 API logic with HttpContent in different S3 task.
+   * @param content HttpContent
+   * @return HttpResponse (S3 Http response)
+   */
+  public HttpResponse handleContent(HttpContent content) {
+    return null;
+  }
+
+  /**
+   * Return if the S3 API needs to process the content.
+   * @return if true, the S3 API needs to process the content
+   */
+  public boolean needContent() {
+    return false;
+  }
 
   /**
    * Run S3 API logic in a customized async way, e.g. delegate the
