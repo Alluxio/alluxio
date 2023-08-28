@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.grpc.UfsUrlMessage;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.io.FilenameUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -121,7 +120,7 @@ public class UfsUrl {
       }
 
       String candidatePath = inputUrl.substring(start);
-      path = FilenameUtils.normalizeNoEndSeparator(candidatePath);
+      path = removeRedundantSlashes(candidatePath);
       Preconditions.checkNotNull(path, "empty path after normalize: %s", candidatePath);
 
       // scheme, authority, pathComponents are always not null.
@@ -148,8 +147,9 @@ public class UfsUrl {
     }
 
     /**
-     * Normalize the path component of the {@link UfsUrl}, by replacing all "//" with
-     * "/", and trimming trailing slash from non-root path.
+     * Normalize the path component of the {@link UfsUrl},
+     * by replacing all "//", "///", "////", etc, with a single "/",
+     * and trimming trailing slash from non-root path.
      * It is inspired by AlluxioURI.normalizePath(String).
      *
      * @param path the path to normalize
@@ -228,42 +228,27 @@ public class UfsUrl {
   }
 
   /**
-   * Constructs an {@link UfsUrl} from components. Note all parameters should not be null.
-   * Pass authority = "" if you want to create an UfsUrl with no authority.
-   *
-   * @param scheme    the scheme of the path
-   * @param authority the authority of the path
-   * @param path      the path component of the UfsUrl
-   */
-  public UfsUrl(String scheme, String authority, String path) {
-    UfsUrl ufsUrl = new UfsUrl(scheme, authority, path, true);
-    mProto = ufsUrl.toProto();
-  }
-
-  /**
    * Constructs an {@link UfsUrl} from components.
    * Note that if checkNormalization is false, it will also remove redundant slashes of path.
    *
    * @param scheme    the scheme of the path
    * @param authority the authority of the path
    * @param path      the path component of the UfsUrl
-   * @param checkNormalization  the parameter to decide whether normalize the path string
    */
-  public UfsUrl(String scheme, String authority, String path, boolean checkNormalization) {
+  public UfsUrl(String scheme, String authority, String path) {
     Preconditions.checkArgument(!scheme.isEmpty(), "empty scheme: %s",
         scheme + authority + path);
     Preconditions.checkArgument(!scheme.equalsIgnoreCase(Constants.SCHEME),
         OUTDATED_ALLUXIO_SCHEME_INFO);
 
-    if (checkNormalization) {
-      path = FilenameUtils.normalizeNoEndSeparator(path);
-    } else {
-      path = Parser.removeRedundantSlashes(path);
-    }
+    path = Parser.removeRedundantSlashes(path);
 
     String[] arrayOfPath = path.split(SLASH_SEPARATOR);
     int notEmpty = 0;
-    while (notEmpty < arrayOfPath.length && arrayOfPath[notEmpty].isEmpty()) {
+    while (notEmpty < arrayOfPath.length) {
+      if (!arrayOfPath[notEmpty].isEmpty()) {
+        break;
+      }
       notEmpty++;
     }
     List<String> pathComponentsList = Arrays.asList(arrayOfPath);
@@ -319,12 +304,13 @@ public class UfsUrl {
    * @return the String representation of the {@link UfsUrl}
    */
   public String toString() {
+    String fullPath = getFullPath();
     StringBuilder stringBuilder = new StringBuilder(mProto.getScheme().length()
-        + SCHEME_SEPARATOR.length() + mProto.getAuthority().length() + getFullPath().length());
+        + SCHEME_SEPARATOR.length() + mProto.getAuthority().length() + fullPath.length());
     stringBuilder.append(mProto.getScheme());
     stringBuilder.append(SCHEME_SEPARATOR);
     stringBuilder.append(mProto.getAuthority());
-    stringBuilder.append(getFullPath());
+    stringBuilder.append(fullPath);
     return stringBuilder.toString();
   }
 
@@ -495,19 +481,5 @@ public class UfsUrl {
         .setAuthority(mProto.getAuthority())
         .addAllPathComponents(pathComponents)
         .addAllPathComponents(noEmptyElemSuffixComponentsList).build());
-  }
-
-  /**
-   * Append additional path elements to the end of an {@link UfsUrl}. This does not check if
-   * the new path needs normalization, and is less CPU intensive than {@link #join(String)}.
-   *
-   * @param suffix the suffix to add
-   * @return the new {@link UfsUrl}
-   */
-  public UfsUrl joinUnsafe(String suffix) {
-    String path = getFullPath();
-    StringBuilder sb = new StringBuilder(path.length() + 1 + suffix.length());
-    return new UfsUrl(toProto().getScheme(), toProto().getAuthority(),
-        sb.append(path).append(SLASH_SEPARATOR).append(suffix).toString(), false);
   }
 }

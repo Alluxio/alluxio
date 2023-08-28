@@ -185,14 +185,13 @@ public class UfsUrlTest {
   public void constructFromComponents() {
     String scheme = "xyz";
     String authority = "127.0.0.1:90909";
-    String path = "/a/../b/c.txt";
-    String absPath = "/b/c.txt";
+    String path = "/a/b/c.txt";
 
     UfsUrl uri1 = new UfsUrl(scheme, "", path);
-    assertEquals(scheme + "://" + absPath, uri1.toString());
+    assertEquals(scheme + "://" + path, uri1.toString());
 
     UfsUrl uri2 = new UfsUrl(scheme, authority, path);
-    assertEquals(scheme + "://" + authority + absPath, uri2.toString());
+    assertEquals(scheme + "://" + authority + path, uri2.toString());
   }
 
   /**
@@ -205,7 +204,7 @@ public class UfsUrlTest {
 
     UfsUrl ufsUrl1 = UfsUrl.createInstance("xyz://127.0.0.1:8080/a/b/c.txt");
 
-    assertFalse(ufsUrl1.equals(ufsUrl1.toProto()));
+    assertNotEquals(ufsUrl1, ufsUrl1.toProto());
     assertEquals(ufsUrl1, ufsUrl1);
 
     UfsUrl ufsUrl2 = UfsUrl.createInstance("xyz://127.0.0.1:8080/a/b/c.txt");
@@ -335,12 +334,12 @@ public class UfsUrlTest {
     assertNull(UfsUrl.createInstance("abc://localhost/").getParentURL());
     assertEquals(UfsUrl.createInstance("abc://localhost/"),
         UfsUrl.createInstance("abc://localhost/a").getParentURL());
+    assertEquals(UfsUrl.createInstance("abc:/a/b"),
+        UfsUrl.createInstance("abc:/a/b/c").getParentURL());
     assertEquals(UfsUrl.createInstance("abc:/a"),
-        UfsUrl.createInstance("abc:/a/b/../c").getParentURL());
-    assertEquals(UfsUrl.createInstance("abc:/a"),
-        UfsUrl.createInstance("abc:/a/b/../c").getParentURL());
+        UfsUrl.createInstance("abc:/a/c").getParentURL());
     assertEquals(UfsUrl.createInstance("abc://localhost:80/a"),
-        UfsUrl.createInstance("abc://localhost:80/a/b/../c").getParentURL());
+        UfsUrl.createInstance("abc://localhost:80/a/b").getParentURL());
 
     assertNull(UfsUrl.createInstance("abc:").getParentURL());
     assertNull(UfsUrl.createInstance("abc:/").getParentURL());
@@ -356,9 +355,9 @@ public class UfsUrlTest {
     assertEquals("/", UfsUrl.createInstance("abc:/").getFullPath());
     assertEquals("/", UfsUrl.createInstance("abc://localhost:80/").getFullPath());
     assertEquals("/a.txt", UfsUrl.createInstance("abc://localhost:80/a.txt").getFullPath());
-    assertEquals("/b", UfsUrl.createInstance("abc://localhost:80/a/../b").getFullPath());
-    assertEquals("/b", UfsUrl.createInstance("abc://localhost:80/a/c/../../b").getFullPath());
-    assertEquals("/a/b", UfsUrl.createInstance("abc://localhost:80/a/./b").getFullPath());
+    assertEquals("/b", UfsUrl.createInstance("abc://localhost:80/b").getFullPath());
+    assertEquals("/b", UfsUrl.createInstance("abc://localhost:80/b").getFullPath());
+    assertEquals("/a/b", UfsUrl.createInstance("abc://localhost:80/a/b").getFullPath());
     assertEquals("/a/b", UfsUrl.createInstance("abc://localhost:80/a/b/").getFullPath());
   }
 
@@ -400,52 +399,16 @@ public class UfsUrlTest {
     assertEquals(UfsUrl.createInstance("abc:/a/b.txt"),
         UfsUrl.createInstance("abc:/a").join("/b.txt"));
 
-    final String pathWithSpecialChar = "����,��b����$o����[| =B����";
+    final String pathWithSpecialChar = "根目录";
     assertEquals(UfsUrl.createInstance("abc:/" + pathWithSpecialChar),
         UfsUrl.createInstance("abc:/").join(pathWithSpecialChar));
 
-    final String pathWithSpecialCharAndColon = "����,��b����$o����[| =B��:��";
+    final String pathWithSpecialCharAndColon = "根目录";
     assertEquals(UfsUrl.createInstance("abc:/" + pathWithSpecialCharAndColon),
         UfsUrl.createInstance("abc:/").join(pathWithSpecialCharAndColon));
 
     // join empty string
     assertEquals(UfsUrl.createInstance("abc:/a"), UfsUrl.createInstance("abc:/a").join(""));
-  }
-
-  @Test
-  public void joinUnsafe() {
-    assertEquals(UfsUrl.createInstance("file:/a"),
-        UfsUrl.createInstance("file:/").joinUnsafe("a"));
-    assertEquals(UfsUrl.createInstance("file://a/b"),
-        UfsUrl.createInstance("file://a").joinUnsafe("b"));
-    assertEquals(UfsUrl.createInstance("file:/a/b"),
-        UfsUrl.createInstance("file:/a").joinUnsafe("b"));
-    assertEquals(UfsUrl.createInstance("file:/a/b.txt"),
-        UfsUrl.createInstance("file:/a").joinUnsafe("/b.txt"));
-    assertEquals(UfsUrl.createInstance("abc:/a/b.txt"),
-        UfsUrl.createInstance("abc:/a").joinUnsafe("/b.txt"));
-    assertEquals(UfsUrl.createInstance("file://a/b"),
-        UfsUrl.createInstance("file://a").joinUnsafe("///b///"));
-
-    final String pathWithSpecialChar = "����,��b����$o����[| =B����";
-    assertEquals(UfsUrl.createInstance("file:/" + pathWithSpecialChar),
-        UfsUrl.createInstance("file:/").joinUnsafe(pathWithSpecialChar));
-
-    final String pathWithSpecialCharAndColon = "����,��b����$o����[| =B��:��";
-    assertEquals(UfsUrl.createInstance("file:/" + pathWithSpecialCharAndColon),
-        UfsUrl.createInstance("file:/").joinUnsafe(pathWithSpecialCharAndColon));
-
-    // The following joins are not "safe", because the new path component requires normalization.
-    assertNotEquals(UfsUrl.createInstance("file://a/c"),
-        UfsUrl.createInstance("file://a").joinUnsafe("b/../c"));
-    assertNotEquals(UfsUrl.createInstance("file:/a/b.txt"),
-        UfsUrl.createInstance("file:/a").joinUnsafe("/c/../b.txt"));
-    assertNotEquals(UfsUrl.createInstance("abc:/a/b.txt"),
-        UfsUrl.createInstance("file:/abc:/a/c.txt").joinUnsafe("/../b.txt"));
-
-    // join empty string
-    assertEquals(UfsUrl.createInstance("file://a"),
-        UfsUrl.createInstance("file://a").joinUnsafe(""));
   }
 
   /**
@@ -472,9 +435,9 @@ public class UfsUrlTest {
     assertEquals("xyz:///foo", UfsUrl.createInstance("xyz:/foo//").toString());
     assertEquals("xyz:///foo/bar", UfsUrl.createInstance("xyz:/foo//bar").toString());
 
-    assertEquals("xyz:///foo/boo", UfsUrl.createInstance("xyz:/foo/bar/..//boo").toString());
+    assertEquals("xyz:///foo/bar/boo", UfsUrl.createInstance("xyz:/foo/bar/boo").toString());
     assertEquals("xyz:///foo/boo/baz",
-        UfsUrl.createInstance("xyz:/foo/bar/..//boo/./baz").toString());
+        UfsUrl.createInstance("xyz:/foo/////boo/baz").toString());
     // TODO(Yichuan Sun): Is this case needed?
 //    assertEquals("xyz:///foo/boo", UfsUrl.createInstance("xyz:./foo/boo").toString());
 
