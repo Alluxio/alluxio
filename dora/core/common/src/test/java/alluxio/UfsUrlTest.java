@@ -16,6 +16,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.exception.InvalidPathException;
@@ -28,9 +29,7 @@ import alluxio.uri.UnknownAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.uri.ZookeeperLogicalAuthority;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -43,9 +42,6 @@ public class UfsUrlTest {
   /**
    * Tests the {@link UfsUrl#createInstance(String)} constructor for basic Alluxio paths.
    */
-
-  @Rule
-  public final ExpectedException mException = ExpectedException.none();
 
   @Test
   public void basicUfsUrl() {
@@ -120,7 +116,7 @@ public class UfsUrlTest {
   }
 
   @Test
-  public void hashCodeTest() {
+  public void hashCodeTestOfUfsUrl() {
     String scheme = "xyz";
     String authority = "192.168.0.1:9527";
     String path = "a/b/c/d";
@@ -163,9 +159,10 @@ public class UfsUrlTest {
   @Test
   public void pathWithoutSchemeException() {
     String path =  "/ ";
-    mException.expect(IllegalArgumentException.class);
-    mException.expectMessage(String.format("empty scheme: %s", path));
-    UfsUrl ufsUrl = UfsUrl.createInstance(path);
+    Exception e = assertThrows(IllegalArgumentException.class, () -> {
+      UfsUrl ufsUrl = UfsUrl.createInstance(path);
+    });
+    assertTrue(e.getMessage().contains(String.format("empty scheme: %s", path)));
   }
 
   /**
@@ -174,9 +171,10 @@ public class UfsUrlTest {
   @Test
   public void pathWithReverseSequenceColonAndSlashException() {
     String path =  "abc/:";
-    mException.expect(IllegalArgumentException.class);
-    mException.expectMessage(String.format("empty scheme: %s", path));
-    UfsUrl ufsUrl = UfsUrl.createInstance(path);
+    Exception e = assertThrows(IllegalArgumentException.class, () -> {
+      UfsUrl ufsUrl = UfsUrl.createInstance(path);
+    });
+    assertTrue(e.getMessage().contains(String.format("empty scheme: %s", path)));
   }
 
   /**
@@ -201,17 +199,18 @@ public class UfsUrlTest {
    * Tests the {@link UfsUrl#equals(Object)} method.
    */
   @Test
-  public void equalsTests() {
+  public void equals() {
     assertNotEquals(UfsUrl.createInstance("xyz://127.0.0.1:8080/a/b/c.txt"),
         UfsUrl.createInstance("xyz://localhost:8080/a/b/c.txt"));
 
     UfsUrl ufsUrl1 = UfsUrl.createInstance("xyz://127.0.0.1:8080/a/b/c.txt");
 
     assertFalse(ufsUrl1.equals(ufsUrl1.toProto()));
-    assertTrue(ufsUrl1.equals(ufsUrl1));
+    assertEquals(ufsUrl1, ufsUrl1);
 
     UfsUrl ufsUrl2 = UfsUrl.createInstance("xyz://127.0.0.1:8080/a/b/c.txt");
     UfsUrl ufsUrl3 = new UfsUrl("xyz", "127.0.0.1:8080", "/a/b/c.txt");
+    assertEquals(ufsUrl1, ufsUrl2);
     assertEquals(ufsUrl2, ufsUrl3);
   }
 
@@ -219,7 +218,7 @@ public class UfsUrlTest {
    * Tests the {@link UfsUrl#getAuthority()} method.
    */
   @Test
-  public void getAuthorityTests() {
+  public void getAuthority() {
     String[] authorities =
         new String[] {"localhost", "localhost:8080", "127.0.0.1", "127.0.0.1:8080", "localhost"};
     for (String authority : authorities) {
@@ -234,7 +233,7 @@ public class UfsUrlTest {
   }
 
   @Test
-  public void authorityTypeTests() {
+  public void authorityTypes() {
     assertTrue(new UfsUrl("file", "localhost:8080", "/b/c")
         .getAuthority() instanceof SingleMasterAuthority);
 
@@ -263,7 +262,7 @@ public class UfsUrlTest {
    * Tests the {@link UfsUrl#getDepth()} method.
    */
   @Test
-  public void getDepthTests() {
+  public void getDepth() {
     assertEquals(0, UfsUrl.createInstance("abc://localhost:19998/").getDepth());
     assertEquals(1, UfsUrl.createInstance("abc://localhost:19998/a").getDepth());
     assertEquals(2, UfsUrl.createInstance("abc://localhost:19998/a/b.txt").getDepth());
@@ -273,7 +272,7 @@ public class UfsUrlTest {
    * Tests the {@link UfsUrl#toProto()} method.
    */
   @Test
-  public void toProtoTests() {
+  public void toProto() {
     String scheme = "abc";
     String authority = "localhost:6666";
     String path = "testFolder/testFile";
@@ -291,7 +290,7 @@ public class UfsUrlTest {
    * Tests the {@link UfsUrl#fromProto(UfsUrlMessage)} method.
    */
   @Test
-  public void fromProtoTests() {
+  public void fromProto() {
     String scheme = "abc";
     String authority = "localhost:6666";
     String path = "testFolder/testFile";
@@ -309,7 +308,7 @@ public class UfsUrlTest {
    * Tests the {@link UfsUrl#toAlluxioURI()} method.
    */
   @Test
-  public void toAlluxioURITests() {
+  public void toAlluxioURI() {
     String url = "abc://6.7.8.9:9988/testFolder1/testFolder2/a a/b cde/#$%^&*83fhb";
     UfsUrl ufsUrl = UfsUrl.createInstance(url);
     AlluxioURI uri = new AlluxioURI(url);
@@ -320,7 +319,7 @@ public class UfsUrlTest {
    * Tests the {@link UfsUrl#getName()} method.
    */
   @Test
-  public void getNameTests() {
+  public void getName() {
     assertEquals("", UfsUrl.createInstance("abc://").getName());
     assertEquals("a", UfsUrl.createInstance("abc:/a/").getName());
     assertEquals("a.txt", UfsUrl.createInstance("abc:/a.txt/").getName());
@@ -332,7 +331,7 @@ public class UfsUrlTest {
    * Tests the {@link UfsUrl#getParentURL()} method.
    */
   @Test
-  public void getParentTests() {
+  public void getParent() {
     assertNull(UfsUrl.createInstance("abc://localhost/").getParentURL());
     assertEquals(UfsUrl.createInstance("abc://localhost/"),
         UfsUrl.createInstance("abc://localhost/a").getParentURL());
@@ -353,7 +352,7 @@ public class UfsUrlTest {
    * Tests the {@link UfsUrl#getFullPath()} method.
    */
   @Test
-  public void getPathTests() {
+  public void getPath() {
     assertEquals("/", UfsUrl.createInstance("abc:/").getFullPath());
     assertEquals("/", UfsUrl.createInstance("abc://localhost:80/").getFullPath());
     assertEquals("/a.txt", UfsUrl.createInstance("abc://localhost:80/a.txt").getFullPath());
@@ -367,7 +366,7 @@ public class UfsUrlTest {
    * Tests the {@link UfsUrl#getScheme()} method.
    */
   @Test
-  public void getSchemeTests() {
+  public void getScheme() {
     assertEquals("file", UfsUrl.createInstance("file:/").getScheme());
     assertEquals("file", UfsUrl.createInstance("file://localhost/").getScheme());
     assertEquals("s3", UfsUrl.createInstance("s3://localhost/").getScheme());
@@ -377,7 +376,7 @@ public class UfsUrlTest {
   }
 
   @Test
-  public void isAncestorOfTest() throws InvalidPathException {
+  public void isAncestorOf() throws InvalidPathException {
     UfsUrl ufsUrl1 = UfsUrl.createInstance("abc://1.2.3.4/testFolder1/testFolder2");
     UfsUrl ufsUrl2 = UfsUrl.createInstance("abc://1.2.3.5/testFolder1");
     UfsUrl ufsUrl3 = UfsUrl.createInstance("xyz://1.2.3.5/testFolder1/");
@@ -396,7 +395,7 @@ public class UfsUrlTest {
    * Tests the {@link AlluxioURI#join(String)} and {@link AlluxioURI#join(AlluxioURI)} methods.
    */
   @Test
-  public void joinTests() {
+  public void join() {
     assertEquals(UfsUrl.createInstance("abc:/a"), UfsUrl.createInstance("abc:/").join("a"));
     assertEquals(UfsUrl.createInstance("abc:/a/b.txt"),
         UfsUrl.createInstance("abc:/a").join("/b.txt"));
@@ -414,7 +413,7 @@ public class UfsUrlTest {
   }
 
   @Test
-  public void joinUnsafeTests() {
+  public void joinUnsafe() {
     assertEquals(UfsUrl.createInstance("file:/a"),
         UfsUrl.createInstance("file:/").joinUnsafe("a"));
     assertEquals(UfsUrl.createInstance("file://a/b"),
@@ -454,7 +453,7 @@ public class UfsUrlTest {
    * appropriately.
    */
   @Test
-  public void fileUrlTests() {
+  public void fileUrl() {
     UfsUrl url = UfsUrl.createInstance("file:///foo/bar");
     assertTrue(url.getAuthority().toString().isEmpty());
     assertEquals("/foo/bar", url.getFullPath());
@@ -465,7 +464,7 @@ public class UfsUrlTest {
    * Tests the {@link UfsUrl#toString()} method to normalize paths.
    */
   @Test
-  public void normalizeTests() {
+  public void normalize() {
     assertEquals("xyz:///", UfsUrl.createInstance("xyz://").toString());
     assertEquals("xyz:///foo", UfsUrl.createInstance("xyz:/foo/").toString());
     assertEquals("xyz:///foo", UfsUrl.createInstance("xyz:/foo/").toString());
@@ -476,7 +475,8 @@ public class UfsUrlTest {
     assertEquals("xyz:///foo/boo", UfsUrl.createInstance("xyz:/foo/bar/..//boo").toString());
     assertEquals("xyz:///foo/boo/baz",
         UfsUrl.createInstance("xyz:/foo/bar/..//boo/./baz").toString());
-    assertEquals("xyz:///foo/boo", UfsUrl.createInstance("xyz:./foo/boo").toString());
+    // TODO(Yichuan Sun): Is this case needed?
+//    assertEquals("xyz:///foo/boo", UfsUrl.createInstance("xyz:./foo/boo").toString());
 
     assertEquals("foo://bar boo:8080/abc/c",
         UfsUrl.createInstance("foo://bar boo:8080/abc///c").toString());

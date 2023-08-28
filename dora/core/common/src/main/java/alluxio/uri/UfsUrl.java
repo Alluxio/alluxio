@@ -12,9 +12,8 @@
 package alluxio.uri;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.InvalidPathException;
+import alluxio.Constants;
 import alluxio.grpc.UfsUrlMessage;
-import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FilenameUtils;
@@ -59,6 +58,10 @@ public class UfsUrl {
   public static final String SLASH_SEPARATOR = "/";
   public static final String COLON_SEPARATOR = ":";
 
+  private static final String OUTDATED_ALLUXIO_SCHEME_INFO =
+      "Alluxio 3.x no longer supports alluxio:// scheme,"
+          + " please input the UFS path directly like hdfs://host:port/path";
+
   private final UfsUrlMessage mProto;
 
   private static class Parser {
@@ -80,10 +83,10 @@ public class UfsUrl {
 
       if (firstColon != -1) {
         if (firstSlash == -1) {
-          // have colon, while have no slash
+          // have colon but no slash
           scheme = inputUrl.substring(0, firstColon);
           start = firstColon + 1;
-        } else if (firstColon < firstSlash) {
+        } else if (firstColon + 1 == firstSlash) {
           // have colon and slash, colon is in front of slash -> have scheme
           start = firstSlash;
           scheme = inputUrl.substring(0, firstColon);
@@ -95,9 +98,8 @@ public class UfsUrl {
       }
 
       Preconditions.checkArgument(!scheme.isEmpty(), "empty scheme: %s", inputUrl);
-      Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
-          "Alluxio 3.x no longer supports alluxio:// scheme,"
-              + " please input the UFS path directly like hdfs://host:port/path");
+      Preconditions.checkArgument(!scheme.equalsIgnoreCase(Constants.SCHEME),
+          OUTDATED_ALLUXIO_SCHEME_INFO);
 
       if (inputUrl.startsWith(DOUBLE_SLASH_SEPARATOR, start)
           && start + DOUBLE_SLASH_SEPARATOR.length() < inputUrl.length()) {
@@ -118,7 +120,9 @@ public class UfsUrl {
         start++;
       }
 
-      path = FilenameUtils.normalizeNoEndSeparator(inputUrl.substring(start));
+      String candidatePath = inputUrl.substring(start);
+      path = FilenameUtils.normalizeNoEndSeparator(candidatePath);
+      Preconditions.checkNotNull(path, "empty path after normalize: %s", candidatePath);
 
       // scheme, authority, pathComponents are always not null.
       mScheme = scheme;
@@ -151,7 +155,7 @@ public class UfsUrl {
      * @param path the path to normalize
      * @return the normalized path
      */
-    public static String removeRedundantSlashes(String path) {
+    private static String removeRedundantSlashes(String path) {
       StringBuilder sb = new StringBuilder(path.length());
       int i = 0;
       while (i < path.length()) {
@@ -170,10 +174,6 @@ public class UfsUrl {
         }
       }
       return sb.toString();
-    }
-
-    public static String normalizePath(String path) {
-      return path;
     }
   }
 
@@ -220,16 +220,16 @@ public class UfsUrl {
    * @param proto the proto of the UfsUrl
    */
   private UfsUrl(UfsUrlMessage proto) {
-    Preconditions.checkArgument(!proto.getScheme().isEmpty(), "scheme is not allowed to be empty,"
-        + " please input again.");
-    Preconditions.checkArgument(!proto.getScheme().equalsIgnoreCase("alluxio"),
-        "Alluxio 3.x no longer supports alluxio:// scheme,"
-            + " please input the UFS path directly like hdfs://host:port/path");
+    Preconditions.checkArgument(!proto.getScheme().isEmpty(),
+        "scheme is empty in the path %s", proto);
+    Preconditions.checkArgument(!proto.getScheme().equalsIgnoreCase(Constants.SCHEME),
+        OUTDATED_ALLUXIO_SCHEME_INFO);
     mProto = proto;
   }
 
   /**
-   * Constructs an {@link UfsUrl} from components.
+   * Constructs an {@link UfsUrl} from components. Note all parameters should not be null.
+   * Pass authority = "" if you want to create an UfsUrl with no authority.
    *
    * @param scheme    the scheme of the path
    * @param authority the authority of the path
@@ -252,9 +252,8 @@ public class UfsUrl {
   public UfsUrl(String scheme, String authority, String path, boolean checkNormalization) {
     Preconditions.checkArgument(!scheme.isEmpty(), "empty scheme: %s",
         scheme + authority + path);
-    Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
-        "Alluxio 3.x no longer supports alluxio:// scheme,"
-            + " please input the UFS path directly like hdfs://host:port/path");
+    Preconditions.checkArgument(!scheme.equalsIgnoreCase(Constants.SCHEME),
+        OUTDATED_ALLUXIO_SCHEME_INFO);
 
     if (checkNormalization) {
       path = FilenameUtils.normalizeNoEndSeparator(path);
@@ -365,7 +364,7 @@ public class UfsUrl {
    */
   @Nullable
   public UfsUrl getParentURL() {
-    if (mProto.getPathComponentsList().size() == 0) {
+    if (mProto.getPathComponentsList().isEmpty()) {
       return null;
     }
     List<String> pathComponents = mProto.getPathComponentsList();
@@ -445,14 +444,23 @@ public class UfsUrl {
    * @param ufsUrl potential children to check
    * @return true the current ufsUrl is an ancestor of the ufsUrl
    */
-  public boolean isAncestorOf(UfsUrl ufsUrl) throws InvalidPathException {
+  public boolean isAncestorOf(UfsUrl ufsUrl){
     if (!Objects.equals(getAuthority(), ufsUrl.getAuthority())) {
       return false;
     }
     if (!Objects.equals(getScheme(), ufsUrl.getScheme())) {
       return false;
     }
-    return PathUtils.hasPrefix(ufsUrl.getFullPath(), this.getFullPath());
+    if (getDepth() >= ufsUrl.getDepth())  {
+      return false;
+    }
+    for (int i = 0; i < getDepth(); i++)  {
+      if (!getPathComponents().get(i).equals(ufsUrl.getPathComponents().get(i))) {
+        return false;
+      }
+    }
+    // path depth of this < Path depth of ufsUrl, and they have the same prefix.
+    return true;
   }
 
   /**
@@ -467,7 +475,10 @@ public class UfsUrl {
     }
     String[] suffixArray = suffix.split(SLASH_SEPARATOR);
     int nonEmptyIndex = 0;
-    while (nonEmptyIndex < suffixArray.length && suffixArray[nonEmptyIndex].isEmpty()) {
+    while (nonEmptyIndex < suffixArray.length) {
+      if (!suffixArray[nonEmptyIndex].isEmpty()) {
+        break;
+      }
       nonEmptyIndex++;
     }
     List<String> suffixComponentsList = Arrays.asList(suffixArray);
