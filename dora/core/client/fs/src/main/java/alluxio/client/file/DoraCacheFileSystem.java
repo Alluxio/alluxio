@@ -78,7 +78,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public static DoraCacheFileSystemFactory sDoraCacheFileSystemFactory
       = new DoraCacheFileSystemFactory();
   private final DoraCacheClient mDoraClient;
-  private final FileSystemContext mFsContext;
+  protected final FileSystemContext mFsContext;
   private final boolean mMetadataCacheEnabled;
   private final boolean mUfsFallbackEnabled;
   private final long mDefaultVirtualBlockSize;
