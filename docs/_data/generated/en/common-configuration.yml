@@ -360,14 +360,6 @@ alluxio.underfs.hdfs.remote:
   'Boolean indicating whether or not the under storage worker nodes are remote with respect to Alluxio worker nodes. If set to true, Alluxio will not attempt to discover locality information from the under storage because locality is impossible. This will improve performance. The default value is true.'
 alluxio.underfs.io.threads:
   'Number of threads used for UFS IO operation'
-alluxio.underfs.kodo.connect.timeout:
-  'The connect timeout of kodo.'
-alluxio.underfs.kodo.downloadhost:
-  'The download domain of Kodo bucket.'
-alluxio.underfs.kodo.endpoint:
-  'The endpoint of Kodo bucket.'
-alluxio.underfs.kodo.requests.max:
-  'The maximum number of kodo connections.'
 alluxio.underfs.listing.length:
   'The maximum number of directory entries to list in a single query to under file system. If the total number of entries is greater than the specified length, multiple queries will be issued.'
 alluxio.underfs.local.skip.broken.symlinks:
@@ -560,10 +552,6 @@ fs.gcs.credential.path:
   'The json file path of Google application credentials. This property key is only valid when alluxio.underfs.gcs.version=2'
 fs.gcs.secretAccessKey:
   'The secret key of GCS bucket. This property key is only valid when alluxio.underfs.gcs.version=1'
-fs.kodo.accesskey:
-  'The access key of Kodo bucket.'
-fs.kodo.secretkey:
-  'The secret key of Kodo bucket.'
 fs.obs.accessKey:
   'The access key of OBS bucket.'
 fs.obs.bucketType:

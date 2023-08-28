@@ -38,7 +38,6 @@
     <module>cosn</module>
     <module>gcs</module>
     <module>hdfs</module>
-    <module>kodo</module>
     <module>local</module>
     <module>oss</module>
     <module>ozone</module>

@@ -26,7 +26,6 @@ INCLUDED_NAMES=(
   "alluxio-underfs-cosn"
   "alluxio-underfs-gcs"
   "alluxio-underfs-hdfs"
-  "alluxio-underfs-kodo"
   "alluxio-underfs-local"
   "alluxio-underfs-obs"
   "alluxio-underfs-oss"
