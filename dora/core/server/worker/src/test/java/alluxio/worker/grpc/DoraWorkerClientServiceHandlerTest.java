@@ -1,14 +1,3 @@
-/*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
- *
- * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied, as more fully set forth in the License.
- *
- * See the NOTICE file distributed with this work for information regarding copyright ownership.
- */
-
 package alluxio.worker.grpc;
 
 import static org.junit.Assert.assertEquals;
@@ -22,6 +11,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
 import alluxio.membership.MembershipManager;
+import alluxio.util.io.PathUtils;
 import alluxio.worker.dora.PagedDoraWorker;
 
 import io.grpc.stub.StreamObserver;
@@ -85,13 +75,14 @@ public class DoraWorkerClientServiceHandlerTest {
     File f = mTestFolder.newFile("root/f");
     Files.write(f.toPath(), fileContent.getBytes());
     mRequest = ListStatusPRequest.newBuilder().setOptions(
-        alluxio.grpc.ListStatusPOptions.newBuilder().setRecursive(true).build())
+            alluxio.grpc.ListStatusPOptions.newBuilder().setRecursive(true).build())
         .setPath(rootPath).build();
     TestStreamObserver responseObserver = new TestStreamObserver();
     mServiceHandler.listStatus(mRequest, responseObserver);
     List<MyStruct> responses = responseObserver.mResponses;
-    String[] expectedPaths = new String[] {rootPath + "/d1", rootPath + "/d1/d1",
-        rootPath + "/d2", rootPath + "/f"};
+    String[] expectedPaths =
+        new String[] {PathUtils.concatPath(rootPath, "d1"), PathUtils.concatPath(rootPath, "d1/d1"),
+            PathUtils.concatPath(rootPath, "d2"), PathUtils.concatPath(rootPath, "f")};
     Boolean[] expectedIsDirectories = new Boolean[] {true, true, true, false};
     assertEquals(expectedPaths.length, responses.size());
     for (int i = 0; i < expectedPaths.length; i++) {
@@ -101,12 +92,13 @@ public class DoraWorkerClientServiceHandlerTest {
     }
 
     mRequest = ListStatusPRequest.newBuilder().setOptions(
-        alluxio.grpc.ListStatusPOptions.newBuilder().setRecursive(false).build())
+            alluxio.grpc.ListStatusPOptions.newBuilder().setRecursive(false).build())
         .setPath(rootPath).build();
     responseObserver = new TestStreamObserver();
     mServiceHandler.listStatus(mRequest, responseObserver);
     responses = responseObserver.mResponses;
-    expectedPaths = new String[] {rootPath + "/d1", rootPath + "/d2", rootPath + "/f"};
+    expectedPaths = new String[] {PathUtils.concatPath(rootPath, "d1"),
+        PathUtils.concatPath(rootPath, "d2"), PathUtils.concatPath(rootPath, "f")};
     expectedIsDirectories = new Boolean[] {true, true, false};
     assertEquals(expectedPaths.length, responses.size());
     for (int i = 0; i < expectedPaths.length; i++) {
@@ -116,12 +108,29 @@ public class DoraWorkerClientServiceHandlerTest {
     }
 
     mRequest = ListStatusPRequest.newBuilder().setOptions(
-        alluxio.grpc.ListStatusPOptions.newBuilder().setRecursive(true).build())
-        .setPath(rootPath + "/d3").build();
+            alluxio.grpc.ListStatusPOptions.newBuilder().setRecursive(true).build())
+        .setPath(PathUtils.concatPath(rootPath, "d3")).build();
     responseObserver = new TestStreamObserver();
     TestStreamObserver finalResponseObserver = responseObserver;
     assertThrows(RuntimeException.class, () -> mServiceHandler.listStatus(mRequest,
         finalResponseObserver));
+
+    //list status on a file
+    mRequest = ListStatusPRequest.newBuilder().setOptions(
+            alluxio.grpc.ListStatusPOptions.newBuilder().setRecursive(true).build())
+        .setPath(PathUtils.concatPath(rootPath, "f")).build();
+    responseObserver = new TestStreamObserver();
+    TestStreamObserver finalResponseObserver1 = responseObserver;
+    mServiceHandler.listStatus(mRequest, finalResponseObserver1);
+    responses = responseObserver.mResponses;
+    expectedPaths = new String[] {PathUtils.concatPath(rootPath, "f")};
+    expectedIsDirectories = new Boolean[] {false};
+    assertEquals(expectedPaths.length, responses.size());
+    for (int i = 0; i < expectedPaths.length; i++) {
+      assertEquals(expectedPaths[i], responses.get(i).getPath());
+      assertEquals(expectedIsDirectories[i], responses.get(i).getIsDirectory());
+      assertEquals(true, responses.get(i).getIsCompleted());
+    }
   }
 
   private static class TestStreamObserver implements StreamObserver<ListStatusPResponse> {
@@ -131,6 +140,7 @@ public class DoraWorkerClientServiceHandlerTest {
     public void onNext(ListStatusPResponse value) {
       List<alluxio.grpc.FileInfo> fileInfosList = value.getFileInfosList();
       for (alluxio.grpc.FileInfo fileInfo : fileInfosList) {
+        System.out.println(fileInfo);
         mResponses.add(new MyStruct(fileInfo.getPath(), fileInfo.getFolder(),
             fileInfo.getCompleted()));
       }
@@ -143,7 +153,6 @@ public class DoraWorkerClientServiceHandlerTest {
 
     @Override
     public void onCompleted() {
-      // do nothing
       mResponses.sort(Comparator.comparing(MyStruct::getPath));
     }
   }
