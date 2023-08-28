@@ -7386,6 +7386,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String S3A_SECRET_KEY = "s3a.secretKey";
     public static final String AWS_ACCESS_KEY = "aws.accessKeyId";
     public static final String AWS_SECRET_KEY = "aws.secretKey";
+    public static final String KODO_ACCESS_KEY = "fs.kodo.accesskey";
+    public static final String KODO_SECRET_KEY = "fs.kodo.secretkey";
     public static final String OBS_ACCESS_KEY = "fs.obs.accessKey";
     public static final String OBS_ENDPOINT = "fs.obs.endpoint";
     public static final String OBS_SECRET_KEY = "fs.obs.secretKey";
