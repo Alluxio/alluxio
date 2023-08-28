@@ -164,17 +164,3 @@ alluxio.zookeeper.leader.inquiry.retry:
   从ZooKeeper申请leader的最大请求次数。
 alluxio.zookeeper.session.timeout:
   连接到Zookeeper时的会话时限。
-fs.swift.auth.method:
-  选择身份验证方法：[tempauth (default), swiftauth, keystone, keystonev3]
-fs.swift.auth.url:
-  REST服务器的认证URL，例如http://server:8090/auth/v1.0
-fs.swift.password:
-  user:tenant认证的密码
-fs.swift.region:
-  Keystone认证的服务地区
-fs.swift.simulation:
-  是否模拟单节点Swift后台用于验证，默认为否
-fs.swift.tenant:
-  Swift user用于认证
-fs.swift.user:
-  Swift tenant用于认证

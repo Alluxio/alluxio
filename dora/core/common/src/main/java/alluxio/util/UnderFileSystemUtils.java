@@ -120,13 +120,6 @@ public final class UnderFileSystemUtils {
     return "s3".equals(ufs.getUnderFSType()) || "s3a".equals(ufs.getUnderFSType());
   }
 
-  /**
-   * @param ufs the {@link UnderFileSystem} implementation to check
-   * @return true if the implementation is a Swift storage implementation
-   */
-  public static boolean isSwift(UnderFileSystem ufs) {
-    return "swift".equals(ufs.getUnderFSType());
-  }
 
   /**
    * @param ufs the {@link UnderFileSystem} implementation to check

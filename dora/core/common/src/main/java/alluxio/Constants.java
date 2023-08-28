@@ -75,7 +75,6 @@ public final class Constants {
   public static final String HEADER_OSS = "oss://";
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3A = "s3a://";
-  public static final String HEADER_SWIFT = "swift://";
   public static final String HEADER_WASB = "wasb://";
   public static final String HEADER_WASBS = "wasbs://";
   public static final String HEADER_OBS = "obs://";

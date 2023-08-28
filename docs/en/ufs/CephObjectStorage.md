@@ -10,15 +10,12 @@ Ceph Object Storage is a distributed, open-source storage system designed for st
 
 Alluxio supports two different clients APIs to connect to Ceph Object Storage using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/){:target="_blank"}. For more information, please read its documentation:
 - [S3](https://docs.ceph.com/en/latest/radosgw/s3/){:target="_blank"} (preferred)
-- [Swift](https://docs.ceph.com/en/latest/radosgw/swift/){:target="_blank"}
 
 ## Prerequisites
 
 If you haven't already, please see [Prerequisites]({{ '/en/ufs/Storage-Overview.html#prerequisites' | relativize_url }}) before you get started.
 
 In preparation for using Ceph Object Storage with Alluxio:
-{% navtabs Prerequisites %}
-{% navtab S3 %}
 
 <table class="table table-striped">
     <tr>
@@ -51,46 +48,6 @@ In preparation for using Ceph Object Storage with Alluxio:
     </tr>
 </table>
 
-{% endnavtab %}
-{% navtab Swift %}
-
-<table class="table table-striped">
-    <tr>
-        <td markdown="span" style="width:30%">`<CEPH_BUCKET>`</td>
-        <td markdown="span">[Create a new Swift bucket](https://docs.ceph.com/en/quincy/radosgw/swift/containerops/){:target="_blank"} or use an existing bucket</td>
-    </tr>
-    <tr>
-        <td markdown="span" style="width:30%">`<CEPH_DIRECTORY>`</td>
-        <td markdown="span">The directory you want to use in the bucket, either by creating a new directory or using an existing one</td>
-    </tr>
-    <tr>
-        <td markdown="span" style="width:30%">`<SWIFT_USER>`</td>
-        <td markdown="span"></td>
-    </tr>
-    <tr>
-        <td markdown="span" style="width:30%">`<SWIFT_TENANT>`</td>
-        <td markdown="span"></td>
-    </tr>
-    <tr>
-        <td markdown="span" style="width:30%">`<SWIFT_PASSWORD>`</td>
-        <td markdown="span"></td>
-    </tr>
-    <tr>
-        <td markdown="span" style="width:30%">`<RGW_HOSTNAME>`</td>
-        <td markdown="span">The host for the Ceph Object Gateway instance, which can be an IP address or a hostname. Read [more](https://docs.ceph.com/en/mimic/radosgw/config-ref/){:target="_blank"}</td>
-    </tr>
-    <tr>
-        <td markdown="span" style="width:30%">`<RGW_PORT>`</td>
-        <td markdown="span">The port the instance listens for requests and if not specified, Ceph Object Gateway runs external FastCGI. Read [more](https://docs.ceph.com/en/mimic/radosgw/config-ref/){:target="_blank"}</td>
-    </tr>
-    <tr>
-        <td markdown="span" style="width:30%">`<SWIFT_AUTH_METHOD>`</td>
-        <td markdown="span"></td>
-    </tr>
-</table>
-
-{% endnavtab %}
-{% endnavtabs %}
 
 ## Basic Setup
 
@@ -99,9 +56,6 @@ To use Ceph Object Storage as the UFS of Alluxio root mount point, you need to c
 ```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
-
-{% navtabs Setup %}
-{% navtab S3 %}
 
 Modify `conf/alluxio-site.properties` to include:
 
@@ -118,24 +72,6 @@ If using a Ceph release such as hammer (or older) specify `alluxio.underfs.s3.si
 to use v2 S3 signatures. To use GET Bucket (List Objects) Version 1 specify
 `alluxio.underfs.s3.list.objects.v1=true`.
 
-{% endnavtab %}
-{% navtab Swift %}
-
-Modify `conf/alluxio-site.properties` to include:
-
-```properties
-alluxio.dora.client.ufs.root=swift://<CEPH_BUCKET>/<CEPH_DIRECTORY>
-fs.swift.user=<SWIFT_USER>
-fs.swift.tenant=<SWIFT_TENANT>
-fs.swift.password=<SWIFT_PASSWORD>
-fs.swift.auth.url=http://<RGW-HOSTNAME>:<RGW-PORT>/auth/1.0
-fs.swift.auth.method=<SWIFT_AUTH_METHOD>
-```
-Replace `<CEPH_BUCKET>/<CEPH_DIRECTORY>` with an existing Swift bucket location.
-
-{% endnavtab %}
-{% endnavtabs %}
-
 ## Running Alluxio Locally with Ceph
 
 Once you have configured Alluxio to Ceph Object Storage, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
@@ -147,4 +83,3 @@ Once you have configured Alluxio to Ceph Object Storage, try [running Alluxio lo
 If Alluxio security is enabled, Alluxio enforces the access control inherited from underlying Ceph
 Object Storage. Depending on the interace used, refer to
 [S3 Access Control]({{ '/en/ufs/S3.html' | relativize_url }}#identity-and-access-control-of-s3-objects) or
-[Swift Access Control]({{ '/en/ufs/Swift.html' | relativize_url }}#swift-access-control) for more information.
