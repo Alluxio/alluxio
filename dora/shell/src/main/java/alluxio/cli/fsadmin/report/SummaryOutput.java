@@ -22,9 +22,9 @@ public class SummaryOutput {
     private boolean mSafeMode;
 
     private List<String> mZookeeperAddress;
-    private boolean mZookeeper;
+    private boolean mUseZookeeper;
     private List<String> mRaftJournalAddress;
-    private boolean mRaftJournal;
+    private boolean mUseRaftJournal;
     private List<SerializableMasterVersion> mMasterVersions;
 
     private int mLiveWorkers;
@@ -90,9 +90,9 @@ public class SummaryOutput {
         mSafeMode = masterInfo.getSafeMode();
 
         mZookeeperAddress = masterInfo.getZookeeperAddressesList();
-        mZookeeper = !mZookeeperAddress.isEmpty();
-        mRaftJournal = masterInfo.getRaftJournal();
-        if (mRaftJournal) {
+        mUseZookeeper = !mZookeeperAddress.isEmpty();
+        mUseRaftJournal = masterInfo.getRaftJournal();
+        if (mUseRaftJournal) {
             mRaftJournalAddress = masterInfo.getRaftAddressList();
         } else {
             mRaftJournalAddress = new ArrayList<>();
@@ -184,12 +184,12 @@ public class SummaryOutput {
         mZookeeperAddress = zookeeperAddress;
     }
 
-    public boolean ismZookeeper() {
-        return mZookeeper;
+    public boolean isUseZookeeper() {
+        return mUseZookeeper;
     }
 
-    public void setZookeeper(boolean mZookeeper) {
-        mZookeeper = mZookeeper;
+    public void setUseZookeeper(boolean useZookeeper) {
+        mUseZookeeper = useZookeeper;
     }
 
     public List<String> getRaftJournalAddress() {
@@ -200,12 +200,12 @@ public class SummaryOutput {
         mRaftJournalAddress = raftJournalAddress;
     }
 
-    public boolean ismRaftJournal() {
-        return mRaftJournal;
+    public boolean isUseRaftJournal() {
+        return mUseRaftJournal;
     }
 
-    public void setRaftJournal(boolean raftJournal) {
-        mRaftJournal = raftJournal;
+    public void setUseRaftJournal(boolean useRaftJournal) {
+        mUseRaftJournal = useRaftJournal;
     }
 
     public List<SerializableMasterVersion> getMasterVersions() {
