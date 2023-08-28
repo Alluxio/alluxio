@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
@@ -56,8 +55,9 @@ public class UfsUrlTest {
     assertEquals(2, ufsUrl.getDepth());
     assertEquals("a b c", ufsUrl.getName());
     assertEquals("abc", ufsUrl.getScheme());
-    assertEquals("abc://localhost:19998/xy z", ufsUrl.getParentURL().toString());
-    assertEquals("abc://localhost:19998/", ufsUrl.getParentURL().getParentURL().toString());
+    assertEquals("abc://localhost:19998/xy z", ufsUrl.getParentURL().get().toString());
+    assertEquals("abc://localhost:19998/",
+        ufsUrl.getParentURL().get().getParentURL().get().toString());
     assertEquals("/xy z/a b c", ufsUrl.getFullPath());
     assertEquals("abc://localhost:19998/xy z/a b c/d", ufsUrl.join("/d").toString());
     assertEquals("abc://localhost:19998/xy z/a b c", ufsUrl.toString());
@@ -107,8 +107,8 @@ public class UfsUrlTest {
 
     assertEquals(2, ufsUrl.getDepth());
     assertEquals("a b c", ufsUrl.getName());
-    assertEquals("hdfs://localhost:8020/xy z", ufsUrl.getParentURL().toString());
-    assertEquals("hdfs://localhost:8020/", ufsUrl.getParentURL().getParentURL().toString());
+    assertEquals("hdfs://localhost:8020/xy z", ufsUrl.getParentURL().get().toString());
+    assertEquals("hdfs://localhost:8020/", ufsUrl.getParentURL().get().getParentURL().get().toString());
     assertEquals("/xy z/a b c", ufsUrl.getFullPath());
     assertEquals("hdfs", ufsUrl.getScheme());
     assertEquals("hdfs://localhost:8020/xy z/a b c/d", ufsUrl.join("/d").toString());
@@ -332,20 +332,20 @@ public class UfsUrlTest {
    */
   @Test
   public void getParent() {
-    assertNull(UfsUrl.createInstance("abc://localhost/").getParentURL());
+    assertFalse(UfsUrl.createInstance("abc://localhost/").getParentURL().isPresent());
     assertEquals(UfsUrl.createInstance("abc://localhost/"),
-        UfsUrl.createInstance("abc://localhost/a").getParentURL());
+        UfsUrl.createInstance("abc://localhost/a").getParentURL().get());
     assertEquals(UfsUrl.createInstance("abc:/a/b"),
-        UfsUrl.createInstance("abc:/a/b/c").getParentURL());
+        UfsUrl.createInstance("abc:/a/b/c").getParentURL().get());
     assertEquals(UfsUrl.createInstance("abc:/a"),
-        UfsUrl.createInstance("abc:/a/c").getParentURL());
+        UfsUrl.createInstance("abc:/a/c").getParentURL().get());
     assertEquals(UfsUrl.createInstance("abc://localhost:80/a"),
-        UfsUrl.createInstance("abc://localhost:80/a/b").getParentURL());
+        UfsUrl.createInstance("abc://localhost:80/a/b").getParentURL().get());
 
-    assertNull(UfsUrl.createInstance("abc:").getParentURL());
-    assertNull(UfsUrl.createInstance("abc:/").getParentURL());
-    assertNull(UfsUrl.createInstance("abc://").getParentURL());
-    assertNull(UfsUrl.createInstance("abc:///").getParentURL());
+    assertFalse(UfsUrl.createInstance("abc:").getParentURL().isPresent());
+    assertFalse(UfsUrl.createInstance("abc:/").getParentURL().isPresent());
+    assertFalse(UfsUrl.createInstance("abc://").getParentURL().isPresent());
+    assertFalse(UfsUrl.createInstance("abc:///").getParentURL().isPresent());
   }
 
   /**

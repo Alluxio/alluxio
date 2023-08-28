@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import javax.annotation.Nullable;
+import java.util.Optional;
 
 /**
  * This class represents a UFS URL in the Alluxio system.
@@ -351,26 +351,20 @@ public class UfsUrl {
   }
 
   /**
-   * Gets parent UfsUrl of current UfsUrl or null if at root.
-   * <p>
-   * e.g.
-   * <ul>
-   *   <li>getParentURL(abc://1.2.3.4:19998/xy z/a b c) -> abc://1.2.3.4:19998/xy z</li>
-   * </ul>
+   * Gets parent UfsUrl of current UfsUrl.
    *
-   * @return parent UfsUrl or null if at root
+   * @return Optional UfsUrl The parent UfsUrl or null if at root
    */
-  @Nullable
-  public UfsUrl getParentURL() {
+  public Optional<UfsUrl> getParentURL() {
     if (mProto.getPathComponentsList().isEmpty()) {
-      return null;
+      return Optional.empty();
     }
     List<String> pathComponents = mProto.getPathComponentsList();
-    return new UfsUrl(UfsUrlMessage.newBuilder()
+    return Optional.of(new UfsUrl(UfsUrlMessage.newBuilder()
         .setScheme(mProto.getScheme())
         .setAuthority(mProto.getAuthority())
         // sublist returns a view, not a copy
-        .addAllPathComponents(pathComponents.subList(0, pathComponents.size() - 1)).build());
+        .addAllPathComponents(pathComponents.subList(0, pathComponents.size() - 1)).build()));
   }
 
   /**
