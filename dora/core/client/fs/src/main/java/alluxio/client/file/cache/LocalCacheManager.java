@@ -175,9 +175,8 @@ public class LocalCacheManager implements CacheManager {
     } else {
       mTtlEnforcerExecutor = Optional.empty();
     }
-    Metrics.registerGauges(mCacheSize, mPageMetaStore);
+    Metrics.registerGauges(mCacheSize, mPageMetaStore, mState);
     mState.set(READ_ONLY);
-    Metrics.STATE.inc();
   }
 
   @Override
@@ -748,14 +747,12 @@ public class LocalCacheManager implements CacheManager {
         } catch (IOException e) {
           LOG.error("Cache is in NOT_IN_USE.");
           mState.set(NOT_IN_USE);
-          Metrics.STATE.dec();
           throw e;
         }
       }
     }
     LOG.info("Cache is in READ_WRITE.");
     mState.set(READ_WRITE);
-    Metrics.STATE.inc();
   }
 
   private boolean restore(PageStoreDir pageStoreDir) {
@@ -1040,19 +1037,18 @@ public class LocalCacheManager implements CacheManager {
      */
     private static final Counter PUT_STORE_WRITE_NO_SPACE_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_STORE_WRITE_NO_SPACE_ERRORS.getName());
-    /**
-     * State of the cache.
-     */
-    private static final Counter STATE =
-        MetricsSystem.counter(MetricKey.CLIENT_CACHE_STATE.getName());
 
-    private static void registerGauges(long cacheSize, PageMetaStore pageMetaStore) {
+    private static void registerGauges(long cacheSize, PageMetaStore pageMetaStore,
+        AtomicReference<State> state) {
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_SPACE_AVAILABLE.getName()),
           () -> cacheSize - pageMetaStore.bytes());
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_SPACE_USED.getName()),
           pageMetaStore::bytes);
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.CLIENT_CACHE_STATE.getName()),
+          () -> state.get().getValue());
     }
   }
 }
