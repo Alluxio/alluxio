@@ -227,10 +227,6 @@ public class S3AUnderFileSystemTest {
     // Check default
     Assert.assertEquals(UfsMode.READ_WRITE,
         mS3UnderFileSystem.getOperationMode(physicalUfsState));
-    physicalUfsState.put(new AlluxioURI("swift://" + BUCKET_NAME).getRootPath(),
-        UfsMode.NO_ACCESS);
-    Assert.assertEquals(UfsMode.READ_WRITE,
-        mS3UnderFileSystem.getOperationMode(physicalUfsState));
     // Check setting NO_ACCESS mode
     physicalUfsState.put(new AlluxioURI("s3a://" + BUCKET_NAME).getRootPath(),
         UfsMode.NO_ACCESS);

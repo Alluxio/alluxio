@@ -551,20 +551,6 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void swiftGetPermission() throws Exception {
-    Assume.assumeTrue(UnderFileSystemUtils.isSwift(sUfs));
-
-    Path fileA = new Path("/swiftGetPermissionFile");
-    create(sTFS, fileA);
-    Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
-
-    UfsStatus ufsStatus = sUfs.getFileStatus(PathUtils.concatPath(sUfsRoot, fileA));
-    Assert.assertNotEquals("", ufsStatus.getOwner());
-    Assert.assertNotEquals("", ufsStatus.getGroup());
-    Assert.assertEquals((short) 0700, ufsStatus.getMode());
-  }
-
-  @Test
   public void ossGetPermission() throws Exception {
     Assume.assumeTrue(UnderFileSystemUtils.isOss(sUfs));
 

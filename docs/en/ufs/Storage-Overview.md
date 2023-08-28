@@ -70,7 +70,6 @@ For the purposes of this guide, the following are placeholders.
         <td markdown="span">`CEPH_BUCKET`, `CEPH_DIRECTORY`</td>
         <td markdown="span">
             [S3](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) (preferred): `S3_ACCESS_KEY_ID`, `S3_SECRET_KEY_ID` <br />
-            [Swift](http://docs.openstack.org/developer/swift/): `SWIFT_USER`, `SWIFT_TENANT`, `SWIFT_PASSWORD`, `SWIFT_AUTH_URL`, `SWIFT_AUTH_METHOD`
         </td>
         <td markdown="span">
             Specify S3 properties: (preferred) <br />
@@ -120,14 +119,6 @@ For the purposes of this guide, the following are placeholders.
             Specify domain to identify bucket: <br />
             `KODO_DOWNLOAD_HOST`, `KODO_ENDPOINT`
         </td>
-    </tr>
-    <tr>
-        <td markdown="span">[Swift]({{ '/en/ufs/Swift.html' | relativize_url }})</td>
-        <td markdown="span">`SWIFT_BUCKET`, `SWIFT_DIRECTORY`</td>
-        <td markdown="span">`SWIFT_USER`, `SWIFT_TENANT`, `SWIFT_PASSWORD`, `SWIFT_AUTH_URL`, `SWIFT_AUTH_METHOD`</td>
-        <td markdown="span">
-            Specify Swift Region: <br />
-            `SWIFT_REGION`</td>
     </tr>
     <tr>
         <td markdown="span">[Tencent Cloud Object Storage (COS)]({{ '/en/ufs/Tencent-COS.html' | relativize_url }})</td>

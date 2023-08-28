@@ -43,7 +43,6 @@
     <module>oss</module>
     <module>ozone</module>
     <module>s3a</module>
-    <module>swift</module>
     <module>wasb</module>
     <module>obs</module>
   </modules>

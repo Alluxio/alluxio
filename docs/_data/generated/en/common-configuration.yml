@@ -578,20 +578,6 @@ fs.oss.accessKeySecret:
   'The secret key of OSS bucket.'
 fs.oss.endpoint:
   'The endpoint key of OSS bucket.'
-fs.swift.auth.method:
-  'Choice of authentication method: [tempauth (default), swiftauth, keystone, keystonev3].'
-fs.swift.auth.url:
-  'Authentication URL for REST server, e.g., http://server:8090/auth/v1.0.'
-fs.swift.password:
-  'The password used for user:tenant authentication.'
-fs.swift.region:
-  'Service region when using Keystone authentication.'
-fs.swift.simulation:
-  'Whether to simulate a single node Swift backend for testing purposes: true or false (default).'
-fs.swift.tenant:
-  'Swift user for authentication.'
-fs.swift.user:
-  'Swift tenant for authentication.'
 s3a.accessKeyId:
   'The access key of S3 bucket.'
 s3a.secretKey:

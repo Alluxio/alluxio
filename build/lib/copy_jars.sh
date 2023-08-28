@@ -32,7 +32,6 @@ INCLUDED_NAMES=(
   "alluxio-underfs-oss"
   "alluxio-underfs-ozone"
   "alluxio-underfs-s3a"
-  "alluxio-underfs-swift"
   "alluxio-underfs-wasb"
 )
 

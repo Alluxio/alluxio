@@ -1922,39 +1922,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
-  public static final PropertyKey SWIFT_AUTH_METHOD_KEY = stringBuilder(Name.SWIFT_AUTH_METHOD_KEY)
-      .setDescription("Choice of authentication method: "
-          + "[tempauth (default), swiftauth, keystone, keystonev3].")
-      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-      .build();
-  public static final PropertyKey SWIFT_AUTH_URL_KEY = stringBuilder(Name.SWIFT_AUTH_URL_KEY)
-      .setDescription("Authentication URL for REST server, e.g., http://server:8090/auth/v1.0.")
-      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-      .build();
-  public static final PropertyKey SWIFT_PASSWORD_KEY = stringBuilder(Name.SWIFT_PASSWORD_KEY)
-      .setDescription("The password used for user:tenant authentication.")
-      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-      .setDisplayType(DisplayType.CREDENTIALS)
-      .build();
-  public static final PropertyKey SWIFT_SIMULATION = booleanBuilder(Name.SWIFT_SIMULATION)
-      .setDescription("Whether to simulate a single node Swift backend for testing purposes: "
-          + "true or false (default).")
-      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-      .build();
-  public static final PropertyKey SWIFT_TENANT_KEY = stringBuilder(Name.SWIFT_TENANT_KEY)
-      .setDescription("Swift user for authentication.")
-      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-      .setDisplayType(DisplayType.CREDENTIALS)
-      .build();
-  public static final PropertyKey SWIFT_USER_KEY = stringBuilder(Name.SWIFT_USER_KEY)
-      .setDescription("Swift tenant for authentication.")
-      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-      .setDisplayType(DisplayType.CREDENTIALS)
-      .build();
-  public static final PropertyKey SWIFT_REGION_KEY = stringBuilder(Name.SWIFT_REGION_KEY)
-      .setDescription("Service region when using Keystone authentication.")
-      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-      .build();
   public static final PropertyKey COS_ACCESS_KEY =
       stringBuilder(Name.COS_ACCESS_KEY)
           .setDescription("The access key of COS bucket.")
@@ -7419,13 +7386,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String S3A_SECRET_KEY = "s3a.secretKey";
     public static final String AWS_ACCESS_KEY = "aws.accessKeyId";
     public static final String AWS_SECRET_KEY = "aws.secretKey";
-    public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
-    public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
-    public static final String SWIFT_PASSWORD_KEY = "fs.swift.password";
-    public static final String SWIFT_REGION_KEY = "fs.swift.region";
-    public static final String SWIFT_SIMULATION = "fs.swift.simulation";
-    public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";
-    public static final String SWIFT_USER_KEY = "fs.swift.user";
     public static final String KODO_ACCESS_KEY = "fs.kodo.accesskey";
     public static final String KODO_SECRET_KEY = "fs.kodo.secretkey";
     public static final String OBS_ACCESS_KEY = "fs.obs.accessKey";
