@@ -145,7 +145,7 @@ public class UfsUrlTest {
         "file:/// pa th ",
         "file:///pa/ th",
         "file:///pa / th",
-        "file:// pa / th ",
+        "file:// pa / th "
     };
     for (String path : paths) {
       UfsUrl ufsUrl = UfsUrl.createInstance(path);
@@ -154,27 +154,28 @@ public class UfsUrlTest {
   }
 
   /**
-   * Tests the {@link UfsUrl#createInstance(String)} constructor for URL without scheme.
+   * Tests the {@link UfsUrl#createInstance(String)} constructor for URL
+   * without scheme or with invalid scheme.
    */
   @Test
   public void pathWithoutSchemeException() {
-    String path =  "/ ";
-    Exception e = assertThrows(IllegalArgumentException.class, () -> {
-      UfsUrl ufsUrl = UfsUrl.createInstance(path);
+    String path1 =  "/ ";
+    Exception e1 = assertThrows(IllegalArgumentException.class, () -> {
+      UfsUrl ufsUrl = UfsUrl.createInstance(path1);
     });
-    assertTrue(e.getMessage().contains(String.format("empty scheme: %s", path)));
-  }
+    assertTrue(e1.getMessage().contains(String.format("empty scheme: %s", path1)));
 
-  /**
-   * Tests the {@link UfsUrl#createInstance(String)} constructor for URL with spaces.
-   */
-  @Test
-  public void pathWithReverseSequenceColonAndSlashException() {
-    String path =  "abc/:";
-    Exception e = assertThrows(IllegalArgumentException.class, () -> {
-      UfsUrl ufsUrl = UfsUrl.createInstance(path);
+    String path2 = "file:  / / /path";
+    Exception e2 = assertThrows(IllegalArgumentException.class, () -> {
+      UfsUrl ufsUrl = UfsUrl.createInstance(path2);
     });
-    assertTrue(e.getMessage().contains(String.format("empty scheme: %s", path)));
+    assertTrue(e2.getMessage().contains(String.format("empty scheme: %s", path2)));
+
+    String path3 =  "abc/:";
+    Exception e3 = assertThrows(IllegalArgumentException.class, () -> {
+      UfsUrl ufsUrl = UfsUrl.createInstance(path3);
+    });
+    assertTrue(e3.getMessage().contains(String.format("empty scheme: %s", path3)));
   }
 
   /**

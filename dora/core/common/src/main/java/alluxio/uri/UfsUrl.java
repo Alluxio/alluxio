@@ -13,6 +13,7 @@ package alluxio.uri;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.collections.Pair;
 import alluxio.grpc.UfsUrlMessage;
 
 import com.google.common.base.Preconditions;
@@ -68,70 +69,81 @@ public class UfsUrl {
     private final String mAuthority;
     private final List<String> mPathComponents;
 
-    private Parser(String inputUrl) {
+    private Parser(String inputUrl) throws IllegalArgumentException {
       Preconditions.checkArgument(inputUrl != null && !inputUrl.isEmpty(),
           "The input url is null or empty, please input a valid url.");
+
+      Pair<String, Integer> schemePair = parseScheme(inputUrl);
+      Pair<String, Integer> authorityPair = parseAuthority(inputUrl, schemePair.getSecond());
+      Pair<List<String>, Integer> pathPair = parsePath(inputUrl, authorityPair.getSecond());
+
+      mScheme = schemePair.getFirst();
+      mAuthority = authorityPair.getFirst();
+      mPathComponents = pathPair.getFirst();
+    }
+
+    private Pair<String, Integer> parseScheme(String inputString)
+        throws IllegalArgumentException {
+      int firstSlash = inputString.indexOf(SLASH_SEPARATOR);
+      int firstColon = inputString.indexOf(COLON_SEPARATOR);
+      int nextStart;
       String scheme = null;
-      String authority = null;
-      String path = null;
-
-      int start = 0;
-
-      int firstSlash = inputUrl.indexOf(SLASH_SEPARATOR);
-      int firstColon = inputUrl.indexOf(COLON_SEPARATOR);
-
       if (firstColon != -1) {
         if (firstSlash == -1) {
           // have colon but no slash
-          scheme = inputUrl.substring(0, firstColon);
-          start = firstColon + 1;
+          scheme = inputString.substring(0, firstColon);
+          nextStart = firstColon + 1;
         } else if (firstColon + 1 == firstSlash) {
           // have colon and slash, colon is in front of slash -> have scheme
-          start = firstSlash;
-          scheme = inputUrl.substring(0, firstColon);
+          nextStart = firstSlash;
+          scheme = inputString.substring(0, firstColon);
         } else { // have colon and slash, colon is back of slash -> illegal, have empty scheme
-          scheme = "";
+          throw new IllegalArgumentException(String.format("empty scheme: %s", inputString));
         }
       } else {
-        scheme = "";
+        throw new IllegalArgumentException(String.format("empty scheme: %s", inputString));
       }
-
-      Preconditions.checkArgument(!scheme.isEmpty(), "empty scheme: %s", inputUrl);
+      Preconditions.checkArgument(!scheme.isEmpty(), "empty scheme: %s", inputString);
       Preconditions.checkArgument(!scheme.equalsIgnoreCase(Constants.SCHEME),
           OUTDATED_ALLUXIO_SCHEME_INFO);
+      return new Pair<>(scheme, nextStart);
+    }
 
-      if (inputUrl.startsWith(DOUBLE_SLASH_SEPARATOR, start)
-          && start + DOUBLE_SLASH_SEPARATOR.length() < inputUrl.length()) {
-        start += DOUBLE_SLASH_SEPARATOR.length();
-        int authoritySplitIndex = inputUrl.indexOf(SLASH_SEPARATOR, start);
+    private Pair<String, Integer> parseAuthority(String inputString, Integer begin) {
+      String authority = null;
+      int nextStart = begin;
+      if (inputString.startsWith(DOUBLE_SLASH_SEPARATOR, nextStart)
+          && nextStart + DOUBLE_SLASH_SEPARATOR.length() < inputString.length()) {
+        nextStart += DOUBLE_SLASH_SEPARATOR.length();
+        int authoritySplitIndex = inputString.indexOf(SLASH_SEPARATOR, nextStart);
         if (authoritySplitIndex == -1)  {
-          authority = inputUrl.substring(start);
+          authority = inputString.substring(nextStart);
         } else {
-          authority = inputUrl.substring(start, authoritySplitIndex);
+          authority = inputString.substring(nextStart, authoritySplitIndex);
         }
       } else {
         authority = "";
       }
 
-      start += authority.length();
+      nextStart += authority.length();
       // remove the fronting slash, if any.
-      while (start < inputUrl.length() && inputUrl.charAt(start) == SLASH_SEPARATOR.charAt(0)) {
-        start++;
+      while (nextStart < inputString.length() && inputString.charAt(nextStart)
+          == SLASH_SEPARATOR.charAt(0)) {
+        nextStart++;
       }
+      return new Pair<>(authority, nextStart);
+    }
 
-      String candidatePath = inputUrl.substring(start);
-      path = removeRedundantSlashes(candidatePath);
+    private Pair<List<String>, Integer> parsePath(String inputUrl, Integer begin) {
+      String candidatePath = inputUrl.substring(begin);
+      begin += candidatePath.length();
+      String path = removeRedundantSlashes(candidatePath);
       Preconditions.checkNotNull(path, "empty path after normalize: %s", candidatePath);
-
-      // scheme, authority, pathComponents are always not null.
-      mScheme = scheme;
-      mAuthority = authority;
-
-      if (path.isEmpty()) {
-        mPathComponents = Collections.emptyList();
-      } else {
-        mPathComponents = Arrays.asList(path.split(SLASH_SEPARATOR));
+      List<String> pathComponents = Collections.emptyList();
+      if (!path.isEmpty()) {
+        pathComponents = Arrays.asList(path.split(SLASH_SEPARATOR));
       }
+      return new Pair<>(pathComponents, begin);
     }
 
     public String getScheme() {
