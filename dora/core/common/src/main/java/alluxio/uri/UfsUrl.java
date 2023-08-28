@@ -430,7 +430,7 @@ public class UfsUrl {
    * @param ufsUrl potential children to check
    * @return true the current ufsUrl is an ancestor of the ufsUrl
    */
-  public boolean isAncestorOf(UfsUrl ufsUrl){
+  public boolean isAncestorOf(UfsUrl ufsUrl) {
     if (!Objects.equals(getAuthority(), ufsUrl.getAuthority())) {
       return false;
     }
