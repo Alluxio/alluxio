@@ -3,10 +3,8 @@ package alluxio.cli.fsadmin.report;
 import alluxio.grpc.MetricValue;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.FormatUtils;
-import com.fasterxml.jackson.core.SerializableString;
 import com.google.common.math.DoubleMath;
 
-import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;

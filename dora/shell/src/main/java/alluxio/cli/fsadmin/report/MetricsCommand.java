@@ -13,18 +13,13 @@ package alluxio.cli.fsadmin.report;
 
 import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.grpc.MetricValue;
-import alluxio.metrics.MetricsSystem;
-import alluxio.util.FormatUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.math.DoubleMath;
+import org.jline.utils.Log;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
@@ -33,14 +28,8 @@ import java.util.*;
  * Prints Alluxio metrics information.
  */
 public class MetricsCommand {
-  private static final String BYTES_METRIC_IDENTIFIER = "Bytes";
-  private static final String THROUGHPUT_METRIC_IDENTIFIER = "Throughput";
-  private static final DecimalFormat DECIMAL_FORMAT
-      = new DecimalFormat("###,###.#####", new DecimalFormatSymbols(Locale.US));
-
   private final MetricsMasterClient mMetricsMasterClient;
   private final PrintStream mPrintStream;
-  private Map<String, MetricValue> mMetricsMap;
 
   /**
    * Creates a new instance of {@link MetricsCommand}.
@@ -65,7 +54,11 @@ public class MetricsCommand {
       String json = objectMapper.writeValueAsString(metricsInfo);
       mPrintStream.println(json);
     } catch (JsonProcessingException e) {
+      mPrintStream.println("Failed to convert metricsInfo output to JSON. " +
+              "Check the command line log for the detailed error message.");
+      Log.error("Failed to output JSON object {}", metricsInfo);
       e.printStackTrace();
+      return -1;
     }
     return 0;
   }
