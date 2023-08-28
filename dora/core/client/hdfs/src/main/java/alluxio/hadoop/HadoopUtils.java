@@ -118,7 +118,6 @@ public final class HadoopUtils {
     return sb.toString();
   }
 
-
   /**
    * Set the System properties into Hadoop configuration.
    *
