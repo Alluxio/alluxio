@@ -12,16 +12,12 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.file.FileSystemMasterClient;
-import alluxio.util.FormatUtils;
 import alluxio.wire.MountPointInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.jline.utils.Log;
 
 import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Comparator;
 import java.util.Map;
 
 /**
@@ -51,7 +47,11 @@ public class UfsCommand {
       String json = objectMapper.writeValueAsString(mountTable);
       System.out.println(json);
     } catch (JsonProcessingException e) {
+      System.out.println("Failed to convert mountTable output to JSON. " +
+              "Check the command line log for the detailed error message.");
+      Log.error("Failed to output JSON object {}", mountTable);
       e.printStackTrace();
+      return -1;
     }
     return 0;
   }

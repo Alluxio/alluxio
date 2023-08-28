@@ -20,6 +20,7 @@ import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jline.utils.Log;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -59,19 +60,19 @@ public class SummaryCommand {
    */
   public int run() throws IOException {
     Set<MasterInfoField> masterInfoFilter = new HashSet<>(Arrays
-            .asList(MasterInfoField.LEADER_MASTER_ADDRESS, MasterInfoField.WEB_PORT,
-                    MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
-                    MasterInfoField.UP_TIME_MS, MasterInfoField.VERSION,
-                    MasterInfoField.SAFE_MODE, MasterInfoField.ZOOKEEPER_ADDRESSES,
-                    MasterInfoField.RAFT_JOURNAL, MasterInfoField.RAFT_ADDRESSES,
-                    MasterInfoField.MASTER_VERSION));
+        .asList(MasterInfoField.LEADER_MASTER_ADDRESS, MasterInfoField.WEB_PORT,
+            MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
+            MasterInfoField.UP_TIME_MS, MasterInfoField.VERSION,
+            MasterInfoField.SAFE_MODE, MasterInfoField.ZOOKEEPER_ADDRESSES,
+            MasterInfoField.RAFT_JOURNAL, MasterInfoField.RAFT_ADDRESSES,
+            MasterInfoField.MASTER_VERSION));
     MasterInfo masterInfo = mMetaMasterClient.getMasterInfo(masterInfoFilter);
 
     Set<BlockMasterInfoField> blockMasterInfoFilter = new HashSet<>(Arrays
-            .asList(BlockMasterInfoField.LIVE_WORKER_NUM, BlockMasterInfoField.LOST_WORKER_NUM,
-                    BlockMasterInfoField.CAPACITY_BYTES, BlockMasterInfoField.USED_BYTES,
-                    BlockMasterInfoField.FREE_BYTES, BlockMasterInfoField.CAPACITY_BYTES_ON_TIERS,
-                    BlockMasterInfoField.USED_BYTES_ON_TIERS));
+        .asList(BlockMasterInfoField.LIVE_WORKER_NUM, BlockMasterInfoField.LOST_WORKER_NUM,
+            BlockMasterInfoField.CAPACITY_BYTES, BlockMasterInfoField.USED_BYTES,
+            BlockMasterInfoField.FREE_BYTES, BlockMasterInfoField.CAPACITY_BYTES_ON_TIERS,
+            BlockMasterInfoField.USED_BYTES_ON_TIERS));
     BlockMasterInfo blockMasterInfo = mBlockMasterClient.getBlockMasterInfo(blockMasterInfoFilter);
 
     ObjectMapper objectMapper = new ObjectMapper();
@@ -80,7 +81,11 @@ public class SummaryCommand {
       String json = objectMapper.writeValueAsString(summaryInfo);
       mPrintStream.println(json);
     } catch (JsonProcessingException e) {
+      mPrintStream.println("Failed to convert summaryInfo output to JSON. " +
+              "Check the command line log for the detailed error message.");
+      Log.error("Failed to output JSON object {}", summaryInfo);
       e.printStackTrace();
+      return -1;
     }
 
     return 0;

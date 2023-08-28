@@ -15,6 +15,7 @@ import alluxio.client.job.JobMasterClient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jline.utils.Log;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -62,7 +63,11 @@ public class JobServiceMetricsCommand {
       String json = objectMapper.writeValueAsString(jobServiceInfo);
       mPrintStream.println(json);
     } catch (JsonProcessingException e) {
+      mPrintStream.println("Failed to convert jobServiceInfo output to JSON. " +
+              "Check the command line log for the detailed error message.");
+      Log.error("Failed to output JSON object {}", jobServiceInfo);
       e.printStackTrace();
+      return -1;
     }
     return 0;
   }
