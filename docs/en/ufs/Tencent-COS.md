@@ -197,5 +197,11 @@ alluxio.underfs.cos.multipart.upload.threads
 alluxio.underfs.cos.multipart.upload.partition.size
 ```
 
+## Contributed by the Alluxio Community
 
+Tencent COS and COSN UFS integration is contributed and maintained by the Alluxio community.
+The source code for COS is located [here](https://github.com/Alluxio/alluxio/tree/main/dora/underfs/cos){:target="_blank"} and for COSN is located [here](https://github.com/Alluxio/alluxio/tree/main/dora/underfs/cosn){:target="_blank"}.
+Feel free submit pull requests to improve the integration and update 
+the documentation [here](https://github.com/Alluxio/alluxio/blob/main/docs/en/ufs/Tencent-COS.md){:target="_blank"} 
+if any information is missing or out of date.
 
