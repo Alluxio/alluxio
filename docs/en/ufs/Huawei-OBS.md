@@ -102,5 +102,11 @@ alluxio.underfs.obs.multipart.upload.threads
 alluxio.underfs.obs.multipart.upload.partition.size
 ```
 
+## Contributed by the Alluxio Community
 
+Huawei OBS UFS integration is contributed and maintained by the Alluxio community.
+The source code is located [here](https://github.com/Alluxio/alluxio/tree/main/dora/underfs/obs){:target="_blank"}.
+Feel free submit pull requests to improve the integration and update 
+the documentation [here](https://github.com/Alluxio/alluxio/blob/main/docs/en/ufs/Huawei-OBS.md){:target="_blank"} 
+if any information is missing or out of date.
 
