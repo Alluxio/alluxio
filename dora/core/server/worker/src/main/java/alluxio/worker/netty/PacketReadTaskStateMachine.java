@@ -296,7 +296,7 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
 
   private void onTerminatedNormally() {
     try {
-      mWaitForTerminatedSignalQueue.poll(mPacketSendingTimeout, TimeUnit.MILLISECONDS);
+      String msg = mWaitForTerminatedSignalQueue.poll(mPacketSendingTimeout, TimeUnit.MILLISECONDS);
       completeRequest(mContext);
       fireNext(TriggerEvent.END);
     } catch (IOException e) {
