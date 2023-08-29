@@ -68,13 +68,18 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
   private final BlockingQueue<String> mWaitForTerminatedSignalQueue =
       new ArrayBlockingQueue<>(1);
 
-  private volatile boolean mAllDataRead = false;
+  private volatile boolean mAllDataReadOnWorker = false;
+
+  private volatile boolean mTaskCancelled = false;
 
   private final TriggerEventsWithParam mTriggerEventsWithParam;
 
   private final Channel mChannel;
 
   private final ReadRequest mRequest;
+
+  private final long mPacketSendingTimeout =
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_PACKET_SENDING_TIMEOUT);
 
   /**
    * This is only created in the netty I/O thread when a read request is received, reset when
@@ -276,7 +281,7 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
         .getEnd()) {
       // This can happen if the requested read length is greater than the actual length of the
       // block or file starting from the given offset.
-      mAllDataRead = true;
+      mAllDataReadOnWorker = true;
       fireNext(TriggerEvent.OUTPUT_LENGTH_FULFILLED);
       return;
     }
@@ -291,7 +296,7 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
 
   private void onTerminatedNormally() {
     try {
-      mWaitForTerminatedSignalQueue.take();
+      mWaitForTerminatedSignalQueue.poll(mPacketSendingTimeout, TimeUnit.MILLISECONDS);
       completeRequest(mContext);
       fireNext(TriggerEvent.END);
     } catch (IOException e) {
@@ -308,6 +313,7 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
   }
 
   private void onCancelled() {
+    mTaskCancelled = true;
     replyCancel();
   }
 
@@ -491,7 +497,8 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
       if (!future.isSuccess()) {
         LOG.error("Failed to send packet.", future.cause());
         mFlowControlQueue.take();
-        if (mAllDataRead && mFlowControlQueue.isEmpty()) {
+        boolean allDataSent = mFlowControlQueue.isEmpty();
+        if ((mAllDataReadOnWorker || mTaskCancelled) && allDataSent) {
           mWaitForTerminatedSignalQueue.offer("wait for finishing sending data");
         }
         if (mDataBuffer != null) {
@@ -511,7 +518,8 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
 
       LOG.debug("Taking an object from the flow control queue successfully.");
       mFlowControlQueue.take();
-      if (mAllDataRead && mFlowControlQueue.isEmpty()) {
+      boolean allDataSent = mFlowControlQueue.isEmpty();
+      if ((mAllDataReadOnWorker || mTaskCancelled) && allDataSent) {
         mWaitForTerminatedSignalQueue.offer("wait for finishing sending data");
       }
       LOG.debug("An object has been taken from the flow control queue successfully.");
