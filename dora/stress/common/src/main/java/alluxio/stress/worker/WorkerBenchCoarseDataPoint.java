@@ -1,0 +1,53 @@
+package alluxio.stress.worker;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+import java.util.List;
+
+@JsonDeserialize(using = WorkerBenchCoarseDataPointDeserializer.class)
+public class WorkerBenchCoarseDataPoint {
+    // properties: workerId, threadId, sliceId, records
+    @JsonProperty("wid")
+    private Long mWid;
+    @JsonProperty("tid")
+    private Long mTid;
+    @JsonProperty("data")
+    private List<List<WorkerBenchDataPoint>> mData;
+
+    // constructor
+    public WorkerBenchCoarseDataPoint(Long workerID, Long threadID, List<List<WorkerBenchDataPoint>> data) {
+        mWid = workerID;
+        mTid = threadID;
+        mData = data;
+    }
+
+    // getter & setters
+    public Long getWid() {
+        return mWid;
+    }
+
+    public void setWid(Long wid) {
+        mWid = wid;
+    }
+
+    public Long getTid() {
+        return mTid;
+    }
+
+    public void setTid(Long tid) {
+        mTid = tid;
+    }
+
+    public List<List<WorkerBenchDataPoint>> getData() {
+        return mData;
+    }
+
+    public void setData(List<List<WorkerBenchDataPoint>> data) {
+        mData = data;
+    }
+
+    public void addDataPoints(List<WorkerBenchDataPoint> data) {
+        mData.add(data);
+    }
+}

@@ -12,11 +12,8 @@
 package alluxio.stress.worker;
 
 import alluxio.stress.BaseParameters;
-import alluxio.stress.StressConstants;
 import alluxio.stress.TaskResult;
-import alluxio.util.FormatUtils;
 
-import org.HdrHistogram.Histogram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +36,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
   private long mEndMs;
   private long mIOBytes;
   private List<String> mErrors;
-  private final List<WorkerBenchDataPoint> mDataPoints;
+  private final List<WorkerBenchCoarseDataPoint> mDataPoints;
   private List<Long> mThroughputPercentiles;
 
   /**
@@ -187,13 +184,14 @@ public final class WorkerBenchTaskResult implements TaskResult {
    * From the collected operation data, calculates 100 percentiles.
    */
   public void calculatePercentiles() {
-    Histogram throughputHistogram = new Histogram(
-            FormatUtils.parseSpaceSize(mParameters.mFileSize),
-            StressConstants.TIME_HISTOGRAM_PRECISION);
-    mDataPoints.forEach(stat -> throughputHistogram.recordValue(stat.getInThroughput()));
-    for (int i = 0; i <= 100; i++) {
-      mThroughputPercentiles.add(throughputHistogram.getValueAtPercentile(i));
-    }
+    // TODO: implement percentile calculation for coarse data points
+//    Histogram throughputHistogram = new Histogram(
+//            FormatUtils.parseSpaceSize(mParameters.mFileSize),
+//            StressConstants.TIME_HISTOGRAM_PRECISION);
+//    mDataPoints.forEach(stat -> throughputHistogram.recordValue(stat.getInThroughput()));
+//    for (int i = 0; i <= 100; i++) {
+//      mThroughputPercentiles.add(throughputHistogram.getValueAtPercentile(i));
+//    }
   }
 
   /**
@@ -206,21 +204,21 @@ public final class WorkerBenchTaskResult implements TaskResult {
   /**
    * @return all data points for I/O operations
    */
-  public List<WorkerBenchDataPoint> getDataPoints() {
+  public List<WorkerBenchCoarseDataPoint> getDataPoints() {
     return mDataPoints;
   }
 
   /**
    * @param point one data point for one I/O operation
    */
-  public void addDataPoint(WorkerBenchDataPoint point) {
+  public void addDataPoint(WorkerBenchCoarseDataPoint point) {
     mDataPoints.add(point);
   }
 
   /**
    * @param stats data points for all recorded I/O operations
    */
-  public void addDataPoints(Collection<WorkerBenchDataPoint> stats) {
+  public void addDataPoints(Collection<WorkerBenchCoarseDataPoint> stats) {
     mDataPoints.addAll(stats);
   }
 
@@ -244,11 +242,10 @@ public final class WorkerBenchTaskResult implements TaskResult {
       WorkerBenchTaskResult mergedTaskResult = new WorkerBenchTaskResult();
 
       for (WorkerBenchTaskResult result : results) {
-        result.calculatePercentiles();
+        // result.calculatePercentiles();
         mergedTaskResult.merge(result);
-        LOG.info("Test results from worker {} has been merged, the data points are now cleared.",
-            result.getBaseParameters().mId);
-        result.clearDataPoints();
+        LOG.info("Test results from worker {} has been merged.", result.getBaseParameters().mId);
+        // result.clearDataPoints();
         nodeResults.put(result.getBaseParameters().mId, result);
       }
 
