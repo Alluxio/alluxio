@@ -9,8 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#ifndef CLIJNIFUSE_OPTIONPARSER_H
-#define CLIJNIFUSE_OPTIONPARSER_H
+#ifndef CLIJNIFUSE_COMMANDPARSER_H
+#define CLIJNIFUSE_COMMANDPARSER_H
 
 #include <map>
 #include <cstdio>
@@ -20,9 +20,9 @@
 
 using namespace std;
 
-class OptionParser {
+class CommandParser {
 public:
-  OptionParser(int &argc, char **&argv)
+  CommandParser(int &argc, char **&argv)
     : argc(argc), argv(argv) {
   };
   void usage();
@@ -31,4 +31,4 @@ private:
   int &argc;
   char **&argv;
 };
-#endif //CLIJNIFUSE_OPTIONPARSER_H
+#endif //CLIJNIFUSE_COMMANDPARSER_H

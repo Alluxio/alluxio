@@ -26,11 +26,20 @@
 // Define a tmp file for ioctl.
 #define IOC_TMP_FILE  ".alluxio.fuse.cli"
 #define MAX_FUSE_PATH_LEN 128
-#define IOC_DATA_MAX_LENGTH 4096
+#define IOC_DATA_MAX_LENGTH 1024
+
+typedef struct ioctl_cmd_data{
+  int cmd;
+  char data[IOC_DATA_MAX_LENGTH];
+}ioctl_cmd_data_t;
 
 enum {
-  FIOC_GET_METADATA_SIZE	= _IOWR('V', 0, IOC_DATA_MAX_LENGTH),
-  FIOC_CLEAR_METADATA	    = _IOWR('V', 1, IOC_DATA_MAX_LENGTH),
+  METADATACACHE_CLEAR,
+  METADATACACHE_SIZE
+};
+
+enum {
+  FIOC_CMD	= _IOWR('V', 0, sizeof(ioctl_cmd_data_t))
 };
 
 #endif // JNI_FUSE_CLI_H

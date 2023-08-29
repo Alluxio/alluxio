@@ -21,22 +21,23 @@ using namespace std;
 
 class MetaDataCacheCommand : public Command {
 public:
-    MetaDataCacheCommand(int &argc, char **&argv) : Command(argc, argv) {
-    }
-    ~MetaDataCacheCommand(){}
+  MetaDataCacheCommand(int &argc, char **&argv) : Command(argc, argv) {
+  }
+  ~MetaDataCacheCommand(){}
 
-    std::string getUsage() const override;
-    std::string getCommandName() const override;
-    bool hasSubCommands() const override;
-    bool hasOptions() const override {
-        return false;
-    }
-    Command* getSubCommand(std::string subCommandName) override;
-    void parseOptions() override {
-      getUsage();
-    }
-    void run() override{
-      getUsage();
-    }
+  std::string getUsage() const override;
+  inline std::string getCommandName() const override {
+    return "metadatacache";
+  }
+  inline bool hasSubCommands() const override {
+    return true;
+  }
+  Command* getSubCommand(std::string subCommandName) override;
+  void parseArgs() override {
+    getUsage();
+  }
+  void run() override{
+    getUsage();
+  }
 };
 #endif //CLIJNIFUSE_METADATACACHE_H

@@ -72,10 +72,11 @@ public class AlluxioFuseIoctlUtils {
    * @return path without fuse suffix
    */
   public static String ignoreSuffix(String path) {
-    if (path.endsWith(FUSE_SUFFIX)) {
-      return path.substring(0, path.indexOf(FUSE_SUFFIX));
+    String realPath = path;
+    if (realPath.endsWith(FUSE_SUFFIX)) {
+      realPath = realPath.substring(0, realPath.indexOf(FUSE_SUFFIX));
     }
-    return path;
+    return realPath;
   }
 
   /**
@@ -103,7 +104,7 @@ public class AlluxioFuseIoctlUtils {
           return -ErrorCodes.EOPNOTSUPP();
         }
         String all = StandardCharsets.UTF_8.decode(buf).toString();
-        if (all.equals("all")) {
+        if (all.startsWith("a")) {
           metadataCachingFileSystem.dropMetadataCacheAll();
         } else {
           metadataCachingFileSystem.dropMetadataCache(uri);

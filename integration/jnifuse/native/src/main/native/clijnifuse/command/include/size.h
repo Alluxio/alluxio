@@ -28,13 +28,10 @@ public:
   inline bool hasSubCommands() const override {
     return false;
   }
-  inline bool hasOptions() const override {
-    return true;
-  }
   inline Command* getSubCommand(std::string subCommandName) override {
     return NULL;
   }
-  void parseOptions() override;
+  void parseArgs() override;
 
   void run() override;
 };

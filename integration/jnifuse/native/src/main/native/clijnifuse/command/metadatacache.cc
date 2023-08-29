@@ -21,14 +21,6 @@ enum METADATA_CACHE_COMMANDS_ENUM {
 std::map<std::string, METADATA_CACHE_COMMANDS_ENUM> METADATA_CACHE_COMMANDS_MAP =
   {{"clear", CLEAR},{"size", SIZE}};
 
-std::string MetaDataCacheCommand::getCommandName() const {
-  return "metadatacache";
-}
-
-bool MetaDataCacheCommand::hasSubCommands() const {
-  return true;
-}
-
 std::string MetaDataCacheCommand::getUsage() const {
   std::string usage = "Usage: fusecli metadatacache [clear|size] <command args>";
   usage.append("\nProvide operations for the fuse metadata. See sub-commands' descriptions for more details.");

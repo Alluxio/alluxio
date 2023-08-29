@@ -10,13 +10,13 @@
  */
 
 #include "command.h"
-#include "OptionParser.h"
+#include "CommandParser.h"
 
 int main(int argc, char **argv)
 {
-  OptionParser options(argc, argv);
-  Command* command = options.getCommand();
-  command->parseOptions();
+  CommandParser parser(argc, argv);
+  Command* command = parser.getCommand();
+  command->parseArgs();
   command->run();
   delete command;
   return 0;

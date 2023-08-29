@@ -28,7 +28,7 @@ std::string ClearMetaDataCache::getUsage() const {
   return usage;
 }
 
-void ClearMetaDataCache::parseOptions() {
+void ClearMetaDataCache::parseArgs() {
   int o;
   const char *opt = "a";
   if (argc < 2 || argc > 3) {
@@ -43,7 +43,7 @@ void ClearMetaDataCache::parseOptions() {
   while ((o = getopt(argc, argv, opt)) != -1) {
     switch (o) {
       case 'a':
-        clearAll = true;
+        all = true;
         break;
       default:
         cout << "Invalid arguments!" << endl;
@@ -89,18 +89,18 @@ void ClearMetaDataCache::run() {
     exit(0);
   }
 
-  void* data = malloc(IOC_DATA_MAX_LENGTH);
-  memset(data, 0, IOC_DATA_MAX_LENGTH);
-  if (clearAll) {
-    memcpy(data, "a", 1);
+  ioctl_cmd_data_t* cmd_data = (ioctl_cmd_data_t *)malloc(sizeof(ioctl_cmd_data_t));
+  cmd_data->cmd = (int) METADATACACHE_CLEAR;
+  if (all) {
+    strncpy(cmd_data->data, "a", 2);
   }
-  if (ioctl(fd, FIOC_CLEAR_METADATA, data)) {
+  if (ioctl(fd, FIOC_CMD, cmd_data)) {
     cout << "Clear metadata command run failed!" << endl;
   }
   if (tmpFile != NULL) {
     unlink(tmpFile);
   }
-  free(data);
+  free(cmd_data);
   free(path);
   free(mountPoint);
 }

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#include "OptionParser.h"
+#include "CommandParser.h"
 
 enum COMMANDS_EUNM {
   METADATA_CACHE,
@@ -19,9 +19,9 @@ enum COMMANDS_EUNM {
 std::map<std::string, COMMANDS_EUNM> COMMANDS_MAP =
   {{"metadatacache", METADATA_CACHE}};
 
-void OptionParser::usage() {
+void CommandParser::usage() {
   std::cout
-    << "A shell tool to get useful information form fuse sdk. This program only supports linux OS now."
+    << "A tool to get information form fuse sdk. This program only supports linux OS now."
     << endl
     << endl
     << "Usage:" << "fusecli [COMMAND] [COMMAND_ARGS]"
@@ -35,7 +35,7 @@ void OptionParser::usage() {
     << endl;
 }
 
-Command* OptionParser::getCommand() {
+Command* CommandParser::getCommand() {
   Command *command;
   argc--;
   argv++;
@@ -53,8 +53,6 @@ Command* OptionParser::getCommand() {
   switch (i->second) {
     case METADATA_CACHE:
       command = new MetaDataCacheCommand(argc, argv);
-      break;
-    case FILE_INFO:
       break;
     default:
       usage();

@@ -22,7 +22,7 @@ std::string SizeMetaDataCache::getUsage() const {
   return usage;
 }
 
-void SizeMetaDataCache::parseOptions() {
+void SizeMetaDataCache::parseArgs() {
   if (argc != 1) {
     cout << "Wrong number args!" << endl;
     cout << getUsage() << endl;
@@ -55,14 +55,15 @@ void SizeMetaDataCache::run() {
     exit(0);
   }
 
-  void* data = malloc(IOC_DATA_MAX_LENGTH);
-  if (ioctl(fd, FIOC_GET_METADATA_SIZE, data)) {
+  ioctl_cmd_data_t* cmd_data = (ioctl_cmd_data_t *)malloc(sizeof(ioctl_cmd_data_t));
+  cmd_data->cmd = (int) METADATACACHE_SIZE;
+  if (ioctl(fd, FIOC_CMD, cmd_data)) {
     cout << "Clear metadata command run failed!" << endl;
   }
-  cout << "Metadata size: " << (char*)data << endl;
+  cout << "Metadata size: " << (char*)cmd_data->data << endl;
   if (tmpFile != NULL) {
     unlink(tmpFile);
   }
-  free(data);
+  free(cmd_data);
   free(mountPoint);
 }

@@ -25,9 +25,7 @@ class Command {
   virtual std::string getCommandName () const = 0;
   virtual bool hasSubCommands () const = 0;
   virtual Command* getSubCommand(std::string subCommandName) = 0;
-  virtual bool hasOptions() const = 0;
-  // Parse options, the return value should expend into struct.
-  virtual void parseOptions() = 0;
+  virtual void parseArgs() = 0;
   virtual void run() = 0;
 protected:
   int &argc;

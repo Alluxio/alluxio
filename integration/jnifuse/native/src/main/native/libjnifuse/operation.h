@@ -18,21 +18,16 @@
 
 #include "jnifuse_fs.h"
 
-#define IOC_DATA_MAX_LENGTH 4096
+#define IOC_DATA_MAX_LENGTH 1024
 
 namespace jnifuse {
 
 class JniFuseFileSystem;
 
-enum {
-  FIOC_GET_METADATA_SIZE	= _IOWR('V', 0, IOC_DATA_MAX_LENGTH),
-  FIOC_CLEAR_METADATA	    = _IOWR('V', 1, IOC_DATA_MAX_LENGTH),
-};
-
-enum {
-  CLEAR_METADATA = 0,
-  METADATA_SIZE = 1,
-};
+typedef struct ioctl_cmd_data{
+  int cmd;
+  char data[IOC_DATA_MAX_LENGTH];
+}ioctl_cmd_data_t;
 
 class Operation {
  protected:
