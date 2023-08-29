@@ -112,15 +112,6 @@ For the purposes of this guide, the following are placeholders.
             `OZONE_VERSION`</td>
     </tr>
     <tr>
-        <td markdown="span">[Qiniu Kodo]({{ '/en/ufs/Qiniu-KODO.html' | relativize_url }})</td>
-        <td markdown="span">`KODO_BUCKET`, `KODO_DIRECTORY`</td>
-        <td markdown="span">`KODO_ACCESS_KEY`, `KODO_SECRET_KEY`</td>
-        <td markdown="span">
-            Specify domain to identify bucket: <br />
-            `KODO_DOWNLOAD_HOST`, `KODO_ENDPOINT`
-        </td>
-    </tr>
-    <tr>
         <td markdown="span">[Tencent Cloud Object Storage (COS)]({{ '/en/ufs/Tencent-COS.html' | relativize_url }})</td>
         <td markdown="span">`COS_BUCKET`, `COS_DIRECTORY`</td>
         <td markdown="span">`COS_ACCESS_KEY`, `COS_SECRET_KEY`</td>

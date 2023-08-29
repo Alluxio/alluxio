@@ -1266,20 +1266,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_WEB_PARENT_NAMES =
-      listBuilder(Name.UNDERFS_WEB_PARENT_NAMES)
-          .setDefaultValue("Parent Directory,..,../")
-          .setDescription("The text of the http link for the parent directory.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_WEB_TITLES =
-      listBuilder(Name.UNDERFS_WEB_TITLES)
-          .setDefaultValue("Index of,Directory listing for")
-          .setDescription("The title of the content for a http url.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.SERVER)
-          .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT =
       durationBuilder(Name.UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT)
           .setAlias("alluxio.underfs.object.store.streaming.upload.part.timeout")
@@ -1686,20 +1672,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_KODO_REQUESTS_MAX =
-      intBuilder(Name.UNDERFS_KODO_REQUESTS_MAX)
-          .setDefaultValue(64)
-          .setDescription("The maximum number of kodo connections.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey UNDERFS_KODO_CONNECT_TIMEOUT =
-      durationBuilder(Name.UNDERFS_KODO_CONNECT_TIMEOUT)
-          .setDefaultValue("50sec")
-          .setDescription("The connect timeout of kodo.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
 
   public static final PropertyKey UNDERFS_CEPHFS_AUTH_ID =
       stringBuilder(Name.UNDERFS_CEPHFS_AUTH_ID)
@@ -1971,32 +1943,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The configuration to use for the journal operations.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey KODO_ACCESS_KEY =
-      stringBuilder(Name.KODO_ACCESS_KEY)
-          .setDescription("The access key of Kodo bucket.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.SERVER)
-          .setDisplayType(DisplayType.CREDENTIALS)
-          .build();
-  public static final PropertyKey KODO_SECRET_KEY =
-      stringBuilder(Name.KODO_SECRET_KEY)
-          .setDescription("The secret key of Kodo bucket.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.SERVER)
-          .setDisplayType(DisplayType.CREDENTIALS)
-          .build();
-  public static final PropertyKey KODO_DOWNLOAD_HOST =
-      stringBuilder(Name.KODO_DOWNLOAD_HOST)
-          .setDescription("The download domain of Kodo bucket.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey KODO_ENDPOINT =
-      stringBuilder(Name.KODO_ENDPOINT)
-          .setDescription("The endpoint of Kodo bucket.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey OBS_ACCESS_KEY =
       stringBuilder(Name.OBS_ACCESS_KEY)
@@ -7311,11 +7257,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.s3.multipart.upload.enabled";
     public static final String UNDERFS_S3_MULTIPART_UPLOAD_PARTITION_SIZE =
         "alluxio.underfs.s3.multipart.upload.partition.size";
-    public static final String KODO_ENDPOINT = "alluxio.underfs.kodo.endpoint";
-    public static final String KODO_DOWNLOAD_HOST = "alluxio.underfs.kodo.downloadhost";
-    public static final String UNDERFS_KODO_CONNECT_TIMEOUT =
-        "alluxio.underfs.kodo.connect.timeout";
-    public static final String UNDERFS_KODO_REQUESTS_MAX = "alluxio.underfs.kodo.requests.max";
     public static final String UNDERFS_CEPHFS_AUTH_ID =
         "alluxio.underfs.cephfs.auth.id";
     public static final String UNDERFS_CEPHFS_CONF_FILE =
@@ -7386,8 +7327,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String S3A_SECRET_KEY = "s3a.secretKey";
     public static final String AWS_ACCESS_KEY = "aws.accessKeyId";
     public static final String AWS_SECRET_KEY = "aws.secretKey";
-    public static final String KODO_ACCESS_KEY = "fs.kodo.accesskey";
-    public static final String KODO_SECRET_KEY = "fs.kodo.secretkey";
     public static final String OBS_ACCESS_KEY = "fs.obs.accessKey";
     public static final String OBS_ENDPOINT = "fs.obs.endpoint";
     public static final String OBS_SECRET_KEY = "fs.obs.secretKey";
