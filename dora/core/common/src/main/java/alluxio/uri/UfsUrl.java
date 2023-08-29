@@ -75,11 +75,11 @@ public class UfsUrl {
 
       Pair<String, Integer> schemePair = parseScheme(inputUrl);
       Pair<String, Integer> authorityPair = parseAuthority(inputUrl, schemePair.getSecond());
-      Pair<List<String>, Integer> pathPair = parsePath(inputUrl, authorityPair.getSecond());
+      List<String> pathComponents = parsePath(inputUrl, authorityPair.getSecond());
 
       mScheme = schemePair.getFirst();
       mAuthority = authorityPair.getFirst();
-      mPathComponents = pathPair.getFirst();
+      mPathComponents = pathComponents;
     }
 
     private Pair<String, Integer> parseScheme(String inputString)
@@ -134,16 +134,15 @@ public class UfsUrl {
       return new Pair<>(authority, nextStart);
     }
 
-    private Pair<List<String>, Integer> parsePath(String inputUrl, Integer begin) {
+    private List<String> parsePath(String inputUrl, Integer begin) {
       String candidatePath = inputUrl.substring(begin);
-      begin += candidatePath.length();
       String path = removeRedundantSlashes(candidatePath);
       Preconditions.checkNotNull(path, "empty path after normalize: %s", candidatePath);
       List<String> pathComponents = Collections.emptyList();
       if (!path.isEmpty()) {
         pathComponents = Arrays.asList(path.split(SLASH_SEPARATOR));
       }
-      return new Pair<>(pathComponents, begin);
+      return pathComponents;
     }
 
     public String getScheme() {
