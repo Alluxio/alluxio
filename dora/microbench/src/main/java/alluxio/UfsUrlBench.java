@@ -47,8 +47,7 @@ public class UfsUrlBench {
   @State(Scope.Benchmark)
   public static class BenchParams {
     @Param({"abc://localhost:8080/1/2/3/4/5",
-        "abc://bucket/1/2////3 4/////56 7/",
-        "abc://a/b/../c./d/./e/../f/g"})
+        "abc://bucket/1/2////3 4/////56 7/"})
     public String mPaths;
   }
 
