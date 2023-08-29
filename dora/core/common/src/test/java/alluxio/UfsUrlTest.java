@@ -108,7 +108,8 @@ public class UfsUrlTest {
     assertEquals(2, ufsUrl.getDepth());
     assertEquals("a b c", ufsUrl.getName());
     assertEquals("hdfs://localhost:8020/xy z", ufsUrl.getParentURL().get().toString());
-    assertEquals("hdfs://localhost:8020/", ufsUrl.getParentURL().get().getParentURL().get().toString());
+    assertEquals("hdfs://localhost:8020/",
+        ufsUrl.getParentURL().get().getParentURL().get().toString());
     assertEquals("/xy z/a b c", ufsUrl.getFullPath());
     assertEquals("hdfs", ufsUrl.getScheme());
     assertEquals("hdfs://localhost:8020/xy z/a b c/d", ufsUrl.join("/d").toString());
