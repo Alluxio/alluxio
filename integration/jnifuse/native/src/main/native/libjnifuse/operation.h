@@ -24,14 +24,14 @@ namespace jnifuse {
 
 class JniFuseFileSystem;
 
-typedef struct ioctl_args {
-  int data_size;
-  char data[IOC_DATA_MAX_LENGTH];
-}ioctl_args_t;
-
 enum {
   FIOC_GET_METADATA_SIZE	= _IOWR('V', 0, IOC_DATA_MAX_LENGTH),
-  FIOC_CLEAR_METADATA	= _IOWR('V', 1, sizeof(ioctl_args_t)),
+  FIOC_CLEAR_METADATA	    = _IOWR('V', 1, IOC_DATA_MAX_LENGTH),
+};
+
+enum {
+  CLEAR_METADATA = 0,
+  METADATA_SIZE = 1,
 };
 
 class Operation {

@@ -60,9 +60,7 @@ void SizeMetaDataCache::run() {
   }
   cout << "Metadata size: " << (char*)data << endl;
   if (tmpFile != NULL) {
-    if (remove(tmpFile)) {
-      cout << "Remove tmp file " << tmpFile << " failed, please remove it." << endl;
-    }
+    unlink(tmpFile);
   }
   free(data);
 }

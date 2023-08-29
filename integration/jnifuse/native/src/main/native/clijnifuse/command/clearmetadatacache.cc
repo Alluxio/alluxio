@@ -11,6 +11,7 @@
 
 #include <getopt.h>
 #include <cassert>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include "../fusecli.h"
 #include "include/clear.h"
@@ -85,19 +86,16 @@ void ClearMetaDataCache::run() {
     exit(0);
   }
 
-  ioctl_args_t* cmd_buf = (ioctl_args_t*)malloc(sizeof(ioctl_args_t));
-  memset(cmd_buf, 0, sizeof(ioctl_args_t));
+  void* data = malloc(IOC_DATA_MAX_LENGTH);
+  memset(data, 0, IOC_DATA_MAX_LENGTH);
   if (clearAll) {
-    strcpy(cmd_buf->data, "all");
+    memcpy(data, "a", 1);
   }
-  cmd_buf->data_size = strlen((char *)cmd_buf->data);
-  if (ioctl(fd, FIOC_CLEAR_METADATA, cmd_buf)) {
+  if (ioctl(fd, FIOC_CLEAR_METADATA, data)) {
     cout << "Clear metadata command run failed!" << endl;
   }
   if (tmpFile != NULL) {
-    if (remove(tmpFile)) {
-      cout << "Remove tmp file " << tmpFile << " failed, please remove it." << endl;
-    }
+    unlink(tmpFile);
   }
-  free(cmd_buf);
+  free(data);
 }
