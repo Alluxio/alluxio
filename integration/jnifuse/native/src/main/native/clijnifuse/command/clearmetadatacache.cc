@@ -36,8 +36,10 @@ void ClearMetaDataCache::parseOptions() {
     cout << getUsage() << endl;
     exit(0);
   }
-  mountPoint = argv[0];
-  path = argv[1];
+  mountPoint = (char *) malloc(MAX_FUSE_PATH_LEN);
+  path = (char *) malloc(MAX_FUSE_PATH_LEN);
+  strncpy(mountPoint, argv[0], strlen(argv[0]));
+  strncpy(path, argv[1], strlen(argv[1]));
   while ((o = getopt(argc, argv, opt)) != -1) {
     switch (o) {
       case 'a':
@@ -54,6 +56,7 @@ void ClearMetaDataCache::parseOptions() {
 void ClearMetaDataCache::run() {
   struct stat s_buf;
   char *absPath;
+  char *tmpPath;
   int fd;
 
   // Get the absolute path
@@ -62,10 +65,10 @@ void ClearMetaDataCache::run() {
     strcat(mountPoint, "/");
   }
   if (path[0] == '/') {
-    path++;
+    tmpPath = path + 1;
   }
 
-  absPath = strcat(mountPoint, path);
+  absPath = strcat(mountPoint, tmpPath);
   if (stat(absPath,&s_buf)) {
     cout << "Invalid file path! path=" << absPath << endl;
     exit(0);
@@ -98,4 +101,6 @@ void ClearMetaDataCache::run() {
     unlink(tmpFile);
   }
   free(data);
+  free(path);
+  free(mountPoint);
 }

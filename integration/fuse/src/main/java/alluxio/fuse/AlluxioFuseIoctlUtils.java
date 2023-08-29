@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets;
  */
 public class AlluxioFuseIoctlUtils {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseIoctlUtils.class);
+  private static final String FUSE_SUFFIX = ".alluxio.fuse.cli";
 
   /**
    * The ioctl commands type.
@@ -66,6 +67,18 @@ public class AlluxioFuseIoctlUtils {
   }
 
   /**
+   * Get true path ignore the fuse suffix.
+   * @param path the path
+   * @return path without fuse suffix
+   */
+  public static String ignoreSuffix(String path) {
+    if (path.endsWith(FUSE_SUFFIX)) {
+      return path.substring(0, path.indexOf(FUSE_SUFFIX));
+    }
+    return path;
+  }
+
+  /**
    * Run the specific command.
    * @param fs the fs
    * @param uri the uri
@@ -77,6 +90,7 @@ public class AlluxioFuseIoctlUtils {
    */
   public static int runCommand(FileSystem fs, AlluxioURI uri, ByteBuffer buf,
       FuseFileInfo fi, AlluxioConfiguration conf, IoctlCommands cmd) {
+
     MetadataCachingFileSystem metadataCachingFileSystem = null;
     if (fs instanceof MetadataCachingFileSystem) {
       metadataCachingFileSystem = (MetadataCachingFileSystem) fs;

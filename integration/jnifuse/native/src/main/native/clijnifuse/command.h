@@ -19,7 +19,8 @@ class Command {
  public:
   Command(int &argc, char **&argv) : argc(argc), argv(argv) {
   }
-  virtual ~Command(){}
+  virtual ~Command(){
+  }
   virtual std::string getUsage() const = 0;
   virtual std::string getCommandName () const = 0;
   virtual bool hasSubCommands () const = 0;

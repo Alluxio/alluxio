@@ -28,7 +28,8 @@ void SizeMetaDataCache::parseOptions() {
     cout << getUsage() << endl;
     exit(0);
   }
-  mountPoint = argv[0];
+  mountPoint = (char *) malloc(MAX_FUSE_PATH_LEN);
+  strncpy(mountPoint, argv[0], strlen(argv[0]));
 }
 
 void SizeMetaDataCache::run() {
@@ -63,4 +64,5 @@ void SizeMetaDataCache::run() {
     unlink(tmpFile);
   }
   free(data);
+  free(mountPoint);
 }

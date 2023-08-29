@@ -620,7 +620,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
 
   @Override
   public int ioctl(String path, int cmd, ByteBuffer buf, FuseFileInfo fi) {
-    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    String reaPath = AlluxioFuseIoctlUtils.ignoreSuffix(path);
+    final AlluxioURI uri = mPathResolverCache.getUnchecked(reaPath);
     return AlluxioFuseIoctlUtils.runCommand(mFileSystem, uri, buf, fi, mConf,
         AlluxioFuseIoctlUtils.IoctlCommands.fromValue(cmd));
   }
