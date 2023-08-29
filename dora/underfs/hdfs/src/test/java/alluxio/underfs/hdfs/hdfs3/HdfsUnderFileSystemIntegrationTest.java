@@ -11,9 +11,12 @@
 
 package alluxio.underfs.hdfs.hdfs3;
 
+import static junit.framework.TestCase.assertEquals;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Map;
 
 public class HdfsUnderFileSystemIntegrationTest extends HdfsUnderFileSystemIntegrationTestBase {
   @Test
@@ -29,5 +32,21 @@ public class HdfsUnderFileSystemIntegrationTest extends HdfsUnderFileSystemInteg
   @Test(expected = IOException.class)
   public void testException() throws Exception {
     hdfsDownDuringUploadTest();
+  }
+
+  @Test
+  public void testSetAndGetXAttribute() throws Exception {
+    // create empty file
+    String testFilePath = "/empty_file";
+    OutputStream os = mUfs.create(testFilePath, getCreateOption());
+    os.close();
+    assertEquals(0, mUfs.getStatus(testFilePath).asUfsFileStatus().getContentLength());
+
+    // setXAttr
+    String attrKey = "key1";
+    String attrValue = "value1";
+    mUfs.setAttribute(testFilePath, attrKey, attrValue.getBytes());
+    Map<String, String> attrMap =  mUfs.getAttribute(testFilePath);
+    assertEquals(attrMap.get(attrKey), attrValue);
   }
 }

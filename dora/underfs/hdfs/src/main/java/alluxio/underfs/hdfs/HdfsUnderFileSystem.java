@@ -110,6 +110,8 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   protected static final String CHECKSUM_COMBINE_MODE =
           "dfs.checksum.combine.mode";
 
+  protected static final String USER_NAMESPACE_PREFIX = "user.";
+
   private final LoadingCache<String, FileSystem> mUserFs;
   protected final HdfsAclProvider mHdfsAclProvider;
 
@@ -752,7 +754,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     FileSystem hdfs = getFs();
     try {
       FileStatus fileStatus = hdfs.getFileStatus(new Path(path));
-      hdfs.setXAttr(fileStatus.getPath(), name, value);
+      hdfs.setXAttr(fileStatus.getPath(), USER_NAMESPACE_PREFIX + name, value);
     } catch (IOException e) {
       LOG.warn("Failed to set XAttr for {} with name: {}, value: {}: {}. "
               + "Running Alluxio as superuser is required to modify attributes of local files",
@@ -766,8 +768,11 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     FileSystem hdfs = getFs();
     try {
       Map<String, byte[]> attrMap = hdfs.getXAttrs(new Path(path));
-      return attrMap.entrySet().stream().collect(HashMap::new,
-          (map, entry) -> map.put(entry.getKey(), new String(entry.getValue())), HashMap::putAll);
+      return attrMap.entrySet().stream()
+          .filter(entry -> entry.getKey().startsWith(USER_NAMESPACE_PREFIX))
+          .collect(HashMap::new,
+              (map, entry) -> map.put(entry.getKey().substring(entry.getKey().indexOf(".") + 1),
+                  new String(entry.getValue())), HashMap::putAll);
     } catch (IOException e) {
       LOG.warn("Failed to get XAttr for {}.", path);
       throw e;
