@@ -65,6 +65,9 @@ public class StandardURI implements URI {
     }
   }
 
+  /**
+   * @param ufsUrl the UfsUrl object
+   */
   public StandardURI(UfsUrl ufsUrl) {
     mScheme = ufsUrl.getScheme();
     mAuthority = ufsUrl.getAuthority().isPresent() ? ufsUrl.getAuthority().get() : null;
