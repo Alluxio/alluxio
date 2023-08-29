@@ -477,12 +477,13 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
         LOG.debug(format("Get failure from worker: %s", response.getFailuresList()));
         for (RouteFailure status : response.getFailuresList()) {
           totalBytes -= status.getRoute().getLength();
-          if (!isHealthy() || !status.getRetryable() || !addToRetry(
-              status.getRoute()) || !status.getIsSkip()) {
-            addFailure(status.getRoute().getSrc(), status.getMessage(), status.getCode());
-          }
           if (status.getIsSkip()) {
             addSkip();
+          } else {
+            if (!isHealthy() || !status.getRetryable() || !addToRetry(
+                status.getRoute())) {
+              addFailure(status.getRoute().getSrc(), status.getMessage(), status.getCode());
+            }
           }
         }
       }
