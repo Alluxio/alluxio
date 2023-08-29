@@ -68,7 +68,7 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
   private final BlockingQueue<String> mWaitForTerminatedSignalQueue =
       new ArrayBlockingQueue<>(1);
 
-  private boolean mAllDataRead = false;
+  private volatile boolean mAllDataRead = false;
 
   private final TriggerEventsWithParam mTriggerEventsWithParam;
 
