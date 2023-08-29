@@ -14,15 +14,12 @@ package alluxio.stress.worker;
 import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.stress.Parameters;
-import alluxio.stress.StressConstants;
 import alluxio.stress.Summary;
 import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.graph.LineGraph;
-import alluxio.util.FormatUtils;
 
 import com.google.common.base.Splitter;
-import org.HdrHistogram.Histogram;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,15 +62,17 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
     mNodeResults = nodes;
     mThroughput = getIOMBps();
 
-    mThroughputPercentiles = new ArrayList<>();
-    Histogram throughputHistogram = new Histogram(
-            FormatUtils.parseSpaceSize(mParameters.mFileSize),
-            StressConstants.TIME_HISTOGRAM_PRECISION);
-    mergedTaskResults.getDataPoints().forEach(stat ->
-            throughputHistogram.recordValue(stat.getInThroughput()));
-    for (int i = 0; i <= 100; i++) {
-      mThroughputPercentiles.add(throughputHistogram.getValueAtPercentile(i));
-    }
+// TODO: implement percentile calculation for coarse data points
+
+//  mThroughputPercentiles = new ArrayList<>();
+//    Histogram throughputHistogram = new Histogram(
+//            FormatUtils.parseSpaceSize(mParameters.mFileSize),
+//            StressConstants.TIME_HISTOGRAM_PRECISION);
+//    mergedTaskResults.getDataPoints().forEach(stat ->
+//            throughputHistogram.recordValue(stat.getInThroughput()));
+//    for (int i = 0; i <= 100; i++) {
+//      mThroughputPercentiles.add(throughputHistogram.getValueAtPercentile(i));
+//    }
   }
 
   /**

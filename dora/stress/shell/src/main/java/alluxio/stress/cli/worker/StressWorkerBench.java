@@ -22,6 +22,7 @@ import alluxio.grpc.WritePType;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.common.FileSystemParameters;
+import alluxio.stress.worker.WorkerBenchCoarseDataPoint;
 import alluxio.stress.worker.WorkerBenchDataPoint;
 import alluxio.stress.worker.WorkerBenchParameters;
 import alluxio.stress.worker.WorkerBenchTaskResult;
@@ -42,11 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -455,35 +452,60 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       CommonUtils.sleepMs(waitMs);
       SAMPLING_LOG.info("Test started and recording will be started after the warm up at {}",
           CommonUtils.convertMsToDate(recordMs, dateFormat));
+      WorkerBenchCoarseDataPoint dp = new WorkerBenchCoarseDataPoint(
+              Long.valueOf(mBaseParameters.mIndex),
+              Thread.currentThread().getId(),
+              new ArrayList<>());
+      List<WorkerBenchDataPoint> dpList = new ArrayList<>();
+      int lastSlice = 0;
+
       while (!Thread.currentThread().isInterrupted()
           && CommonUtils.getCurrentMs() < mContext.getEndMs()) {
         // Keep reading the same file
-        WorkerBenchDataPoint dataPoint = applyOperation();
-        long currentMs = CommonUtils.getCurrentMs();
-        // Start recording after the warmup
-        if (currentMs > recordMs) {
-          mResult.addDataPoint(dataPoint);
-          if (dataPoint.getIOBytes() > 0) {
-            mResult.incrementIOBytes(dataPoint.getIOBytes());
+        long startMs = CommonUtils.getCurrentMs() - recordMs;
+        long bytesRead = applyOperation();
+        long duration = CommonUtils.getCurrentMs() - recordMs - startMs;
+        if (startMs > recordMs) {
+          if (bytesRead > 0) {
+            // TODO: configurable slice size (must smaller than duration, divisible to duration)
+            int currentSlice = (int)(startMs / 10000);
+            while (currentSlice > lastSlice){
+              LOG.info("CurrentSlice: {}, LastSlice: {}, adding list to dp.", currentSlice, lastSlice);
+              dp.addDataPoints(dpList);
+              dpList.clear();
+              lastSlice++;
+            }
+            dpList.add(new WorkerBenchDataPoint(startMs, duration, bytesRead));
           } else {
             LOG.warn("Thread for file {} read 0 bytes from I/O", mFilePaths[mTargetFileIndex]);
           }
         } else {
-          SAMPLING_LOG.info("Ignored data point during warmup: {}", dataPoint);
+          SAMPLING_LOG.info("Ignored record during warmup: {}, {}", startMs, bytesRead);
         }
       }
+
+      // TODO: configurable slice size (must smaller than duration, divisible to duration)
+      int finalSlice = (int)(FormatUtils.parseTimeSize(mParameters.mDuration) / 10000);
+      LOG.info("FinalSlice: {}", finalSlice);
+      while (finalSlice > lastSlice){
+        LOG.info("FinalSlice: {}, LastSlice: {}, adding list to dp.", finalSlice, lastSlice);
+        dp.addDataPoints(dpList);
+        dpList.clear();
+        lastSlice++;
+      }
+
+      mResult.addDataPoint(dp);
     }
 
     /**
      * Read the file by the offset and length based on the given index.
      * @return the actual red byte number
      */
-    private WorkerBenchDataPoint applyOperation() throws IOException {
+    private long applyOperation() throws IOException {
       Path filePath = mFilePaths[mTargetFileIndex];
       int offset = mOffsets[mTargetFileIndex];
       int length = mLengths[mTargetFileIndex];
 
-      long startOperation = CommonUtils.getCurrentMs();
       if (mInStream == null) {
         mInStream = mFs.open(filePath);
       }
@@ -515,10 +537,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
           }
         }
       }
-      long endOperation = CommonUtils.getCurrentMs();
-      return new WorkerBenchDataPoint(
-              mBaseParameters.mIndex, String.valueOf(Thread.currentThread().getId()),
-              startOperation, endOperation - startOperation, bytesRead);
+      return bytesRead;
     }
 
     private void closeInStream() {
