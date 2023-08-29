@@ -14,12 +14,25 @@
 
 #include <fuse.h>
 #include <jni.h>
+#include <sys/ioctl.h>
 
 #include "jnifuse_fs.h"
+
+#define IOC_DATA_MAX_LENGTH 4096
 
 namespace jnifuse {
 
 class JniFuseFileSystem;
+
+typedef struct ioctl_args {
+  int data_size;
+  char data[IOC_DATA_MAX_LENGTH];
+}ioctl_args_t;
+
+enum {
+  FIOC_GET_METADATA_SIZE	= _IOWR('V', 0, IOC_DATA_MAX_LENGTH),
+  FIOC_CLEAR_METADATA	= _IOWR('V', 1, sizeof(ioctl_args_t)),
+};
 
 class Operation {
  protected:
@@ -168,6 +181,13 @@ class UtimensOperation : public Operation {
  public:
   UtimensOperation(JniFuseFileSystem *fs);
   int call(const char *path, const struct timespec ts[2]);
+};
+
+class IoctlOperation : public Operation {
+ public:
+  IoctlOperation(JniFuseFileSystem *fs);
+  int call(const char *path, int cmd, void *arg,
+    struct fuse_file_info *fi, unsigned int flags, void *data);
 };
 
 }  // namespace jnifuse

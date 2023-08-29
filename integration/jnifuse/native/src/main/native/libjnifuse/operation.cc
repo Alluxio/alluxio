@@ -520,4 +520,44 @@ int UtimensOperation::call(const char *path, const struct timespec ts[2]) {
 
   return ret;
 }
+
+IoctlOperation::IoctlOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;Ljava/lang/String;Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)I";
+  this->methodID = env->GetMethodID(this->clazz, "ioctlCallback", signature);
+}
+
+int IoctlOperation::call(const char *path, int cmd, void *arg,
+  struct fuse_file_info *fi, unsigned int flags, void *data) {
+  ioctl_args_t* ioctl_buf = (ioctl_args_t*)data;
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
+  jstring jspath = env->NewStringUTF(path);
+  jobject fibuf = env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
+  jstring ioctl_cmd;
+  jobject buffer;
+  switch (cmd) {
+    case (int)FIOC_CLEAR_METADATA:
+      LOGE("Ioctl clear metadata cache: data=%s, size=%d", ioctl_buf->data, ioctl_buf->data_size);
+      ioctl_cmd = env->NewStringUTF("CLEAR_METADATA");
+      buffer = env->NewDirectByteBuffer((void *)ioctl_buf->data, ioctl_buf->data_size);
+      break;
+    case (int)FIOC_GET_METADATA_SIZE:
+      LOGE("Ioctl get metadata cache size.");
+      ioctl_cmd = env->NewStringUTF("METADATA_SIZE");
+      buffer = env->NewDirectByteBuffer((char *)data, IOC_DATA_MAX_LENGTH);
+      break;
+    default:
+      return -1;
+  }
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, ioctl_cmd, buffer, fibuf);
+  LOGE("Ioctl Oper: data=%s", (char *)data);
+  env->DeleteLocalRef(jspath);
+  env->DeleteLocalRef(ioctl_cmd);
+  env->DeleteLocalRef(fibuf);
+  env->DeleteLocalRef(buffer);
+  return ret;
+}
 }  // namespace jnifuse

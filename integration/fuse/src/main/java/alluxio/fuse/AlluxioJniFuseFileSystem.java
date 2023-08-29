@@ -17,6 +17,7 @@ import alluxio.cli.FuseShell;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.MetadataCachingFileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -66,6 +67,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -616,6 +618,39 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     }
     LOG.warn("Not supported symlink operation, linkname {}, path{}", linkname, path);
     return -ErrorCodes.ENOTSUP();
+  }
+
+  @Override
+  public int ioctl(String path, String cmd, ByteBuffer buf, FuseFileInfo fi) {
+    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    switch (cmd) {
+      case "CLEAR_METADATA":
+        if (!mConf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
+          LOG.error(String.format("Clear metadata command is " + "not supported when %s is false",
+              PropertyKey.USER_METADATA_CACHE_ENABLED.getName()));
+          return -ErrorCodes.EOPNOTSUPP();
+        }
+        String all = StandardCharsets.UTF_8.decode(buf).toString();
+        if (all.equals("all")) {
+          ((MetadataCachingFileSystem) mFileSystem).dropMetadataCacheAll();
+        } else {
+          ((MetadataCachingFileSystem) mFileSystem).dropMetadataCache(uri);
+        }
+        break;
+      case "METADATA_SIZE":
+        if (!mConf.getBoolean(PropertyKey.USER_METADATA_CACHE_ENABLED)) {
+          LOG.error(String.format("Clear metadata command is " + "not supported when %s is false",
+              PropertyKey.USER_METADATA_CACHE_ENABLED.getName()));
+          return -ErrorCodes.EOPNOTSUPP();
+        }
+        long size = ((MetadataCachingFileSystem) mFileSystem).getMetadataCacheSize();
+        buf.position(0).limit(Long.toString(size).length());
+        buf.put(Long.toString(size).getBytes());
+        break;
+      default:
+        return -ErrorCodes.EOPNOTSUPP();
+    }
+    return 0;
   }
 
   /**

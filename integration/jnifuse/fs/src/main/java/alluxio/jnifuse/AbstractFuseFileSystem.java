@@ -344,6 +344,15 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
   }
 
+  public int ioctlCallback(String path, String cmd, ByteBuffer buf, ByteBuffer fibuf) {
+    try {
+      return ioctl(path, cmd, buf, FuseFileInfo.of(fibuf));
+    } catch (Exception e) {
+      LOG.error("Failed to ioctl {}, cmd {} {}: ", path, cmd, e);
+      return -ErrorCodes.EIO();
+    }
+  }
+
   public int setxattrCallback(String path, String name, ByteBuffer value, long size, int flags) {
     return 0;
   }
