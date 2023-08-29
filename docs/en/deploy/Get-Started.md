@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Install Alluxio Locally
+title: Quick Start Guide
 ---
 
 This quick start guide goes over how to run Alluxio on a local machine.
