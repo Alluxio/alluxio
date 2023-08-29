@@ -23,14 +23,30 @@
 - title: Get Started
   buttonTitle: Get_Started
   subfiles:
-    - title: Software Requirements
-      url: /en/deploy/Software-Requirements.html
-    - title: Install Alluxio Locally
+    - title: Quick Start Guide
       url: /en/deploy/Get-Started.html
-    - title: Install Alluxio Cluster with HA
-      url: /en/deploy/Install-Alluxio-Cluster-with-HA.html
-    - title: Install Alluxio on K8s
+    - title: Install Alluxio on K8
       url: /en/kubernetes/Install-Alluxio-On-Kubernetes.html
+    - subfiles: 
+          - title: Install Alluxio on Bare Metal
+            buttonTitle: Bare_Metal
+            subfiles:
+              - title: Software Requirements
+                url: /en/deploy/Software-Requirements.html
+              - title: Install Alluxio Cluster with HA
+                url: /en/deploy/Install-Alluxio-Cluster-with-HA.html
+
+# - title: Get Started
+#   buttonTitle: Get_Started
+#   subfiles:
+#     - title: Software Requirements
+#       url: /en/deploy/Software-Requirements.html
+#     - title: Install Alluxio Locally
+#       url: /en/deploy/Get-Started.html
+#     - title: Install Alluxio Cluster with HA
+#       url: /en/deploy/Install-Alluxio-Cluster-with-HA.html
+#     - title: Install Alluxio on K8s
+#       url: /en/kubernetes/Install-Alluxio-On-Kubernetes.html
   
 - title: Compute Integrations
   buttonTitle: Compute_Integrations
