@@ -251,7 +251,7 @@ public class CollectInfo extends AbstractShell {
         args.add(opt.getValue());
       }
     }
-    args.addAll(cmd.getArgList());
+    Collections.addAll(args, cmd.getArgs());
     return args;
   }
 
@@ -284,7 +284,7 @@ public class CollectInfo extends AbstractShell {
     // Invoke collectInfo locally on each host
     List<CompletableFuture<CommandReturn>> sshFutureList = new ArrayList<>();
     for (String host : allHosts) {
-      System.out.format("Execute collectInfo on host %s%n", host);
+      System.out.format("Execute info collect on host %s%n", host);
 
       CompletableFuture<CommandReturn> future = CompletableFuture.supplyAsync(() -> {
         // We make the assumption that the Alluxio WORK_DIR is the same
@@ -295,7 +295,7 @@ public class CollectInfo extends AbstractShell {
 
         String[] collectInfoArgs =
                 (String[]) ArrayUtils.addAll(
-                        new String[]{alluxioBinPath, "collectInfo", "--local"},
+                        new String[]{alluxioBinPath, "info collect", "--local"},
                         cmdLineToArgs(cmdLine).toArray(new String[0]));
         System.out.format("Invoking command %s%n", Arrays.toString(collectInfoArgs));
         try {
@@ -307,7 +307,7 @@ public class CollectInfo extends AbstractShell {
         }
       }, mExecutor);
       sshFutureList.add(future);
-      System.out.format("Invoked local collectInfo command on host %s%n", host);
+      System.out.format("Invoked local info collect command on host %s%n", host);
     }
 
     // Collect SSH execution results
