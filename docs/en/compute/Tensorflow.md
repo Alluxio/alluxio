@@ -1,15 +1,9 @@
 ---
 layout: global
 title: Running Tensorflow on Alluxio-FUSE
-nickname: Tensorflow
-group: Compute Integrations
-priority: 6
 ---
 
-This guide describes how to run [Tensorflow](https://www.tensorflow.org/) on top of Alluxio POSIX API.
-
-* Table of Contents
-  {:toc}
+This guide describes how to run [Tensorflow](https://www.tensorflow.org/){:target="_blank"} on top of Alluxio POSIX API.
 
 ## Overview
 
@@ -21,15 +15,11 @@ on top of Alluxio POSIX API.
 
 * Setup Java for Java 8 Update 60 or higher (8u60+), 64-bit.
 * Alluxio has been set up and is running.
-* [Python3](https://www.python.org/downloads/) installed.
-* [Numpy](https://numpy.org/install/) installed. This guide uses numpy **1.19.5**.
-* [Tensorflow](https://www.tensorflow.org/install/pip) installed. This guide uses Tensorflow **v1.15**.
+* [Python3](https://www.python.org/downloads/){:target="_blank"} installed.
+* [Numpy](https://numpy.org/install/){:target="_blank"} installed. This guide uses numpy **1.19.5**.
+* [Tensorflow](https://www.tensorflow.org/install/pip){:target="_blank"} installed. This guide uses Tensorflow **v1.15**.
 
 ## Setting up Alluxio POSIX API
-
-In this section, we will follow the instructions in the
-[FUSE-SDK-Overview]({{ '/en/fuse-sdk/FUSE-SDK-Overview.html' | relativize_url }}) to set up Alluxio POSIX API
-and allow Tensorflow applications to access the data through Alluxio POSIX API.
 
 Run the following command to install FUSE on Linux:
 
@@ -37,7 +27,7 @@ Run the following command to install FUSE on Linux:
 $ yum install fuse fuse-devel
 ```
 
-On macOS, download the [osxfuse dmg file](https://github.com/osxfuse/osxfuse/releases/download/osxfuse-3.8.3/osxfuse-3.8.3.dmg) instead and follow the installation instructions.
+On macOS, download the [osxfuse dmg file](https://github.com/osxfuse/osxfuse/releases/download/osxfuse-3.8.3/osxfuse-3.8.3.dmg){:target="_blank"} instead and follow the installation instructions.
 
 In this guide, we use /training-data as Alluxio-Fuse's root directory and /mnt/fuse as the mount point of local directory.
 
@@ -63,44 +53,9 @@ alluxio.fuse.mount.alluxio.path=/training-data
 alluxio.fuse.mount.point=/mnt/fuse
 ```
 
-Alluxio POSIX API allows accessing data from under storage as local directories. 
-This is enabled by using the mount command to mount a dataset from under storage to local mount point:
-
-```shell
-$ sudo yum install fuse3
-$ alluxio-fuse mount <under_storage_dataset> <mount_point> -o option
-```
-
-Alluxio POSIX API allows accessing data from under storage as local directories.
-This is enabled by using the `mount` command to mount a dataset from under storage to local mount point:
-```shell
-$ sudo yum install fuse3
-$ alluxio-fuse mount <under_storage_dataset> <mount_point> -o option
-```
-- `under_storage_dataset`: The full under storage dataset address. e.g. `s3://bucket_name/path/to/dataset`, `hdfs://namenode_address:port/path/to/dataset`
-- `mount_point`: The local mount point to mount the under storage dataset to.
-  Note that the `<mount_point>` must be an existing and empty path in your local file system hierarchy.
-  User that runs the `mount` command must own the mount point and have read and write permissions on it.
-- `-o option`: All the `alluxio-fuse mount` options are provided using this format. Options include
-    - Alluxio property key value pair in `-o alluxio_property_key=value` format
-        - Under storage credentials and configuration. Detailed configuration can be found under the `Storage Integrations` tap of the left of the doc page.
-    - Local cache configuration. Detailed usage can be found in the [local cache guide]({{ '/en/fuse-sdk/Local-Cache-Overview.html' | relative_url }})
-    - Generic mount options. Detailed supported mount options information can be found in the [FUSE mount options section]({{ '/en/fuse-sdk/Advanced-Tuning.html#fuse-mount-options' | relative_url }})
-
-After mounting, `alluxio-fuse` mount can be found locally
-```shell
-$ mount | grep "alluxio-fuse"
-alluxio-fuse on mount_point type fuse.alluxio-fuse (rw,nosuid,nodev,relatime,user_id=1000,group_id=1000)
-```
-
-`AlluxioFuse` process will be launched
-```shell
-$ jps
-34884 AlluxioFuse
-```
-
-All the fuse logs can be found at `logs/fuse.log` and all the fuse outputs can be found at `logs/fuse.out` which are
-useful for troubleshooting when errors happen on operations under the filesystem.
+Follow the instructions for
+[Mount Under Storage Dataset]({{ '/en/fuse-sdk/Local-Cache-Quick-Start.html#mount-under-storage-dataset' | relativize_url }}) to finish setting up Alluxio POSIX API
+and allow Tensorflow applications to access the data through Alluxio POSIX API.
 
 ## Example: Image Recognition
 
