@@ -476,13 +476,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         int offset = randomNumInRange(mRandom, 0, mFileSize - 1 - mRandomMin);
         int length = randomNumInRange(mRandom, mRandomMin,
             Integer.min(mFileSize - offset, mRandomMax));
-        // here seems if the length is smaller than buffer length, the stress bench
-        // will still read length for the buffer length
-        // Maybe with some special params will cause inaccuracy
-        // TODO(xinyu): do something different when read length is smaller than buffer length
         while (length > 0) {
           int actualReadLength = mInStream
-              .read(offset, mBuffer, 0, mBuffer.length);
+              .read(offset, mBuffer, 0, Integer.min(mBuffer.length, length));
           if (actualReadLength < 0) {
             closeInStream();
             break;
