@@ -375,7 +375,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   private final class BenchThread implements Callable<Void> {
     private final BenchContext mContext;
     private final int mTargetFileIndex;
-    private int mRandomIndex;
     private final FileSystem mFs;
     private final byte[] mBuffer;
     private final WorkerBenchTaskResult mResult;
@@ -397,7 +396,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       mResult.setParameters(mParameters);
       mResult.setBaseParameters(mBaseParameters);
       mIsRandomRead = mParameters.mIsRandom;
-      mRandomIndex = 0;
       mRandom = new Random(mParameters.mRandomSeed);
       mRandomMin = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
       mRandomMax = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
@@ -478,7 +476,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         int offset = randomNumInRange(mRandom, 0, mFileSize - 1 - mRandomMin);
         int length = randomNumInRange(mRandom, mRandomMin,
             Integer.min(mFileSize - offset, mRandomMax));
-        mRandomIndex += 1;
         // here seems if the length is smaller than buffer length, the stress bench
         // will still read length for the buffer length
         // Maybe with some special params will cause inaccuracy
