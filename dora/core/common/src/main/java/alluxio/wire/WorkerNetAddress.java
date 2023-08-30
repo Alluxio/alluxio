@@ -258,7 +258,6 @@ public final class WorkerNetAddress implements Serializable {
   public String dumpMainInfo() {
     return MoreObjects.toStringHelper(this)
         .add("host", mHost)
-        .add("containerHost", mContainerHost)
         .add("rpcPort", mRpcPort)
         .add("dataPort", mDataPort)
         .add("webPort", mWebPort)
