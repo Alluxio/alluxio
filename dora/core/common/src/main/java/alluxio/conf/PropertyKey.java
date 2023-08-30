@@ -4232,6 +4232,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "been sent to client successfully.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
       enumBuilder(Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class)

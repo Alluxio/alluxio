@@ -41,6 +41,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *  State machine of Netty Server in Alluxio Worker.
@@ -68,10 +69,14 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
   private final BlockingQueue<String> mWaitForTerminatedSignalQueue =
       new ArrayBlockingQueue<>(1);
 
+  /**
+   * This flag is set to true when the worker has read all the data from UFS or local/remote cache.
+   * This does not necessarily mean the data have been sent to the client yet.
+   */
   private volatile boolean mAllDataReadOnWorker = false;
 
+  /** This flag is set when the read request is cancelled */
   private volatile boolean mTaskCancelled = false;
-
   private final TriggerEventsWithParam mTriggerEventsWithParam;
 
   private final Channel mChannel;
@@ -298,7 +303,14 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
     try {
       String msg = mWaitForTerminatedSignalQueue.poll(mPacketSendingTimeout, TimeUnit.MILLISECONDS);
       completeRequest(mContext);
-      fireNext(TriggerEvent.END);
+      if (msg == null) {
+        fireNext(mTriggerEventsWithParam.mFailToCompleteRequestEvent,
+            new Error(AlluxioStatusException.fromIOException(
+                new IOException("Timeout waiting for packets sending to complete")),
+                true));
+      } else {
+        fireNext(TriggerEvent.END);
+      }
     } catch (IOException e) {
       fireNext(mTriggerEventsWithParam.mFailToCompleteRequestEvent,
           new Error(AlluxioStatusException.fromIOException(e), true));
