@@ -264,6 +264,9 @@ public class NettyDataReaderStateMachine {
     mStateMachine.fireInitialTransition();
   }
 
+  public State getStatus() {
+    return mStateMachine.getState();
+  }
   /**
    * Helper method to allow firing triggers within state handler methods.
    * If the triggers are fired directly within state handler methods, they will likely make
