@@ -209,3 +209,10 @@ In Alluxio, you can visit the nested directory in the Alluxio. Alluxio's [Comman
 {% endnavtab %}
 {% endnavtabs %}
 
+## Contributed by the Alluxio Community
+
+CephFS and CephFS-Hadoop UFS integration is contributed and maintained by the Alluxio community.
+The source code for CephFS is located [here](https://github.com/Alluxio/alluxio/tree/main/dora/underfs/cephfs){:target="_blank"} and for CephFS-Hadoop is located [here](https://github.com/Alluxio/alluxio/tree/main/dora/underfs/cephfs-hadoop){:target="_blank"}.
+Feel free submit pull requests to improve the integration and update 
+the documentation [here](https://github.com/Alluxio/alluxio/blob/main/docs/en/ufs/CephFS.md){:target="_blank"} 
+if any information is missing or out of date.

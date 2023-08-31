@@ -69,13 +69,9 @@ public final class Constants {
   // Google Cloud Storage header convention is "gs://".
   // See https://cloud.google.com/storage/docs/cloud-console
   public static final String HEADER_GCS = "gs://";
-  public static final String HEADER_HTTP = "http://";
-  public static final String HEADER_HTTPS = "https://";
-  public static final String HEADER_KODO = "kodo://";
   public static final String HEADER_OSS = "oss://";
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3A = "s3a://";
-  public static final String HEADER_SWIFT = "swift://";
   public static final String HEADER_WASB = "wasb://";
   public static final String HEADER_WASBS = "wasbs://";
   public static final String HEADER_OBS = "obs://";

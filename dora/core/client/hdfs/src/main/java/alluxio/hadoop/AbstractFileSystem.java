@@ -525,7 +525,6 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
 
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
-    HadoopUtils.addSwiftCredentials(conf);
     setConf(conf);
 
     // HDFS doesn't allow the authority to be empty; it must be "/" instead.

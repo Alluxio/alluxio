@@ -23,30 +23,36 @@
 - title: Get Started
   buttonTitle: Get_Started
   subfiles:
-    - title: Software Requirements
-      url: /en/deploy/Software-Requirements.html
-    - title: Install Alluxio Locally
+    - title: Quick Start Guide
       url: /en/deploy/Get-Started.html
-    - title: Install Alluxio Cluster with HA
-      url: /en/deploy/Install-Alluxio-Cluster-with-HA.html
-    - title: Install Alluxio on K8s
+    - title: Install Alluxio on K8
       url: /en/kubernetes/Install-Alluxio-On-Kubernetes.html
+    - subfiles: 
+          - title: Install Alluxio on Bare Metal
+            buttonTitle: Bare_Metal
+            subfiles:
+              - title: Software Requirements
+                url: /en/deploy/Software-Requirements.html
+              - title: Install Alluxio Cluster with HA
+                url: /en/deploy/Install-Alluxio-Cluster-with-HA.html
   
 - title: Compute Integrations
   buttonTitle: Compute_Integrations
   subfiles:
-    - title: Presto
-      url: /en/compute/Presto.html
-    - title: Presto on Iceberg (Experimental)
-      url: /en/compute/Presto-Iceberg.html
+    - subfiles: 
+          - title: Presto
+            buttonTitle: Presto
+            subfiles:
+              - title: Presto
+                url: /en/compute/Presto.html
+              - title: Presto on Iceberg (Experimental)
+                url: /en/compute/Presto-Iceberg.html
     - title: Trino
       url: /en/compute/Trino.html
     - title: Apache Spark
       url: /en/compute/Spark.html
     - title: Apache Hadoop MapReduce
       url: /en/compute/Hadoop-MapReduce.html
-    - title: Apache Flink
-      url: /en/compute/Flink.html
     - title: Apache Hive
       url: /en/compute/Hive.html
     - title: Tensorflow
@@ -87,10 +93,6 @@
       url: /en/ufs/NFS.html
     - title: Ozone
       url: /en/ufs/Ozone.html
-    - title: Qiniu Kodo
-      url: /en/ufs/Qiniu-KODO.html
-    - title: Swift
-      url: /en/ufs/Swift.html
     - title: Tencent COS
       url: /en/ufs/Tencent-COS.html
 

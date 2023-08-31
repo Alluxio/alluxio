@@ -42,7 +42,7 @@ No one wants to read more words than necessary.
 * Don’t use unnecessary punctuation
     * Avoid using parentheses to de-emphasize a section
         * Incorrect example: "Alluxio serves as a new data access layer in the ecosystem,
-        residing between any persistent storage systems (such as Amazon S3, Microsoft Azure Object Store, Apache HDFS, or OpenStack Swift)
+        residing between any persistent storage systems (such as Amazon S3, Microsoft Azure Object Store, or Apache HDFS)
         and computation frameworks (such as Apache Spark, Presto, or Hadoop MapReduce)."
 * Reduce the use of dependent clauses that add no content
     * Remove usages of the following:

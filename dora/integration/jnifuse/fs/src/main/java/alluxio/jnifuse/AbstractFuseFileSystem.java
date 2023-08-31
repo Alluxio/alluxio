@@ -228,7 +228,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   }
 
   public int readdirCallback(String path, long bufaddr, long filter, long offset,
-      ByteBuffer fi) {
+                             ByteBuffer fi) {
     try {
       return readdir(path, bufaddr, filter, offset, FuseFileInfo.of(fi));
     } catch (Exception e) {

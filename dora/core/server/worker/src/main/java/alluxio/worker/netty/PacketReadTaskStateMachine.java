@@ -65,11 +65,25 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
   private final BlockingQueue<SendDataEvent> mFlowControlQueue =
       new ArrayBlockingQueue<>((int) MAX_PACKETS_IN_FLIGHT);
 
+  private final BlockingQueue<String> mWaitForTerminatedSignalQueue =
+      new ArrayBlockingQueue<>(1);
+
+  /**
+   * This flag is set to true when the worker has read all the data from UFS or local/remote cache.
+   * This does not necessarily mean the data have been sent to the client yet.
+   */
+  private volatile boolean mAllDataReadOnWorker = false;
+
+  /** This flag is set when the read request is cancelled. */
+  private volatile boolean mTaskCancelled = false;
   private final TriggerEventsWithParam mTriggerEventsWithParam;
 
   private final Channel mChannel;
 
   private final ReadRequest mRequest;
+
+  private final long mPacketSendingTimeout =
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_PACKET_SENDING_TIMEOUT);
 
   /**
    * This is only created in the netty I/O thread when a read request is received, reset when
@@ -271,6 +285,7 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
         .getEnd()) {
       // This can happen if the requested read length is greater than the actual length of the
       // block or file starting from the given offset.
+      mAllDataReadOnWorker = true;
       fireNext(TriggerEvent.OUTPUT_LENGTH_FULFILLED);
       return;
     }
@@ -285,12 +300,16 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
 
   private void onTerminatedNormally() {
     try {
-      while (!mFlowControlQueue.isEmpty()) {
-        // wait for finishing sending data
-        LOG.debug("mFlowControlQueue.size(): {}", mFlowControlQueue.size());
-      }
+      String msg = mWaitForTerminatedSignalQueue.poll(mPacketSendingTimeout, TimeUnit.MILLISECONDS);
       completeRequest(mContext);
-      fireNext(TriggerEvent.END);
+      if (msg == null) {
+        fireNext(mTriggerEventsWithParam.mFailToCompleteRequestEvent,
+            new Error(AlluxioStatusException.fromIOException(
+                new IOException("Timeout waiting for packets sending to complete")),
+                true));
+      } else {
+        fireNext(TriggerEvent.END);
+      }
     } catch (IOException e) {
       fireNext(mTriggerEventsWithParam.mFailToCompleteRequestEvent,
           new Error(AlluxioStatusException.fromIOException(e), true));
@@ -305,6 +324,7 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
   }
 
   private void onCancelled() {
+    mTaskCancelled = true;
     replyCancel();
   }
 
@@ -488,6 +508,10 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
       if (!future.isSuccess()) {
         LOG.error("Failed to send packet.", future.cause());
         mFlowControlQueue.take();
+        boolean allDataSent = mFlowControlQueue.isEmpty();
+        if ((mAllDataReadOnWorker || mTaskCancelled) && allDataSent) {
+          mWaitForTerminatedSignalQueue.offer("wait for finishing sending data");
+        }
         if (mDataBuffer != null) {
           mDataBuffer.release();
         }
@@ -505,6 +529,10 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
 
       LOG.debug("Taking an object from the flow control queue successfully.");
       mFlowControlQueue.take();
+      boolean allDataSent = mFlowControlQueue.isEmpty();
+      if ((mAllDataReadOnWorker || mTaskCancelled) && allDataSent) {
+        mWaitForTerminatedSignalQueue.offer("wait for finishing sending data");
+      }
       LOG.debug("An object has been taken from the flow control queue successfully.");
     }
   }
