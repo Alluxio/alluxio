@@ -102,26 +102,6 @@
     - title: Tencent COS
       url: /en/ufs/Tencent-COS.html
 
-# - title: FUSE SDK
-#   buttonTitle: FUSE_SDK
-#   subfiles:
-#     - title: FUSE SDK Overview
-#       url: /en/fuse-sdk/FUSE-SDK-Overview.html
-#     - title: Local Cache Tuning
-#       url: /en/fuse-sdk/Local-Cache-Tuning.html
-#     - title: Local Cache Quick Start
-#       url: /en/fuse-sdk/Local-Cache-Quick-Start.html
-#     - title: Distributed Cache Quick Start
-#       url: /en/fuse-sdk/FUSE-SDK-Dora-Quick-Start.html
-#     - title: Advanced Tuning
-#       url: /en/fuse-sdk/Advanced-Tuning.html
-
-# - title: Presto SDK
-#   buttonTitle: Presto_SDK
-#   subfiles:
-#     - title: Presto SDK with Local Cache
-#       url: /en/presto-sdk/presto-sdk.html
-
 - title: Operations
   buttonTitle: Operations
   subfiles:
@@ -179,18 +159,6 @@
       url: /en/reference/Metrics-List.html
     - title: Troubleshooting
       url: /en/Troubleshooting.html
-
-# - title: Glossary
-#   buttonTitle: Glossary
-#   subfiles:
-#     - title: Glossary
-#       url: /en/Glossary.html
-
-# - title: Troubleshooting
-#   buttonTitle: Troubleshooting
-#   subfiles:
-#     - title: Troubleshooting
-#       url: /en/Troubleshooting.html
 
 - title: Contributor Resources
   buttonTitle: Contributor_Resources
