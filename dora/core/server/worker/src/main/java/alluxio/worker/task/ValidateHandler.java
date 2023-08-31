@@ -45,11 +45,12 @@ public class ValidateHandler {
    * @param writeOptions the write options
    * @param srcFs        the source file system
    * @param dstFs        the destination file system
+   * @param isMove       whether it's a move or copy
    * @return true means the validation passes
    *         false means the file is already in the target UFS
    */
   public static boolean validate(Route route, WriteOptions writeOptions,
-                          FileSystem srcFs, FileSystem dstFs) {
+                          FileSystem srcFs, FileSystem dstFs, boolean isMove) {
 
     AlluxioURI src = new AlluxioURI(route.getSrc());
     AlluxioURI dst = new AlluxioURI(route.getDst());
@@ -70,8 +71,8 @@ public class ValidateHandler {
       throw AlluxioRuntimeException.from(e);
     }
     if (dstStatus != null && dstStatus.isFolder() && sourceStatus.isFolder()) {
-      // skip if it's already a folder there
-      return true;
+      // return true if it's a move, we will make the validation fail if it's a copy
+      return isMove;
     }
     if (dstStatus != null && !dstStatus.isFolder() && !writeOptions.getOverwrite()) {
       LOG.debug("File " + route.getDst() + " is already in target UFS");

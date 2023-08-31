@@ -592,7 +592,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               AuthenticatedClientUser.set(readOptions.getUser());
             }
             checkCopyPermission(route.getSrc(), route.getDst());
-            if (!ValidateHandler.validate(route, writeOptions, srcFs, dstFs)) {
+            if (!ValidateHandler.validate(route, writeOptions, srcFs, dstFs, false)) {
               // Skip copy if there is a failure during validation.
               RouteFailure.Builder builder =
                   RouteFailure.newBuilder().setRoute(route).setIsSkip(true).setCode(0);
@@ -655,7 +655,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               AuthenticatedClientUser.set(readOptions.getUser());
             }
             checkMovePermission(route.getSrc(), route.getDst());
-            if (!ValidateHandler.validate(route, writeOptions, srcFs, dstFs)) {
+            if (!ValidateHandler.validate(route, writeOptions, srcFs, dstFs, true)) {
               throw new FailedPreconditionRuntimeException("File " + route.getDst()
                   + " is already in UFS");
             }
