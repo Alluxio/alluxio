@@ -49,7 +49,7 @@
                 url: /en/compute/Presto.html
               - title: Presto on Iceberg (Experimental)
                 url: /en/compute/Presto-Iceberg.html
-              - title: Presto SDK with Local Cache
+              - title: Alluxio SDK for Presto
                 url: /en/presto-sdk/presto-sdk.html
     - title: Trino
       url: /en/compute/Trino.html
