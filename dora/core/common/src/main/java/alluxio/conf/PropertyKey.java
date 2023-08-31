@@ -4138,7 +4138,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .setDefaultValue(ChannelType.NIO)
           .build();
-
+  public static final PropertyKey WORKER_NETWORK_PACKET_SENDING_TIMEOUT =
+      durationBuilder(Name.WORKER_NETWORK_PACKET_SENDING_TIMEOUT)
+          .setDefaultValue("5min")
+          .setDescription("Maximum amount of time to wait until all the packets on worker have "
+              + "been sent to client successfully.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .setIsHidden(true)
+          .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
       enumBuilder(Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class)
           .setDefaultValue("TRANSFER")
@@ -7799,6 +7807,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_NETWORK_NETTY_CHANNEL =
         "alluxio.worker.network.netty.channel";
 
+    public static final String WORKER_NETWORK_PACKET_SENDING_TIMEOUT =
+        "alluxio.worker.network.packet.sending.timeout";
     public static final String WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
         "alluxio.worker.network.netty.file.transfer";
     public static final String USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
