@@ -194,11 +194,13 @@ public class FileSystemOptionsUtils {
   public static FileSystemMasterCommonPOptions commonDefaults(AlluxioConfiguration conf,
       boolean withOpId) {
     FileSystemMasterCommonPOptions.Builder builder = FileSystemMasterCommonPOptions.newBuilder()
-        .setSyncIntervalMs(conf.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
         .setTtl(conf.getMs(PropertyKey.USER_FILE_CREATE_TTL))
         .setTtlAction(conf.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class));
     if (withOpId && conf.getBoolean(PropertyKey.USER_FILE_INCLUDE_OPERATION_ID)) {
       builder.setOperationId(new OperationId(UUID.randomUUID()).toFsProto());
+    }
+    if (conf.isSetByUser(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL)) {
+      builder.setSyncIntervalMs(conf.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL));
     }
     return builder.build();
   }
@@ -351,10 +353,12 @@ public class FileSystemOptionsUtils {
     // Specifically set and override *only* the metadata sync interval
     // Setting other attributes by default will make the server think the user is intentionally
     // setting the values. Most fields withinSetAttributePOptions are set by inclusion
+    FileSystemMasterCommonPOptions.Builder builder = FileSystemMasterCommonPOptions.newBuilder();
+    if (conf.isSetByUser(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL)) {
+      builder.setSyncIntervalMs(conf.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL));
+    }
     return SetAttributePOptions.newBuilder()
-        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
-            .setSyncIntervalMs(conf.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL))
-            .build())
+        .setCommonOptions(builder.build())
         .build();
   }
 
