@@ -63,15 +63,15 @@ public class CollectAlluxioInfoCommand extends ExecuteShellCollectInfoCommand {
     // TODO(jiacheng): a command to find lost blocks?
     // alluxio getConf will mask the credential fields
     registerCommand("getConf",
-        new AlluxioCommand(mAlluxioPath, "conf get"), null);
+        new AlluxioCommand(mAlluxioPath, "getConf"), null);
     registerCommand("getConf master",
-        new AlluxioCommand(mAlluxioPath, "conf get --master --source"), null);
+        new AlluxioCommand(mAlluxioPath, "getConf --master --source"), null);
     registerCommand("fsadmin",
-        new AlluxioCommand(mAlluxioPath, "info report"), null);
+        new AlluxioCommand(mAlluxioPath, "fsadmin report"), null);
     registerCommand("mount",
         new AlluxioCommand(mAlluxioPath, "fs mount"), null);
     registerCommand("version",
-        new AlluxioCommand(mAlluxioPath, "info version"), null);
+        new AlluxioCommand(mAlluxioPath, "version -r"), null);
     registerCommand("job",
         new AlluxioCommand(mAlluxioPath, "job ls"), null);
     registerCommand("journal",
@@ -79,9 +79,9 @@ public class CollectAlluxioInfoCommand extends ExecuteShellCollectInfoCommand {
             mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER))),
         getListJournalCommand());
     registerCommand("runTests",
-        new AlluxioCommand(mAlluxioPath, "exec basicIOTest"), null);
+        new AlluxioCommand(mAlluxioPath, "runTests"), null);
     registerCommand("validateConf",
-        new AlluxioCommand(mAlluxioPath, "init validate --conf"), null);
+        new AlluxioCommand(mAlluxioPath, "validateConf"), null);
   }
 
   /**
