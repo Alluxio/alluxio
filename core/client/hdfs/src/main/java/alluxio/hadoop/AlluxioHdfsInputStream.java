@@ -59,19 +59,20 @@ public class AlluxioHdfsInputStream extends FileInStream {
     } else {
       int off = buf.position();
       int len = buf.remaining();
-      byte[] byteArray;
+      final int totalBytesRead;
       if (buf.hasArray()) {
-        byteArray = buf.array();
+        byte[] byteArray = buf.array();
+        totalBytesRead = read(byteArray, buf.arrayOffset() + off, len);
+        if (totalBytesRead > 0) {
+          buf.position(off + totalBytesRead);
+        }
       } else {
-        byteArray = new byte[len];
+        byte[] byteArray = new byte[len];
+        totalBytesRead = read(byteArray);
+        if (totalBytesRead > 0) {
+          buf.put(byteArray, 0, totalBytesRead);
+        }
       }
-
-      int totalBytesRead = read(byteArray);
-      if (totalBytesRead <= 0) {
-        return totalBytesRead;
-      }
-      buf.position(off).limit(off + len);
-      buf.put(byteArray, 0, totalBytesRead);
       return totalBytesRead;
     }
   }
