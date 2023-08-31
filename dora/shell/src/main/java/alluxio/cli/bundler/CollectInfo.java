@@ -401,8 +401,7 @@ public class CollectInfo extends AbstractShell {
 
     // Determine the command and working dir path
     String subCommand = args[0];
-    String targetDirPath = cmdLine.getOptionValue(OUTPUT_DIR_OPTION_NAME);
-
+    String targetDirPath = cmdLine.getOptionValue(OUTPUT_DIR_OPTION_NAME, "");
     // There are 2 cases:
     // 1. Execute "all" commands
     // 2. Execute a single command
@@ -463,7 +462,7 @@ public class CollectInfo extends AbstractShell {
           throws IOException, AlluxioException {
     // The argv length has been validated
     String subCommand = argv[0];
-    String targetDirPath = cmdLine.getOptionValue(OUTPUT_DIR_OPTION_NAME);
+    String targetDirPath = cmdLine.getOptionValue(OUTPUT_DIR_OPTION_NAME, "");
 
     System.out.format("subcommand %s targetDir %s%n", subCommand, targetDirPath);
 

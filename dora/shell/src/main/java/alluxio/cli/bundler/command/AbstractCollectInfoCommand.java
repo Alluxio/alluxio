@@ -55,7 +55,7 @@ public abstract class AbstractCollectInfoCommand implements Command {
    * @return the directory path
    * */
   public String getWorkingDirectory(CommandLine cl) {
-    String baseDirPath = cl.getOptionValue("output-dir");
+    String baseDirPath = cl.getOptionValue("output-dir", "");
     String workingDirPath =  Paths.get(baseDirPath, this.getCommandName()).toString();
     LOG.debug("Command {} works in {}", this.getCommandName(), workingDirPath);
     // mkdirs checks existence of the path
