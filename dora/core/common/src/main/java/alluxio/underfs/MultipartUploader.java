@@ -14,6 +14,7 @@ package alluxio.underfs;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 /**
@@ -26,6 +27,18 @@ public interface MultipartUploader {
    * @throws IOException IO failure
    */
   void startUpload() throws IOException;
+
+  /**
+   * Put part as part of a multipart upload.
+   * It is possible to have parts uploaded in any order (or in parallel).
+   *
+   * @param in         the stream containing the data to upload for the new part.
+   * @param partNumber the part number of this file part
+   * @param partSize
+   * @return a future of the async upload task
+   * @throws IOException IO failure
+   */
+  ListenableFuture<Void> putPart(InputStream in, int partNumber, long partSize) throws IOException;
 
   /**
    * Put part as part of a multipart upload.

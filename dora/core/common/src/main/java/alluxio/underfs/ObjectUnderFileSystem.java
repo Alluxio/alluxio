@@ -23,9 +23,13 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.GetStatusOptions;
+import alluxio.underfs.options.ListMultiPartOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.MultipartUfsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.underfs.response.ListMultipartUploadResult;
+import alluxio.underfs.response.PartSummaryInfo;
 import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -43,6 +47,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1236,6 +1241,46 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
     String parentKey = getParentPath(path);
     return parentKey != null && isDirectory(parentKey);
+  }
+
+  protected String initMultiPart(String key, MultipartUfsOptions options)
+      throws IOException {
+    throw new IOException("not support");
+  }
+
+  protected OutputStream uploadPart(String key, String uploadId, int partNum, ByteBuffer b,
+                                    MultipartUfsOptions options)
+      throws IOException {
+    throw new IOException("not support");
+  }
+
+  protected String uploadPartWithStream(String key, String uploadId, int partNum, long fileSize,
+                                        InputStream stream, MultipartUfsOptions options)
+      throws IOException {
+    throw new IOException("not support");
+  }
+
+  protected String completeMultiPart(String key, String uploadId, List<Pair<Integer, String>> etags,
+                                     MultipartUfsOptions options)
+      throws IOException {
+    throw new IOException("not support");
+  }
+
+  protected List<PartSummaryInfo> listParts(String key, String uploadId,
+                                            MultipartUfsOptions options)
+      throws IOException {
+    throw new IOException("not support");
+  }
+
+  public ListMultipartUploadResult listMultipartUploads(ListMultiPartOptions options)
+      throws IOException {
+    throw new IOException("not support");
+  }
+
+  protected void abortMultipartTask(String key, String uploadId,
+                                    alluxio.underfs.options.MultipartUfsOptions options)
+      throws IOException {
+    throw new IOException("not support");
   }
 
   /**
