@@ -25,6 +25,7 @@ import alluxio.shell.ShellCommand;
 
 import org.apache.commons.cli.CommandLine;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,6 +53,8 @@ public class CollectEnvCommandTest {
 
     ShellCommand mockCommand = mock(ShellCommand.class);
     when(mockCommand.runWithOutput()).thenReturn(new CommandReturn(0, "nothing happens"));
+    when(mockCommandLine.getOptionValue("output-dir", ""))
+            .thenReturn(targetDir.getAbsolutePath());
     Map<String, ShellCommand> mockCommandMap = new HashMap<>();
     mockCommandMap.put("mockCommand", mockCommand);
     f.set(cmd, mockCommandMap);
@@ -81,6 +84,8 @@ public class CollectEnvCommandTest {
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{cmd.getCommandName(), targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
+    when(mockCommandLine.getOptionValue("output-dir", ""))
+            .thenReturn(targetDir.getAbsolutePath());
 
     // Replace commands to execute
     Field f = cmd.getClass().getSuperclass().getDeclaredField("mCommands");
