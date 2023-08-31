@@ -150,7 +150,7 @@
             - title: S3 API
               url: /en/api/S3-API.html
     - title: Glossary
-      url: /en/Glossary.html
+      url: /en/reference/Glossary.html
     - title: List of Configuration Properties
       url: /en/reference/Properties-List.html
     - title: List of Environment Variables
@@ -158,7 +158,7 @@
     - title: List of Metrics
       url: /en/reference/Metrics-List.html
     - title: Troubleshooting
-      url: /en/Troubleshooting.html
+      url: /en/reference/Troubleshooting.html
 
 - title: Contributor Resources
   buttonTitle: Contributor_Resources
