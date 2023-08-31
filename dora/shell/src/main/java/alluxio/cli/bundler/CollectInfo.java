@@ -272,7 +272,9 @@ public class CollectInfo extends AbstractShell {
   private int collectInfoRemote(CommandLine cmdLine) throws IOException {
     int ret = 0;
     String[] args = cmdLine.getArgs();
-    String targetDir = Arrays.stream(cmdLine.getOptions()).filter(opt -> opt.equals(OUTPUT_DIR_OPTION)).findFirst().map(Option::getValue).orElse("");
+    String targetDir = Arrays.stream(cmdLine.getOptions())
+        .filter(opt -> opt.equals(OUTPUT_DIR_OPTION)).findFirst()
+        .map(Option::getValue).orElse("");
 
     // Execute the command on all hosts
     List<String> allHosts = new ArrayList<>(getHosts());
@@ -399,13 +401,7 @@ public class CollectInfo extends AbstractShell {
 
     // Determine the command and working dir path
     String subCommand = args[0];
-    String targetDirPath = "";
-    for (Option opt : cmdLine.getOptions()) {
-      if (opt.equals(OUTPUT_DIR_OPTION)) {
-        targetDirPath = opt.getValue();
-        break;
-      }
-    }
+    String targetDirPath = cmdLine.getOptionValue(OUTPUT_DIR_OPTION_NAME);
 
     // There are 2 cases:
     // 1. Execute "all" commands
@@ -467,13 +463,7 @@ public class CollectInfo extends AbstractShell {
           throws IOException, AlluxioException {
     // The argv length has been validated
     String subCommand = argv[0];
-    String targetDirPath = "";
-    for (Option opt : cmdLine.getOptions()) {
-      if (opt.equals(OUTPUT_DIR_OPTION)) {
-        targetDirPath = opt.getValue();
-        break;
-      }
-    }
+    String targetDirPath = cmdLine.getOptionValue(OUTPUT_DIR_OPTION_NAME);
 
     System.out.format("subcommand %s targetDir %s%n", subCommand, targetDirPath);
 

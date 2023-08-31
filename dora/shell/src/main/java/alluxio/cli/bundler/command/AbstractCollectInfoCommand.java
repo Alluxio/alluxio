@@ -17,7 +17,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,15 +55,7 @@ public abstract class AbstractCollectInfoCommand implements Command {
    * @return the directory path
    * */
   public String getWorkingDirectory(CommandLine cl) {
-    String baseDirPath = "";
-    for (Option opt : cl.getOptions()) {
-      if (opt.equals(Option.builder().required(true).longOpt("output-dir").hasArg(true)
-              .desc("output directory").build())) {
-        baseDirPath = opt.getValue();
-        break;
-      }
-    }
-
+    String baseDirPath = cl.getOptionValue("output-dir");
     String workingDirPath =  Paths.get(baseDirPath, this.getCommandName()).toString();
     LOG.debug("Command {} works in {}", this.getCommandName(), workingDirPath);
     // mkdirs checks existence of the path
