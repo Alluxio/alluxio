@@ -33,30 +33,6 @@ with the largest deployment exceeding 1,500 nodes.
 <img src="https://d39kqat1wpn1o5.cloudfront.net/app/uploads/2021/07/alluxio-overview-r071521.png" width="800" alt="Ecosystem"/>
 </p>
 
-## Dora Architecture
-
-Dora, short for Decentralized Object Repository Architecture, is the foundation of the Alluxio system.
-
-As an open-source distributed caching storage system, Dora offers low latency, high throughput, and cost savings,
-while aiming to provide a unified data layer that can support various data workloads, including AI and data analytics.
-
-Dora leverages decentralized storage and metadata management to provide higher performance and availability,
-as well as pluggable data security and governance, enabling better scalability and more efficient management of large-scale data access.
-
-Dora’s architecture goal:
-* Scalability: Scalability is a top priority for Dora, which needs to support billions of files to meet the demands of data-intensive applications, such as AI training.
-* High Availability: Dora's architecture is designed with high availability in mind, with 99.99% uptime and protection against single points of failure.
-* Performance: Performance is a key goal for Dora, which prioritizes Presto/Trino powered SQL analytics workloads and GPU utilization for AI workloads.
-
-The diagram below shows the architecture design of Dora, which consists of four major components: the service registry, scheduler, client, and worker. 
-
-![Dora Architecture]({{ '/img/dora_architecture.png' | relativize_url }})
-
-* The worker is the most important component, as it stores both metadata and data that are sharded by key, usually the path of the file.
-* The client runs inside the applications and utilizes the same consistent hash algorithm to determine the appropriate worker for the corresponding file.
-* The service registry is responsible for service discovery and maintains a list of workers.
-* The scheduler handles all asynchronous jobs, such as preloading data to workers.
-
 ## Alluxio Community Slack
 
 Join our vibrant and fast-growing [Alluxio Community Slack Channel](https://www.alluxio.io/slack) to connect with users & developers of Alluxio. If you need help running Alluxio or encounter any blockers, send your technical questions to our `#troubleshooting` channel. If you are a developer looking to contribute to Alluxio, check out the `#dev` channel.

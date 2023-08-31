@@ -19,6 +19,8 @@
                 url: /en/core-services/Data-Caching.html
               - title: Metadata Cache & Invalidation
                 url: /en/core-services/Metadata-Caching.html
+    - title: Dora Architecture
+      url: /en/introduction/Dora-Architecture.html
 
 - title: Get Started
   buttonTitle: Get_Started
