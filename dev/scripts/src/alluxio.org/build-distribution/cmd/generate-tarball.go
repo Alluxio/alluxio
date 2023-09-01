@@ -203,6 +203,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 			"bin/alluxio-workers.sh",
 			"bin/launch-process",
 			fmt.Sprintf("client/build/alluxio-%v-hadoop2-client.jar", version),
+			fmt.Sprintf("client/build/alluxio-%v-hadoop3-client.jar", version),
 			"conf/rocks-inode-bloom.ini.template",
 			"conf/rocks-block-bloom.ini.template",
 			"conf/rocks-inode.ini.template",
