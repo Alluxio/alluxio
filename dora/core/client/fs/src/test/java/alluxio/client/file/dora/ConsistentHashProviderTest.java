@@ -19,7 +19,6 @@ import static org.junit.Assert.fail;
 
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
@@ -196,8 +195,6 @@ public class ConsistentHashProviderTest {
       netAddress.setNettyDataPort(rng.nextInt(0, 65536));
       netAddress.setSecureRpcPort(rng.nextInt(0, 65536));
       netAddress.setWebPort(rng.nextInt(0, 65536));
-      netAddress.setTieredIdentity(
-          new TieredIdentity(ImmutableList.of(new TieredIdentity.LocalityTier("tier", "loc"))));
 
       BlockWorkerInfo workerInfo = new BlockWorkerInfo(netAddress,
           rng.nextLong(0, Constants.GB), rng.nextLong(0, Constants.GB));

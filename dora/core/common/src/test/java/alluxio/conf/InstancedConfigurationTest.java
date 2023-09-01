@@ -302,10 +302,10 @@ public class InstancedConfigurationTest {
 
   @Test
   public void getList() {
-    mConfiguration.set(PropertyKey.LOCALITY_ORDER, "a,b,c");
+    mConfiguration.set(PropertyKey.WORKER_PAGE_STORE_DIRS, Lists.newArrayList("/a", "/b", "/c"));
     assertEquals(
-        Lists.newArrayList("a", "b", "c"),
-        mConfiguration.getList(PropertyKey.LOCALITY_ORDER));
+        Lists.newArrayList("/a", "/b", "/c"),
+        mConfiguration.getList(PropertyKey.WORKER_PAGE_STORE_DIRS));
   }
 
   private enum TestEnum {

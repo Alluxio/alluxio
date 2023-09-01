@@ -64,7 +64,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableList;
 import com.sun.management.OperatingSystemMXBean;
 import io.netty.util.ResourceLeakDetector;
 import org.rocksdb.CompressionType;
@@ -4976,39 +4975,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
-  // Locality related properties
-  //
-  public static final PropertyKey LOCALITY_ORDER =
-      listBuilder(Name.LOCALITY_ORDER)
-          .setDefaultValue(ImmutableList.of(Constants.LOCALITY_NODE, Constants.LOCALITY_RACK))
-          .setDescription("Ordering of locality tiers")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.ALL)
-          .setIsHidden(true)
-          .build();
-  public static final PropertyKey LOCALITY_SCRIPT =
-      stringBuilder(Name.LOCALITY_SCRIPT)
-          .setDefaultValue(Constants.ALLUXIO_LOCALITY_SCRIPT)
-          .setDescription("A script to determine tiered identity for locality checking")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.ALL)
-          .setIsHidden(true)
-          .build();
-  public static final PropertyKey LOCALITY_TIER_NODE =
-      new Builder(PropertyType.STRING, Template.LOCALITY_TIER, Constants.LOCALITY_NODE)
-          .setDescription("Value to use for determining node locality")
-          .setScope(Scope.ALL)
-          .setIsHidden(true)
-          .build();
-  public static final PropertyKey LOCALITY_COMPARE_NODE_IP =
-      booleanBuilder(Name.LOCALITY_COMPARE_NODE_IP)
-          .setDefaultValue(false)
-          .setDescription("Whether try to resolve the node IP address for locality checking")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.ALL)
-          .build();
-
-  //
   // User related properties
   //
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_POOL_SIZE_MIN =
@@ -8009,13 +7975,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.single.connection.read.rate.limit.mb";
 
     //
-    // Locality related properties
-    //
-    public static final String LOCALITY_ORDER = "alluxio.locality.order";
-    public static final String LOCALITY_SCRIPT = "alluxio.locality.script";
-    public static final String LOCALITY_COMPARE_NODE_IP = "alluxio.locality.compare.node.ip";
-
-    //
     // User related properties
     //
     public static final String USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES =
@@ -8515,7 +8474,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @ThreadSafe
   public enum Template {
-    LOCALITY_TIER("alluxio.locality.%s", "alluxio\\.locality\\.(\\w+)", PropertyType.STRING),
     MASTER_IMPERSONATION_GROUPS_OPTION("alluxio.master.security.impersonation.%s.groups",
         "alluxio\\.master\\.security\\.impersonation\\.([a-zA-Z_0-9-\\.@]+)\\.groups",
         PropertyType.STRING),

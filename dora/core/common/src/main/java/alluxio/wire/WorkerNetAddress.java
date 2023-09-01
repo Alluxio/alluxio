@@ -11,9 +11,7 @@
 
 package alluxio.wire;
 
-import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.wire.TieredIdentity.LocalityTier;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -22,7 +20,6 @@ import com.google.gson.annotations.Expose;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -59,8 +56,6 @@ public final class WorkerNetAddress implements Serializable {
   @Expose
   @com.google.gson.annotations.SerializedName("DomainSocketPath")
   private String mDomainSocketPath = "";
-
-  private TieredIdentity mTieredIdentity;
 
   /**
    * Creates a new instance of {@link WorkerNetAddress}.
@@ -129,17 +124,6 @@ public final class WorkerNetAddress implements Serializable {
   @ApiModelProperty(value = "The domain socket path used by the worker, disabled if empty")
   public String getDomainSocketPath() {
     return mDomainSocketPath;
-  }
-
-  /**
-   * @return the tiered identity
-   */
-  @ApiModelProperty(value = "The worker's tier identity")
-  public TieredIdentity getTieredIdentity() {
-    if (mTieredIdentity != null) {
-      return mTieredIdentity;
-    }
-    return new TieredIdentity(Arrays.asList(new LocalityTier(Constants.LOCALITY_NODE, mHost)));
   }
 
   /**
@@ -216,15 +200,6 @@ public final class WorkerNetAddress implements Serializable {
     return this;
   }
 
-  /**
-   * @param tieredIdentity the tiered identity
-   * @return the worker net address
-   */
-  public WorkerNetAddress setTieredIdentity(TieredIdentity tieredIdentity) {
-    mTieredIdentity = tieredIdentity;
-    return this;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -240,14 +215,13 @@ public final class WorkerNetAddress implements Serializable {
         && mRpcPort == that.mRpcPort
         && mDataPort == that.mDataPort
         && mWebPort == that.mWebPort
-        && mDomainSocketPath.equals(that.mDomainSocketPath)
-        && Objects.equal(mTieredIdentity, that.mTieredIdentity);
+        && mDomainSocketPath.equals(that.mDomainSocketPath);
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mSecureRpcPort, mHost, mContainerHost, mDataPort, mRpcPort, mWebPort,
-        mDomainSocketPath, mTieredIdentity);
+        mDomainSocketPath);
   }
 
   /**
@@ -275,7 +249,6 @@ public final class WorkerNetAddress implements Serializable {
         .add("dataPort", mDataPort)
         .add("webPort", mWebPort)
         .add("domainSocketPath", mDomainSocketPath)
-        .add("tieredIdentity", mTieredIdentity)
         .add("secureRpcPort", mSecureRpcPort)
         .toString();
   }
