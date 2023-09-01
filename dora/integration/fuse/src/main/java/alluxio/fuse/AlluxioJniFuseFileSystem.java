@@ -37,6 +37,8 @@ import alluxio.fuse.file.CreateFileStatus;
 import alluxio.fuse.file.FileStatus;
 import alluxio.fuse.file.FuseFileEntry;
 import alluxio.fuse.file.FuseFileStream;
+import alluxio.fuse.file.FuseStreamFactory;
+import alluxio.fuse.file.SimpleFuseStreamFactory;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.ErrorType;
@@ -85,8 +87,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Implements the FUSE callbacks defined by jni-fuse.
  */
 @ThreadSafe
-public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
-    implements FuseUmountable {
+public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJniFuseFileSystem.class);
 
   private final AlluxioConfiguration mConf;
@@ -95,19 +96,19 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   // Caches the filesystem statistics for Fuse.statfs
   private final Supplier<BlockMasterInfo> mFsStatCache;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
-  private final LoadingCache<String, AlluxioURI> mPathResolverCache;
+  protected final LoadingCache<String, AlluxioURI> mPathResolverCache;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
   private final FuseShell mFuseShell;
-  private static final IndexDefinition<FuseFileEntry<FuseFileStream>, Long>
+  public static final IndexDefinition<FuseFileEntry<FuseFileStream>, Long>
       ID_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getId);
   // Add a PATH_INDEX to know getattr() been called when writing this file
-  private static final IndexDefinition<FuseFileEntry<FuseFileStream>, String>
+  public static final IndexDefinition<FuseFileEntry<FuseFileStream>, String>
       PATH_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getPath);
 
-  private final IndexedSet<FuseFileEntry<FuseFileStream>> mFileEntries
+  protected final IndexedSet<FuseFileEntry<FuseFileStream>> mFileEntries
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final AuthPolicy mAuthPolicy;
-  private final FuseFileStream.Factory mStreamFactory;
+  private FuseStreamFactory mFuseStreamFactory;
 
   private final boolean mUfsEnabled;
   private final FuseOptions mFuseOptions;
@@ -137,7 +138,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         : this::acquireBlockMasterInfo;
     mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(mConf, fuseOptions);
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, mConf, this);
-    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
+    mFuseStreamFactory = new SimpleFuseStreamFactory(mFileSystem, mAuthPolicy);
     mUfsEnabled = fuseOptions.getFileSystemOptions().getUfsFileSystemOptions().isPresent();
     if (mConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)) {
       try {
@@ -176,9 +177,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return res;
     }
     try {
-      FuseFileStream stream = mStreamFactory.create(uri, fi.flags.get(), mode);
+      FuseFileStream stream = mFuseStreamFactory.create(uri, fi.flags.get(), mode);
       long fd = mNextOpenFileId.getAndIncrement();
-      mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
+      mFileEntries.add(new FuseFileEntry<>(fd, path, stream, fi.flags.get()));
       fi.fh.set(fd);
     } catch (NotFoundRuntimeException e) {
       LOG.error("Failed to read {}: path does not exist or is invalid", path, e);
@@ -324,7 +325,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         path, fd, size, offset);
   }
 
-  private int writeInternal(
+  protected int writeInternal(
       String path, ByteBuffer buf, long size, long offset, long fd) {
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (entry == null) {
@@ -350,11 +351,16 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         path, fd);
   }
 
-  private int flushInternal(String path, long fd) {
+  protected int flushInternal(String path, long fd) {
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (entry == null) {
       LOG.error("Failed to flush {}: Cannot find fd {}", path, fd);
-      return -ErrorCodes.EBADFD();
+      entry = mFileEntries.getFirstByField(PATH_INDEX, path);
+      if (entry == null) {
+        LOG.error("Failed to flush {}: Cannot find path", path);
+        // Do not error out for flush since flush is a noop for now
+        return 0;
+      }
     }
     entry.getFileStream().flush();
     return 0;
@@ -367,7 +373,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         "Fuse.Release", "path=%s,fd=%s", path, fd);
   }
 
-  private int releaseInternal(String path, long fd) {
+  protected int releaseInternal(String path, long fd) {
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (entry == null) {
       LOG.error("Failed to release {}: Cannot find fd {}", path, fd);
@@ -728,5 +734,38 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @VisibleForTesting
   LoadingCache<String, AlluxioURI> getPathResolverCache() {
     return mPathResolverCache;
+  }
+
+  /**
+   * Get the {@link FuseStreamFactory} instance member that is for creating {@link FuseFileStream}.
+   * @return the {@link FuseStreamFactory} instance member
+   */
+  public FuseStreamFactory getFuseStreamFactory() {
+    return mFuseStreamFactory;
+  }
+
+  /**
+   * Set the {@link FuseStreamFactory} instance member that is for creating {@link FuseFileStream}.
+   * @param fuseStreamFactory the {@link FuseStreamFactory} instance
+   *                          for creating {@link FuseFileStream}
+   */
+  public void setFuseStreamFactory(FuseStreamFactory fuseStreamFactory) {
+    mFuseStreamFactory = fuseStreamFactory;
+  }
+
+  /**
+   * Get the file system on which FuseFileSystem is based.
+   * @return the file system on which FuseFileSystem is based
+   */
+  public FileSystem getFileSystem() {
+    return mFileSystem;
+  }
+
+  /**
+   * Get the file system authority policy.
+   * @return the file system authority policy
+   */
+  public AuthPolicy getAuthPolicy() {
+    return mAuthPolicy;
   }
 }

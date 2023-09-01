@@ -11,132 +11,64 @@
 
 package alluxio.client.file.dora;
 
-import static com.google.common.hash.Hashing.murmur3_32_fixed;
-import static java.lang.Math.ceil;
-import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.util.CommonUtils;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.hash.HashFunction;
-
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 /**
- * An impl of WorkerLocationPolicy.
+ * Interface for determining the Alluxio worker location to serve a read or write request.
+ *
+ * A policy MUST have the property of being deterministic, because distributed clients must
+ * be able to resolve the same path to the same worker(s) for the file.
+ * Imagine a totally random policy which resolves a path to a random worker in the cluster.
+ * The first reader of path /a will resolve to a random worker in the cluster and leave a cache
+ * there. A subsequent reader will resolve to another random worker and the chance of a cache-hit
+ * is very low! Worse still, that subsequent reader may produce another cache replica.
+ * This random policy wastes cache space and provides terrible cache hit rate.
  */
-public class WorkerLocationPolicy {
-  private static final ConsistentHashProvider HASH_PROVIDER = new ConsistentHashProvider();
-  private final int mNumVirtualNodes;
-
+public interface WorkerLocationPolicy {
   /**
-   * Constructs a new {@link WorkerLocationPolicy}.
+   * Find a specified number of workers following the logic defined by the policy.
+   * This method should return exactly #{count} different workers, no more no less.
+   * If the specified number of workers cannot be found, this method will throw
+   * a {@link ResourceExhaustedException}.
    *
-   * @param numVirtualNodes number of virtual nodes
-   */
-  public WorkerLocationPolicy(int numVirtualNodes) {
-    mNumVirtualNodes = numVirtualNodes;
-  }
-
-  /**
+   * We want the semantics here to be explicit when the requirement cannot be satisfied.
+   * So the caller should define its own logic handling the exception and finding backups.
    *
    * @param blockWorkerInfos
    * @param fileId
    * @param count
    * @return a list of preferred workers
+   * @throws ResourceExhaustedException if unable to return exactly #{count} workers
    */
-  public List<BlockWorkerInfo> getPreferredWorkers(List<BlockWorkerInfo> blockWorkerInfos,
-                                                   String fileId,
-                                                   int count) {
-    if (blockWorkerInfos.size() == 0) {
-      return ImmutableList.of();
-    }
-    HASH_PROVIDER.refresh(blockWorkerInfos, mNumVirtualNodes);
-    return HASH_PROVIDER.getMultiple(fileId, count);
-  }
+  List<BlockWorkerInfo> getPreferredWorkers(List<BlockWorkerInfo> blockWorkerInfos,
+      String fileId, int count) throws ResourceExhaustedException;
 
-  private static class ConsistentHashProvider {
-    private static final HashFunction HASH_FUNCTION = murmur3_32_fixed();
-    private static final int MAX_ATTEMPTS = 100;
-    private List<BlockWorkerInfo> mLastWorkerInfos = ImmutableList.of();
-    private NavigableMap<Integer, BlockWorkerInfo> mActiveNodesByConsistentHashing;
+  /**
+   * The factory for the {@link WorkerLocationPolicy}.
+   */
+  class Factory {
+    private Factory() {} // prevent instantiation
 
-    private volatile long mLastUpdatedTimestamp = 0L;
-
-    private final AtomicBoolean mNeedUpdate = new AtomicBoolean(false);
-
-    private static final long WORKER_INFO_UPDATE_INTERVAL_MS = 1000L;
-
-    public void refresh(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
-      // check if we need to update worker info
-      if (mLastUpdatedTimestamp <= 0L
-          || System.currentTimeMillis() - mLastUpdatedTimestamp > WORKER_INFO_UPDATE_INTERVAL_MS) {
-        mNeedUpdate.set(true);
+    /**
+     * Factory for creating {@link WorkerLocationPolicy}.
+     *
+     * @param conf Alluxio configuration
+     * @return a new instance of {@link WorkerLocationPolicy}
+     */
+    public static WorkerLocationPolicy create(AlluxioConfiguration conf) {
+      try {
+        return CommonUtils.createNewClassInstance(
+            conf.getClass(PropertyKey.USER_WORKER_SELECTION_POLICY),
+            new Class[] {AlluxioConfiguration.class}, new Object[] {conf});
+      } catch (ClassCastException e) {
+        throw new RuntimeException(e);
       }
-      // update worker info if needed
-      if (mNeedUpdate.compareAndSet(true, false)) {
-        if (isWorkerInfoUpdated(workerInfos, mLastWorkerInfos)) {
-          build(workerInfos, numVirtualNodes);
-        }
-        mLastUpdatedTimestamp = System.currentTimeMillis();
-      }
-    }
-
-    private boolean isWorkerInfoUpdated(List<BlockWorkerInfo> workerInfoList,
-                                        List<BlockWorkerInfo> anotherWorkerInfoList) {
-      if (workerInfoList == anotherWorkerInfoList) {
-        return false;
-      }
-      Set<WorkerNetAddress> workerAddressSet = workerInfoList.stream()
-          .map(info -> info.getNetAddress()).collect(Collectors.toSet());
-      Set<WorkerNetAddress> anotherWorkerAddressSet = anotherWorkerInfoList.stream()
-          .map(info -> info.getNetAddress()).collect(Collectors.toSet());
-      return !workerAddressSet.equals(anotherWorkerAddressSet);
-    }
-
-    public List<BlockWorkerInfo> getMultiple(String key, int count) {
-      Set<BlockWorkerInfo> workers = new HashSet<>();
-      int attempts = 0;
-      while (workers.size() < count && attempts < MAX_ATTEMPTS) {
-        attempts++;
-        workers.add(get(key, attempts));
-      }
-      return ImmutableList.copyOf(workers);
-    }
-
-    public BlockWorkerInfo get(String key, int index) {
-      int hashKey = HASH_FUNCTION.hashString(format("%s%d", key, index), UTF_8).asInt();
-      Map.Entry<Integer, BlockWorkerInfo> entry =
-          mActiveNodesByConsistentHashing.ceilingEntry(hashKey);
-      if (entry != null) {
-        return mActiveNodesByConsistentHashing.ceilingEntry(hashKey).getValue();
-      } else {
-        return mActiveNodesByConsistentHashing.firstEntry().getValue();
-      }
-    }
-
-    private void build(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
-      NavigableMap<Integer, BlockWorkerInfo> activeNodesByConsistentHashing = new TreeMap<>();
-      int weight = (int) ceil(1.0 * numVirtualNodes / workerInfos.size());
-      for (BlockWorkerInfo workerInfo : workerInfos) {
-        for (int i = 0; i < weight; i++) {
-          activeNodesByConsistentHashing.put(
-              HASH_FUNCTION.hashString(format("%s%d", workerInfo.getNetAddress().dumpMainInfo(), i),
-                  UTF_8).asInt(),
-              workerInfo);
-        }
-      }
-      mLastWorkerInfos = workerInfos;
-      mActiveNodesByConsistentHashing = activeNodesByConsistentHashing;
     }
   }
 }

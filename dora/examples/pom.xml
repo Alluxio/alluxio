@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -15,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>301-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-examples</artifactId>
   <packaging>jar</packaging>
@@ -30,7 +31,6 @@
   </properties>
 
   <dependencies>
-    <!-- External dependencies -->
     <dependency>
       <groupId>com.beust</groupId>
       <artifactId>jcommander</artifactId>
@@ -46,6 +46,11 @@
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-shaded-client</artifactId>
+      <version>2.9.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -65,11 +70,6 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-shaded-client</artifactId>
-      <version>2.9.0</version>
     </dependency>
   </dependencies>
 </project>

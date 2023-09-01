@@ -128,6 +128,38 @@ print_mount_status() {
 }
 
 #######################################
+# Get Normalized Mount Point
+#   e.g. remove trailing "/" from the end or remove excessive "/" in the middle.
+#   and check existance of parent dir and mount point.
+#
+#   The following inputs should translate to "/home/work/alluxio_fuse" or report error.
+# /home/work/alluxio_fuse///
+# /home//work/alluxio_fuse///
+# /home/work///alluxio_fuse///
+# ////home/work/alluxio_fuse///
+# ///////home/work/alluxio_fuse///
+# /home/////////work/alluxio_fuse///
+# //hoooome/work////alluxio_fuse   (parent dir does not exist)
+# //home/work////alluxio_fuse_not_exist/  (mount point does not exist)
+#######################################
+get_mount_point() {
+  local MP_NAME=$(basename $1)
+  local DIR_NAME=$(dirname $1)
+  local OLDPWD="$(pwd)"
+  cd "$DIR_NAME" || {
+    err "Dir '$DIR_NAME' does not exist"
+    exit 1
+  }
+  DIR_NAME="$(pwd)"
+  [ -d "$DIR_NAME/$MP_NAME" ] || {
+    err "Mount point '$DIR_NAME/$MP_NAME' does not exist"
+    exit 1
+  }
+  cd "$OLDPWD"
+  export FUSE_MOUNT_POINT="$DIR_NAME/$MP_NAME"
+}
+
+#######################################
 # Launch the Alluxio FUSE process.
 # Globals:
 #   ALLUXIO_FUSE_JAVA_OPTS
@@ -145,7 +177,8 @@ launch_fuse_process() {
     return 1
   fi
   declare -r ufs_address="$1"
-  declare -r mount_point="$2"
+  get_mount_point "$2"
+  declare -r mount_point=$FUSE_MOUNT_POINT
   shift 2
 
   local mount_options=""
@@ -153,7 +186,12 @@ launch_fuse_process() {
   while getopts "o:hf" opt > /dev/null 2>&1; do
     case "${opt}" in
       o)
-        mount_options+="${OPTARG},"
+        KV_PAIRS=(${OPTARG//,/ })    # split OPTARG by `,` into array
+        for pair in "${KV_PAIRS[@]}"; do
+          if [[ -n "$pair" ]]; then
+            mount_options+=" -o $pair"
+          fi
+        done
         ;;
       f)
         foreground='true'
@@ -166,18 +204,13 @@ launch_fuse_process() {
         ;;
     esac
   done
+  readonly mount_options
   readonly foreground
-  
+
   if fuse_mounted "${mount_point}"; then
     err "mount: ${mount_point} is already mounted"
     return 1
   fi
-
-  mount_options="$(echo "${mount_options}" | sed -E 's/,*$//g')" # remove trailing comma
-  if [[ -n "${mount_options}" ]]; then
-    mount_options="-o ${mount_options}"
-  fi
-  readonly mount_options
 
   if [[ "${foreground}" == 'true' ]]; then
     ALLUXIO_FUSE_JAVA_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER,Console"
@@ -277,7 +310,8 @@ unmount_command() {
     echo -e "${USAGE}"
     return 1
   fi
-  declare -r mount_point="$1"
+  get_mount_point "$1"
+  declare -r mount_point=$FUSE_MOUNT_POINT
   shift
 
   local force_kill='false'

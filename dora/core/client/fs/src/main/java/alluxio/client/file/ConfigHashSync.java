@@ -12,10 +12,8 @@
 package alluxio.client.file;
 
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
-import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.MasterClientContext;
-import alluxio.wire.ConfigHash;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,11 +30,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * The passed in client will not be closed by this class.
  */
 @ThreadSafe
-public final class ConfigHashSync implements HeartbeatExecutor {
+public class ConfigHashSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigHashSync.class);
 
   private final FileSystemContext mContext;
-  private volatile RetryHandlingMetaMasterConfigClient mClient;
 
   private volatile IOException mException;
 
@@ -47,7 +44,6 @@ public final class ConfigHashSync implements HeartbeatExecutor {
    */
   public ConfigHashSync(FileSystemContext context) {
     mContext = context;
-    mClient = new RetryHandlingMetaMasterConfigClient(mContext.getMasterClientContext());
   }
 
   /**
@@ -56,8 +52,11 @@ public final class ConfigHashSync implements HeartbeatExecutor {
    * @param context the context containing the new configuration
    */
   public void resetMetaMasterConfigClient(MasterClientContext context) {
-    mClient.close();
-    mClient = new RetryHandlingMetaMasterConfigClient(context);
+  }
+
+  protected RetryHandlingMetaMasterConfigClient createMetaMasterConfigClient(
+      MasterClientContext context) {
+    return new RetryHandlingMetaMasterConfigClient(context);
   }
 
   /**
@@ -72,42 +71,11 @@ public final class ConfigHashSync implements HeartbeatExecutor {
 
   @Override
   public synchronized void heartbeat(long timeLimitMs) {
-    if (!mContext.getClientContext().getClusterConf().clusterDefaultsLoaded()) {
-      // Wait until the initial cluster defaults are loaded.
-      return;
-    }
-    ConfigHash hash;
-    try {
-      hash = mClient.getConfigHash();
-    } catch (IOException e) {
-      LOG.error("Failed to heartbeat to meta master to get configuration hash:", e);
-      // Disconnect to reconnect in the next heartbeat.
-      mClient.disconnect();
-      return;
-    }
-    boolean isClusterConfUpdated = !hash.getClusterConfigHash().equals(
-        mContext.getClientContext().getClusterConfHash());
-    boolean isPathConfUpdated = !hash.getPathConfigHash().equals(
-        mContext.getClientContext().getPathConfHash());
-    if (isClusterConfUpdated || isPathConfUpdated) {
-      try {
-        mContext.reinit(isClusterConfUpdated, isPathConfUpdated);
-        mException = null;
-      } catch (UnavailableException e) {
-        LOG.error("Failed to reinitialize FileSystemContext:", e);
-        // Meta master might be temporarily unavailable, retry in next heartbeat.
-      } catch (IOException e) {
-        LOG.error("Failed to close FileSystemContext, interrupting the heartbeat thread", e);
-        mException = e;
-        // If the heartbeat keeps running, the context might be reinitialized successfully in the
-        // next heartbeat, then the resources that are not closed in the old context are leaked.
-        Thread.currentThread().interrupt();
-      }
-    }
+    // No op so far
+    // will add according to the real requirement
   }
 
   @Override
   public void close() {
-    mClient.close();
   }
 }

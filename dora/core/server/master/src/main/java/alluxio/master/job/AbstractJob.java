@@ -18,10 +18,11 @@ import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
 
-import org.eclipse.jetty.util.BlockingArrayQueue;
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,9 +38,10 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
   protected final AtomicInteger mTaskIdGenerator = new AtomicInteger(0);
   protected JobState mState; // TODO(lucy) make it thread safe state update
   protected OptionalLong mEndTime = OptionalLong.empty();
-  protected final long mStartTime;
+  protected long mStartTime;
   protected final Optional<String> mUser;
-  protected final BlockingArrayQueue<Task<T>> mTaskList = new BlockingArrayQueue<>();
+  // not making it thread safe as currently scheduler has been single-threaded
+  protected final LinkedHashSet<T> mRetryTaskList = new LinkedHashSet<>();
   protected WorkerAssignPolicy mWorkerAssignPolicy;
 
   /**
@@ -107,6 +109,17 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
   }
 
   /**
+   * Update start time.
+   * This is for internal tests.
+   *
+   * @param time time in ms
+   */
+  @VisibleForTesting
+  public void setStartTime(long time) {
+    mStartTime = time;
+  }
+
+  /**
    * Get load status.
    *
    * @return the load job's status
@@ -132,6 +145,12 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
     if (journalUpdate) {
       Scheduler.getInstance().getJobMetaStore().updateJob(this);
     }
+  }
+
+  @Override
+  public void onTaskSubmitFailure(Task<?> task) {
+    mRetryTaskList.add((T) task);
+    LOG.debug("OnTaskSubmitFailure, retry task size:{}", mRetryTaskList.size());
   }
 
   @Override

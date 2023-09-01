@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UfsFileStatus;
@@ -83,7 +82,12 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   private final String mBucketName;
 
   private final String mBucketType;
+
+  /** The executor service for the streaming upload. */
   private final Supplier<ListeningExecutorService> mStreamingUploadExecutor;
+
+  /** The executor service for the multipart upload. */
+  private final Supplier<ListeningExecutorService> mMultipartUploadExecutor;
 
   /**
    * Constructs a new instance of {@link OBSUnderFileSystem}.
@@ -127,11 +131,23 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
     mClient = obsClient;
     mBucketName = bucketName;
     mBucketType = bucketType;
+
+    // Initialize the executor service for the streaming upload.
     mStreamingUploadExecutor = Suppliers.memoize(() -> {
       int numTransferThreads =
           conf.getInt(PropertyKey.UNDERFS_OBS_STREAMING_UPLOAD_THREADS);
       ExecutorService service = ExecutorServiceFactories
           .fixedThreadPool("alluxio-obs-streaming-upload-worker",
+              numTransferThreads).create();
+      return MoreExecutors.listeningDecorator(service);
+    });
+
+    // Initialize the executor service for the multipart upload.
+    mMultipartUploadExecutor = Suppliers.memoize(() -> {
+      int numTransferThreads =
+          conf.getInt(PropertyKey.UNDERFS_OBS_MULTIPART_UPLOAD_THREADS);
+      ExecutorService service = ExecutorServiceFactories
+          .fixedThreadPool("alluxio-obs-multipart-upload-worker",
               numTransferThreads).create();
       return MoreExecutors.listeningDecorator(service);
     });
@@ -160,6 +176,11 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public String getUnderFSType() {
     return "obs";
+  }
+
+  @Override
+  public PositionReader openPositionRead(String path, long fileLength) {
+    return new OBSPositionReader(mClient, mBucketName, stripPrefixIfPresent(path), fileLength);
   }
 
   // No ACL integration currently, no-op
@@ -203,6 +224,10 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
     if (mUfsConf.getBoolean(PropertyKey.UNDERFS_OBS_STREAMING_UPLOAD_ENABLED)) {
       return new OBSLowLevelOutputStream(mBucketName, key, mClient,
           mStreamingUploadExecutor.get(), mUfsConf);
+    }
+    else if (mUfsConf.getBoolean(PropertyKey.UNDERFS_OBS_MULTIPART_UPLOAD_ENABLED)) {
+      return new OBSMultipartUploadOutputStream(mBucketName, key, mClient,
+          mMultipartUploadExecutor.get(), mUfsConf);
     }
     return new OBSOutputStream(mBucketName, key, mClient,
         mUfsConf.getList(PropertyKey.TMP_DIRS));
@@ -401,11 +426,6 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
       LOG.warn("Failed to get Object {}", pathKey, e);
       return false;
     }
-  }
-
-  @Override
-  public PositionReader openPositionRead(String path, long fileLength) {
-    throw new UnimplementedRuntimeException("Position read is not implemented");
   }
 
   // No ACL integration currently, returns default empty value

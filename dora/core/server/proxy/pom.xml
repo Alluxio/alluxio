@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -13,9 +14,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>alluxio-core-server</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>301-SNAPSHOT</version>
+    <artifactId>alluxio-core-server</artifactId>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-server-proxy</artifactId>
   <packaging>jar</packaging>
@@ -29,7 +30,6 @@
   </properties>
 
   <dependencies>
-    <!-- External dependencies -->
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-xml</artifactId>
@@ -47,12 +47,31 @@
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-client-fs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.kerby</groupId>
+      <artifactId>kerby-util</artifactId>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -74,31 +93,10 @@
       <groupId>org.glassfish.jersey.inject</groupId>
       <artifactId>jersey-hk2</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.apache.kerby</groupId>
-      <artifactId>kerby-util</artifactId>
-    </dependency>
     <!-- Required at runtime to decode json objects for rest API -->
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-json-jackson</artifactId>
-    </dependency>
-
-    <!-- Internal dependencies -->
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client-fs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-server-common</artifactId>
-      <version>${project.version}</version>
     </dependency>
   </dependencies>
 
@@ -106,9 +104,9 @@
     <plugins>
       <!-- REST API documentation -->
       <plugin>
-        <inherited>false</inherited>
         <groupId>com.github.kongchen</groupId>
         <artifactId>swagger-maven-plugin</artifactId>
+        <inherited>false</inherited>
         <configuration>
           <apiSources>
             <apiSource>
@@ -120,13 +118,11 @@
                 <version>v1</version>
                 <title>Alluxio Proxy REST API Documentation</title>
                 <!-- description must be left aligned after new line or markdown will misinterpret it -->
-                <description>
-                  The Alluxio Proxy acts as a REST gateway for clients to communicate with the Alluxio system. There are three different endpoints:
+                <description>The Alluxio Proxy acts as a REST gateway for clients to communicate with the Alluxio system. There are three different endpoints:
 
 1. The Proxy endpoint gives general info about the proxy service.
 1. The Paths endpoint provides a RESTful gateway to the Alluxio file system for metadata operations.
-1. The Streams endpoint provides a RESTful gateway to the Alluxio file system for data operations.
-                </description>
+1. The Streams endpoint provides a RESTful gateway to the Alluxio file system for data operations.</description>
               </info>
               <locations>
                 <location>alluxio.proxy.AlluxioProxyRestServiceHandler</location>

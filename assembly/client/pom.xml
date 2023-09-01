@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -13,9 +14,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>alluxio-assembly</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>301-SNAPSHOT</version>
+    <artifactId>alluxio-assembly</artifactId>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-assembly-client</artifactId>
   <packaging>jar</packaging>
@@ -30,7 +31,6 @@
   </properties>
 
   <dependencies>
-    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client-fs</artifactId>
@@ -66,16 +66,16 @@
         <executions>
           <execution>
             <id>uber-jar</id>
-            <phase>package</phase>
             <goals>
               <goal>shade</goal>
             </goals>
+            <phase>package</phase>
             <configuration>
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer"/>
               </transformers>
               <artifactSet>
                 <excludes>
@@ -85,7 +85,7 @@
               </artifactSet>
               <filters>
                 <filter>
-                  <artifact>*:* </artifact>
+                  <artifact>*:*</artifact>
                   <excludes>
                     <exclude>LICENSE</exclude>
                     <exclude>META-INF/*.SF</exclude>

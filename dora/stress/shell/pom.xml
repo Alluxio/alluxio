@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -13,13 +14,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-      <artifactId>alluxio-stress</artifactId>
-      <groupId>org.alluxio</groupId>
-      <version>301-SNAPSHOT</version>
+    <groupId>org.alluxio</groupId>
+    <artifactId>alluxio-stress</artifactId>
+    <version>304-SNAPSHOT</version>
   </parent>
-  <name>Alluxio Stress - Shell</name>
   <artifactId>alluxio-stress-shell</artifactId>
   <packaging>jar</packaging>
+  <name>Alluxio Stress - Shell</name>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
@@ -29,20 +30,9 @@
 
   <dependencies>
     <dependency>
-      <!-- External dependencies -->
       <groupId>com.beust</groupId>
       <artifactId>jcommander</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hdrhistogram</groupId>
-      <artifactId>HdrHistogram</artifactId>
-    </dependency>
-
-    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-client-hdfs</artifactId>
@@ -55,8 +45,19 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-server-worker</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-job-client</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-shell</artifactId>
+      <version>304-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
@@ -64,15 +65,12 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-server-worker</artifactId>
-      <version>${project.version}</version>
-      <scope>compile</scope>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
     </dependency>
-      <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-shell</artifactId>
-          <version>301-SNAPSHOT</version>
-      </dependency>
+    <dependency>
+      <groupId>org.hdrhistogram</groupId>
+      <artifactId>HdrHistogram</artifactId>
+    </dependency>
   </dependencies>
 </project>

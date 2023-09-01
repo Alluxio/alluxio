@@ -23,7 +23,6 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,12 +39,6 @@ public final class AbstractFileSystemApiTest {
   public TestLoggerRule mTestLogger = new TestLoggerRule();
 
   private InstancedConfiguration mConf = Configuration.copyGlobal();
-
-  @Before
-  public void before() {
-    // To make the test run faster.
-    mConf.set(PropertyKey.METRICS_CONTEXT_SHUTDOWN_TIMEOUT, "0sec");
-  }
 
   @After
   public void after() {

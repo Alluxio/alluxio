@@ -637,6 +637,7 @@ public class LocalCacheManager implements CacheManager {
     int bytesRead = get(pageId, pageOffset,
         bytesToRead, buffer, cacheContext);
     if (bytesRead > 0) {
+      MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).inc();
       return bytesRead;
     }
     // on local cache miss, read a complete page from external storage. This will always make
@@ -653,6 +654,7 @@ public class LocalCacheManager implements CacheManager {
     buffer.writeBytes(page, pageOffset, bytesToRead);
     MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
         .mark(bytesToRead);
+    MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).inc();
     cacheContext.incrementCounter(
         MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
         bytesToRead);
@@ -721,8 +723,8 @@ public class LocalCacheManager implements CacheManager {
       int readBytes = get(pageId, 0, appendAt,
           new ByteArrayTargetBuffer(newPage, 0), cacheContext);
       boolean success = delete(pageId, cacheContext.isTemporary());
-      LOG.debug("delete pageId: " + pageId
-          + ", appendAt: " + appendAt + ", readBytes: " + readBytes + ", success: " + success);
+      LOG.debug("delete pageId: {}, appendAt: {}, readBytes: {}, success: {}",
+          pageId, appendAt, readBytes, success);
       System.arraycopy(page, 0, newPage, appendAt, page.length);
       return put(pageId, newPage, cacheContext);
     }
@@ -852,6 +854,9 @@ public class LocalCacheManager implements CacheManager {
       try {
         dir.scanPages(pageInfo -> {
           if (pageInfo.isPresent() && predicate.test(pageInfo.get())) {
+            MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_INVALIDATED.getName()).mark();
+            MetricsSystem.histogram(MetricKey.CLIENT_CACHE_PAGES_AGES.getName())
+                .update(System.currentTimeMillis() - pageInfo.get().getCreatedTimestamp());
             delete(pageInfo.get().getPageId());
           }
         });

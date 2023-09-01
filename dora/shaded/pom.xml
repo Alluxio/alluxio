@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -15,22 +16,22 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>301-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-shaded</artifactId>
   <packaging>pom</packaging>
   <name>Alluxio Shaded Libraries</name>
   <description>Parent POM for different shaded Libraries</description>
 
-  <modules>
-    <module>client</module>
-    <module>client-hadoop3</module>
-    <module>hadoop</module>
-  </modules>
-
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
   </properties>
+
+  <modules>
+    <module>client</module>
+    <module>client-hadoop3</module>
+    <module>hadoop</module>
+  </modules>
 </project>

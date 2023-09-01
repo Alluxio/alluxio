@@ -19,9 +19,8 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
-import alluxio.network.TieredIdentityFactory;
+import alluxio.membership.MembershipManager;
 import alluxio.underfs.UfsManager;
-import alluxio.wire.TieredIdentity;
 import alluxio.worker.Worker;
 import alluxio.worker.dora.DoraUfsManager;
 import alluxio.worker.dora.DoraWorker;
@@ -45,8 +44,6 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DoraWorkerModule extends AbstractModule {
   @Override
   protected void configure() {
-    bind(TieredIdentity.class).toProvider(() ->
-        TieredIdentityFactory.localIdentity(Configuration.global()));
     bind(new TypeLiteral<AtomicReference<Long>>() {
     }).annotatedWith(Names.named("workerId"))
         .toInstance(new AtomicReference<>(-1L));
@@ -72,6 +69,9 @@ public class DoraWorkerModule extends AbstractModule {
           throw new RuntimeException(e);
         }
       }).in(Scopes.SINGLETON);
+      bind(MembershipManager.class)
+          .toProvider(() -> MembershipManager.Factory.create(Configuration.global()))
+          .in(Scopes.SINGLETON);
 
       long pageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
       bind(new TypeLiteral<Long>() {

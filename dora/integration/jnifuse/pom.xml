@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -15,20 +16,20 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-integration</artifactId>
-    <version>301-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
-  <packaging>pom</packaging>
   <artifactId>alluxio-integration-jnifuse</artifactId>
+  <packaging>pom</packaging>
   <name>Alluxio Integration - JNIFUSE</name>
   <description>JNI-based FUSE Integration</description>
-
-  <modules>
-    <module>fs</module>
-    <module>native</module>
-  </modules>
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.parent.basedir}/build</build.path>
   </properties>
+
+  <modules>
+    <module>fs</module>
+    <module>native</module>
+  </modules>
 </project>

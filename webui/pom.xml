@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -15,10 +16,10 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-parent</artifactId>
-    <version>301-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-webui</artifactId>
-  <version>301-SNAPSHOT</version>
+  <version>304-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio UI</name>
   <description>Alluxio web UI pom</description>
@@ -59,17 +60,17 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>1.4.0</version>
-        <groupId>org.codehaus.mojo</groupId>
         <inherited>false</inherited>
         <executions>
           <execution>
             <id>Remove cached node modules and built web applications</id>
-            <phase>clean</phase>
             <goals>
               <goal>exec</goal>
             </goals>
+            <phase>clean</phase>
             <configuration>
               <executable>rm</executable>
               <arguments>
@@ -87,10 +88,10 @@
           </execution>
           <execution>
             <id>Install npm dependencies for packages</id>
-            <phase>process-sources</phase>
             <goals>
               <goal>exec</goal>
             </goals>
+            <phase>process-sources</phase>
             <configuration>
               <executable>node/node</executable>
               <arguments>
@@ -102,10 +103,10 @@
           </execution>
           <execution>
             <id>Build all packages</id>
-            <phase>generate-resources</phase>
             <goals>
               <goal>exec</goal>
             </goals>
+            <phase>generate-resources</phase>
             <configuration>
               <executable>node/node</executable>
               <arguments>
@@ -119,16 +120,17 @@
           </execution>
           <execution>
             <id>Test all packages</id>
-            <phase>test</phase>
             <goals>
               <goal>exec</goal>
             </goals>
+            <phase>test</phase>
             <configuration>
               <executable>node/node</executable>
               <arguments>
                 <argument>node_modules/.bin/lerna</argument>
                 <argument>run</argument>
-                <argument>test-ci</argument> <!-- NOTE: using the "test" command here will hang execution -->
+                <argument>test-ci</argument>
+                <!-- NOTE: using the "test" command here will hang execution -->
                 <argument>--</argument>
                 <argument>--production  --no-save --no-package-lock --no-shrinkwrap</argument>
               </arguments>
@@ -136,10 +138,10 @@
           </execution>
           <execution>
             <id>run-linter</id>
-            <phase>verify</phase>
             <goals>
               <goal>exec</goal>
             </goals>
+            <phase>verify</phase>
             <configuration>
               <executable>node/node</executable>
               <arguments>
@@ -189,9 +191,9 @@
       <build>
         <plugins>
           <plugin>
+            <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
             <version>1.4.0</version>
-            <groupId>org.codehaus.mojo</groupId>
             <inherited>false</inherited>
             <executions>
               <execution>

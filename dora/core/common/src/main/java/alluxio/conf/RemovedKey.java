@@ -100,14 +100,10 @@ public final class RemovedKey {
       put("alluxio.user.block.worker.client.threads", removedSince(V2_0_0));
       put("alluxio.user.failed.space.request.limits", removedSince(V2_0_0));
       put("alluxio.user.file.cache.partially.read.block", removedSince(V2_0_0));
-      put("alluxio.user.file.copyfromlocal.write.location.policy.class", replacedSince(V2_0_0,
-          PropertyKey.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY.getName()));
       put("alluxio.user.file.seek.buffer.size.bytes", removedSince(V2_0_0));
       put("alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes",
           replacedSince(V2_0_0,
               PropertyKey.USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES.getName()));
-      put("alluxio.user.file.write.location.policy.class",
-          replacedSince(V2_0_0, PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY.getName()));
       put("alluxio.user.heartbeat.interval", removedSince(V2_0_0));
       put("alluxio.user.lineage.enabled", removedSince(V2_0_0));
       put("alluxio.user.lineage.master.client.threads", removedSince(V2_0_0));
@@ -144,8 +140,6 @@ public final class RemovedKey {
           PropertyKey.Name.WORKER_RAMDISK_SIZE));
       put("alluxio.worker.network.netty.async.cache.manager.threads.max", removedSince(V2_0_0));
       put("alluxio.worker.network.netty.backlog", removedSince(V2_0_0));
-      put("alluxio.worker.network.netty.block.reader.threads.max", removedSince(V2_0_0));
-      put("alluxio.worker.network.netty.block.writer.threads.max", removedSince(V2_0_0));
       put("alluxio.worker.network.netty.buffer.receive", removedSince(V2_0_0));
       put("alluxio.worker.network.netty.buffer.send", removedSince(V2_0_0));
       put("alluxio.worker.network.netty.file.transfer", removedSince(V2_0_0));
@@ -158,7 +152,7 @@ public final class RemovedKey {
       put("alluxio.worker.tieredstore.retry", removedSince(V2_0_0));
       put("alluxio.worker.evictor.lrfu.attenuation.factor", removedSince(V2_3_0));
       put("alluxio.worker.evictor.lrfu.step.factor", removedSince(V2_3_0));
-      put("fs.swift.apikey", replacedSince(V2_0_0, PropertyKey.Name.SWIFT_PASSWORD_KEY));
+      put("fs.swift.apikey", removedSince(V2_0_0));
       put("fs.swift.use.public.url", removedSince(V2_0_0));
       put(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(0),
           replacedSince(V2_0_0, "alluxio.worker.tieredstore.level0.watermark.{high/low}.ratio"));

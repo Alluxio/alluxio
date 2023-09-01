@@ -11,7 +11,7 @@
 
 # See https://hub.docker.com/r/alluxio/alluxio-maven for instructions on running the image.
 
-FROM maven:3.6.3-openjdk-17-slim
+FROM maven:3.8.6-eclipse-temurin-17
 
 # reference: https://github.com/docker-library/openjdk/blob/master/8/jdk/buster/Dockerfile
 # we need jdk 8 in jdk 17 so that we can compile with jdk 8 and test with jdk 17
@@ -130,7 +130,7 @@ RUN set -eux; \
 ENV JAVA_HOME /usr/local/openjdk-17
 ENV PATH $JAVA_HOME/bin:$PATH
 
-# basic smoke test to see if the default is jdk 11
+# basic smoke test to see if the default is jdk 17
 RUN set -eux; \
 	javac -version; \
 	java -version
@@ -143,7 +143,7 @@ RUN mkdir -p /home/jenkins && \
     chmod -R 777 /.config && \
     apt-get update -y && \
     apt-get upgrade -y ca-certificates && \
-    apt-get install -y build-essential fuse3 libfuse3-dev libfuse-dev make ruby ruby-dev
+    apt-get install -y build-essential docker.io fuse3 libfuse3-dev libfuse-dev make ruby ruby-dev
 # jekyll for documentation
 RUN gem install public_suffix:4.0.7 jekyll:4.2.2 bundler:2.3.18
 # golang for tooling

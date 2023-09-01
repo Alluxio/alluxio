@@ -227,6 +227,11 @@ public class FuseFileOutStream implements FuseFileStream {
     }
   }
 
+  @Override
+  public boolean isClosed() {
+    return mClosed;
+  }
+
   private void closeStreams() {
     try {
       writeToFileLengthIfNeeded();

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -13,9 +14,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>alluxio-integration-jnifuse</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>301-SNAPSHOT</version>
+    <artifactId>alluxio-integration-jnifuse</artifactId>
+    <version>304-SNAPSHOT</version>
   </parent>
 
   <artifactId>alluxio-integration-jnifuse-native</artifactId>
@@ -42,25 +43,25 @@
             <executions>
               <execution>
                 <id>native_fuse_compile</id>
-                <phase>process-resources</phase>
                 <goals>
                   <goal>run</goal>
                 </goals>
+                <phase>process-resources</phase>
                 <configuration>
                   <!--TODO:(maobaolong) make it can build for multi target-->
                   <target>
-                    <mkdir dir="${project.build.directory}/native" />
-                    <exec executable="make" failonerror="true" dir="${project.build.directory}/native">
-                      <arg line="-f ${project.basedir}/src/main/native/libjnifuse/Makefile" />
+                    <mkdir dir="${project.build.directory}/native"/>
+                    <exec dir="${project.build.directory}/native" executable="make" failonerror="true">
+                      <arg line="-f ${project.basedir}/src/main/native/libjnifuse/Makefile"/>
                     </exec>
                     <copy todir="${project.build.directory}/classes">
                       <fileset dir="${project.build.directory}/native/">
-                        <include name="libjnifuse*" />
+                        <include name="libjnifuse*"/>
                       </fileset>
                     </copy>
                     <copy todir="${project.basedir}/src/main/resources">
                       <fileset dir="${project.build.directory}/native/">
-                        <include name="libjnifuse*" />
+                        <include name="libjnifuse*"/>
                       </fileset>
                     </copy>
                   </target>

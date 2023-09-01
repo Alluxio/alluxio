@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -16,7 +17,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>301-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
 
   <artifactId>alluxio-underfs-cosn</artifactId>
@@ -31,28 +32,25 @@
   </properties>
 
   <dependencies>
-    <!-- External dependencies -->
     <dependency>
       <groupId>com.qcloud</groupId>
       <artifactId>cos_api-bundle</artifactId>
-      <version>${cos_api.version}</version>
     </dependency>
     <dependency>
       <groupId>com.qcloud.cos</groupId>
       <artifactId>hadoop-cos</artifactId>
       <version>${ufs.cosn.version}</version>
     </dependency>
-    <!-- Internal dependencies -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-hdfs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-hdfs</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
@@ -65,58 +63,48 @@
 
   <build>
     <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-shade-plugin</artifactId>
-          <executions>
-            <execution>
-              <id>shade</id>
-              <phase>package</phase>
-              <goals>
-                <goal>shade</goal>
-              </goals>
-              <configuration>
-                <filters>
-                  <filter>
-                    <artifact>*:*</artifact>
-                    <excludes>
-                      <exclude>LICENSE</exclude>
-                      <exclude>META-INF/LICENSE</exclude>
-                      <exclude>META-INF/*.SF</exclude>
-                      <exclude>META-INF/*.DSA</exclude>
-                      <exclude>META-INF/*.RSA</exclude>
-                      <!-- Because this module depends on alluxio-underfs-hdfs, eliminate HDFS factory implementation -->
-                      <exclude>alluxio/underfs/hdfs/HdfsUnderFileSystemFactory.*</exclude>
-                    </excludes>
-                  </filter>
-                  <filter>
-                    <artifact>org.alluxio:alluxio-underfs-hdfs</artifact>
-                    <excludes>
-                      <exclude>META-INF/services/alluxio.underfs.UnderFileSystemFactory</exclude>
-                    </excludes>
-                  </filter>
-                </filters>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
       <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>shade</id>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <filters>
+                <filter>
+                  <artifact>org.alluxio:alluxio-underfs-hdfs</artifact>
+                  <excludes>
+                    <!-- Because this module depends on alluxio-underfs-hdfs, eliminate HDFS factory implementation -->
+                    <exclude>alluxio/underfs/hdfs/HdfsUnderFileSystemFactory.*</exclude>
+                    <exclude>META-INF/services/alluxio.underfs.UnderFileSystemFactory</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
         <inherited>false</inherited>
         <executions>
           <execution>
             <id>copy-lib-jars-selectively</id>
-            <phase>install</phase>
             <goals>
               <goal>exec</goal>
             </goals>
+            <phase>install</phase>
             <configuration>
               <executable>${build.path}/lib/copy_jars.sh</executable>
               <arguments>
                 <argument>${project.artifactId}</argument>
                 <argument>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</argument>
-                <argument>${basedir}/../../../lib/${project.artifactId}-${project.version}.jar</argument>
+                <argument>${build.path}/../lib/${project.artifactId}-${project.version}.jar</argument>
               </arguments>
             </configuration>
           </execution>
@@ -127,7 +115,7 @@
         <configuration>
           <filesets>
             <fileset>
-              <directory>${basedir}/../../../lib</directory>
+              <directory>${build.path}/../lib</directory>
               <includes>
                 <include>**/${project.artifactId}-*.jar</include>
               </includes>

@@ -65,32 +65,35 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 /**
  * Dora cache client.
  */
 public class DoraCacheClient {
   public static final int DUMMY_BLOCK_ID = -1;
-  public static final int PREFERRED_WORKER_COUNT = 1;
   private final FileSystemContext mContext;
   private final long mChunkSize;
   private final WorkerLocationPolicy mWorkerLocationPolicy;
 
   private final boolean mNettyTransEnabled;
 
+  private final int mPreferredWorkerCount;
+
   /**
    * Constructor.
    *
    * @param context
-   * @param workerLocationPolicy
    */
-  public DoraCacheClient(FileSystemContext context, WorkerLocationPolicy workerLocationPolicy) {
+  public DoraCacheClient(FileSystemContext context) {
     mContext = context;
-    mWorkerLocationPolicy = workerLocationPolicy;
+    mWorkerLocationPolicy = WorkerLocationPolicy.Factory.create(context.getClusterConf());
     mChunkSize = mContext.getClusterConf().getBytes(
         PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
     mNettyTransEnabled =
         context.getClusterConf().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
+    int minReplicaCount = context.getClusterConf().getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
+    mPreferredWorkerCount = Math.max(1, minReplicaCount);
   }
 
   /**
@@ -124,7 +127,7 @@ public class DoraCacheClient {
    * @return the output stream
    */
   public DoraFileOutStream getOutStream(AlluxioURI alluxioPath, FileSystemContext fsContext,
-      OutStreamOptions outStreamOptions, FileOutStream ufsOutStream,
+      OutStreamOptions outStreamOptions, @Nullable FileOutStream ufsOutStream,
       String uuid) throws IOException {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(alluxioPath.toString());
     NettyDataWriter writer = NettyDataWriter.create(
@@ -384,17 +387,37 @@ public class DoraCacheClient {
    * @return the related worker net address where file locates
    */
   public WorkerNetAddress getWorkerNetAddress(String path) {
-    List<BlockWorkerInfo> workers = null;
     try {
-      workers = mContext.getCachedWorkers();
+      List<BlockWorkerInfo> workers = mContext.getCachedWorkers();
+      List<BlockWorkerInfo> preferredWorkers =
+          mWorkerLocationPolicy.getPreferredWorkers(workers,
+              path, mPreferredWorkerCount);
+      checkState(preferredWorkers.size() > 0);
+      WorkerNetAddress workerNetAddress = choosePreferredWorker(preferredWorkers).getNetAddress();
+      return workerNetAddress;
     } catch (IOException e) {
+      // If failed to find workers in the cluster or failed to find the specified number of
+      // workers, throw an exception to the application
       throw new RuntimeException(e);
     }
-    List<BlockWorkerInfo> preferredWorkers =
-        mWorkerLocationPolicy.getPreferredWorkers(workers,
-            path, PREFERRED_WORKER_COUNT);
-    checkState(preferredWorkers.size() > 0);
-    WorkerNetAddress workerNetAddress = preferredWorkers.get(0).getNetAddress();
-    return workerNetAddress;
+  }
+
+  /**
+   * Chooses a client preferred worker from multiple workers which hold multiple replicas.
+   *
+   * @param workers a list of workers
+   * @return the preferred worker
+   */
+  protected BlockWorkerInfo choosePreferredWorker(List<BlockWorkerInfo> workers) {
+    return workers.get(0);
+  }
+
+  /**
+   * Get Context.
+   *
+   * @return a file system context
+   */
+  public FileSystemContext getContext() {
+    return mContext;
   }
 }

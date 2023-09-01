@@ -25,9 +25,6 @@ public enum UnderStorageType {
 
   /** Do not persist data to the under storage. */
   NO_PERSIST(2),
-
-  /** Persist data to the under storage asynchronously. */
-  ASYNC_PERSIST(3),
   ;
 
   private final int mValue;
@@ -41,12 +38,5 @@ public enum UnderStorageType {
    */
   public boolean isSyncPersist() {
     return mValue == SYNC_PERSIST.mValue;
-  }
-
-  /**
-   * @return whether the data should be persisted to the under storage asynchronously
-   */
-  public boolean isAsyncPersist() {
-    return mValue == ASYNC_PERSIST.mValue;
   }
 }

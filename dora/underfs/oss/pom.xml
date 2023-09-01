@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -15,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>301-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-oss</artifactId>
   <name>Alluxio Under File System - Aliyun OSS</name>
@@ -28,7 +29,6 @@
   </properties>
 
   <dependencies>
-    <!-- External dependencies -->
     <dependency>
       <groupId>com.aliyun.oss</groupId>
       <artifactId>aliyun-sdk-oss</artifactId>
@@ -37,8 +37,6 @@
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
     </dependency>
-
-    <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -46,7 +44,6 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -68,22 +65,22 @@
         <artifactId>maven-shade-plugin</artifactId>
       </plugin>
       <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
         <inherited>false</inherited>
         <executions>
           <execution>
             <id>copy-lib-jars-selectively</id>
-            <phase>install</phase>
             <goals>
               <goal>exec</goal>
             </goals>
+            <phase>install</phase>
             <configuration>
               <executable>${build.path}/lib/copy_jars.sh</executable>
               <arguments>
                 <argument>${project.artifactId}</argument>
                 <argument>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</argument>
-                <argument>${basedir}/../../../lib/${project.artifactId}-${project.version}.jar</argument>
+                <argument>${build.path}/../lib/${project.artifactId}-${project.version}.jar</argument>
               </arguments>
             </configuration>
           </execution>
@@ -94,7 +91,7 @@
         <configuration>
           <filesets>
             <fileset>
-              <directory>${basedir}/../../../lib</directory>
+              <directory>${build.path}/../lib</directory>
               <includes>
                 <include>**/${project.artifactId}-*.jar</include>
               </includes>

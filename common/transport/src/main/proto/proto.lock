@@ -2012,32 +2012,6 @@
             ]
           },
           {
-            "name": "LocalityTier",
-            "fields": [
-              {
-                "id": 1,
-                "name": "tierName",
-                "type": "string"
-              },
-              {
-                "id": 2,
-                "name": "value",
-                "type": "string"
-              }
-            ]
-          },
-          {
-            "name": "TieredIdentity",
-            "fields": [
-              {
-                "id": 1,
-                "name": "tiers",
-                "type": "LocalityTier",
-                "is_repeated": true
-              }
-            ]
-          },
-          {
             "name": "NetAddress",
             "fields": [
               {
@@ -7776,28 +7750,6 @@
                 }
               }
             ]
-          }
-        ],
-        "imports": [
-          {
-            "path": "grpc/table/table_master.proto"
-          }
-        ],
-        "package": {
-          "name": "alluxio.grpc.table.layout"
-        },
-        "options": [
-          {
-            "name": "java_multiple_files",
-            "value": "true"
-          },
-          {
-            "name": "java_package",
-            "value": "alluxio.grpc.table.layout.hive"
-          },
-          {
-            "name": "java_outer_classname",
-            "value": "HiveLayoutProto"
           }
         ]
       }

@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
 /**
@@ -35,5 +36,12 @@ public class UfsFileSystemOptions {
    */
   public String getUfsAddress() {
     return mUfsAddress;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("mUfsAddress", mUfsAddress)
+        .toString();
   }
 }

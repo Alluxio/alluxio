@@ -13,8 +13,8 @@ package alluxio.concurrent;
 
 import alluxio.AlluxioURI;
 import alluxio.PositionReader;
-import alluxio.SyncInfo;
 import alluxio.collections.Pair;
+import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.file.options.DescendantType;
@@ -42,7 +42,6 @@ import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
@@ -50,7 +49,7 @@ import javax.annotation.Nullable;
  * Forwarder for {@link UnderFileSystem} objects that works through with ForkJoinPool's
  * managed blocking.
  *
- * If UFS calls are being done on a {@link java.util.concurrent.ForkJoinWorkerThread}, then
+ * If UFS calls are being done on a {@link alluxio.concurrent.jsr.ForkJoinWorkerThread}, then
  * this forwarder will make sure UFS operations are treated as blocking operations
  * for compensating the ForkJoinPool.
  *
@@ -561,36 +560,6 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   @Override
   public boolean supportsFlush() throws IOException {
     return mUfs.supportsFlush();
-  }
-
-  @Override
-  public boolean supportsActiveSync() {
-    return mUfs.supportsActiveSync();
-  }
-
-  @Override
-  public SyncInfo getActiveSyncInfo() throws IOException {
-    return mUfs.getActiveSyncInfo();
-  }
-
-  @Override
-  public void startSync(AlluxioURI uri) throws IOException {
-    mUfs.startSync(uri);
-  }
-
-  @Override
-  public void stopSync(AlluxioURI uri) throws IOException {
-    mUfs.stopSync(uri);
-  }
-
-  @Override
-  public boolean startActiveSyncPolling(long txId) throws IOException {
-    return mUfs.startActiveSyncPolling(txId);
-  }
-
-  @Override
-  public boolean stopActiveSyncPolling() throws IOException {
-    return mUfs.stopActiveSyncPolling();
   }
 
   @Override

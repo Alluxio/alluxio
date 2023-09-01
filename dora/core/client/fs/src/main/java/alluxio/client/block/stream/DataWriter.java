@@ -12,7 +12,6 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.Cancelable;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
@@ -57,44 +56,25 @@ public interface DataWriter extends Closeable, Cancelable {
     public static DataWriter create(FileSystemContext context, long blockId, long blockSize,
         WorkerNetAddress address, OutStreamOptions options) throws IOException {
       AlluxioConfiguration alluxioConf = context.getClusterConf();
-      boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
-      boolean shortCircuitPreferred =
-          alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
-      boolean ufsFallbackEnabled = options.getWriteType() == WriteType.ASYNC_THROUGH
-          && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED);
       boolean workerIsLocal = CommonUtils.isLocalHost(address, alluxioConf);
       boolean nettyTransEnabled =
           alluxioConf.getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
 
-      if (workerIsLocal && context.hasProcessLocalWorker() && !ufsFallbackEnabled) {
+      if (workerIsLocal) {
         LOG.debug("Creating worker process local output stream for block {} @ {}",
             blockId, address);
         return BlockWorkerDataWriter.create(context, blockId, blockSize, options);
       }
       LOG.debug("Doesn't create worker process local output stream for block {} @ {} "
-          + "(data locates in local worker: {}, client locates in local worker process: {}, "
-          + "ufs fallback enabled: {})", blockId, address,
-          workerIsLocal, context.hasProcessLocalWorker(), ufsFallbackEnabled);
+          + "(data locates in local worker: {}, client locates in local worker process: {})",
+          blockId, address, workerIsLocal, context.hasProcessLocalWorker());
 
       boolean domainSocketSupported = NettyUtils.isDomainSocketSupported(address);
-      if (workerIsLocal && shortCircuit
-          && (shortCircuitPreferred || !domainSocketSupported)) {
-        if (ufsFallbackEnabled) {
-          LOG.info("Creating UFS-fallback short circuit output stream for block {} @ {}", blockId,
-              address);
-          return UfsFallbackLocalFileDataWriter.create(
-              context, address, blockId, blockSize, options);
-        }
-        LOG.debug("Creating short circuit output stream for block {} @ {}", blockId, address);
-        return LocalFileDataWriter.create(context, address, blockId, blockSize, options);
-      }
-
       if (nettyTransEnabled) {
         LOG.debug("Creating netty output stream for block {} @ {} from client {} "
-                + "(data locates in local worker: {}, shortCircuitEnabled: {}, "
-                + "shortCircuitPreferred: {}, domainSocketSupported: {})",
+                + "(data locates in local worker: {}, domainSocketSupported: {})",
             blockId, address, NetworkAddressUtils.getClientHostName(alluxioConf),
-            workerIsLocal, shortCircuit, shortCircuitPreferred, domainSocketSupported);
+            workerIsLocal, domainSocketSupported);
         // TODO(JiamingMai): implement the netty writer here
         return NettyDataWriter
             .create(context, address, blockId, blockSize, RequestType.ALLUXIO_BLOCK,
@@ -102,10 +82,9 @@ public interface DataWriter extends Closeable, Cancelable {
       }
 
       LOG.debug("Creating gRPC output stream for block {} @ {} from client {} "
-          + "(data locates in local worker: {}, shortCircuitEnabled: {}, "
-          + "shortCircuitPreferred: {}, domainSocketSupported: {})",
+          + "(data locates in local worker: {}, domainSocketSupported: {})",
           blockId, address, NetworkAddressUtils.getClientHostName(alluxioConf),
-          workerIsLocal, shortCircuit, shortCircuitPreferred, domainSocketSupported);
+          workerIsLocal, domainSocketSupported);
       return GrpcDataWriter
           .create(context, address, blockId, blockSize, RequestType.ALLUXIO_BLOCK,
               options);

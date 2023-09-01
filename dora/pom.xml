@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -15,12 +16,18 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-parent</artifactId>
-    <version>301-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-dora</artifactId>
   <packaging>pom</packaging>
   <name>Alluxio Dora</name>
   <description>Parent POM for Alluxio DORA</description>
+
+  <properties>
+    <!-- These need to be defined here as well as in the parent pom so that mvn can run
+         properly from sub-project directories -->
+    <build.path>${project.parent.basedir}/build</build.path>
+  </properties>
 
   <modules>
     <module>core</module>
@@ -32,14 +39,7 @@
     <module>shaded</module>
     <module>shell</module>
     <module>stress</module>
-    <module>table</module>
     <module>tests</module>
     <module>underfs</module>
   </modules>
-
-  <properties>
-    <!-- These need to be defined here as well as in the parent pom so that mvn can run
-         properly from sub-project directories -->
-    <build.path>${project.parent.basedir}/build</build.path>
-  </properties>
 </project>

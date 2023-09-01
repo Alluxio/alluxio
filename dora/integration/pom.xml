@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -15,21 +16,21 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>301-SNAPSHOT</version>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-integration</artifactId>
   <packaging>pom</packaging>
   <name>Alluxio Integration</name>
   <description>Parent POM for different integrations with Alluxio</description>
-  <modules>
-    <module>fuse</module>
-    <module>jnifuse</module>
-    <module>tools</module>
-  </modules>
 
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
   </properties>
+  <modules>
+    <module>fuse</module>
+    <module>jnifuse</module>
+    <module>tools</module>
+  </modules>
 </project>

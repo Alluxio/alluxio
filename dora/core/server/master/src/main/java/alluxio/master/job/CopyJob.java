@@ -33,6 +33,7 @@ import alluxio.grpc.WriteOptions;
 import alluxio.job.JobDescription;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.proto.journal.Job.FileFilter;
 import alluxio.proto.journal.Journal;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
@@ -61,6 +62,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -107,9 +109,12 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   private final AtomicLong mTotalByteCount = new AtomicLong();
   private final AtomicLong mTotalFailureCount = new AtomicLong();
   private final AtomicLong mCurrentFailureCount = new AtomicLong();
+  private final AtomicLong mCurrentSkipCount = new AtomicLong();
+  private final AtomicLong mCurrentSuccessCount = new AtomicLong();
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
   private final Iterable<FileInfo> mFileIterable;
   private Optional<Iterator<FileInfo>> mFileIterator = Optional.empty();
+  private Optional<FileFilter> mFilter;
 
   /**
    * Constructor.
@@ -124,10 +129,11 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
    * @param verificationEnabled whether to verify the job after loaded
    * @param checkContent        whether to check content
    * @param fileIterable        file iterable
+   * @param filter              file filter
    */
   public CopyJob(String src, String dst, boolean overwrite, Optional<String> user, String jobId,
       OptionalLong bandwidth, boolean usePartialListing, boolean verificationEnabled,
-      boolean checkContent, Iterable<FileInfo> fileIterable) {
+      boolean checkContent, Iterable<FileInfo> fileIterable, Optional<FileFilter> filter) {
     super(user, jobId, new RoundRobinWorkerAssignPolicy());
     mSrc = requireNonNull(src, "src is null");
     mDst = requireNonNull(dst, "dst is null");
@@ -141,6 +147,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     mFileIterable = fileIterable;
     mOverwrite = overwrite;
     mCheckContent = checkContent;
+    mFilter = filter;
   }
 
   /**
@@ -282,6 +289,14 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
    */
   public List<CopyTask> getNextTasks(Collection<WorkerInfo> workers) {
     List<CopyTask> tasks = new ArrayList<>();
+    Iterator<CopyTask> it = mRetryTaskList.iterator();
+    if (it.hasNext()) {
+      CopyTask task = it.next();
+      LOG.debug("Re-submit retried CopyTask:{} in getNextTasks.", task.getTaskId());
+      tasks.add(task);
+      it.remove();
+      return Collections.unmodifiableList(tasks);
+    }
     List<Route> routes = getNextRoutes(BATCH_SIZE);
     if (routes.isEmpty()) {
       return Collections.unmodifiableList(tasks);
@@ -291,18 +306,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     copyTask.setMyRunningWorker(workerInfo);
     tasks.add(copyTask);
     return Collections.unmodifiableList(tasks);
-  }
-
-  /**
-   * Define how to process task that gets rejected when scheduler tried to kick off.
-   * For CopyJob
-   * @param task
-   */
-  public void onTaskSubmitFailure(Task<?> task) {
-    if (!(task instanceof CopyTask)) {
-      throw new IllegalArgumentException("Task is not a CopyTask: " + task);
-    }
-    ((CopyTask) task).mRoutes.forEach(this::addToRetry);
   }
 
   /**
@@ -377,6 +380,16 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     COPY_FAIL_FILE_COUNT.inc();
   }
 
+  /**
+   * Add a skip to metrics.
+   *
+   */
+  @VisibleForTesting
+  public void addSkip() {
+    mCurrentSkipCount.incrementAndGet();
+    COPY_SKIP_FILE_COUNT.inc();
+  }
+
   private Route buildRoute(FileInfo sourceFile) {
     String relativePath;
     try {
@@ -429,6 +442,14 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     mUser.ifPresent(jobEntry::setUser);
     mBandwidth.ifPresent(jobEntry::setBandwidth);
     mEndTime.ifPresent(jobEntry::setEndTime);
+    if (mFilter.isPresent()) {
+      FileFilter.Builder builder = FileFilter.newBuilder().setValue(mFilter.get().getValue())
+          .setName(mFilter.get().getName());
+      if (mFilter.get().hasPattern()) {
+        builder.setPattern(mFilter.get().getPattern());
+      }
+      jobEntry.setFilter(builder.build());
+    }
     return Journal.JournalEntry
         .newBuilder()
         .setCopyJob(jobEntry.build())
@@ -456,13 +477,18 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
         LOG.debug(format("Get failure from worker: %s", response.getFailuresList()));
         for (RouteFailure status : response.getFailuresList()) {
           totalBytes -= status.getRoute().getLength();
-          if (!isHealthy() || !status.getRetryable() || !addToRetry(
-              status.getRoute())) {
-            addFailure(status.getRoute().getSrc(), status.getMessage(), status.getCode());
+          if (status.getIsSkip()) {
+            addSkip();
+          } else {
+            if (!isHealthy() || !status.getRetryable() || !addToRetry(
+                status.getRoute())) {
+              addFailure(status.getRoute().getSrc(), status.getMessage(), status.getCode());
+            }
           }
         }
       }
       addCopiedBytes(totalBytes);
+      mCurrentSuccessCount.addAndGet(task.getRoutes().size() - response.getFailuresCount());
       COPY_FILE_COUNT.inc(
           task.getRoutes().size() - response.getFailuresCount());
       COPY_SIZE.inc(totalBytes);
@@ -568,11 +594,17 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     private final double mFailurePercentage;
     private final AlluxioRuntimeException mFailureReason;
     private final long mFailedFileCount;
+    private final long mSkippedFileCount;
+    private final long mSuccessFileCount;
     private final Map<String, String> mFailedFilesWithReasons;
+    private final String mJobId;
+    private final long mStartTime;
+    private final long mEndTime;
 
     public CopyProgressReport(CopyJob job, boolean verbose)
     {
       mVerbose = verbose;
+      mJobId = job.mJobId;
       mJobState = job.mState;
       mCheckContent = job.mCheckContent;
       mProcessedFileCount = job.mProcessedFileCount.get();
@@ -601,10 +633,23 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
       }
       mFailureReason = job.mFailedReason.orElse(null);
       mFailedFileCount = job.mFailedFiles.size();
+      mSkippedFileCount = job.mCurrentSkipCount.get();
+      mSuccessFileCount = job.mCurrentSuccessCount.get();
       if (verbose && mFailedFileCount > 0) {
         mFailedFilesWithReasons = job.mFailedFiles;
       } else {
         mFailedFilesWithReasons = Collections.emptyMap();
+      }
+      mStartTime = job.mStartTime;
+      if (mJobState == JobState.SUCCEEDED || mJobState == JobState.FAILED) {
+        if (job.mEndTime.isPresent()) {
+          mEndTime = job.mEndTime.getAsLong();
+        } else {
+          throw new InternalRuntimeException(
+              String.format("No end time in ending state %s", mJobState));
+        }
+      } else {
+        mEndTime = 0;
       }
     }
 
@@ -624,29 +669,43 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     private String getTextReport() {
       StringBuilder progress = new StringBuilder();
       progress.append(
-          format("\tSettings:\tcheck-content: %s%n", mCheckContent));
-      progress.append(format("\tJob State: %s%s%n", mJobState,
-          mFailureReason == null
-              ? "" : format(
-                  " (%s: %s)",
-              mFailureReason.getClass().getName(),
-              mFailureReason.getMessage())));
+          format("\tSettings: \"check-content: %s\"%n", mCheckContent));
+      progress.append(format("\tJob Submitted: %s%n", new Date(mStartTime)));
+      progress.append(format("\tJob Id: %s%n", mJobId));
+      if (mJobState == JobState.SUCCEEDED || mJobState == JobState.FAILED) {
+        progress.append(format("\tJob State: %s%s, finished at %s%n", mJobState,
+            mFailureReason == null
+                ? "" : format(
+                " (%s: %s)",
+                mFailureReason.getClass().getName(),
+                mFailureReason.getMessage()),
+            new Date(mEndTime)));
+      } else {
+        progress.append(format("\tJob State: %s%s%n", mJobState,
+            mFailureReason == null
+                ? "" : format(
+                " (%s: %s)",
+                mFailureReason.getClass().getName(),
+                mFailureReason.getMessage())));
+      }
       if (mVerbose && mFailureReason != null) {
         for (StackTraceElement stack : mFailureReason.getStackTrace()) {
           progress.append(format("\t\t%s%n", stack.toString()));
         }
       }
-      progress.append(format("\tFiles Processed: %d%n", mProcessedFileCount));
-      progress.append(format("\tBytes Copied: %s%s%n",
-          FormatUtils.getSizeFromBytes(mByteCount),
+      progress.append(format("\tFiles qualified%s: %d%s%n",
+          mJobState == JobState.RUNNING ? " so far" : "", mProcessedFileCount,
           mTotalByteCount == null
-              ? "" : format(" out of %s", FormatUtils.getSizeFromBytes(mTotalByteCount))));
+              ? "" : format(", %s", FormatUtils.getSizeFromBytes(mTotalByteCount))));
+      progress.append(format("\tFiles Failed: %s%n", mFailedFileCount));
+      progress.append(format("\tFiles Skipped: %s%n", mSkippedFileCount));
+      progress.append(format("\tFiles Succeeded: %s%n", mSuccessFileCount));
+      progress.append(format("\tBytes Copied: %s%n", FormatUtils.getSizeFromBytes(mByteCount)));
       if (mThroughput != null) {
         progress.append(format("\tThroughput: %s/s%n",
             FormatUtils.getSizeFromBytes(mThroughput)));
       }
       progress.append(format("\tFiles failure rate: %.2f%%%n", mFailurePercentage));
-      progress.append(format("\tFiles Failed: %s%n", mFailedFileCount));
       if (mVerbose && !mFailedFilesWithReasons.isEmpty()) {
         mFailedFilesWithReasons.forEach((fileName, reason) ->
             progress.append(format("\t\t%s: %s%n", fileName, reason)));
@@ -675,6 +734,8 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
           MetricsSystem.counter(MetricKey.MASTER_JOB_COPY_FILE_COUNT.getName());
   public static final Counter COPY_FAIL_FILE_COUNT =
           MetricsSystem.counter(MetricKey.MASTER_JOB_COPY_FAIL_FILE_COUNT.getName());
+  public static final Counter COPY_SKIP_FILE_COUNT =
+      MetricsSystem.counter(MetricKey.MASTER_JOB_COPY_SKIP_FILE_COUNT.getName());
   public static final Counter COPY_SIZE =
           MetricsSystem.counter(MetricKey.MASTER_JOB_COPY_SIZE.getName());
   public static final Meter COPY_RATE =

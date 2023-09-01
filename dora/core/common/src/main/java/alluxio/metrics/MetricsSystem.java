@@ -645,7 +645,7 @@ public final class MetricsSystem {
   }
 
   /**
-   * Same with {@link #timer} but with UnirformReservoir for sampling.
+   * Same with {@link #timer} but with UniformReservoir for sampling.
    *
    * @param name the name of the metric
    * @return a timer object with the qualified metric name

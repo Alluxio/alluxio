@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -12,9 +13,15 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>301-SNAPSHOT</version>
+  <version>304-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -29,9 +36,13 @@
   <scm>
     <connection>scm:git:git@github.com:alluxio/alluxio.git</connection>
     <developerConnection>scm:git:git@github.com:alluxio/alluxio.git</developerConnection>
+    <tag>alluxio-parent-304-SNAPSHOT</tag>
     <url>scm:git:git@github.com:alluxio/alluxio.git</url>
-    <tag>alluxio-parent-301-SNAPSHOT</tag>
   </scm>
+  <issueManagement>
+    <system>jira</system>
+    <url>https://alluxio.atlassian.net</url>
+  </issueManagement>
   <developers>
     <developer>
       <id>haoyuan</id>
@@ -42,57 +53,43 @@
       <organizationUrl>https://alluxio.io/</organizationUrl>
     </developer>
   </developers>
-  <issueManagement>
-    <system>jira</system>
-    <url>https://alluxio.atlassian.net</url>
-  </issueManagement>
-
-  <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>7</version>
-  </parent>
 
   <repositories>
     <repository>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
       <id>central</id>
       <!-- This should be at top, it makes maven try the central repo first and then others and hence faster dep resolution -->
       <name>Maven Repository</name>
       <url>https://repo1.maven.org/maven2</url>
+    </repository>
+    <repository>
       <releases>
         <enabled>true</enabled>
       </releases>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
-    </repository>
-    <repository>
       <id>apache-repo</id>
       <name>Apache Repository</name>
       <url>https://repository.apache.org/content/repositories/releases</url>
+    </repository>
+    <repository>
       <releases>
         <enabled>true</enabled>
       </releases>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
-    </repository>
-    <repository>
       <id>cloudera-repo</id>
       <name>Cloudera Repository</name>
       <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
     </repository>
     <repository>
-      <id>HDPReleases</id>
-      <name>HDP Releases</name>
-      <url>https://repo.hortonworks.com/content/repositories/releases/</url>
-      <layout>default</layout>
       <releases>
         <enabled>true</enabled>
         <updatePolicy>always</updatePolicy>
@@ -103,17 +100,21 @@
         <updatePolicy>never</updatePolicy>
         <checksumPolicy>fail</checksumPolicy>
       </snapshots>
+      <id>HDPReleases</id>
+      <name>HDP Releases</name>
+      <url>https://repo.hortonworks.com/content/repositories/releases/</url>
+      <layout>default</layout>
     </repository>
     <repository>
-      <id>bintray-repo</id>
-      <name>bintray</name>
-      <url>https://jcenter.bintray.com</url>
       <releases>
         <enabled>true</enabled>
       </releases>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
+      <id>bintray-repo</id>
+      <name>bintray</name>
+      <url>https://jcenter.bintray.com</url>
     </repository>
     <repository>
       <id>alluxio.artifacts</id>
@@ -122,60 +123,64 @@
   </repositories>
 
   <properties>
-    <argLine />
     <apache.curator.version>4.2.0</apache.curator.version>
+    <argLine/>
     <aws.amazonaws.version>1.11.815</aws.amazonaws.version>
     <awssdk.version>2.20.56</awssdk.version>
     <build.path>build</build.path>
+    <caffeine.version>3.1.6</caffeine.version>
     <catalyst.version>1.2.1</catalyst.version>
-    <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
+    <cephfs-hadoop.version>0.0.1</cephfs-hadoop.version>
+    <cos_api.version>5.6.19</cos_api.version>
+    <create.dependency.reduced.pom>false</create.dependency.reduced.pom>
+    <fastutil.version>8.5.9</fastutil.version>
+    <findbugs.skip>false</findbugs.skip>
     <grpc.version>1.54.1</grpc.version>
     <gson.version>2.8.9</gson.version>
-    <netty.version>4.1.87.Final</netty.version>
-    <rocksdb.version>7.0.3</rocksdb.version>
+    <guava.version>31.0.1-jre</guava.version>
+    <guice.version>5.1.0</guice.version>
+    <hadoop-cos.version>3.1.0-5.8.5</hadoop-cos.version>
     <hadoop.version>3.3.1</hadoop.version>
+    <hive-metastore.version>3.1.2</hive-metastore.version>
+    <jackson.version>2.13.5</jackson.version>
     <jacoco.version>0.8.5</jacoco.version>
-    <java.version>11</java.version>
+    <java.version>1.8</java.version>
     <jaxb.version>2.3.3</jaxb.version>
     <jersey.version>2.34</jersey.version>
     <jetty.version>9.4.46.v20220331</jetty.version>
+    <jnr-fuse.version>0.5.5</jnr-fuse.version>
     <junit.version>4.13.1</junit.version>
     <jupiter.version>5.9.2</jupiter.version>
+    <kerby.version>1.0.1</kerby.version>
+    <libcephfs.version>0.0.1</libcephfs.version>
     <log4j.version>2.17.1</log4j.version>
     <maven.version>3.8.6</maven.version>
     <metrics.version>4.1.11</metrics.version>
     <mockito.version>3.4.4</mockito.version>
+    <netty.version>4.1.87.Final</netty.version>
     <orc.version>1.6.3</orc.version>
     <oshi.version>5.3.5</oshi.version>
-    <powermock.version>2.0.7</powermock.version>
-    <prometheus.version>0.8.0</prometheus.version>
-    <guava.version>31.0.1-jre</guava.version>
-    <guice.version>5.1.0</guice.version>
     <parquet.version>1.11.0</parquet.version>
-    <protobuf.version>3.19.6</protobuf.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <powermock.version>2.0.7</powermock.version>
     <project.build.outputTimestamp>${git.commit.time}</project.build.outputTimestamp>
-    <slf4j.version>1.7.30</slf4j.version>
-    <jackson.version>2.13.5</jackson.version>
-    <hadoop-cos.version>3.1.0-5.8.5</hadoop-cos.version>
-    <cos_api.version>5.6.19</cos_api.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <prometheus.version>0.8.0</prometheus.version>
+    <protobuf.version>3.19.6</protobuf.version>
+    <ratis.version>2.5.1</ratis.version>
+    <rocksdb.version>7.0.3</rocksdb.version>
     <s3proxy.version>2.0.0</s3proxy.version>
+    <slf4j.version>1.7.30</slf4j.version>
     <stateless4j.version>2.6.0</stateless4j.version>
-    <surefire.forkCount>2</surefire.forkCount>
-    <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <surefire.excludesFile>slow-tests</surefire.excludesFile>
+    <surefire.forkCount>2</surefire.forkCount>
     <surefire.rerunFailingTestsCount>1</surefire.rerunFailingTestsCount>
+    <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <test.output.redirect>true</test.output.redirect>
+    <testcontainers.version>1.18.3</testcontainers.version>
     <update.check.auth.string>YWxsdXhpbzp0YWNoeW9u</update.check.auth.string>
+    <update.check.configurable>true</update.check.configurable>
     <update.check.enabled>true</update.check.enabled>
     <update.check.host>https://diagnostics.alluxio.io</update.check.host>
-    <findbugs.skip>false</findbugs.skip>
-    <create.dependency.reduced.pom>false</create.dependency.reduced.pom>
-    <cephfs-hadoop.version>0.0.1</cephfs-hadoop.version>
-    <libcephfs.version>0.0.1</libcephfs.version>
-    <jnr-fuse.version>0.5.5</jnr-fuse.version>
-    <kerby.version>1.0.1</kerby.version>
-    <fastutil.version>8.5.9</fastutil.version>
   </properties>
 
   <modules>
@@ -187,6 +192,13 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>s3</artifactId>
+        <version>${awssdk.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <!-- Compile scope -->
       <dependency>
         <groupId>com.aliyun.oss</groupId>
@@ -200,12 +212,12 @@
       </dependency>
       <dependency>
         <groupId>com.amazonaws</groupId>
-        <artifactId>aws-java-sdk-sts</artifactId>
+        <artifactId>aws-java-sdk-s3</artifactId>
         <version>${aws.amazonaws.version}</version>
       </dependency>
       <dependency>
         <groupId>com.amazonaws</groupId>
-        <artifactId>aws-java-sdk-s3</artifactId>
+        <artifactId>aws-java-sdk-sts</artifactId>
         <version>${aws.amazonaws.version}</version>
       </dependency>
       <dependency>
@@ -214,24 +226,9 @@
         <version>1.78</version>
       </dependency>
       <dependency>
-        <groupId>io.github.opendataio</groupId>
-        <artifactId>cephfs-hadoop</artifactId>
-        <version>${cephfs-hadoop.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.github.opendataio</groupId>
-        <artifactId>libcephfs</artifactId>
-        <version>${libcephfs.version}</version>
-      </dependency>
-      <dependency>
         <groupId>com.esotericsoftware</groupId>
         <artifactId>kryo</artifactId>
         <version>4.0.2</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>${jackson.version}</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
@@ -249,6 +246,16 @@
         <version>${jackson.version}</version>
       </dependency>
       <dependency>
+        <groupId>com.fasterxml.jackson.jaxrs</groupId>
+        <artifactId>jackson-jaxrs-json-provider</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.ben-manes.caffeine</groupId>
+        <artifactId>caffeine</artifactId>
+        <version>2.9.3</version>
+      </dependency>
+      <dependency>
         <groupId>com.github.serceman</groupId>
         <artifactId>jnr-fuse</artifactId>
         <version>${jnr-fuse.version}</version>
@@ -257,6 +264,11 @@
         <groupId>com.github.stateless4j</groupId>
         <artifactId>stateless4j</artifactId>
         <version>${stateless4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.cloud</groupId>
+        <artifactId>google-cloud-storage</artifactId>
+        <version>1.79.0</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.gson</groupId>
@@ -285,9 +297,39 @@
         </exclusions>
       </dependency>
       <dependency>
+        <groupId>com.hubspot.jackson</groupId>
+        <artifactId>jackson-datatype-protobuf</artifactId>
+        <version>0.9.12</version>
+      </dependency>
+      <dependency>
         <groupId>com.jamesmurty.utils</groupId>
         <artifactId>java-xmlbuilder</artifactId>
         <version>1.3</version>
+      </dependency>
+      <dependency>
+        <groupId>com.qcloud</groupId>
+        <artifactId>cos_api</artifactId>
+        <version>5.6.28</version>
+      </dependency>
+      <dependency>
+        <groupId>com.qcloud</groupId>
+        <artifactId>cos_api-bundle</artifactId>
+        <version>${cos_api.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.qcloud.cos</groupId>
+        <artifactId>hadoop-cos</artifactId>
+        <version>${hadoop-cos.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.qiniu</groupId>
+        <artifactId>qiniu-java-sdk</artifactId>
+        <version>7.2.17</version>
+      </dependency>
+      <dependency>
+        <groupId>com.squareup.okhttp3</groupId>
+        <artifactId>okhttp</artifactId>
+        <version>3.10.0</version>
       </dependency>
       <dependency>
         <groupId>com.sun.xml.bind</groupId>
@@ -315,18 +357,13 @@
         <version>1.2</version>
       </dependency>
       <dependency>
-        <groupId>pl.project13.maven</groupId>
-        <artifactId>git-commit-id-plugin</artifactId>
-        <version>4.0.5</version>
+        <groupId>io.atomix.catalyst</groupId>
+        <artifactId>catalyst-transport</artifactId>
+        <version>${catalyst.version}</version>
       </dependency>
       <dependency>
         <groupId>io.dropwizard.metrics</groupId>
         <artifactId>metrics-core</artifactId>
-        <version>${metrics.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.dropwizard.metrics</groupId>
-        <artifactId>metrics-ganglia</artifactId>
         <version>${metrics.version}</version>
       </dependency>
       <dependency>
@@ -336,18 +373,33 @@
       </dependency>
       <dependency>
         <groupId>io.dropwizard.metrics</groupId>
-        <artifactId>metrics-json</artifactId>
+        <artifactId>metrics-jmx</artifactId>
         <version>${metrics.version}</version>
       </dependency>
       <dependency>
         <groupId>io.dropwizard.metrics</groupId>
-        <artifactId>metrics-jmx</artifactId>
+        <artifactId>metrics-json</artifactId>
         <version>${metrics.version}</version>
       </dependency>
       <dependency>
         <groupId>io.dropwizard.metrics</groupId>
         <artifactId>metrics-jvm</artifactId>
         <version>${metrics.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.etcd</groupId>
+        <artifactId>jetcd-core</artifactId>
+        <version>0.7.5</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.opendataio</groupId>
+        <artifactId>cephfs-hadoop</artifactId>
+        <version>${cephfs-hadoop.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.opendataio</groupId>
+        <artifactId>libcephfs</artifactId>
+        <version>${libcephfs.version}</version>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
@@ -398,8 +450,8 @@
       </dependency>
       <dependency>
         <groupId>io.netty</groupId>
-        <artifactId>netty-transport-native-unix-common</artifactId>
-        <version>${netty.version}</version>
+        <artifactId>netty-tcnative-boringssl-static</artifactId>
+        <version>2.0.56.Final</version>
       </dependency>
       <dependency>
         <groupId>io.prometheus</groupId>
@@ -408,12 +460,12 @@
       </dependency>
       <dependency>
         <groupId>io.prometheus</groupId>
-        <artifactId>simpleclient_servlet</artifactId>
+        <artifactId>simpleclient_dropwizard</artifactId>
         <version>${prometheus.version}</version>
       </dependency>
       <dependency>
         <groupId>io.prometheus</groupId>
-        <artifactId>simpleclient_dropwizard</artifactId>
+        <artifactId>simpleclient_servlet</artifactId>
         <version>${prometheus.version}</version>
       </dependency>
       <dependency>
@@ -422,14 +474,14 @@
         <version>1.6.2</version>
       </dependency>
       <dependency>
+        <groupId>it.unimi.dsi</groupId>
+        <artifactId>fastutil-core</artifactId>
+        <version>${fastutil.version}</version>
+      </dependency>
+      <dependency>
         <groupId>jakarta.ws.rs</groupId>
         <artifactId>jakarta.ws.rs-api</artifactId>
         <version>2.1.6</version>
-      </dependency>
-      <dependency>
-        <groupId>javax.annotation</groupId>
-        <artifactId>javax.annotation-api</artifactId>
-        <version>1.3.2</version>
       </dependency>
       <dependency>
         <groupId>javax.servlet</groupId>
@@ -437,24 +489,14 @@
         <version>3.1.0</version>
       </dependency>
       <dependency>
-        <groupId>org.jline</groupId>
-        <artifactId>jline</artifactId>
-        <version>3.16.0</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-api</artifactId>
-        <version>${log4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-core</artifactId>
-        <version>${log4j.version}</version>
-      </dependency>
-      <dependency>
         <groupId>net.java.dev.jets3t</groupId>
         <artifactId>jets3t</artifactId>
         <version>0.8.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-collections4</artifactId>
+        <version>4.4</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -494,11 +536,6 @@
             <artifactId>servlet-api</artifactId>
           </exclusion>
         </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>jakarta.xml.bind</groupId>
-        <artifactId>jakarta.xml.bind-api</artifactId>
-        <version>${jaxb.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.hadoop</groupId>
@@ -548,14 +585,9 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>com.qcloud.cos</groupId>
-        <artifactId>hadoop-cos</artifactId>
-        <version>${hadoop-cos.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.qcloud</groupId>
-        <artifactId>cos_api-bundle</artifactId>
-        <version>${cos_api.version}</version>
+        <groupId>org.apache.hive</groupId>
+        <artifactId>hive-metastore</artifactId>
+        <version>${hive-metastore.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
@@ -566,6 +598,26 @@
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
         <version>4.4.13</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.kerby</groupId>
+        <artifactId>kerby-util</artifactId>
+        <version>${kerby.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-slf4j-impl</artifactId>
+        <version>${log4j.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.orc</groupId>
@@ -583,29 +635,19 @@
         <version>${parquet.version}</version>
       </dependency>
       <dependency>
-        <groupId>io.atomix.catalyst</groupId>
-        <artifactId>catalyst-transport</artifactId>
-        <version>${catalyst.version}</version>
+        <groupId>org.apache.ratis</groupId>
+        <artifactId>ratis-grpc</artifactId>
+        <version>${ratis.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.sling</groupId>
-        <artifactId>maven-jspc-plugin</artifactId>
-        <version>2.0.8</version>
+        <groupId>org.apache.ratis</groupId>
+        <artifactId>ratis-server</artifactId>
+        <version>${ratis.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
         <version>3.5.5</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>apache-jstl</artifactId>
-        <version>${jetty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-annotations</artifactId>
-        <version>${jetty.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
@@ -648,28 +690,6 @@
         <version>${jersey.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.fasterxml.jackson.jaxrs</groupId>
-        <artifactId>jackson-jaxrs-json-provider</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.gluster</groupId>
-        <artifactId>glusterfs-hadoop</artifactId>
-        <version>${glusterfs-hadoop.version}</version>
-        <exclusions>
-          <!-- Excluded to avoid implementation conflict with org.glassfish.jersey.core:jersey-server -->
-          <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-server</artifactId>
-          </exclusion>
-          <!-- Excluded to avoid implementation conflict with javax.servlet:javax.servlet-api -->
-          <exclusion>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
         <groupId>org.hdrhistogram</groupId>
         <artifactId>HdrHistogram</artifactId>
         <version>2.1.12</version>
@@ -678,6 +698,22 @@
         <groupId>org.javaswift</groupId>
         <artifactId>joss</artifactId>
         <version>0.10.4</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jline</groupId>
+        <artifactId>jline</artifactId>
+        <version>3.16.0</version>
+      </dependency>
+      <!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
+      <dependency>
+        <groupId>org.jsoup</groupId>
+        <artifactId>jsoup</artifactId>
+        <version>1.15.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.lz4</groupId>
+        <artifactId>lz4-java</artifactId>
+        <version>1.8.0</version>
       </dependency>
       <dependency>
         <groupId>org.reflections</groupId>
@@ -695,27 +731,16 @@
         <version>${slf4j.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-slf4j-impl</artifactId>
-        <version>${log4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.kerby</groupId>
-        <artifactId>kerby-util</artifactId>
-        <version>${kerby.version}</version>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>netty-nio-client</artifactId>
+        <version>${awssdk.version}</version>
       </dependency>
       <dependency>
         <groupId>software.amazon.awssdk</groupId>
-        <artifactId>bom</artifactId>
+        <artifactId>s3</artifactId>
         <version>${awssdk.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
       </dependency>
-      <dependency>
-        <groupId>it.unimi.dsi</groupId>
-        <artifactId>fastutil-core</artifactId>
-        <version>${fastutil.version}</version>
-      </dependency>
+
       <!-- Test scope -->
       <dependency>
         <groupId>com.google.guava</groupId>
@@ -724,9 +749,16 @@
         <scope>test</scope>
       </dependency>
       <dependency>
+        <groupId>com.thoughtworks.xstream</groupId>
+        <artifactId>xstream</artifactId>
+        <version>1.4.20</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
         <groupId>io.grpc</groupId>
         <artifactId>grpc-testing</artifactId>
         <version>${grpc.version}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>junit</groupId>
@@ -768,6 +800,12 @@
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest</artifactId>
         <version>2.2</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-api</artifactId>
+        <version>${jupiter.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -819,9 +857,15 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <artifactId>xstream</artifactId>
-        <groupId>com.thoughtworks.xstream</groupId>
-        <version>1.4.20</version>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers</artifactId>
+        <version>${testcontainers.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>toxiproxy</artifactId>
+        <version>${testcontainers.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>
@@ -855,6 +899,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.thoughtworks.xstream</groupId>
+      <artifactId>xstream</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
@@ -880,8 +929,8 @@
       <scope>test</scope>
       <exclusions>
         <exclusion>
-          <artifactId>xstream</artifactId>
           <groupId>com.thoughtworks.xstream</groupId>
+          <artifactId>xstream</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -905,11 +954,6 @@
       <artifactId>powermock-reflect</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <artifactId>xstream</artifactId>
-      <groupId>com.thoughtworks.xstream</groupId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>
@@ -921,14 +965,14 @@
           <version>1.0</version>
         </plugin>
         <plugin>
-          <groupId>com.igormaznitsa</groupId>
-          <artifactId>jcp</artifactId>
-          <version>6.1.2</version>
-        </plugin>
-        <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>4.2</version>
+        </plugin>
+        <plugin>
+          <groupId>pl.project13.maven</groupId>
+          <artifactId>git-commit-id-plugin</artifactId>
+          <version>4.0.5</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -955,10 +999,6 @@
             <maxmem>1024m</maxmem>
             <compilerArgs>
               <arg>-Xlint:none</arg>
-              <arg>--add-exports=java.base/jdk.internal.access=ALL-UNNAMED</arg>
-              <arg>--add-exports=java.base/jdk.internal=ALL-UNNAMED</arg>
-              <arg>--add-exports=java.base/jdk.internal.misc=ALL-UNNAMED</arg>
-              <arg>--add-exports=java.management/sun.management=ALL-UNNAMED</arg>
             </compilerArgs>
             <forceJavacCompilerUse>true</forceJavacCompilerUse>
           </configuration>
@@ -976,7 +1016,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
-          <version>3.0.0-M3</version>
+          <version>3.3.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -1017,9 +1057,9 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.0.0-M5</version>
+          <version>3.0.0</version>
           <configuration>
-            <argLine>@{argLine} -Djava.net.preferIPv4Stack=true --add-opens java.base/jdk.internal.loader=ALL-UNNAMED --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED</argLine>
+            <argLine>@{argLine} -Djava.net.preferIPv4Stack=true</argLine>
             <excludesFile>${build.path}/surefire/${surefire.excludesFile}</excludesFile>
             <forkCount>${surefire.forkCount}</forkCount>
             <rerunFailingTestsCount>${surefire.rerunFailingTestsCount}</rerunFailingTestsCount>
@@ -1074,19 +1114,16 @@
           <artifactId>templating-maven-plugin</artifactId>
           <version>1.0.0</version>
         </plugin>
+        <plugin>
+          <groupId>com.github.ekryd.sortpom</groupId>
+          <artifactId>sortpom-maven-plugin</artifactId>
+          <version>3.0.1</version>
+        </plugin>
         <!-- REST Documentation plugin -->
         <plugin>
           <groupId>com.github.kongchen</groupId>
           <artifactId>swagger-maven-plugin</artifactId>
           <version>3.1.7</version>
-          <executions>
-            <execution>
-              <phase>compile</phase>
-              <goals>
-                <goal>generate</goal>
-              </goals>
-            </execution>
-          </executions>
           <dependencies>
             <dependency>
               <groupId>javax.xml.bind</groupId>
@@ -1094,6 +1131,14 @@
               <version>2.3.1</version>
             </dependency>
           </dependencies>
+          <executions>
+            <execution>
+              <goals>
+                <goal>generate</goal>
+              </goals>
+              <phase>compile</phase>
+            </execution>
+          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -1151,7 +1196,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
         <!-- hardcode the version here because maven failed to pick up the dependency-managed version of maven-enforcer-plugin -->
-        <version>3.0.0-M3</version>
+        <version>3.3.0</version>
         <executions>
           <execution>
             <id>enforce-versions</id>
@@ -1164,8 +1209,21 @@
                   <version>${maven.version}</version>
                 </requireMavenVersion>
                 <requireJavaVersion>
-                  <version>${java.version}</version>
+                  <version>[1.8, 1.9)</version>
                 </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+          <execution>
+            <id>no-duplicate-dependencies</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <!-- checks for duplicate dependencies in the "dependencies" and "dependencyManagement" sections. -->
+                <!-- dependencies are considered duplicate if they have the same groupId, artifactId, type, and classifier properties -->
+                <banDuplicatePomDependencyVersions/>
               </rules>
             </configuration>
           </execution>
@@ -1176,15 +1234,6 @@
       <plugin>
         <groupId>pl.project13.maven</groupId>
         <artifactId>git-commit-id-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>get-the-git-infos</id>
-            <goals>
-              <goal>revision</goal>
-            </goals>
-            <phase>initialize</phase>
-          </execution>
-        </executions>
         <configuration>
           <generateGitPropertiesFile>true</generateGitPropertiesFile>
           <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
@@ -1196,6 +1245,15 @@
           </includeOnlyProperties>
           <commitIdGenerationMode>full</commitIdGenerationMode>
         </configuration>
+        <executions>
+          <execution>
+            <id>get-the-git-infos</id>
+            <goals>
+              <goal>revision</goal>
+            </goals>
+            <phase>initialize</phase>
+          </execution>
+        </executions>
       </plugin>
 
       <!-- SpotBugs -->
@@ -1218,10 +1276,10 @@
         </configuration>
         <executions>
           <execution>
-            <phase>compile</phase>
             <goals>
               <goal>check</goal>
             </goals>
+            <phase>compile</phase>
           </execution>
         </executions>
       </plugin>
@@ -1231,13 +1289,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>3.1.2</version>
-        <dependencies>
-          <dependency>
-            <groupId>com.puppycrawl.tools</groupId>
-            <artifactId>checkstyle</artifactId>
-            <version>9.0.1</version>
-          </dependency>
-        </dependencies>
         <configuration>
           <configLocation>${build.path}/checkstyle/alluxio_checks.xml</configLocation>
           <suppressionsLocation>${build.path}/checkstyle/suppressions.xml</suppressionsLocation>
@@ -1248,19 +1299,26 @@
             <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
           </sourceDirectories>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/org/apache/jsp/**,**/alluxio/jnifuse/**</excludes>
+          <excludes>**/org/apache/jsp/**,**/alluxio/concurrent/jsr/**,**/alluxio/jnifuse/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
           <linkXRef>false</linkXRef>
         </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>9.0.1</version>
+          </dependency>
+        </dependencies>
         <executions>
           <execution>
             <id>checkstyle</id>
-            <phase>validate</phase>
             <goals>
               <goal>check</goal>
             </goals>
+            <phase>validate</phase>
           </execution>
         </executions>
       </plugin>
@@ -1278,6 +1336,7 @@
               <excludes>
 
                 <!-- Code Exclusions -->
+                <exclude>**/src/main/java/alluxio/concurrent/jsr/**</exclude>
                 <exclude>**/src/main/resources/*</exclude>
                 <exclude>**/src/proto/**</exclude>
                 <exclude>**/src/deb/**/*</exclude>
@@ -1341,48 +1400,82 @@
         </configuration>
         <executions>
           <execution>
-            <phase>validate</phase>
             <goals>
               <goal>check</goal>
             </goals>
+            <phase>validate</phase>
           </execution>
         </executions>
       </plugin>
 
-      <!-- Prevent Windows line endings -->
       <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
         <inherited>false</inherited>
         <executions>
+          <!-- Prevent Windows line endings -->
           <execution>
             <id>Check that there are no Windows line endings</id>
-            <phase>compile</phase>
             <goals>
               <goal>exec</goal>
             </goals>
+            <phase>compile</phase>
             <configuration>
               <executable>${build.path}/style/check_no_windows_line_endings.sh</executable>
+            </configuration>
+          </execution>
+          <!-- Create libexec/version.sh -->
+          <execution>
+            <id>Write version string in generated packaged script</id>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <phase>compile</phase>
+            <configuration>
+              <executable>${build.path}/version/write_version.sh</executable>
+              <arguments>${project.version}</arguments>
             </configuration>
           </execution>
         </executions>
       </plugin>
 
-      <!-- Create libexec/version.sh -->
       <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
-        <groupId>org.codehaus.mojo</groupId>
-        <inherited>false</inherited>
+        <groupId>com.github.ekryd.sortpom</groupId>
+        <artifactId>sortpom-maven-plugin</artifactId>
+        <configuration>
+          <encoding>${project.build.sourceEncoding}</encoding>
+          <expandEmptyElements>false</expandEmptyElements>
+          <keepBlankLines>true</keepBlankLines>
+          <lineSeparator>\n</lineSeparator>
+          <sortOrderFile>${build.path}/sortpom/alluxio_pom.xml</sortOrderFile>
+          <sortDependencies>scope,groupId,artifactId</sortDependencies>
+          <sortProperties>true</sortProperties>
+        </configuration>
         <executions>
           <execution>
-            <id>Write version string in generated packaged script</id>
-            <phase>compile</phase>
+            <!-- validate if a pom file is sorted, fail the build if it is not sorted -->
+            <id>default-cli</id>
             <goals>
-              <goal>exec</goal>
+              <goal>verify</goal>
             </goals>
+            <phase>validate</phase>
             <configuration>
-              <executable>${build.path}/version/write_version.sh</executable>
-              <arguments>${project.version}</arguments>
+              <verifyFail>stop</verifyFail>
+              <verifyFailOn>strict</verifyFailOn>
+              <violationFilename>target/sortpom_reports/violation.xml</violationFilename>
+            </configuration>
+          </execution>
+          <execution>
+            <!-- sort a pom file in place, note this will modify the pom file -->
+            <id>manual-sort</id>
+            <goals>
+              <goal>sort</goal>
+            </goals>
+            <!-- Empty phase to skip automatically running this as part of a build process -->
+            <!-- Still invokable by running `mvn sortpom:sort@manual-sort` from the command line -->
+            <phase/>
+            <configuration>
+              <createBackupFile>true</createBackupFile>
             </configuration>
           </execution>
         </executions>
@@ -1438,14 +1531,42 @@
       </properties>
     </profile>
 
-    <!-- profile that Alluxio developers should use -->
+    <!-- Requires hadoop.version to be 2.4.0 or later -->
     <profile>
-      <id>developer</id>
-      <modules>
-      </modules>
+      <id>java11</id>
+      <activation>
+        <jdk>11</jdk>
+      </activation>
       <properties>
-        <hadoop.version>3.3.1</hadoop.version>
+        <java.version>1.8</java.version>
       </properties>
+      <dependencyManagement>
+        <dependencies>
+          <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+          </dependency>
+        </dependencies>
+      </dependencyManagement>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <source>11</source>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <argLine>--add-opens java.base/jdk.internal.loader=ALL-UNNAMED --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED</argLine>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
 
     <profile>
@@ -1453,16 +1574,16 @@
       <build>
         <plugins>
           <plugin>
-            <artifactId>exec-maven-plugin</artifactId>
             <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
             <inherited>false</inherited>
             <executions>
               <execution>
                 <id>Generate documentation</id>
-                <phase>compile</phase>
                 <goals>
                   <goal>exec</goal>
                 </goals>
+                <phase>compile</phase>
                 <configuration>
                   <executable>jekyll</executable>
                   <arguments>
@@ -1486,8 +1607,8 @@
           <!-- to use instrument, jacoco must be on the classpath -->
           <groupId>org.jacoco</groupId>
           <artifactId>org.jacoco.agent</artifactId>
-          <classifier>runtime</classifier>
           <version>${jacoco.version}</version>
+          <classifier>runtime</classifier>
           <scope>test</scope>
         </dependency>
       </dependencies>
@@ -1518,10 +1639,10 @@
               <execution>
                 <!-- offline instrumentation is required, for jacoco to work with powermock tests -->
                 <id>jacoco-unit-restore-instrumented-classes</id>
-                <phase>test</phase>
                 <goals>
                   <goal>restore-instrumented-classes</goal>
                 </goals>
+                <phase>test</phase>
               </execution>
             </executions>
           </plugin>
@@ -1569,6 +1690,30 @@
         -->
         <create.dependency.reduced.pom>true</create.dependency.reduced.pom>
       </properties>
+      <build>
+        <plugins>
+          <!-- Precompile golang binaries for CLI -->
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>Build Golang CLI</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <phase>compile</phase>
+                <configuration>
+                  <executable>${build.path}/cli/build-cli.sh</executable>
+                  <arguments>
+                    <argument>-a</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 </project>

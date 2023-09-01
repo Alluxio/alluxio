@@ -53,12 +53,12 @@ if [[ -z "${JAVA}" ]]; then
   fi
 fi
 
-# Check Java version == 11
+# Check Java version == 1.8 or == 11
 JAVA_VERSION=$(${JAVA} -version 2>&1 | awk -F '"' '/version/ {print $2}')
 JAVA_MAJORMINOR=$(echo "${JAVA_VERSION}" | awk -F. '{printf("%03d%03d",$1,$2);}')
 JAVA_MAJOR=$(echo "${JAVA_VERSION}" | awk -F. '{printf("%03d",$1);}')
-if [[ ${JAVA_MAJOR} != 011 ]]; then
-  echo "Error: Alluxio requires Java 11, currently Java $JAVA_VERSION found."
+if [[ ${JAVA_MAJORMINOR} != 001008 && ${JAVA_MAJOR} != 011 ]]; then
+  echo "Error: Alluxio requires Java 8 or Java 11, currently Java $JAVA_VERSION found."
   exit 1
 fi
 
@@ -131,10 +131,6 @@ ALLUXIO_JOB_WORKER_JAVA_OPTS="${ALLUXIO_JOB_WORKER_JAVA_OPTS_DEFAULT} ${ALLUXIO_
 ALLUXIO_MASTER_JAVA_OPTS_DEFAULT=" -Dalluxio.logger.type=${ALLUXIO_MASTER_LOGGER:-MASTER_LOGGER}"
 ALLUXIO_MASTER_JAVA_OPTS_DEFAULT+=" -Dalluxio.master.audit.logger.type=${ALLUXIO_MASTER_AUDIT_LOGGER:-MASTER_AUDIT_LOGGER}"
 ALLUXIO_MASTER_JAVA_OPTS="${ALLUXIO_MASTER_JAVA_OPTS_DEFAULT} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_MASTER_JAVA_OPTS}"
-
-# Secondary master specific parameters based on ALLUXIO_JAVA_OPTS.
-ALLUXIO_SECONDARY_MASTER_JAVA_OPTS_DEFAULT=" -Dalluxio.logger.type=${ALLUXIO_SECONDARY_MASTER_LOGGER:-SECONDARY_MASTER_LOGGER}"
-ALLUXIO_SECONDARY_MASTER_JAVA_OPTS="${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS_DEFAULT} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}"
 
 # Proxy specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_PROXY_JAVA_OPTS_DEFAULT=" -Dalluxio.logger.type=${ALLUXIO_PROXY_LOGGER:-PROXY_LOGGER}"

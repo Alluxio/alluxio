@@ -12,7 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
 import alluxio.collections.Pair;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.Configuration;
@@ -191,7 +190,7 @@ public class InodeTree implements DelegatingJournaled {
 
   /**
    * Class for managing the persistent state of the inode tree. All metadata changes must go
-   * through this class by calling mState.applyAndJournal(context, entry).
+   * through this class by calling {@link InodeTreePersistentState#applyAndJournal(context, entry)}.
    */
   private final InodeTreePersistentState mState;
 
@@ -1033,9 +1032,6 @@ public class InodeTree implements DelegatingJournaled {
       }
       if (fileContext.isCacheable()) {
         newFile.setCacheable(true);
-      }
-      if (fileContext.getWriteType() == WriteType.ASYNC_THROUGH) {
-        newFile.setPersistenceState(PersistenceState.TO_BE_PERSISTED);
       }
       if (context.getXAttr() != null) {
         newFile.setXAttr(context.getXAttr());

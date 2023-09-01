@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -13,9 +14,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>alluxio-underfs</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>301-SNAPSHOT</version>
+    <artifactId>alluxio-underfs</artifactId>
+    <version>304-SNAPSHOT</version>
   </parent>
 
   <artifactId>alluxio-underfs-cephfs-hadoop</artifactId>
@@ -28,22 +29,20 @@
   </properties>
 
   <dependencies>
-    <!-- External dependencies -->
     <dependency>
       <groupId>io.github.opendataio</groupId>
       <artifactId>cephfs-hadoop</artifactId>
-    </dependency>
-    <!-- Internal dependencies -->
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-common</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-hdfs</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
   <build>
@@ -54,25 +53,17 @@
         <executions>
           <execution>
             <id>shade</id>
-            <phase>package</phase>
             <goals>
               <goal>shade</goal>
             </goals>
+            <phase>package</phase>
             <configuration>
               <filters>
                 <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <exclude>LICENSE</exclude>
-                    <exclude>META-INF/LICENSE</exclude>
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                  </excludes>
-                </filter>
-                <filter>
                   <artifact>org.alluxio:alluxio-underfs-hdfs</artifact>
                   <excludes>
+                    <!-- Because this module depends on alluxio-underfs-hdfs, eliminate HDFS factory implementation -->
+                    <exclude>alluxio/underfs/hdfs/HdfsUnderFileSystemFactory.*</exclude>
                     <exclude>META-INF/services/alluxio.underfs.UnderFileSystemFactory</exclude>
                   </excludes>
                 </filter>
@@ -82,22 +73,22 @@
         </executions>
       </plugin>
       <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
         <inherited>false</inherited>
         <executions>
           <execution>
             <id>copy-lib-jars-selectively</id>
-            <phase>install</phase>
             <goals>
               <goal>exec</goal>
             </goals>
+            <phase>install</phase>
             <configuration>
               <executable>${build.path}/lib/copy_jars.sh</executable>
               <arguments>
                 <argument>${project.artifactId}</argument>
                 <argument>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</argument>
-                <argument>${basedir}/../../../lib/${project.artifactId}-${project.version}.jar</argument>
+                <argument>${build.path}/../lib/${project.artifactId}-${project.version}.jar</argument>
               </arguments>
             </configuration>
           </execution>
@@ -108,7 +99,7 @@
         <configuration>
           <filesets>
             <fileset>
-              <directory>${basedir}/../../../lib</directory>
+              <directory>${build.path}/../lib</directory>
               <includes>
                 <include>**/${project.artifactId}-*.jar</include>
               </includes>

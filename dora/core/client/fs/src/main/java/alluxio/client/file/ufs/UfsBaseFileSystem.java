@@ -17,11 +17,13 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -64,7 +66,6 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -157,7 +158,7 @@ public class UfsBaseFileSystem implements FileSystem {
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options) {
     call(() -> {
       // TODO(lu) deal with other options e.g. owner/group
-      MkdirsOptions ufsOptions = MkdirsOptions.defaults(mFsContext.getPathConf(path));
+      MkdirsOptions ufsOptions = MkdirsOptions.defaults(mFsContext.getClusterConf());
       if (options.hasMode()) {
         ufsOptions.setMode(Mode.fromProto(options.getMode()));
       }
@@ -172,7 +173,7 @@ public class UfsBaseFileSystem implements FileSystem {
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options) {
     return callWithReturn(() -> {
       // TODO(lu) deal with other options e.g. owner/group/acl/ensureAtomic
-      CreateOptions ufsOptions = CreateOptions.defaults(mFsContext.getPathConf(path));
+      CreateOptions ufsOptions = CreateOptions.defaults(mFsContext.getClusterConf());
       if (options.hasMode()) {
         ufsOptions.setMode(Mode.fromProto(options.getMode()));
       }
@@ -181,6 +182,9 @@ public class UfsBaseFileSystem implements FileSystem {
       }
       if (options.hasIsAtomicWrite()) {
         ufsOptions.setEnsureAtomic(options.getIsAtomicWrite());
+      }
+      if (options.hasUseMultipartUpload()) {
+        ufsOptions.setMultipartUploadEnabled(options.getUseMultipartUpload());
       }
       return new UfsFileOutStream(mUfs.get().create(path.getPath(), ufsOptions));
     });
@@ -228,12 +232,13 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-  public URIStatus getStatus(AlluxioURI path) {
+  public URIStatus getStatus(AlluxioURI path) throws FileDoesNotExistException {
     return getStatus(path, GetStatusPOptions.getDefaultInstance());
   }
 
   @Override
-  public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options) {
+  public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options)
+      throws FileDoesNotExistException {
     return callWithReturn(() -> {
       UfsStatus ufsStatus = mUfs.get().getStatus(path.toString(), GetStatusOptions.defaults()
                             .setIncludeRealContentHash(options.getIncludeRealContentHash()));
@@ -309,17 +314,13 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-  public List<SyncPointInfo> getSyncPathList() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public void persist(final AlluxioURI path, final ScheduleAsyncPersistencePOptions options) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) {
+  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
+      throws FileDoesNotExistException {
     return openFile(getStatus(path), options);
   }
 
@@ -338,7 +339,8 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-  public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options) {
+  public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options)
+      throws FileDoesNotExistException {
     return openPositionRead(getStatus(path), options);
   }
 
@@ -406,25 +408,6 @@ public class UfsBaseFileSystem implements FileSystem {
     });
   }
 
-  /**
-   * Starts the active syncing process on an Alluxio path.
-   *
-   * @param path the path to sync
-   */
-  @Override
-  public void startSync(AlluxioURI path) {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
-   * Stops the active syncing process on an Alluxio path.
-   * @param path the path to stop syncing
-   */
-  @Override
-  public void stopSync(AlluxioURI path) {
-    throw new UnsupportedOperationException();
-  }
-
   @Override
   public void unmount(AlluxioURI path, UnmountPOptions options) {
     throw new UnsupportedOperationException();
@@ -437,18 +420,27 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public Optional<String> submitJob(JobRequest jobRequest) {
-    throw new UnsupportedOperationException();
+    try (CloseableResource<FileSystemMasterClient> client =
+        mFsContext.acquireMasterClientResource()) {
+      return client.get().submitJob(jobRequest);
+    }
   }
 
   @Override
   public boolean stopJob(JobDescription jobDescription) {
-    throw new UnsupportedOperationException();
+    try (CloseableResource<FileSystemMasterClient> client =
+        mFsContext.acquireMasterClientResource()) {
+      return client.get().stopJob(jobDescription);
+    }
   }
 
   @Override
   public String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose) {
-    throw new UnsupportedOperationException();
+    try (CloseableResource<FileSystemMasterClient> client =
+        mFsContext.acquireMasterClientResource()) {
+      return client.get().getJobProgress(jobDescription, format, verbose);
+    }
   }
 
   /**

@@ -20,7 +20,6 @@ import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.security.user.UserState;
-import alluxio.util.CommonUtils;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -175,6 +174,12 @@ public final class NetworkAddressUtils {
      */
     WORKER_DATA("Alluxio Worker data service", PropertyKey.WORKER_DATA_HOSTNAME,
         PropertyKey.WORKER_DATA_BIND_HOST, PropertyKey.WORKER_DATA_PORT),
+
+    /**
+     * Worker s3 service (Netty).
+     */
+    WORKER_REST("Alluxio Worker S3 service", PropertyKey.WORKER_WEB_HOSTNAME,
+        PropertyKey.WORKER_WEB_BIND_HOST, PropertyKey.WORKER_REST_PORT),
 
     /**
      * Worker web service (Jetty).
@@ -412,51 +417,6 @@ public final class NetworkAddressUtils {
   public static String getClientHostName(AlluxioConfiguration conf) {
     if (conf.isSet(PropertyKey.USER_HOSTNAME)) {
       return conf.getString(PropertyKey.USER_HOSTNAME);
-    }
-    if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
-      return conf.getString(PropertyKey.LOCALITY_TIER_NODE);
-    }
-    return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
-  }
-
-  /**
-   * Gets a local node name from configuration if it is available, falling back on localhost lookup.
-   *
-   * @param conf Alluxio configuration
-   * @return the local node name
-   */
-  public static String getLocalNodeName(AlluxioConfiguration conf) {
-    switch (CommonUtils.PROCESS_TYPE.get()) {
-      case JOB_MASTER:
-        if (conf.isSet(PropertyKey.JOB_MASTER_HOSTNAME)) {
-          return conf.getString(PropertyKey.JOB_MASTER_HOSTNAME);
-        }
-        break;
-      case JOB_WORKER:
-        if (conf.isSet(PropertyKey.JOB_WORKER_HOSTNAME)) {
-          return conf.getString(PropertyKey.JOB_WORKER_HOSTNAME);
-        }
-        break;
-      case CLIENT:
-        if (conf.isSet(PropertyKey.USER_HOSTNAME)) {
-          return conf.getString(PropertyKey.USER_HOSTNAME);
-        }
-        break;
-      case MASTER:
-        if (conf.isSet(PropertyKey.MASTER_HOSTNAME)) {
-          return conf.getString(PropertyKey.MASTER_HOSTNAME);
-        }
-        break;
-      case WORKER:
-        if (conf.isSet(PropertyKey.WORKER_HOSTNAME)) {
-          return conf.getString(PropertyKey.WORKER_HOSTNAME);
-        }
-        break;
-      default:
-        break;
-    }
-    if (conf.isSet(PropertyKey.LOCALITY_TIER_NODE)) {
-      return conf.getString(PropertyKey.LOCALITY_TIER_NODE);
     }
     return getLocalHostName((int) conf.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS));
   }

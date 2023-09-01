@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -13,14 +14,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>alluxio-core</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>301-SNAPSHOT</version>
+    <artifactId>alluxio-core</artifactId>
+    <version>304-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-server</artifactId>
   <packaging>pom</packaging>
   <name>Alluxio Core - Server</name>
   <description>Alluxio core services</description>
+
+  <properties>
+    <!-- These need to be defined here as well as in the parent pom so that mvn can run
+         properly from sub-project directories -->
+    <build.path>${project.parent.parent.parent.basedir}/build</build.path>
+  </properties>
 
   <modules>
     <module>common</module>
@@ -28,11 +35,5 @@
     <module>proxy</module>
     <module>worker</module>
   </modules>
-
-  <properties>
-    <!-- These need to be defined here as well as in the parent pom so that mvn can run
-         properly from sub-project directories -->
-    <build.path>${project.parent.parent.parent.basedir}/build</build.path>
-  </properties>
 
 </project>

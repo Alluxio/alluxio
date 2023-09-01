@@ -34,12 +34,13 @@ import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobMetaStore;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
-import alluxio.scheduler.job.WorkerProvider;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -55,6 +56,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -71,10 +73,12 @@ import javax.annotation.concurrent.ThreadSafe;
  *  5. One worker would have one task running for one job description at a time.
  */
 @ThreadSafe
+@SuppressFBWarnings({"SE_NO_SERIALVERSIONID"})
 public final class Scheduler {
 
   private static final Logger LOG = LoggerFactory.getLogger(Scheduler.class);
   private static final int CAPACITY = 100;
+  private static final int MAX_TASK_PER_WORKER = 10;
   private static final long WORKER_UPDATE_INTERVAL = Configuration.getMs(
       PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME);
   private final long mSchedulerInitialDelay = Configuration.getMs(
@@ -271,8 +275,9 @@ public final class Scheduler {
    * @return active workers
    */
   @VisibleForTesting
-  public Map<WorkerInfo, CloseableResource<BlockWorkerClient>> getActiveWorkers() {
-    return mWorkerInfoHub.mActiveWorkers;
+  public Set<WorkerInfo> getActiveWorkers() {
+    return mWorkerInfoHub.mActiveWorkers.keySet().stream()
+        .map(x -> x.mWorkerInfo).collect(Collectors.toSet());
   }
 
   /**
@@ -303,6 +308,8 @@ public final class Scheduler {
       return;
     }
     mJobToRunningTasks.forEach((k, v) -> processJob(k));
+    // kickstart the head task from each q of the worker if it's not running
+    mWorkerInfoHub.kickStartTasks();
   }
 
   private void processJob(Job<?> job) {
@@ -325,7 +332,8 @@ public final class Scheduler {
     try {
       List<Task> tasks;
       try {
-        Set<WorkerInfo> workers = mWorkerInfoHub.mActiveWorkers.keySet();
+        Set<WorkerInfo> workers = mWorkerInfoHub.mActiveWorkers.keySet()
+            .stream().map(x -> x.mWorkerInfo).collect(Collectors.toSet());
         tasks = (List<Task>) job.getNextTasks(workers);
       } catch (AlluxioRuntimeException e) {
         LOG.warn(format("error getting next task for job %s", job), e);
@@ -334,11 +342,10 @@ public final class Scheduler {
         }
         return;
       }
-      // enqueue the worker task q and kick it start
-      // TODO(lucy) add if worker q is too full tell job to save this task for retry kick-off
+      // enqueue the worker task q
       for (Task task : tasks) {
-        boolean taskEnqueued = getWorkerInfoHub().enqueueTaskForWorker(task.getMyRunningWorker(),
-            task, true);
+        boolean taskEnqueued = getWorkerInfoHub().enqueueTaskForWorker(
+            task.getMyRunningWorker(), task);
         if (!taskEnqueued) {
           job.onTaskSubmitFailure(task);
         }
@@ -397,12 +404,104 @@ public final class Scheduler {
   }
 
   /**
+   * Bounded priority queue impl.
+   * @param <E>
+   */
+  @SuppressFBWarnings({"SE_BAD_FIELD_INNER_CLASS", "SE_NO_SERIALVERSIONID"})
+  public class BoundedPriorityBlockingQueue<E> extends PriorityBlockingQueue<E> {
+
+    private AtomicInteger mLen = new AtomicInteger(0);
+    private final int mCapacity;
+
+    /**
+     * Constructor for Bounded priority queue with a max capacity.
+     * @param capacity
+     */
+    public BoundedPriorityBlockingQueue(int capacity) {
+      mCapacity = capacity;
+    }
+
+    @Override
+    public boolean offer(E e) {
+      if (mLen.incrementAndGet() > mCapacity) {
+        mLen.decrementAndGet();
+        return false;
+      }
+      // this will always return true
+      return super.offer(e);
+    }
+
+    @Override
+    public E poll() {
+      E e = super.poll();
+      if (e != null) {
+        mLen.decrementAndGet();
+      }
+      return e;
+    }
+
+    @Override
+    public boolean remove(Object o) {
+      boolean removed = super.remove(o);
+      if (removed) {
+        mLen.decrementAndGet();
+      }
+      return removed;
+    }
+  }
+
+  /**
+   * Util class here for tracking unique identity of a worker as
+   * WorkerInfo class uses constantly changing field such as
+   * mLastContactSec for equals(), which can't be served as key
+   * class in map.
+   */
+  public static class WorkerInfoIdentity {
+    public final WorkerInfo mWorkerInfo;
+
+    /**
+     * Constructor for WorkerInfoIdentity from WorkerInfo.
+     * @param workerInfo
+     */
+    public WorkerInfoIdentity(WorkerInfo workerInfo) {
+      mWorkerInfo = workerInfo;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(mWorkerInfo.getId(), mWorkerInfo.getAddress());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (o == null || getClass() != o.getClass()) {
+        return false;
+      }
+      WorkerInfoIdentity anotherO = (WorkerInfoIdentity) o;
+      return mWorkerInfo.getAddress().equals(anotherO.mWorkerInfo.getAddress())
+          && mWorkerInfo.getId() == anotherO.mWorkerInfo.getId();
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("id", mWorkerInfo.getId())
+          .add("address", mWorkerInfo.getAddress())
+          .toString();
+    }
+  }
+
+  /**
    * Worker information hub.
    */
   @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE",
       justification = "Already performed null check")
   public class WorkerInfoHub {
-    public Map<WorkerInfo, CloseableResource<BlockWorkerClient>> mActiveWorkers = ImmutableMap.of();
+    public Map<WorkerInfoIdentity, CloseableResource<BlockWorkerClient>>
+        mActiveWorkers = ImmutableMap.of();
     private final WorkerProvider mWorkerProvider;
 
     /**
@@ -414,38 +513,32 @@ public final class Scheduler {
       mWorkerProvider = workerProvider;
     }
 
-    private final Map<WorkerInfo, PriorityBlockingQueue<Task>> mWorkerToTaskQ
+    private final Map<WorkerInfoIdentity, BoundedPriorityBlockingQueue<Task>> mWorkerToTaskQ
         = new ConcurrentHashMap<>();
 
     /**
-     * Enqueue task for worker.
-     * @param workerInfo the worker
-     * @param task the task
-     * @param kickStartTask kick-start task
-     * @return whether the task is enqueued successfully
+     * Kick stark tasks for each worker task q.
      */
-    public boolean enqueueTaskForWorker(@Nullable WorkerInfo workerInfo, Task task,
-        boolean kickStartTask) {
-      if (workerInfo == null) {
-        return false;
-      }
-      PriorityBlockingQueue workerTaskQ = mWorkerToTaskQ
-          .computeIfAbsent(workerInfo, k -> new PriorityBlockingQueue<>());
-      if (!workerTaskQ.offer(task)) {
-        return false;
-      }
-      CloseableResource<BlockWorkerClient> blkWorkerClientResource = mActiveWorkers.get(workerInfo);
-      if (blkWorkerClientResource == null) {
-        LOG.warn("Didn't find corresponding BlockWorkerClient for workerInfo:{}",
-            workerInfo);
-        return false;
-      }
-      if (kickStartTask) {
-        // track running tasks of a job
-        ConcurrentHashSet<Task<?>> tasks = mJobToRunningTasks.computeIfAbsent(task.getJob(),
-                j -> new ConcurrentHashSet<>());
-        tasks.add(task);
-        task.execute(blkWorkerClientResource.get(), workerInfo);
+    public void kickStartTasks() {
+      // Kick off one task for each worker
+      mWorkerToTaskQ.forEach((workerInfo, tasksQ) -> {
+        LOG.debug("Kick start task for worker:{}, taskQ size:{}",
+            workerInfo.mWorkerInfo.getAddress().getHost(),
+            tasksQ.size());
+        CloseableResource<BlockWorkerClient> blkWorkerClientResource
+            = mActiveWorkers.get(workerInfo);
+        if (blkWorkerClientResource == null) {
+          LOG.warn("Didn't find corresponding BlockWorkerClient for workerInfo:{}",
+              workerInfo);
+          return;
+        }
+        Task task = tasksQ.peek();
+        // only make sure 1 task is running at the time
+        if (task == null || task.getResponseFuture() != null) {
+          LOG.debug("head task is {}", (task == null) ? "NULL" : "already running");
+          return;
+        }
+        task.execute(blkWorkerClientResource.get(), workerInfo.mWorkerInfo);
         task.getResponseFuture().addListener(() -> {
           Job job = task.getJob();
           try {
@@ -461,8 +554,7 @@ public final class Scheduler {
             LOG.error("Unexpected exception thrown in response future listener.", e);
             job.failJob(new InternalRuntimeException(e));
           } finally {
-            // whether task succeed or fail, remove it from q,
-            workerTaskQ.remove(task);
+            tasksQ.remove(task);
             mJobToRunningTasks.compute(job, (k, v) -> {
               if (v == null) {
                 return null;
@@ -472,28 +564,37 @@ public final class Scheduler {
             });
           }
         }, mSchedulerExecutor);
-      }
-      return true;
+      });
     }
 
     /**
-     * Removes task from worker queue.
+     * Enqueue task for worker.
+     * @param workerInfo the worker
      * @param task the task
-     * @return true if task exists and is removed, false otherwise
+     * @return whether the task is enqueued successfully
      */
-    public boolean removeTaskFromWorkerQ(Task task) {
-      WorkerInfo workerInfo = task.getMyRunningWorker();
-      if (mWorkerToTaskQ.containsKey(workerInfo)) {
+    public boolean enqueueTaskForWorker(@Nullable WorkerInfo workerInfo, Task task) {
+      if (workerInfo == null) {
         return false;
       }
-      PriorityBlockingQueue<Task> pq = mWorkerToTaskQ.get(workerInfo);
-      return pq.remove(task);
+      BoundedPriorityBlockingQueue workerTaskQ = mWorkerToTaskQ
+          .computeIfAbsent(new WorkerInfoIdentity(workerInfo),
+              k -> new BoundedPriorityBlockingQueue<>(MAX_TASK_PER_WORKER));
+      if (!workerTaskQ.offer(task)) {
+        LOG.debug("Exceeded maximum task per q[{}] for worker:{}",
+            MAX_TASK_PER_WORKER, new WorkerInfoIdentity(workerInfo));
+        return false;
+      }
+      ConcurrentHashSet<Task<?>> tasks = mJobToRunningTasks.computeIfAbsent(task.getJob(),
+          j -> new ConcurrentHashSet<>());
+      tasks.add(task);
+      return true;
     }
 
     /**
      * @return the worker to task queue
      */
-    public Map<WorkerInfo, PriorityBlockingQueue<Task>> getWorkerToTaskQ() {
+    public Map<WorkerInfoIdentity, BoundedPriorityBlockingQueue<Task>> getWorkerToTaskQ() {
       return mWorkerToTaskQ;
     }
 
@@ -505,45 +606,47 @@ public final class Scheduler {
       if (Thread.currentThread().isInterrupted()) {
         return;
       }
-      Set<WorkerInfo> workerInfos;
+      Set<WorkerInfoIdentity> workerInfoIds;
       try {
         try {
-          workerInfos = ImmutableSet.copyOf(mWorkerProvider.getWorkerInfos());
+          workerInfoIds = ImmutableSet.copyOf(mWorkerProvider.getWorkerInfos()).stream()
+              .map(x -> new WorkerInfoIdentity(x)).collect(Collectors.toSet());
         } catch (AlluxioRuntimeException e) {
           LOG.warn("Failed to get worker info, using existing worker infos of {} workers",
               mActiveWorkers.size());
           return;
         }
-        if (workerInfos.size() == mActiveWorkers.size()
-            && workerInfos.containsAll(mActiveWorkers.keySet())) {
+        if (workerInfoIds.size() == mActiveWorkers.size()
+            && workerInfoIds.containsAll(mActiveWorkers.keySet())) {
           return;
         }
 
-        ImmutableMap.Builder<WorkerInfo, CloseableResource<BlockWorkerClient>> updatedWorkers =
-            ImmutableMap.builder();
-        for (WorkerInfo workerInfo : workerInfos) {
+        ImmutableMap.Builder<WorkerInfoIdentity, CloseableResource<BlockWorkerClient>>
+            updatedWorkers = ImmutableMap.builder();
+        for (WorkerInfoIdentity workerInfoId : workerInfoIds) {
           try {
-            if (mActiveWorkers.get(workerInfo) != null) {
+            if (mActiveWorkers.get(workerInfoId) != null) {
               CloseableResource<BlockWorkerClient> workerClient = Preconditions.checkNotNull(
-                  mActiveWorkers.get(workerInfo));
-              updatedWorkers.put(workerInfo, workerClient);
+                  mActiveWorkers.get(workerInfoId));
+              updatedWorkers.put(workerInfoId, workerClient);
             } else {
-              updatedWorkers.put(workerInfo, mWorkerProvider.getWorkerClient(
-                  workerInfo.getAddress()));
+              updatedWorkers.put(workerInfoId, mWorkerProvider.getWorkerClient(
+                  workerInfoId.mWorkerInfo.getAddress()));
             }
           } catch (AlluxioRuntimeException e) {
-            LOG.warn("Updating worker {} address failed", workerInfo.getAddress(), e);
+            LOG.warn("Updating worker {} address failed",
+                workerInfoId.mWorkerInfo.getAddress(), e);
             // skip the worker if we cannot obtain a client
           }
         }
         // Close clients connecting to lost workers
-        for (Map.Entry<WorkerInfo, CloseableResource<BlockWorkerClient>> entry :
+        for (Map.Entry<WorkerInfoIdentity, CloseableResource<BlockWorkerClient>> entry :
             mActiveWorkers.entrySet()) {
-          WorkerInfo workerInfo = entry.getKey();
-          if (!workerInfos.contains(workerInfo)) {
+          WorkerInfoIdentity workerInfoId = entry.getKey();
+          if (!workerInfoIds.contains(workerInfoId)) {
             CloseableResource<BlockWorkerClient> resource = entry.getValue();
             resource.close();
-            LOG.debug("Closed BlockWorkerClient to lost worker {}", workerInfo);
+            LOG.debug("Closed BlockWorkerClient to lost worker {}", workerInfoId);
           }
         }
         // Build the clients to the current active worker list
@@ -563,6 +666,7 @@ public final class Scheduler {
   public static class SchedulerStats {
     public Map<Job, List<String>> mRunningJobToTasksStat = new HashMap<>();
     public Map<Job, String> mExistingJobAndProgresses = new HashMap<>();
+    public Map<String, String> mWorkerQInfos = new HashMap<>();
   }
 
   /**
@@ -578,6 +682,14 @@ public final class Scheduler {
     for (Map.Entry<JobDescription, Job<?>> entry : mExistingJobs.entrySet()) {
       schedulerStats.mExistingJobAndProgresses.put(entry.getValue(),
           entry.getValue().getProgress(JobProgressReportFormat.JSON, true));
+    }
+    for (Map.Entry<WorkerInfoIdentity, BoundedPriorityBlockingQueue<Task>> entry :
+        mWorkerInfoHub.getWorkerToTaskQ().entrySet()) {
+      String tasks = String.join(",",
+          entry.getValue().stream().map(x ->
+                  "Job:" + x.getJob().getJobId() + ":Task:" + x.getTaskId())
+              .collect(Collectors.toList()));
+      schedulerStats.mWorkerQInfos.put(entry.getKey().toString(), tasks);
     }
     return schedulerStats;
   }

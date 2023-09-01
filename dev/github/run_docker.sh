@@ -13,51 +13,38 @@
 set -ex
 
 function main {
-  if [ -z "${ALLUXIO_DOCKER_ID}" ]
-  then
+  if [ -z "${ALLUXIO_DOCKER_ID}" ]; then
     ALLUXIO_DOCKER_ID="$(id -u)"
   fi
-  if [ -z "${ALLUXIO_DOCKER_M2}" ]
-  then
+
+  if [ -z "${ALLUXIO_DOCKER_M2}" ]; then
     ALLUXIO_DOCKER_M2="${HOME}/.m2"
   fi
-  if [ -z "${ALLUXIO_DOCKER_IMAGE}" ]
-  then
-    ALLUXIO_DOCKER_IMAGE="alluxio/alluxio-maven:0.1.1-jdk11"
+
+  if [ -z "${ALLUXIO_DOCKER_IMAGE}" ]; then
+    ALLUXIO_DOCKER_IMAGE="alluxio/alluxio-maven:0.1.3-jdk8"
   fi
 
   local run_args="--rm"
 
-  if [ -z ${ALLUXIO_DOCKER_NO_TTY} ]
-  then
+  if [ -z "${ALLUXIO_DOCKER_NO_TTY}" ]; then
     run_args+=" -it"
   fi
 
-  if [ -n "${ALLUXIO_DOCKER_FORK_COUNT}" ]
-   then
+  if [ -n "${ALLUXIO_DOCKER_FORK_COUNT}" ]; then
      run_args+=" -e ALLUXIO_FORK_COUNT=${ALLUXIO_DOCKER_FORK_COUNT}"
   fi
 
-  if [ -n "${ALLUXIO_DOCKER_GIT_CLEAN}" ]
-  then
+  if [ -n "${ALLUXIO_DOCKER_GIT_CLEAN}" ]; then
     run_args+=" -e ALLUXIO_GIT_CLEAN=true"
   fi
 
-  if [ -n "${ALLUXIO_DOCKER_MVN_RUNTOEND}" ]
-  then
-    run_args+=" -e ALLUXIO_MVN_RUNTOEND=true"
-  fi
-
-  if [ -n "${ALLUXIO_DOCKER_MVN_PROJECT_LIST}" ]
-  then
+  if [ -n "${ALLUXIO_DOCKER_MVN_PROJECT_LIST}" ]; then
     run_args+=" -e ALLUXIO_MVN_PROJECT_LIST=${ALLUXIO_DOCKER_MVN_PROJECT_LIST}"
   fi
 
-  if [ -n "${ALLUXIO_SONAR_ARGS}" ]
-  then
-    # write out to a file, in case there are spaces in the args
-    echo "ALLUXIO_SONAR_ARGS=${ALLUXIO_SONAR_ARGS}" > /tmp/.env
-    run_args+=" --env-file /tmp/.env"
+  if [ -n "${ALLUXIO_DOCKER_MVN_TESTS}" ]; then
+    run_args+=" -e ALLUXIO_MVN_TESTS=${ALLUXIO_DOCKER_MVN_TESTS}"
   fi
 
   local home="/home/jenkins"
@@ -78,20 +65,20 @@ function main {
   # configure anything that's relative to ${HOME}.
   run_args+=" -e HOME=${home}"
   run_args+=" -v ${ALLUXIO_DOCKER_M2}:${home}/.m2"
+  run_args+=" -v /var/run/docker.sock:/var/run/docker.sock"
   run_args+=" -e npm_config_cache=${home}/.npm"
   run_args+=" -e MAVEN_CONFIG=${home}/.m2"
 
   run_args+=" -e ALLUXIO_USE_FIXED_TEST_PORTS=true"
   run_args+=" -e ALLUXIO_PORT_COORDINATION_DIR=${home}"
 
-  if [ -n "${ALLUXIO_CHECKSTYLE}" ]
-  then
+  if [ -n "${ALLUXIO_CHECKSTYLE}" ]; then
     run_args+=" --entrypoint=dev/github/run_checks.sh"
   else
     run_args+=" --entrypoint=dev/github/run_tests.sh"
   fi
 
-  docker run ${run_args} ${ALLUXIO_DOCKER_IMAGE} $@
+  docker run ${run_args} ${ALLUXIO_DOCKER_IMAGE}
 }
 
 main "$@"

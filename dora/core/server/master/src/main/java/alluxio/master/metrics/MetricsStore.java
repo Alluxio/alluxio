@@ -200,12 +200,6 @@ public class MetricsStore {
 
       // client metrics
       mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.CLIENT,
-          MetricKey.CLIENT_BYTES_READ_LOCAL.getMetricName()),
-          MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName()));
-      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.CLIENT,
-          MetricKey.CLIENT_BYTES_WRITTEN_LOCAL.getMetricName()),
-          MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()));
-      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.CLIENT,
           MetricKey.CLIENT_BUSY_EXCEPTION_COUNT.getMetricName()),
           MetricsSystem.counter(MetricKey.CLIENT_BUSY_EXCEPTION_COUNT.getName()));
 
@@ -226,8 +220,7 @@ public class MetricsStore {
             long total =
                 MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DIRECT.getName()).getCount()
                 + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName()).getCount()
-                + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()).getCount()
-                + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName()).getCount();
+                + MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()).getCount();
             if (total > 0) {
               return 1 - cacheMisses / (1.0 * total);
             }

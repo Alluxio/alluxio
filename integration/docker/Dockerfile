@@ -11,14 +11,14 @@
 
 # We have to do an ADD to put the tarball into extractor, then do a COPY with chown into final
 # ADD then chown in two steps will double the image size
-#   See - https://stackoverflow.com/questions/301-SNAPSHOT85621/why-does-chown-increase-size-of-docker-image
+#   See - https://stackoverflow.com/questions/30085621/why-does-chown-increase-size-of-docker-image
 #       - https://github.com/moby/moby/issues/5505
 #       - https://github.com/moby/moby/issues/6119
 # ADD with chown doesn't chown the files inside tarball
 #   See - https://github.com/moby/moby/issues/35525
 FROM alpine:3.10.2 AS alluxio-extractor
 # Note that downloads for *-SNAPSHOT tarballs are not available.
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/294/alluxio-294-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/304-SNAPSHOT/alluxio-304-SNAPSHOT-bin.tar.gz
 
 ADD ${ALLUXIO_TARBALL} /opt/
 # Remote tarball needs to be untarred. Local tarball is untarred automatically.

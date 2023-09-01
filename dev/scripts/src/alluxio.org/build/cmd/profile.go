@@ -42,6 +42,11 @@ type TarballOpts struct {
 	Symlinks      map[string]string `yaml:"symlinks"`
 }
 
+type ProfilesYaml struct {
+	DefaultName string              `yaml:"defaultName"`
+	Profiles    map[string]*Profile `yaml:"profiles"`
+}
+
 func (t *TarballOpts) clientJarPath(alluxioVersion string) string {
 	return filepath.Join("client", strings.ReplaceAll(t.ClientJarName, versionPlaceholder, alluxioVersion))
 }
@@ -62,7 +67,7 @@ func (p *Profile) updateFromFlags(targetName, mvnArgs, libModules, pluginModules
 	}
 }
 
-func loadProfiles(profilesYml string) (map[string]*Profile, error) {
+func loadProfiles(profilesYml string) (*ProfilesYaml, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "error getting current working directory")
@@ -73,11 +78,11 @@ func loadProfiles(profilesYml string) (map[string]*Profile, error) {
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "error reading file at %v", profilesPath)
 	}
-	profs := map[string]*Profile{}
-	if err := yaml.Unmarshal(content, &profs); err != nil {
+	var profsYml *ProfilesYaml
+	if err := yaml.Unmarshal(content, &profsYml); err != nil {
 		return nil, stacktrace.Propagate(err, "error unmarshalling profiles from:\n%v", string(content))
 	}
-	return profs, nil
+	return profsYml, nil
 }
 
 func ProfilesF(args []string) error {
