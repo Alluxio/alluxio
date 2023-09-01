@@ -120,7 +120,7 @@ public interface MembershipManager extends AutoCloseable {
         case ETCD:
           return EtcdMembershipManager.create(conf);
         case NOOP:
-          return NoOpMembershipManager.create();
+          return MasterMembershipManager.create();
         default:
           throw new IllegalStateException("Unrecognized Membership Type");
       }
