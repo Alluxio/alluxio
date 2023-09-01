@@ -588,7 +588,7 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
 
   private void onChannelIdle() {
     while (true) {
-      boolean returnNow = takeAndHandleChannelEvent(new ChannelEventVisitor<>() {
+      boolean returnNow = takeAndHandleChannelEvent(new ChannelEventVisitor<ReqT>() {
         @Override
         public boolean visit(ReadRequestReceived<ReqT> channelEvent) {
           fireNext(mTriggerEventsWithParam.mRequestReceived, channelEvent.getRequest());
@@ -701,7 +701,7 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
     // events, as well as write callbacks from previous writes
     // we use BlockingQueue.poll() instead of .take(), as the queue could be empty,
     // and we don't want to block here
-    boolean returnNow = pollAndHandleChannelEvent(new ChannelEventVisitor<>() {
+    boolean returnNow = pollAndHandleChannelEvent(new ChannelEventVisitor<ReqT>() {
       @Override
       public boolean visit(ReadRequestReceived<ReqT> channelEvent) {
         // the current request is in progress until we send an EOF or the client sends a cancel,
@@ -804,7 +804,7 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
         requestContext.positionStart(), requestContext.positionEnd(),
         requestContext.getRequest().getPacketSize());
     while (true) {
-      boolean returnNow = takeAndHandleChannelEvent(requestContext, new ChannelEventVisitor<>() {
+      boolean retNow = takeAndHandleChannelEvent(requestContext, new ChannelEventVisitor<ReqT>() {
         @Override
         public boolean visit(ReadRequestReceived<ReqT> channelEvent) {
           fireNext(mTriggerEventsWithParam.mUnexpectedClientMessageDuringReq,
@@ -849,7 +849,7 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
         }
       });
 
-      if (returnNow) {
+      if (retNow) {
         return;
       }
     }
