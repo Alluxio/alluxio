@@ -13,7 +13,6 @@ package alluxio.master.journal;
 
 import alluxio.grpc.GetNodeStatePResponse;
 import alluxio.grpc.GetQuorumInfoPResponse;
-import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
 import alluxio.master.Master;
 
@@ -46,7 +45,7 @@ public interface JournalMaster extends Master {
    * {@link alluxio.master.journal.JournalType#EMBEDDED} journal.
    *
    * @param newLeaderAddress server address to remove from quorum
-   * @return the guid of transfer leader command
+   * @return an error message if an error occurred, otherwise empty string
    */
   String transferLeadership(NetAddress newLeaderAddress);
 
@@ -56,13 +55,6 @@ public interface JournalMaster extends Master {
    * @throws IOException if error occurs while performing the operation
    */
   void resetPriorities() throws IOException;
-
-  /**
-   * Gets exception messages thrown when transferring the leader.
-   * @param transferId the guid of transferLeader command
-   * @return exception message
-   */
-  GetTransferLeaderMessagePResponse getTransferLeaderMessage(String transferId);
 
   /**
    * Gets the node state. This endpoint is available for both UFS and embedded journals.

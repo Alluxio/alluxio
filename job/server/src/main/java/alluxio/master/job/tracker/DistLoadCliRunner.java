@@ -156,7 +156,7 @@ public class DistLoadCliRunner extends AbstractCmdRunner {
                               Set<String> workerSet, Set<String> excludedWorkerSet,
                               Set<String> localityIds, Set<String> excludedLocalityIds,
                               boolean directCache, CmdInfo cmdInfo) {
-    if (mSubmitted.size() >= DEFAULT_ACTIVE_JOBS) {
+    if (mSubmitted.size() >= mActiveJobs) {
       waitForCmdJob();
     }
 

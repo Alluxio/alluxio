@@ -124,7 +124,7 @@ public class MigrateCliRunner extends AbstractCmdRunner {
   // Submit a child job within a distributed command job.
   private void submitDistCp(List<Pair<String, String>> pool, boolean overwrite,
          WriteType writeType, CmdInfo cmdInfo) {
-    if (mSubmitted.size() >= DEFAULT_ACTIVE_JOBS) {
+    if (mSubmitted.size() >= mActiveJobs) {
       waitForCmdJob();
     }
 

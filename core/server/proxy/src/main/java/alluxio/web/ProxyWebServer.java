@@ -110,14 +110,18 @@ public final class ProxyWebServer extends WebServer {
         (long) Configuration.getInt(PropertyKey.PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB) * Constants.MB;
     mGlobalRateLimiter = S3RestUtils.createRateLimiter(rate).orElse(null);
 
-    if (Configuration.getBoolean(PropertyKey.PROXY_AUDIT_LOGGING_ENABLED)) {
-      mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("PROXY_AUDIT_LOG");
-      mAsyncAuditLogWriter.start();
-      MetricsSystem.registerGaugeIfAbsent(
-          MetricKey.PROXY_AUDIT_LOG_ENTRIES_SIZE.getName(),
-              () -> mAsyncAuditLogWriter != null
-                  ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
-    }
+    /**
+     * The audit logger will be running all the time, and an operation checks whether
+     * to enable audit logs in {@link alluxio.proxy.s3.S3RestServiceHandler#createAuditContext} and
+     * {@link alluxio.proxy.s3.S3Handler#createAuditContext}. So audit log can be turned on/off
+     * at runtime by updating the property key.
+     */
+    mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("PROXY_AUDIT_LOG");
+    mAsyncAuditLogWriter.start();
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.PROXY_AUDIT_LOG_ENTRIES_SIZE.getName(),
+        () -> mAsyncAuditLogWriter != null
+            ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
 
     ServletContainer servlet = new ServletContainer(config) {
       private static final long serialVersionUID = 7756010860672831556L;

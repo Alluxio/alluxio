@@ -270,6 +270,25 @@ public final class FileUtils {
   }
 
   /**
+   * Deletes the file or directory, if it exists.
+   *
+   * @param path pathname string of file or directory
+   */
+  public static void deleteIfExists(String path) {
+    try {
+      Files.deleteIfExists(Paths.get(path));
+    } catch (java.nio.file.InvalidPathException e) {
+      throw new InvalidArgumentRuntimeException(e);
+    } catch (DirectoryNotEmptyException e) {
+      throw new FailedPreconditionRuntimeException(e);
+    } catch (SecurityException e) {
+      throw new PermissionDeniedRuntimeException(e);
+    } catch (IOException e) {
+      throw new UnknownRuntimeException(e);
+    }
+  }
+
+  /**
    * Deletes a file or a directory, recursively if it is a directory.
    *
    * If the path does not exist, nothing happens.
