@@ -326,6 +326,16 @@ public class NettyDataReaderStateMachine {
         "execution of state machine has stopped but it is not in a terminated state");
   }
 
+  public String stepRun() {
+    Runnable trigger = mNextTriggerEvent.getAndSet(null);
+    if (trigger != null)  {
+      trigger.run();
+      return getStatus().name();
+    } else {
+      return "";
+    }
+  }
+
   /**
    * Gets the number of bytes that has been received and written into the output channel.
    *
