@@ -177,6 +177,8 @@ public class FileSystemContext implements Closeable {
   /** Whether to do URI scheme validation for file systems using this context.  */
   private boolean mUriValidationEnabled = true;
 
+  private String mUriPath;
+
   /** Cached map for workers. */
   @GuardedBy("mWorkerInfoList")
   private final AtomicReference<List<BlockWorkerInfo>> mWorkerInfoList = new AtomicReference<>();
@@ -446,6 +448,7 @@ public class FileSystemContext implements Closeable {
     mBlockWorkerClientPoolMap = new ConcurrentHashMap<>();
     mUriValidationEnabled = ctx.getUriValidationEnabled();
     mMembershipManager = MembershipManager.Factory.create(getClusterConf());
+    mUriPath = ctx.getUriPath();
   }
 
   /**
@@ -615,6 +618,17 @@ public class FileSystemContext implements Closeable {
    */
   public synchronized boolean getUriValidationEnabled() {
     return mUriValidationEnabled;
+  }
+
+  public void setUriPath(String uriPath) {
+    mUriPath = uriPath;
+  }
+
+  /**
+   * @return {@code true} if URI validation is enabled
+   */
+  public String getUriPath() {
+    return mUriPath;
   }
 
   /**

@@ -180,6 +180,9 @@ public interface FileSystem extends Closeable {
       Optional<UfsFileSystemOptions> ufsOptions = options.getUfsFileSystemOptions();
       Preconditions.checkArgument(ufsOptions.isPresent(),
           "Missing UfsFileSystemOptions in FileSystemOptions");
+      if (context.getUriPath() == null) {
+        context.setUriPath(options.getUfsFileSystemOptions().get().getUfsAddress());
+      }
       FileSystem fs = new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get());
 
       if (options.isDoraCacheEnabled()) {

@@ -107,8 +107,8 @@ public class UfsBaseFileSystem implements FileSystem {
    */
   public UfsBaseFileSystem(FileSystemContext fsContext, UfsFileSystemOptions options) {
     this(fsContext, options, new UfsManager.UfsClient(
-        () -> UnderFileSystem.Factory.create(options.getUfsAddress(), fsContext.getClusterConf()),
-        new AlluxioURI(options.getUfsAddress())));
+        () -> UnderFileSystem.Factory.create(fsContext.getUriPath(), fsContext.getClusterConf()),
+        new AlluxioURI(fsContext.getUriPath())));
     mCloser.register(mFsContext);
     LOG.debug("Creating file system connecting to ufs address {}", options.getUfsAddress());
   }

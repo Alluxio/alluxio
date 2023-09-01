@@ -45,6 +45,7 @@ public class ClientContext {
   private volatile String mClusterConfHash;
   private volatile UserState mUserState;
   private volatile boolean mUriValidationEnabled = true;
+  private volatile String mUriPath;
 
   /**
    * A client context with information about the subject and configuration of the client.
@@ -133,6 +134,15 @@ public class ClientContext {
   }
 
   /**
+   * @param uriPath the URI path of the context
+   * @return updated instance of ClientContext
+   */
+  public ClientContext setUriPath(String uriPath) {
+    mUriPath = uriPath;
+    return this;
+  }
+
+  /**
    * @return {@code true} if URI validation is enabled
    */
   public boolean getUriValidationEnabled() {
@@ -173,5 +183,12 @@ public class ClientContext {
    */
   public UserState getUserState() {
     return mUserState;
+  }
+
+  /**
+   * @return the UriPath for this context
+   */
+  public String getUriPath() {
+    return mUriPath;
   }
 }
