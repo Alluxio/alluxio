@@ -68,7 +68,7 @@ public class CollectInfo extends AbstractShell {
       "collectInfo [--max-threads <threadNum>] [--local] [--help] [--exclude-worker-metrics]"
           + "[--exclude-logs <filename-prefixes>] [--include-logs <filename-prefixes>] "
           + "[--additional-logs <filename-prefixes>] [--start-time <datetime>] "
-          + "[--end-time <datetime>] COMMAND <outputPath>\n\n"
+          + "[--end-time <datetime>] COMMAND --output-dir <outputPath>\n\n"
           + "collectInfo runs a set of sub-commands which collect information "
           + "about your Alluxio cluster.\nIn the end of the run, "
           + "the collected information will be written to files and bundled into one tarball.\n"
@@ -82,7 +82,6 @@ public class CollectInfo extends AbstractShell {
           + "collectJvmInfo:     collects jstack from the JVMs.\n"
           + "collectLog:         collects the log files under ${ALLUXIO_HOME}/logs/.\n"
           + "collectMetrics:     collects Alluxio system metrics.\n\n"
-          + "<outputPath>        the directory you want the collected tarball to be in\n\n"
           + "WARNING: This command MAY bundle credentials. To understand the risks refer "
           + "to the docs here.\nhttps://docs.alluxio.io/os/user/edge/en/operation/"
           + "Troubleshooting.html#collect-alluxio-cluster-information\n";
@@ -115,11 +114,17 @@ public class CollectInfo extends AbstractShell {
   private static final Option HELP_OPTION =
       Option.builder().required(false).longOpt(HELP_OPTION_NAME).hasArg(false)
           .desc("shows the help message").build();
+  private static final String OUTPUT_DIR_OPTION_NAME = "output-dir";
+  private static final Option OUTPUT_DIR_OPTION =
+          Option.builder().required(true).longOpt(OUTPUT_DIR_OPTION_NAME).hasArg(true)
+                  .desc("output directory").build();
   // Build the options for collectInfo, then aggregate local options for each sub-command
   private static final Options OPTIONS = loadOptions(new Options()
       .addOption(THREAD_NUM_OPTION)
       .addOption(LOCAL_OPTION)
-      .addOption(HELP_OPTION));
+      .addOption(HELP_OPTION)
+      .addOption(OUTPUT_DIR_OPTION)
+  );
 
   // Load the options defined in each sub-command class
   private static Options loadOptions(Options options) {
@@ -218,9 +223,9 @@ public class CollectInfo extends AbstractShell {
     CollectInfo shell = new CollectInfo(conf);
 
     // Validate command args
-    if (args.length < 2) {
+    if (args.length < 1) {
       printHelp(String.format("Command requires at least %s arguments (%s provided)%n",
-              2, argv.length));
+              1, argv.length));
       System.exit(-1);
     }
 
@@ -251,7 +256,7 @@ public class CollectInfo extends AbstractShell {
         args.add(opt.getValue());
       }
     }
-    args.addAll(cmd.getArgList());
+    Collections.addAll(args, cmd.getArgs());
     return args;
   }
 
@@ -267,7 +272,9 @@ public class CollectInfo extends AbstractShell {
   private int collectInfoRemote(CommandLine cmdLine) throws IOException {
     int ret = 0;
     String[] args = cmdLine.getArgs();
-    String targetDir = args[1];
+    String targetDir = Arrays.stream(cmdLine.getOptions())
+        .filter(opt -> opt.equals(OUTPUT_DIR_OPTION)).findFirst()
+        .map(Option::getValue).orElse("");
 
     // Execute the command on all hosts
     List<String> allHosts = new ArrayList<>(getHosts());
@@ -284,7 +291,7 @@ public class CollectInfo extends AbstractShell {
     // Invoke collectInfo locally on each host
     List<CompletableFuture<CommandReturn>> sshFutureList = new ArrayList<>();
     for (String host : allHosts) {
-      System.out.format("Execute collectInfo on host %s%n", host);
+      System.out.format("Execute info collect on host %s%n", host);
 
       CompletableFuture<CommandReturn> future = CompletableFuture.supplyAsync(() -> {
         // We make the assumption that the Alluxio WORK_DIR is the same
@@ -295,7 +302,7 @@ public class CollectInfo extends AbstractShell {
 
         String[] collectInfoArgs =
                 (String[]) ArrayUtils.addAll(
-                        new String[]{alluxioBinPath, "collectInfo", "--local"},
+                        new String[]{alluxioBinPath, "info collect", "--local"},
                         cmdLineToArgs(cmdLine).toArray(new String[0]));
         System.out.format("Invoking command %s%n", Arrays.toString(collectInfoArgs));
         try {
@@ -307,7 +314,7 @@ public class CollectInfo extends AbstractShell {
         }
       }, mExecutor);
       sshFutureList.add(future);
-      System.out.format("Invoked local collectInfo command on host %s%n", host);
+      System.out.format("Invoked local info collect command on host %s%n", host);
     }
 
     // Collect SSH execution results
@@ -394,8 +401,7 @@ public class CollectInfo extends AbstractShell {
 
     // Determine the command and working dir path
     String subCommand = args[0];
-    String targetDirPath = args[1];
-
+    String targetDirPath = cmdLine.getOptionValue(OUTPUT_DIR_OPTION_NAME, "");
     // There are 2 cases:
     // 1. Execute "all" commands
     // 2. Execute a single command
@@ -456,7 +462,8 @@ public class CollectInfo extends AbstractShell {
           throws IOException, AlluxioException {
     // The argv length has been validated
     String subCommand = argv[0];
-    String targetDirPath = argv[1];
+    String targetDirPath = cmdLine.getOptionValue(OUTPUT_DIR_OPTION_NAME, "");
+
     System.out.format("subcommand %s targetDir %s%n", subCommand, targetDirPath);
 
     AbstractCollectInfoCommand cmd = this.findCommand(subCommand);
