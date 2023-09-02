@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache;
 
+import static org.junit.Assert.fail;
+
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
@@ -590,8 +592,18 @@ public class LocalCacheFileInStreamTest {
     int fileSize = mPageSize * pages;
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
-    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
-    Assert.assertEquals(100, stream.positionedRead(0, new byte[10], 100, 100));
+    sConf.set(PropertyKey.USER_CLIENT_CACHE_FALLBACK_ENABLED, false);
+    //by default local cache fallback is not enabled, the read should fail for any error
+    LocalCacheFileInStream streamWithOutFallback = setupWithSingleFile(testData, manager);
+    try {
+      streamWithOutFallback.positionedRead(0, new byte[10], 100, 100);
+      fail("Expect position read fail here.");
+    } catch (ArrayIndexOutOfBoundsException e) {
+      //expected exception
+    }
+    sConf.set(PropertyKey.USER_CLIENT_CACHE_FALLBACK_ENABLED, true);
+    LocalCacheFileInStream streamWithFallback = setupWithSingleFile(testData, manager);
+    Assert.assertEquals(100, streamWithFallback.positionedRead(0, new byte[10], 100, 100));
     Assert.assertEquals(1,
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_POSITION_READ_FALLBACK.getName()).getCount());
   }
