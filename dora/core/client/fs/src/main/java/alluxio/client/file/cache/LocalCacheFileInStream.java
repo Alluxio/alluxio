@@ -193,6 +193,7 @@ public class LocalCacheFileInStream extends FileInStream {
     int bytesLeftInPage = (int) (mPageSize - currentPageOffset);
     int bytesToReadInPage = Math.min(bytesLeftInPage, length);
     stopwatch.reset().start();
+    int offsetInBuffer = bytesBuffer.offset();
     int bytesRead =
         mCacheManager.get(pageId, currentPageOffset, bytesToReadInPage, bytesBuffer, mCacheContext);
     stopwatch.stop();
@@ -204,6 +205,9 @@ public class LocalCacheFileInStream extends FileInStream {
             stopwatch.elapsed(TimeUnit.NANOSECONDS));
       }
       return bytesRead;
+    } else {
+      //In case any error in cache manager, revert the offset change in the bytesBuffer
+      bytesBuffer.offset(offsetInBuffer);
     }
     // on local cache miss, read a complete page from external storage. This will always make
     // progress or throw an exception
