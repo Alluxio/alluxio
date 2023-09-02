@@ -12,7 +12,6 @@
 package alluxio.hadoop;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
