@@ -3276,6 +3276,11 @@
                 "id": 4,
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
+              },
+              {
+                "id": 5,
+                "name": "remount",
+                "type": "bool"
               }
             ],
             "maps": [

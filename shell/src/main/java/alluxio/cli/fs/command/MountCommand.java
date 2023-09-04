@@ -51,6 +51,13 @@ public final class MountCommand extends AbstractFileSystemCommand {
           .hasArg(false)
           .desc("mount point is shared")
           .build();
+  private static final Option REMOUNT_OPTION =
+      Option.builder()
+          .longOpt("remount")
+          .required(false)
+          .hasArg(false)
+          .desc("unmount and mount together")
+          .build();
   private static final Option OPTION_OPTION =
       Option.builder()
           .longOpt("option")
@@ -77,7 +84,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
   @Override
   public Options getOptions() {
     return new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
-        .addOption(OPTION_OPTION);
+        .addOption(REMOUNT_OPTION).addOption(OPTION_OPTION);
   }
 
   @Override
@@ -98,6 +105,9 @@ public final class MountCommand extends AbstractFileSystemCommand {
     if (cl.hasOption(SHARED_OPTION.getLongOpt())) {
       optionsBuilder.setShared(true);
     }
+    if (cl.hasOption(REMOUNT_OPTION.getLongOpt())) {
+      optionsBuilder.setRemount(true);
+    }
     if (cl.hasOption(OPTION_OPTION.getLongOpt())) {
       Properties properties = cl.getOptionProperties(OPTION_OPTION.getLongOpt());
       optionsBuilder.putAllProperties(Maps.fromProperties(properties));
@@ -109,7 +119,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "mount [--readonly] [--shared] [--option <key=val>] <alluxioPath> <ufsURI>";
+    return "mount [--readonly] [--shared] [--remount] [--option <key=val>] <alluxioPath> <ufsURI>";
   }
 
   @Override

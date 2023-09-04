@@ -3608,11 +3608,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
         mMountTable.checkUnderWritableMountPoint(alluxioPath);
 
-        MountInfo mountInfo = mMountTable.getMountTable().get(alluxioPath);
-        Map<String, String> propertyMap = context.getOptions().getPropertiesMap();
-        if (mountInfo != null && propertyMap != null
-            && Boolean.parseBoolean(propertyMap.get("remount"))) {
-          context.getOptions().removeProperties("remount");
+        if (context.getOptions().getRemount()) {
           unmountInternal(rpcContext, inodePath);
         }
         mountInternal(rpcContext, inodePath, ufsPath, context);
