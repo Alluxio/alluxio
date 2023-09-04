@@ -1185,7 +1185,6 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(() -> {
       WebUIHeartbeatThreads response = new WebUIHeartbeatThreads();
 
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG));
       Map<String, HeartbeatThreadInfo> heartbeatThreads = mMetaMaster.getHeartbeatThreads();
 
       response.setHeartbeatThreadInfos(heartbeatThreads);

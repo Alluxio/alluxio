@@ -15,7 +15,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.heartbeat.HeartbeatThread;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 
 import java.io.Serializable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -54,29 +53,6 @@ public class HeartbeatThreadInfo implements Serializable {
   public HeartbeatThreadInfo setThreadName(String threadName) {
     mThreadName = threadName;
     return this;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof HeartbeatThreadInfo)) {
-      return false;
-    }
-    HeartbeatThreadInfo that = (HeartbeatThreadInfo) o;
-    return mThreadName.equals(that.mThreadName)
-        && mPreviousReport.equals(that.mPreviousReport)
-        && mCount == that.mCount
-        && mStatus == that.mStatus
-        && mStartHeartbeatTime.equals(that.mStartHeartbeatTime)
-        && mStartTickTime.equals(that.mStartTickTime);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(mThreadName, mCount, mStatus, mStartTickTime,
-        mStartHeartbeatTime, mPreviousReport);
   }
 
   @Override

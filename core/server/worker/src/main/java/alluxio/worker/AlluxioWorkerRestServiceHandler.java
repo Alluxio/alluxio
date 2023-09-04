@@ -633,7 +633,6 @@ public final class AlluxioWorkerRestServiceHandler {
     return RestUtils.call(() -> {
       WebUIHeartbeatThreads response = new WebUIHeartbeatThreads();
 
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG));
       Map<String, HeartbeatThreadInfo> heartbeatThreads = mBlockWorker.getHeartbeatThreads();
 
       response.setHeartbeatThreadInfos(heartbeatThreads);

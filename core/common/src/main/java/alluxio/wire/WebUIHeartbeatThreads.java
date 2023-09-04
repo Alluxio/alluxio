@@ -24,7 +24,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class WebUIHeartbeatThreads implements Serializable {
   private static final long serialVersionUID = -2903043308252679410L;
 
-  private boolean mDebug;
   private HeartbeatThreadInfo[] mHeartbeatThreadInfos;
 
   /**
@@ -34,32 +33,12 @@ public final class WebUIHeartbeatThreads implements Serializable {
   }
 
   /**
-   * Gets debug.
-   *
-   * @return the debug
-   */
-  public boolean getDebug() {
-    return mDebug;
-  }
-
-  /**
    * Get heartbeat thread infos [ ].
    *
    * @return the heartbeat thread info [ ]
    */
   public HeartbeatThreadInfo[] getHeartbeatThreadInfos() {
     return mHeartbeatThreadInfos;
-  }
-
-  /**
-   * Sets debug.
-   *
-   * @param Debug the debug
-   * @return the debug
-   */
-  public WebUIHeartbeatThreads setDebug(boolean Debug) {
-    mDebug = Debug;
-    return this;
   }
 
   /**

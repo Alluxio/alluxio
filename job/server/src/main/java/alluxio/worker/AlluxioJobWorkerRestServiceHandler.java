@@ -126,7 +126,6 @@ public final class  AlluxioJobWorkerRestServiceHandler {
     return RestUtils.call(() -> {
       WebUIHeartbeatThreads response = new WebUIHeartbeatThreads();
 
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG));
       Map<String, HeartbeatThreadInfo> heartbeatThreads =
           mJobWorker.getJobWorker().getHeartbeatThreads();
 
