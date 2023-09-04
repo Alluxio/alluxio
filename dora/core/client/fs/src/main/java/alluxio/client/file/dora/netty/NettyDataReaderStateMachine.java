@@ -264,9 +264,11 @@ public class NettyDataReaderStateMachine {
     mStateMachine.fireInitialTransition();
   }
 
+  @VisibleForTesting
   public State getStatus() {
     return mStateMachine.getState();
   }
+
   /**
    * Helper method to allow firing triggers within state handler methods.
    * If the triggers are fired directly within state handler methods, they will likely make
@@ -326,14 +328,22 @@ public class NettyDataReaderStateMachine {
         "execution of state machine has stopped but it is not in a terminated state");
   }
 
+  @VisibleForTesting
   public String stepRun() {
     Runnable trigger = mNextTriggerEvent.getAndSet(null);
+    // TODO(Yichuan): I cannot get events name from the trigger, so I can't verify the state
+    //  is arrived by specific event.
     if (trigger != null)  {
       trigger.run();
       return getStatus().name();
     } else {
       return "";
     }
+  }
+
+  @VisibleForTesting
+  public void setChannel(Channel channel) {
+    mChannel = channel;
   }
 
   /**
@@ -463,6 +473,7 @@ public class NettyDataReaderStateMachine {
       fireNext(TriggerEvent.OUTPUT_LENGTH_NOT_FULFILLED);
     } else {
       fireNext(TriggerEvent.OUTPUT_LENGTH_FULFILLED);
+//      mStateMachine.
     }
   }
 
