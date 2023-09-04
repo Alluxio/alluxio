@@ -254,6 +254,7 @@ public class DoraFileOutStream extends FileOutStream {
         if (throwable != null) {
           e.addSuppressed(throwable);
         }
+        // writing to worker over netty failed. But Alluxio client continues writing to UFS.
         LOG.error("Failed to write data to alluxio worker. ", e);
       }
     }
