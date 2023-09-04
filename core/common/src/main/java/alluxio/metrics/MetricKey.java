@@ -2119,6 +2119,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_CACHE_REJECTED_BLOCKS =
+      new Builder("Worker.CacheRejectedBlocks")
+          .setDescription("Total number of cache rejected blocks in this worker")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey WORKER_CACHE_UFS_BLOCKS =
       new Builder("Worker.CacheUfsBlocks")
           .setDescription("Total number of blocks that need to be cached from local source")
