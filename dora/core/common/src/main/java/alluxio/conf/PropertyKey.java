@@ -1441,6 +1441,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OSS_GET_OBJECT_STATUS_LOG_DISABLED =
+      booleanBuilder("alluxio.underfs.oss.get.object.status.log.disabled")
+          .setDefaultValue(false)
+          .setDescription("Whether to disable log")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_OSS_RETRY_MAX =
       intBuilder(Name.UNDERFS_OSS_RETRY_MAX)
           .setAlias("alluxio.underfs.oss.retry.max")

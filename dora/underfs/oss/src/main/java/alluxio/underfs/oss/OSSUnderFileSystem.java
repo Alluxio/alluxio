@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
@@ -32,6 +33,7 @@ import com.aliyun.oss.ServiceException;
 import com.aliyun.oss.model.AbortMultipartUploadRequest;
 import com.aliyun.oss.model.DeleteObjectsRequest;
 import com.aliyun.oss.model.DeleteObjectsResult;
+import com.aliyun.oss.model.GenericRequest;
 import com.aliyun.oss.model.ListMultipartUploadsRequest;
 import com.aliyun.oss.model.ListObjectsRequest;
 import com.aliyun.oss.model.MultipartUpload;
@@ -80,6 +82,8 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   private final Supplier<ListeningExecutorService> mMultipartUploadExecutor;
 
   private StsOssClientProvider mClientProvider;
+  private final boolean mDisableGetObjectStatusLog = Configuration.getBoolean(
+      PropertyKey.UNDERFS_OSS_GET_OBJECT_STATUS_LOG_DISABLED);
 
   /**
    * Constructs a new instance of {@link OSSUnderFileSystem}.
@@ -348,7 +352,16 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected ObjectStatus getObjectStatus(String key) {
     try {
-      ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
+      final ObjectMetadata meta;
+      if (mDisableGetObjectStatusLog) {
+        GenericRequest request = new GenericRequest();
+        request.setBucketName(mBucketName);
+        request.setKey(key);
+        request.setLogEnabled(false);
+        meta = mClient.getObjectMetadata(request);
+      } else {
+        meta = mClient.getObjectMetadata(mBucketName, key);
+      }
       if (meta == null) {
         return null;
       }
