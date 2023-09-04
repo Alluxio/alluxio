@@ -26,7 +26,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
-import alluxio.fuse.meta.UpdateChecker;
+import alluxio.fuse.meta.FuseUpdateChecker;
 import alluxio.fuse.options.FuseCliOptions;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.fuse.options.MountOptions;
@@ -100,7 +100,7 @@ public class AlluxioFuse {
     if (fuseOptions.updateCheckEnabled()) {
       executor = Executors.newSingleThreadExecutor();
       executor.submit(new HeartbeatThread(HeartbeatContext.FUSE_UPDATE_CHECK,
-          UpdateChecker.create(fuseOptions), () -> new FixedIntervalSupplier(Constants.DAY_MS),
+          FuseUpdateChecker.create(fuseOptions), () -> new FixedIntervalSupplier(Constants.DAY_MS),
           Configuration.global(), UserState.Factory.create(conf)));
     }
     try (FileSystem fs = createBaseFileSystem(fsContext, fuseOptions)) {

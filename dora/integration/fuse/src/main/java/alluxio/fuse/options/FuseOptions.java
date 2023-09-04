@@ -31,9 +31,9 @@ import java.util.Set;
 public class FuseOptions {
   private static final Logger LOG = LoggerFactory.getLogger(FuseOptions.class);
   public static final PropertyKey FUSE_UPDATE_CHECK_ENABLED =
-      PropertyKey.Builder.booleanBuilder("fuse.update.check.enabled")
+      PropertyKey.Builder.booleanBuilder("alluxio.fuse.update.check.enabled")
           .setIsBuiltIn(false)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .buildUnregistered();
 
   /**
@@ -41,7 +41,7 @@ public class FuseOptions {
    * In standalone Fuse SDK, this is different from {@link PropertyKey#DORA_CLIENT_UFS_ROOT}.
    * */
   public static final PropertyKey FUSE_UFS_ROOT =
-      PropertyKey.Builder.stringBuilder("fuse.ufs.root")
+      PropertyKey.Builder.stringBuilder("alluxio.fuse.ufs.root")
           .setIsBuiltIn(false)
           .buildUnregistered();
 

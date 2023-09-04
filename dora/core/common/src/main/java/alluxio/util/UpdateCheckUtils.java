@@ -9,13 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.check;
+package alluxio.util;
 
 import alluxio.ProjectConstants;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
-import alluxio.util.EnvironmentUtils;
-import alluxio.util.FeatureUtils;
-import alluxio.util.OSUtils;
 
 import com.amazonaws.util.EC2MetadataUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -39,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Check for updates.
  */
 @ThreadSafe
-public final class UpdateCheck {
+public final class UpdateCheckUtils {
   public static final String USER_AGENT_SEPARATOR = ";";
 
   static final String PRODUCT_CODE_FORMAT = "ProductCode:%s";
@@ -49,21 +46,9 @@ public final class UpdateCheck {
   static final String CFT_KEY = "cft";
   static final String DOCKER_KEY = "docker";
   static final String EC2_KEY = "ec2";
-  static final String EMBEDDED_KEY = "embedded";
   static final String EMR_KEY = "emr";
   static final String GCE_KEY = "gce";
   static final String KUBERNETES_KEY = "kubernetes";
-
-  // Feature
-  static final String BACKUP_DELEGATION_KEY = "backupDelegation";
-  static final String DAILY_BACKUP_KEY = "dailyBackup";
-  static final String MASTER_AUDIT_LOG_KEY = "masterAuditLog";
-  static final String PERSIST_BLACK_LIST_KEY = "persistBlackList";
-  static final String PAGE_STORE_KEY = "pageStore";
-  static final String INODE_METASTORE_ROCKS_KEY = "inodeRocks";
-  static final String BLOCK_METASTORE_ROCKS_KEY = "blockRocks";
-  static final String UNSAFE_PERSIST_KEY = "unsafePersist";
-  static final String ZOOKEEPER_KEY = "zookeeper";
 
   /**
    * @param id the id of the current Alluxio identity (e.g. cluster id, instance id)
@@ -110,6 +95,16 @@ public final class UpdateCheck {
 
   /**
    * @param id the id of the current Alluxio identity (e.g. cluster id, instance id)
+   * @param additionalInfo additional information to send
+   * @return the latest Alluxio version string
+   */
+  public static String getLatestVersion(String id, List<String> additionalInfo)
+      throws IOException {
+    return getLatestVersion(id, additionalInfo, 3000, 3000, 3000);
+  }
+
+  /**
+   * @param id the id of the current Alluxio identity (e.g. cluster id, instance id)
    * @param additionalInfo additional information to add to result string
    * @return a string representation of the user's environment in the format
    *         "Alluxio/{ALLUXIO_VERSION} (valueA; valueB)"
@@ -119,7 +114,6 @@ public final class UpdateCheck {
     List<String> info = new ArrayList<>();
     info.add(id);
     addUserAgentEnvironments(info);
-    addUserAgentFeatures(info);
     info.addAll(additionalInfo);
     return String.format("Alluxio/%s (%s)", ProjectConstants.VERSION,
         Joiner.on(USER_AGENT_SEPARATOR + " ").skipNulls().join(info));
@@ -144,25 +138,6 @@ public final class UpdateCheck {
     } else {
       addEC2Info(info);
     }
-  }
-
-  /**
-   * Get the feature's information.
-   *
-   * @param info the list to add info to
-   */
-  @VisibleForTesting
-  public static void addUserAgentFeatures(List<String> info) {
-    addIfTrue(FeatureUtils.isEmbeddedJournal(), info, EMBEDDED_KEY);
-    addIfTrue(FeatureUtils.isInodeStoreRocks(), info, INODE_METASTORE_ROCKS_KEY);
-    addIfTrue(FeatureUtils.isBlockStoreRocks(), info, BLOCK_METASTORE_ROCKS_KEY);
-    addIfTrue(FeatureUtils.isZookeeperEnabled(), info, ZOOKEEPER_KEY);
-    addIfTrue(FeatureUtils.isBackupDelegationEnabled(), info, BACKUP_DELEGATION_KEY);
-    addIfTrue(FeatureUtils.isDailyBackupEnabled(), info, DAILY_BACKUP_KEY);
-    addIfTrue(!FeatureUtils.isPersistenceBlacklistEmpty(), info, PERSIST_BLACK_LIST_KEY);
-    addIfTrue(FeatureUtils.isUnsafeDirectPersistEnabled(), info, UNSAFE_PERSIST_KEY);
-    addIfTrue(FeatureUtils.isMasterAuditLoggingEnabled(), info, MASTER_AUDIT_LOG_KEY);
-    addIfTrue(FeatureUtils.isPageStoreEnabled(), info, PAGE_STORE_KEY);
   }
 
   /**
@@ -214,5 +189,5 @@ public final class UpdateCheck {
     }
   }
 
-  private UpdateCheck() {} // prevent instantiation
+  private UpdateCheckUtils() {} // prevent instantiation
 }

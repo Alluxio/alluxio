@@ -365,7 +365,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         if (updateCheck && !Configuration.getBoolean(PropertyKey.TEST_MODE)) {
           // never start update check thread if in test mode
           getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_UPDATE_CHECK,
-              new UpdateChecker(this),
+              new MasterUpdateChecker(this),
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));

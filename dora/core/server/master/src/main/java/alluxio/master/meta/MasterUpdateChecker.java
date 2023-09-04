@@ -12,8 +12,8 @@
 package alluxio.master.meta;
 
 import alluxio.ProjectConstants;
-import alluxio.check.UpdateCheck;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.util.UpdateCheckUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,18 +26,18 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Periodically Alluxio version update check.
  */
 @NotThreadSafe
-public final class UpdateChecker implements HeartbeatExecutor {
-  private static final Logger LOG = LoggerFactory.getLogger(UpdateChecker.class);
+public final class MasterUpdateChecker implements HeartbeatExecutor {
+  private static final Logger LOG = LoggerFactory.getLogger(MasterUpdateChecker.class);
   private static final String NUM_WORKER_INFO_FORMAT = "numWorkers:%s";
 
   private final MetaMaster mMetaMaster;
 
   /**
-   * Creates a new instance of {@link UpdateChecker}.
+   * Creates a new instance of {@link MasterUpdateChecker}.
    *
    * @param metaMaster the meta master
    */
-  public UpdateChecker(DefaultMetaMaster metaMaster) {
+  public MasterUpdateChecker(DefaultMetaMaster metaMaster) {
     mMetaMaster = metaMaster;
   }
 
@@ -54,8 +54,7 @@ public final class UpdateChecker implements HeartbeatExecutor {
           // no worker vs cluster not ready (still registering) cases
           clusterSize > 0 ? clusterSize : -1));
       String latestVersion =
-          UpdateCheck.getLatestVersion(mMetaMaster.getClusterID(), additionalInfo,
-              3000, 3000, 3000);
+          UpdateCheckUtils.getLatestVersion(mMetaMaster.getClusterID(), additionalInfo);
       if (!ProjectConstants.VERSION.equals(latestVersion)) {
         LOG.info("The latest version (" + latestVersion + ") is not the same "
             + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "

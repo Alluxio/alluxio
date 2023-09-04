@@ -12,7 +12,7 @@
 package alluxio.fuse.meta;
 
 import alluxio.ProjectConstants;
-import alluxio.check.UpdateCheck;
+import alluxio.util.UpdateCheckUtils;
 import alluxio.fuse.FuseConstants;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -35,8 +35,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Periodically Alluxio version update check.
  */
 @NotThreadSafe
-public final class UpdateChecker implements HeartbeatExecutor {
-  private static final Logger LOG = LoggerFactory.getLogger(UpdateChecker.class);
+public final class FuseUpdateChecker implements HeartbeatExecutor {
+  private static final Logger LOG = LoggerFactory.getLogger(FuseUpdateChecker.class);
   static final String UNDERLYING_FS_FORMAT = "UnderlyingFileSystem:%s";
   static final String LOCAL_ALLUXIO_DATA_CACHE = "localAlluxioDataCache";
   static final String LOCAL_ALLUXIO_METADATA_CACHE = "localAlluxioMetadataCache";
@@ -51,26 +51,26 @@ public final class UpdateChecker implements HeartbeatExecutor {
   private final List<String> mUnchangeableFuseInfo;
 
   /**
-   * Creates a {@link UpdateChecker}.
+   * Creates a {@link FuseUpdateChecker}.
    *
    * @param fuseOptions the fuse options
    * @return the update checker
    */
-  public static UpdateChecker create(FuseOptions fuseOptions) {
+  public static FuseUpdateChecker create(FuseOptions fuseOptions) {
     List<String> fuseInfo = new ArrayList<>();
-    UpdateCheck.addIfTrue(isLocalAlluxioDataCacheEnabled(fuseOptions),
+    UpdateCheckUtils.addIfTrue(isLocalAlluxioDataCacheEnabled(fuseOptions),
         fuseInfo, LOCAL_ALLUXIO_DATA_CACHE);
-    UpdateCheck.addIfTrue(isLocalAlluxioMetadataCacheEnabled(fuseOptions), fuseInfo,
+    UpdateCheckUtils.addIfTrue(isLocalAlluxioMetadataCacheEnabled(fuseOptions), fuseInfo,
         LOCAL_ALLUXIO_METADATA_CACHE);
-    UpdateCheck.addIfTrue(isLocalKernelDataCacheEnabled(fuseOptions),
+    UpdateCheckUtils.addIfTrue(isLocalKernelDataCacheEnabled(fuseOptions),
         fuseInfo, LOCAL_KERNEL_DATA_CACHE);
     fuseInfo.add(String.format("UnderlyingFileSystem:%s", getUnderlyingFileSystem(fuseOptions)));
-    return new UpdateChecker(Collections.unmodifiableList(fuseInfo),
+    return new FuseUpdateChecker(Collections.unmodifiableList(fuseInfo),
         FuseConstants.getFuseMethodNames().stream()
             .collect(Collectors.toMap(methodName -> methodName, methodName -> 0L)));
   }
 
-  private UpdateChecker(List<String> unchangeableFuseInfo, Map<String, Long> fuseOpsCounter) {
+  private FuseUpdateChecker(List<String> unchangeableFuseInfo, Map<String, Long> fuseOpsCounter) {
     mUnchangeableFuseInfo = unchangeableFuseInfo;
     mFuseOpsCounter = fuseOpsCounter;
   }
@@ -82,8 +82,7 @@ public final class UpdateChecker implements HeartbeatExecutor {
   public void heartbeat(long timeLimitMs) {
     try {
       String latestVersion =
-          UpdateCheck.getLatestVersion(mInstanceId, getFuseCheckInfo(),
-              3000, 3000, 3000);
+          UpdateCheckUtils.getLatestVersion(mInstanceId, getFuseCheckInfo());
       if (!ProjectConstants.VERSION.equals(latestVersion)) {
         LOG.info("The latest version (" + latestVersion + ") is not the same "
             + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "
