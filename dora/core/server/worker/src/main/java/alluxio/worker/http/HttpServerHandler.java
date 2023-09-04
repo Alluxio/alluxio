@@ -176,6 +176,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
   private String handleReservedCharacters(String path) {
     path = path.replace("%2F", "/");
+    path = path.replace("%3A", ":");
     return path;
   }
 
