@@ -97,6 +97,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
@@ -688,6 +689,8 @@ public final class AlluxioMasterRestServiceHandler {
       @DefaultValue("") @QueryParam("end") String requestEnd,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
+      FilenameFilter filenameFilter = (dir, name) -> name.toLowerCase()
+          .matches(".*\\.log[\\d+]|.*.out|.*.txt|.*.json");
       MasterWebUILogs response = new MasterWebUILogs();
 
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {
@@ -704,7 +707,7 @@ public final class AlluxioMasterRestServiceHandler {
         // List all log files in the log/ directory.
 
         List<UIFileInfo> fileInfos = new ArrayList<>();
-        File[] logFiles = logsDir.listFiles();
+        File[] logFiles = logsDir.listFiles(filenameFilter);
         if (logFiles != null) {
           for (File logFile : logFiles) {
             String logFileName = logFile.getName();
