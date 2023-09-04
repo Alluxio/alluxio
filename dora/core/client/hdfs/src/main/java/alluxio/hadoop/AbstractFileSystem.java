@@ -581,7 +581,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
    * @return hadoop UGI's subject, or a fresh subject if the Hadoop UGI does not exist
    * @throws IOException if there is an exception when accessing the subject in Hadoop UGI
    */
-  private Subject getHadoopSubject() throws IOException {
+  protected Subject getHadoopSubject() throws IOException {
     Subject subject = null;
     UserGroupInformation ugi = null;
     try {
