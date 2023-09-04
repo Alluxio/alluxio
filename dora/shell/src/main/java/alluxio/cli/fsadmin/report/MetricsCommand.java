@@ -12,17 +12,14 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.metrics.MetricsMasterClient;
-import alluxio.grpc.MetricValue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.jline.utils.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.*;
 
 /**
  * Prints Alluxio metrics information.
@@ -30,6 +27,7 @@ import java.util.*;
 public class MetricsCommand {
   private final MetricsMasterClient mMetricsMasterClient;
   private final PrintStream mPrintStream;
+  private static final Logger LOG = LoggerFactory.getLogger(JobServiceMetricsCommand.class);
 
   /**
    * Creates a new instance of {@link MetricsCommand}.
@@ -56,7 +54,7 @@ public class MetricsCommand {
     } catch (JsonProcessingException e) {
       mPrintStream.println("Failed to convert metricsInfo output to JSON. " +
               "Check the command line log for the detailed error message.");
-      Log.error("Failed to output JSON object {}", metricsInfo);
+      LOG.error("Failed to output JSON object {}", metricsInfo);
       e.printStackTrace();
       return -1;
     }

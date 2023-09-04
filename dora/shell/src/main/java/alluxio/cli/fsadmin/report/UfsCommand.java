@@ -16,6 +16,8 @@ import alluxio.wire.MountPointInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jline.utils.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
@@ -25,6 +27,7 @@ import java.util.Map;
  */
 public class UfsCommand {
   private FileSystemMasterClient mFileSystemMasterClient;
+  private static final Logger LOG = LoggerFactory.getLogger(JobServiceMetricsCommand.class);
 
   /**
    * Creates a new instance of {@link UfsCommand}.
@@ -49,7 +52,7 @@ public class UfsCommand {
     } catch (JsonProcessingException e) {
       System.out.println("Failed to convert mountTable output to JSON. " +
               "Check the command line log for the detailed error message.");
-      Log.error("Failed to output JSON object {}", mountTable);
+      LOG.error("Failed to output JSON object {}", mountTable);
       e.printStackTrace();
       return -1;
     }
