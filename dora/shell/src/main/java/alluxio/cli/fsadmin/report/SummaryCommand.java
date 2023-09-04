@@ -83,8 +83,8 @@ public class SummaryCommand {
       String json = objectMapper.writeValueAsString(summaryInfo);
       mPrintStream.println(json);
     } catch (JsonProcessingException e) {
-      mPrintStream.println("Failed to convert summaryInfo output to JSON. " +
-              "Check the command line log for the detailed error message.");
+      mPrintStream.println("Failed to convert summaryInfo output to JSON. "
+          + "Check the command line log for the detailed error message.");
       LOG.error("Failed to output JSON object {}", summaryInfo);
       e.printStackTrace();
       return -1;

@@ -52,8 +52,8 @@ public class MetricsCommand {
       String json = objectMapper.writeValueAsString(metricsInfo);
       mPrintStream.println(json);
     } catch (JsonProcessingException e) {
-      mPrintStream.println("Failed to convert metricsInfo output to JSON. " +
-              "Check the command line log for the detailed error message.");
+      mPrintStream.println("Failed to convert metricsInfo output to JSON. "
+          + "Check the command line log for the detailed error message.");
       LOG.error("Failed to output JSON object {}", metricsInfo);
       e.printStackTrace();
       return -1;

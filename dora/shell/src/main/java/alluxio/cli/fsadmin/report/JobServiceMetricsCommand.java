@@ -65,8 +65,8 @@ public class JobServiceMetricsCommand {
       String json = objectMapper.writeValueAsString(jobServiceInfo);
       mPrintStream.println(json);
     } catch (JsonProcessingException e) {
-      mPrintStream.println("Failed to convert jobServiceInfo output to JSON. " +
-              "Check the command line log for the detailed error message.");
+      mPrintStream.println("Failed to convert jobServiceInfo output to JSON. "
+          + "Check the command line log for the detailed error message.");
       LOG.error("Failed to output JSON object {}", jobServiceInfo);
       e.printStackTrace();
       return -1;

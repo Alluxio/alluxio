@@ -15,7 +15,6 @@ import alluxio.annotation.PublicApi;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
@@ -39,10 +38,8 @@ public class MountPointInfo implements Serializable {
   private String mUfsType = "";
   @JsonIgnore
   private long mMountId = 0;
-  @JsonSerialize(using = FileSizeSerializer.class)
   @JsonProperty("ufsCapacityBytes")
   private long mUfsCapacityBytes = UNKNOWN_CAPACITY_BYTES;
-  @JsonSerialize(using = FileSizeSerializer.class)
   @JsonProperty("ufsUsedBytes")
   private long mUfsUsedBytes = UNKNOWN_USED_BYTES;
   private boolean mReadOnly;
