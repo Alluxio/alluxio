@@ -240,7 +240,7 @@ var (
 )
 
 func checkJavaVersion(javaPath string) error {
-	cmd := exec.Command("bash", "-c", fmt.Sprintf("%v -version", javaPath))
+	cmd := exec.Command(javaPath, "-version")
 	javaVer, err := cmd.CombinedOutput()
 	if err != nil {
 		return stacktrace.Propagate(err, "error finding java version from `%v -version`", javaPath)
