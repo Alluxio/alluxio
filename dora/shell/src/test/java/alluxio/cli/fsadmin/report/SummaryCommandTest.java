@@ -97,7 +97,13 @@ public class SummaryCommandTest {
     mPrintStream = new PrintStream(mOutputStream, true, "utf-8");
   }
 
-  void prepareZKHADependencies() throws IOException {
+  @After
+  public void after() {
+    mPrintStream.close();
+  }
+
+  @Test
+  public void ZkHaSummary() throws IOException {
     MasterVersion primaryVersion = MasterVersion.newBuilder()
         .setVersion(RuntimeConstants.VERSION).setState("Primary").setAddresses(
             NetAddress.newBuilder().setHost("hostname1").setRpcPort(10000).build()
@@ -117,9 +123,14 @@ public class SummaryCommandTest {
         .setRaftJournal(false)
         .build();
     when(mMetaMasterClient.getMasterInfo(any())).thenReturn(mMasterInfo);
+    SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
+        mBlockMasterClient, sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), mPrintStream);
+    summaryCommand.run();
+    checkIfOutputValid(sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), "zk");
   }
 
-  void prepareRaftHaDependencies() throws IOException {
+  @Test
+  public void RaftHaSummary() throws IOException {
     MasterVersion primaryVersion = MasterVersion.newBuilder()
         .setVersion(RuntimeConstants.VERSION).setState("Primary").setAddresses(
             NetAddress.newBuilder().setHost("hostname1").setRpcPort(10000).build()
@@ -139,25 +150,6 @@ public class SummaryCommandTest {
         .addAllMasterVersions(Arrays.asList(primaryVersion, standby1Version, standby2Version))
         .build();
     when(mMetaMasterClient.getMasterInfo(any())).thenReturn(mMasterInfo);
-  }
-
-  @After
-  public void after() {
-    mPrintStream.close();
-  }
-
-  @Test
-  public void ZkHaSummary() throws IOException {
-    prepareZKHADependencies();
-    SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
-        mBlockMasterClient, sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), mPrintStream);
-    summaryCommand.run();
-    checkIfOutputValid(sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), "zk");
-  }
-
-  @Test
-  public void RaftHaSummary() throws IOException {
-    prepareRaftHaDependencies();
     SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
         mBlockMasterClient, sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), mPrintStream);
     summaryCommand.run();
