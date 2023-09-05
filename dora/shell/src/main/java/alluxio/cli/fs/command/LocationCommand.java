@@ -15,15 +15,21 @@ import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.block.BlockStoreClient;
+import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.wire.BlockLocation;
+import alluxio.wire.WorkerNetAddress;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.google.gson.Gson;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -50,14 +56,13 @@ public final class LocationCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
-    URIStatus status = mFileSystem.getStatus(plainPath);
-
-    System.out.println(plainPath + " with file id " + status.getFileId() + " is on nodes: ");
-    BlockStoreClient blockStore = BlockStoreClient.create(mFsContext);
-    for (long blockId : status.getBlockIds()) {
-      for (BlockLocation location : blockStore.getInfo(blockId).getLocations()) {
-        System.out.println(location.getWorkerAddress().getHost());
-      }
+    if (mFileSystem instanceof DoraCacheFileSystem) {
+      DoraCacheFileSystem doraCacheFileSystem = (DoraCacheFileSystem) mFileSystem;
+      Map<String, List<WorkerNetAddress>> pathLocations =
+          doraCacheFileSystem.checkFileLocation(plainPath);
+      Gson gson = new Gson();
+      String pathLocationsJson = gson.toJson(pathLocations);
+      System.out.println(pathLocationsJson);
     }
   }
 

@@ -80,6 +80,9 @@ import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.logging.SamplingLogger;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockLocation;
+import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
@@ -319,7 +322,20 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         options.getLoadMetadataType() != LoadMetadataPType.NEVER);
     int cachedPercentage = getCachedPercentage(fi, ufsFullPath);
 
+    List<FileBlockInfo> fileBlockInfos = new ArrayList<>();
+    FileBlockInfo fileBlockInfo = new FileBlockInfo();
+    BlockInfo blockInfo = new BlockInfo();
+    BlockLocation blockLocation = new BlockLocation();
+    blockLocation.setWorkerId(mWorkerId.get());
+    blockLocation.setWorkerAddress(getAddress());
+    List<BlockLocation> blockLocations = new ArrayList<>();
+    blockLocations.add(blockLocation);
+    blockInfo.setLocations(blockLocations);
+    fileBlockInfo.setBlockInfo(blockInfo);
+    fileBlockInfos.add(fileBlockInfo);
+
     return GrpcUtils.fromProto(fi)
+        .setFileBlockInfos(fileBlockInfos)
         .setInAlluxioPercentage(cachedPercentage)
         .setInMemoryPercentage(cachedPercentage);
   }
@@ -942,5 +958,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   protected DoraOpenFileHandleContainer getOpenFileHandleContainer() {
     return mOpenFileHandleContainer;
+  }
+
+  @Override
+  public WorkerNetAddress getAddress() {
+    return mAddress;
   }
 }

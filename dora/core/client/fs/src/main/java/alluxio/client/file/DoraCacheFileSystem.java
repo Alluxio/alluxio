@@ -60,6 +60,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -451,6 +452,21 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     } else {
       return alluxioPath;
     }
+  }
+
+  public WorkerNetAddress getWorkerNetAddress(AlluxioURI path) {
+    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
+    return mDoraClient.getWorkerNetAddress(ufsFullPath.toString());
+  }
+
+  public Map<String, List<WorkerNetAddress>> checkFileLocation(AlluxioURI path) throws IOException {
+    return checkFileLocation(path, GetStatusPOptions.getDefaultInstance());
+  }
+
+  public Map<String, List<WorkerNetAddress>> checkFileLocation(AlluxioURI path,
+      GetStatusPOptions options) throws IOException {
+    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
+    return mDoraClient.checkFileLocation(ufsFullPath.toString(), options);
   }
 
   @Override
