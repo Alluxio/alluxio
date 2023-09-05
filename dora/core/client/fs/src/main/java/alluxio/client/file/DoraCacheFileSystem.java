@@ -77,7 +77,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   private final DoraCacheClient mDoraClient;
   private final FileSystemContext mFsContext;
   private final boolean mMetadataCacheEnabled;
-  private final boolean mUfsFallbackEnabled;
+  private boolean mUfsFallbackEnabled;
   private final long mDefaultVirtualBlockSize;
 
   private final boolean mClientWriteToUFSEnabled;
@@ -427,7 +427,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
    * @param alluxioPath Alluxio based path
    * @return UfsBaseFileSystem based full path
    */
-  private AlluxioURI convertAlluxioPathToUFSPath(AlluxioURI alluxioPath) {
+  public AlluxioURI convertAlluxioPathToUFSPath(AlluxioURI alluxioPath) {
     if (mDelegatedFileSystem instanceof UfsBaseFileSystem) {
       UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
       AlluxioURI rootUFS = under.getRootUFS();
@@ -493,5 +493,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       listBuilder.add(blockLocationInfo);
     }
     return listBuilder.build();
+  }
+
+  public void setUfsFallbackEnabled(boolean enabled) {
+    mUfsFallbackEnabled = enabled;
   }
 }
