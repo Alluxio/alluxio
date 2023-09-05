@@ -4699,11 +4699,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_MEMBERSHIP_MANAGER_TYPE =
       enumBuilder(Name.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.class)
-          .setDefaultValue(MembershipType.NOOP.name())
+          .setDefaultValue(MembershipType.MASTER.name())
           .setDescription("Type of membership manager used for workers."
               + "Choose STATIC for pre-configured members."
               + "Choose ETCD for using etcd for membership management"
-              + "Default is NOOP which does not enable membership manager at all")
+              + "Default is MASTER which does not enable membership module"
+              + " and uses master to register")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
           .build();
