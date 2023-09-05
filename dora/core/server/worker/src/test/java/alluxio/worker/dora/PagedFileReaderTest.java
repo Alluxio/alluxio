@@ -17,12 +17,25 @@ import alluxio.PositionReader;
 import alluxio.PositionReaderTest;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
+import alluxio.client.file.cache.DefaultPageMetaStore;
 import alluxio.client.file.cache.PageMetaStore;
+import alluxio.client.file.cache.PageStore;
+import alluxio.client.file.cache.evictor.CacheEvictor;
+import alluxio.client.file.cache.evictor.CacheEvictorOptions;
+import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
+import alluxio.client.file.cache.store.MemoryPageStore;
+import alluxio.client.file.cache.store.MemoryPageStoreDir;
+import alluxio.client.file.cache.store.PageStoreDir;
+import alluxio.client.file.cache.store.PageStoreOptions;
+import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.BufferUtils;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,6 +59,18 @@ import java.util.UUID;
 @RunWith(Parameterized.class)
 public class PagedFileReaderTest {
 
+  @Parameterized.Parameter
+  public int mFileLen;
+  @Rule
+  public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
+  private InstancedConfiguration mConf = Configuration.copyGlobal();
+  private String mTestFile;
+  private PositionReader mPositionReader;
+  private UnderFileSystem mLocalUfs;
+
+  private CacheManager mCacheManager;
+  private PositionReaderTest mPositionReaderTest;
+
   @Parameterized.Parameters(name = "{index}-{0}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
@@ -55,45 +80,39 @@ public class PagedFileReaderTest {
         {256},
         {666},
         {5314},
-        { Constants.KB - 1},
-        { Constants.KB},
-        { Constants.KB + 1},
-        { 64 * Constants.KB - 1},
-        { 64 * Constants.KB},
-        { 64 * Constants.KB + 1},
+        {Constants.KB - 1},
+        {Constants.KB},
+        {Constants.KB + 1},
+        {64 * Constants.KB - 1},
+        {64 * Constants.KB},
+        {64 * Constants.KB + 1},
     });
   }
 
-  @Parameterized.Parameter
-  public int mFileLen;
-  private String mTestFile;
-  private PositionReader mPositionReader;
-  private UnderFileSystem mLocalUfs;
-
-  private CacheManager mCacheManager;
-  private PositionReaderTest mPositionReaderTest;
-  @Rule
-  public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
-
   @Before
   public void before() throws IOException {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.MEM);
+    PageStoreOptions pageStoreOptions = PageStoreOptions.create(mConf).get(0);
+    CacheEvictor evictor = new FIFOCacheEvictor(new CacheEvictorOptions());
+    PageStoreDir pageStoreDir = new MemoryPageStoreDir(pageStoreOptions,
+        (MemoryPageStore) PageStore.create(pageStoreOptions), evictor);
+    PageMetaStore pageMetaStore = new DefaultPageMetaStore(ImmutableList.of(pageStoreDir));
+
     String localUfsRoot = mTemporaryFolder.getRoot().getAbsolutePath();
     mLocalUfs = UnderFileSystem.Factory.create(
-        localUfsRoot, UnderFileSystemConfiguration.defaults(Configuration.global()));
+        localUfsRoot, UnderFileSystemConfiguration.defaults(mConf));
     Path path = Paths.get(localUfsRoot, "testFile" + UUID.randomUUID());
     try (FileOutputStream os = new FileOutputStream(path.toFile())) {
       os.write(BufferUtils.getIncreasingByteArray(mFileLen));
     }
     mTestFile = path.toString();
     CacheManagerOptions cacheManagerOptions = CacheManagerOptions
-        .createForWorker(Configuration.global());
-    PageMetaStore pageMetaStore = PageMetaStore.create(
-        CacheManagerOptions.createForWorker(Configuration.global()));
+        .createForWorker(mConf);
     String fileId = new AlluxioURI(mTestFile).hash();
     mCacheManager = CacheManager.Factory.create(
         Configuration.global(), cacheManagerOptions, pageMetaStore);
     mPositionReader = PagedFileReader.create(
-        Configuration.global(), mCacheManager, mLocalUfs, mTestFile, fileId, mFileLen, 0);
+        mConf, mCacheManager, mLocalUfs, fileId, mTestFile, mFileLen, 0);
     mPositionReaderTest = new PositionReaderTest(mPositionReader, mFileLen);
   }
 
@@ -107,5 +126,15 @@ public class PagedFileReaderTest {
   @Test
   public void testAllCornerCases() throws IOException {
     mPositionReaderTest.testAllCornerCases();
+  }
+
+  @Test
+  public void testReadRandomPart() throws IOException {
+    mPositionReaderTest.testReadRandomPart();
+  }
+
+  @Test
+  public void testConcurrentReadRandomPart() throws Exception {
+    mPositionReaderTest.concurrentReadPart();
   }
 }
