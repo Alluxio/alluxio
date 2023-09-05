@@ -52,61 +52,42 @@ $ ./bin/alluxio format
 $ ./bin/alluxio format -s
 ```
 
-### formatJournal
+### journal
 
-The `formatJournal` command formats the Alluxio master journal on this host.
-
-The Alluxio master stores various forms of metadata, including:
-- file system operations
-- where files are located on workers
-- journal transactions
-- under storage file metadata
-
-All this information is deleted if `formatJournal` is run.,
-
-> Warning: `formatJournal` should only be called while the cluster is not running.
-
-
-```shell
-$ ./bin/alluxio formatJournal
-```
-
-### formatMasters
-
-The `formatMasters` command formats the Alluxio masters.
-
-This command defers to [formatJournal](#formatjournal),
-but if the UFS is an embedded journal it will format all master nodes listed in the 'conf/masters' file
-instead of just this host.
+The `journal` command manages the Alluxio master journal on this host.
 
 The Alluxio master stores various forms of metadata, including:
 - file system operations
 - where files are located on workers
 - journal transactions
 - under storage file metadata
+There are two operations that can be performed on the journal:
+- `format`: formats the journal
+- `read`: read an Alluxio journal file to a human-readable version
 
-All this information is deleted if `formatMasters` is run.,
+For `journal format`, all this information is deleted if `journal format` is run.
 
-> Warning: `formatMasters` should only be called while the cluster is not running.
-
+> Warning: `journal format` should only be called while the cluster is not running.
 
 ```shell
-$ ./bin/alluxio formatMasters
+$ ./bin/alluxio journal format
 ```
 
-### formatWorker
+For `journal read`, the journal file is read and printed to the console.
+```shell
+$ ./bin/alluxio journal read
+```
 
-The `formatWorker` command formats the Alluxio worker on this host.
+### init
 
-An Alluxio worker caches files and objects.
-
-`formatWorker` deletes all the cached data stored in this worker node.
+The `init format` command formats the Alluxio masters/workers.
+This operation deletes all the information stored in Alluxio.
 Data in under storage will not be changed.
 
-> Warning: `formatWorker` should only be called while the cluster is not running.
+> Warning: `init format` should only be called while the cluster is not running.
 
 ```shell
-$ ./bin/alluxio formatWorker
+$ ./bin/alluxio init format [flags]
 ```
 
 ### fs
