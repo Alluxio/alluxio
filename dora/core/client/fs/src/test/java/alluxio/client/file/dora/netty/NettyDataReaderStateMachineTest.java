@@ -231,6 +231,15 @@ public class NettyDataReaderStateMachineTest {
         NettyDataReaderStateMachine.TriggerEvent.CHANNEL_AVAILABLE);
   }
 
+  private void setStateToChannelActiveDirectly() {
+    nettyDataReaderStateMachine = new NettyDataReaderStateMachine(
+        mFsContext,
+        mWorkerNetAddress,
+        mRequestBuilder,
+        new ByteArrayTargetBuffer(mByteArray, 0),
+        NettyDataReaderStateMachine.State.CHANNEL_ACTIVE);
+  }
+
   private static class ServerStateDriver {
     private final ExecutorService mExecutor;
     private final EmbeddedChannel mChannel;

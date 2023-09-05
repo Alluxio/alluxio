@@ -166,19 +166,11 @@ public class NettyDataReaderStateMachine {
     }
   }
 
-  /**
-   * Constructor.
-   *
-   * @param context
-   * @param address
-   * @param requestBuilder
-   * @param buffer
-   */
   public NettyDataReaderStateMachine(
       FileSystemContext context,
       WorkerNetAddress address,
       Protocol.ReadRequest.Builder requestBuilder,
-      ReadTargetBuffer buffer) {
+      ReadTargetBuffer buffer, State state) {
     mContext = context;
     AlluxioConfiguration conf = context.getClusterConf();
     mReadTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
@@ -259,9 +251,25 @@ public class NettyDataReaderStateMachine {
         .substateOf(State.TERMINATED)
         .onEntry(this::onTerminatedNormally);
 
-    mStateMachine = new StateMachine<>(/* initialState */ State.CREATED, config);
+    mStateMachine = new StateMachine<>(/* initialState */ state, config);
     mStateMachine.setTrace(new DebugLoggingTracer<>(LOG));
     mStateMachine.fireInitialTransition();
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param context
+   * @param address
+   * @param requestBuilder
+   * @param buffer
+   */
+  public NettyDataReaderStateMachine(
+      FileSystemContext context,
+      WorkerNetAddress address,
+      Protocol.ReadRequest.Builder requestBuilder,
+      ReadTargetBuffer buffer) {
+    this(context, address, requestBuilder, buffer, State.CREATED);
   }
 
   @VisibleForTesting
