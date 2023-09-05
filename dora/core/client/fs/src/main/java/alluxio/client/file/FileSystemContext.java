@@ -558,13 +558,16 @@ public class FileSystemContext implements Closeable {
    */
   public void reinit(boolean updateClusterConf)
       throws UnavailableException, IOException {
+    // inquiry primary master address before entering the critical session of mReinitializer,
+    // where all RPCs wait for the monitor object of FileSystemContext (synchronized methods)
+    // will block until initialization completes
+    InetSocketAddress masterAddr;
+    try {
+      masterAddr = getMasterAddress();
+    } catch (IOException e) {
+      throw new UnavailableException("Failed to get master address during reinitialization", e);
+    }
     try (Closeable r = mReinitializer.allow()) {
-      InetSocketAddress masterAddr;
-      try {
-        masterAddr = getMasterAddress();
-      } catch (IOException e) {
-        throw new UnavailableException("Failed to get master address during reinitialization", e);
-      }
       try {
         getClientContext().loadConf(masterAddr);
       } catch (AlluxioStatusException e) {
