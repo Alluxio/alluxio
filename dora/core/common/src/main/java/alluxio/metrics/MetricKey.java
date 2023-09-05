@@ -2169,12 +2169,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey WORKER_GET_FILE_INFO_HIT_REQUESTS =
-      new Builder("Worker.GetFileInfoFromCacheCount")
+      new Builder("Worker.GetFileInfoHitRequests")
           .setDescription("Total number of GetFileInfo requests read from worker.")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey WORKER_GET_FILE_INFO_EXTERNAL_REQUESTS =
-      new Builder("Worker.GetFileInfoFromUfsCount")
+      new Builder("Worker.GetFileInfoExternalRequests")
           .setDescription("Total number of GetFileInfo read from external storage.")
           .setMetricType(MetricType.COUNTER)
           .build();
