@@ -33,10 +33,7 @@ import alluxio.wire.BlockMasterInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,7 +41,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class SummaryCommandTest {
 
@@ -151,13 +151,6 @@ public class SummaryCommandTest {
     prepareZKHADependencies();
     SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
         mBlockMasterClient, sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), mPrintStream);
-    ArrayList<String> zkHAPattern = new ArrayList<>(Arrays.asList(
-        "    Zookeeper Enabled: true",
-        "    Zookeeper Addresses: ",
-        "        [zookeeper_hostname1]:2181",
-        "        [zookeeper_hostname2]:2181",
-        "        [zookeeper_hostname3]:2181",
-        "    Raft-based Journal: false"));
     summaryCommand.run();
     checkIfOutputValid(sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), "zk");
   }
@@ -167,15 +160,7 @@ public class SummaryCommandTest {
     prepareRaftHaDependencies();
     SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
         mBlockMasterClient, sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), mPrintStream);
-    ArrayList<String> raftHaPattern = new ArrayList<>(Arrays.asList(
-        "    Zookeeper Enabled: false",
-        "    Raft-based Journal: true",
-        "    Raft Journal Addresses: ",
-        "        [raftJournal_hostname1]:19200",
-        "        [raftJournal_hostname2]:19200",
-        "        [raftJournal_hostname3]:19200"));
     summaryCommand.run();
-
     checkIfOutputValid(sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), "raft");
   }
 
@@ -211,22 +196,29 @@ public class SummaryCommandTest {
     assertEquals("8462", jsonNode.get("rpcPort").asText());
     assertEquals("testVersion", jsonNode.get("version").asText());
     assertEquals(startTime, jsonNode.get("started").asText());
-    assertEquals("143 day(s), 15 hour(s), 53 minute(s), and 32 second(s)", jsonNode.get("uptime").asText());
+    assertEquals("143 day(s), 15 hour(s), 53 minute(s), and 32 second(s)",
+        jsonNode.get("uptime").asText());
     assertEquals("false", jsonNode.get("safeMode").asText());
 
     // check zookeeper and raft
     if (Objects.equals(HAPattern, "zk")) {
       assertEquals("true", jsonNode.get("useZookeeper").asText());
       assertEquals("false", jsonNode.get("useRaftJournal").asText());
-      assertEquals("[zookeeper_hostname1]:2181", jsonNode.get("zookeeperAddress").get(0).asText());
-      assertEquals("[zookeeper_hostname2]:2181", jsonNode.get("zookeeperAddress").get(1).asText());
-      assertEquals("[zookeeper_hostname3]:2181", jsonNode.get("zookeeperAddress").get(2).asText());
+      assertEquals("[zookeeper_hostname1]:2181",
+          jsonNode.get("zookeeperAddress").get(0).asText());
+      assertEquals("[zookeeper_hostname2]:2181",
+          jsonNode.get("zookeeperAddress").get(1).asText());
+      assertEquals("[zookeeper_hostname3]:2181",
+          jsonNode.get("zookeeperAddress").get(2).asText());
     } else if (Objects.equals(HAPattern, "raft")) {
       assertEquals("false", jsonNode.get("useZookeeper").asText());
       assertEquals("true", jsonNode.get("useRaftJournal").asText());
-      assertEquals("[raftJournal_hostname1]:19200", jsonNode.get("raftJournalAddress").get(0).asText());
-      assertEquals("[raftJournal_hostname2]:19200", jsonNode.get("raftJournalAddress").get(1).asText());
-      assertEquals("[raftJournal_hostname3]:19200", jsonNode.get("raftJournalAddress").get(2).asText());
+      assertEquals("[raftJournal_hostname1]:19200",
+          jsonNode.get("raftJournalAddress").get(0).asText());
+      assertEquals("[raftJournal_hostname2]:19200",
+          jsonNode.get("raftJournalAddress").get(1).asText());
+      assertEquals("[raftJournal_hostname3]:19200",
+          jsonNode.get("raftJournalAddress").get(2).asText());
     } else {
       fail("HAPattern is neither zk nor raft");
     }
