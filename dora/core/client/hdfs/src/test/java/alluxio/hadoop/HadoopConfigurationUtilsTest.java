@@ -12,6 +12,7 @@
 package alluxio.hadoop;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -39,7 +40,7 @@ public final class HadoopConfigurationUtilsTest {
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
     mConf.merge(
         HadoopConfigurationUtils.getConfigurationFromHadoop(hadoopConfig), Source.RUNTIME);
-    assertEquals("", mConf.getString(PropertyKey.MASTER_HOSTNAME));
+    assertFalse(mConf.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED));
   }
 
   /**
