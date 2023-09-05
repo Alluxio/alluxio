@@ -470,7 +470,15 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     }
   }
 
-  private AlluxioURI convertUfsPathToAlluxioPath(AlluxioURI ufsPath) {
+  /**
+   * Converts the UFS path back to Alluxio path.
+   * <p>
+   * This is the opposite operation to {@link #convertAlluxioPathToUFSPath(AlluxioURI)}.
+   *
+   * @param ufsPath UfsBaseFileSystem based full path
+   * @return an Alluxio path
+   */
+  public AlluxioURI convertUfsPathToAlluxioPath(AlluxioURI ufsPath) {
     if (mDelegatedFileSystem instanceof UfsBaseFileSystem) {
       AlluxioURI rootUfs = ((UfsBaseFileSystem) mDelegatedFileSystem).getRootUFS();
       try {
