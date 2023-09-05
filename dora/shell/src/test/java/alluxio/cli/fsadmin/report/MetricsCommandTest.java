@@ -11,14 +11,19 @@
 
 package alluxio.cli.fsadmin.report;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.grpc.MetricType;
 import alluxio.grpc.MetricValue;
 import alluxio.metrics.MetricKey;
 
-import org.hamcrest.collection.IsIterableContainingInOrder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -27,9 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class MetricsCommandTest {
@@ -117,30 +120,84 @@ public class MetricsCommandTest {
   /**
    * Checks if the output is expected.
    */
-  private void checkIfOutputValid() {
+  private void checkIfOutputValid() throws JsonProcessingException {
     String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
-    // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
-    List<String> expectedOutput = Arrays.asList(
-        "Cluster.BytesReadDomain  (Type: GAUGE, Value: 4145.73KB)",
-        "Cluster.BytesReadDomainThroughput  (Type: GAUGE, Value: 29.97MB/MIN)",
-        "Cluster.BytesReadRemote  (Type: GAUGE, Value: 401.79MB)",
-        "Cluster.BytesReadRemoteThroughput  (Type: GAUGE, Value: 518.36MB/MIN)",
-        "Cluster.BytesReadUfsAll  (Type: GAUGE, Value: 509.47MB)",
-        "Cluster.BytesReadUfsThroughput  (Type: GAUGE, Value: 728.16KB/MIN)",
-        "Cluster.BytesWrittenDomain  (Type: GAUGE, Value: 62.43MB)",
-        "Cluster.BytesWrittenDomainThroughput  (Type: GAUGE, Value: 1202.37KB/MIN)",
-        "Cluster.BytesWrittenRemote  (Type: GAUGE, Value: 22.98KB)",
-        "Cluster.BytesWrittenRemoteThroughput  (Type: GAUGE, Value: 8.03MB/MIN)",
-        "Cluster.BytesWrittenUfsAll  (Type: GAUGE, Value: 317.70KB)",
-        "Cluster.BytesWrittenUfsThroughput  (Type: GAUGE, Value: 33.46KB/MIN)",
-        "Cluster.CapacityTotal  (Type: GAUGE, Value: 1,154,531,246,129,122)",
-        "Master.CompleteFileOps  (Type: COUNTER, Value: 813)",
-        "Master.UfsSessionCount-Ufs:_alluxio_underFSStorage  (Type: COUNTER, Value: 8,535)",
-        "Master.UfsSessionCount-Ufs:file:___Users_alluxio_alluxioMountedFolder  (Type: COUNTER, Value: 1,231)",
-        "Master.getMetrics.User:alluxio  (Type: TIMER, Value: 4)");
-    // CHECKSTYLE.ON: LineLengthExceed
-    List<String> testOutput = Arrays.asList(output.split("\n"));
-    Assert.assertThat(testOutput,
-        IsIterableContainingInOrder.contains(expectedOutput.toArray()));
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode metricsInfo = mapper.readTree(output).get("metricsInfo");
+    assertEquals(17, metricsInfo.size());
+    for (JsonNode metricInfo : metricsInfo) {
+      switch (metricInfo.get("key").asText()) {
+        case "Cluster.BytesReadDomain":
+          assertEquals("GAUGE", metricInfo.get("type").asText());
+          assertEquals("4145.73KB", metricInfo.get("value").asText());
+          break;
+        case "Cluster.BytesReadDomainThroughput":
+          assertEquals("GAUGE", metricInfo.get("type").asText());
+          assertEquals("29.97MB/MIN", metricInfo.get("value").asText());
+          break;
+        case "Cluster.BytesReadRemote":
+          assertEquals("GAUGE", metricInfo.get("type").asText());
+          assertEquals("401.79MB", metricInfo.get("value").asText());
+          break;
+        case "Cluster.BytesReadRemoteThroughput":
+          assertEquals("GAUGE", metricInfo.get("type").asText());
+          assertEquals("518.36MB/MIN", metricInfo.get("value").asText());
+          break;
+        case "Cluster.BytesReadUfsAll":
+          assertEquals("GAUGE", metricInfo.get("type").asText());
+          assertEquals("509.47MB", metricInfo.get("value").asText());
+          break;
+        case "Cluster.BytesReadUfsThroughput":
+          assertEquals("GAUGE", metricInfo.get("type").asText());
+          assertEquals("728.16KB/MIN", metricInfo.get("value").asText());
+          break;
+        case "Cluster.BytesWrittenDomain":
+          assertEquals("GAUGE", metricInfo.get("type").asText());
+          assertEquals("62.43MB", metricInfo.get("value").asText());
+          break;
+        case "Cluster.BytesWrittenDomainThroughput":
+          assertEquals("GAUGE", metricInfo.get("type").asText());
+          assertEquals("1202.37KB/MIN", metricInfo.get("value").asText());
+          break;
+        case "Cluster.BytesWrittenRemote":
+          assertEquals("GAUGE", metricInfo.get("type").asText());
+          assertEquals("22.98KB", metricInfo.get("value").asText());
+          break;
+        case "Cluster.BytesWrittenRemoteThroughput":
+          assertEquals("GAUGE", metricInfo.get("type").asText());
+          assertEquals("8.03MB/MIN", metricInfo.get("value").asText());
+          break;
+        case "Cluster.BytesWrittenUfsAll":
+          assertEquals("GAUGE", metricInfo.get("type").asText());
+          assertEquals("317.70KB", metricInfo.get("value").asText());
+          break;
+        case "Cluster.BytesWrittenUfsThroughput":
+          assertEquals("GAUGE", metricInfo.get("type").asText());
+          assertEquals("33.46KB/MIN", metricInfo.get("value").asText());
+          break;
+        case "Cluster.CapacityTotal":
+          assertEquals("GAUGE", metricInfo.get("type").asText());
+          assertEquals("1,154,531,246,129,122", metricInfo.get("value").asText());
+          break;
+        case "Master.CompleteFileOps":
+          assertEquals("COUNTER", metricInfo.get("type").asText());
+          assertEquals("813", metricInfo.get("value").asText());
+          break;
+        case "Master.UfsSessionCount-Ufs:_alluxio_underFSStorage":
+          assertEquals("COUNTER", metricInfo.get("type").asText());
+          assertEquals("8,535", metricInfo.get("value").asText());
+          break;
+        case "Master.UfsSessionCount-Ufs:file:___Users_alluxio_alluxioMountedFolder":
+          assertEquals("COUNTER", metricInfo.get("type").asText());
+          assertEquals("1,231", metricInfo.get("value").asText());
+          break;
+        case "Master.getMetrics.User:alluxio":
+          assertEquals("TIMER", metricInfo.get("type").asText());
+          assertEquals("4", metricInfo.get("value").asText());
+          break;
+        default:
+          fail("Invalid key: " + metricInfo.get("key").asText());
+      }
+    }
   }
 }
