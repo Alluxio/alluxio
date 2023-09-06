@@ -81,12 +81,12 @@ public class DoraWorkerClientServiceHandlerTest {
     String rootPath = setupTestDirectoryAndFile();
 
     // Execute and Assert
-    executeAndAssertListStatus(rootPath, true, new String[]{
+    executeAndAssertListStatus(rootPath, true, new String[] {
         PathUtils.concatPath(rootPath, "d1"),
         PathUtils.concatPath(rootPath, "d1/d1"),
         PathUtils.concatPath(rootPath, "d2"),
         PathUtils.concatPath(rootPath, "f")
-    }, new Boolean[]{true, true, true, false});
+    }, new Boolean[] {true, true, true, false});
   }
 
   @Test
@@ -95,11 +95,11 @@ public class DoraWorkerClientServiceHandlerTest {
     String rootPath = setupTestDirectoryAndFile();
 
     // Execute and Assert
-    executeAndAssertListStatus(rootPath, false, new String[]{
+    executeAndAssertListStatus(rootPath, false, new String[] {
         PathUtils.concatPath(rootPath, "d1"),
         PathUtils.concatPath(rootPath, "d2"),
         PathUtils.concatPath(rootPath, "f")
-    }, new Boolean[]{true, true, false});
+    }, new Boolean[] {true, true, false});
   }
 
   @Test
@@ -124,7 +124,7 @@ public class DoraWorkerClientServiceHandlerTest {
     String filePath = PathUtils.concatPath(rootPath, "f");
 
     // Execute and Assert
-    executeAndAssertListStatus(filePath, true, new String[]{filePath}, new Boolean[]{false});
+    executeAndAssertListStatus(filePath, true, new String[] {filePath}, new Boolean[] {false});
   }
 
   private String setupTestDirectoryAndFile() throws IOException {
@@ -140,7 +140,8 @@ public class DoraWorkerClientServiceHandlerTest {
     return rootPath;
   }
 
-  private void executeAndAssertListStatus(String path, boolean recursive, String[] expectedPaths, Boolean[] expectedIsDirectories) {
+  private void executeAndAssertListStatus(String path, boolean recursive, String[] expectedPaths,
+                                          Boolean[] expectedIsDirectories) {
     mRequest = ListStatusPRequest.newBuilder().setOptions(
             alluxio.grpc.ListStatusPOptions.newBuilder().setRecursive(recursive).build())
         .setPath(path).build();
@@ -155,7 +156,6 @@ public class DoraWorkerClientServiceHandlerTest {
       assertEquals(true, responses.get(i).getIsCompleted());
     }
   }
-
 
   private static class TestStreamObserver implements StreamObserver<ListStatusPResponse> {
     private final List<MyStruct> mResponses = new ArrayList<>();
