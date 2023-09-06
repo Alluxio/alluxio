@@ -16,7 +16,6 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
@@ -209,7 +208,7 @@ public class NettyDataReaderStateMachineTest {
         .andThen(new EofState());
     Future<Throwable> serverFault = mStateDriver.run(start);
 
-    setToChannelActive();
+    setStateToChannelActiveDirectly();
 
     mMachineThread.start();
     Thread.sleep(3000);
@@ -237,7 +236,11 @@ public class NettyDataReaderStateMachineTest {
         mWorkerNetAddress,
         mRequestBuilder,
         new ByteArrayTargetBuffer(mByteArray, 0),
-        NettyDataReaderStateMachine.State.CHANNEL_ACTIVE);
+        NettyDataReaderStateMachine.State.ACQUIRING_CHANNEL);
+    nettyDataReaderStateMachine.setChannel(mChannel);
+    nettyDataReaderStateMachine.fireNext(
+        NettyDataReaderStateMachine.TriggerEvent.CHANNEL_AVAILABLE);
+    nettyDataReaderStateMachine.stepRun();
   }
 
   private static class ServerStateDriver {

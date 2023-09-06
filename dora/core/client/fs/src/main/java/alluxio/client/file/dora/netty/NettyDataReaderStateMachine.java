@@ -166,6 +166,15 @@ public class NettyDataReaderStateMachine {
     }
   }
 
+  /**
+   * Constructor.
+   *
+   * @param context
+   * @param address
+   * @param requestBuilder
+   * @param buffer
+   * @param state
+   */
   public NettyDataReaderStateMachine(
       FileSystemContext context,
       WorkerNetAddress address,
