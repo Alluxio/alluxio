@@ -85,7 +85,6 @@ public class FuseEndToEndTest {
     AlluxioJniFuseFileSystem fuseFileSystem = new AlluxioJniFuseFileSystem(context, fileSystem,
         FuseOptions.Builder.fromConfig(Configuration.global())
             .setFileSystemOptions(fileSystemOptions)
-            .setUpdateCheckEnabled(false)
             .build());
     fuseFileSystem.mount(false, false, new HashSet<>());
     if (!FuseUtils.waitForFuseMounted(MOUNT_POINT)) {

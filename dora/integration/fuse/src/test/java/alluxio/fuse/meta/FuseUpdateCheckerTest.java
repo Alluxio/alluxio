@@ -11,36 +11,30 @@
 
 package alluxio.fuse.meta;
 
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.fuse.FuseConstants;
 import alluxio.fuse.options.FuseOptions;
-import alluxio.metrics.MetricsSystem;
 
 import org.junit.Assert;
 import org.junit.Assume;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Tests for {@link FuseUpdateChecker}.
  */
 public class FuseUpdateCheckerTest {
+  private final InstancedConfiguration mConf = Configuration.copyGlobal();
+
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
-      comment = "fix UpdateChecker for 30x")
-  @Ignore
   public void UnderFileSystemAlluxio() {
-    try (FuseUpdateChecker checker = FuseUpdateChecker
-        .create(FuseOptions.Builder.fromConfig(Configuration.global()).build())) {
-      Assert.assertTrue(containsTargetInfo(checker.getUnchangeableFuseInfo(),
+    try (FuseUpdateChecker checker = new FuseUpdateChecker(
+        FuseOptions.Builder.fromConfig(Configuration.global()).build())) {
+      Assert.assertTrue(containsTargetInfo(checker.getFuseInfo(),
           FuseUpdateChecker.ALLUXIO_FS));
     }
   }
@@ -48,7 +42,7 @@ public class FuseUpdateCheckerTest {
   @Test
   public void UnderFileSystemLocal() {
     try (FuseUpdateChecker checker = getUpdateCheckerWithUfs("/home/ec2-user/testFolder")) {
-      Assert.assertTrue(containsTargetInfo(checker.getUnchangeableFuseInfo(),
+      Assert.assertTrue(containsTargetInfo(checker.getFuseInfo(),
           FuseUpdateChecker.LOCAL_FS));
     }
   }
@@ -56,21 +50,21 @@ public class FuseUpdateCheckerTest {
   @Test
   public void UnderFileSystemS3() {
     try (FuseUpdateChecker checker = getUpdateCheckerWithUfs("s3://alluxio-test/")) {
-      Assert.assertTrue(containsTargetInfo(checker.getUnchangeableFuseInfo(), "s3"));
+      Assert.assertTrue(containsTargetInfo(checker.getFuseInfo(), "s3"));
     }
   }
 
   @Test
   public void UnderFileSystemS3A() {
     try (FuseUpdateChecker checker = getUpdateCheckerWithUfs("s3a://alluxio-test/")) {
-      Assert.assertTrue(containsTargetInfo(checker.getUnchangeableFuseInfo(), "s3a"));
+      Assert.assertTrue(containsTargetInfo(checker.getFuseInfo(), "s3a"));
     }
   }
 
   @Test
   public void UnderFileSystemHdfs() {
     try (FuseUpdateChecker checker = getUpdateCheckerWithUfs("hdfs://namenode:port/testFolder")) {
-      Assert.assertTrue(containsTargetInfo(checker.getUnchangeableFuseInfo(), "hdfs"));
+      Assert.assertTrue(containsTargetInfo(checker.getFuseInfo(), "hdfs"));
     }
   }
 
@@ -78,7 +72,7 @@ public class FuseUpdateCheckerTest {
   public void localKernelDataCacheDisabled() {
     Assume.assumeTrue(Configuration.getInt(PropertyKey.FUSE_JNIFUSE_LIBFUSE_VERSION) == 2);
     try (FuseUpdateChecker checker = getUpdateCheckerWithMountOptions("direct_io")) {
-      Assert.assertFalse(containsTargetInfo(checker.getUnchangeableFuseInfo(),
+      Assert.assertFalse(containsTargetInfo(checker.getFuseInfo(),
           FuseUpdateChecker.LOCAL_KERNEL_DATA_CACHE));
     }
   }
@@ -86,46 +80,31 @@ public class FuseUpdateCheckerTest {
   @Test
   public void localKernelDataCacheEnabled() {
     try (FuseUpdateChecker checker = getUpdateCheckerWithMountOptions("kernel_cache")) {
-      Assert.assertTrue(containsTargetInfo(checker.getUnchangeableFuseInfo(),
+      Assert.assertTrue(containsTargetInfo(checker.getFuseInfo(),
           FuseUpdateChecker.LOCAL_KERNEL_DATA_CACHE));
     }
     try (FuseUpdateChecker checker = getUpdateCheckerWithMountOptions("auto_cache")) {
-      Assert.assertTrue(containsTargetInfo(checker.getUnchangeableFuseInfo(),
+      Assert.assertTrue(containsTargetInfo(checker.getFuseInfo(),
           FuseUpdateChecker.LOCAL_KERNEL_DATA_CACHE));
-    }
-  }
-
-  @Test
-  public void FuseOpsCalled() {
-    try (FuseUpdateChecker checker = FuseUpdateChecker.create(
-        FuseOptions.Builder.fromConfig(Configuration.global()).build())) {
-      MetricsSystem.timer(FuseConstants.FUSE_READ).update(5, TimeUnit.MILLISECONDS);
-      Assert.assertTrue(containsTargetInfo(checker.getFuseCheckInfo(), FuseConstants.FUSE_READ));
-      MetricsSystem.timer(FuseConstants.FUSE_WRITE).update(5, TimeUnit.MILLISECONDS);
-      List<String> checkInfo = checker.getFuseCheckInfo();
-      Assert.assertFalse(containsTargetInfo(checkInfo, FuseConstants.FUSE_READ));
-      Assert.assertTrue(containsTargetInfo(checkInfo, FuseConstants.FUSE_WRITE));
     }
   }
 
   private FuseUpdateChecker getUpdateCheckerWithUfs(String ufsAddress) {
     final FileSystemOptions fileSystemOptions =
         FileSystemOptions.Builder
-            .fromConf(Configuration.global())
+            .fromConf(mConf)
             .setUfsFileSystemOptions(new UfsFileSystemOptions(ufsAddress))
             .build();
-    return FuseUpdateChecker.create(
+    return new FuseUpdateChecker(
         FuseOptions.Builder.fromConfig(Configuration.global())
             .setFileSystemOptions(fileSystemOptions)
-            .setUpdateCheckEnabled(false)
             .build());
   }
 
   private FuseUpdateChecker getUpdateCheckerWithMountOptions(String mountOptions) {
-    InstancedConfiguration conf = Configuration.copyGlobal();
-    conf.set(PropertyKey.FUSE_MOUNT_OPTIONS,
+    mConf.set(PropertyKey.FUSE_MOUNT_OPTIONS,
         PropertyKey.FUSE_MOUNT_OPTIONS.formatValue(mountOptions));
-    return FuseUpdateChecker.create(FuseOptions.Builder.fromConfig(conf).build());
+    return new FuseUpdateChecker(FuseOptions.Builder.fromConfig(mConf).build());
   }
 
   private boolean containsTargetInfo(List<String> list, String targetInfo) {

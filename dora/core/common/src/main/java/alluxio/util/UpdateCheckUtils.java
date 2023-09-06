@@ -141,19 +141,6 @@ public final class UpdateCheckUtils {
   }
 
   /**
-   * Add feature name if condition is true.
-   *
-   * @param valid true, if condition is valid
-   * @param features feature list
-   * @param featureName feature name
-   */
-  public static void addIfTrue(boolean valid, List<String> features, String featureName) {
-    if (valid) {
-      features.add(featureName);
-    }
-  }
-
-  /**
    * Adds the information of EC2 environment to given list.
    *
    * @param info the list to add info to

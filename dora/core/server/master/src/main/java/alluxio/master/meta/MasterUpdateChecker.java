@@ -29,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class MasterUpdateChecker implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(MasterUpdateChecker.class);
   private static final String NUM_WORKER_INFO_FORMAT = "numWorkers:%s";
-
+  private static final String TYPE_MASTER = "master";
   private final MetaMaster mMetaMaster;
 
   /**
@@ -53,6 +53,7 @@ public final class MasterUpdateChecker implements HeartbeatExecutor {
           // TODO(lu) use -1 here since we cannot distinguish
           // no worker vs cluster not ready (still registering) cases
           clusterSize > 0 ? clusterSize : -1));
+      additionalInfo.add(TYPE_MASTER);
       String latestVersion =
           UpdateCheckUtils.getLatestVersion(mMetaMaster.getClusterID(), additionalInfo);
       if (!ProjectConstants.VERSION.equals(latestVersion)) {

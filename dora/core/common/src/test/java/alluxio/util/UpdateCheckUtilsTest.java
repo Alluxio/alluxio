@@ -159,5 +159,4 @@ public class UpdateCheckUtilsTest {
     Matcher matcher = pattern.matcher(userAgentString);
     Assert.assertTrue(matcher.matches());
   }
-
 }

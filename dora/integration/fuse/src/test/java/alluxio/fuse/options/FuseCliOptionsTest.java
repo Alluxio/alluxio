@@ -56,12 +56,6 @@ public class FuseCliOptionsTest {
   }
 
   @Test
-  public void testGetUpdateCheck() {
-    mJCommander.parse("-m", "/tmp/fuse-mp", "--update-check");
-    assertEquals(Optional.of(true), mOptions.getUpdateCheck());
-  }
-
-  @Test
   public void testGetHelp() {
     mJCommander.parse("--help");
     assertEquals(Optional.of(true), mOptions.getHelp());

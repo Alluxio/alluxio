@@ -6261,6 +6261,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_UPDATE_CHECK_ENABLED =
+      booleanBuilder(Name.FUSE_UPDATE_CHECK_ENABLED)
+          .setDefaultValue(Boolean.parseBoolean(ProjectConstants.UPDATE_CHECK_ENABLED))
+          .setDescription("Whether to check for update availability for alluxio-fuse")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setIsHidden(true)
+          .build();
   public static final PropertyKey FUSE_USER_GROUP_TRANSLATION_ENABLED =
       booleanBuilder(Name.FUSE_USER_GROUP_TRANSLATION_ENABLED)
           .setDefaultValue(false)
@@ -8259,6 +8266,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.stat.cache.refresh.interval";
     public static final String FUSE_UMOUNT_TIMEOUT =
         "alluxio.fuse.umount.timeout";
+    public static final String FUSE_UPDATE_CHECK_ENABLED =
+        "alluxio.fuse.update.check.enabled";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
         "alluxio.fuse.user.group.translation.enabled";
     public static final String FUSE_SPECIAL_COMMAND_ENABLED =
