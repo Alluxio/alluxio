@@ -92,6 +92,10 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     mPos = startPosition;
   }
 
+  /**
+   * Set mPos manually, just used in test.
+   * @param pos set position
+   */
   @VisibleForTesting
   public void setmPos(int pos) {
     mPos = pos;
