@@ -389,7 +389,15 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       }
     }
     if (shouldLoad) {
-      status = mMetaManager.loadFromUfs(ufsFullPath);
+      // Checks if this file is under create/write.
+      OpenFileHandle handle = mOpenFileHandleContainer.find(ufsFullPath);
+      if (handle != null) {
+        // The target is being written to. It's fine to return FileNotFound.
+        LOG.debug("File {} is being written to.", ufsFullPath);
+        status = Optional.empty();
+      } else {
+        status = mMetaManager.loadFromUfs(ufsFullPath);
+      }
     }
 
     if (!status.isPresent()) {
