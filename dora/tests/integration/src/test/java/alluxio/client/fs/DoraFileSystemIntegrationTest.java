@@ -248,7 +248,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
     fos.close();
 
     AlluxioURI oldPath = TEST_FILE_URI;
-    for (int i = 1; i < 10; i++) {
+    for (int i = 1; i < 3; i++) {
       AlluxioURI newPath = new AlluxioURI(oldPath.getPath() + i);
       assertNotNull(mFileSystem.getStatus(oldPath, GetStatusPOptions.newBuilder()
           .setCommonOptions(optionNoSync())

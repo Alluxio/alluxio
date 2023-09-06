@@ -65,7 +65,58 @@ public class DoraWorkerClientServiceHandlerTest {
   }
 
   @Test
-  public void testListStatus() throws IOException {
+  public void testRecursiveListStatus() throws IOException {
+    // Setup
+    String rootPath = setupTestDirectoryAndFile();
+
+    // Execute and Assert
+    executeAndAssertListStatus(rootPath, true, new String[]{
+        PathUtils.concatPath(rootPath, "d1"),
+        PathUtils.concatPath(rootPath, "d1/d1"),
+        PathUtils.concatPath(rootPath, "d2"),
+        PathUtils.concatPath(rootPath, "f")
+    }, new Boolean[]{true, true, true, false});
+  }
+
+  @Test
+  public void testNonRecursiveListStatus() throws IOException {
+    // Setup
+    String rootPath = setupTestDirectoryAndFile();
+
+    // Execute and Assert
+    executeAndAssertListStatus(rootPath, false, new String[]{
+        PathUtils.concatPath(rootPath, "d1"),
+        PathUtils.concatPath(rootPath, "d2"),
+        PathUtils.concatPath(rootPath, "f")
+    }, new Boolean[]{true, true, false});
+  }
+
+  @Test
+  public void testListStatusNonExistentDirectory() throws IOException {
+    // Setup
+    String rootPath = setupTestDirectoryAndFile();
+
+    // Test and Assert
+    String nonExistentPath = PathUtils.concatPath(rootPath, "d3");
+    TestStreamObserver responseObserver = new TestStreamObserver();
+    mRequest = ListStatusPRequest.newBuilder().setOptions(
+            alluxio.grpc.ListStatusPOptions.newBuilder().setRecursive(true).build())
+        .setPath(nonExistentPath).build();
+    TestStreamObserver finalResponseObserver = responseObserver;
+    assertThrows(RuntimeException.class, () -> mServiceHandler.listStatus(mRequest, finalResponseObserver));
+  }
+
+  @Test
+  public void testListStatusOnFile() throws IOException {
+    // Setup
+    String rootPath = setupTestDirectoryAndFile();
+    String filePath = PathUtils.concatPath(rootPath, "f");
+
+    // Execute and Assert
+    executeAndAssertListStatus(filePath, true, new String[]{filePath}, new Boolean[]{false});
+  }
+
+  private String setupTestDirectoryAndFile() throws IOException {
     File rootFolder = mTestFolder.newFolder("root");
     String rootPath = rootFolder.getAbsolutePath();
     mTestFolder.newFolder("root/d1");
@@ -74,57 +125,18 @@ public class DoraWorkerClientServiceHandlerTest {
     String fileContent = "test";
     File f = mTestFolder.newFile("root/f");
     Files.write(f.toPath(), fileContent.getBytes());
+
+    return rootPath;
+  }
+
+  private void executeAndAssertListStatus(String path, boolean recursive, String[] expectedPaths, Boolean[] expectedIsDirectories) {
     mRequest = ListStatusPRequest.newBuilder().setOptions(
-            alluxio.grpc.ListStatusPOptions.newBuilder().setRecursive(true).build())
-        .setPath(rootPath).build();
+            alluxio.grpc.ListStatusPOptions.newBuilder().setRecursive(recursive).build())
+        .setPath(path).build();
     TestStreamObserver responseObserver = new TestStreamObserver();
     mServiceHandler.listStatus(mRequest, responseObserver);
+
     List<MyStruct> responses = responseObserver.mResponses;
-    String[] expectedPaths =
-        new String[] {PathUtils.concatPath(rootPath, "d1"), PathUtils.concatPath(rootPath, "d1/d1"),
-            PathUtils.concatPath(rootPath, "d2"), PathUtils.concatPath(rootPath, "f")};
-    Boolean[] expectedIsDirectories = new Boolean[] {true, true, true, false};
-    assertEquals(expectedPaths.length, responses.size());
-    for (int i = 0; i < expectedPaths.length; i++) {
-      assertEquals(expectedPaths[i], responses.get(i).getPath());
-      assertEquals(expectedIsDirectories[i], responses.get(i).getIsDirectory());
-      assertEquals(true, responses.get(i).getIsCompleted());
-    }
-
-    mRequest = ListStatusPRequest.newBuilder().setOptions(
-            alluxio.grpc.ListStatusPOptions.newBuilder().setRecursive(false).build())
-        .setPath(rootPath).build();
-    responseObserver = new TestStreamObserver();
-    mServiceHandler.listStatus(mRequest, responseObserver);
-    responses = responseObserver.mResponses;
-    expectedPaths = new String[] {PathUtils.concatPath(rootPath, "d1"),
-        PathUtils.concatPath(rootPath, "d2"), PathUtils.concatPath(rootPath, "f")};
-    expectedIsDirectories = new Boolean[] {true, true, false};
-    assertEquals(expectedPaths.length, responses.size());
-    for (int i = 0; i < expectedPaths.length; i++) {
-      assertEquals(expectedPaths[i], responses.get(i).getPath());
-      assertEquals(expectedIsDirectories[i], responses.get(i).getIsDirectory());
-      assertEquals(true, responses.get(i).getIsCompleted());
-    }
-
-    mRequest = ListStatusPRequest.newBuilder().setOptions(
-            alluxio.grpc.ListStatusPOptions.newBuilder().setRecursive(true).build())
-        .setPath(PathUtils.concatPath(rootPath, "d3")).build();
-    responseObserver = new TestStreamObserver();
-    TestStreamObserver finalResponseObserver = responseObserver;
-    assertThrows(RuntimeException.class, () -> mServiceHandler.listStatus(mRequest,
-        finalResponseObserver));
-
-    //list status on a file
-    mRequest = ListStatusPRequest.newBuilder().setOptions(
-            alluxio.grpc.ListStatusPOptions.newBuilder().setRecursive(true).build())
-        .setPath(PathUtils.concatPath(rootPath, "f")).build();
-    responseObserver = new TestStreamObserver();
-    TestStreamObserver finalResponseObserver1 = responseObserver;
-    mServiceHandler.listStatus(mRequest, finalResponseObserver1);
-    responses = responseObserver.mResponses;
-    expectedPaths = new String[] {PathUtils.concatPath(rootPath, "f")};
-    expectedIsDirectories = new Boolean[] {false};
     assertEquals(expectedPaths.length, responses.size());
     for (int i = 0; i < expectedPaths.length; i++) {
       assertEquals(expectedPaths[i], responses.get(i).getPath());
@@ -132,6 +144,7 @@ public class DoraWorkerClientServiceHandlerTest {
       assertEquals(true, responses.get(i).getIsCompleted());
     }
   }
+
 
   private static class TestStreamObserver implements StreamObserver<ListStatusPResponse> {
     private final List<MyStruct> mResponses = new ArrayList<>();
