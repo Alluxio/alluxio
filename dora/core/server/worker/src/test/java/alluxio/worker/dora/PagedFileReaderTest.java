@@ -11,6 +11,8 @@
 
 package alluxio.worker.dora;
 
+import static org.junit.Assert.assertTrue;
+
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReaderTest;
@@ -168,7 +170,7 @@ public class PagedFileReaderTest {
   public void transferTo() throws IOException {
     ByteBuf byteBuf = Unpooled.buffer(mFileLen);
     int bytesRead = mPagedFileReader.transferTo(byteBuf);
-    Assert.assertTrue((mFileLen == 0 && bytesRead == -1) || bytesRead > 0);
+    assertTrue((mFileLen == 0 && bytesRead == -1) || bytesRead > 0);
   }
 
   @Test
