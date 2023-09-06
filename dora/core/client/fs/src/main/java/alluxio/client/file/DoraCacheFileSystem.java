@@ -151,7 +151,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         throw ex;
       }
       UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client get status error ({} times). Fall back to UFS.",
+      LOG.error("Dora client get status error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       return mDelegatedFileSystem.getStatus(ufsFullPath, options).setFromUFSFallBack();
     }
@@ -193,7 +193,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         throw ex;
       }
       UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client open file error ({} times). Fall back to UFS.",
+      LOG.error("Dora client open file error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       return mDelegatedFileSystem.openFile(status, mergedOptions);
     }
@@ -254,7 +254,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       }
 
       UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client list status error ({} times). Fall back to UFS.",
+      LOG.error("Dora client list status error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       return mDelegatedFileSystem.listStatus(ufsFullPath, options);
     }
@@ -298,7 +298,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       // TODO(JiamingMai): delete the file
       // delete(alluxioPath);
       UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client CreateFile error ({} times). Fall back to UFS.",
+      LOG.error("Dora client CreateFile error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), e);
       return mDelegatedFileSystem.createFile(ufsFullPath, options);
     }
@@ -318,7 +318,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         throw ex;
       }
       UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client createDirectory error ({} times). Fall back to UFS.",
+      LOG.error("Dora client createDirectory error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       mDelegatedFileSystem.createDirectory(ufsFullPath, options);
     }
@@ -360,7 +360,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         throw ex;
       }
       UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client rename error ({} times). Fall back to UFS.",
+      LOG.error("Dora client rename error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       mDelegatedFileSystem.rename(srcUfsFullPath, dstUfsFullPath, options);
     }
@@ -388,7 +388,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         throw ex;
       }
       UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client exists error ({} times). Fall back to UFS.",
+      LOG.error("Dora client exists error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       return mDelegatedFileSystem.exists(ufsFullPath, options);
     }
@@ -409,7 +409,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         throw ex;
       }
       UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client setAttribute error ({} times). Fall back to UFS.",
+      LOG.error("Dora client setAttribute error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       mDelegatedFileSystem.setAttribute(ufsFullPath, options);
     }
