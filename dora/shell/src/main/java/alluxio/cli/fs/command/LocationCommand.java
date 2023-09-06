@@ -28,8 +28,12 @@ import com.google.gson.Gson;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -60,8 +64,34 @@ public final class LocationCommand extends AbstractFileSystemCommand {
       DoraCacheFileSystem doraCacheFileSystem = mFileSystem.getDoraCacheFileSystem();
       Map<String, List<WorkerNetAddress>> pathLocations =
           doraCacheFileSystem.checkFileLocation(plainPath);
+      WorkerNetAddress preferredWorker = doraCacheFileSystem.getWorkerNetAddress(plainPath);
+
+      AlluxioURI ufsFullPath = doraCacheFileSystem.convertAlluxioPathToUFSPath(plainPath);
+      String fileUfsFullName = ufsFullPath.toString();
+      boolean dataOnPreferredWorker = false;
+      Set<String> workersThatHaveDataSet = new HashSet<>();
+
+      if (pathLocations != null && pathLocations.size() > 0) {
+        Optional<String> fileUfsFullNameOpt = pathLocations.keySet().stream().findFirst();
+        if (fileUfsFullNameOpt.isPresent()) {
+          List<WorkerNetAddress> workersThatHaveDataList = pathLocations.get(fileUfsFullName);
+          if (workersThatHaveDataList != null && !workersThatHaveDataList.isEmpty()) {
+            dataOnPreferredWorker = workersThatHaveDataList.contains(preferredWorker);
+            workersThatHaveDataSet = workersThatHaveDataList.stream()
+                .map(workerNetAddress -> workerNetAddress.getHost()).collect(Collectors.toSet());
+          }
+        }
+      }
+
+      FileLocation fileLocation = new FileLocation(
+          fileUfsFullName,
+          preferredWorker.getHost(),
+          dataOnPreferredWorker,
+          workersThatHaveDataSet);
+
+
       Gson gson = new Gson();
-      String pathLocationsJson = gson.toJson(pathLocations);
+      String pathLocationsJson = gson.toJson(fileLocation);
       System.out.println(pathLocationsJson);
     }
   }
