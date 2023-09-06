@@ -270,4 +270,9 @@ public class FuseFileOutStream implements FuseFileStream {
     LOG.debug("Filled {} zero bytes to file {} to fulfill the extended file length of {}",
         originalBytesGap, mURI, mFileStatus.getFileLength());
   }
+
+  @Override
+  public boolean isReadOnly() {
+    return false;
+  }
 }
