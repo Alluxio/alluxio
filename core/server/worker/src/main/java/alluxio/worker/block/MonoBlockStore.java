@@ -333,9 +333,8 @@ public class MonoBlockStore implements BlockStore {
       }
       ByteBuffer buf;
       try {
-        buf = RetryUtils.retryCallable("acquire buffer",
-            () -> NioDirectBufferPool.acquire((int) blockSize),
-                new ExponentialBackoffRetry(1000, 5000, 5));
+        buf = NioDirectBufferPool.acquire((int) blockSize,
+            new ExponentialBackoffRetry(1000, 5000, 5));
       } catch (Exception e) {
         handleException(e, block, errors, sessionId);
         continue;

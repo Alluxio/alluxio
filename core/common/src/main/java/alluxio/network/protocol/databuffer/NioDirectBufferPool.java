@@ -11,6 +11,9 @@
 
 package alluxio.network.protocol.databuffer;
 
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.retry.RetryPolicy;
+
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.Map;
@@ -37,6 +40,23 @@ public class NioDirectBufferPool {
     // need to set the limit explicitly
     buffer.limit(length);
     return buffer;
+  }
+
+  /**
+   * @param length
+   * @param policy the retry policy to use
+   * @return buffer
+   */
+  public static synchronized ByteBuffer acquire(int length, RetryPolicy policy) {
+    Error cause = null;
+    while (policy.attempt()) {
+      try {
+        return acquire(length);
+      } catch (OutOfMemoryError error) {
+        cause = error;
+      }
+    }
+    throw AlluxioRuntimeException.from("Not enough direct memory allocated to buffer", cause);
   }
 
   /**

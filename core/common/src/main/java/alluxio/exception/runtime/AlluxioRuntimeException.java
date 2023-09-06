@@ -195,12 +195,13 @@ public class AlluxioRuntimeException extends RuntimeException {
   /**
    * Converts an Error to a corresponding runtime exception.
    *
+   * @param message the error message
    * @param e error
    * @return the corresponding status exception
    */
-  public static AlluxioRuntimeException from(Error e) {
+  public static AlluxioRuntimeException from(String message, Error e) {
     if (e instanceof OutOfMemoryError) {
-      return new ResourceExhaustedRuntimeException("Out of memory", e, false);
+      return new ResourceExhaustedRuntimeException(message, e, false);
     }
     return new UnknownRuntimeException(e);
   }
