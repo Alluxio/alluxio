@@ -62,6 +62,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 
 /**
  * Dora Cache file system implementation.
@@ -513,5 +514,11 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
   public void setUfsFallbackEnabled(boolean enabled) {
     mUfsFallbackEnabled = enabled;
+  }
+
+  @Nullable
+  @Override
+  public DoraCacheFileSystem getDoraCacheFileSystem() {
+    return this;
   }
 }

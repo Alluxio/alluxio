@@ -22,6 +22,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -87,6 +88,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -707,5 +709,17 @@ public class BaseFileSystem implements FileSystem {
       client.close();
       throw e.toAlluxioException();
     }
+  }
+
+  @Nullable
+  @Override
+  public DoraCacheFileSystem getDoraCacheFileSystem() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public UfsBaseFileSystem getUfsBaseFileSystem() {
+    return null;
   }
 }

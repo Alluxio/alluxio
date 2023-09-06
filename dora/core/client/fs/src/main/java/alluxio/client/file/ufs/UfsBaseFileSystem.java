@@ -13,6 +13,7 @@ package alluxio.client.file.ufs;
 
 import alluxio.AlluxioURI;
 import alluxio.PositionReader;
+import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -79,6 +80,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -524,5 +526,17 @@ public class UfsBaseFileSystem implements FileSystem {
 
   interface UfsCallableWithReturn<V> {
     V call() throws IOException;
+  }
+
+  @Nullable
+  @Override
+  public DoraCacheFileSystem getDoraCacheFileSystem() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public UfsBaseFileSystem getUfsBaseFileSystem() {
+    return this;
   }
 }

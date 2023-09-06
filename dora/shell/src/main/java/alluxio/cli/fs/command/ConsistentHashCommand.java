@@ -138,8 +138,8 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
         writeFile(file);
       }
 
-      if (mFileSystem instanceof DoraCacheFileSystem) {
-        DoraCacheFileSystem doraCacheFileSystem = (DoraCacheFileSystem) mFileSystem;
+      if (mFileSystem.getDoraCacheFileSystem() != null) {
+        DoraCacheFileSystem doraCacheFileSystem = mFileSystem.getDoraCacheFileSystem();
         WorkerNetAddress preferredWorker = doraCacheFileSystem.getWorkerNetAddress(file);
         Map<String, List<WorkerNetAddress>> fileOnWorkersMap = checkFileLocation(file);
         String fileUfsFullName = fileOnWorkersMap.keySet().stream().findFirst().get();
@@ -168,8 +168,8 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
   }
 
   private Map<String, List<WorkerNetAddress>> checkFileLocation(AlluxioURI file) throws IOException {
-    if (mFileSystem instanceof DoraCacheFileSystem) {
-      DoraCacheFileSystem doraCacheFileSystem = (DoraCacheFileSystem) mFileSystem;
+    if (mFileSystem.getDoraCacheFileSystem() != null) {
+      DoraCacheFileSystem doraCacheFileSystem = mFileSystem.getDoraCacheFileSystem();
       Map<String, List<WorkerNetAddress>> pathLocations =
           doraCacheFileSystem.checkFileLocation(file);
       return pathLocations;

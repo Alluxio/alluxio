@@ -56,8 +56,8 @@ public final class LocationCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
-    if (mFileSystem instanceof DoraCacheFileSystem) {
-      DoraCacheFileSystem doraCacheFileSystem = (DoraCacheFileSystem) mFileSystem;
+    if (mFileSystem.getDoraCacheFileSystem() != null) {
+      DoraCacheFileSystem doraCacheFileSystem = mFileSystem.getDoraCacheFileSystem();
       Map<String, List<WorkerNetAddress>> pathLocations =
           doraCacheFileSystem.checkFileLocation(plainPath);
       Gson gson = new Gson();

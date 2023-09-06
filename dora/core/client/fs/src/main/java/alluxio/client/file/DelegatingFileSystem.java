@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.PositionReader;
+import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -51,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 
 /**
  * A wrapper of a FileSystem instance.
@@ -275,6 +277,18 @@ public class DelegatingFileSystem implements FileSystem {
   @Override
   public void close() throws IOException {
     mDelegatedFileSystem.close();
+  }
+
+  @Nullable
+  @Override
+  public DoraCacheFileSystem getDoraCacheFileSystem() {
+    return mDelegatedFileSystem.getDoraCacheFileSystem();
+  }
+
+  @Nullable
+  @Override
+  public UfsBaseFileSystem getUfsBaseFileSystem() {
+    return mDelegatedFileSystem.getUfsBaseFileSystem();
   }
 
   /**
