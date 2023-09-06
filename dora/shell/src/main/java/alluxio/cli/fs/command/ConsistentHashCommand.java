@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import com.google.gson.Gson;
@@ -134,27 +135,47 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
       System.out.println("Progress: " + (i+1) + "/" + fileNum);
       String fileName = "file" + i;
       AlluxioURI file = new AlluxioURI(folder, new AlluxioURI(fileName));
+
+      boolean hasCachedFile = false;
       if (!mFileSystem.exists(file)) {
         writeFile(file);
+        cacheFile(file);
+        hasCachedFile = true;
       }
 
       if (mFileSystem.getDoraCacheFileSystem() != null) {
         DoraCacheFileSystem doraCacheFileSystem = mFileSystem.getDoraCacheFileSystem();
+        AlluxioURI ufsFullPath = doraCacheFileSystem.convertAlluxioPathToUFSPath(file);
+        String fileUfsFullName = ufsFullPath.toString();
+        boolean dataOnPreferredWorker = false;
+        Set<String> workersThatHaveDataSet = new HashSet<>();
+
         WorkerNetAddress preferredWorker = doraCacheFileSystem.getWorkerNetAddress(file);
         Map<String, List<WorkerNetAddress>> fileOnWorkersMap = checkFileLocation(file);
-        String fileUfsFullName = fileOnWorkersMap.keySet().stream().findFirst().get();
-        boolean dataOnPreferredWorker = fileOnWorkersMap.get(fileUfsFullName)
-            .contains(preferredWorker);
+
+        if (fileOnWorkersMap != null && fileOnWorkersMap.size() > 0) {
+          Optional<String> fileUfsFullNameOpt = fileOnWorkersMap.keySet().stream().findFirst();
+          if (fileUfsFullNameOpt.isPresent()) {
+            List<WorkerNetAddress> workersThatHaveDataList = fileOnWorkersMap.get(fileUfsFullName);
+            if (workersThatHaveDataList != null && !workersThatHaveDataList.isEmpty()) {
+              dataOnPreferredWorker = workersThatHaveDataList.contains(preferredWorker);
+              workersThatHaveDataSet = workersThatHaveDataList.stream()
+                  .map(workerNetAddress -> workerNetAddress.getHost()).collect(Collectors.toSet());
+            }
+          }
+        }
+
         FileLocation fileLocation = new FileLocation(
             fileUfsFullName,
             preferredWorker.getHost(),
             dataOnPreferredWorker,
-            fileOnWorkersMap.get(fileUfsFullName).stream()
-                .map(workerNetAddresses -> workerNetAddresses.getHost())
-                .collect(Collectors.toSet()));
+            workersThatHaveDataSet);
         fileLocationSet.add(fileLocation);
       }
-      cacheFile(file);
+
+      if (hasCachedFile == false) {
+        cacheFile(file);
+      }
     }
 
     // Step 3. convert to JSON and persist to UFS
