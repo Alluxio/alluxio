@@ -177,6 +177,7 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
+      LOG.info("Creating file system: options {}", options);
       AlluxioConfiguration conf = context.getClusterConf();
       checkSortConf(conf);
       FileSystem fs = options.getUfsFileSystemOptions().isPresent()
@@ -184,23 +185,27 @@ public interface FileSystem extends Closeable {
           : new BaseFileSystem(context);
 
       if (options.isDoraCacheEnabled()) {
-        LOG.debug("Dora cache enabled");
+        LOG.info("Dora cache enabled");
         fs = DoraCacheFileSystem.sDoraCacheFileSystemFactory.createAnInstance(fs, context);
       }
       if (options.isMetadataCacheEnabled()) {
-        LOG.debug("Client metadata caching enabled");
+        LOG.info("Client metadata caching enabled");
         fs = new MetadataCachingFileSystem(fs, context);
       }
       if (options.isDataCacheEnabled()
           && CommonUtils.PROCESS_TYPE.get() == CommonUtils.ProcessType.CLIENT) {
         try {
           CacheManager cacheManager = CacheManager.Factory.get(conf);
-          LOG.debug("Client local data caching enabled");
+          LOG.info("Client local data caching enabled");
           return new LocalCacheFileSystem(cacheManager, fs, conf);
         } catch (IOException e) {
           LOG.error("Client local data caching enabled but failed to initialize cache manager, "
               + "continuing without data caching enabled", e);
         }
+      }
+      if (!(fs instanceof DoraCacheFileSystem)) {
+        LOG.info("Non dora cache file system created: options {}, dora enabled {}",
+            fs, conf.getBoolean(PropertyKey.DORA_ENABLED), new RuntimeException());
       }
       return fs;
     }

@@ -26,6 +26,8 @@ import alluxio.wire.WorkerNetAddress;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.gson.Gson;
 import org.apache.commons.cli.CommandLine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -38,6 +40,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class LocationCommand extends AbstractFileSystemCommand {
+  private static final Logger LOG = LoggerFactory.getLogger(LocationCommand.class);
+
   /**
    * Constructs a new instance to display a list of hosts that have the file specified in args
    * stored.
@@ -46,6 +50,7 @@ public final class LocationCommand extends AbstractFileSystemCommand {
    */
   public LocationCommand(FileSystemContext fsContext) {
     super(fsContext);
+    LOG.warn("LocationCommand FileSystemType: {}", mFileSystem);
   }
 
   @Override

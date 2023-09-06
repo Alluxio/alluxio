@@ -15,6 +15,7 @@ import alluxio.client.file.FileSystemUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
 import java.util.Objects;
@@ -205,6 +206,24 @@ public class FileSystemOptions {
    */
   public boolean isUfsFallbackEnabled() {
     return mUfsFallbackEnabled;
+  }
+
+  /*
+        return new FileSystemOptions(
+          mMetadataCacheEnabled,
+          mDataCacheEnabled,
+          mDoraCacheEnabled,
+          mUfsFallbackEnabled,
+          mUfsFileSystemOptions);
+   */
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("mMetadataCacheEnabled", mMetadataCacheEnabled)
+        .add("mDataCacheEnabled", mDataCacheEnabled)
+        .add("mDoraCacheEnabled", mDoraCacheEnabled)
+        .add("mUfsFallbackEnabled", mUfsFallbackEnabled)
+        .add("mUfsFileSystemOptions", mUfsFileSystemOptions).toString();
   }
 }
 
