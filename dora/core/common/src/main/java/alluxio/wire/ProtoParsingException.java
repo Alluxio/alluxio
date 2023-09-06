@@ -13,15 +13,27 @@ package alluxio.wire;
 
 import alluxio.exception.AlluxioException;
 
+/**
+ * Thrown when parsing fails.
+ */
 public class ProtoParsingException extends AlluxioException {
   protected ProtoParsingException(Throwable cause) {
     super(cause);
   }
 
+  /**
+   * Constructs a new exception with detailed message.
+   * @param message
+   */
   public ProtoParsingException(String message) {
     super(message);
   }
 
+  /**
+   * Constructs a new exception with detailed message and cause.
+   * @param message
+   * @param cause
+   */
   public ProtoParsingException(String message, Throwable cause) {
     super(message, cause);
   }

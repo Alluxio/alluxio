@@ -13,8 +13,16 @@ package alluxio.wire;
 
 import java.util.Arrays;
 
+/**
+ * Thrown when the version is invalid and thus not parsable.
+ */
 public class InvalidVersionParsingException extends ProtoParsingException {
 
+  /**
+   * Constructs a new exception with details of the invalid version.
+   * @param actualVersion
+   * @param expectedVersion
+   */
   public InvalidVersionParsingException(int actualVersion, int... expectedVersion) {
     super(String.format("The proto message has a version %s that cannot be parsed "
         + "by a parser expecting versions %s", actualVersion, Arrays.toString(expectedVersion)));
