@@ -2012,32 +2012,6 @@
             ]
           },
           {
-            "name": "LocalityTier",
-            "fields": [
-              {
-                "id": 1,
-                "name": "tierName",
-                "type": "string"
-              },
-              {
-                "id": 2,
-                "name": "value",
-                "type": "string"
-              }
-            ]
-          },
-          {
-            "name": "TieredIdentity",
-            "fields": [
-              {
-                "id": 1,
-                "name": "tiers",
-                "type": "LocalityTier",
-                "is_repeated": true
-              }
-            ]
-          },
-          {
             "name": "NetAddress",
             "fields": [
               {

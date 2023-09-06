@@ -101,15 +101,6 @@ message Command {
   repeated int64 data = 2;
 }
 
-message LocalityTier {
-  optional string tierName = 1;
-  optional string value = 2;
-}
-
-message TieredIdentity {
-  repeated LocalityTier tiers = 1;
-}
-
 /**
  * Address information about masters.
  */
@@ -127,7 +118,6 @@ message WorkerNetAddress {
   optional int32 dataPort = 3;
   optional int32 webPort = 4;
   optional string domainSocketPath = 5;
-  optional TieredIdentity tieredIdentity = 6;
   optional string containerHost = 7;
 }
 

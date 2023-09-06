@@ -1,6 +1,6 @@
 ---
 layout: global
-title: FUSE SDK Local Cache Overview
+title: FUSE SDK Local Cache Tuning
 ---
 
 See [Local Cache Quick Start]({{ '/en/fuse-sdk/Local-Cache-Quick-Start.html' | relative_url }}) to quickly setup your FUSE SDK local cache solution

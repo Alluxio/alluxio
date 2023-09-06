@@ -592,7 +592,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               AuthenticatedClientUser.set(readOptions.getUser());
             }
             checkCopyPermission(route.getSrc(), route.getDst());
-            if (!ValidateHandler.validate(route, writeOptions, srcFs, dstFs)) {
+            if (!ValidateHandler.validate(route, writeOptions, srcFs, dstFs, false)) {
               // Skip copy if there is a failure during validation.
               RouteFailure.Builder builder =
                   RouteFailure.newBuilder().setRoute(route).setIsSkip(true).setCode(0);
@@ -655,7 +655,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               AuthenticatedClientUser.set(readOptions.getUser());
             }
             checkMovePermission(route.getSrc(), route.getDst());
-            if (!ValidateHandler.validate(route, writeOptions, srcFs, dstFs)) {
+            if (!ValidateHandler.validate(route, writeOptions, srcFs, dstFs, true)) {
               throw new FailedPreconditionRuntimeException("File " + route.getDst()
                   + " is already in UFS");
             }
@@ -731,7 +731,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       boolean exists = ufs.exists(path);
       if (!overWrite && exists) {
         throw new RuntimeException(
-            new FileAlreadyExistsException("File already exists but no overwrite flag"));
+            new FileAlreadyExistsException(
+                String.format("File %s already exists but no overwrite flag", path)));
       } else if (overWrite) {
         // client is going to overwrite this file. We need to invalidate the cached meta and data.
         mMetaManager.removeFromMetaStore(path);
@@ -816,24 +817,32 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       throws IOException, AccessControlException {
     UnderFileSystem srcUfs = getUfsInstance(src);
     UnderFileSystem dstUfs = getUfsInstance(dst);
+    LOG.debug("Renaming from {} to {}", src, dst);
     // use strong reference comparison as UnderFileSystem does not support equality check
     // except by UFS type
     if (srcUfs != dstUfs) {
       throw new FailedPreconditionException("Cannot rename a file in one UFS to another UFS");
     }
 
+    boolean rc;
     try {
       UfsStatus status = srcUfs.getStatus(src);
       if (status.isFile()) {
-        srcUfs.renameFile(src, dst);
+        rc = srcUfs.renameFile(src, dst);
       } else {
-        srcUfs.renameDirectory(src, dst);
+        rc = srcUfs.renameDirectory(src, dst);
       }
-      mMetaManager.removeFromMetaStore(src);
-      mMetaManager.loadFromUfs(dst);
-      mMetaManager.invalidateListingCacheOfParent(dst);
+      if (rc) {
+        mMetaManager.removeFromMetaStore(src);
+        mMetaManager.loadFromUfs(dst);
+        mMetaManager.invalidateListingCacheOfParent(dst);
+      }
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+    LOG.debug("Renaming from {} to {} done: {}", src, dst, rc);
+    if (!rc) {
+      throw new RuntimeException(String.format("Failed to rename from '%s' to '%s'", src, dst));
     }
   }
 
