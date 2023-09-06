@@ -13,7 +13,6 @@ package alluxio.worker.dora;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.PositionReader;
 import alluxio.PositionReaderTest;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
@@ -36,7 +35,11 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.collect.ImmutableList;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,10 +50,13 @@ import org.junit.runners.Parameterized;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -64,9 +70,13 @@ public class PagedFileReaderTest {
   @Rule
   public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
   private InstancedConfiguration mConf = Configuration.copyGlobal();
-  private String mTestFile;
-  private PositionReader mPositionReader;
+  private String mTestFileName;
+  private String mFileId;
+  private PagedFileReader mPagedFileReader;
   private UnderFileSystem mLocalUfs;
+  private final int mMinTestNum = 50;
+  private final Random mRandom = new Random();
+  private EmbeddedChannel mEmbeddedChannel = new EmbeddedChannel();
 
   private CacheManager mCacheManager;
   private PositionReaderTest mPositionReaderTest;
@@ -105,21 +115,21 @@ public class PagedFileReaderTest {
     try (FileOutputStream os = new FileOutputStream(path.toFile())) {
       os.write(BufferUtils.getIncreasingByteArray(mFileLen));
     }
-    mTestFile = path.toString();
+    mTestFileName = path.toString();
     CacheManagerOptions cacheManagerOptions = CacheManagerOptions
         .createForWorker(mConf);
-    String fileId = new AlluxioURI(mTestFile).hash();
+    mFileId = new AlluxioURI(mTestFileName).hash();
     mCacheManager = CacheManager.Factory.create(
         Configuration.global(), cacheManagerOptions, pageMetaStore);
-    mPositionReader = PagedFileReader.create(
-        mConf, mCacheManager, mLocalUfs, fileId, mTestFile, mFileLen, 0);
-    mPositionReaderTest = new PositionReaderTest(mPositionReader, mFileLen);
+    mPagedFileReader = PagedFileReader.create(
+        mConf, mCacheManager, mLocalUfs, mFileId, mTestFileName, mFileLen, 0);
+    mPositionReaderTest = new PositionReaderTest(mPagedFileReader, mFileLen);
   }
 
   @After
   public void after() throws IOException {
-    mPositionReader.close();
-    new File(mTestFile).delete();
+    mPagedFileReader.close();
+    new File(mTestFileName).delete();
     mLocalUfs.close();
   }
 
@@ -136,5 +146,42 @@ public class PagedFileReaderTest {
   @Test
   public void testConcurrentReadRandomPart() throws Exception {
     mPositionReaderTest.concurrentReadPart();
+  }
+
+  @Test
+  public void read() throws IOException {
+    if (mFileLen > 0) {
+      mPagedFileReader.setmPos(mFileLen);
+      int testNum = Math.min(mFileLen, mMinTestNum);
+      int offset = mRandom.nextInt(mFileLen);
+      int readLength = mRandom.nextInt(mFileLen - offset);
+      ByteBuffer buf = ByteBuffer.allocate(mFileLen);
+      byte[] tmpBytes = Files.readAllBytes(Paths.get(mTestFileName));
+      byte[] bytes = Arrays.copyOfRange(tmpBytes, offset, offset + readLength);
+      ByteBuffer realByteBuffer = ByteBuffer.wrap(bytes);
+      ByteBuffer byteBuffer = mPagedFileReader.read(offset, readLength);
+      Assert.assertEquals(realByteBuffer, byteBuffer);
+    }
+  }
+
+  @Test
+  public void transferTo() throws IOException {
+    ByteBuf byteBuf = Unpooled.buffer(mFileLen);
+    int bytesRead = mPagedFileReader.transferTo(byteBuf);
+    Assert.assertTrue((mFileLen == 0 && bytesRead == -1) || bytesRead > 0);
+  }
+
+  @Test
+  public void getLength() {
+    Assert.assertEquals(mPagedFileReader.getLength(), mFileLen);
+  }
+
+  @Test
+  public void getMultipleDataFileChannel() throws IOException {
+    if (mFileLen > 0) {
+      Assert.assertNotNull(mPagedFileReader.getMultipleDataFileChannel(mEmbeddedChannel, mFileLen));
+    } else {
+      Assert.assertNull(mPagedFileReader.getMultipleDataFileChannel(mEmbeddedChannel, mFileLen));
+    }
   }
 }
