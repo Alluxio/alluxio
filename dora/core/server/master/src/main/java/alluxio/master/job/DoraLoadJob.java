@@ -637,7 +637,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
     @Override
     protected ListenableFuture<LoadFileResponse> run(BlockWorkerClient workerClient) {
-      LOG.info("Start running task:{} on worker:{}", toString(), getMyRunningWorker());
+      LOG.debug("Start running task:{} on worker:{}", toString(), getMyRunningWorker());
       LoadFileRequest.Builder loadFileReqBuilder = LoadFileRequest.newBuilder();
       for (UfsStatus ufsStatus : mFilesToLoad) {
         loadFileReqBuilder.addUfsStatus(ufsStatus.toProto());
