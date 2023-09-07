@@ -2216,7 +2216,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_EXTERNAL_REQUESTS =
-      new Builder("Client.CacheBytesExternalRequests")
+      new Builder("Client.CacheExternalRequests")
           .setDescription("Total number of requests to read from external storage.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
