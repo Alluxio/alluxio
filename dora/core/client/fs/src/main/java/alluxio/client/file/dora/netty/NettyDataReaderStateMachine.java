@@ -281,6 +281,10 @@ public class NettyDataReaderStateMachine {
     this(context, address, requestBuilder, buffer, State.CREATED);
   }
 
+  /**
+   * Get current status of state machine.
+   * @return state
+   */
   @VisibleForTesting
   public State getStatus() {
     return mStateMachine.getState();
@@ -345,19 +349,24 @@ public class NettyDataReaderStateMachine {
         "execution of state machine has stopped but it is not in a terminated state");
   }
 
+  /**
+   * Run the state machine step by step.
+   */
   @VisibleForTesting
-  public String stepRun() {
+  public void stepRun() {
     Runnable trigger = mNextTriggerEvent.getAndSet(null);
-    // TODO(Yichuan): I cannot get events name from the trigger, so I can't verify the state
-    //  is arrived by specific event.
+    // TODO(Yichuan): Refactor the code to enable extract events name.
     if (trigger != null)  {
       trigger.run();
-      return getStatus().name();
     } else {
-      return "";
+      throw new IllegalStateException();
     }
   }
 
+  /**
+   * Set channel of current state machine.
+   * @param channel the target channel to be set
+   */
   @VisibleForTesting
   public void setChannel(Channel channel) {
     mChannel = channel;
