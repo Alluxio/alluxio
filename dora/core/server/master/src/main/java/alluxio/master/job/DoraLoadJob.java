@@ -511,7 +511,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       // what if timeout ? job needs to proactively check or task needs to be aware
       LoadFileResponse response = doraLoadTask.getResponseFuture().get();
       if (response.getStatus() != TaskStatus.SUCCESS) {
-        LOG.warn(format("[DistributedLoad] Get failure from worker:%s, failed files:%s",
+        LOG.debug(format("[DistributedLoad] Get failure from worker:%s, failed files:%s",
             doraLoadTask.getMyRunningWorker(), response.getFailuresList()));
         for (LoadFileFailure failure : response.getFailuresList()) {
           String fullUfsPath = failure.getUfsStatus().getUfsFullPath();
@@ -558,7 +558,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       return response.getStatus() != TaskStatus.FAILURE;
     }
     catch (ExecutionException e) {
-      LOG.warn("[DistributedLoad] exception when trying to get load response.", e.getCause());
+      LOG.debug("[DistributedLoad] exception when trying to get load response.", e.getCause());
       for (UfsStatus ufsStatus : doraLoadTask.getFilesToLoad()) {
         AlluxioRuntimeException exception = AlluxioRuntimeException.from(e.getCause());
         if (isHealthy()) {
@@ -572,7 +572,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       return false;
     }
     catch (CancellationException e) {
-      LOG.warn("[DistributedLoad] Task get canceled and will retry.", e);
+      LOG.debug("[DistributedLoad] Task get canceled and will retry.", e);
       doraLoadTask.getFilesToLoad().forEach(
           it -> addFilesToRetry(it.getUfsFullPath().toString()));
       return true;
@@ -637,7 +637,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
     @Override
     protected ListenableFuture<LoadFileResponse> run(BlockWorkerClient workerClient) {
-      LOG.info("Start running task:{} on worker:{}", toString(), getMyRunningWorker());
+      LOG.debug("Start running task:{} on worker:{}", toString(), getMyRunningWorker());
       LoadFileRequest.Builder loadFileReqBuilder = LoadFileRequest.newBuilder();
       for (UfsStatus ufsStatus : mFilesToLoad) {
         loadFileReqBuilder.addUfsStatus(ufsStatus.toProto());

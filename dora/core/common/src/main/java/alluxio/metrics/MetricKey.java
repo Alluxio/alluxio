@@ -2194,6 +2194,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey WORKER_DISTRIBUTED_LOAD_DATA_NOT_LOADED_COUNT =
+      new Builder("Worker.DistributedLoadDataNotLoadedCount")
+          .setDescription("The approximate total number of block write tasks "
+              + "that have completed execution")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
   public static final MetricKey WORKER_RPC_QUEUE_LENGTH =
       new Builder("Worker.RpcQueueLength")
           .setDescription("Length of the worker rpc queue. "
