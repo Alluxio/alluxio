@@ -58,8 +58,6 @@ import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.meta.DoraMeta;
@@ -116,7 +114,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.RejectedExecutionException;
@@ -494,8 +491,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return bytesInCache == fi.getLength();
   }
 
-  Random r = new Random();
-
   @Override
   public ListenableFuture<LoadFileResponse> load(
       boolean loadData, boolean skipIfExists, List<UfsStatus> ufsStatuses, UfsReadOptions options)
@@ -542,22 +537,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               }
               loadData(status.getUfsFullPath().toString(), 0,
                   status.asUfsFileStatus().getContentLength());
-              /*
-              if (r.nextDouble() < 0.12) {
-                mCacheManager.deleteFile(status.getUfsFullPath().hash());
-              }
-               */
-              if (!isAllPageCached(status.asUfsFileStatus(), Optional.of(fs))) {
-                MetricsSystem.counter(
-                    MetricKey.WORKER_DISTRIBUTED_LOAD_DATA_NOT_LOADED_COUNT.getName()).inc(1);
-                errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
-                    .setCode(500)
-                    .setRetryable(true)
-                    .setMessage("[DistributedLoad] Data load failed. Not all pages are in alluxio")
-                    .build());
-                LOG.error("[DistributedLoad] Loading {} failed. "
-                    + "Not all pages are in alluxio after loading", status);
-              }
             } catch (Throwable e) {
               LOG.error("[DistributedLoad] Loading {} failed", status, e);
               AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
