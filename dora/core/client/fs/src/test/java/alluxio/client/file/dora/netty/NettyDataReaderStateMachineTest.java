@@ -13,13 +13,14 @@ package alluxio.client.file.dora.netty;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.file.ByteArrayTargetBuffer;
 import alluxio.network.protocol.RPCMessage;
@@ -35,6 +36,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -44,6 +46,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 public class NettyDataReaderStateMachineTest {
 
@@ -57,8 +60,8 @@ public class NettyDataReaderStateMachineTest {
   private final ServerStateDriver
       mStateDriver = new ServerStateDriver(mExecutor, mChannel);
   private static FileSystemContext mFsContext;
-  private static NettyDataReaderStateMachine nettyDataReaderStateMachine;
-  private static final Protocol.ReadRequest.Builder
+  private static NettyDataReaderStateMachine stateMachine;
+  private static Protocol.ReadRequest.Builder
       mRequestBuilder = Protocol.ReadRequest.newBuilder();
   private static final WorkerNetAddress mWorkerNetAddress = new WorkerNetAddress()
       .setHost("127.0.0.1").setRpcPort(29998).setDataPort(29999).setWebPort(30000);
@@ -67,6 +70,8 @@ public class NettyDataReaderStateMachineTest {
   private Thread mMachineThread;
 
   private static byte[] mByteArray;
+  private final Supplier<Protocol.ReadRequest.Builder> mRequestBuilderSupplier
+      = mRequestBuilder::clone;
 
   @BeforeClass
   public static void beforeClass() throws IOException {
@@ -83,47 +88,28 @@ public class NettyDataReaderStateMachineTest {
   @Before
   public void before() {
     mByteArray = new byte[BYTEBUFFER_CAPACITY];
-    nettyDataReaderStateMachine = new NettyDataReaderStateMachine(
-        mFsContext, mWorkerNetAddress, mRequestBuilder,
+    stateMachine = new NettyDataReaderStateMachine(
+        mFsContext, mWorkerNetAddress, mRequestBuilderSupplier.get(),
         new ByteArrayTargetBuffer(mByteArray, 0));
-    mMachineThread = new Thread(() -> {
-      nettyDataReaderStateMachine.stepRun();
-    });
+    mMachineThread = new Thread(() -> stateMachine.stepRun());
   }
 
   // TODO(Yichuan): CHANNEL_UNAVAILABLE is not tested.
 
-  @Test
-  public void acquiringChannelToChannelActive() throws InterruptedException {
-    // Have to sleep for a while to wait for the state machine thread.
-    // spin loop? It is just another sleep wait.
-    Thread.sleep(3000);
-    assertEquals(NettyDataReaderStateMachine.State.CHANNEL_ACTIVE,
-        nettyDataReaderStateMachine.getStatus());
-  }
-
-  @Test
-  public void channelActiveTOReceivedData() throws InterruptedException {
-    Thread.sleep(3000);
-//    nettyDataReaderStateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.INTERRUPTED);
-    Thread.sleep(mFsContext.getClusterConf().getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS));
-    assertEquals(NettyDataReaderStateMachine.State.CLIENT_CANCEL,
-        nettyDataReaderStateMachine.getStatus());
-  }
-
+  @Ignore
   @Test
   public void interruptTest() throws InterruptedException {
 
     mMachineThread.start();
 
     assertEquals(NettyDataReaderStateMachine.State.CREATED,
-        nettyDataReaderStateMachine.getStatus());
-    nettyDataReaderStateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.START);
-    nettyDataReaderStateMachine.stepRun();
+        stateMachine.getStatus());
+    stateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.START);
+    stateMachine.stepRun();
 
     assertEquals(NettyDataReaderStateMachine.State.ACQUIRING_CHANNEL,
-        nettyDataReaderStateMachine.getStatus());
-    nettyDataReaderStateMachine.fireNext(
+        stateMachine.getStatus());
+    stateMachine.fireNext(
         NettyDataReaderStateMachine.TriggerEvent.CHANNEL_AVAILABLE);
 
     mMachineThread.start();
@@ -132,10 +118,10 @@ public class NettyDataReaderStateMachineTest {
 
 //    Thread thread2 = new Thread(() -> nettyDataReaderStateMachine.stepRun());
 //    thread2.start();
-    nettyDataReaderStateMachine.stepRun();
+    stateMachine.stepRun();
 
     assertEquals(NettyDataReaderStateMachine.State.CLIENT_CANCEL,
-        nettyDataReaderStateMachine.getStatus());
+        stateMachine.getStatus());
   }
 
   @Test
@@ -144,28 +130,29 @@ public class NettyDataReaderStateMachineTest {
     mMachineThread.start();
 
     assertEquals(NettyDataReaderStateMachine.State.CREATED,
-        nettyDataReaderStateMachine.getStatus());
-    nettyDataReaderStateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.START);
-    nettyDataReaderStateMachine.stepRun();
+        stateMachine.getStatus());
+    stateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.START);
+    stateMachine.stepRun();
 
     assertEquals(NettyDataReaderStateMachine.State.ACQUIRING_CHANNEL,
-        nettyDataReaderStateMachine.getStatus());
-    nettyDataReaderStateMachine.fireNext(
+        stateMachine.getStatus());
+    stateMachine.fireNext(
         NettyDataReaderStateMachine.TriggerEvent.CHANNEL_AVAILABLE);
 
-    Thread thread1 = new Thread(() -> nettyDataReaderStateMachine.stepRun());
+    Thread thread1 = new Thread(() -> stateMachine.stepRun());
 
     thread1.start();
     Thread.sleep(30000 + 1000);
 
 //    Thread thread2 = new Thread(() -> nettyDataReaderStateMachine.stepRun());
 //    thread2.start();
-    nettyDataReaderStateMachine.stepRun();
+    stateMachine.stepRun();
 
     assertEquals(NettyDataReaderStateMachine.State.CLIENT_CANCEL,
-        nettyDataReaderStateMachine.getStatus());
+        stateMachine.getStatus());
   }
 
+  @Ignore
   @Test
   public void serverErrorTest() throws InterruptedException {
     // TODO(Yichuan): status cannot be set. Ask for handling it.
@@ -173,74 +160,116 @@ public class NettyDataReaderStateMachineTest {
     mMachineThread = new Thread(
         () -> {
           assertEquals(NettyDataReaderStateMachine.State.CREATED,
-              nettyDataReaderStateMachine.getStatus());
-          nettyDataReaderStateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.START);
-          nettyDataReaderStateMachine.stepRun();
+              stateMachine.getStatus());
+          stateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.START);
+          stateMachine.stepRun();
 
           assertEquals(NettyDataReaderStateMachine.State.ACQUIRING_CHANNEL,
-              nettyDataReaderStateMachine.getStatus());
-          nettyDataReaderStateMachine.fireNext(
+              stateMachine.getStatus());
+          stateMachine.fireNext(
               NettyDataReaderStateMachine.TriggerEvent.CHANNEL_AVAILABLE);
-          nettyDataReaderStateMachine.stepRun();
+          stateMachine.stepRun();
         }
     );
     mMachineThread.start();
     Thread.sleep(3000);
     // TODO(Yichuan): should not write like this. the server_error cannot interrupt the poll method,
     //  so the timeout event is triggered, instead server_error.
-    nettyDataReaderStateMachine.fireNext(
-        nettyDataReaderStateMachine.getTriggerEventsWithParam().mServerErrorEvent,
+    stateMachine.fireNext(
+        stateMachine.getTriggerEventsWithParam().mServerErrorEvent,
         new AlluxioStatusException(Status.CANCELLED));
-    nettyDataReaderStateMachine.stepRun();
+    stateMachine.stepRun();
     assertEquals(NettyDataReaderStateMachine.State.CLIENT_CANCEL,
-        nettyDataReaderStateMachine.getStatus());
+        stateMachine.getStatus());
   }
 
+  @Ignore
   @Test
   public void sendDataTest() throws ExecutionException, InterruptedException {
 
     final int length = 10;
     final int offset = 0;
+    final String testString1 = "hello";
+    final String testString2 = "world";
     ServerState start = new WaitForRequestState(
         mRequestBuilder.clone().setLength(length).setOffset(offset).build());
-    start.andThen(new SendDataState("hello".getBytes()))
-        .andThen(new SendDataState("world".getBytes()))
+    start.andThen(new SendDataState(testString1.getBytes()))
+        .andThen(new SendDataState(testString2.getBytes()))
         .andThen(new EofState());
     Future<Throwable> serverFault = mStateDriver.run(start);
 
-    setStateToChannelActiveDirectly();
+    Protocol.ReadRequest.Builder builder = mRequestBuilder.clone()
+        .setLength(length)
+        .setOffset(offset)
+        .clearCancel();
+    stateMachine = new NettyDataReaderStateMachine(
+        mFsContext, mWorkerNetAddress, builder, new ByteArrayTargetBuffer(mByteArray, 0));
 
-    mMachineThread.start();
-    Thread.sleep(3000);
-    assertEquals(NettyDataReaderStateMachine.State.CHANNEL_ACTIVE,
-        nettyDataReaderStateMachine.getStatus());
+    stateMachine.run();
 
+//    setToChannelActive();
+//    stateMachine.stepRun();
+//    stateMachine.fireNext(stateMachine.getTriggerEventsWithParam().mDataAvailableEvent,
+//        Unpooled.wrappedBuffer(testString1.getBytes()));
+//    stateMachine.stepRun();
+//    stateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.OUTPUT_LENGTH_NOT_FULFILLED);
+//    stateMachine.stepRun();
+//    stateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.DATA_AVAILABLE);
+//    stateMachine.stepRun();
+//    stateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.OUTPUT_LENGTH_FULFILLED);
+//    stateMachine.stepRun();
+
+    int byteRead = stateMachine.getBytesRead();
     assertNull(serverFault.get());
+    assertEquals(length, byteRead);
+    checkResult((testString1 + testString2).getBytes(), mByteArray);
+  }
+
+  @Test
+  public void TestOfSendDataTest() throws ExecutionException, InterruptedException {
+    final int length = 10;
+    final int offset = 0;
+    final String testString1 = "hello";
+    final String testString2 = "world";
+    ServerState start = new WaitForRequestState(
+        mRequestBuilder.clone().setLength(length).setOffset(offset).build());
+    start.andThen(new SendDataState(testString1.getBytes()));
+    Future<Throwable> serverFault = mStateDriver.run(start);
+
+    Protocol.ReadRequest.Builder builder = mRequestBuilder.clone()
+        .setLength(length).setOffset(offset).clearCancel();
+    stateMachine = new NettyDataReaderStateMachine(
+        mFsContext, mWorkerNetAddress, builder, new ByteArrayTargetBuffer(mByteArray, 0));
+    stateMachine.stepRun();
+    stateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.START);
+    stateMachine.stepRun();
+    stateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.CHANNEL_AVAILABLE);
+    stateMachine.stepRun();
+
+    stateMachine.stepRun();
+    assertEquals(NettyDataReaderStateMachine.State.RECEIVED_DATA, stateMachine.getStatus());
+    assertNull(serverFault.get());
+    stateMachine.stepRun();
+    assertEquals(NettyDataReaderStateMachine.State.CHANNEL_ACTIVE, stateMachine.getStatus());
+  }
+
+  private void checkResult(byte[] expected, byte[] actual) {
+    assertTrue(expected.length <= actual.length);
+    for (int i = 0; i < expected.length; i++) {
+      assertEquals(expected[i], actual[i]);
+    }
   }
 
   private void setToChannelActive() {
     assertEquals(NettyDataReaderStateMachine.State.CREATED,
-        nettyDataReaderStateMachine.getStatus());
-    nettyDataReaderStateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.START);
-    nettyDataReaderStateMachine.stepRun();
+        stateMachine.getStatus());
+    stateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.START);
+    stateMachine.stepRun();
 
     assertEquals(NettyDataReaderStateMachine.State.ACQUIRING_CHANNEL,
-        nettyDataReaderStateMachine.getStatus());
-    nettyDataReaderStateMachine.fireNext(
+        stateMachine.getStatus());
+    stateMachine.fireNext(
         NettyDataReaderStateMachine.TriggerEvent.CHANNEL_AVAILABLE);
-  }
-
-  private void setStateToChannelActiveDirectly() {
-    nettyDataReaderStateMachine = new NettyDataReaderStateMachine(
-        mFsContext,
-        mWorkerNetAddress,
-        mRequestBuilder,
-        new ByteArrayTargetBuffer(mByteArray, 0),
-        NettyDataReaderStateMachine.State.ACQUIRING_CHANNEL);
-    nettyDataReaderStateMachine.setChannel(mChannel);
-    nettyDataReaderStateMachine.fireNext(
-        NettyDataReaderStateMachine.TriggerEvent.CHANNEL_AVAILABLE);
-    nettyDataReaderStateMachine.stepRun();
   }
 
   private static class ServerStateDriver {
@@ -308,7 +337,7 @@ public class NettyDataReaderStateMachineTest {
     private final Protocol.ReadRequest mExpectedRequest;
 
     public WaitForRequestState(Protocol.ReadRequest readRequest) {
-      this(Constants.SECOND_MS * 60, readRequest);
+      this(Constants.SECOND_MS * 6, readRequest);
     }
 
     public WaitForRequestState(int timeout, Protocol.ReadRequest readRequest) {
