@@ -153,7 +153,8 @@ public class UpdateCheckUtilsTest {
 
   @Test
   public void userAgent() {
-    String userAgentString = UpdateCheckUtils.getUserAgentString("cluster1", new ArrayList<>());
+    String userAgentString = UpdateCheckUtils.getUserAgentString("cluster1",
+        CommonUtils.ProcessType.MASTER, new ArrayList<>());
     Pattern pattern = Pattern.compile(
         String.format("Alluxio\\/%s \\(cluster1(?:.+)[^;]\\)", ProjectConstants.VERSION));
     Matcher matcher = pattern.matcher(userAgentString);

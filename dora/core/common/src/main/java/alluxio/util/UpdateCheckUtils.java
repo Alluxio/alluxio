@@ -52,15 +52,12 @@ public final class UpdateCheckUtils {
 
   /**
    * @param id the id of the current Alluxio identity (e.g. cluster id, instance id)
+   * @param processType process type
    * @param additionalInfo additional information to send
-   * @param connectionRequestTimeout the connection request timeout for the HTTP request in ms
-   * @param connectTimeout the connection timeout for the HTTP request in ms
-   * @param socketTimeout the socket timeout for the HTTP request in ms
    * @return the latest Alluxio version string
    */
-  public static String getLatestVersion(String id, List<String> additionalInfo,
-      long connectionRequestTimeout, long connectTimeout, long socketTimeout)
-      throws IOException {
+  public static String getLatestVersion(String id, CommonUtils.ProcessType processType,
+      List<String> additionalInfo) throws IOException {
     Preconditions.checkState(id != null && !id.isEmpty(), "id should not be null or empty");
     Preconditions.checkNotNull(additionalInfo);
     // Create the GET request.
@@ -69,16 +66,16 @@ public final class UpdateCheckUtils {
     String url = new URL(new URL(ProjectConstants.UPDATE_CHECK_HOST), path).toString();
 
     HttpGet post = new HttpGet(url);
-    post.setHeader("User-Agent", getUserAgentString(id, additionalInfo));
+    post.setHeader("User-Agent", getUserAgentString(id, processType, additionalInfo));
     post.setHeader("Authorization", "Basic " + ProjectConstants.UPDATE_CHECK_MAGIC_NUMBER);
 
     // Fire off the version check request.
     HttpClient client = HttpClientBuilder.create()
         .setDefaultRequestConfig(
             RequestConfig.custom()
-                .setConnectionRequestTimeout((int) connectionRequestTimeout)
-                .setConnectTimeout((int) connectTimeout)
-                .setSocketTimeout((int) socketTimeout)
+                .setConnectionRequestTimeout(3000)
+                .setConnectTimeout(3000)
+                .setSocketTimeout(3000)
                 .build())
         .build();
     HttpResponse response = client.execute(post);
@@ -95,26 +92,19 @@ public final class UpdateCheckUtils {
 
   /**
    * @param id the id of the current Alluxio identity (e.g. cluster id, instance id)
-   * @param additionalInfo additional information to send
-   * @return the latest Alluxio version string
-   */
-  public static String getLatestVersion(String id, List<String> additionalInfo)
-      throws IOException {
-    return getLatestVersion(id, additionalInfo, 3000, 3000, 3000);
-  }
-
-  /**
-   * @param id the id of the current Alluxio identity (e.g. cluster id, instance id)
+   * @param processType process type
    * @param additionalInfo additional information to add to result string
    * @return a string representation of the user's environment in the format
    *         "Alluxio/{ALLUXIO_VERSION} (valueA; valueB)"
    */
   @VisibleForTesting
-  public static String getUserAgentString(String id, List<String> additionalInfo) {
+  public static String getUserAgentString(String id, CommonUtils.ProcessType processType,
+      List<String> additionalInfo) {
     List<String> info = new ArrayList<>();
     info.add(id);
     addUserAgentEnvironments(info);
     info.addAll(additionalInfo);
+    info.add(String.format("processType:%s", processType.toString()));
     return String.format("Alluxio/%s (%s)", ProjectConstants.VERSION,
         Joiner.on(USER_AGENT_SEPARATOR + " ").skipNulls().join(info));
   }

@@ -14,6 +14,7 @@ package alluxio.fuse.meta;
 import alluxio.ProjectConstants;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.UpdateCheckUtils;
 
@@ -37,7 +38,6 @@ public final class FuseUpdateChecker implements HeartbeatExecutor {
   static final String LOCAL_KERNEL_DATA_CACHE = "localKernelDataCache";
   static final String ALLUXIO_FS = "alluxio";
   static final String LOCAL_FS = "local";
-  static final String TYPE_FUSE = "fuse";
   private final String mInstanceId = UUID.randomUUID().toString();
   private final List<String> mFuseInfo = new ArrayList<>();
 
@@ -57,7 +57,6 @@ public final class FuseUpdateChecker implements HeartbeatExecutor {
       mFuseInfo.add(LOCAL_KERNEL_DATA_CACHE);
     }
     mFuseInfo.add(String.format("UnderlyingFileSystem:%s", getUnderlyingFileSystem(fuseOptions)));
-    mFuseInfo.add(TYPE_FUSE);
   }
 
   /**
@@ -66,8 +65,8 @@ public final class FuseUpdateChecker implements HeartbeatExecutor {
   @Override
   public void heartbeat(long timeLimitMs) {
     try {
-      String latestVersion =
-          UpdateCheckUtils.getLatestVersion(mInstanceId, mFuseInfo);
+      String latestVersion = UpdateCheckUtils.getLatestVersion(mInstanceId,
+          CommonUtils.ProcessType.FUSE, mFuseInfo);
       if (!ProjectConstants.VERSION.equals(latestVersion)) {
         LOG.info("The latest version (" + latestVersion + ") is not the same "
             + "as the current version (" + ProjectConstants.VERSION + "). To upgrade "
