@@ -546,6 +546,9 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     // Merge relevant connection details in the URI with the highest priority
     alluxioProps.merge(uriConfProperties, Source.RUNTIME);
     // Creating a new instanced configuration from an AlluxioProperties object isn't expensive.
+    if (!uri.getScheme().equals(Constants.SCHEME)) {
+      alluxioProps.set(PropertyKey.DORA_CLIENT_UFS_ROOT, uri.toString());
+    }
     mAlluxioConf = new InstancedConfiguration(alluxioProps);
     mAlluxioConf.validate();
     mExcludeMountInfoOnListStatus = mAlluxioConf.getBoolean(
