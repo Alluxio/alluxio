@@ -11,13 +11,20 @@
 
 package alluxio.conf;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Registry of all reconfigurable listeners.
  */
+@ThreadSafe
 public class ReconfigurableRegistry {
+  private static final Logger LOG = LoggerFactory.getLogger(ReconfigurableRegistry.class);
   private static final List<Reconfigurable> LISTENER_LIST = new LinkedList<>();
 
   /**
@@ -45,12 +52,33 @@ public class ReconfigurableRegistry {
    * @return false if no listener related to the given property, otherwise, return false
    */
   public static synchronized boolean update() {
-    for (Reconfigurable listener : new LinkedList<>(LISTENER_LIST)) {
-      listener.update();
+    for (Reconfigurable listener : LISTENER_LIST) {
+      try {
+        listener.update();
+      } catch (Throwable t) {
+        LOG.error("Error while update changed properties for {}", listener, t);
+      }
     }
     return true;
   }
 
   // prevent instantiation
   private ReconfigurableRegistry() {}
+
+  /**
+   * When the property was reconfigured, this function will be invoked.
+   * This property listeners will be notified.
+   *
+   * @param changedProperties the changed properties
+   */
+  public static synchronized void update(Map<PropertyKey, Object> changedProperties) {
+    for (Reconfigurable listener : LISTENER_LIST) {
+      try {
+        listener.update(changedProperties);
+      } catch (Throwable t) {
+        LOG.error("Error while update changed properties {} for {}",
+            changedProperties, listener, t);
+      }
+    }
+  }
 }
