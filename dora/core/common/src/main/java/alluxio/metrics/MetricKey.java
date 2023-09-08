@@ -2531,7 +2531,7 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey CLIENT_CACHE_STATE =
       new Builder("Client.CacheState")
           .setDescription("State of the cache: 0 (NOT_IN_USE), 1 (READ_ONLY) and 2 (READ_WRITE)")
-          .setMetricType(MetricType.COUNTER)
+          .setMetricType(MetricType.GAUGE)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_META_DATA_CACHE_SIZE =
