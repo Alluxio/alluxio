@@ -192,20 +192,6 @@ public class AlluxioRuntimeException extends RuntimeException {
     return new UnknownRuntimeException(ioe);
   }
 
-  /**
-   * Converts an Error to a corresponding runtime exception.
-   *
-   * @param message the error message
-   * @param e error
-   * @return the corresponding status exception
-   */
-  public static AlluxioRuntimeException from(String message, Error e) {
-    if (e instanceof OutOfMemoryError) {
-      return new ResourceExhaustedRuntimeException(message, e, false);
-    }
-    return new UnknownRuntimeException(e);
-  }
-
   @Override
   public String getMessage() {
     String message = super.getMessage();

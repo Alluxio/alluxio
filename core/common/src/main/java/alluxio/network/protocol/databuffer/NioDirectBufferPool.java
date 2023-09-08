@@ -11,7 +11,7 @@
 
 package alluxio.network.protocol.databuffer;
 
-import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.retry.RetryPolicy;
 
 import java.nio.ByteBuffer;
@@ -56,7 +56,7 @@ public class NioDirectBufferPool {
         cause = error;
       }
     }
-    throw AlluxioRuntimeException.from("Not enough direct memory allocated to buffer", cause);
+    throw new ResourceExhaustedRuntimeException("Not enough direct memory allocated to buffer", cause, false);
   }
 
   /**
