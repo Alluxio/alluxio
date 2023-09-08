@@ -63,7 +63,8 @@ public abstract class AbstractReadHandler<T extends ReadRequest>
    *
    * @param executorService the executor service to run {@link PacketReader}s
    */
-  protected AbstractReadHandler(ExecutorService executorService, Channel channel, Class<T> requestType,
+  protected AbstractReadHandler(ExecutorService executorService, Channel channel,
+      Class<T> requestType,
       PacketReader.Factory<T, ? extends PacketReader<T>> packetReaderFactory) {
     mPacketReaderExecutor = executorService;
     mStateMachine = new NettyReadHandlerStateMachine<>(channel, requestType, packetReaderFactory);
@@ -152,6 +153,7 @@ public abstract class AbstractReadHandler<T extends ReadRequest>
      * configurable transfer type.
      *
      * @param channel the netty channel
+     * @param offset offset
      * @param len The length, in bytes, of the data to read from the block
      * @return a {@link DataBuffer} representing the data
      */
