@@ -2121,7 +2121,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey WORKER_CACHE_REJECTED_BLOCKS =
       new Builder("Worker.CacheRejectedBlocks")
-          .setDescription("Total number of cache rejected blocks in this worker")
+          .setDescription("Total number of rejected cache block requests on the worker")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
