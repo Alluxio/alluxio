@@ -63,7 +63,7 @@ public abstract class AbstractReadHandler<T extends ReadRequest>
    *
    * @param executorService the executor service to run {@link PacketReader}s
    */
-  AbstractReadHandler(ExecutorService executorService, Channel channel, Class<T> requestType,
+  protected AbstractReadHandler(ExecutorService executorService, Channel channel, Class<T> requestType,
       PacketReader.Factory<T, ? extends PacketReader<T>> packetReaderFactory) {
     mPacketReaderExecutor = executorService;
     mStateMachine = new NettyReadHandlerStateMachine<>(channel, requestType, packetReaderFactory);
@@ -126,10 +126,24 @@ public abstract class AbstractReadHandler<T extends ReadRequest>
 
   /**
    * A runnable that reads packets and writes them to the channel.
+   * @param <T> type of read request
    */
-  interface PacketReader<T extends ReadRequest> extends Closeable {
+  public interface PacketReader<T extends ReadRequest> extends Closeable {
 
+    /**
+     * Factory that creates a PacketReader.
+     *
+     * @param <T> type of read requestr
+     * @param <P> type of the packet reader created by this factory
+     */
     interface Factory<T extends ReadRequest, P extends PacketReader<T>> {
+      /**
+       * Creates a new packet reader.
+       *
+       * @param readRequest the read request
+       * @return packet reader
+       * @throws IOException if IOException occurs
+       */
       P create(T readRequest) throws IOException;
     }
 
