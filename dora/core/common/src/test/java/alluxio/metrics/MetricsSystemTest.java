@@ -18,6 +18,8 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.MetricType;
 
 import com.codahale.metrics.Counter;
@@ -198,6 +200,7 @@ public final class MetricsSystemTest {
 
   @Test
   public void getMetricNameTest() {
+    Configuration.set(PropertyKey.METRICS_KEY_INCLUDING_UNIQUE_ID_ENABLED, true);
     assertEquals("Cluster.counter", MetricsSystem.getMetricName("Cluster.counter"));
     assertEquals("Master.timer", MetricsSystem.getMetricName("Master.timer"));
     String workerGaugeName = "Worker.gauge";

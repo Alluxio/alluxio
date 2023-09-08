@@ -483,10 +483,18 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
-    if (name.startsWith(instance.toString())) {
-      return Joiner.on(".").join(name, sSourceNameSupplier.get());
+    String metricsNameWithInstanceType = addInstanceTypeToMetricsName(instance, name);
+    if (Configuration.getBoolean(PropertyKey.METRICS_KEY_INCLUDING_UNIQUE_ID_ENABLED)) {
+      return Joiner.on(".").join(metricsNameWithInstanceType, sSourceNameSupplier.get());
     }
-    return Joiner.on(".").join(instance, name, sSourceNameSupplier.get());
+    return metricsNameWithInstanceType;
+  }
+
+  private static String addInstanceTypeToMetricsName(InstanceType instance, String name) {
+    if (name.startsWith(instance.toString())) {
+      return name;
+    }
+    return Joiner.on(".").join(instance, name);
   }
 
   /**
