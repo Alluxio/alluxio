@@ -57,8 +57,8 @@ import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.membership.MasterMembershipManager;
 import alluxio.membership.MembershipManager;
-import alluxio.membership.NoOpMembershipManager;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
@@ -244,8 +244,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     // the heartbeat is only used to notify the aliveness of this worker, so that clients
     // can get the latest worker list from master.
     // TODO(bowen): once we set up a worker discovery service in place of master, remove this
-    // TODO(lucy): temporary fallback logic during transition of removing master dependency
-    if (mMembershipManager instanceof NoOpMembershipManager) {
+    // TODO(lucy): fallback to original logic using master for registration
+    if (mMembershipManager instanceof MasterMembershipManager) {
       LOG.info("Using Master for heartbeating..");
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
@@ -264,7 +264,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     Preconditions.checkNotNull(mAddress, "worker not started");
     RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
     // For regression purpose, use the original way of regsiter
-    if (mMembershipManager instanceof NoOpMembershipManager) {
+    if (mMembershipManager instanceof MasterMembershipManager) {
       registerToMaster();
       return;
     }
