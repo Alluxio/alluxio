@@ -56,7 +56,8 @@ public class NioDirectBufferPool {
         cause = error;
       }
     }
-    throw new ResourceExhaustedRuntimeException("Not enough direct memory allocated to buffer", cause, false);
+    throw new ResourceExhaustedRuntimeException("Not enough direct memory allocated to buffer",
+        cause, false);
   }
 
   /**
