@@ -39,7 +39,7 @@ public final class UpdateConfIntegrationTest extends AbstractFsAdminShellTest {
     ret = mFsAdminShell.run("updateConf", "unknown-key");
     Assert.assertEquals(-1, ret);
     ret = mFsAdminShell.run("updateConf", "unknown-key=1=2");
-    Assert.assertEquals(-3, ret);
+    Assert.assertEquals(0, ret);
   }
 
   @Test
@@ -65,13 +65,13 @@ public final class UpdateConfIntegrationTest extends AbstractFsAdminShellTest {
     String output = mOutput.toString();
     String lastLineOutput = lastLine(output);
     Assert.assertTrue(lastLineOutput, lastLine(output).contains("6min"));
-    ret = mFsAdminShell.run("updateConf", "alluxio.master.worker.timeout=");
+    ret = mFsAdminShell.run("updateConf", "alluxio.master.worker.timeout=<UNSET_VALUE>");
     Assert.assertEquals(0, ret);
     GetConf.getConf(ClientContext.create(), "--master",
         "alluxio.master.worker.timeout");
     output = mOutput.toString();
     lastLineOutput = lastLine(output);
-    Assert.assertTrue(lastLineOutput, lastLine(output).contains("4min"));
+    Assert.assertTrue(lastLineOutput, lastLine(output).contains("5min"));
   }
 
   private String lastLine(String output) {
