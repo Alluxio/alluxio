@@ -260,5 +260,3 @@ resources on the worker side.
 1. Only one UFS is supported by Dora. Nested mounts are not supported yet.
 1. The Alluxio Master node still needs to be up and running. It is used for Dora worker discovery,
    cluster configuration updates, as well as handling write I/O operations.
-1. Alluxio Fuse is not supported with Dora on Kubernetes with the existing helm chart. The helm chart
-   supporting Alluxio Fuse is under development.
