@@ -43,7 +43,7 @@ public class PagedUfsBlockReader extends BlockReader {
   private final BlockMeta mBlockMeta;
   private final UfsBlockReadOptions mUfsBlockOptions;
   private final long mInitialOffset;
-  private final ByteBuffer mLastPage;
+  private ByteBuffer mLastPage;
   private long mLastPageIndex = -1;
   private boolean mClosed = false;
   private long mPosition;
@@ -68,8 +68,16 @@ public class PagedUfsBlockReader extends BlockReader {
     mUfsBlockOptions = ufsBlockReadOptions;
     mPageSize = pageSize;
     mInitialOffset = offset;
-    mLastPage = ByteBuffer.allocateDirect((int) mPageSize);
     mPosition = offset;
+  }
+
+  /**
+   * Lazy create mLastPage.
+   * */
+  public void initializeLastPageIfNull() {
+    if (mLastPage == null) {
+      mLastPage = ByteBuffer.allocateDirect((int) mPageSize);
+    }
   }
 
   @Override

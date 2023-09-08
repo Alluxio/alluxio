@@ -134,6 +134,7 @@ public class PagedBlockReader extends BlockReader {
           );
         }
         PagedUfsBlockReader ufsBlockReader = mUfsBlockReader.get();
+        ufsBlockReader.initializeLastPageIfNull();
         // get the page at pageIndex as a whole from UFS
         ByteBuffer ufsBuf = NioDirectBufferPool.acquire((int) mPageSize);
         try {
