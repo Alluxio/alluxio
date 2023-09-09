@@ -1,0 +1,3 @@
+[build]
+# set the cargo target dir to that of maven's, so that `mvn clean` will also clean up rust artifacts
+target-dir = "../../../target/rust-maven-plugin/"
