@@ -3609,6 +3609,8 @@ public class DefaultFileSystemMaster extends CoreMaster
         mMountTable.checkUnderWritableMountPoint(alluxioPath);
 
         if (context.getOptions().getRemount()) {
+          LOG.info("Mount {} with remount options, so it will be unmounted first.",
+              inodePath.getUri());
           unmountInternal(rpcContext, inodePath);
         }
         mountInternal(rpcContext, inodePath, ufsPath, context);
