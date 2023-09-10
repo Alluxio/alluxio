@@ -83,6 +83,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.DefaultValue;
@@ -464,8 +465,8 @@ public final class AlluxioWorkerRestServiceHandler {
       @QueryParam("end") String requestEnd,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
-      FilenameFilter filenameFilter = (dir, name) -> name.toLowerCase()
-          .matches(".*\\.log[\\d+]|.*.out|.*.txt|.*.json");
+      FilenameFilter filenameFilter = (dir, name) ->
+          Constants.LOG_FILE_PATTERN.matcher(name.toLowerCase()).matches();
       WorkerWebUILogs response = new WorkerWebUILogs();
 
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {

@@ -689,8 +689,8 @@ public final class AlluxioMasterRestServiceHandler {
       @DefaultValue("") @QueryParam("end") String requestEnd,
       @DefaultValue("20") @QueryParam("limit") String requestLimit) {
     return RestUtils.call(() -> {
-      FilenameFilter filenameFilter = (dir, name) -> name.toLowerCase()
-          .matches(".*\\.log[\\d+]|.*.out|.*.txt|.*.json");
+      FilenameFilter filenameFilter = (dir, name) ->
+          Constants.LOG_FILE_PATTERN.matcher(name.toLowerCase()).matches();
       MasterWebUILogs response = new MasterWebUILogs();
 
       if (!Configuration.getBoolean(PropertyKey.WEB_FILE_INFO_ENABLED)) {

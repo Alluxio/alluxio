@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import java.util.regex.Pattern;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -231,6 +232,10 @@ public final class Constants {
   public static final String MEDIUM_MEM = "MEM";
   public static final String MEDIUM_HDD = "HDD";
   public static final String MEDIUM_SSD = "SSD";
+
+  // Log file pattern
+  public static final Pattern LOG_FILE_PATTERN =
+      Pattern.compile(".*\\.log[\\d+]|.*.out|.*.txt|.*.json");
 
   private Constants() {} // prevent instantiation
 }
