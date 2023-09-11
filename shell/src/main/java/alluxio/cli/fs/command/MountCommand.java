@@ -56,7 +56,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
           .longOpt("remount")
           .required(false)
           .hasArg(false)
-          .desc("unmount and mount together")
+          .desc("unmount and remount in one locked operation, with atomicity")
           .build();
   private static final Option OPTION_OPTION =
       Option.builder()
