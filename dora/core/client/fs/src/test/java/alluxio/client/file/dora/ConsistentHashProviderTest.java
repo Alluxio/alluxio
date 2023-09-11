@@ -58,15 +58,15 @@ public class ConsistentHashProviderTest {
     ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
     List<BlockWorkerInfo> workerList = generateRandomWorkerList(50);
     // set initial state
-    provider.refresh(workerList, 2000);
+    provider.refresh(workerList,  2000);
     NavigableMap<Integer, BlockWorkerInfo> map = provider.getActiveNodesMap();
     Map<BlockWorkerInfo, Long> count = new HashMap<>();
-    long last = 0;
+    long last = Integer.MIN_VALUE;
     for(Map.Entry<Integer, BlockWorkerInfo> entry: map.entrySet()) {
       count.put(entry.getValue(),  count.getOrDefault(entry.getValue(), 0L) + (entry.getKey()- last));
       last = entry.getKey().intValue();
     }
-
+    System.out.println(count.values());
 
     System.out.println(calcSD(count.values()));
   }
