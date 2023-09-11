@@ -32,37 +32,6 @@ to `CACHE_THROUGH`.
 Clients can ignore or overwrite the cluster-wide default values by following the approaches
 described in [Configure Applications](#configure-applications) to overwrite the same properties.
 
-### Path Defaults
-
-Alluxio administrators can set default client-side configurations for specific
-Alluxio filesystem paths.
-Filesystem client operations have options which are derived from client side configuration
-properties.
-Only client-side configuration properties can be set as path defaults.
-
-For example, the `createFile` operation has an option to specify write type.
-By default, the write type is the value of the configuration key `alluxio.user.file.writetype.default`.
-The administrator can set default value of `alluxio.user.file.write.type.default` to `MUST_CACHE`
-for all paths with prefix `/tmp` by running:
-
-```shell
-$ bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.default=MUST_CACHE /tmp`
-```
-
-After executing this command any create operations on paths with prefix `/tmp` will use the
-`MUST_CACHE` write type by default unless the application configuration overrides the cluster
-defaults.
-
-Path defaults will be automatically propagated to long-running clients if they are updated.
-If the administrator updates path defaults using the following:
-
-```shell
-$ bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.default=THROUGH /tmp
-```
-
-All write operations that occur on a path with the prefix `/tmp` prefix will use
-the `THROUGH` write type by default.
-
 ## Configuration Sources
 
 Alluxio properties can be configured from multiple sources.
@@ -85,16 +54,16 @@ To check the value of a specific configuration property and the source of its va
 users can run the following command:
 
 ```shell
-$ ./bin/alluxio getConf alluxio.worker.rpc.port
+$ ./bin/alluxio conf get alluxio.worker.rpc.port
 29998
-$ ./bin/alluxio getConf --source alluxio.worker.rpc.port
+$ ./bin/alluxio conf get --source alluxio.worker.rpc.port
 DEFAULT
 ```
 
 To list all of the configuration properties with sources:
 
 ```shell
-$ ./bin/alluxio getConf --source
+$ ./bin/alluxio conf get --source
 alluxio.conf.dir=/Users/bob/alluxio/conf (SYSTEM_PROPERTY)
 alluxio.debug=false (DEFAULT)
 ...
@@ -102,12 +71,12 @@ alluxio.debug=false (DEFAULT)
 
 Users can also specify the `--master` option to list all
 of the cluster-wide configuration properties served by the masters.
-Note that with the `--master` option, `getConf` will query the
+Note that with the `--master` option, `bin/alluxio conf get` will query the
 master which requires the master process to be running.
 Otherwise, without `--master` option, this command only checks the local configuration.
 
 ```shell
-$ ./bin/alluxio getConf --master --source
+$ ./bin/alluxio conf get --master --source
 alluxio.conf.dir=/Users/bob/alluxio/conf (SYSTEM_PROPERTY)
 alluxio.debug=false (DEFAULT)
 ...
@@ -126,16 +95,16 @@ by other applications running in the same environment.
 ## Server Configuration Checker
 
 The server-side configuration checker helps discover configuration errors and warnings.
-Suspected configuration errors are reported through the web UI, `fsadmin doctor` CLI, and master logs.
+Suspected configuration errors are reported through the web UI, `info doctor` CLI, and master logs.
 
 The web UI shows the result of the server configuration check.
 
 ![webUi]({{ '/img/screenshot_configuration_checker_webui.png' | relativize_url }})
 
-Users can also run the `fsadmin doctor` command to get the same results.
+Users can also run the `info doctor` command to get the same results.
 
 ```shell
-$ ./bin/alluxio fsadmin doctor configuration
+$ ./bin/alluxio info doctor configuration
 ```
 
 Configuration warnings can also be found in the master logs.
