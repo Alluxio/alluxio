@@ -16,7 +16,7 @@ package alluxio;
  */
 public final class UfsConstants {
   /* Hadoop version, specified in maven property. **/
-  public static final String UFS_HADOOP_VERSION = "3.3.1";
+  public static final String UFS_HADOOP_VERSION = "${ufs.hadoop.version}";
 
   private UfsConstants() {} // prevent instantiation
 }
