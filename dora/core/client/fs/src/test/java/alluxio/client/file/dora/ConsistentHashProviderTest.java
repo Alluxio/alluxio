@@ -68,10 +68,10 @@ public class ConsistentHashProviderTest {
     }
     System.out.println(count.values());
 
-    System.out.println(calcSD(count.values()));
+    System.out.println(calcSDoverMean(count.values()));
   }
 
-  private double calcSD(Collection<Long> list) {
+  private double calcSDoverMean(Collection<Long> list) {
     long sum = 0L;
     double var = 0;
     for (long num : list) {
@@ -81,7 +81,7 @@ public class ConsistentHashProviderTest {
     for (long num : list) {
       var = var + (num - avg) * (num - avg);
     }
-    return Math.sqrt(var / list.size());
+    return Math.sqrt(var / list.size()) / avg;
   }
 
   @Test
