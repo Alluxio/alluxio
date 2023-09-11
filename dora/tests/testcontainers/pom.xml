@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-tests</artifactId>
-    <version>304-SNAPSHOT</version>
+    <version>304</version>
   </parent>
   <artifactId>alluxio-tests-testcontainers</artifactId>
   <packaging>jar</packaging>
@@ -81,7 +81,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
             <configuration>
-              <testExcludes combine.self="override"/>
+              <testExcludes combine.self="override" />
             </configuration>
           </plugin>
         </plugins>
