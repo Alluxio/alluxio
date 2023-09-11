@@ -124,7 +124,7 @@
 
   <properties>
     <apache.curator.version>4.2.0</apache.curator.version>
-    <argLine />
+    <argLine/>
     <aws.amazonaws.version>1.11.815</aws.amazonaws.version>
     <awssdk.version>2.20.56</awssdk.version>
     <build.path>build</build.path>
@@ -1224,7 +1224,7 @@
               <rules>
                 <!-- checks for duplicate dependencies in the "dependencies" and "dependencyManagement" sections. -->
                 <!-- dependencies are considered duplicate if they have the same groupId, artifactId, type, and classifier properties -->
-                <banDuplicatePomDependencyVersions />
+                <banDuplicatePomDependencyVersions/>
               </rules>
             </configuration>
           </execution>
@@ -1461,7 +1461,7 @@
             </goals>
             <phase>validate</phase>
             <configuration>
-              <verifyFail>warn</verifyFail>
+              <verifyFail>stop</verifyFail>
               <verifyFailOn>strict</verifyFailOn>
               <violationFilename>target/sortpom_reports/violation.xml</violationFilename>
             </configuration>
@@ -1474,7 +1474,7 @@
             </goals>
             <!-- Empty phase to skip automatically running this as part of a build process -->
             <!-- Still invokable by running `mvn sortpom:sort@manual-sort` from the command line -->
-            <phase />
+            <phase/>
             <configuration>
               <createBackupFile>true</createBackupFile>
             </configuration>
