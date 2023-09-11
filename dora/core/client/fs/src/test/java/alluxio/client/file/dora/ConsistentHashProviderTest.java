@@ -20,12 +20,17 @@ import static org.junit.Assert.fail;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.BlockWorker;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -46,6 +51,37 @@ public class ConsistentHashProviderTest {
   public void uninitializedThrowsException() {
     ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
     assertThrows(IllegalStateException.class, () -> provider.get(OBJECT_KEY, 0));
+  }
+
+  @Test
+  public void initializeVirtualNode() {
+    ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
+    List<BlockWorkerInfo> workerList = generateRandomWorkerList(50);
+    // set initial state
+    provider.refresh(workerList, 2000);
+    NavigableMap<Integer, BlockWorkerInfo> map = provider.getActiveNodesMap();
+    Map<BlockWorkerInfo, Long> count = new HashMap<>();
+    long last = 0;
+    for(Map.Entry<Integer, BlockWorkerInfo> entry: map.entrySet()) {
+      count.put(entry.getValue(),  count.getOrDefault(entry.getValue(), 0L) + (entry.getKey()- last));
+      last = entry.getKey().intValue();
+    }
+
+
+    System.out.println(calcSD(count.values()));
+  }
+
+  private double calcSD(Collection<Long> list) {
+    long sum = 0L;
+    double var = 0;
+    for (long num : list) {
+      sum += num;
+    }
+    double avg = sum * 1.0 / list.size();
+    for (long num : list) {
+      var = var + (num - avg) * (num - avg);
+    }
+    return Math.sqrt(var / list.size());
   }
 
   @Test
