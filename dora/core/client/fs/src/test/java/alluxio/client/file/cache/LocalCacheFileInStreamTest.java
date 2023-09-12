@@ -18,12 +18,14 @@ import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.CacheContext;
+import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.client.file.cache.context.CachePerThreadContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -99,6 +101,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.annotation.Nullable;
 
 /**
  * Unit tests for {@link LocalCacheFileInStream}.

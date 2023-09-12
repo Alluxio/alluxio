@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import com.google.gson.Gson;
@@ -134,27 +135,47 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
       System.out.println("Progress: " + (i+1) + "/" + fileNum);
       String fileName = "file" + i;
       AlluxioURI file = new AlluxioURI(folder, new AlluxioURI(fileName));
+
+      boolean hasCachedFile = false;
       if (!mFileSystem.exists(file)) {
         writeFile(file);
+        cacheFile(file);
+        hasCachedFile = true;
       }
 
-      if (mFileSystem instanceof DoraCacheFileSystem) {
-        DoraCacheFileSystem doraCacheFileSystem = (DoraCacheFileSystem) mFileSystem;
+      if (mFileSystem.getDoraCacheFileSystem() != null) {
+        DoraCacheFileSystem doraCacheFileSystem = mFileSystem.getDoraCacheFileSystem();
+        AlluxioURI ufsFullPath = doraCacheFileSystem.convertAlluxioPathToUFSPath(file);
+        String fileUfsFullName = ufsFullPath.toString();
+        boolean dataOnPreferredWorker = false;
+        Set<String> workersThatHaveDataSet = new HashSet<>();
+
         WorkerNetAddress preferredWorker = doraCacheFileSystem.getWorkerNetAddress(file);
         Map<String, List<WorkerNetAddress>> fileOnWorkersMap = checkFileLocation(file);
-        String fileUfsFullName = fileOnWorkersMap.keySet().stream().findFirst().get();
-        boolean dataOnPreferredWorker = fileOnWorkersMap.get(fileUfsFullName)
-            .contains(preferredWorker);
+
+        if (fileOnWorkersMap != null && fileOnWorkersMap.size() > 0) {
+          Optional<String> fileUfsFullNameOpt = fileOnWorkersMap.keySet().stream().findFirst();
+          if (fileUfsFullNameOpt.isPresent()) {
+            List<WorkerNetAddress> workersThatHaveDataList = fileOnWorkersMap.get(fileUfsFullName);
+            if (workersThatHaveDataList != null && !workersThatHaveDataList.isEmpty()) {
+              dataOnPreferredWorker = workersThatHaveDataList.contains(preferredWorker);
+              workersThatHaveDataSet = workersThatHaveDataList.stream()
+                  .map(workerNetAddress -> workerNetAddress.getHost()).collect(Collectors.toSet());
+            }
+          }
+        }
+
         FileLocation fileLocation = new FileLocation(
             fileUfsFullName,
             preferredWorker.getHost(),
             dataOnPreferredWorker,
-            fileOnWorkersMap.get(fileUfsFullName).stream()
-                .map(workerNetAddresses -> workerNetAddresses.getHost())
-                .collect(Collectors.toSet()));
+            workersThatHaveDataSet);
         fileLocationSet.add(fileLocation);
       }
-      cacheFile(file);
+
+      if (hasCachedFile == false) {
+        cacheFile(file);
+      }
     }
 
     // Step 3. convert to JSON and persist to UFS
@@ -168,8 +189,8 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
   }
 
   private Map<String, List<WorkerNetAddress>> checkFileLocation(AlluxioURI file) throws IOException {
-    if (mFileSystem instanceof DoraCacheFileSystem) {
-      DoraCacheFileSystem doraCacheFileSystem = (DoraCacheFileSystem) mFileSystem;
+    if (mFileSystem.getDoraCacheFileSystem() != null) {
+      DoraCacheFileSystem doraCacheFileSystem = mFileSystem.getDoraCacheFileSystem();
       Map<String, List<WorkerNetAddress>> pathLocations =
           doraCacheFileSystem.checkFileLocation(file);
       return pathLocations;
@@ -344,60 +365,6 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
 
     public boolean isDataLost() {
       return dataLost;
-    }
-  }
-
-  class FileLocation {
-    private final String fileName;
-
-    private final String preferredWorker;
-
-    private final boolean dataOnPreferredWorker;
-
-    private final Set<String> workersThatHaveData;
-
-    public FileLocation(String fileName, String preferredWorker, boolean dataOnPreferredWorker,
-                        Set<String> workers) {
-      this.fileName = fileName;
-      this.preferredWorker = preferredWorker;
-      this.dataOnPreferredWorker = dataOnPreferredWorker;
-      this.workersThatHaveData = workers;
-    }
-
-    public String getFileName() {
-      return fileName;
-    }
-
-    public String getPreferredWorker() {
-      return preferredWorker;
-    }
-
-    public boolean isDataOnPreferredWorker() {
-      return dataOnPreferredWorker;
-    }
-
-    public Set<String> getWorkersThatHaveData() {
-      return workersThatHaveData;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-      FileLocation that = (FileLocation) o;
-      return dataOnPreferredWorker == that.dataOnPreferredWorker &&
-          Objects.equals(fileName, that.fileName) &&
-          Objects.equals(preferredWorker, that.preferredWorker) &&
-          Objects.equals(workersThatHaveData, that.workersThatHaveData);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(fileName, preferredWorker, dataOnPreferredWorker, workersThatHaveData);
     }
   }
 }
