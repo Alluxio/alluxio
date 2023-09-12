@@ -710,7 +710,7 @@ public class PagedDoraWorkerTest {
     assertNotNull(listResult);
     assertEquals(1, listResult.length);
 
-    FileInfo fileInfo = mWorker.getGrpcFileInfo(f.getPath(), 0);
+    FileInfo fileInfo = mWorker.getGrpcFileInfo(f.getPath(), 0, true);
     loadFileData(f.getPath());
     assertNotNull(fileInfo);
 

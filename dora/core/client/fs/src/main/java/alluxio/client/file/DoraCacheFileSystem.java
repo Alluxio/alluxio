@@ -80,7 +80,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   private final DoraCacheClient mDoraClient;
   protected final FileSystemContext mFsContext;
   private final boolean mMetadataCacheEnabled;
-  private final boolean mUfsFallbackEnabled;
+  private boolean mUfsFallbackEnabled;
   private final long mDefaultVirtualBlockSize;
 
   private final boolean mClientWriteToUFSEnabled;
@@ -536,5 +536,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       listBuilder.add(blockLocationInfo);
     }
     return listBuilder.build();
+  }
+
+  public void setUfsFallbackEnabled(boolean enabled) {
+    mUfsFallbackEnabled = enabled;
   }
 }
