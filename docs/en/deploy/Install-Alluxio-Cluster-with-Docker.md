@@ -33,7 +33,7 @@ with Alluxio Worker RPC processes.
 
 To set up Docker after provisioning the instance, which will be referred to as the Docker Host, run
 
-```console
+```shell
 $ sudo yum install -y docker
 # Create docker group
 $ sudo groupadd docker
@@ -54,7 +54,7 @@ are the preferred way to save data outside the containers. The following two typ
 + **Host Volume**: You manage where in the Docker host's file system to store and share the
 containers' data. To create a host volume, include the following when launching your containers:
 
-  ```console
+  ```shell
   $ docker run -v /path/on/host:/path/in/container ...
   ```
   The file or directory is referenced by its full path on the Docker host. It can exist on the Docker host already, or it will be created automatically if it does not yet exist.
@@ -62,11 +62,11 @@ containers' data. To create a host volume, include the following when launching 
 + **Named Volume**: Docker manage where they are located. It should be referred to by specific names.
 To create a named volume, first run:
 
-  ```console
+  ```shell
   $ docker volume create volumeName
   ```
   Then include the following when launching your containers:
-  ```console
+  ```shell
   $ docker run -v volumeName:/path/in/container ...
   ```
 
@@ -79,7 +79,7 @@ For example, we will use the host volume and mount the host directory `/tmp/allu
 container location `/opt/alluxio/underFSStorage`, which is the default setting for the
 Alluxio UFS root mount point in the Alluxio docker image:
 
-```console
+```shell
 $ mkdir -p /tmp/alluxio_ufs
 ```
 
@@ -118,7 +118,7 @@ It is recommended to use host network, option 1, for testing.
 
 Launch the Alluxio Master
 
-```console
+```shell
 $ docker run -d --rm \
     --net=host \
     --name=alluxio-master \
@@ -139,7 +139,7 @@ $ docker run -d --rm \
 
 Launch the Alluxio Worker
 
-```console
+```shell
 $ docker run -d --rm \
     --net=host \
     --name=alluxio-worker \
@@ -186,13 +186,13 @@ so that the external clients can reach out the containers' services:
 
 Prepare the network
 
-```console
+```shell
 $ docker network create alluxio_network
 ```
 
 Launch the Alluxio master
 
-```console
+```shell
 $ docker run -d  --rm \
     -p 19999:19999 \
     -p 19998:19998 \
@@ -214,7 +214,7 @@ $ docker run -d  --rm \
 ```
 
 Launch the Alluxio worker
-```console
+```shell
 $ docker run -d --rm \
     -p 29999:29999 \
     -p 30000:30000 \
@@ -267,7 +267,7 @@ Notes:
 ## Verify the Cluster
 
 To verify that the services came up, check `docker ps`. You should see something like
-```console
+```shell
 $ docker ps
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                      NAMES
 1fef7c714d25        alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}     "/entrypoint.sh work…"   39 seconds ago      Up 38 seconds                                  alluxio-worker
@@ -282,13 +282,13 @@ Visit `instance-hostname:19999` to view the Alluxio web UI. You should see one w
 
 To run tests, enter the worker container
 
-```console
+```shell
 $ docker exec -it alluxio-worker /bin/bash
 ```
 
 Run the tests
 
-```console
+```shell
 $ cd /opt/alluxio
 $ ./bin/alluxio runTests
 ```
@@ -322,7 +322,7 @@ them with the new configuration.
 
 To set an Alluxio configuration property, add it to the Alluxio java options environment variable with
 
-```
+```properties
 -e ALLUXIO_JAVA_OPTS="-Dalluxio.property.name=value"
 ```
 
@@ -330,7 +330,7 @@ Multiple properties should be space-separated.
 
 If a property value contains spaces, you must escape it using single quotes.
 
-```
+```properties
 -e ALLUXIO_JAVA_OPTS="-Dalluxio.property1=value1 -Dalluxio.property2='value2 with spaces'"
 ```
 
@@ -339,7 +339,7 @@ when the image starts. If you are not seeing a property take effect, make sure t
 `conf/alluxio-env.sh` within the container is spelled correctly. You can check the
 contents with
 
-```console
+```shell
 $ docker exec ${container_id} cat /opt/alluxio/conf/alluxio-env.sh
 ```
 
@@ -350,7 +350,7 @@ To enable POSIX accesses to Alluxio in a docker environment, we will run a stand
 [POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}#fuse-on-worker-process) provides more details about how to configure Alluxio POSIX API.
 
 First make sure a directory with the right permissions exists on the host to [bind-mount](https://docs.docker.com/storage/bind-mounts/) in the Alluxio FUSE container:
-```console
+```shell
 $ mkdir -p /tmp/mnt/alluxio-fuse && sudo chmod -R a+rwx /tmp/mnt/alluxio-fuse
 ```
 
@@ -359,7 +359,7 @@ The original [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com
 For example, the following commands run the alluxio-fuse container as a long-running client that presents Alluxio file system through a POSIX interface on the Docker host:
 
 Run the Alluxio FUSE service to create a FUSE mount in the host bind-mounted directory:
-```console
+```shell
 $ docker run -d --rm \
     --net=host \
     --name=alluxio-fuse \
@@ -394,7 +394,7 @@ for more details about Alluxio Fuse mount options and tuning.
 
 To start the Alluxio proxy server inside a Docker container, simply run the following command:
 
-```console
+```shell
 $ docker run -d \
     --net=host \
     --name=alluxio-proxy \
