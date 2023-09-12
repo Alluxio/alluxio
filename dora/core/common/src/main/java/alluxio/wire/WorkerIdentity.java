@@ -81,7 +81,7 @@ public final class WorkerIdentity {
   @Override
   public String toString() {
     return String.format("Worker (%s)",
-        Parsers.getParser(mVersion).getVersionSpecificRepresentation(this));
+        Parsers.getParserOfVersion(mVersion).getVersionSpecificRepresentation(this));
   }
 
   /**
@@ -107,7 +107,7 @@ public final class WorkerIdentity {
       final int version = proto.getVersion();
       final Parser parser;
       try {
-        parser = getParser(version);
+        parser = getParserOfVersion(version);
       } catch (IllegalArgumentException e) {
         throw new InvalidVersionParsingException(version, 0, 1);
       }
@@ -121,10 +121,10 @@ public final class WorkerIdentity {
      * @return GRPC representation
      */
     public static alluxio.grpc.WorkerIdentity toProto(WorkerIdentity workerIdentity) {
-      return getParser(workerIdentity.mVersion).toProto(workerIdentity);
+      return getParserOfVersion(workerIdentity.mVersion).toProto(workerIdentity);
     }
 
-    static Parser getParser(int version) throws IllegalArgumentException {
+    static Parser getParserOfVersion(int version) throws IllegalArgumentException {
       final Parser parser;
       switch (version) {
         case 0:
