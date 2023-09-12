@@ -29,6 +29,7 @@ import alluxio.grpc.WriteOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsStatus;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.DataWorker;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
@@ -187,4 +188,6 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @param options the options of this operation
    */
   void setAttribute(String path, SetAttributePOptions options) throws IOException;
+
+  WorkerNetAddress getAddress();
 }

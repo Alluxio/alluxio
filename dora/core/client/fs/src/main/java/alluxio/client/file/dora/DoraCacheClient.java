@@ -63,7 +63,9 @@ import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -248,6 +250,37 @@ public class DoraCacheClient {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public Map<String, List<WorkerNetAddress>> checkFileLocation(String path,
+      GetStatusPOptions options) throws IOException {
+    Map<String, List<WorkerNetAddress>> pathDistributionMap = new HashMap<>();
+    List<BlockWorkerInfo> workers = mContext.getCachedWorkers();
+    for (BlockWorkerInfo worker : workers) {
+      try (CloseableResource<BlockWorkerClient> client =
+               mContext.acquireBlockWorkerClient(worker.getNetAddress())) {
+        GetStatusPRequest request = GetStatusPRequest.newBuilder()
+            .setPath(path)
+            .setOptions(options)
+            .build();
+        try {
+          FileInfo fileInfo = client.get().getStatus(request).getFileInfo();
+          URIStatus uriStatus = new URIStatus(GrpcUtils.fromProto(fileInfo));
+          if (uriStatus.getInAlluxioPercentage() > 0) {
+            List<WorkerNetAddress> assignedWorkers = pathDistributionMap.get(path);
+            if (assignedWorkers == null) {
+              assignedWorkers = new ArrayList<>();
+            }
+            assignedWorkers.add(worker.getNetAddress());
+            pathDistributionMap.put(path, assignedWorkers);
+          }
+        } catch (Exception e) {
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return pathDistributionMap;
   }
 
   /**
