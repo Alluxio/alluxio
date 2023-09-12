@@ -46,15 +46,28 @@ public interface WorkerProcess extends Process {
       boolean isNettyDataTransmissionEnable =
           Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
       // add modules that need to be injected
-      ImmutableList.Builder<Module> modules = ImmutableList.builder();
-      modules.add(new DoraWorkerModule());
-      modules.add(new GrpcServerModule());
-      modules.add(new NettyServerModule(isNettyDataTransmissionEnable));
-      modules.add(new AlluxioWorkerProcessModule());
+      ImmutableList<Module> modules = sModules;
+      if (modules == null) {
+        ImmutableList.Builder<Module> builder = ImmutableList.builder();
+        builder.add(new DoraWorkerModule());
+        builder.add(new GrpcServerModule());
+        builder.add(new NettyServerModule(isNettyDataTransmissionEnable));
+        builder.add(new AlluxioWorkerProcessModule());
+        modules = builder.build();
+      }
 
       // inject the modules
-      Injector injector = Guice.createInjector(modules.build());
+      Injector injector = Guice.createInjector(modules);
       return injector.getInstance(WorkerProcess.class);
+    }
+
+    private static ImmutableList<Module> sModules = null;
+
+    /**
+     * @param a new module list to replace the default
+     */
+    public static void withModules(ImmutableList<Module> modules) {
+      sModules = modules;
     }
 
     private Factory() {
@@ -85,6 +98,11 @@ public interface WorkerProcess extends Process {
    * @return the worker's netty data service port (used by unit test only)
    */
   int getNettyDataLocalPort();
+
+  /**
+   * @return the worker's netty s3 data service port (used by unit test only)
+   */
+  int getRestS3LocalPort();
 
   /**
    * @return the worker's data service domain socket path if available or "" if not available

@@ -13,9 +13,10 @@ package alluxio.proxy.s3.signature;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.proxy.s3.S3Exception;
-import alluxio.proxy.s3.auth.Authenticator;
-import alluxio.proxy.s3.auth.AwsAuthInfo;
+import alluxio.s3.S3Exception;
+import alluxio.s3.auth.Authenticator;
+import alluxio.s3.auth.AwsAuthInfo;
+import alluxio.s3.signature.AuthorizationV4Validator;
 
 import org.junit.Test;
 

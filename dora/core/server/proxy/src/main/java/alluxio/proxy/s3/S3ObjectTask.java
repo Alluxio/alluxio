@@ -38,6 +38,14 @@ import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
+import alluxio.s3.ChunkedEncodingInputStream;
+import alluxio.s3.CopyObjectResult;
+import alluxio.s3.S3AuditContext;
+import alluxio.s3.S3Constants;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3Exception;
+import alluxio.s3.S3RangeSpec;
+import alluxio.s3.TaggingData;
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
 
@@ -350,7 +358,7 @@ public class S3ObjectTask extends S3BaseTask {
             if (entityTag != null) {
               res.header(S3Constants.S3_ETAG_HEADER, entityTag);
             } else {
-              LOG.debug("Failed to find ETag for object: " + objectPath);
+              LOG.debug("Failed to find ETag for object: {}", objectPath);
             }
 
             // Check if the object had a specified "Content-Type"
@@ -409,7 +417,7 @@ public class S3ObjectTask extends S3BaseTask {
             if (entityTag != null) {
               res.header(S3Constants.S3_ETAG_HEADER, entityTag);
             } else {
-              LOG.debug("Failed to find ETag for object: " + objectPath);
+              LOG.debug("Failed to find ETag for object: {}", objectPath);
             }
 
             // Check if the object had a specified "Content-Type"
@@ -450,7 +458,8 @@ public class S3ObjectTask extends S3BaseTask {
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, mHandler.getBucket(), mHandler.getObject())) {
-
+          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+              mHandler.BUCKET_PATH_CACHE);
           if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
             createDirectory(objectPath, userFs, auditContext);
           }
@@ -1225,27 +1234,42 @@ public class S3ObjectTask extends S3BaseTask {
                                          String objectPath,
                                          AlluxioURI multipartTemporaryDir)
         throws S3Exception, IOException, AlluxioException {
-      List<URIStatus> uploadedParts = mUserFs.listStatus(multipartTemporaryDir);
-      uploadedParts.sort(new S3RestUtils.URIStatusNameComparator());
-      if (uploadedParts.size() < request.getParts().size()) {
+      final List<URIStatus> uploadedParts = mUserFs.listStatus(multipartTemporaryDir);
+      final List<CompleteMultipartUploadRequest.Part> requestParts = request.getParts();
+      final Map<Integer, URIStatus> uploadedPartsMap =
+          uploadedParts.stream().collect(Collectors.toMap(
+              status -> Integer.parseInt(status.getName()),
+              status -> status
+          ));
+
+      if (requestParts == null || requestParts.isEmpty()) {
+        throw new S3Exception(objectPath, S3ErrorCode.MALFORMED_XML);
+      }
+      if (uploadedParts.size() < requestParts.size()) {
         throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
       }
-      Map<Integer, URIStatus> uploadedPartsMap = uploadedParts.stream().collect(Collectors.toMap(
-          status -> Integer.parseInt(status.getName()),
-          status -> status
-      ));
-      int lastPartNum = request.getParts().get(request.getParts().size() - 1).getPartNumber();
-      for (CompleteMultipartUploadRequest.Part part : request.getParts()) {
+      for (CompleteMultipartUploadRequest.Part part : requestParts) {
         if (!uploadedPartsMap.containsKey(part.getPartNumber())) {
           throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
         }
-        if (part.getPartNumber() != lastPartNum // size requirement not applicable to last part
-            && uploadedPartsMap.get(part.getPartNumber()).getLength() < Configuration.getBytes(
+      }
+      int prevPartNum = requestParts.get(0).getPartNumber();
+      for (CompleteMultipartUploadRequest.Part part :
+          requestParts.subList(1, requestParts.size())) {
+        if (prevPartNum >= part.getPartNumber()) {
+          throw new S3Exception(S3ErrorCode.INVALID_PART_ORDER);
+        }
+        if (uploadedPartsMap.get(prevPartNum).getLength() < Configuration.getBytes(
             PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
           throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
         }
+        prevPartNum = part.getPartNumber();
       }
-      return uploadedParts;
+
+      List<URIStatus> validParts =
+          requestParts.stream().map(part -> uploadedPartsMap.get(part.getPartNumber()))
+              .collect(Collectors.toList());
+      return validParts;
     }
 
     /**

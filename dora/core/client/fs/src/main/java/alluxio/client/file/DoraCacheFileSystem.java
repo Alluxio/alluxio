@@ -35,6 +35,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -48,6 +49,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
+import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
@@ -61,6 +63,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Dora Cache file system implementation.
@@ -75,7 +78,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public static DoraCacheFileSystemFactory sDoraCacheFileSystemFactory
       = new DoraCacheFileSystemFactory();
   private final DoraCacheClient mDoraClient;
-  private final FileSystemContext mFsContext;
+  protected final FileSystemContext mFsContext;
   private final boolean mMetadataCacheEnabled;
   private final boolean mUfsFallbackEnabled;
   private final long mDefaultVirtualBlockSize;
@@ -131,15 +134,21 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
-
+    LOG.debug("DoraCacheFileSystem getStatus for {}", ufsFullPath);
     if (!mMetadataCacheEnabled) {
       return mDelegatedFileSystem.getStatus(ufsFullPath, options);
     }
     try {
       GetStatusPOptions mergedOptions = FileSystemOptionsUtils.getStatusDefaults(
-          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+          mFsContext.getClusterConf()).toBuilder().mergeFrom(options).build();
 
-      return mDoraClient.getStatus(ufsFullPath.toString(), mergedOptions);
+      final URIStatus status = mDoraClient.getStatus(ufsFullPath.toString(), mergedOptions);
+      // convert to proto and then back to get a clone of the object
+      // as it may be cached by a `MetadataCachingFileSystem`, while we need to mutate its fields
+      FileInfo info = GrpcUtils.fromProto(GrpcUtils.toProto(status.getFileInfo()));
+      info.setPath(convertUfsPathToAlluxioPath(new AlluxioURI(info.getUfsPath())).getPath());
+      URIStatus statusWithRelativeAlluxioPath = new URIStatus(info, status.getCacheContext());
+      return statusWithRelativeAlluxioPath;
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
         if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
@@ -152,7 +161,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       UFS_FALLBACK_COUNTER.inc();
       LOG.debug("Dora client get status error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
-      return mDelegatedFileSystem.getStatus(ufsFullPath, options);
+      return mDelegatedFileSystem.getStatus(ufsFullPath, options).setFromUFSFallBack();
     }
   }
 
@@ -172,10 +181,13 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     if (!status.isCompleted()) {
       throw new FileIncompleteException(path);
     }
-    AlluxioConfiguration conf = mFsContext.getPathConf(path);
+    AlluxioConfiguration conf = mFsContext.getClusterConf();
     OpenFilePOptions mergedOptions = FileSystemOptionsUtils.openFileDefaults(conf)
         .toBuilder().mergeFrom(options).build();
     try {
+      if (status.isFromUFSFallBack()) {
+        throw new RuntimeException("Status is retrieved from UFS by falling back.");
+      }
       Protocol.OpenUfsBlockOptions openUfsBlockOptions =
           Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(status.getUfsPath())
               .setOffsetInFile(0).setBlockSize(status.getLength())
@@ -213,7 +225,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     if (!status.isCompleted()) {
       throw AlluxioRuntimeException.from(new FileIncompleteException(path));
     }
-    AlluxioConfiguration conf = mFsContext.getPathConf(path);
+    AlluxioConfiguration conf = mFsContext.getClusterConf();
     OpenFilePOptions mergedOptions = FileSystemOptionsUtils.openFileDefaults(conf)
         .toBuilder().mergeFrom(options).build();
     Protocol.OpenUfsBlockOptions openUfsBlockOptions =
@@ -236,9 +248,17 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
     try {
       ListStatusPOptions mergedOptions = FileSystemOptionsUtils.listStatusDefaults(
-          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+          mFsContext.getClusterConf()).toBuilder().mergeFrom(options).build();
 
-      return mDoraClient.listStatus(ufsFullPath.toString(), mergedOptions);
+      final List<URIStatus> uriStatuses = mDoraClient.listStatus(ufsFullPath.toString(),
+          mergedOptions);
+      List<URIStatus> statusesWithRelativePath = uriStatuses.stream()
+          .map(status -> new URIStatus(
+              GrpcUtils.fromProto(GrpcUtils.toProto(status.getFileInfo()))
+                  .setPath(convertUfsPathToAlluxioPath(new AlluxioURI(status.getUfsPath()))
+                      .getPath())))
+          .collect(Collectors.toList());
+      return statusesWithRelativePath;
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
         if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
@@ -263,7 +283,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
     try {
       CreateFilePOptions mergedOptions = FileSystemOptionsUtils.createFileDefaults(
-          mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
+          mFsContext.getClusterConf()).toBuilder().mergeFrom(options).build();
 
       Pair<URIStatus, String> result =
           mDoraClient.createFile(ufsFullPath.toString(), mergedOptions);
@@ -273,7 +293,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       LOG.debug("Created file {}, options: {}", alluxioPath.getPath(), mergedOptions);
       OutStreamOptions outStreamOptions =
           new OutStreamOptions(mergedOptions, mFsContext,
-              mFsContext.getPathConf(alluxioPath));
+              mFsContext.getClusterConf());
       outStreamOptions.setUfsPath(status.getUfsPath());
       outStreamOptions.setMountId(status.getMountId());
       outStreamOptions.setAcl(status.getAcl());
@@ -306,7 +326,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
     try {
       CreateDirectoryPOptions mergedOptions = FileSystemOptionsUtils.createDirectoryDefaults(
-          mFsContext.getPathConf(ufsFullPath)).toBuilder().mergeFrom(options).build();
+          mFsContext.getClusterConf()).toBuilder().mergeFrom(options).build();
 
       mDoraClient.createDirectory(ufsFullPath.toString(), mergedOptions);
     } catch (RuntimeException ex) {
@@ -327,7 +347,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
     try {
       DeletePOptions mergedOptions = FileSystemOptionsUtils.deleteDefaults(
-          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+          mFsContext.getClusterConf()).toBuilder().mergeFrom(options).build();
 
       mDoraClient.delete(ufsFullPath.toString(), mergedOptions);
     } catch (RuntimeException ex) {
@@ -348,7 +368,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     AlluxioURI dstUfsFullPath = convertAlluxioPathToUFSPath(dst);
     try {
       RenamePOptions mergedOptions = FileSystemOptionsUtils.renameDefaults(
-          mFsContext.getPathConf(srcUfsFullPath)).toBuilder().mergeFrom(options).build();
+          mFsContext.getClusterConf()).toBuilder().mergeFrom(options).build();
 
       mDoraClient.rename(srcUfsFullPath.toString(), dstUfsFullPath.toString(), mergedOptions);
     } catch (RuntimeException ex) {
@@ -376,7 +396,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
     try {
       ExistsPOptions mergedOptions = FileSystemOptionsUtils.existsDefaults(
-          mFsContext.getPathConf(ufsFullPath)).toBuilder().mergeFrom(options).build();
+          mFsContext.getClusterConf()).toBuilder().mergeFrom(options).build();
 
       return mDoraClient.exists(ufsFullPath.toString(), mergedOptions);
     } catch (RuntimeException ex) {
@@ -397,7 +417,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
     try {
       SetAttributePOptions mergedOptions = FileSystemOptionsUtils.setAttributeDefaults(
-          mFsContext.getPathConf(ufsFullPath)).toBuilder().mergeFrom(options).build();
+          mFsContext.getClusterConf()).toBuilder().mergeFrom(options).build();
 
       mDoraClient.setAttribute(ufsFullPath.toString(), mergedOptions);
     } catch (RuntimeException ex) {
@@ -424,7 +444,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
    * @param alluxioPath Alluxio based path
    * @return UfsBaseFileSystem based full path
    */
-  private AlluxioURI convertAlluxioPathToUFSPath(AlluxioURI alluxioPath) {
+  public AlluxioURI convertAlluxioPathToUFSPath(AlluxioURI alluxioPath) {
     if (mDelegatedFileSystem instanceof UfsBaseFileSystem) {
       UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
       AlluxioURI rootUFS = under.getRootUFS();
@@ -450,12 +470,38 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     }
   }
 
+  /**
+   * Converts the UFS path back to Alluxio path.
+   * <p>
+   * This is the opposite operation to {@link #convertAlluxioPathToUFSPath(AlluxioURI)}.
+   *
+   * @param ufsPath UfsBaseFileSystem based full path
+   * @return an Alluxio path
+   */
+  public AlluxioURI convertUfsPathToAlluxioPath(AlluxioURI ufsPath) {
+    if (mDelegatedFileSystem instanceof UfsBaseFileSystem) {
+      AlluxioURI rootUfs = ((UfsBaseFileSystem) mDelegatedFileSystem).getRootUFS();
+      try {
+        if (rootUfs.isAncestorOf(ufsPath)) {
+          return new AlluxioURI(PathUtils.concatPath(AlluxioURI.SEPARATOR,
+              PathUtils.subtractPaths(ufsPath.getPath(), rootUfs.getPath())));
+        }
+      } catch (InvalidPathException e) {
+        throw new RuntimeException(e);
+      }
+
+      return ufsPath;
+    } else {
+      return ufsPath;
+    }
+  }
+
   @Override
   public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
       throws IOException, AlluxioException {
     AlluxioURI ufsPath = convertAlluxioPathToUFSPath(path);
     URIStatus status = mDoraClient.getStatus(ufsPath.toString(),
-        FileSystemOptionsUtils.getStatusDefaults(mFsContext.getPathConf(path)));
+        FileSystemOptionsUtils.getStatusDefaults(mFsContext.getClusterConf()));
     return getBlockLocations(status);
   }
 

@@ -11,7 +11,6 @@
 
 package alluxio.job.plan;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,15 +26,12 @@ import alluxio.conf.Configuration;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.batch.BatchedJobDefinition;
-import alluxio.job.plan.load.LoadConfig;
-import alluxio.job.plan.load.LoadDefinition.LoadTask;
 import alluxio.job.plan.persist.PersistConfig;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
-import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -47,8 +43,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -60,25 +54,13 @@ import java.util.Set;
 public class BatchedJobDefinitionTest {
   private static final String TEST_URI = "/test";
   private static final WorkerNetAddress WORKER_ADDR_0 =
-      new WorkerNetAddress().setHost("host0")
-          .setTieredIdentity(
-              new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack1"))));
+      new WorkerNetAddress().setHost("host0");
   private static final WorkerNetAddress WORKER_ADDR_1 =
-      new WorkerNetAddress().setHost("host1")
-          .setTieredIdentity(
-              new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack1"))));
+      new WorkerNetAddress().setHost("host1");
   private static final WorkerNetAddress WORKER_ADDR_2 =
-      new WorkerNetAddress().setHost("host2")
-          .setTieredIdentity(
-              new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack2"))));
+      new WorkerNetAddress().setHost("host2");
   private static final WorkerNetAddress WORKER_ADDR_3 =
-      new WorkerNetAddress().setHost("host3")
-          .setTieredIdentity(
-              new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack2"))));
+      new WorkerNetAddress().setHost("host3");
 
   private static final List<WorkerInfo> JOB_WORKERS = new ImmutableList.Builder<WorkerInfo>()
       .add(new WorkerInfo().setId(0).setAddress(WORKER_ADDR_0))
@@ -107,52 +89,8 @@ public class BatchedJobDefinitionTest {
     when(mMockFsContext.getClientContext())
         .thenReturn(ClientContext.create(Configuration.global()));
     when(mMockFsContext.getClusterConf()).thenReturn(Configuration.global());
-    when(mMockFsContext.getPathConf(any(AlluxioURI.class)))
-        .thenReturn(Configuration.global());
     mJobServerContext = new JobServerContext(mMockFileSystem, mMockFsContext,
         mock(UfsManager.class));
-  }
-
-  @Test
-  public void batchLoad() throws Exception {
-    int numBlocks = 2;
-    int replication = 2;
-    int batchSize = 2;
-    HashSet<Map<String, String>> configs = Sets.newHashSet();
-    for (int i = 0; i < batchSize; i++) {
-      createFileWithNoLocations(TEST_URI + i, numBlocks);
-      LoadConfig loadConfig = new LoadConfig(TEST_URI + i, replication, Collections.EMPTY_SET,
-          Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, true);
-      ObjectMapper oMapper = new ObjectMapper();
-      Map<String, String> map = oMapper.convertValue(loadConfig, Map.class);
-      configs.add(map);
-    }
-    BatchedJobConfig config = new BatchedJobConfig("Load", configs);
-    Set<Pair<WorkerInfo, BatchedJobDefinition.BatchedJobTask>> assignments =
-        new BatchedJobDefinition().selectExecutors(config, JOB_WORKERS,
-            new SelectExecutorsContext(1, mJobServerContext));
-    // Check that we are loading the right number of blocks.
-    int totalBlockLoads = 0;
-    for (Pair<WorkerInfo, BatchedJobDefinition.BatchedJobTask> assignment : assignments) {
-      ArrayList<LoadTask> second = (ArrayList<LoadTask>) assignment.getSecond().getJobTaskArgs();
-      totalBlockLoads += second.size();
-    }
-    Assert.assertEquals(numBlocks * replication * batchSize, totalBlockLoads);
-  }
-
-  private FileInfo createFileWithNoLocations(String testFile, int numOfBlocks) throws Exception {
-    FileInfo testFileInfo = new FileInfo();
-    AlluxioURI uri = new AlluxioURI(testFile);
-    List<FileBlockInfo> blockInfos = Lists.newArrayList();
-    for (int i = 0; i < numOfBlocks; i++) {
-      blockInfos.add(new FileBlockInfo()
-          .setBlockInfo(new BlockInfo().setLocations(Lists.newArrayList())));
-    }
-    testFileInfo.setFolder(false).setPath(testFile).setFileBlockInfos(blockInfos);
-    when(mMockFileSystem.listStatus(uri))
-        .thenReturn(Lists.newArrayList(new URIStatus(testFileInfo)));
-    when(mMockFileSystem.getStatus(uri)).thenReturn(new URIStatus(testFileInfo));
-    return testFileInfo;
   }
 
   @Test

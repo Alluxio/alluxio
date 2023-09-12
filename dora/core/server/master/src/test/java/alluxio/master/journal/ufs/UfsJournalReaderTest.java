@@ -138,26 +138,6 @@ public final class UfsJournalReaderTest {
   }
 
   /**
-   * Secondary master cannot read incomplete logs.
-   */
-  @Test
-  public void readIncompleteLogSecondary() throws Exception {
-    long endSN = 10;
-    buildCompletedLog(0, endSN);
-    buildIncompleteLog(endSN, endSN + 1);
-    try (JournalReader reader = mJournal.getReader(false)) {
-      int sn = 0;
-      while (reader.advance() != State.DONE) {
-        assertEquals(sn, reader.getEntry().getSequenceNumber());
-        sn++;
-      }
-
-      assertEquals(endSN, sn);
-      assertEquals(sn, reader.getNextSequenceNumber());
-    }
-  }
-
-  /**
    * Reads logs created while reading the journal.
    */
   @Test

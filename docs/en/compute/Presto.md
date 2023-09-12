@@ -3,6 +3,9 @@ layout: global
 title: Running Presto with Alluxio
 ---
 
+This guide describes how to configure [Presto](https://prestodb.io/) to access Alluxio.
+
+## Overview
 [Presto](https://prestodb.io/)
 is an open source distributed SQL query engine for running interactive analytic queries
 on data at a large scale.

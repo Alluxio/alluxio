@@ -31,6 +31,7 @@ import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -102,6 +103,8 @@ public class CollectLogCommandTest {
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{cmd.getCommandName(), targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
+    when(mockCommandLine.getOptionValue(ArgumentMatchers.eq("output-dir"), ArgumentMatchers.eq("")))
+            .thenReturn(targetDir.getAbsolutePath());
     int ret = cmd.run(mockCommandLine);
     assertEquals(0, ret);
 
@@ -122,6 +125,8 @@ public class CollectLogCommandTest {
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{cmd.getCommandName(), targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
+    when(mockCommandLine.getOptionValue(ArgumentMatchers.eq("output-dir"), ArgumentMatchers.eq("")))
+            .thenReturn(targetDir.getAbsolutePath());
     int ret = cmd.run(mockCommandLine);
     assertEquals(0, ret);
 
@@ -143,6 +148,8 @@ public class CollectLogCommandTest {
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     when(mockCommandLine.hasOption(eq("exclude-logs"))).thenReturn(true);
     when(mockCommandLine.getOptionValue(eq("exclude-logs"))).thenReturn("master.log.1, worker");
+    when(mockCommandLine.getOptionValue(ArgumentMatchers.eq("output-dir"), ArgumentMatchers.eq("")))
+            .thenReturn(targetDir.getAbsolutePath());
     int ret = cmd.run(mockCommandLine);
     assertEquals(0, ret);
 
@@ -172,6 +179,8 @@ public class CollectLogCommandTest {
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     when(mockCommandLine.hasOption(eq("additional-logs"))).thenReturn(true);
     when(mockCommandLine.getOptionValue(eq("additional-logs"))).thenReturn("alluxio_gc");
+    when(mockCommandLine.getOptionValue(ArgumentMatchers.eq("output-dir"), ArgumentMatchers.eq("")))
+            .thenReturn(targetDir.getAbsolutePath());
     int ret = cmd.run(mockCommandLine);
     assertEquals(0, ret);
 
@@ -200,6 +209,8 @@ public class CollectLogCommandTest {
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     when(mockCommandLine.hasOption(eq("include-logs"))).thenReturn(true);
     when(mockCommandLine.getOptionValue(eq("include-logs"))).thenReturn("alluxio_gc, master");
+    when(mockCommandLine.getOptionValue(ArgumentMatchers.eq("output-dir"), ArgumentMatchers.eq("")))
+            .thenReturn(targetDir.getAbsolutePath());
     int ret = cmd.run(mockCommandLine);
     assertEquals(0, ret);
 
@@ -307,6 +318,8 @@ public class CollectLogCommandTest {
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     when(mockCommandLine.hasOption(eq("end-time"))).thenReturn(true);
     when(mockCommandLine.getOptionValue(eq("end-time"))).thenReturn(issueEnd.format(fmt));
+    when(mockCommandLine.getOptionValue(ArgumentMatchers.eq("output-dir"), ArgumentMatchers.eq("")))
+            .thenReturn(targetDir.getAbsolutePath());
     int ret = cmd.run(mockCommandLine);
     assertEquals(0, ret);
 
@@ -376,6 +389,8 @@ public class CollectLogCommandTest {
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
     when(mockCommandLine.hasOption(eq("start-time"))).thenReturn(true);
     when(mockCommandLine.getOptionValue(eq("start-time"))).thenReturn(issueEnd.format(fmt));
+    when(mockCommandLine.getOptionValue(ArgumentMatchers.eq("output-dir"), ArgumentMatchers.eq("")))
+            .thenReturn(targetDir.getAbsolutePath());
     int ret = cmd.run(mockCommandLine);
     assertEquals(0, ret);
 

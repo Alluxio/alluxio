@@ -14,11 +14,19 @@ package alluxio.wire;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.Message;
 
+/**
+ * Thrown when the parsed proto is missing any required field.
+ */
 public class MissingRequiredFieldsParsingException extends ProtoParsingException {
   protected MissingRequiredFieldsParsingException(Throwable cause) {
     super(cause);
   }
 
+  /**
+   * Constructs a new exception with details of the missing field.
+   * @param missingField
+   * @param protoMessage
+   */
   public MissingRequiredFieldsParsingException(
       Descriptors.FieldDescriptor missingField, Message protoMessage) {
     super(String.format("Field %s is required, but is missing in the proto message: %s",

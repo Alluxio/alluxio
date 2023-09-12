@@ -22,17 +22,13 @@ import (
 	"alluxio.org/common/command"
 )
 
-func NewArtifact(artifactType ArtifactType, outputDir, targetName, version string, metadata map[string]string) (*Artifact, error) {
+func NewArtifactGroup(version string) (*ArtifactGroup, error) {
 	hOut, err := command.New("git rev-parse --short HEAD").Output()
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "error getting commit hash")
 	}
 
-	return &Artifact{
-		Type:     artifactType,
-		Path:     filepath.Join(outputDir, targetName),
-		Version:  version,
-		Metadata: metadata,
+	return &ArtifactGroup{
 		RepoMetadata: &RepoMetadata{
 			CommitHash: strings.TrimSpace(string(hOut)),
 			Version:    version,
@@ -40,7 +36,18 @@ func NewArtifact(artifactType ArtifactType, outputDir, targetName, version strin
 	}, nil
 }
 
-func (a *Artifact) WriteToFile(outputFile string) error {
+func (a *ArtifactGroup) Add(artifactType ArtifactType, outputDir, targetName string, metadata map[string]string) *Artifact {
+	newArt := &Artifact{
+		Type:     artifactType,
+		Path:     filepath.Join(outputDir, targetName),
+		Version:  a.RepoMetadata.Version,
+		Metadata: metadata,
+	}
+	a.Artifacts = append(a.Artifacts, newArt)
+	return newArt
+}
+
+func (a *ArtifactGroup) WriteToFile(outputFile string) error {
 	yOut, err := yaml.Marshal(a)
 	if err != nil {
 		return stacktrace.Propagate(err, "error marshalling artifact to yaml")

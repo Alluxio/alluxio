@@ -37,6 +37,19 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.proto.journal.File;
+import alluxio.s3.ChunkedEncodingInputStream;
+import alluxio.s3.CopyObjectResult;
+import alluxio.s3.DeleteObjectsRequest;
+import alluxio.s3.DeleteObjectsResult;
+import alluxio.s3.ListAllMyBucketsResult;
+import alluxio.s3.ListBucketOptions;
+import alluxio.s3.ListBucketResult;
+import alluxio.s3.S3AuditContext;
+import alluxio.s3.S3Constants;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3Exception;
+import alluxio.s3.S3RangeSpec;
+import alluxio.s3.TaggingData;
 import alluxio.util.CommonUtils;
 import alluxio.web.ProxyWebServer;
 
@@ -225,7 +238,7 @@ public final class S3RestServiceHandler {
         }
 
         final List<URIStatus> buckets = objects.stream()
-            .filter((uri) -> uri.getOwner().equals(user))
+            .filter((uri) -> !uri.getName().equals(S3Constants.S3_METADATA_ROOT_DIR))
             // debatable (?) potentially breaks backcompat(?)
             .filter(URIStatus::isFolder)
             .collect(Collectors.toList());
@@ -1162,7 +1175,7 @@ public final class S3RestServiceHandler {
           if (entityTag != null) {
             res.header(S3Constants.S3_ETAG_HEADER, entityTag);
           } else {
-            LOG.debug("Failed to find ETag for object: " + objectPath);
+            LOG.debug("Failed to find ETag for object: {}", objectPath);
           }
 
           // Check if the object had a specified "Content-Type"
@@ -1311,7 +1324,7 @@ public final class S3RestServiceHandler {
           if (entityTag != null) {
             res.header(S3Constants.S3_ETAG_HEADER, entityTag);
           } else {
-            LOG.debug("Failed to find ETag for object: " + objectPath);
+            LOG.debug("Failed to find ETag for object: {}", objectPath);
           }
 
           // Check if the object had a specified "Content-Type"

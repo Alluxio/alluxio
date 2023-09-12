@@ -29,6 +29,16 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.proto.journal.File;
+import alluxio.s3.DeleteObjectsRequest;
+import alluxio.s3.DeleteObjectsResult;
+import alluxio.s3.ListAllMyBucketsResult;
+import alluxio.s3.ListBucketOptions;
+import alluxio.s3.ListBucketResult;
+import alluxio.s3.S3AuditContext;
+import alluxio.s3.S3Constants;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3Exception;
+import alluxio.s3.TaggingData;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Preconditions;
@@ -140,7 +150,7 @@ public class S3BucketTask extends S3BaseTask {
           }
 
           final List<URIStatus> buckets = objects.stream()
-                  .filter((uri) -> uri.getOwner().equals(user))
+                  .filter((uri) -> !uri.getName().equals(S3Constants.S3_METADATA_ROOT_DIR))
                   // debatable (?) potentially breaks backcompat(?)
                   .filter(URIStatus::isFolder)
                   .collect(Collectors.toList());
@@ -204,10 +214,7 @@ public class S3BucketTask extends S3BaseTask {
           try {
             List<URIStatus> children = mHandler.getMetaFS().listStatus(new AlluxioURI(
                     S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR));
-            final List<URIStatus> uploadIds = children.stream()
-                    .filter((uri) -> uri.getOwner().equals(user))
-                    .collect(Collectors.toList());
-            return ListMultipartUploadsResult.buildFromStatuses(bucket, uploadIds);
+            return ListMultipartUploadsResult.buildFromStatuses(bucket, children);
           } catch (Exception e) {
             throw S3RestUtils.toBucketS3Exception(e, bucket, auditContext);
           }

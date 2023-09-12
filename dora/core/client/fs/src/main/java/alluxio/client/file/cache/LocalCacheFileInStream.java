@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -68,7 +69,7 @@ public class LocalCacheFileInStream extends FileInStream {
   private long mBufferEndOffset;
 
   /** Stream reading from the external file system, opened once. */
-  private FileInStream mExternalFileInStream;
+  private Optional<FileInStream> mExternalFileInStream;
   /** Current position of the stream, relative to the start of the file. */
   private long mPosition = 0;
   private boolean mClosed = false;
@@ -101,11 +102,14 @@ public class LocalCacheFileInStream extends FileInStream {
    * @param fileOpener open file in the external file system if a cache miss occurs
    * @param cacheManager local cache manager
    * @param conf configuration
+   * @param externalFileInStream
    */
   public LocalCacheFileInStream(URIStatus status, FileInStreamOpener fileOpener,
-      CacheManager cacheManager, AlluxioConfiguration conf) {
+      CacheManager cacheManager, AlluxioConfiguration conf,
+      Optional<FileInStream> externalFileInStream) {
     mPageSize = conf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE);
     mExternalFileInStreamOpener = fileOpener;
+    mExternalFileInStream = externalFileInStream;
     mCacheManager = cacheManager;
     mStatus = status;
     mIsDora = conf.getBoolean(PropertyKey.DORA_ENABLED);
@@ -193,10 +197,8 @@ public class LocalCacheFileInStream extends FileInStream {
         mCacheManager.get(pageId, currentPageOffset, bytesToReadInPage, bytesBuffer, mCacheContext);
     stopwatch.stop();
     if (bytesRead > 0) {
-      MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
+      MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).inc();
       if (cacheContext != null) {
-        cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
-            bytesRead);
         cacheContext.incrementCounter(
             MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
             stopwatch.elapsed(TimeUnit.NANOSECONDS));
@@ -213,6 +215,7 @@ public class LocalCacheFileInStream extends FileInStream {
       // cache misses
       MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
           .mark(bytesToReadInPage);
+      MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).inc();
       if (cacheContext != null) {
         cacheContext.incrementCounter(
             MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
@@ -296,15 +299,8 @@ public class LocalCacheFileInStream extends FileInStream {
           ReadType.READ_INTO_BYTE_ARRAY, pos, true);
     } catch (IOException | RuntimeException e) {
       LOG.warn("Failed to read from Alluxio's page cache.", e);
-      if (mExternalFileInStream == null) {
-        try {
-          mExternalFileInStream = mExternalFileInStreamOpener.open(mStatus);
-        } catch (AlluxioException ex) {
-          throw new IOException(ex);
-        }
-        mCloser.register(mExternalFileInStream);
-      }
-      return mExternalFileInStream.positionedRead(pos, b, off, len);
+      MetricsSystem.counter(MetricKey.CLIENT_CACHE_POSITION_READ_FALLBACK.getName()).inc();
+      return getExternalFileInStream().positionedRead(pos, b, off, len);
     }
   }
 
@@ -331,9 +327,7 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public void unbuffer() {
-    if (mExternalFileInStream != null) {
-      mExternalFileInStream.unbuffer();
-    }
+    mExternalFileInStream.ifPresent((stream) -> stream.unbuffer());
   }
 
   /**
@@ -351,19 +345,26 @@ public class LocalCacheFileInStream extends FileInStream {
    * @param position position to set the external stream to
    */
   private FileInStream getExternalFileInStream(long position) throws IOException {
+    FileInStream externalFileInStream = getExternalFileInStream();
+    long pageStart = position - (position % mPageSize);
+    if (externalFileInStream.getPos() != pageStart) {
+      externalFileInStream.seek(pageStart);
+    }
+    return externalFileInStream;
+  }
+
+  private FileInStream getExternalFileInStream() throws IOException {
     try {
-      if (mExternalFileInStream == null) {
-        mExternalFileInStream = mExternalFileInStreamOpener.open(mStatus);
-        mCloser.register(mExternalFileInStream);
+      if (!mExternalFileInStream.isPresent()) {
+        FileInStream externalFileInStream = mExternalFileInStreamOpener.open(mStatus);
+        mExternalFileInStream = Optional.of(externalFileInStream);
+        mCloser.register(externalFileInStream);
+        return externalFileInStream;
       }
+      return mExternalFileInStream.get();
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
-    long pageStart = position - (position % mPageSize);
-    if (mExternalFileInStream.getPos() != pageStart) {
-      mExternalFileInStream.seek(pageStart);
-    }
-    return mExternalFileInStream;
   }
 
   /**

@@ -30,6 +30,10 @@ import alluxio.grpc.S3SyntaxOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.s3.S3Constants;
+import alluxio.s3.S3Error;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3Exception;
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
 
@@ -401,28 +405,43 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
     public List<URIStatus> validateParts(CompleteMultipartUploadRequest request,
                                          String objectPath,
                                          AlluxioURI multipartTemporaryDir)
-            throws S3Exception, IOException, AlluxioException {
-      List<URIStatus> uploadedParts = mUserFs.listStatus(multipartTemporaryDir);
-      uploadedParts.sort(new S3RestUtils.URIStatusNameComparator());
-      if (uploadedParts.size() < request.getParts().size()) {
-        throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
-      }
-      Map<Integer, URIStatus> uploadedPartsMap = uploadedParts.stream().collect(Collectors.toMap(
+        throws S3Exception, IOException, AlluxioException {
+      final List<URIStatus> uploadedParts = mUserFs.listStatus(multipartTemporaryDir);
+      final List<CompleteMultipartUploadRequest.Part> requestParts = request.getParts();
+      final Map<Integer, URIStatus> uploadedPartsMap =
+          uploadedParts.stream().collect(Collectors.toMap(
               status -> Integer.parseInt(status.getName()),
               status -> status
-      ));
-      int lastPartNum = request.getParts().get(request.getParts().size() - 1).getPartNumber();
-      for (CompleteMultipartUploadRequest.Part part : request.getParts()) {
+          ));
+
+      if (requestParts == null || requestParts.isEmpty()) {
+        throw new S3Exception(objectPath, S3ErrorCode.MALFORMED_XML);
+      }
+      if (uploadedParts.size() < requestParts.size()) {
+        throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
+      }
+      for (CompleteMultipartUploadRequest.Part part : requestParts) {
         if (!uploadedPartsMap.containsKey(part.getPartNumber())) {
           throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
         }
-        if (part.getPartNumber() != lastPartNum // size requirement not applicable to last part
-                && uploadedPartsMap.get(part.getPartNumber()).getLength() < Configuration.getBytes(
-                PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
+      }
+      int prevPartNum = requestParts.get(0).getPartNumber();
+      for (CompleteMultipartUploadRequest.Part part :
+          requestParts.subList(1, requestParts.size())) {
+        if (prevPartNum >= part.getPartNumber()) {
+          throw new S3Exception(S3ErrorCode.INVALID_PART_ORDER);
+        }
+        if (uploadedPartsMap.get(prevPartNum).getLength() < Configuration.getBytes(
+            PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
           throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
         }
+        prevPartNum = part.getPartNumber();
       }
-      return uploadedParts;
+
+      List<URIStatus> validParts =
+          requestParts.stream().map(part -> uploadedPartsMap.get(part.getPartNumber()))
+              .collect(Collectors.toList());
+      return validParts;
     }
 
     /**

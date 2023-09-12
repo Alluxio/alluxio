@@ -3,6 +3,10 @@ layout: global
 title: Introduction
 ---
 
+Check out these 2 short videos to learn about the existing data problems that Alluxio is designed to solve and where Alluxio sits in the big data ecosystem:
+* ▶️ [The Problem To Be Solved](https://www.youtube.com/watch?v=_zenG90idAA){:target="_blank"} (3:06)
+* ▶️ [What Is Alluxio?](https://www.youtube.com/watch?v=py-kfEGRDZA){:target="_blank"} (2:50)
+
 ## About Alluxio
 
 Alluxio is world's first open source [data orchestration technology](https://www.alluxio.io/blog/data-orchestration-the-missing-piece-in-the-data-world/)
@@ -13,7 +17,7 @@ interface. Alluxio’s memory-first tiered architecture enables data access at s
 magnitude faster than existing solutions.
 
 In the data ecosystem, Alluxio lies between data driven applications, such as Apache Spark, Presto, Tensorflow, Apache HBase, Apache Hive, or Apache Flink, and various persistent storage systems, such
-as Amazon S3, Google Cloud Storage, OpenStack Swift, HDFS, IBM Cleversafe, EMC ECS, Ceph,
+as Amazon S3, Google Cloud Storage, HDFS, IBM Cleversafe, EMC ECS, Ceph,
 NFS, Minio, and Alibaba OSS. Alluxio unifies the data stored in these different storage systems,
 presenting unified client APIs and a global namespace to its upper layer data driven applications.
 

@@ -27,7 +27,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Reinitializes {@link FileSystemContext} inside {@link BaseFileSystem}.
+ * Reinitializes {@link FileSystemContext} used by {@link FileSystem}.
  *
  * A daemon heartbeat thread periodically fetches configuration hashes from meta master,
  * if they differ from the hashes in the {@link alluxio.ClientContext} backing the

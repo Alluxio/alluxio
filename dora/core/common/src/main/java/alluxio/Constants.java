@@ -69,13 +69,9 @@ public final class Constants {
   // Google Cloud Storage header convention is "gs://".
   // See https://cloud.google.com/storage/docs/cloud-console
   public static final String HEADER_GCS = "gs://";
-  public static final String HEADER_HTTP = "http://";
-  public static final String HEADER_HTTPS = "https://";
-  public static final String HEADER_KODO = "kodo://";
   public static final String HEADER_OSS = "oss://";
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3A = "s3a://";
-  public static final String HEADER_SWIFT = "swift://";
   public static final String HEADER_WASB = "wasb://";
   public static final String HEADER_WASBS = "wasbs://";
   public static final String HEADER_OBS = "obs://";
@@ -145,14 +141,11 @@ public final class Constants {
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
 
   public static final String SITE_PROPERTIES = "alluxio-site.properties";
-  public static final String ALLUXIO_LOCALITY_SCRIPT = "alluxio-locality.sh";
 
   public static final String SWIFT_AUTH_KEYSTONE = "keystone";
   public static final String SWIFT_AUTH_KEYSTONE_V3 = "keystonev3";
   public static final String SWIFT_AUTH_SWIFTAUTH = "swiftauth";
 
-  public static final String LOCALITY_NODE = "node";
-  public static final String LOCALITY_RACK = "rack";
   public static final String MESOS_LOCAL_INSTALL = "LOCAL";
 
   // Time-to-live
@@ -198,9 +191,6 @@ public final class Constants {
   public static final String JOB_MASTER_CLIENT_SERVICE_NAME = "JobMasterClient";
   public static final int JOB_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final String JOB_WORKER_NAME = "JobWorker";
-
-  // Throttle master
-  public static final String THROTTLE_MASTER_NAME = "ThrottleMaster";
 
   public static final int JOB_DEFAULT_MASTER_PORT = 20001;
   public static final int JOB_DEFAULT_MASTER_WEB_PORT = JOB_DEFAULT_MASTER_PORT + 1;

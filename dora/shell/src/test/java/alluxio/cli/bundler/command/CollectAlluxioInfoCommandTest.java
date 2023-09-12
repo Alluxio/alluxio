@@ -25,6 +25,7 @@ import alluxio.shell.ShellCommand;
 
 import org.apache.commons.cli.CommandLine;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,7 +45,10 @@ public class CollectAlluxioInfoCommandTest {
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{cmd.getCommandName(), targetDir.getAbsolutePath()};
-    when(mockCommandLine.getArgs()).thenReturn(mockArgs);
+    when(mockCommandLine.getArgs())
+        .thenReturn(mockArgs);
+    when(mockCommandLine.getOptionValue(ArgumentMatchers.eq("output-dir"), ArgumentMatchers.eq("")))
+        .thenReturn(targetDir.getAbsolutePath());
 
     // Replace commands to execute
     Field f = cmd.getClass().getSuperclass().getDeclaredField("mCommands");
@@ -84,6 +88,8 @@ public class CollectAlluxioInfoCommandTest {
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{cmd.getCommandName(), targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
+    when(mockCommandLine.getOptionValue(ArgumentMatchers.eq("output-dir"), ArgumentMatchers.eq("")))
+        .thenReturn(targetDir.getAbsolutePath());
 
     // Replace commands to execute
     Field f = cmd.getClass().getSuperclass().getDeclaredField("mCommands");

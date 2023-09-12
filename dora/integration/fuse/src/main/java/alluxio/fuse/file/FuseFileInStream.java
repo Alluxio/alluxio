@@ -161,4 +161,14 @@ public class FuseFileInStream implements FuseFileStream {
       mLockResource.close();
     }
   }
+
+  @Override
+  public boolean isClosed() {
+    return mClosed;
+  }
+
+  @Override
+  public boolean isReadOnly() {
+    return true;
+  }
 }

@@ -74,7 +74,7 @@ action from the `Navigate > Search Everywhere` dialog.
 8. Prepare the RamFS and format the Alluxio Worker with `bin/alluxio-mount.sh SudoMount && bin/alluxio formatWorker`
 9. In Intellij, start Alluxio worker process by selecting `Run > Run > AlluxioWorker`
 10. In Intellij, start Alluxio job worker process by selecting `Run > Run > AlluxioJobWorker`
-11. [Verify the Alluxio cluster is up]({{ '/en/Get-Started.html#starting-alluxio' | relativize_url }}).
+11. [Verify the Alluxio cluster is up]({{ '/en/deploy/Get-Started.html#starting-alluxio' | relativize_url }}).
 
 ##### Start a High Availability (HA) Alluxio cluster
 1. Create journal directories for the masters 
@@ -247,7 +247,7 @@ $ mvn -T 2C install -DskipTests
 ```
 
 After the install target executes, you can follow the instructions at 
-[Running Alluxio Locally]({{ '/en/Get-Started.html' | relativize_url }})
+[Running Alluxio Locally]({{ '/en/deploy/Get-Started.html' | relativize_url }})
 to start a local cluster.
 
 ### Unit Tests
@@ -305,7 +305,7 @@ To have the logs output to STDOUT, append the following arguments to the `mvn` c
 
 The FUSE tests are ignored if the `libfuse` library is missing.
 To run those tests, please install the libraries referenced in
-[the Alluxio FUSE documentation]({{ '/en/fuse-sdk/Overview-Fuse-Sdk.html' | relativize_url }}).
+[the Alluxio FUSE documentation]({{ '/en/fuse-sdk/FUSE-SDK-Overview.html' | relativize_url }}).
 
 ## Modifying a gRPC definition
 

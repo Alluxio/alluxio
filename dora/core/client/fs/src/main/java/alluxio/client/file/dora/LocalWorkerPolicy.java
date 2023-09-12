@@ -63,7 +63,6 @@ public class LocalWorkerPolicy implements WorkerLocationPolicy {
       }
       // Only a plain string match is performed on hostname
       // If one is IP and the other is hostname, a false negative will be returned
-      // Consider PropertyKey.LOCALITY_COMPARE_NODE_IP if that becomes a real request
       if (userHostname.equals(workerAddr.getHost())) {
         results.add(worker);
         if (results.size() >= count) {

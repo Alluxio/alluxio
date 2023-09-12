@@ -260,7 +260,7 @@ public final class ProxyWebServer extends WebServer {
               .collect(Collectors.joining("\n"));
       String moreInfoStr = String.format("%n[RequestHeader]:%n%s%n[ResponseHeader]:%n%s",
               requestHeaders, responseHeaders);
-      LOG.debug(accessLog + " " + moreInfoStr);
+      LOG.debug("accessLog={}, moreInfoStr={}", accessLog, moreInfoStr);
     } else {
       LOG.info(accessLog);
     }

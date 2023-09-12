@@ -128,7 +128,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -965,38 +964,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
     throw new NotFoundException(ExceptionMessage.WORKER_NOT_FOUND
         .getMessage(workerHostName + ":" + workerWebPort));
-  }
-
-  @Override
-  public void validateBlocks(Function<Long, Boolean> validator, boolean repair)
-      throws UnavailableException {
-    long scanLimit = Configuration.getInt(PropertyKey.MASTER_BLOCK_SCAN_INVALID_BATCH_MAX_SIZE);
-    List<Long> invalidBlocks = new ArrayList<>();
-    try (CloseableIterator<Block> iter = mBlockMetaStore.getCloseableIterator()) {
-      while (iter.hasNext() && (invalidBlocks.size() < scanLimit || scanLimit < 0)) {
-        long id = iter.next().getId();
-        if (!validator.apply(id)) {
-          invalidBlocks.add(id);
-        }
-      }
-    }
-    if (!invalidBlocks.isEmpty()) {
-      long limit = 100;
-      List<Long> loggedBlocks = invalidBlocks.stream().limit(limit).collect(Collectors.toList());
-      LOG.warn("Found {} orphan blocks without corresponding file metadata.", invalidBlocks.size());
-      if (invalidBlocks.size() > limit) {
-        LOG.warn("The first {} orphan blocks include {}.", limit, loggedBlocks);
-      } else {
-        LOG.warn("The orphan blocks include {}.", loggedBlocks);
-      }
-      if (repair) {
-        LOG.warn("Deleting {} orphan blocks.", invalidBlocks.size());
-        removeBlocks(invalidBlocks, true);
-      } else {
-        LOG.warn("Restart Alluxio master with {}=true to delete the blocks and repair the system.",
-            PropertyKey.Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED);
-      }
-    }
   }
 
   /**

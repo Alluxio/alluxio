@@ -31,11 +31,12 @@ import javax.annotation.concurrent.Immutable;
 public final class WorkerIdentity {
   private final byte[] mId;
   private final int mVersion;
-  private int mHashcode = 0;
+  private final int mHashcode;
 
   WorkerIdentity(byte[] id, int version) {
     mId = id;
     mVersion = version;
+    mHashcode = Arrays.hashCode(mId) * 31 + mVersion;
   }
 
   /**
@@ -74,12 +75,6 @@ public final class WorkerIdentity {
 
   @Override
   public int hashCode() {
-    int h = mHashcode;
-    if (h == 0 && mId.length > 0) {
-      h = Arrays.hashCode(mId);
-      h = h * 31 + mVersion;
-      mHashcode = h;
-    }
     return mHashcode;
   }
 

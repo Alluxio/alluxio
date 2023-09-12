@@ -32,6 +32,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import io.vertx.core.dns.AddressResolverOptions;
+
 /**
  * Abstract class for other File System to extend and integrate with Fuse.
  */
@@ -118,7 +120,25 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   }
 
   private int execMount(String[] arg) {
+    loadNecessaryClasses();
     return mLibFuse.fuse_main_real(this, arg.length, arg);
+  }
+
+  private void loadNecessaryClasses() {
+    LOG.info("Loading necessary classes...");
+    try {
+      String[] classesToLoad = {
+          "io.vertx.core.dns.AddressResolverOptions"
+      };
+      for (String classToLoad : classesToLoad) {
+        Class<io.vertx.core.dns.AddressResolverOptions> cls =
+            (Class<AddressResolverOptions>)
+                ClassLoader.getSystemClassLoader().loadClass(classToLoad);
+        cls.newInstance();
+      }
+    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -208,7 +228,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   }
 
   public int readdirCallback(String path, long bufaddr, long filter, long offset,
-      ByteBuffer fi) {
+                             ByteBuffer fi) {
     try {
       return readdir(path, bufaddr, filter, offset, FuseFileInfo.of(fi));
     } catch (Exception e) {
@@ -278,6 +298,10 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
       LOG.error("Failed to mkdir {}, mode {}: ", path, mode, e);
       return -ErrorCodes.EIO();
     }
+  }
+
+  public int renameCallback(String oldPath, String newPath) {
+    return renameCallback(oldPath, newPath, 0);
   }
 
   public int renameCallback(String oldPath, String newPath, int flags) {

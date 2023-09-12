@@ -27,7 +27,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.WebServer;
 import alluxio.web.WorkerWebServer;
-import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.http.HttpServer;
@@ -53,8 +52,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class AlluxioWorkerProcess implements WorkerProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioWorkerProcess.class);
-
-  private final TieredIdentity mTieredIdentitiy;
 
   /**
    * Server for data requests and responses.
@@ -115,14 +112,13 @@ public class AlluxioWorkerProcess implements WorkerProcess {
    */
   @Inject
   AlluxioWorkerProcess(
-      TieredIdentity tieredIdentity,
       WorkerRegistry workerRegistry,
       UfsManager ufsManager,
       Worker worker,
       DataServerFactory dataServerFactory,
       @Nullable NettyDataServer nettyDataServer,
       @Nullable HttpServer httpServer) {
-    this(tieredIdentity, workerRegistry, ufsManager, worker,
+    this(workerRegistry, ufsManager, worker,
         dataServerFactory, nettyDataServer, httpServer, false);
   }
 
@@ -130,7 +126,6 @@ public class AlluxioWorkerProcess implements WorkerProcess {
    * Creates a new instance of {@link AlluxioWorkerProcess}.
    */
   protected AlluxioWorkerProcess(
-      TieredIdentity tieredIdentity,
       WorkerRegistry workerRegistry,
       UfsManager ufsManager,
       Worker worker,
@@ -139,7 +134,6 @@ public class AlluxioWorkerProcess implements WorkerProcess {
       @Nullable HttpServer httpServer,
       boolean delayWebServer) {
     try {
-      mTieredIdentitiy = requireNonNull(tieredIdentity);
       mUfsManager = requireNonNull(ufsManager);
       mRegistry = requireNonNull(workerRegistry);
       mRpcBindAddress = requireNonNull(dataServerFactory.getGRpcBindAddress());
@@ -221,6 +215,11 @@ public class AlluxioWorkerProcess implements WorkerProcess {
   @Override
   public int getNettyDataLocalPort() {
     return ((InetSocketAddress) mNettyDataServer.getBindAddress()).getPort();
+  }
+
+  @Override
+  public int getRestS3LocalPort() {
+    return ((InetSocketAddress) mNettyDataServer.getS3BindAddress()).getPort();
   }
 
   @Override
@@ -389,8 +388,7 @@ public class AlluxioWorkerProcess implements WorkerProcess {
         .setRpcPort(mRpcBindAddress.getPort())
         .setDataPort(getDataLocalPort())
         .setDomainSocketPath(getDataDomainSocketPath())
-        .setWebPort(mWebServer.getLocalPort())
-        .setTieredIdentity(mTieredIdentitiy);
+        .setWebPort(mWebServer.getLocalPort());
     if (mNettyDataTransmissionEnable) {
       workerNetAddress.setNettyDataPort(getNettyDataLocalPort());
     }

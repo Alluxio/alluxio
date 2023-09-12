@@ -29,9 +29,15 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.proto.journal.File;
-import alluxio.proxy.s3.auth.Authenticator;
-import alluxio.proxy.s3.auth.AwsAuthInfo;
-import alluxio.proxy.s3.signature.AwsSignatureProcessor;
+import alluxio.s3.S3AuditContext;
+import alluxio.s3.S3Constants;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3ErrorResponse;
+import alluxio.s3.S3Exception;
+import alluxio.s3.TaggingData;
+import alluxio.s3.auth.Authenticator;
+import alluxio.s3.auth.AwsAuthInfo;
+import alluxio.s3.signature.AwsSignatureProcessor;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -42,7 +48,6 @@ import alluxio.util.ThreadUtils;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
-import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.RateLimiter;
 import com.google.protobuf.ByteString;
 import org.apache.commons.lang3.StringUtils;
@@ -353,6 +358,7 @@ public final class S3RestUtils {
     final AlluxioURI metaUri = new AlluxioURI(
         S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId));
     URIStatus metaStatus = metaFs.getStatus(metaUri);
+    /*  TODO(pkuweblab): 3.x haven't supported XAttr yet
     if (metaStatus.getXAttr() == null
         || !metaStatus.getXAttr().containsKey(S3Constants.UPLOADS_FILE_ID_XATTR_KEY)) {
       //TODO(czhu): determine intended behavior in this edge-case
@@ -364,6 +370,7 @@ public final class S3RestUtils {
       throw new RuntimeException(
           "Alluxio mismatched file ID for multipart-upload with upload ID: " + uploadId);
     }
+     */
     return new ArrayList<>(Arrays.asList(multipartTempDirStatus, metaStatus));
   }
 

@@ -29,8 +29,6 @@ import alluxio.grpc.BlockMasterWorkerServiceGrpc;
 import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
-import alluxio.grpc.CommitBlockInUfsPRequest;
-import alluxio.grpc.CommitBlockInUfsPResponse;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.CommitBlockPResponse;
 import alluxio.grpc.ConfigProperty;
@@ -49,7 +47,6 @@ import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.CountingRetry;
 import alluxio.security.authentication.AuthType;
-import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
@@ -189,38 +186,8 @@ public class BlockMasterClientTest {
   }
 
   @Test
-  public void commitUfsBlock() throws Exception {
-    ConcurrentHashMap<Long, Long> committedUfsBlocks = new ConcurrentHashMap<>();
-    final long blockId = 1L;
-    final long length = 1024 * 1024L;
-
-    createMockService(
-        new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
-          @Override
-          public void commitBlockInUfs(CommitBlockInUfsPRequest request,
-                                       StreamObserver<CommitBlockInUfsPResponse> responseObserver) {
-            long blockId = request.getBlockId();
-            long length = request.getLength();
-            committedUfsBlocks.put(blockId, length);
-            responseObserver.onNext(CommitBlockInUfsPResponse.newBuilder().build());
-            responseObserver.onCompleted();
-          }
-        });
-
-    BlockMasterClient client = new BlockMasterClient(
-        MasterClientContext.newBuilder(ClientContext.create(mConf)).build()
-    );
-
-    client.commitBlockInUfs(blockId, length);
-
-    assertEquals(1, committedUfsBlocks.size());
-    assertEquals(length, (long) committedUfsBlocks.get(blockId));
-  }
-
-  @Test
   public void getId() throws Exception {
     WorkerNetAddress testExistsAddress = new WorkerNetAddress();
-    testExistsAddress.setTieredIdentity(new TieredIdentity(new ArrayList<>()));
     WorkerNetAddress testNonExistsAddress = new WorkerNetAddress();
     testNonExistsAddress.setHost("1.2.3.4");
     long workerId = 1L;

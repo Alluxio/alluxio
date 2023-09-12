@@ -9,12 +9,7 @@ This documentation shows how to install Alluxio (Dora) on Kubernetes via
 a kubernetes extension for managing applications.
 
 We recommend using the operator to deploy Alluxio on Kubernetes. However, 
-if some required permissions are missing, consider using helm chart instead.
-
-
-<iframe width="425" height="239" src="https://www.youtube.com/embed/FlvbekK_xG0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-
-<iframe width="425" height="239" src="https://www.youtube.com/embed/zwhMwiYmO8M" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+if some required permissions are missing, consider using helm chart instead. 
 
 ## Prerequisites
 
@@ -169,7 +164,7 @@ $ kubectl delete dataset <dataset-name>
 $ kubectl delete alluxiocluster <alluxio-cluster-name>
 ```
 
-### Bonus - Load the data into Alluxio
+### [Bonus] Load the data into Alluxio
 
 To load your data into Alluxio cluster, so that your application can read the data faster, create a
 resource file `load.yaml`. Here is an example:
@@ -193,7 +188,7 @@ To check the status of the load:
 $ kubectl get load
 ```
 
-### More bonus - an example alluxio cluster configuration for AI/ML use case
+### [Bonus] Example Alluxio cluster configuration for AI/ML use case
 ```yaml
 apiVersion: k8s-operator.alluxio.com/v1alpha1
 kind: AlluxioCluster
@@ -291,3 +286,7 @@ Uninstall Dora cluster as follows:
 ```shell
 $ helm delete dora
 ```
+
+## Metrics
+
+See [Metrics On Kubernetes]({{ '/en/kubernetes/Metrics-On-Kubernetes.html' | relativize_url }}) for information on how to configure and get metrics of different metrics sinks from Alluxio deployed on Kubernetes.
