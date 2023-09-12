@@ -8275,7 +8275,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
     public static final String FUSE_MAX_READER_CONCURRENCY =
-        "alluxio.max.fuse.reader.concurrency";
+        "alluxio.fuse.max.reader.concurrency";
     public static final String FUSE_MOUNT_ALLUXIO_PATH =
         "alluxio.fuse.mount.alluxio.path";
     public static final String FUSE_MOUNT_OPTIONS =
