@@ -4,7 +4,7 @@ title: Install Alluxio on Docker
 ---
 
 Docker can be used to simplify the deployment and management of Alluxio servers.
-Using the [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/) Docker
+Using the [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/){:target="_blank"} Docker
 image available on Dockerhub, you can go from
 zero to a running Alluxio cluster with a couple of `docker run` commands.
 This document provides a tutorial for running Dockerized Alluxio on a single node
@@ -48,7 +48,7 @@ $ exit
 ## Prepare Docker Volume to Persist Data
 
 By default, all files created inside a container are stored on a writable container layer.
-The data doesn’t persist when that container no longer exists. [Docker volumes](https://docs.docker.com/storage/volumes/)
+The data doesn’t persist when that container no longer exists. [Docker volumes](https://docs.docker.com/storage/volumes/){:target="_blank"}
 are the preferred way to save data outside the containers. The following two types of Docker volumes are used the most:
 
 + **Host Volume**: You manage where in the Docker host's file system to store and share the
@@ -98,15 +98,15 @@ both of the following services:
 + Worker RPC on port 29999
 
 Within the Alluxio cluster, please also make sure the master and worker containers can reach
-each other on the ports defined in [General requirements]({{ '/en/deploy/Requirements.html#general-requirements' | relativize_url }}).
+each other on the ports defined in [General requirements]({{ '/en/deploy/Software-Requirements.html#general-requirements' | relativize_url }}).
 
 We are going to launch Alluxio master and worker containers on the same Docker host machine.
 In order to make sure this works for either local or remote clients, we have to set up the
 Docker network and expose the required ports correctly.
 
 There are two ways to launch Alluxio Docker containers on the Docker host:
-+ Option1: Use [host network](https://docs.docker.com/network/host/) or
-+ Option2: Use [user-defined bridge network](https://docs.docker.com/network/bridge/)
++ Option1: Use [host network](https://docs.docker.com/network/host/){:target="_blank"} or
++ Option2: Use [user-defined bridge network](https://docs.docker.com/network/bridge/){:target="_blank"}
 
 Host network shares ip-address and networking namespace between the container and the Docker host.
 User-defined bridge network allows containers connected to communicate,
@@ -166,7 +166,7 @@ Notes:
      All containers will have the same hostname and IP address as the Docker host,
      and all the host's ports are directly mapped to containers. Therefore, all the required container
      ports `19998, 29999, 30000` are available for the clients via the Docker host.
-     You can find more details about this setting [here](https://docs.docker.com/network/host/).
+     You can find more details about this setting [here](https://docs.docker.com/network/host/){:target="_blank"}.
   1. The argument  `-e ALLUXIO_JAVA_OPTS="-D..."` sets the required configurations for the Alluxio cluster.
   1. The argument `-v /tmp/alluxio_ufs:/opt/alluxio/underFSStorage` tells Docker to use the host volume
      and persist the Alluxio UFS root data in the host directory `/tmp/alluxio_ufs`,
@@ -243,7 +243,7 @@ Notes:
      address within the network's subnet.
      Containers connected to the same user-defined bridge network effectively expose all ports to each other,
      unless firewall policies are defined.
-     You can find more details about the bridge network driver [here](https://docs.docker.com/network/bridge/).
+     You can find more details about the bridge network driver [here](https://docs.docker.com/network/bridge/){:target="_blank"}.
   1. Only the specified ports (`-p` option) are exposed to the outside network, where the client may be run.
      The command `-p <host-port>:<container-port>` maps the container port to a host port.
      Therefore, you must explicitly expose the two ports 19999 and 19998 for the master container and the port
@@ -349,12 +349,12 @@ Alluxio POSIX access is implemented via FUSE.
 To enable POSIX accesses to Alluxio in a docker environment, we will run a standalone Alluxio Fuse container.
 [POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}#fuse-on-worker-process) provides more details about how to configure Alluxio POSIX API.
 
-First make sure a directory with the right permissions exists on the host to [bind-mount](https://docs.docker.com/storage/bind-mounts/) in the Alluxio FUSE container:
+First make sure a directory with the right permissions exists on the host to [bind-mount](https://docs.docker.com/storage/bind-mounts/){:target="_blank"} in the Alluxio FUSE container:
 ```shell
 $ mkdir -p /tmp/mnt/alluxio-fuse && sudo chmod -R a+rwx /tmp/mnt/alluxio-fuse
 ```
 
-The original [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/) has been deprecated. Now you can enable access to Alluxio on Docker host using the POSIX API by [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/) Docker image, the same one used for launching Alluxio master and worker.
+The original [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}-fuse/){:target="_blank"} has been deprecated. Now you can enable access to Alluxio on Docker host using the POSIX API by [alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}](https://hub.docker.com/r/alluxio/{{site.ALLUXIO_DOCKER_IMAGE}}/){:target="_blank"} Docker image, the same one used for launching Alluxio master and worker.
 
 For example, the following commands run the alluxio-fuse container as a long-running client that presents Alluxio file system through a POSIX interface on the Docker host:
 
@@ -387,7 +387,7 @@ capability.
   - "/mnt/alluxio-fuse" - the mount point which Alluxio is mounted to inside the container
   - "-o allow_other -o entry_timeout=3600 -o attr_timeout=3600allow_other -o entry_timeout=3600 -o attr_timeout=3600" - AlluxioFuse options
 
-See [Fuse Advanced Tuning]({{ '/en/fuse-sdk/Advanced-ttuning.html' | relativize_url }})
+See [Fuse Advanced Tuning]({{ '/en/fuse-sdk/Advanced-Tuning.html' | relativize_url }})
 for more details about Alluxio Fuse mount options and tuning.
 
 ### Set up Alluxio Proxy
@@ -404,7 +404,7 @@ $ docker run -d \
     alluxio/{{site.ALLUXIO_DOCKER_IMAGE}} proxy
 ```
 
-See [Properties List](https://docs.alluxio.io/os/user/edge/en/reference/Properties-List.html) for more
+See [Properties List]({{ '/en/reference/Properties-List.html' | relativize_url }}) for more
 configuration options for Alluxio proxy server.
 
 
@@ -416,11 +416,11 @@ so that the processes can be launched in the foreground and the console output c
 If the Alluxio servers are launched, their logs can be accessed by running `docker logs $container_id`.
 Usually the logs will give a good indication of what is wrong. If they are not enough to diagnose
 your issue, you can get help on the
-[user mailing list](https://groups.google.com/forum/#!forum/alluxio-users)
-or [github issues](https://github.com/Alluxio/alluxio/issues).
+[user mailing list](https://groups.google.com/forum/#!forum/alluxio-users){:target="_blank"}
+or [github issues](https://github.com/Alluxio/alluxio/issues){:target="_blank"}.
 
 Logging can also have a performance impact if sufficiently verbose.
-You can [disable or redirect logging]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#disable-certain-log-files)
+You can [disable or redirect logging]({{ '/en/administration/Logging.html' | relativize_url }}#disable-certain-log-files)
 to mitigate this problem.
 
 ## FAQ
