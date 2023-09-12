@@ -294,7 +294,8 @@ func parseMenuUrl(menuPath string) (map[string]struct{}, error) {
 	}
 	menuMap := map[string]struct{}{}
 	var errMsgs []string
-	checkAndSaveUrl(ret, menuMap, errMsgs)
+	checkAndSaveUrl(ret, menuMap, &errMsgs)
+	fmt.Println(errMsgs)
 	if len(errMsgs) > 0 {
 		return nil, fmt.Errorf("encountered errors parsing %v:\n%v", menuPath, strings.Join(errMsgs, "\n"))
 	}
@@ -302,16 +303,16 @@ func parseMenuUrl(menuPath string) (map[string]struct{}, error) {
 }
 
 // recursion function for more levels of docs
-func checkAndSaveUrl(files []File, menuMap map[string]struct{}, errMsgs []string) {
+func checkAndSaveUrl(files []File, menuMap map[string]struct{}, errMsgs *[]string) {
 	for _, file := range files {
 		// if buttonTitle have whitespace, the button for list-nav-item in html will not expand
 		if strings.ContainsAny(file.ButtonTitle, " \t\n\r") {
-			errMsgs = append(errMsgs, fmt.Sprintf("error msg: whitespace is not allow in buttonTitle %v, please replace whitespace with _", file.ButtonTitle))
+			*errMsgs = append(*errMsgs, fmt.Sprintf("error msg: whitespace is not allow in buttonTitle %v, please replace whitespace with _", file.ButtonTitle))
 		}
 		for _, subfile := range file.Subfiles {
 			// the url need to be ended with .html, otherwise the link will not work
 			if strings.HasSuffix(subfile.URL, mdType) {
-				errMsgs = append(errMsgs, fmt.Sprintf("error msg: docs %v with url %v is ended with %v, please replace %v with %v", subfile.Title, subfile.URL, mdType, mdType, htmlType))
+				*errMsgs = append(*errMsgs, fmt.Sprintf("error msg: docs %v with url %v is ended with %v, please replace %v with %v", subfile.Title, subfile.URL, mdType, mdType, htmlType))
 			}
 			// ignore the folder path
 			if subfile.URL == "" {
