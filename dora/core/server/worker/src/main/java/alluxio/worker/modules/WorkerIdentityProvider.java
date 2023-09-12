@@ -110,8 +110,8 @@ public class WorkerIdentityProvider implements Provider<WorkerIdentity> {
       writer.write(generatedId.toString());
       writer.newLine();
     } catch (Exception e) {
-      LOG.warn("Failed to persist automatically generated worker identity, this worker will lose "
-          + "its identity after restart", e);
+      LOG.warn("Failed to persist automatically generated worker identity ({}), "
+          + "this worker will lose its identity after restart", identity, e);
     }
     return identity;
   }
