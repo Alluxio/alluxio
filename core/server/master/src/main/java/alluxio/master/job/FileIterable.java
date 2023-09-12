@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -151,28 +152,37 @@ public class FileIterable implements Iterable<FileInfo> {
       if (!mStartAfter.isEmpty()) {
         mListOptions.setDisableAreDescendantsLoadedCheck(true);
       }
-      ListStatusContext context = ListStatusContext.create(ListStatusPartialPOptions
-          .newBuilder()
-          .setOptions(mListOptions)
-          .setBatchSize(PARTIAL_LISTING_BATCH_SIZE)
-          .setStartAfter(mStartAfter));
-      listFileInfos(context);
+      Supplier<ListStatusContext> context = () -> {
+        return ListStatusContext.create(ListStatusPartialPOptions
+            .newBuilder()
+            .setOptions(mListOptions)
+            .setBatchSize(PARTIAL_LISTING_BATCH_SIZE)
+            .setStartAfter(mStartAfter));
+      };
+
+      List<FileInfo> fileInfos;
+      while ((fileInfos = listStatus(context.get())) != null
+          &&  (mFiles = fileInfos.stream().filter(mFilter).collect(Collectors.toList())).isEmpty()
+          && !fileInfos.isEmpty()) {
+        mStartAfter = fileInfos.get(fileInfos.size() - 1).getPath();
+      }
       if (mFiles.size() > 0) {
         mStartAfter = mFiles
             .get(mFiles.size() - 1)
             .getPath();
       }
+      updateIterator();
     }
 
     private void listFileInfos(ListStatusContext context) {
+      mFiles = listStatus(context).stream().filter(mFilter).collect(Collectors.toList());
+      updateIterator();
+    }
+
+    private List<FileInfo> listStatus(ListStatusContext context) {
       try {
         AuthenticatedClientUser.set(mUser.orElse(null));
-        mFiles = mFileSystemMaster
-            .listStatus(new AlluxioURI(mPath), context)
-            .stream()
-            .filter(mFilter)
-            .collect(Collectors.toList());
-        mFileInfoIterator = mFiles.iterator();
+        return mFileSystemMaster.listStatus(new AlluxioURI(mPath), context);
       } catch (FileDoesNotExistException | InvalidPathException e) {
         throw new NotFoundRuntimeException(e);
       } catch (AccessControlException e) {
@@ -182,6 +192,10 @@ public class FileIterable implements Iterable<FileInfo> {
       } finally {
         AuthenticatedClientUser.remove();
       }
+    }
+
+    private void updateIterator() {
+      mFileInfoIterator = mFiles.iterator();
       mTotalFileCount.set(mFiles.size());
       mTotalByteCount.set(mFiles
           .stream()
