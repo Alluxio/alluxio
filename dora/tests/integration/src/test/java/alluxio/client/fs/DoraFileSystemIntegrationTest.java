@@ -99,8 +99,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   public void before() throws Exception {
   }
 
-  private void startCluster(LocalAlluxioClusterResource cluster) throws Exception
-  {
+  private void startCluster(LocalAlluxioClusterResource cluster) throws Exception {
     cluster.start();
     mFileSystem = cluster.get().getClient();
 
@@ -119,8 +118,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  private void stopCluster(LocalAlluxioClusterResource cluster) throws Exception
-  {
+  private void stopCluster(LocalAlluxioClusterResource cluster) throws Exception {
     mFileSystem = null;
     cluster.stop();
   }
@@ -133,7 +131,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   private void writeThenDeleteFromUfs(boolean clientWriteToUFS)
       throws IOException, AlluxioException, Exception {
     mLocalAlluxioClusterResourceBuilder.setProperty(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED,
-                                                    clientWriteToUFS);
+        clientWriteToUFS);
     LocalAlluxioClusterResource clusterResource = mLocalAlluxioClusterResourceBuilder.build();
     startCluster(clusterResource);
 
@@ -171,7 +169,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   private void writeThenUpdateFromUfs(boolean clientWriteToUFS)
       throws IOException, AlluxioException, Exception {
     mLocalAlluxioClusterResourceBuilder.setProperty(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED,
-                                                    clientWriteToUFS);
+        clientWriteToUFS);
     LocalAlluxioClusterResource clusterResource = mLocalAlluxioClusterResourceBuilder.build();
     startCluster(clusterResource);
 
@@ -208,12 +206,12 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
 
   private FileSystemMasterCommonPOptions optionNoSync() {
     return FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
-            .build();
+        .build();
   }
 
   private FileSystemMasterCommonPOptions optionSync() {
     return FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0)
-            .build();
+        .build();
   }
 
   /**
@@ -236,5 +234,40 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   public void testWriteThenUpdateFromUfs() throws Exception {
     writeThenUpdateFromUfs(true);
     writeThenUpdateFromUfs(false);
+  }
+
+  @Test
+  public void testRename() throws Exception {
+    mLocalAlluxioClusterResourceBuilder.setProperty(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED, true);
+    LocalAlluxioClusterResource clusterResource = mLocalAlluxioClusterResourceBuilder.build();
+    startCluster(clusterResource);
+
+    FileOutStream fos = mFileSystem.createFile(TEST_FILE_URI,
+        CreateFilePOptions.newBuilder().setOverwrite(true).build());
+    fos.write(TEST_CONTENT.getBytes());
+    fos.close();
+
+    AlluxioURI oldPath = TEST_FILE_URI;
+    for (int i = 1; i < 3; i++) {
+      AlluxioURI newPath = new AlluxioURI(oldPath.getPath() + i);
+      assertNotNull(mFileSystem.getStatus(oldPath, GetStatusPOptions.newBuilder()
+          .setCommonOptions(optionNoSync())
+          .build()));
+      long oldFileId = mFileSystem.getStatus(oldPath, GetStatusPOptions.newBuilder()
+          .setCommonOptions(optionNoSync())
+          .build()).getFileId();
+      mFileSystem.rename(oldPath, newPath);
+      assertNotNull(mFileSystem.getStatus(newPath, GetStatusPOptions.newBuilder()
+          .setCommonOptions(optionNoSync())
+          .build()));
+      long newFileId = mFileSystem.getStatus(newPath, GetStatusPOptions.newBuilder()
+          .setCommonOptions(optionNoSync())
+          .build()).getFileId();
+      assertEquals(TEST_CONTENT, IOUtils.toString(mFileSystem.openFile(newPath,
+          OpenFilePOptions.newBuilder().setCommonOptions(optionNoSync()).build())));
+      oldPath = newPath;
+    }
+
+    stopCluster(clusterResource);
   }
 }
