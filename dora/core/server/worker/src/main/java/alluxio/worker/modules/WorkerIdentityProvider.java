@@ -15,6 +15,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerIdentity;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import org.slf4j.Logger;
@@ -28,9 +29,11 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -110,8 +113,19 @@ public class WorkerIdentityProvider implements Provider<WorkerIdentity> {
       writer.write(generatedId.toString());
       writer.newLine();
     } catch (Exception e) {
-      LOG.warn("Failed to persist automatically generated worker identity ({}), "
-          + "this worker will lose its identity after restart", identity, e);
+      LOG.warn("Failed to persist automatically generated worker identity ({}) to {}, "
+          + "this worker will lose its identity after restart", identity, idFile, e);
+    }
+    try {
+      // set the file to be read-only
+      Set<PosixFilePermission> permSet = Files.getPosixFilePermissions(idFile);
+      Set<PosixFilePermission> nonWritablePermSet = Sets.filter(permSet,
+          perm -> perm != PosixFilePermission.OWNER_WRITE
+              && perm != PosixFilePermission.GROUP_WRITE
+              && perm != PosixFilePermission.OTHERS_WRITE);
+      Files.setPosixFilePermissions(idFile, nonWritablePermSet);
+    } catch (Exception e) {
+      LOG.warn("Failed to set identity file to be read-only", e);
     }
     return identity;
   }
