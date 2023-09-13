@@ -295,7 +295,6 @@ func parseMenuUrl(menuPath string) (map[string]struct{}, error) {
 	menuMap := map[string]struct{}{}
 	var errMsgs []string
 	checkAndSaveUrl(ret, menuMap, &errMsgs)
-	fmt.Println(errMsgs)
 	if len(errMsgs) > 0 {
 		return nil, fmt.Errorf("encountered errors parsing %v:\n%v", menuPath, strings.Join(errMsgs, "\n"))
 	}
