@@ -21,6 +21,13 @@ public class WorkerBenchCoarseDataPointDeserializer extends JsonDeserializer<Wor
         JsonNode node = parser.getCodec().readTree(parser);
         Long wId = node.get("wid").asLong();
         Long tId = node.get("tid").asLong();
+        List<Long> tpList = new ArrayList<>();
+        JsonNode tpNode = node.get("throughput");
+        if (tpNode != null) {
+            for (JsonNode throughput : tpNode){
+                tpList.add(throughput.asLong());
+            }
+        }
         List<List<WorkerBenchDataPoint>> data = new ArrayList<>();
         JsonNode dataNode = node.get("data");
         if (dataNode != null) {
@@ -33,6 +40,6 @@ public class WorkerBenchCoarseDataPointDeserializer extends JsonDeserializer<Wor
                 data.add(dataPoints);
             }
         }
-        return new WorkerBenchCoarseDataPoint(wId, tId, data);
+        return new WorkerBenchCoarseDataPoint(wId, tId, data, tpList);
     }
 }

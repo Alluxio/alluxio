@@ -12,8 +12,11 @@
 package alluxio.stress.worker;
 
 import alluxio.stress.BaseParameters;
+import alluxio.stress.StressConstants;
 import alluxio.stress.TaskResult;
 
+import alluxio.util.FormatUtils;
+import org.HdrHistogram.Histogram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +40,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
   private long mIOBytes;
   private List<String> mErrors;
   private final List<WorkerBenchCoarseDataPoint> mDataPoints;
+  private List<Long> mAllThroughput;
   private List<Long> mThroughputPercentiles;
 
   /**
@@ -46,6 +50,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
     // Default constructor required for json deserialization
     mErrors = new ArrayList<>();
     mDataPoints = new ArrayList<>();
+    mAllThroughput = new ArrayList<>();
     mThroughputPercentiles = new ArrayList<>();
   }
 
@@ -57,6 +62,23 @@ public final class WorkerBenchTaskResult implements TaskResult {
   public void merge(WorkerBenchTaskResult result) throws Exception {
     // When merging results within a node, we need to merge all the error information.
     mErrors.addAll(result.mErrors);
+
+    if (mAllThroughput.isEmpty()) {
+      for (WorkerBenchCoarseDataPoint dataPoint : mDataPoints) {
+        mAllThroughput.addAll(new ArrayList<>(dataPoint.getThroughput()));
+        dataPoint.clearThroughput();
+      }
+    }
+
+    if (result.mAllThroughput.isEmpty()){
+      for (WorkerBenchCoarseDataPoint dataPoint : result.mDataPoints) {
+        mAllThroughput.addAll(new ArrayList<>(dataPoint.getThroughput()));
+        dataPoint.clearThroughput();
+      }
+    } else {
+      mAllThroughput.addAll(result.mAllThroughput);
+    }
+
     mDataPoints.addAll(result.mDataPoints);
     aggregateByWorker(result);
   }
@@ -181,17 +203,31 @@ public final class WorkerBenchTaskResult implements TaskResult {
   }
 
   /**
+   * @return all instant throughput values of I/O operations
+   */
+  public List<Long> getAllThroughput() {
+    return mAllThroughput;
+  }
+
+  /**
+   * @param allThroughput all instant throughput values of I/O operations
+   */
+  public void setAllThroughput(List<Long> allThroughput) {
+    mAllThroughput = allThroughput;
+  }
+
+  /**
    * From the collected operation data, calculates 100 percentiles.
    */
   public void calculatePercentiles() {
     // TODO: implement percentile calculation for coarse data points
-//    Histogram throughputHistogram = new Histogram(
-//            FormatUtils.parseSpaceSize(mParameters.mFileSize),
-//            StressConstants.TIME_HISTOGRAM_PRECISION);
-//    mDataPoints.forEach(stat -> throughputHistogram.recordValue(stat.getInThroughput()));
-//    for (int i = 0; i <= 100; i++) {
-//      mThroughputPercentiles.add(throughputHistogram.getValueAtPercentile(i));
-//    }
+    Histogram throughputHistogram = new Histogram(
+            FormatUtils.parseSpaceSize(mParameters.mFileSize),
+            StressConstants.TIME_HISTOGRAM_PRECISION);
+    mAllThroughput.forEach(throughputHistogram::recordValue);
+    for (int i = 0; i <= 100; i++) {
+      mThroughputPercentiles.add(throughputHistogram.getValueAtPercentile(i));
+    }
   }
 
   /**
@@ -225,8 +261,8 @@ public final class WorkerBenchTaskResult implements TaskResult {
   /**
    * Clears all data points from the result.
    */
-  public void clearDataPoints() {
-    mDataPoints.clear();
+  public void clearAllThroughput() {
+    mAllThroughput.clear();
   }
 
   @Override
@@ -242,10 +278,10 @@ public final class WorkerBenchTaskResult implements TaskResult {
       WorkerBenchTaskResult mergedTaskResult = new WorkerBenchTaskResult();
 
       for (WorkerBenchTaskResult result : results) {
-        // result.calculatePercentiles();
+        result.calculatePercentiles();
         mergedTaskResult.merge(result);
+        // result.clearAllThroughput();
         LOG.info("Test results from worker {} has been merged.", result.getBaseParameters().mId);
-        // result.clearDataPoints();
         nodeResults.put(result.getBaseParameters().mId, result);
       }
 

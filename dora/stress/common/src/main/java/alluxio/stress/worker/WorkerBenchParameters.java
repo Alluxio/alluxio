@@ -87,6 +87,10 @@ public final class WorkerBenchParameters extends FileSystemParameters {
       description = "If true, skip the data file creation")
   public boolean mSkipCreation = false;
 
+  @Parameter(names = {"--slice-length"},
+      description = "The granularity of coarse data point slices")
+  public String mSliceLength = "10s";
+
   @DynamicParameter(names = "--conf", description = "HDFS client configuration. Can be repeated.")
   public Map<String, String> mConf = new HashMap<>();
 }

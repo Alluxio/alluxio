@@ -452,11 +452,18 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       CommonUtils.sleepMs(waitMs);
       SAMPLING_LOG.info("Test started and recording will be started after the warm up at {}",
           CommonUtils.convertMsToDate(recordMs, dateFormat));
+
+      String workerID = mBaseParameters.mIndex;
+      int lastDashIndex = workerID.lastIndexOf("-");
+      if (lastDashIndex != -1) {
+        workerID = toString().substring(lastDashIndex + 1);
+      }
       WorkerBenchCoarseDataPoint dp = new WorkerBenchCoarseDataPoint(
-              Long.valueOf(mBaseParameters.mIndex),
-              Thread.currentThread().getId(),
-              new ArrayList<>());
+          Long.parseLong(workerID),
+          Thread.currentThread().getId(),
+          new ArrayList<>(), new ArrayList<>());
       List<WorkerBenchDataPoint> dpList = new ArrayList<>();
+      List<Long> throughputList = new ArrayList<>();
       int lastSlice = 0;
 
       while (!Thread.currentThread().isInterrupted()
@@ -465,13 +472,14 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         long startMs = CommonUtils.getCurrentMs() - recordMs;
         long bytesRead = applyOperation();
         long duration = CommonUtils.getCurrentMs() - recordMs - startMs;
-        if (startMs > recordMs) {
+        if (startMs > 0) {
           if (bytesRead > 0) {
-            // TODO: configurable slice size (must smaller than duration, divisible to duration)
-            int currentSlice = (int)(startMs / 10000);
+            mResult.setIOBytes(mResult.getIOBytes() + bytesRead);
+            throughputList.add(bytesRead / duration);
+            int currentSlice = (int)(startMs / FormatUtils.parseTimeSize(mParameters.mSliceLength));
             while (currentSlice > lastSlice){
               LOG.info("CurrentSlice: {}, LastSlice: {}, adding list to dp.", currentSlice, lastSlice);
-              dp.addDataPoints(dpList);
+              dp.addDataPoints(new ArrayList<>(dpList));
               dpList.clear();
               lastSlice++;
             }
@@ -484,16 +492,16 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         }
       }
 
-      // TODO: configurable slice size (must smaller than duration, divisible to duration)
-      int finalSlice = (int)(FormatUtils.parseTimeSize(mParameters.mDuration) / 10000);
+      int finalSlice = (int)(FormatUtils.parseTimeSize(mParameters.mDuration) / FormatUtils.parseTimeSize(mParameters.mSliceLength));
       LOG.info("FinalSlice: {}", finalSlice);
       while (finalSlice > lastSlice){
         LOG.info("FinalSlice: {}, LastSlice: {}, adding list to dp.", finalSlice, lastSlice);
-        dp.addDataPoints(dpList);
+        dp.addDataPoints(new ArrayList<>(dpList));
         dpList.clear();
         lastSlice++;
       }
 
+      dp.setThroughput(throughputList);
       mResult.addDataPoint(dp);
     }
 
