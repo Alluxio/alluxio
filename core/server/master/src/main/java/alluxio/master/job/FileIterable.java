@@ -165,6 +165,7 @@ public class FileIterable implements Iterable<FileInfo> {
           &&  (mFiles = fileInfos.stream().filter(mFilter).collect(Collectors.toList())).isEmpty()
           && !fileInfos.isEmpty()) {
         mStartAfter = fileInfos.get(fileInfos.size() - 1).getPath();
+        mListOptions.setDisableAreDescendantsLoadedCheck(true);
       }
       if (mFiles.size() > 0) {
         mStartAfter = mFiles
