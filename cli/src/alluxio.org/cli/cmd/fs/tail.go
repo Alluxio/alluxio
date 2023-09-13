@@ -41,7 +41,11 @@ func (c *TailCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   "tail [path]",
 		Short: "Print the trailing bytes from the specified file",
-		Args:  cobra.ExactArgs(1),
+		Long: `The tail command prints the last 1KB of data of a file to the shell.
+Specifying the -c flag sets the number of bytes to print.`,
+		Example: `# Print last 2048 bytes of a file
+$ ./bin/alluxio fs tail -c 2048 /output/part-00000`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},

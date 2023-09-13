@@ -39,7 +39,15 @@ func (c *MkdirCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   "mkdir [path1 path2 ...]",
 		Short: "Create directories at the specified paths, creating the parent directory if not exists",
-		Args:  cobra.MinimumNArgs(1),
+		Long: `The mkdir command creates a new directory in the Alluxio filesystem.
+It is recursive and will create any parent directories that do not exist.
+Note that the created directory will not be created in the under storage system until a file in the directory is persisted to the underlying storage.
+Using mkdir on an invalid or existing path will fail.`,
+		Example: `# Creating a folder structure
+$ ./bin/alluxio fs mkdir /users
+$ ./bin/alluxio fs mkdir /users/Alice
+$ ./bin/alluxio fs mkdir /users/Bob`,
+		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},

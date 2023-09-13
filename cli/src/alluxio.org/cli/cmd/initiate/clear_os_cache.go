@@ -25,9 +25,10 @@ type ClearOSCacheCommand struct{}
 
 func (c *ClearOSCacheCommand) ToCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "clearOSCache",
+		Use:   "clear-os-cache",
 		Args:  cobra.NoArgs,
 		Short: "Clear OS buffer cache of the machine",
+		Long:  `The clear-os-cache command drops the OS buffer cache`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := exec.Command("sync").Run(); err != nil {
 				return stacktrace.Propagate(err, "error running sync")

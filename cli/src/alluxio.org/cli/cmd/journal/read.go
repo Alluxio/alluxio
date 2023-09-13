@@ -48,7 +48,15 @@ func (c *ReadCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Read.CommandName,
 		Short: "Read an Alluxio journal file to a human-readable version",
-		Args:  cobra.NoArgs,
+		Long: `The read command parses the current journal and outputs a human readable version to the local folder.
+This command may take a while depending on the size of the journal.
+> Note: This command requies that the Alluxio cluster is NOT running.`,
+		Example: `$ ./bin/alluxio readJournal
+# output
+Dumping journal of type EMBEDDED to /Users/alluxio/journal_dump-1602698211916
+2020-10-14 10:56:51,960 INFO  RaftStorageDirectory - Lock on /Users/alluxio/alluxio/journal/raft/02511d47-d67c-49a3-9011-abb3109a44c1/in_use.lock acquired by nodename 78602@alluxio-user
+2020-10-14 10:56:52,254 INFO  RaftJournalDumper - Read 223 entries from log /Users/alluxio/alluxio/journal/raft/02511d47-d67c-49a3-9011-abb3109a44c1/current/log_0-222.`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(nil)
 		},

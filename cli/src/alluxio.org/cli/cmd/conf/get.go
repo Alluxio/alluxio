@@ -46,7 +46,29 @@ func (c *GetCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   fmt.Sprintf("%v [key]", Get.CommandName),
 		Short: "Look up a configuration value by its property key or print all configuration if no key is provided",
-		Args:  cobra.MaximumNArgs(1),
+		Long: `The get command prints the configured value for the given key.
+If the key is invalid, it returns a nonzero exit code.
+If the key is valid but isn't set, an empty string is printed.
+If no key is specified, the full configuration is printed.
+
+> Note: This command does not require the Alluxio cluster to be running.`,
+		Example: `# Display all the current node configuration
+$ ./bin/alluxio conf get
+
+# Display the value of a property key
+$ ./bin/alluxio conf get alluxio.master.hostname
+
+# Display the configuration of the current running Alluxio leading master
+$ ./bin/alluxio conf get --master
+
+# Display the source of the configuration
+$ ./bin/alluxio conf get --source
+
+# Display the values in a given unit
+$ ./bin/alluxio conf get alluxio.user.block.size.bytes.default --unit KB
+$ ./bin/alluxio conf get alluxio.master.journal.flush.timeout --unit S
+`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
