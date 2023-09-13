@@ -1415,14 +1415,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       stringBuilder(Name.UNDERFS_OSS_PROTOCOL)
           .setAlias("alluxio.underfs.oss.protocol")
           .setDefaultValue("http")
-          .setDescription("The protocol of OSS endpoint.")
+          .setDescription("The protocol for OSS endpoint, by default http.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey UNDERFS_OSS_PROXY_HOST =
       stringBuilder(Name.UNDERFS_OSS_PROXY_HOST)
           .setAlias("alluxio.underfs.oss.proxy.host")
-          .setDescription("The proxy host of OSS.")
+          .setDescription("The proxy host address for OSS connection, if any.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -1430,7 +1430,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.UNDERFS_OSS_PROXY_PORT)
           .setAlias("alluxio.underfs.oss.proxy.port")
           .setDefaultValue(0)
-          .setDescription("The proxy port of OSS.")
+          .setDescription("The proxy port for OSS connection, if any.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();

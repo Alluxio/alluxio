@@ -383,9 +383,12 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     ossClientConf.setMaxConnections(alluxioConf.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
     ossClientConf.setMaxErrorRetry(alluxioConf.getInt(PropertyKey.UNDERFS_OSS_RETRY_MAX));
     if (isProxyEnabled(alluxioConf)) {
-      ossClientConf.setProxyHost(getProxyHost(alluxioConf));
-      ossClientConf.setProxyPort(getProxyPort(alluxioConf));
+      String proxyHost = getProxyHost(alluxioConf);
+      int proxyPort = getProxyPort(alluxioConf);
+      ossClientConf.setProxyHost(proxyHost);
+      ossClientConf.setProxyPort(proxyPort);
       ossClientConf.setProtocol(getProtocol());
+      LOG.info("the proxy for OSS is enabled, the proxy endpoint is: {}:{}", proxyHost, proxyPort);
     }
     return ossClientConf;
   }
@@ -400,7 +403,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       return proxyPort;
     } else {
       try {
-        return getProxyPortProperty();
+        return getProxyPortFromSystemProperty();
       } catch (NumberFormatException e) {
         return proxyPort;
       }
@@ -412,7 +415,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     if (proxyHost != null) {
       return proxyHost;
     } else {
-      return getProxyHostProperty();
+      return getProxyHostFromSystemProperty();
     }
   }
 
@@ -428,7 +431,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * returns value of http.proxyPort.  Defaults to {@link this.proxyPort}
    * if the system property is not set with a valid port number.
    */
-  private static int getProxyPortProperty() {
+  private static int getProxyPortFromSystemProperty() {
     return getProtocol() == Protocol.HTTPS
         ? Integer.parseInt(getSystemProperty("https.proxyPort"))
         : Integer.parseInt(getSystemProperty("http.proxyPort"));
@@ -440,7 +443,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
    * the value of the system property https.proxyHost, otherwise
    * returns value of http.proxyHost.
    */
-  private static String getProxyHostProperty() {
+  private static String getProxyHostFromSystemProperty() {
     return getProtocol() == Protocol.HTTPS
         ? getSystemProperty("https.proxyHost")
         : getSystemProperty("http.proxyHost");
