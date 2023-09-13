@@ -43,9 +43,14 @@ type BaseJavaCommand struct {
 	ShellJavaOpts      string   // default java opts encoded as part of the specific command
 }
 
+const (
+	AttachDebugName = "attach-debug"
+	JavaOptsName    = "java-opts"
+)
+
 func (c *BaseJavaCommand) InitRunJavaClassCmd(cmd *cobra.Command) *cobra.Command {
-	cmd.Flags().BoolVar(&c.DebugMode, "attach-debug", false, fmt.Sprintf("True to attach debug opts specified by $%v", ConfAlluxioUserAttachOpts.EnvVar))
-	cmd.Flags().StringSliceVarP(&c.InlineJavaOpts, "java-opts", "D", nil, `Alluxio properties to apply, ex. -Dkey=value`)
+	cmd.Flags().BoolVar(&c.DebugMode, AttachDebugName, false, fmt.Sprintf("True to attach debug opts specified by $%v", ConfAlluxioUserAttachOpts.EnvVar))
+	cmd.Flags().StringSliceVarP(&c.InlineJavaOpts, JavaOptsName, "D", nil, `Alluxio properties to apply, ex. -Dkey=value`)
 	return cmd
 }
 

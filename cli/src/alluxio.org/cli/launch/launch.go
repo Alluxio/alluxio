@@ -27,6 +27,8 @@ func Run(jarEnvVars map[bool]map[string]string, appendClasspathJars map[string]f
 	rootCmd := &cobra.Command{
 		Use: "bin/alluxio",
 	}
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
+
 	const rootPathName = "rootPath"
 	var flagRootPath string
 	rootCmd.PersistentFlags().StringVar(&flagRootPath, rootPathName, "", "Path to root of Alluxio installation")
