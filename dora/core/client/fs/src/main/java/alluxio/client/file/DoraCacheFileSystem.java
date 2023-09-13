@@ -518,6 +518,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
    * If local file system is used, please add "file://" scheme before the path.
    *
    * @param alluxioPath Alluxio based path
+   * @param ufsRootPath the UFS root path to resolve against
    * @return UfsBaseFileSystem based full path
    */
   public static AlluxioURI convertAlluxioPathToUfsPath(
@@ -548,6 +549,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
    * This is the opposite operation to {@link #convertAlluxioPathToUfsPath(AlluxioURI, AlluxioURI)}.
    *
    * @param ufsPath UfsBaseFileSystem based full path
+   * @param ufsRootPath the UFS root path to resolve against
    * @return an Alluxio path
    */
   public static AlluxioURI convertUfsPathToAlluxioPath(AlluxioURI ufsPath, AlluxioURI ufsRootPath) {
