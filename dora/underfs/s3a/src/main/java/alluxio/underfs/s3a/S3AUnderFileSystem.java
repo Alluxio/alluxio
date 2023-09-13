@@ -13,9 +13,12 @@ package alluxio.underfs.s3a;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.file.options.DescendantType;
 import alluxio.retry.RetryPolicy;
+import alluxio.underfs.ObjectLowLevelOutputStream;
+import alluxio.underfs.ObjectMultipartUploader;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
@@ -23,7 +26,12 @@ import alluxio.underfs.UfsLoadResult;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.ListMultiPartOptions;
+import alluxio.underfs.options.MultipartUfsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.underfs.response.ListMultipartUploadResult;
+import alluxio.underfs.response.MultipartUploadInfo;
+import alluxio.underfs.response.PartSummaryInfo;
 import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.UnderFileSystemUtils;
@@ -46,18 +54,28 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.internal.ServiceUtils;
+import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.AccessControlList;
+import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
+import com.amazonaws.services.s3.model.CompleteMultipartUploadResult;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsResult;
+import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
+import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
+import com.amazonaws.services.s3.model.ListMultipartUploadsRequest;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
+import com.amazonaws.services.s3.model.MultipartUploadListing;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.Owner;
+import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.model.UploadPartRequest;
+import com.amazonaws.services.s3.model.UploadPartResult;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.util.AwsHostNameUtils;
@@ -95,6 +113,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -578,7 +597,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   protected OutputStream createObject(String key) throws IOException {
     if (mStreamingUploadEnabled) {
       LOG.debug("S3AUnderFileSystem, createObject, Streaming Upload enabled");
-      return new S3ALowLevelOutputStream(mBucketName, key, mClient, mExecutor, mUfsConf);
+      ObjectMultipartUploader multipartUploader = new ObjectMultipartUploader(key, this, mExecutor);
+      return new ObjectLowLevelOutputStream(mBucketName, key, multipartUploader, mUfsConf);
     }
     else if (mMultipartUploadEnabled) {
       LOG.debug("S3AUnderFileSystem, createObject, Multipart upload enabled");
@@ -1089,5 +1109,137 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       RetryPolicy retryPolicy) {
     return new S3AInputStream(
         mBucketName, key, mClient, options.getOffset(), retryPolicy);
+  }
+
+  @Override
+  protected String initMultiPart(String key, MultipartUfsOptions options) throws IOException {
+    AmazonS3 s3Client = mClient;
+    try {
+      ObjectMetadata meta = new ObjectMetadata();
+      if ((mUfsConf.getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED))) {
+        meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+      }
+      meta.setContentType(Mimetypes.MIMETYPE_OCTET_STREAM);
+      InitiateMultipartUploadRequest initiateMPURequest =
+          new InitiateMultipartUploadRequest(mBucketName, key, meta);
+      InitiateMultipartUploadResult initResponse =
+          s3Client.initiateMultipartUpload(initiateMPURequest);
+      String uploadId = initResponse.getUploadId();
+      return uploadId;
+    } catch (AmazonClientException e) {
+      throw AlluxioS3Exception.from(e);
+    }
+  }
+
+  @Override
+  protected OutputStream uploadPart(String key, String uploadId, int partNum, ByteBuffer b,
+                                    MultipartUfsOptions options) throws IOException {
+    // TODO(wyy) upload with the stream
+    return super.uploadPart(key, uploadId, partNum, b, options);
+  }
+
+  @Override
+  protected String uploadPartWithStream(String key, String uploadId, int partNum, long fileSize,
+                                        InputStream stream, MultipartUfsOptions options)
+      throws IOException {
+    AmazonS3 client = mClient;
+    try {
+      UploadPartRequest uploadRequest = new UploadPartRequest()
+          .withBucketName(mBucketName)
+          .withKey(key)
+          .withUploadId(uploadId)
+          .withPartNumber(partNum)
+          .withPartSize(fileSize)
+          .withInputStream(stream);
+      UploadPartResult uploadResult = client.uploadPart(uploadRequest);
+      return uploadResult.getETag();
+    } catch (AmazonClientException e) {
+      throw AlluxioS3Exception.from(e);
+    }
+  }
+
+  @Override
+  protected String completeMultiPart(String key, String uploadId, List<Pair<Integer, String>> etags,
+                                     MultipartUfsOptions options) throws IOException {
+    AmazonS3 client = mClient;
+    try {
+      List<PartETag> partETags = new ArrayList<>();
+      for (alluxio.collections.Pair pair : etags) {
+        partETags.add(new PartETag((Integer) pair.getFirst(),
+            (String) pair.getSecond()));
+      }
+      CompleteMultipartUploadRequest compRequest =
+          new CompleteMultipartUploadRequest(mBucketName, key, uploadId, partETags);
+      CompleteMultipartUploadResult result = client.completeMultipartUpload(compRequest);
+      return result.getETag();
+    } catch (AmazonClientException e) {
+      throw AlluxioS3Exception.from(e);
+    }
+  }
+
+  @Override
+  protected List<PartSummaryInfo> listParts(String key, String uploadId,
+                                            MultipartUfsOptions options) throws IOException {
+    return super.listParts(key, uploadId, options);
+  }
+
+  @Override
+  public ListMultipartUploadResult listMultipartUploads(ListMultiPartOptions options)
+      throws IOException {
+    AmazonS3 client = mClient;
+    ListMultipartUploadsRequest request =
+        new ListMultipartUploadsRequest(mBucketName);
+    if (options.getPrefix() != null) {
+      request.setPrefix(stripPrefixIfPresent(options.getPrefix()));
+    }
+    if (options.getDelimiter() != null) {
+      request.setDelimiter(options.getDelimiter());
+    }
+    if (options.getKeyMarker() != null) {
+      request.setKeyMarker(stripPrefixIfPresent(options.getKeyMarker()));
+    }
+    if (options.getUploadIdMarker() != null) {
+      request.setUploadIdMarker(options.getUploadIdMarker());
+    }
+    if (options.getMaxUploads() >= 0) {
+      request.setMaxUploads(options.getMaxUploads());
+    }
+    try {
+      MultipartUploadListing result =
+          client.listMultipartUploads(request);
+      List<MultipartUploadInfo> uploadInfoList =
+          result.getMultipartUploads().stream().map(
+                  task -> new alluxio.underfs.response.MultipartUploadInfo(
+                      Constants.HEADER_S3 + mBucketName + "/" + task.getKey(), task.getUploadId(),
+                      ServiceUtils.formatIso8601Date(task.getInitiated())))
+              .collect(java.util.stream.Collectors.toList());
+      ListMultipartUploadResult listResult =
+          new ListMultipartUploadResult(uploadInfoList);
+      listResult.setPrefix(result.getPrefix());
+      listResult.setDelimiter(result.getDelimiter());
+      listResult.setMaxUploads(result.getMaxUploads());
+      listResult.setTruncated(result.isTruncated());
+      listResult.setKeyMarker(Constants.HEADER_S3 + mBucketName + "/" + result.getKeyMarker());
+      listResult.setUploadIdMarker(result.getUploadIdMarker());
+      listResult.setNextKeyMarker(
+          Constants.HEADER_S3 + mBucketName + "/" + result.getNextKeyMarker());
+      listResult.setNextUploadIdMarker(result.getNextUploadIdMarker());
+      return listResult;
+    } catch (AmazonClientException e) {
+      throw AlluxioS3Exception.from(e);
+    }
+  }
+
+  @Override
+  protected void abortMultipartTask(String key, String uploadId, MultipartUfsOptions options)
+      throws IOException {
+    AmazonS3 client = mClient;
+    try {
+      AbortMultipartUploadRequest
+          request = new AbortMultipartUploadRequest(mBucketName, key, uploadId);
+      client.abortMultipartUpload(request);
+    } catch (AmazonClientException e) {
+      throw AlluxioS3Exception.from(e);
+    }
   }
 }

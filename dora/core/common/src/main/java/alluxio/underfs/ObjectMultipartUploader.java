@@ -13,21 +13,32 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import org.apache.zookeeper.server.ByteBufferInputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ObjectMultipartUploader implements MultipartUploader {
+  private static final Logger LOG = LoggerFactory.getLogger(ObjectMultipartUploader.class);
+
   private final String mPath;
   private String mUploadId;
+  private String mContentHash;
   private final Map<Integer, UploadTask> mUploadTasks = new TreeMap<>();
   private final Map<Integer, Pair<Integer, String>> mETags = new HashMap<>();
   private final ObjectUnderFileSystem mUfs;
   private final ListeningExecutorService mExecutor;
+
+  public String getContentHash() {
+    return mContentHash;
+  }
 
   public ObjectMultipartUploader(String path, ObjectUnderFileSystem ufs,
                                  ListeningExecutorService executor) {
@@ -45,22 +56,24 @@ public class ObjectMultipartUploader implements MultipartUploader {
   public ListenableFuture<Void> putPart(InputStream in, int partNumber, long partSize) throws IOException {
     ListenableFuture<Void> f = mExecutor.submit(() -> {
       try {
-        mUfs.uploadPartWithStream(mPath, mUploadId, partNumber, partSize, in,
+        String etag = mUfs.uploadPartWithStream(mPath, mUploadId, partNumber, partSize, in,
             MultipartUfsOptions.defaultOption());
+        Pair<Integer, String> etagPair = new Pair<>(partNumber, etag);
+        mETags.put(partNumber, etagPair);
         return null;
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
     });
-    mUploadTasks.put(partNumber, new UploadTask());
+    mUploadTasks.put(partNumber, new UploadTask(partNumber, partSize, f));
     return f;
   }
 
   @Override
   public ListenableFuture<Void> putPart(ByteBuffer b, int partNumber) throws IOException {
+    long partSize = b.remaining();
     ListenableFuture<Void> f = mExecutor.submit(() -> {
       try {
-        long partSize = b.remaining();
         InputStream in = new ByteBufferInputStream(b);
         String etag = mUfs.uploadPartWithStream(mPath, mUploadId, partNumber, partSize, in,
             MultipartUfsOptions.defaultOption());
@@ -71,18 +84,22 @@ public class ObjectMultipartUploader implements MultipartUploader {
         throw new RuntimeException(e);
       }
     });
-    mUploadTasks.put(partNumber, new UploadTask());
+    mUploadTasks.put(partNumber, new UploadTask(partNumber, partSize, f));
     return f;
   }
 
   @Override
   public void complete() throws IOException {
+    // If there is no upload task, it means the file is empty.
+    // Just create an empty file and set up the permissions in this case.
     if (mUploadTasks.isEmpty()) {
-      // create empty file?
+      mUfs.createEmptyObject(mPath);
+      //TODO (wyy) get content hash
+      LOG.debug("Object store ufs multipart upload finished for {}", mPath);
+      return;
     }
 
-    // flush
-
+    flush();
     // complete
     List<Pair<Integer, String>> etags = new ArrayList<>();
     for (Map.Entry<Integer, UploadTask> entry : mUploadTasks.entrySet()) {
@@ -92,7 +109,7 @@ public class ObjectMultipartUploader implements MultipartUploader {
         etags.add(mETags.get(partNum));
       }
     }
-    mUfs.completeMultiPart(mPath, mUploadId, etags, MultipartUfsOptions.defaultOption());
+    mContentHash = mUfs.completeMultiPart(mPath, mUploadId, etags, MultipartUfsOptions.defaultOption());
   }
 
   @Override
@@ -102,31 +119,42 @@ public class ObjectMultipartUploader implements MultipartUploader {
 
   @Override
   public void flush() throws IOException {
-    doFlush();
-  }
-
-
-  private void doFlush() throws IOException {
+    if (mUploadTasks.isEmpty()) {
+      return;
+    }
+    Set<ListenableFuture<Void>> futures =
+        mUploadTasks.values().stream().map(it -> it.mFuture).collect(Collectors.toSet());
     try {
-      Futures.allAsList(
-          mUploadTasks.values().stream().map(it -> it.mFuture).collect(Collectors.toSet())).get();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new CanceledException(e);
+      Futures.allAsList(futures).get();
     } catch (ExecutionException e) {
-      throw new IOException(e.getCause());
+      // No recover ways so that we need to cancel all the upload tasks
+      // and abort the multipart upload
+      Futures.allAsList(futures).cancel(true);
+      abort();
+      throw new IOException(
+          "Part upload failed in multipart upload with to " + mPath, e);
+    } catch (InterruptedException e) {
+      LOG.warn("Interrupted object upload.", e);
+      Futures.allAsList(futures).cancel(true);
+      abort();
+      Thread.currentThread().interrupt();
     }
   }
 
+  // TODO (wyy) to record the UploadTask in memory
   private class UploadTask{
     private int mPartNumber;
-    private int mSize;
+    private long mSize;
     private ListenableFuture<Void> mFuture;
 
-    public UploadTask() {
+    public UploadTask(int partNumber, long size, ListenableFuture<Void> future) {
+      mPartNumber = partNumber;
+      mSize = size;
+      mFuture = future;
+
     }
 
-    public UploadTask(int partNumber, Path path, int size, ListenableFuture<Void> future) {
+    public UploadTask(int partNumber, Path path, long size, ListenableFuture<Void> future) {
       mPartNumber = partNumber;
       mSize = size;
       mFuture = future;

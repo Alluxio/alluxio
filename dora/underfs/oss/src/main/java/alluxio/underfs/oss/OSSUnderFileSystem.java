@@ -14,24 +14,36 @@ package alluxio.underfs.oss;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
+import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.retry.RetryPolicy;
+import alluxio.underfs.ObjectLowLevelOutputStream;
+import alluxio.underfs.ObjectMultipartUploader;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.ListMultiPartOptions;
+import alluxio.underfs.options.MultipartUfsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.underfs.response.ListMultipartUploadResult;
+import alluxio.underfs.response.PartSummaryInfo;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.aliyun.oss.ClientBuilderConfiguration;
+import com.aliyun.oss.ClientException;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
+import com.aliyun.oss.OSSException;
 import com.aliyun.oss.ServiceException;
+import com.aliyun.oss.internal.Mimetypes;
 import com.aliyun.oss.model.AbortMultipartUploadRequest;
+import com.aliyun.oss.model.CompleteMultipartUploadRequest;
 import com.aliyun.oss.model.DeleteObjectsRequest;
 import com.aliyun.oss.model.DeleteObjectsResult;
+import com.aliyun.oss.model.InitiateMultipartUploadRequest;
 import com.aliyun.oss.model.ListMultipartUploadsRequest;
 import com.aliyun.oss.model.ListObjectsRequest;
 import com.aliyun.oss.model.MultipartUpload;
@@ -39,6 +51,8 @@ import com.aliyun.oss.model.MultipartUploadListing;
 import com.aliyun.oss.model.OSSObjectSummary;
 import com.aliyun.oss.model.ObjectListing;
 import com.aliyun.oss.model.ObjectMetadata;
+import com.aliyun.oss.model.PartETag;
+import com.aliyun.oss.model.UploadPartRequest;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -46,10 +60,14 @@ import com.google.common.util.concurrent.MoreExecutors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -221,8 +239,9 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected OutputStream createObject(String key) throws IOException {
     if (mUfsConf.getBoolean(PropertyKey.UNDERFS_OSS_STREAMING_UPLOAD_ENABLED)) {
-      return new OSSLowLevelOutputStream(mBucketName, key, mClient,
-          mStreamingUploadExecutor.get(), mUfsConf);
+      ObjectMultipartUploader multipartUploader =
+          new ObjectMultipartUploader(key, this, mStreamingUploadExecutor.get());
+      return new ObjectLowLevelOutputStream(mBucketName, key, multipartUploader, mUfsConf);
     }
     else if (mUfsConf.getBoolean(PropertyKey.UNDERFS_OSS_MULTIPART_UPLOAD_ENABLED)) {
       return new OSSMultipartUploadOutputStream(mBucketName, key, mClient,
@@ -391,6 +410,77 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
           mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (ServiceException e) {
       throw new IOException(e.getMessage());
+    }
+  }
+
+  @Override
+  protected String initMultiPart(String key, MultipartUfsOptions options) throws IOException {
+    try {
+      ObjectMetadata meta = new ObjectMetadata();
+      meta.setContentType(Mimetypes.DEFAULT_MIMETYPE);
+      InitiateMultipartUploadRequest initRequest =
+          new InitiateMultipartUploadRequest(mBucketName, key, meta);
+      return mClient.initiateMultipartUpload(initRequest).getUploadId();
+    } catch (OSSException | ClientException e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  protected OutputStream uploadPart(String key, String uploadId, int partNum, ByteBuffer b,
+                                    MultipartUfsOptions options) throws IOException {
+    return super.uploadPart(key, uploadId, partNum, b, options);
+  }
+
+  @Override
+  protected String uploadPartWithStream(String key, String uploadId, int partNum, long fileSize,
+                                        InputStream stream, MultipartUfsOptions options)
+      throws IOException {
+    try {
+      final UploadPartRequest uploadRequest =
+          new UploadPartRequest(mBucketName, key, uploadId, partNum, stream, fileSize);
+      PartETag partETag = mClient.uploadPart(uploadRequest).getPartETag();
+      return partETag.getETag();
+    } catch (OSSException | ClientException e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  protected String completeMultiPart(String key, String uploadId, List<Pair<Integer, String>> etags,
+                                     MultipartUfsOptions options) throws IOException {
+    try {
+      List<PartETag> partETags = new ArrayList<>();
+      for (Pair pair : etags) {
+        partETags.add(new PartETag((Integer) pair.getFirst(), (String) pair.getSecond()));
+      }
+      CompleteMultipartUploadRequest completeRequest = new CompleteMultipartUploadRequest(
+          mBucketName, key, uploadId, partETags);
+      return mClient.completeMultipartUpload(completeRequest).getETag();
+    } catch (OSSException | ClientException e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  protected List<PartSummaryInfo> listParts(String key, String uploadId,
+                                            MultipartUfsOptions options) throws IOException {
+    return super.listParts(key, uploadId, options);
+  }
+
+  @Override
+  public ListMultipartUploadResult listMultipartUploads(ListMultiPartOptions options)
+      throws IOException {
+    return super.listMultipartUploads(options);
+  }
+
+  @Override
+  protected void abortMultipartTask(String key, String uploadId, MultipartUfsOptions options)
+      throws IOException {
+    try {
+      mClient.abortMultipartUpload(new AbortMultipartUploadRequest(mBucketName, key, uploadId));
+    } catch (OSSException | ClientException e) {
+      throw new IOException(e);
     }
   }
 
