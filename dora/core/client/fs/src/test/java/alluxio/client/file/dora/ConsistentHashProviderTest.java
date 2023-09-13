@@ -69,8 +69,9 @@ public class ConsistentHashProviderTest {
     NavigableMap<Integer, BlockWorkerInfo> map = provider.getActiveNodesMap();
     Map<BlockWorkerInfo, Long> count = new HashMap<>();
     long last = Integer.MIN_VALUE;
-    for(Map.Entry<Integer, BlockWorkerInfo> entry: map.entrySet()) {
-      count.put(entry.getValue(),  count.getOrDefault(entry.getValue(), 0L) + (entry.getKey()- last));
+    for (Map.Entry<Integer, BlockWorkerInfo> entry: map.entrySet()) {
+      count.put(entry.getValue(),  count.getOrDefault(entry.getValue(), 0L)
+          + (entry.getKey() - last));
       last = entry.getKey().intValue();
     }
     assertTrue(calcSDoverMean(count.values()) < 0.25);
