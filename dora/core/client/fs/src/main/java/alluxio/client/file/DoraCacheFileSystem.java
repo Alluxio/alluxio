@@ -61,6 +61,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -253,12 +254,12 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
       final List<URIStatus> uriStatuses = mDoraClient.listStatus(ufsFullPath.toString(),
           mergedOptions);
-      List<URIStatus> statusesWithRelativePath = uriStatuses.stream()
-          .map(status -> new URIStatus(
-              GrpcUtils.fromProto(GrpcUtils.toProto(status.getFileInfo()))
-                  .setPath(convertToAlluxioPath(new AlluxioURI(status.getUfsPath()))
-                      .getPath())))
-          .collect(Collectors.toList());
+      List<URIStatus> statusesWithRelativePath = new ArrayList<>(uriStatuses.size());
+      for (URIStatus s : uriStatuses) {
+        statusesWithRelativePath.add(
+            new URIStatus(GrpcUtils.fromProto(GrpcUtils.toProto(s.getFileInfo())).setPath(
+                convertToAlluxioPath(new AlluxioURI(s.getUfsPath())).getPath())));
+      }
       return statusesWithRelativePath;
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
