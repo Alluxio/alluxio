@@ -168,6 +168,9 @@ public class FuseFileInOrOutStream implements FuseFileStream {
 
   @Override
   public boolean isReadOnly() {
-    return false;
+    // The inner in stream and out stream are mutual exclusive.
+    // Once the stream is used as an in stream, it cannot be
+    // used as an out stream anymore and hence it is read only.
+    return mInStream.isPresent();
   }
 }

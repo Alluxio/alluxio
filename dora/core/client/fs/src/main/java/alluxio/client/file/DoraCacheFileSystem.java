@@ -311,6 +311,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
       return doraOutStream;
     } catch (Exception e) {
+      if (!mUfsFallbackEnabled) {
+        throw e;
+      }
       // TODO(JiamingMai): delete the file
       // delete(alluxioPath);
       UFS_FALLBACK_COUNTER.inc();
