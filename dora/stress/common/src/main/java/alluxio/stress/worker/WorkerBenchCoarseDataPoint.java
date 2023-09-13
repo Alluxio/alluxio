@@ -3,6 +3,7 @@ package alluxio.stress.worker;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @JsonDeserialize(using = WorkerBenchCoarseDataPointDeserializer.class)
@@ -14,12 +15,16 @@ public class WorkerBenchCoarseDataPoint {
     private Long mTid;
     @JsonProperty("data")
     private List<List<WorkerBenchDataPoint>> mData;
+    @JsonProperty("throughput")
+    private List<Long> mThroughput;
 
     // constructor
-    public WorkerBenchCoarseDataPoint(Long workerID, Long threadID, List<List<WorkerBenchDataPoint>> data) {
+    public WorkerBenchCoarseDataPoint(Long workerID, Long threadID, List<List<WorkerBenchDataPoint>> data,
+                                      List<Long> throughput) {
         mWid = workerID;
         mTid = threadID;
         mData = data;
+        mThroughput = throughput;
     }
 
     // getter & setters
@@ -49,5 +54,17 @@ public class WorkerBenchCoarseDataPoint {
 
     public void addDataPoints(List<WorkerBenchDataPoint> data) {
         mData.add(data);
+    }
+
+    public List<Long> getThroughput() {
+        return mThroughput;
+    }
+
+    public void setThroughput(List<Long> throughput) {
+        mThroughput = throughput;
+    }
+
+    public void clearThroughput() {
+        mThroughput.clear();
     }
 }

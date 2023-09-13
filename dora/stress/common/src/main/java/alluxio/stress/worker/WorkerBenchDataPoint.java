@@ -25,7 +25,7 @@ public class WorkerBenchDataPoint {
   public long mDuration;
   @JsonProperty("startMs")
   public long mStartMs;
-  @JsonProperty("ioBytes")
+  @JsonProperty("iobytes")
   public long mIOBytes;
 
   /**
