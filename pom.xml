@@ -143,7 +143,7 @@
     <hadoop.version>3.3.1</hadoop.version>
     <hive-metastore.version>3.1.2</hive-metastore.version>
     <jackson.version>2.13.5</jackson.version>
-    <jacoco.version>0.8.5</jacoco.version>
+    <jacoco.version>0.8.7</jacoco.version>
     <java.version>1.8</java.version>
     <jaxb.version>2.3.3</jaxb.version>
     <jersey.version>2.34</jersey.version>
@@ -876,6 +876,11 @@
     <!-- Dependencies in the compile scope. -->
     <!-- System logging. -->
     <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>2.3.1</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>
     </dependency>
@@ -1055,6 +1060,15 @@
           <version>3.2.1</version>
         </plugin>
         <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>0.8.7</version>
+          <configuration>
+            <!-- Rest of your configuration, if any -->
+            <formats>XML</formats>
+          </configuration>
+        </plugin>
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.0.0</version>
@@ -1209,7 +1223,7 @@
                   <version>${maven.version}</version>
                 </requireMavenVersion>
                 <requireJavaVersion>
-                  <version>[1.8, 1.9)</version>
+                  <version>[1.8, 12)</version>
                 </requireJavaVersion>
               </rules>
             </configuration>
