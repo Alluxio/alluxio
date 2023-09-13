@@ -453,8 +453,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
    *
    * @param ufsPath UfsBaseFileSystem based full path
    * @return an Alluxio path
+   * @throws InvalidPathException if ufsPath is not a child of the UFS mounted at Alluxio root
    */
-  public AlluxioURI convertToAlluxioPath(AlluxioURI ufsPath) {
+  public AlluxioURI convertToAlluxioPath(AlluxioURI ufsPath) throws InvalidPathException {
     Preconditions.checkArgument(mDelegatedFileSystem instanceof UfsBaseFileSystem,
         "FileSystem is not UfsBaseFileSystem");
     AlluxioURI rootUfs = ((UfsBaseFileSystem) mDelegatedFileSystem).getRootUFS();

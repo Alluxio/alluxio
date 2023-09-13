@@ -511,21 +511,19 @@ public final class PathUtils {
    * This is the opposite operation to
    * {@link #convertAlluxioPathToUfsPath(AlluxioURI, AlluxioURI)}.
    *
-   * @param ufsPath UfsBaseFileSystem based full path
+   * @param ufsPath     UfsBaseFileSystem based full path
    * @param ufsRootPath the UFS root path to resolve against
    * @return an Alluxio path
+   * @throws InvalidPathException if ufsPath is not a child of the UFS mounted at Alluxio root
    */
   public static AlluxioURI convertUfsPathToAlluxioPath(
-      AlluxioURI ufsPath, AlluxioURI ufsRootPath) {
-    try {
-      if (ufsRootPath.isAncestorOf(ufsPath)) {
-        return new AlluxioURI(PathUtils.concatPath(AlluxioURI.SEPARATOR,
-            PathUtils.subtractPaths(ufsPath.getPath(), ufsRootPath.getPath())));
-      }
-    } catch (InvalidPathException e) {
-      throw new RuntimeException(e);
+      AlluxioURI ufsPath, AlluxioURI ufsRootPath) throws InvalidPathException {
+    if (ufsRootPath.isAncestorOf(ufsPath)) {
+      return new AlluxioURI(PathUtils.concatPath(AlluxioURI.SEPARATOR,
+          PathUtils.subtractPaths(ufsPath.getPath(), ufsRootPath.getPath())));
+    } else {
+      throw new InvalidPathException(String.format(
+          "UFS root %s is not a prefix of %s", ufsRootPath, ufsPath));
     }
-
-    return ufsPath;
   }
 }
