@@ -54,7 +54,16 @@ public class ConsistentHashProviderTest {
   }
 
   @Test
-  public void initializeVirtualNode() {
+  /**
+   * This test calculates the standard deviation over mean on the collection of
+   * virtual nodes assigned to physical nodes. It arbitrarily bounds it at 0.25,
+   * but ideally this number should get smaller over time as we improve hashing algorithm
+   * and use better ways to assign virtual nodes to physical nodes.
+   *
+   * This uses 2000 virtual nodes and 50 physical nodes, if these parameters change,
+   * the bound is likely going to change.
+   */
+  public void virtualNodeDistribution() {
     ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
     List<BlockWorkerInfo> workerList = generateRandomWorkerList(50);
     // set initial state
@@ -66,9 +75,7 @@ public class ConsistentHashProviderTest {
       count.put(entry.getValue(),  count.getOrDefault(entry.getValue(), 0L) + (entry.getKey()- last));
       last = entry.getKey().intValue();
     }
-    System.out.println(count.values());
-
-    System.out.println(calcSDoverMean(count.values()));
+    assertTrue(calcSDoverMean(count.values()) < 0.25);
   }
 
   private double calcSDoverMean(Collection<Long> list) {
