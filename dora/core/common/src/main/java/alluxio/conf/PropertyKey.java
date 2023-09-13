@@ -704,6 +704,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .build();
+
+  public static final PropertyKey METRICS_KEY_INCLUDING_UNIQUE_ID_ENABLED =
+      booleanBuilder(Name.METRICS_KEY_INCLUDING_UNIQUE_ID_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to include the unique id such as hostname in the metrcis key.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey NETWORK_CONNECTION_AUTH_TIMEOUT =
       durationBuilder(Name.NETWORK_CONNECTION_AUTH_TIMEOUT)
           .setDefaultValue("30sec")
@@ -4075,14 +4083,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
       intBuilder(Name.WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS)
-          .setDefaultValue(128)
+          .setDefaultValue(16)
           .setDescription("The maximum number of parallel data packets when a client writes to a "
               + "worker.")
           .build();
 
   public static final PropertyKey WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
       intBuilder(Name.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS)
-          .setDefaultValue(128)
+          .setDefaultValue(16)
           .setDescription("The maximum number of parallel data packets when a client reads from a "
               + "worker.")
           .build();
@@ -4706,11 +4714,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_MEMBERSHIP_MANAGER_TYPE =
       enumBuilder(Name.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.class)
-          .setDefaultValue(MembershipType.NOOP.name())
+          .setDefaultValue(MembershipType.MASTER.name())
           .setDescription("Type of membership manager used for workers."
               + "Choose STATIC for pre-configured members."
               + "Choose ETCD for using etcd for membership management"
-              + "Default is NOOP which does not enable membership manager at all")
+              + "Default is MASTER which does not enable membership module"
+              + " and uses master to register")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
           .build();
@@ -5287,6 +5296,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       booleanBuilder(Name.USER_CLIENT_CACHE_ENABLED)
           .setDefaultValue(false)
           .setDescription("If this is enabled, data will be cached on Alluxio client.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_FALLBACK_ENABLED =
+      booleanBuilder(Name.USER_CLIENT_CACHE_FALLBACK_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If this is enabled, local cache will fallback to external storage.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -6205,6 +6221,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_MAX_READER_CONCURRENCY =
+      intBuilder(Name.FUSE_MAX_READER_CONCURRENCY)
+          .setDefaultValue(128)
+          .setDescription("Max number of concurrent readers per file in FUSE")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey FUSE_MOUNT_ALLUXIO_PATH =
       stringBuilder(Name.FUSE_MOUNT_ALLUXIO_PATH)
           .setAlias(Name.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
@@ -7041,6 +7064,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.metrics.executor.task.warn.size";
     public static final String METRICS_EXECUTOR_TASK_WARN_FREQUENCY =
         "alluxio.metrics.executor.task.warn.frequency";
+    public static final String METRICS_KEY_INCLUDING_UNIQUE_ID_ENABLED =
+        "alluxio.metrics.key.including.unique.id.enabled";
     public static final String NETWORK_CONNECTION_AUTH_TIMEOUT =
         "alluxio.network.connection.auth.timeout";
     public static final String NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT =
@@ -8013,6 +8038,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.async.write.threads";
     public static final String USER_CLIENT_CACHE_ENABLED =
         "alluxio.user.client.cache.enabled";
+    public static final String USER_CLIENT_CACHE_FALLBACK_ENABLED =
+        "alluxio.user.client.cache.fallback.enabled";
     public static final String USER_CLIENT_CACHE_FILTER_CLASS =
         "alluxio.user.client.cache.filter.class";
     public static final String USER_CLIENT_CACHE_FILTER_CONFIG_FILE =
@@ -8255,6 +8282,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
+    public static final String FUSE_MAX_READER_CONCURRENCY =
+        "alluxio.fuse.max.reader.concurrency";
     public static final String FUSE_MOUNT_ALLUXIO_PATH =
         "alluxio.fuse.mount.alluxio.path";
     public static final String FUSE_MOUNT_OPTIONS =

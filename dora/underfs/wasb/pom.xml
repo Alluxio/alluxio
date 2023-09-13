@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>304-SNAPSHOT</version>
+    <version>305-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-wasb</artifactId>
   <name>Alluxio Under File System - Microsoft Azure Blob Storage</name>

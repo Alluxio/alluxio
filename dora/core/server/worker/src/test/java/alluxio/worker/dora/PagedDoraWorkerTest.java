@@ -43,6 +43,8 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
 import alluxio.membership.MembershipManager;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.io.BufferUtils;
@@ -731,6 +733,37 @@ public class PagedDoraWorkerTest {
         mCacheManager.getCachedPageIdsByFileId(
             new AlluxioURI(f.getPath()).hash(), fileContent.length());
     assertEquals(0, cachedPages.size());
+  }
+
+  @Test
+  public void testPageMetadataMetrics() throws Exception {
+    String fileContent = "foobar";
+    File rootFolder = mTestFolder.newFolder("root");
+    String rootPath = rootFolder.getAbsolutePath();
+
+    mWorker.listStatus(rootPath, ListStatusPOptions.newBuilder().setRecursive(false).build());
+    assertEquals(1, MetricsSystem.counter(
+        MetricKey.WORKER_LIST_STATUS_EXTERNAL_REQUESTS.getName()).getCount());
+    assertEquals(0,
+        MetricsSystem.counter(MetricKey.WORKER_LIST_STATUS_HIT_REQUESTS.getName()).getCount());
+    mWorker.listStatus(rootPath, ListStatusPOptions.newBuilder().setRecursive(false).build());
+    assertEquals(1, MetricsSystem.counter(
+        MetricKey.WORKER_LIST_STATUS_EXTERNAL_REQUESTS.getName()).getCount());
+    assertEquals(1,
+        MetricsSystem.counter(MetricKey.WORKER_LIST_STATUS_HIT_REQUESTS.getName()).getCount());
+
+    File f = mTestFolder.newFile("root/f");
+    Files.write(f.toPath(), fileContent.getBytes());
+    mWorker.getFileInfo(f.getPath(), GetStatusPOptions.newBuilder().build());
+    assertEquals(1, MetricsSystem.counter(
+        MetricKey.WORKER_GET_FILE_INFO_EXTERNAL_REQUESTS.getName()).getCount());
+    assertEquals(0,
+        MetricsSystem.counter(MetricKey.WORKER_GET_FILE_INFO_HIT_REQUESTS.getName()).getCount());
+    mWorker.getFileInfo(f.getPath(), GetStatusPOptions.newBuilder().build());
+    assertEquals(1, MetricsSystem.counter(
+        MetricKey.WORKER_GET_FILE_INFO_EXTERNAL_REQUESTS.getName()).getCount());
+    assertEquals(1,
+        MetricsSystem.counter(MetricKey.WORKER_GET_FILE_INFO_HIT_REQUESTS.getName()).getCount());
   }
 
   private void loadFileData(String path)
