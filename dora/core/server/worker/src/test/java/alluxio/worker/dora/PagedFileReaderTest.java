@@ -11,6 +11,7 @@
 
 package alluxio.worker.dora;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
@@ -38,6 +39,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.primitives.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -59,6 +61,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -176,10 +179,15 @@ public class PagedFileReaderTest {
       int offset = mRandom.nextInt(mFileLen);
       mPagedFileReader.setmPos(offset);
       ByteBuf byteBuf = Unpooled.buffer(mFileLen);
-      // TODO(Tony Sun): Consider does it need to verify the bytebuf read from the reader?
-      // If so, this method is bound to specific implementation of transferTo().
+
       int bytesRead = mPagedFileReader.transferTo(byteBuf);
+
+      byte[] bytesArray = new byte[byteBuf.readableBytes()];
+      byteBuf.readBytes(bytesArray);
+      List<Byte> listOfByte = Bytes.asList(bytesArray);
+      List<Byte> listOfRealByte = Bytes.asList(mTestData).subList(offset, offset + bytesRead);
       assertTrue((mFileLen == 0 && bytesRead == -1) || bytesRead > 0);
+      assertEquals(listOfRealByte, listOfByte);
     }
   }
 
