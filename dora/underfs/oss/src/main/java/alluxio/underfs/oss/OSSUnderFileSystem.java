@@ -411,7 +411,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   private static String getProxyHost(AlluxioConfiguration alluxioConf) {
-    String proxyHost = alluxioConf.getString(PropertyKey.UNDERFS_OSS_PROXY_HOST);
+    String proxyHost = alluxioConf.getOrDefault(PropertyKey.UNDERFS_OSS_PROXY_HOST, null);
     if (proxyHost != null) {
       return proxyHost;
     } else {
