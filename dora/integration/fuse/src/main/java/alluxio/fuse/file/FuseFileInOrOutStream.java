@@ -44,7 +44,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
 
   // underlying reed-only or write-only stream
   // only one of them should exist
-  private Optional<FuseFileInStream> mInStream = Optional.empty();
+  private volatile Optional<FuseFileInStream> mInStream = Optional.empty();
   private Optional<FuseFileOutStream> mOutStream;
   private volatile boolean mClosed = false;
 
