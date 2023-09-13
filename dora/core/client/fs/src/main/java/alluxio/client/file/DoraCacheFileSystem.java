@@ -53,6 +53,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -438,13 +439,11 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
    * @return UfsBaseFileSystem based full path
    */
   public AlluxioURI convertToUfsPath(AlluxioURI alluxioPath) {
-    if (mDelegatedFileSystem instanceof UfsBaseFileSystem) {
-      UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
-      AlluxioURI rootUFS = under.getRootUFS();
-      return convertAlluxioPathToUfsPath(alluxioPath, rootUFS);
-    } else {
-      return alluxioPath;
-    }
+    Preconditions.checkArgument(mDelegatedFileSystem instanceof UfsBaseFileSystem,
+        "FileSystem is not UfsBaseFileSystem");
+    UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
+    AlluxioURI rootUFS = under.getRootUFS();
+    return convertAlluxioPathToUfsPath(alluxioPath, rootUFS);
   }
 
   /**
@@ -456,12 +455,10 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
    * @return an Alluxio path
    */
   public AlluxioURI convertToAlluxioPath(AlluxioURI ufsPath) {
-    if (mDelegatedFileSystem instanceof UfsBaseFileSystem) {
-      AlluxioURI rootUfs = ((UfsBaseFileSystem) mDelegatedFileSystem).getRootUFS();
-      return convertUfsPathToAlluxioPath(ufsPath, rootUfs);
-    } else {
-      return ufsPath;
-    }
+    Preconditions.checkArgument(mDelegatedFileSystem instanceof UfsBaseFileSystem,
+        "FileSystem is not UfsBaseFileSystem");
+    AlluxioURI rootUfs = ((UfsBaseFileSystem) mDelegatedFileSystem).getRootUFS();
+    return convertUfsPathToAlluxioPath(ufsPath, rootUfs);
   }
 
   @Override
