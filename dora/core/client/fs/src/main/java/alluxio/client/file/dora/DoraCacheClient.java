@@ -149,7 +149,7 @@ public class DoraCacheClient {
   public DoraCachePositionReader createNettyPositionReader(URIStatus status,
       Protocol.OpenUfsBlockOptions ufsOptions,
       CloseableSupplier<PositionReader> externalPositionReader) {
-    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.toString());
+    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getUfsPath());
     // Construct the partial read request
     NettyDataReader reader = createNettyDataReader(workerNetAddress, ufsOptions);
     return new DoraCachePositionReader(reader, status.getLength(), externalPositionReader);
