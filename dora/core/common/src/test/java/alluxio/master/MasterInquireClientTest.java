@@ -19,8 +19,6 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterInquireClient.ConnectDetails;
 import alluxio.master.SingleMasterInquireClient.SingleMasterConnectDetails;
-import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
-import alluxio.master.journal.JournalType;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -66,30 +64,6 @@ public final class MasterInquireClientTest {
           new SingleMasterConnectDetails(InetSocketAddress.createUnresolved(host, port));
       assertCurrentConnectString(cs);
       assertEquals("testhost:123", cs.toString());
-    }
-  }
-
-  @Test
-  public void zkConnectString() throws Exception {
-    String zkAddr = "zkAddr:1234";
-    String leaderPath = "/my/leader/path";
-    try (Closeable c = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
-      {
-        put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
-        put(PropertyKey.ZOOKEEPER_ADDRESS, zkAddr);
-        put(PropertyKey.ZOOKEEPER_LEADER_PATH, leaderPath);
-      }
-    }, mConfiguration).toResource()) {
-      ConnectDetails singleConnect = new SingleMasterConnectDetails(
-          NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConfiguration));
-      assertCurrentConnectString(singleConnect);
-      try (Closeable c2 =
-          new ConfigurationRule(PropertyKey.ZOOKEEPER_ENABLED, true, mConfiguration)
-              .toResource()) {
-        ConnectDetails zkConnect = new ZkMasterConnectDetails(zkAddr, leaderPath);
-        assertCurrentConnectString(zkConnect);
-        assertEquals("zk@zkAddr:1234/my/leader/path", zkConnect.toString());
-      }
     }
   }
 

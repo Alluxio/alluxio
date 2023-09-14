@@ -63,7 +63,6 @@ public final class UpdateCheck {
   static final String INODE_METASTORE_ROCKS_KEY = "inodeRocks";
   static final String BLOCK_METASTORE_ROCKS_KEY = "blockRocks";
   static final String UNSAFE_PERSIST_KEY = "unsafePersist";
-  static final String ZOOKEEPER_KEY = "zookeeper";
 
   /**
    * @param id the id of the current Alluxio identity (e.g. cluster id, instance id)
@@ -156,7 +155,6 @@ public final class UpdateCheck {
     addIfTrue(FeatureUtils.isEmbeddedJournal(), info, EMBEDDED_KEY);
     addIfTrue(FeatureUtils.isInodeStoreRocks(), info, INODE_METASTORE_ROCKS_KEY);
     addIfTrue(FeatureUtils.isBlockStoreRocks(), info, BLOCK_METASTORE_ROCKS_KEY);
-    addIfTrue(FeatureUtils.isZookeeperEnabled(), info, ZOOKEEPER_KEY);
     addIfTrue(FeatureUtils.isBackupDelegationEnabled(), info, BACKUP_DELEGATION_KEY);
     addIfTrue(FeatureUtils.isDailyBackupEnabled(), info, DAILY_BACKUP_KEY);
     addIfTrue(!FeatureUtils.isPersistenceBlacklistEmpty(), info, PERSIST_BLACK_LIST_KEY);

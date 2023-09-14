@@ -195,18 +195,6 @@ public class UpdateCheckTest {
   }
 
   @Test
-  public void featureStringZookeeper() {
-    List<String> info = new ArrayList<>();
-    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, true);
-    UpdateCheck.addUserAgentFeatures(info);
-    Assert.assertTrue(listContainsTarget(info, UpdateCheck.ZOOKEEPER_KEY));
-    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, false);
-    info.clear();
-    UpdateCheck.addUserAgentFeatures(info);
-    Assert.assertFalse(listContainsTarget(info, UpdateCheck.ZOOKEEPER_KEY));
-  }
-
-  @Test
   public void featureStringBackupDelegation() {
     List<String> info = new ArrayList<>();
     Configuration.set(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, true);

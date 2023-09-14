@@ -19,9 +19,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.master.journal.JournalType;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,17 +37,6 @@ public final class MultiProcessClusterTest {
         .setClusterName("simpleCluster")
         .setNumMasters(1)
         .setNumWorkers(1)
-        .build();
-    clusterVerification();
-  }
-
-  @Test
-  public void zookeeper() throws Exception {
-    mCluster = MultiProcessCluster.newBuilder(PortCoordination.MULTI_PROCESS_ZOOKEEPER)
-        .setClusterName("zookeeper")
-        .setNumMasters(3)
-        .setNumWorkers(2)
-        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         .build();
     clusterVerification();
   }

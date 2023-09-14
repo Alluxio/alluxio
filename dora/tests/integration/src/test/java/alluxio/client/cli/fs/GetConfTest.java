@@ -131,11 +131,11 @@ public final class GetConfTest {
   public void getConfWithInvalidConf() throws Exception {
     try (Closeable p = new SystemPropertyRule(ImmutableMap.of(
         PropertyKey.CONF_VALIDATION_ENABLED.toString(), "false",
-        PropertyKey.ZOOKEEPER_ENABLED.toString(), "true")).toResource()) {
+        PropertyKey.MASTER_HOSTNAME.toString(), "host")).toResource()) {
       Configuration.reloadProperties();
       ClientContext ctx = ClientContext.create(Configuration.global());
       assertEquals(0, GetConf.getConf(ctx,
-          PropertyKey.ZOOKEEPER_ENABLED.toString()));
+          PropertyKey.MASTER_HOSTNAME.toString()));
       assertEquals("true\n", mOutputStream.toString());
     } finally {
       Configuration.reloadProperties();

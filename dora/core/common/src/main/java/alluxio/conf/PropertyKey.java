@@ -41,7 +41,6 @@ import alluxio.grpc.Scope;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.master.GraceMode;
-import alluxio.master.ZookeeperConnectionErrorPolicy;
 import alluxio.master.file.MetadataSyncTraversalOrder;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.MetastoreType;
@@ -980,74 +979,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey ZOOKEEPER_ADDRESS =
-      stringBuilder(Name.ZOOKEEPER_ADDRESS)
-          .setDescription("Address of ZooKeeper.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.ALL)
-          .build();
-  public static final PropertyKey ZOOKEEPER_CONNECTION_TIMEOUT =
-      durationBuilder(Name.ZOOKEEPER_CONNECTION_TIMEOUT)
-          .setDefaultValue("15s") // matches Zookeeper's default
-          .setDescription("Connection timeout for Alluxio (job) masters to select "
-              + "the leading (job) master when connecting to Zookeeper")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey ZOOKEEPER_ELECTION_PATH =
-      stringBuilder(Name.ZOOKEEPER_ELECTION_PATH)
-          .setDefaultValue("/alluxio/election")
-          .setDescription("Election directory in ZooKeeper.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.ALL)
-          .build();
-  public static final PropertyKey ZOOKEEPER_ENABLED =
-      booleanBuilder(Name.ZOOKEEPER_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("If true, setup master fault tolerant mode using ZooKeeper.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.ALL)
-          .build();
-  public static final PropertyKey ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
-      intBuilder(Name.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT)
-          .setDefaultValue(10)
-          .setDescription("The number of retries to inquire leader from ZooKeeper.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.ALL)
-          .build();
-  public static final PropertyKey ZOOKEEPER_LEADER_PATH =
-      stringBuilder(Name.ZOOKEEPER_LEADER_PATH)
-          .setDefaultValue("/alluxio/leader")
-          .setDescription("Leader directory in ZooKeeper.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.ALL)
-          .build();
-  public static final PropertyKey ZOOKEEPER_SESSION_TIMEOUT =
-      durationBuilder(Name.ZOOKEEPER_SESSION_TIMEOUT)
-          .setDefaultValue("60s") // matches Zookeeper's default
-          .setDescription("Session timeout to use when connecting to Zookeeper")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey ZOOKEEPER_AUTH_ENABLED =
-      booleanBuilder(Name.ZOOKEEPER_AUTH_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("If true, enable client-side Zookeeper authentication.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.ALL)
-          .build();
-  public static final PropertyKey ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY =
-      enumBuilder(Name.ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY,
-          ZookeeperConnectionErrorPolicy.class)
-          .setDefaultValue(ZookeeperConnectionErrorPolicy.SESSION)
-          .setDescription("Connection error policy defines how errors on zookeeper connections "
-              + "to be treated in leader election. "
-              + "STANDARD policy treats every connection event as failure."
-              + "SESSION policy relies on zookeeper sessions for judging failures, "
-              + "helping leader to retain its status, as long as its session is protected.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
-          .build();
+
   /**
    * UFS related properties.
    */
@@ -2565,9 +2497,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_RPC_ADDRESSES =
       listBuilder(Name.MASTER_RPC_ADDRESSES)
           .setDescription("A list of comma-separated host:port RPC addresses where the client "
-              + "should look for masters when using multiple masters without Zookeeper. This "
-              + "property is not used when Zookeeper is enabled, since Zookeeper already stores "
-              + "the master addresses.")
+              + "should look for masters when using multiple masters.")
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey MASTER_FAILOVER_COLLECT_INFO =
@@ -6744,13 +6674,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
 
-  public static final PropertyKey ZOOKEEPER_JOB_ELECTION_PATH =
-      stringBuilder(Name.ZOOKEEPER_JOB_ELECTION_PATH)
-          .setDefaultValue("/alluxio/job_election").build();
-  public static final PropertyKey ZOOKEEPER_JOB_LEADER_PATH =
-      stringBuilder(Name.ZOOKEEPER_JOB_LEADER_PATH)
-          .setDefaultValue("/alluxio/job_leader").build();
-
   //
   // Membership related properties
   //
@@ -7127,18 +7050,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WEB_THREAD_DUMP_TO_LOG = "alluxio.web.threaddump.log.enabled";
     public static final String WEB_UI_ENABLED = "alluxio.web.ui.enabled";
     public static final String WORK_DIR = "alluxio.work.dir";
-    public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
-    public static final String ZOOKEEPER_CONNECTION_TIMEOUT =
-        "alluxio.zookeeper.connection.timeout";
-    public static final String ZOOKEEPER_ELECTION_PATH = "alluxio.zookeeper.election.path";
-    public static final String ZOOKEEPER_ENABLED = "alluxio.zookeeper.enabled";
-    public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
-        "alluxio.zookeeper.leader.inquiry.retry";
-    public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
-    public static final String ZOOKEEPER_SESSION_TIMEOUT = "alluxio.zookeeper.session.timeout";
-    public static final String ZOOKEEPER_AUTH_ENABLED = "alluxio.zookeeper.auth.enabled";
-    public static final String ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY =
-        "alluxio.zookeeper.leader.connection.error.policy";
+
     //
     // UFS related properties
     //
@@ -8421,9 +8333,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String JOB_WORKER_WEB_BIND_HOST = "alluxio.job.worker.web.bind.host";
     public static final String JOB_WORKER_WEB_PORT = "alluxio.job.worker.web.port";
 
-    public static final String ZOOKEEPER_JOB_ELECTION_PATH = "alluxio.zookeeper.job.election.path";
-    public static final String ZOOKEEPER_JOB_LEADER_PATH = "alluxio.zookeeper.job.leader.path";
-
     // Membership related properties
     public static final String ALLUXIO_CLUSTER_NAME = "alluxio.cluster.name";
     public static final String ETCD_ENDPOINTS = "alluxio.etcd.endpoints";
@@ -8521,7 +8430,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   private static final String NAMESERVICE_PATTERN_STRING = "([a-zA-Z_\\-0-9.]+)";
   private static final String ALLUXIO_MASTER_ID_PATTERN_STRING = "([a-zA-Z_\\-0-9.]+)";
-  private static final String ZOOKEEPER_NODE_ID_PATTERN_STRING = "([a-zA-Z_\\-0-9.]+)";
 
   /**
    * A set of templates to generate the names of parameterized properties given
@@ -8548,12 +8456,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     MASTER_LOGICAL_RPC_ADDRESS("alluxio.master.rpc.address.%s.%s",
         String.format("alluxio\\.master\\.rpc\\.address\\.%s\\.%s",
             NAMESERVICE_PATTERN_STRING, ALLUXIO_MASTER_ID_PATTERN_STRING)),
-    MASTER_LOGICAL_ZOOKEEPER_NAMESERVICES("alluxio.master.zookeeper.nameservices.%s",
-        String.format("alluxio\\.master\\.zookeeper\\.nameservices\\.%s",
-            NAMESERVICE_PATTERN_STRING)),
-    MASTER_LOGICAL_ZOOKEEPER_ADDRESS("alluxio.master.zookeeper.address.%s.%s",
-        String.format("alluxio\\.master\\.zookeeper\\.address\\.%s\\.%s",
-            NAMESERVICE_PATTERN_STRING, ZOOKEEPER_NODE_ID_PATTERN_STRING)),
     MASTER_MOUNT_TABLE_ALLUXIO("alluxio.master.mount.table.%s.alluxio",
         "alluxio\\.master\\.mount\\.table.(\\w+)\\.alluxio",
         PropertyType.STRING),

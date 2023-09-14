@@ -55,15 +55,6 @@ public final class FeatureUtils {
   }
 
   /**
-   * Utility to check Zookeeper is enabled.
-   *
-   * @return true, if Zookeeper is enabled
-   */
-  public static boolean isZookeeperEnabled() {
-    return Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
-  }
-
-  /**
    * Utility to check back delegation is enabled.
    *
    * @return true, if backup delegation is enabled

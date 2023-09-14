@@ -36,7 +36,6 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.JobMasterWebServer;
 import alluxio.web.WebServer;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,11 +116,7 @@ public class AlluxioJobMasterProcess extends AlluxioSimpleMasterProcess {
           .setLocation(URIUtils.appendPathOrDie(journalLocation, Constants.JOB_JOURNAL_NAME))
           .build(ProcessType.JOB_MASTER);
       final PrimarySelector primarySelector;
-      if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-        Preconditions.checkState(!(journalSystem instanceof RaftJournalSystem),
-            "Raft journal cannot be used with Zookeeper enabled");
-        primarySelector = PrimarySelector.Factory.createZkJobPrimarySelector();
-      } else if (journalSystem instanceof RaftJournalSystem) {
+      if (journalSystem instanceof RaftJournalSystem) {
         primarySelector = ((RaftJournalSystem) journalSystem).getPrimarySelector();
       } else {
         primarySelector = new UfsJournalSingleMasterPrimarySelector();

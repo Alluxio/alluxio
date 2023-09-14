@@ -24,10 +24,7 @@ import java.util.regex.Pattern;
 public interface Authority extends Comparable<Authority>, Serializable {
   Logger LOG = LoggerFactory.getLogger(Authority.class);
   Pattern LOGICAL_MASTER_AUTH = Pattern.compile("^ebj@([a-zA-Z_\\-0-9.]+)$");
-  Pattern LOGICAL_ZOOKEEPER_AUTH = Pattern.compile("^zk@([a-zA-Z_\\-0-9.]+)$");
   Pattern SINGLE_MASTER_AUTH = Pattern.compile("^([^:,;]+):(\\d+)$");
-  // We allow zookeeper/multi_master authorities to be delimited by ',' ';' or '+'.
-  Pattern ZOOKEEPER_AUTH = Pattern.compile("^zk@([^:,;+]+:\\d+([,;+][^:,;+]+:\\d+)*)$");
   Pattern MULTI_MASTERS_AUTH = Pattern.compile("^[^:,;+]+:\\d+([,;+][^:,;+]+:\\d+)+$");
 
   /**
@@ -40,21 +37,13 @@ public interface Authority extends Comparable<Authority>, Serializable {
     if (authority == null || authority.length() == 0) {
       return NoAuthority.INSTANCE;
     }
-    Matcher matcher = ZOOKEEPER_AUTH.matcher(authority);
-    if (matcher.matches()) {
-      return new ZookeeperAuthority(matcher.group(1).replaceAll("[;+]", ","));
-    }
-    matcher = SINGLE_MASTER_AUTH.matcher(authority);
+    Matcher matcher = SINGLE_MASTER_AUTH.matcher(authority);
     if (matcher.matches()) {
       return new SingleMasterAuthority(matcher.group(1), Integer.parseInt(matcher.group(2)));
     }
     matcher = MULTI_MASTERS_AUTH.matcher(authority);
     if (matcher.matches()) {
       return new MultiMasterAuthority(authority.replaceAll("[;+]", ","));
-    }
-    matcher = LOGICAL_ZOOKEEPER_AUTH.matcher(authority);
-    if (matcher.matches()) {
-      return new ZookeeperLogicalAuthority(matcher.group(1));
     }
     matcher = LOGICAL_MASTER_AUTH.matcher(authority);
     if (matcher.matches()) {

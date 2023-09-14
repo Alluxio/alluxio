@@ -221,6 +221,17 @@ public final class MultiMasterEmbeddedJournalLocalAlluxioCluster
   }
 
   /**
+   * Waits for the a new master to start until a timeout occurs.
+   *
+   * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
+   */
+
+  public void waitForNewMaster(int timeoutMs)
+      throws TimeoutException, InterruptedException {
+    waitForPrimaryMasterServing(timeoutMs);
+  }
+
+  /**
    * Waits for the primary master to start until a timeout occurs.
    *
    * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception

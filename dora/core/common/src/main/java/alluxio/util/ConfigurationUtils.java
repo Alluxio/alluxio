@@ -175,9 +175,7 @@ public final class ConfigurationUtils {
    *         explicit configuration or through zookeeper
    */
   public static boolean jobMasterHostConfigured(AlluxioConfiguration conf) {
-    boolean usingZk = conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
-        && conf.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
-    return conf.isSet(PropertyKey.JOB_MASTER_HOSTNAME) || usingZk
+    return conf.isSet(PropertyKey.JOB_MASTER_HOSTNAME)
         || getJobMasterRpcAddresses(conf).size() > 1;
   }
 
@@ -208,8 +206,7 @@ public final class ConfigurationUtils {
   private static String getHostNotConfiguredMessage(String serviceName, String masterName,
       PropertyKey masterHostnameKey, PropertyKey embeddedJournalKey) {
     return ExceptionMessage.UNABLE_TO_DETERMINE_MASTER_HOSTNAME.getMessage(serviceName, masterName,
-        masterHostnameKey.getName(), PropertyKey.ZOOKEEPER_ENABLED.getName(),
-        PropertyKey.ZOOKEEPER_ADDRESS.getName(), embeddedJournalKey.getName());
+        embeddedJournalKey.getName());
   }
 
   /**
@@ -235,9 +232,7 @@ public final class ConfigurationUtils {
    *         explicit configuration or through zookeeper
    */
   public static boolean masterHostConfigured(AlluxioConfiguration conf) {
-    boolean usingZk = conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
-        && conf.isSet(PropertyKey.ZOOKEEPER_ADDRESS);
-    return conf.isSet(PropertyKey.MASTER_HOSTNAME) || usingZk
+    return conf.isSet(PropertyKey.MASTER_HOSTNAME)
         || getMasterRpcAddresses(conf).size() > 1;
   }
 
@@ -246,7 +241,7 @@ public final class ConfigurationUtils {
    * @return whether the configuration specifies to run in ha mode
    */
   public static boolean isHaMode(AlluxioConfiguration conf) {
-    return conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED) || getMasterRpcAddresses(conf).size() > 1;
+    return getMasterRpcAddresses(conf).size() > 1;
   }
 
   /**
@@ -262,9 +257,6 @@ public final class ConfigurationUtils {
    * @return the alluxio scheme and authority determined by the configuration
    */
   public static String getSchemeAuthority(AlluxioConfiguration conf) {
-    if (conf.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-      return Constants.HEADER + "zk@" + conf.get(PropertyKey.ZOOKEEPER_ADDRESS);
-    }
     List<InetSocketAddress> addresses = getMasterRpcAddresses(conf);
 
     if (addresses.size() > 1) {

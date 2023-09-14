@@ -11,10 +11,7 @@
 
 package alluxio.master;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.NodeState;
-import alluxio.master.journal.ufs.UfsJournalMultiMasterPrimarySelector;
 import alluxio.util.interfaces.Scoped;
 
 import java.net.InetSocketAddress;
@@ -24,34 +21,6 @@ import java.util.function.Consumer;
  * Interface for a class which can determine whether the local master is the primary.
  */
 public interface PrimarySelector {
-  /**
-   * Factory for creating primary selectors.
-   */
-  final class Factory {
-    /**
-     * @return a primary selector based on zookeeper configuration
-     */
-    public static PrimarySelector createZkPrimarySelector() {
-      String zkAddress = Configuration.getString(PropertyKey.ZOOKEEPER_ADDRESS);
-      String zkElectionPath = Configuration.getString(PropertyKey.ZOOKEEPER_ELECTION_PATH);
-      String zkLeaderPath = Configuration.getString(PropertyKey.ZOOKEEPER_LEADER_PATH);
-      return new UfsJournalMultiMasterPrimarySelector(zkAddress, zkElectionPath, zkLeaderPath);
-    }
-
-    /**
-     * @return a job master primary selector based on zookeeper configuration
-     */
-    public static PrimarySelector createZkJobPrimarySelector() {
-      String zkAddress = Configuration.getString(PropertyKey.ZOOKEEPER_ADDRESS);
-      String zkElectionPath = Configuration.getString(
-          PropertyKey.ZOOKEEPER_JOB_ELECTION_PATH);
-      String zkLeaderPath = Configuration.getString(PropertyKey.ZOOKEEPER_JOB_LEADER_PATH);
-      return new UfsJournalMultiMasterPrimarySelector(zkAddress, zkElectionPath, zkLeaderPath);
-    }
-
-    private Factory() {} // Not intended for instantiation.
-  }
-
   /**
    * Starts the primary selector.
    *

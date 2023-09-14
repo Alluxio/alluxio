@@ -11,7 +11,6 @@
 
 package alluxio.hadoop;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -20,7 +19,6 @@ import alluxio.TestLoggerRule;
 import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
 
 import org.junit.After;
 import org.junit.Ignore;
@@ -73,21 +71,6 @@ public final class AbstractFileSystemApiTest {
     URI unknown = URI.create("alluxio://localhost:12345/");
     FileSystem.get(unknown, new org.apache.hadoop.conf.Configuration());
     assertFalse(loggedAuthorityWarning());
-  }
-
-  @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Jiacheng",
-      comment = "fix test because the URI is general")
-  @Ignore
-  public void parseZkUriWithPlusDelimiters() throws Exception {
-    org.apache.hadoop.fs.FileSystem fs = FileSystem.get(URI.create("alluxio://zk@a:0+b:1+c:2/"),
-        new org.apache.hadoop.conf.Configuration());
-    assertTrue(fs instanceof AbstractFileSystem);
-    AbstractFileSystem afs = (AbstractFileSystem) fs;
-    assertTrue(afs.mFileSystem.getConf()
-        .getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
-    assertEquals("a:0,b:1,c:2", afs.mFileSystem.getConf()
-        .get(PropertyKey.ZOOKEEPER_ADDRESS));
   }
 
   private boolean loggedAuthorityWarning() {

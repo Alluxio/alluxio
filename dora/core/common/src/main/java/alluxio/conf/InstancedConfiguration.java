@@ -391,7 +391,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
     checkTimeouts();
     checkUserFileBufferBytes();
-    checkZkConfiguration();
     checkCheckpointZipConfig();
   }
 
@@ -514,18 +513,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     checkState((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
         "Invalid value of %s: %s",
         PropertyKey.Name.USER_FILE_BUFFER_BYTES, usrFileBufferBytes);
-  }
-
-  /**
-   * Validates Zookeeper-related configuration and prints warnings for possible sources of error.
-   *
-   * @throws IllegalStateException if invalid Zookeeper configuration is encountered
-   */
-  private void checkZkConfiguration() {
-    checkState(
-        isSet(PropertyKey.ZOOKEEPER_ADDRESS) == getBoolean(PropertyKey.ZOOKEEPER_ENABLED),
-        "Inconsistent Zookeeper configuration; %s should be set if and only if %s is true",
-        PropertyKey.Name.ZOOKEEPER_ADDRESS, PropertyKey.Name.ZOOKEEPER_ENABLED);
   }
 
   /**

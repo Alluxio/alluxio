@@ -13,8 +13,6 @@ package alluxio.master.meta;
 
 import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupPStatus;
 import alluxio.grpc.BackupStatusPRequest;
@@ -120,13 +118,6 @@ public final class MetaMasterClientServiceHandler
           case WORKER_ADDRESSES:
             masterInfo.addAllWorkerAddresses(mMetaMaster.getWorkerAddresses().stream()
                 .map(Address::toProto).collect(Collectors.toList()));
-            break;
-          case ZOOKEEPER_ADDRESSES:
-            if (Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
-              masterInfo.addAllZookeeperAddresses(
-                  Arrays.asList(Configuration.getString(PropertyKey.ZOOKEEPER_ADDRESS)
-                      .split(",")));
-            }
             break;
           case RAFT_ADDRESSES:
             if (mMetaMaster.getMasterContext().getJournalSystem() instanceof RaftJournalSystem) {

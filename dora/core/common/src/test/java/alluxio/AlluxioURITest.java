@@ -23,8 +23,6 @@ import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.NoAuthority;
 import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.UnknownAuthority;
-import alluxio.uri.ZookeeperAuthority;
-import alluxio.uri.ZookeeperLogicalAuthority;
 import alluxio.util.OSUtils;
 
 import com.google.common.testing.EqualsTester;
@@ -169,50 +167,6 @@ public class AlluxioURITest {
     assertTrue(uri.getAuthority() instanceof MultiMasterAuthority);
     MultiMasterAuthority authority = (MultiMasterAuthority) uri.getAuthority();
     assertEquals("host1:526,host2:54325,host3:624", authority.getMasterAddresses());
-  }
-
-  @Test
-  public void basicZookeeperUri() {
-    AlluxioURI uri =
-        new AlluxioURI("alluxio://zk@host1:2181,host2:2181,host3:2181/xy z/a b c");
-    assertEquals(uri,
-        new AlluxioURI("alluxio://zk@host1:2181,host2:2181,host3:2181/xy z/a b c"));
-    assertEquals("alluxio", uri.getScheme());
-
-    assertEquals("zk@host1:2181,host2:2181,host3:2181", uri.getAuthority().toString());
-    assertTrue(uri.getAuthority() instanceof ZookeeperAuthority);
-    ZookeeperAuthority zkAuthority = (ZookeeperAuthority) uri.getAuthority();
-    assertEquals("host1:2181,host2:2181,host3:2181", zkAuthority.getZookeeperAddress());
-
-    assertEquals(2, uri.getDepth());
-    assertEquals("a b c", uri.getName());
-    assertEquals("alluxio://zk@host1:2181,host2:2181,host3:2181/xy z",
-        uri.getParent().toString());
-    assertEquals("alluxio://zk@host1:2181,host2:2181,host3:2181/",
-        uri.getParent().getParent().toString());
-    assertEquals("/xy z/a b c", uri.getPath());
-    assertTrue(uri.hasAuthority());
-    assertTrue(uri.hasScheme());
-    assertTrue(uri.isAbsolute());
-    assertTrue(uri.isPathAbsolute());
-    assertEquals("alluxio://zk@host1:2181,host2:2181,host3:2181/xy z/a b c/d",
-        uri.join("/d").toString());
-    assertEquals("alluxio://zk@host1:2181,host2:2181,host3:2181/xy z/a b c/d",
-        uri.join(new AlluxioURI("/d"))
-        .toString());
-    assertEquals("alluxio://zk@host1:2181,host2:2181,host3:2181/xy z/a b c",
-        uri.toString());
-  }
-
-  @Test
-  public void semicolonZookeeperUri() {
-    AlluxioURI uri =
-        new AlluxioURI("alluxio://zk@host1:2181;host2:2181;host3:2181/xy z/a b c");
-    assertTrue(uri.hasAuthority());
-    assertEquals("zk@host1:2181,host2:2181,host3:2181", uri.getAuthority().toString());
-    assertTrue(uri.getAuthority() instanceof ZookeeperAuthority);
-    ZookeeperAuthority zkAuthority = (ZookeeperAuthority) uri.getAuthority();
-    assertEquals("host1:2181,host2:2181,host3:2181", zkAuthority.getZookeeperAddress());
   }
 
   /**
@@ -542,13 +496,6 @@ public class AlluxioURITest {
     assertTrue(new AlluxioURI("file", Authority.fromString("localhost:8080"), "/b/c").getAuthority()
         instanceof SingleMasterAuthority);
 
-    assertTrue(new AlluxioURI("file", Authority.fromString("zk@host:2181"), "/b/c").getAuthority()
-        instanceof ZookeeperAuthority);
-    assertTrue(new AlluxioURI("alluxio://zk@host1:2181,host2:2181,host3:2181/b/c").getAuthority()
-        instanceof ZookeeperAuthority);
-    assertTrue(new AlluxioURI("alluxio://zk@host1:2181;host2:2181;host3:2181/b/c").getAuthority()
-        instanceof ZookeeperAuthority);
-
     assertTrue(new AlluxioURI("file", Authority.fromString(""), "/b/c").getAuthority()
         instanceof NoAuthority);
     assertTrue(new AlluxioURI("file", null, "/b/c").getAuthority()
@@ -560,9 +507,6 @@ public class AlluxioURITest {
 
     assertTrue(new AlluxioURI("file", Authority.fromString("ebj@logical"), "/b/c").getAuthority()
         instanceof EmbeddedLogicalAuthority);
-
-    assertTrue(new AlluxioURI("file", Authority.fromString("zk@logical"), "/b/c").getAuthority()
-        instanceof ZookeeperLogicalAuthority);
 
     assertTrue(new AlluxioURI("file", Authority.fromString("localhost"), "/b/c").getAuthority()
         instanceof UnknownAuthority);
