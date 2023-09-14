@@ -46,7 +46,9 @@ func (c *LoadCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Load.CommandName,
 		Short: "Submit or manage load jobs",
-		Long:  ``,
+		Long: `The load command moves data from the under storage system into Alluxio storage.
+For example, load can be used to prefetch data for analytics jobs.
+If load is run on a directory, files in the directory will be recursively loaded.`,
 		Example: `# Submit a load job
 $ ./bin/alluxio job load /path --submit
 
