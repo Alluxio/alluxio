@@ -252,6 +252,13 @@ public class DoraCacheClient {
     }
   }
 
+  /**
+   * Get a map that maps file path to the workers list.
+   * @param path the file path to check
+   * @param options the get status options
+   * @return a map that maps file path to the workers list
+   * @throws IOException
+   */
   public Map<String, List<WorkerNetAddress>> checkFileLocation(String path,
       GetStatusPOptions options) throws IOException {
     Map<String, List<WorkerNetAddress>> pathDistributionMap = new HashMap<>();
@@ -275,6 +282,7 @@ public class DoraCacheClient {
             pathDistributionMap.put(path, assignedWorkers);
           }
         } catch (Exception e) {
+          // ignore this exception
         }
       } catch (IOException e) {
         throw new RuntimeException(e);

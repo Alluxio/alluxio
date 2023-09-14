@@ -45,6 +45,7 @@ import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadFileFailure;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;

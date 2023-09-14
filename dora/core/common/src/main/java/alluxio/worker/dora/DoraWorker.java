@@ -189,5 +189,9 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    */
   void setAttribute(String path, SetAttributePOptions options) throws IOException;
 
+  /**
+   * Get the address of the Dora Worker.
+   * @return worker address
+   */
   WorkerNetAddress getAddress();
 }

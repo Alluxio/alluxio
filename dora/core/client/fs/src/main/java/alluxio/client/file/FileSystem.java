@@ -798,16 +798,15 @@ public interface FileSystem extends Closeable {
   String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose);
 
-
   /**
-   * @return
+   * @return the instance of {@link DoraCacheFileSystem}
    */
   default @Nullable DoraCacheFileSystem getDoraCacheFileSystem() {
     return null;
   }
 
   /**
-   * @return
+   * @return the instance of {@link UfsBaseFileSystem}
    */
   default @Nullable UfsBaseFileSystem getUfsBaseFileSystem() {
     return null;

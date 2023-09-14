@@ -498,21 +498,46 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     }
   }
 
+  /**
+   * Get the worker address which the specified file locates at.
+   * @param path the file path
+   * @return the worker address which the file locates at
+   */
   public WorkerNetAddress getWorkerNetAddress(AlluxioURI path) {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
     return mDoraClient.getWorkerNetAddress(ufsFullPath.toString());
   }
 
+  /**
+   * Check the location of the specified path.
+   * @param path the file path
+   * @return a map that maps the file path to a list of workers
+   * @throws IOException
+   */
   public Map<String, List<WorkerNetAddress>> checkFileLocation(AlluxioURI path) throws IOException {
     return checkFileLocation(path, GetStatusPOptions.getDefaultInstance());
   }
 
+  /**
+   * Check the location of the specified path.
+   * @param path the file path
+   * @param options the get status options
+   * @return a map that maps the file path to a list of workers
+   * @throws IOException
+   */
   public Map<String, List<WorkerNetAddress>> checkFileLocation(AlluxioURI path,
       GetStatusPOptions options) throws IOException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
     return mDoraClient.checkFileLocation(ufsFullPath.toString(), options);
   }
 
+  /**
+   * Get the location information of the specified file.
+   * @param path the path to get the location information
+   * @return the location information of the specified file
+   * @throws IOException
+   * @throws AlluxioException
+   */
   @Override
   public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
       throws IOException, AlluxioException {
@@ -522,6 +547,13 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     return getBlockLocations(status);
   }
 
+  /**
+   * Get the location information of the specified file.
+   * @param status the uri of the file
+   * @return the location information of the specified file
+   * @throws IOException
+   * @throws AlluxioException
+   */
   @Override
   public List<BlockLocationInfo> getBlockLocations(URIStatus status)
       throws IOException, AlluxioException {
@@ -557,6 +589,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
   /**
    * Dora Cache file system implementation.
+   * @param enabled is ufs fall back enabled
    */
   public void setUfsFallbackEnabled(boolean enabled) {
     mUfsFallbackEnabled = enabled;
