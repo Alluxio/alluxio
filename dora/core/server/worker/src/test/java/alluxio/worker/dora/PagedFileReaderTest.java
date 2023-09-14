@@ -157,7 +157,7 @@ public class PagedFileReaderTest {
   @Test
   public void read() throws IOException {
     if (mFileLen > 0) {
-      mPagedFileReader.setmPos(mFileLen);
+      mPagedFileReader.setPosition(mFileLen);
       int testNum = Math.min(mFileLen, mMinTestNum);
       for (int i = 0; i < testNum; i++) {
         int offset = mRandom.nextInt(mFileLen);
@@ -177,7 +177,7 @@ public class PagedFileReaderTest {
     int testNum = Math.min(mFileLen, mMinTestNum);
     for (int i = 0; i < testNum; i++) {
       int offset = mRandom.nextInt(mFileLen);
-      mPagedFileReader.setmPos(offset);
+      mPagedFileReader.setPosition(offset);
       ByteBuf byteBuf = Unpooled.buffer(mFileLen);
 
       int bytesRead = mPagedFileReader.transferTo(byteBuf);
