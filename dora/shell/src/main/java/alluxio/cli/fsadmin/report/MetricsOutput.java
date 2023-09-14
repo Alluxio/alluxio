@@ -35,6 +35,7 @@ public class MetricsOutput {
   private List<SerializableMetricInfo> mMetricsInfo;
 
   private class SerializableMetricInfo {
+    private static final String PER_MINUTE = "/min";
     private String mKey;
     private String mType;
     private String mValue;
@@ -50,7 +51,7 @@ public class MetricsOutput {
           // Bytes long can be transformed to human-readable format
           mValue = FormatUtils.getSizeFromBytes((long) doubleValue);
           if (mKey.contains(THROUGHPUT_METRIC_IDENTIFIER)) {
-            mValue = mValue + "/MIN";
+            mValue = mValue + PER_MINUTE;
           }
         } else if (DoubleMath.isMathematicalInteger(doubleValue)) {
           mValue = DECIMAL_FORMAT.format((long) doubleValue);

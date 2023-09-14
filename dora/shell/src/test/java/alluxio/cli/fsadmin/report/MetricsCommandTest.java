@@ -61,7 +61,7 @@ public class MetricsCommandTest {
   public void metrics() throws IOException {
     MetricsCommand metricsCommand = new MetricsCommand(mMetricsMasterClient, mPrintStream);
     metricsCommand.run();
-    checkIfOutputValid();
+    checkOutput();
   }
 
   /**
@@ -119,7 +119,7 @@ public class MetricsCommandTest {
   /**
    * Checks if the output is expected.
    */
-  private void checkIfOutputValid() throws JsonProcessingException {
+  private void checkOutput() throws JsonProcessingException {
     String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
     ObjectMapper mapper = new ObjectMapper();
     JsonNode metricsInfo = mapper.readTree(output).get("metricsInfo");

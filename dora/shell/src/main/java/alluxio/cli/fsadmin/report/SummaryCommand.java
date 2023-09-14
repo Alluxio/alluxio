@@ -33,11 +33,11 @@ import java.util.Set;
  * Prints Alluxio cluster summarized information.
  */
 public class SummaryCommand {
+  private static final Logger LOG = LoggerFactory.getLogger(SummaryCommand.class);
   private final MetaMasterClient mMetaMasterClient;
   private final BlockMasterClient mBlockMasterClient;
   private final PrintStream mPrintStream;
   private final String mDateFormatPattern;
-  private static final Logger LOG = LoggerFactory.getLogger(JobServiceMetricsCommand.class);
 
   /**
    * Creates a new instance of {@link SummaryCommand}.

@@ -11,7 +11,6 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.client.job.JobMasterClient;
 import alluxio.grpc.JobMasterStatus;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
@@ -19,7 +18,6 @@ import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.StatusSummary;
 import alluxio.util.CommonUtils;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -251,26 +249,29 @@ public class JobServiceOutput {
   /**
    * Creates a new instance of {@link JobServiceOutput}.
    *
-   * @param jobMasterClient job service info to parse from
+   * @param allMasterStatus status of all masters
+   * @param allWorkerHealth health info of all workers
+   * @param jobServiceSummary summary of job service
    * @param dateFormat specify the pattern of dates
    */
-  public JobServiceOutput(JobMasterClient jobMasterClient, String dateFormat) throws IOException {
+  public JobServiceOutput(List<JobMasterStatus> allMasterStatus,
+                          List<JobWorkerHealth> allWorkerHealth,
+                          JobServiceSummary jobServiceSummary,
+                          String dateFormat) {
     mMasterStatus = new ArrayList<>();
-    for (JobMasterStatus masterStatus : jobMasterClient.getAllMasterStatus()) {
+    for (JobMasterStatus masterStatus : allMasterStatus) {
       mMasterStatus.add(new SerializableJobMasterStatus(masterStatus, dateFormat));
     }
 
     mWorkerHealth = new ArrayList<>();
-    for (JobWorkerHealth workerHealth : jobMasterClient.getAllWorkerHealth()) {
+    for (JobWorkerHealth workerHealth : allWorkerHealth) {
       mWorkerHealth.add(new SerializableWorkerHealth(workerHealth));
     }
 
-    JobServiceSummary jobServiceSummary = jobMasterClient.getJobServiceSummary();
     mStatusSummary = new ArrayList<>();
     for (StatusSummary statusSummary : jobServiceSummary.getSummaryPerStatus()) {
       mStatusSummary.add(new SerializableStatusSummary(statusSummary));
     }
-
     mRecentModifiedJobs = new ArrayList<>();
     mRecentFailedJobs = new ArrayList<>();
     mLongestRunningJobs = new ArrayList<>();

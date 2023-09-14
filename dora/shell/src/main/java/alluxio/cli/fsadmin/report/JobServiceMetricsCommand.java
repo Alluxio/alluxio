@@ -12,6 +12,9 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.job.JobMasterClient;
+import alluxio.grpc.JobMasterStatus;
+import alluxio.job.wire.JobServiceSummary;
+import alluxio.job.wire.JobWorkerHealth;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +26,7 @@ import java.io.PrintStream;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -30,10 +34,10 @@ import java.util.Locale;
  */
 public class JobServiceMetricsCommand {
 
+  private static final Logger LOG = LoggerFactory.getLogger(JobServiceMetricsCommand.class);
   private final JobMasterClient mJobMasterClient;
   private final PrintStream mPrintStream;
   private final String mDateFormatPattern;
-  private static final Logger LOG = LoggerFactory.getLogger(JobServiceMetricsCommand.class);
 
   /**
    * Creates a new instance of {@link JobServiceMetricsCommand}.
@@ -60,7 +64,12 @@ public class JobServiceMetricsCommand {
    */
   public int run() throws IOException {
     ObjectMapper objectMapper = new ObjectMapper();
-    JobServiceOutput jobServiceInfo = new JobServiceOutput(mJobMasterClient, mDateFormatPattern);
+    List<JobMasterStatus> allMasterStatus = mJobMasterClient.getAllMasterStatus();
+    List<JobWorkerHealth> allWorkerHealth = mJobMasterClient.getAllWorkerHealth();
+    JobServiceSummary jobServiceSummary = mJobMasterClient.getJobServiceSummary();
+
+    JobServiceOutput jobServiceInfo = new JobServiceOutput(allMasterStatus, allWorkerHealth,
+        jobServiceSummary, mDateFormatPattern);
     try {
       String json = objectMapper.writeValueAsString(jobServiceInfo);
       mPrintStream.println(json);
