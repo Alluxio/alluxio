@@ -47,8 +47,8 @@ func (c *CheckCachingCommand) ToCommand() *cobra.Command {
             return c.Run(args)
         },
     })
-    cmd.Flags().IntVar(&c.sample, "sample", 0, "Number of threads used to copy files in parallel, defaults to 2 * CPU cores")
-    cmd.Flags().IntVar(&c.limit, "limit", 0, "Number of threads used to copy files in parallel, defaults to 2 * CPU cores")
+    cmd.Flags().IntVar(&c.sample, "sample", 0, "Sample ratio, 10 means sample 1 in every 10 files.")
+    cmd.Flags().IntVar(&c.limit, "limit", 0, "limit, default 1000")
     return cmd
 }
 
