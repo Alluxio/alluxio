@@ -14,8 +14,8 @@ package alluxio.stress.worker;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.TaskResult;
-
 import alluxio.util.FormatUtils;
+
 import org.HdrHistogram.Histogram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +70,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
       }
     }
 
-    if (result.mAllThroughput.isEmpty()){
+    if (result.mAllThroughput.isEmpty()) {
       for (WorkerBenchCoarseDataPoint dataPoint : result.mDataPoints) {
         mAllThroughput.addAll(new ArrayList<>(dataPoint.getThroughput()));
         dataPoint.clearThroughput();
@@ -220,7 +220,6 @@ public final class WorkerBenchTaskResult implements TaskResult {
    * From the collected operation data, calculates 100 percentiles.
    */
   public void calculatePercentiles() {
-    // TODO: implement percentile calculation for coarse data points
     Histogram throughputHistogram = new Histogram(
             FormatUtils.parseSpaceSize(mParameters.mFileSize),
             StressConstants.TIME_HISTOGRAM_PRECISION);

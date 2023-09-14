@@ -16,16 +16,18 @@ import alluxio.collections.Pair;
 import alluxio.stress.Parameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.Summary;
-import alluxio.stress.TaskResult;
 import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.graph.LineGraph;
-
 import alluxio.util.FormatUtils;
+
 import com.google.common.base.Splitter;
 import org.HdrHistogram.Histogram;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**

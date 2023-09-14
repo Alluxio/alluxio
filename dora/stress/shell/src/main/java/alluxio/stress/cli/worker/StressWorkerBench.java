@@ -43,7 +43,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -476,9 +480,11 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
           if (bytesRead > 0) {
             mResult.setIOBytes(mResult.getIOBytes() + bytesRead);
             throughputList.add(bytesRead / duration);
-            int currentSlice = (int)(startMs / FormatUtils.parseTimeSize(mParameters.mSliceLength));
-            while (currentSlice > lastSlice){
-              LOG.info("CurrentSlice: {}, LastSlice: {}, adding list to dp.", currentSlice, lastSlice);
+            int currentSlice = (int) (startMs
+                / FormatUtils.parseTimeSize(mParameters.mSliceLength));
+            while (currentSlice > lastSlice) {
+              LOG.info("CurrentSlice: {}, LastSlice: {}, adding list to dp.",
+                  currentSlice, lastSlice);
               dp.addDataPoints(new ArrayList<>(dpList));
               dpList.clear();
               lastSlice++;
@@ -492,9 +498,10 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         }
       }
 
-      int finalSlice = (int)(FormatUtils.parseTimeSize(mParameters.mDuration) / FormatUtils.parseTimeSize(mParameters.mSliceLength));
+      int finalSlice = (int) (FormatUtils.parseTimeSize(mParameters.mDuration)
+          / FormatUtils.parseTimeSize(mParameters.mSliceLength));
       LOG.info("FinalSlice: {}", finalSlice);
-      while (finalSlice > lastSlice){
+      while (finalSlice > lastSlice) {
         LOG.info("FinalSlice: {}, LastSlice: {}, adding list to dp.", finalSlice, lastSlice);
         dp.addDataPoints(new ArrayList<>(dpList));
         dpList.clear();

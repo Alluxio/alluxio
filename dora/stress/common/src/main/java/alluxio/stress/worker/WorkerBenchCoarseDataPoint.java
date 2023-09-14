@@ -3,68 +3,109 @@ package alluxio.stress.worker;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * One coarse data point captures a series of data points.
+ * All data points are group by thread and time slices.
+ */
+// TODO(tongyu): compress data points in a coarse data point summary
 @JsonDeserialize(using = WorkerBenchCoarseDataPointDeserializer.class)
 public class WorkerBenchCoarseDataPoint {
-    // properties: workerId, threadId, sliceId, records
-    @JsonProperty("wid")
-    private Long mWid;
-    @JsonProperty("tid")
-    private Long mTid;
-    @JsonProperty("data")
-    private List<List<WorkerBenchDataPoint>> mData;
-    @JsonProperty("throughput")
-    private List<Long> mThroughput;
+  // properties: workerId, threadId, sliceId, records
+  @JsonProperty("wid")
+  private Long mWid;
+  @JsonProperty("tid")
+  private Long mTid;
+  @JsonProperty("data")
+  private List<List<WorkerBenchDataPoint>> mData;
+  @JsonProperty("throughput")
+  private List<Long> mThroughput;
 
-    // constructor
-    public WorkerBenchCoarseDataPoint(Long workerID, Long threadID, List<List<WorkerBenchDataPoint>> data,
-                                      List<Long> throughput) {
-        mWid = workerID;
-        mTid = threadID;
-        mData = data;
-        mThroughput = throughput;
-    }
+  /**
+   * Create a coarse data point.
+   *
+   * @param workerID the ID of the worker
+   * @param threadID the ID of the thread
+   * @param data the list of data point lists
+   * @param throughput the list of throughput
+   */
+  public WorkerBenchCoarseDataPoint(Long workerID, Long threadID,
+                                    List<List<WorkerBenchDataPoint>> data,
+                                    List<Long> throughput) {
+    mWid = workerID;
+    mTid = threadID;
+    mData = data;
+    mThroughput = throughput;
+  }
 
-    // getter & setters
-    public Long getWid() {
-        return mWid;
-    }
+  /**
+   * @return the ID of the worker
+   */
+  public Long getWid() {
+    return mWid;
+  }
 
-    public void setWid(Long wid) {
-        mWid = wid;
-    }
+  /**
+   * @param wid the ID of the worker
+   */
+  public void setWid(Long wid) {
+    mWid = wid;
+  }
 
-    public Long getTid() {
-        return mTid;
-    }
+  /**
+   * @return the ID of the thread
+   */
+  public Long getTid() {
+    return mTid;
+  }
 
-    public void setTid(Long tid) {
-        mTid = tid;
-    }
+  /**
+   * @param tid the ID of the thread
+   */
+  public void setTid(Long tid) {
+    mTid = tid;
+  }
 
-    public List<List<WorkerBenchDataPoint>> getData() {
-        return mData;
-    }
+  /**
+   * @return the list of data point lists
+   */
+  public List<List<WorkerBenchDataPoint>> getData() {
+    return mData;
+  }
 
-    public void setData(List<List<WorkerBenchDataPoint>> data) {
-        mData = data;
-    }
+  /**
+   * @param data the list of data point lists
+   */
+  public void setData(List<List<WorkerBenchDataPoint>> data) {
+    mData = data;
+  }
 
-    public void addDataPoints(List<WorkerBenchDataPoint> data) {
-        mData.add(data);
-    }
+  /**
+   * @param data add a data point list to the list of data point lists
+   */
+  public void addDataPoints(List<WorkerBenchDataPoint> data) {
+    mData.add(data);
+  }
 
-    public List<Long> getThroughput() {
-        return mThroughput;
-    }
+  /**
+   * @return the list of all throughput
+   */
+  public List<Long> getThroughput() {
+    return mThroughput;
+  }
 
-    public void setThroughput(List<Long> throughput) {
-        mThroughput = throughput;
-    }
+  /**
+   * @param throughput the list of all throughput
+   */
+  public void setThroughput(List<Long> throughput) {
+    mThroughput = throughput;
+  }
 
-    public void clearThroughput() {
-        mThroughput.clear();
-    }
+  /**
+   * remove the list of all throughput after worker aggregation.
+   */
+  public void clearThroughput() {
+    mThroughput.clear();
+  }
 }
