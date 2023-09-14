@@ -68,27 +68,29 @@ func main() {
 	}
 
 	// isDeployed bool -> env var key -> relative path from root with version placeholder
-	jarEnvVars := map[bool]map[string]string{
-		false: {
-			env.EnvAlluxioAssemblyClientJar: filepath.Join("assembly", "client", "target", "alluxio-assembly-client-%v-jar-with-dependencies.jar"),
-			env.EnvAlluxioAssemblyServerJar: filepath.Join("assembly", "server", "target", "alluxio-assembly-server-%v-jar-with-dependencies.jar"),
+	launcher := &launch.Launcher{
+		JarEnvVars: map[bool]map[string]string{
+			false: {
+				env.EnvAlluxioAssemblyClientJar: filepath.Join("assembly", "client", "target", "alluxio-assembly-client-%v-jar-with-dependencies.jar"),
+				env.EnvAlluxioAssemblyServerJar: filepath.Join("assembly", "server", "target", "alluxio-assembly-server-%v-jar-with-dependencies.jar"),
+			},
+			true: {
+				env.EnvAlluxioAssemblyClientJar: filepath.Join("assembly", "alluxio-client-%v.jar"),
+				env.EnvAlluxioAssemblyServerJar: filepath.Join("assembly", "alluxio-server-%v.jar"),
+			},
 		},
-		true: {
-			env.EnvAlluxioAssemblyClientJar: filepath.Join("assembly", "alluxio-client-%v.jar"),
-			env.EnvAlluxioAssemblyServerJar: filepath.Join("assembly", "alluxio-server-%v.jar"),
+		AppendClasspathJars: map[string]func(*viper.Viper, string) string{
+			env.EnvAlluxioClientClasspath: func(envVar *viper.Viper, ver string) string {
+				return strings.Join([]string{
+					envVar.GetString(env.EnvAlluxioClientClasspath),
+					filepath.Join(envVar.GetString(env.ConfAlluxioHome.EnvVar), "lib", fmt.Sprintf("alluxio-integration-tools-validation-%v.jar", ver)),
+				}, ":")
+
+			},
 		},
 	}
-	appendClasspathJars := map[string]func(*viper.Viper, string) string{
-		env.EnvAlluxioClientClasspath: func(envVar *viper.Viper, ver string) string {
-			return strings.Join([]string{
-				envVar.GetString(env.EnvAlluxioClientClasspath),
-				filepath.Join(envVar.GetString(env.ConfAlluxioHome.EnvVar), "lib", fmt.Sprintf("alluxio-integration-tools-validation-%v.jar", ver)),
-			}, ":")
 
-		},
-	}
-
-	if err := launch.Run(jarEnvVars, appendClasspathJars); err != nil {
+	if err := launcher.Run(); err != nil {
 		os.Exit(1)
 	}
 }
