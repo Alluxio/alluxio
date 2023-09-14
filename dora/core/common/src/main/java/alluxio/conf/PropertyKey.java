@@ -2291,6 +2291,38 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_SCHEDULER_RESTORE_JOB_FROM_JOURNAL =
+      booleanBuilder(Name.MASTER_SCHEDULER_RESTORE_JOB_FROM_JOURNAL)
+          .setDefaultValue(true)
+          .setDescription("If set to true, master will restore incomplete jobs from journal. "
+          + "Turn this off if you don't want the scheduler to automatically restore jobs.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD =
+      intBuilder(Name.MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD)
+          .setDefaultValue(-1)
+          .setDescription("The load job total load failure count threshold. -1 means never fail.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_RATIO_THRESHOLD =
+      doubleBuilder(Name.MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_RATIO_THRESHOLD)
+          .setDefaultValue(1.00)
+          .setDescription("The load job total load failure ratio threshold (0,1)."
+              + " 1.00 means never fail.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey MASTER_DORA_LOAD_JOB_RETRIES =
+      intBuilder(Name.MASTER_DORA_LOAD_JOB_RETRIES)
+          .setDefaultValue(3)
+          .setDescription("The number of retry attempts before a load of file "
+              + "is considered as failure")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+
   public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
       enumBuilder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE, GraceMode.class)
           .setDefaultValue(GraceMode.FORCED)
@@ -7396,6 +7428,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.block.scan.invalid.batch.max.size";
     public static final String MASTER_SCHEDULER_INITIAL_WAIT_TIME =
         "alluxio.master.scheduler.initial.wait.time";
+    public static final String MASTER_SCHEDULER_RESTORE_JOB_FROM_JOURNAL =
+        "alluxio.master.scheduler.restore.job.from.journal";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
         "alluxio.master.shell.backup.state.lock.grace.mode";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION =
@@ -7404,6 +7438,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.shell.backup.state.lock.sleep.duration";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT =
         "alluxio.master.shell.backup.state.lock.timeout";
+    public static final String MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD =
+        "alluxio.master.dora.load.job.total.failure.count.threshold";
+    public static final String MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_RATIO_THRESHOLD =
+        "alluxio.master.dora.load.job.total.failure.ratio.threshold";
+    public static final String MASTER_DORA_LOAD_JOB_RETRIES =
+        "alluxio.master.dora.load.job.retries";
     public static final String MASTER_DAILY_BACKUP_ENABLED =
         "alluxio.master.daily.backup.enabled";
     public static final String MASTER_DAILY_BACKUP_FILES_RETAINED =
