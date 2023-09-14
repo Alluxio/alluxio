@@ -115,7 +115,6 @@ public class StaticMembershipManager implements MembershipManager {
         .setRpcPort(addr.getRpcPort())
         .setDataPort(addr.getDataPort())
         .setDomainSocketPath(addr.getDomainSocketPath())
-        .setTieredIdentity(addr.getTieredIdentity())
         .setNettyDataPort(addr.getNettyDataPort())
         .setWebPort(addr.getWebPort())
         .setSecureRpcPort(addr.getSecureRpcPort()));

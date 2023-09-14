@@ -20,7 +20,7 @@
   </parent>
   <artifactId>alluxio-tests-integration</artifactId>
   <packaging>jar</packaging>
-  <name>Alluxio Integration Tests</name>
+  <name>Alluxio Tests - Integration Tests</name>
   <description>Integration tests for Alluxio</description>
 
   <properties>

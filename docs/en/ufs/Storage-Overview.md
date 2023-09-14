@@ -69,11 +69,10 @@ For the purposes of this guide, the following are placeholders.
         <td markdown="span">[CephObjectStorage]({{ '/en/ufs/CephObjectStorage.html' | relativize_url }})</td>
         <td markdown="span">`CEPH_BUCKET`, `CEPH_DIRECTORY`</td>
         <td markdown="span">
-            [S3](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) (preferred): `S3_ACCESS_KEY_ID`, `S3_SECRET_KEY_ID` <br />
+            `S3_ACCESS_KEY_ID`, `S3_SECRET_KEY_ID`
         </td>
         <td markdown="span">
-            Specify S3 properties: (preferred) <br />
-            `RGW_HOSTNAME`, `RGW_PORT`, `INHERIT_ACL` <br /><br />
+            `RGW_HOSTNAME`, `RGW_PORT`, `INHERIT_ACL`
         </td>
     </tr>
     <tr>

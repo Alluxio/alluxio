@@ -8,8 +8,7 @@ This guide describes how to configure Alluxio with [Ceph Object Storage](https:/
 
 Ceph Object Storage is a distributed, open-source storage system designed for storing and retrieving large amounts of unstructured data. It provides a scalable and highly available storage solution that can be deployed on commodity hardware.
 
-Alluxio supports two different clients APIs to connect to Ceph Object Storage using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/){:target="_blank"}. For more information, please read its documentation:
-- [S3](https://docs.ceph.com/en/latest/radosgw/s3/){:target="_blank"} (preferred)
+Alluxio supports two different clients APIs to connect to Ceph Object Storage using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/){:target="_blank"}. For more information, please read its [documentation](https://docs.ceph.com/en/latest/radosgw/s3/){:target="_blank"}.
 
 ## Prerequisites
 

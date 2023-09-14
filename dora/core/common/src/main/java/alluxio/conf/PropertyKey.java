@@ -64,7 +64,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableList;
 import com.sun.management.OperatingSystemMXBean;
 import io.netty.util.ResourceLeakDetector;
 import org.rocksdb.CompressionType;
@@ -4069,14 +4068,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
       intBuilder(Name.WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS)
-          .setDefaultValue(128)
+          .setDefaultValue(16)
           .setDescription("The maximum number of parallel data packets when a client writes to a "
               + "worker.")
           .build();
 
   public static final PropertyKey WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
       intBuilder(Name.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS)
-          .setDefaultValue(128)
+          .setDefaultValue(16)
           .setDescription("The maximum number of parallel data packets when a client reads from a "
               + "worker.")
           .build();
@@ -4138,7 +4137,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .setDefaultValue(ChannelType.NIO)
           .build();
-
+  public static final PropertyKey WORKER_NETWORK_PACKET_SENDING_TIMEOUT =
+      durationBuilder(Name.WORKER_NETWORK_PACKET_SENDING_TIMEOUT)
+          .setDefaultValue("5min")
+          .setDescription("Maximum amount of time to wait until all the packets on worker have "
+              + "been sent to client successfully.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .setIsHidden(true)
+          .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
       enumBuilder(Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class)
           .setDefaultValue("TRANSFER")
@@ -4692,11 +4699,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_MEMBERSHIP_MANAGER_TYPE =
       enumBuilder(Name.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.class)
-          .setDefaultValue(MembershipType.NOOP.name())
+          .setDefaultValue(MembershipType.MASTER.name())
           .setDescription("Type of membership manager used for workers."
               + "Choose STATIC for pre-configured members."
               + "Choose ETCD for using etcd for membership management"
-              + "Default is NOOP which does not enable membership manager at all")
+              + "Default is MASTER which does not enable membership module"
+              + " and uses master to register")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
           .build();
@@ -4965,39 +4973,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(0)
           .setScope(Scope.SERVER)
 
-          .build();
-
-  //
-  // Locality related properties
-  //
-  public static final PropertyKey LOCALITY_ORDER =
-      listBuilder(Name.LOCALITY_ORDER)
-          .setDefaultValue(ImmutableList.of(Constants.LOCALITY_NODE, Constants.LOCALITY_RACK))
-          .setDescription("Ordering of locality tiers")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.ALL)
-          .setIsHidden(true)
-          .build();
-  public static final PropertyKey LOCALITY_SCRIPT =
-      stringBuilder(Name.LOCALITY_SCRIPT)
-          .setDefaultValue(Constants.ALLUXIO_LOCALITY_SCRIPT)
-          .setDescription("A script to determine tiered identity for locality checking")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.ALL)
-          .setIsHidden(true)
-          .build();
-  public static final PropertyKey LOCALITY_TIER_NODE =
-      new Builder(PropertyType.STRING, Template.LOCALITY_TIER, Constants.LOCALITY_NODE)
-          .setDescription("Value to use for determining node locality")
-          .setScope(Scope.ALL)
-          .setIsHidden(true)
-          .build();
-  public static final PropertyKey LOCALITY_COMPARE_NODE_IP =
-      booleanBuilder(Name.LOCALITY_COMPARE_NODE_IP)
-          .setDefaultValue(false)
-          .setDescription("Whether try to resolve the node IP address for locality checking")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.ALL)
           .build();
 
   //
@@ -5306,6 +5281,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       booleanBuilder(Name.USER_CLIENT_CACHE_ENABLED)
           .setDefaultValue(false)
           .setDescription("If this is enabled, data will be cached on Alluxio client.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CACHE_FALLBACK_ENABLED =
+      booleanBuilder(Name.USER_CLIENT_CACHE_FALLBACK_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If this is enabled, local cache will fallback to external storage.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -7799,6 +7781,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_NETWORK_NETTY_CHANNEL =
         "alluxio.worker.network.netty.channel";
 
+    public static final String WORKER_NETWORK_PACKET_SENDING_TIMEOUT =
+        "alluxio.worker.network.packet.sending.timeout";
     public static final String WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
         "alluxio.worker.network.netty.file.transfer";
     public static final String USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
@@ -7999,13 +7983,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.single.connection.read.rate.limit.mb";
 
     //
-    // Locality related properties
-    //
-    public static final String LOCALITY_ORDER = "alluxio.locality.order";
-    public static final String LOCALITY_SCRIPT = "alluxio.locality.script";
-    public static final String LOCALITY_COMPARE_NODE_IP = "alluxio.locality.compare.node.ip";
-
-    //
     // User related properties
     //
     public static final String USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES =
@@ -8036,6 +8013,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.async.write.threads";
     public static final String USER_CLIENT_CACHE_ENABLED =
         "alluxio.user.client.cache.enabled";
+    public static final String USER_CLIENT_CACHE_FALLBACK_ENABLED =
+        "alluxio.user.client.cache.fallback.enabled";
     public static final String USER_CLIENT_CACHE_FILTER_CLASS =
         "alluxio.user.client.cache.filter.class";
     public static final String USER_CLIENT_CACHE_FILTER_CONFIG_FILE =
@@ -8505,7 +8484,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @ThreadSafe
   public enum Template {
-    LOCALITY_TIER("alluxio.locality.%s", "alluxio\\.locality\\.(\\w+)", PropertyType.STRING),
     MASTER_IMPERSONATION_GROUPS_OPTION("alluxio.master.security.impersonation.%s.groups",
         "alluxio\\.master\\.security\\.impersonation\\.([a-zA-Z_0-9-\\.@]+)\\.groups",
         PropertyType.STRING),

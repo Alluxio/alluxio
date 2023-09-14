@@ -20,9 +20,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
 import alluxio.membership.MembershipManager;
-import alluxio.network.TieredIdentityFactory;
 import alluxio.underfs.UfsManager;
-import alluxio.wire.TieredIdentity;
 import alluxio.worker.Worker;
 import alluxio.worker.dora.DoraUfsManager;
 import alluxio.worker.dora.DoraWorker;
@@ -46,8 +44,6 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DoraWorkerModule extends AbstractModule {
   @Override
   protected void configure() {
-    bind(TieredIdentity.class).toProvider(() ->
-        TieredIdentityFactory.localIdentity(Configuration.global()));
     bind(new TypeLiteral<AtomicReference<Long>>() {
     }).annotatedWith(Names.named("workerId"))
         .toInstance(new AtomicReference<>(-1L));
