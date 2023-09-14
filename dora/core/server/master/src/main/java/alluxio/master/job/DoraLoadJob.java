@@ -485,7 +485,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       // what if timeout ? job needs to proactively check or task needs to be aware
       LoadFileResponse response = doraLoadTask.getResponseFuture().get();
       if (response.getStatus() != TaskStatus.SUCCESS) {
-        LOG.warn(format("[DistributedLoad] Get failure from worker:%s, failed files:%s",
+        LOG.debug(format("Get failure from worker:%s, failed files:%s",
             doraLoadTask.getMyRunningWorker(), response.getFailuresList()));
         for (LoadFileFailure failure : response.getFailuresList()) {
           totalLoadedBytes -= failure.getUfsStatus().getUfsFileStatus().getContentLength();
@@ -501,7 +501,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
           - response.getFailuresList().size();
       int totalLoadedFile =
           (int) (doraLoadTask.getFilesToLoad().stream().filter(UfsStatus::isFile).count()
-                        - response.getFailuresList().stream()
+              - response.getFailuresList().stream()
               .filter(it -> !it.getUfsStatus().getIsDirectory()).count());
       int totalLoadedDirectory = totalLoadedInodes - totalLoadedFile;
       if (!mLoadMetadataOnly) {
@@ -516,7 +516,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       return response.getStatus() != TaskStatus.FAILURE;
     }
     catch (ExecutionException e) {
-      LOG.warn("[DistributedLoad] exception when trying to get load response.", e.getCause());
+      LOG.warn("exception when trying to get load response.", e.getCause());
       for (UfsStatus ufsStatus : doraLoadTask.getFilesToLoad()) {
         AlluxioRuntimeException exception = AlluxioRuntimeException.from(e.getCause());
         if (isHealthy()) {
@@ -524,13 +524,13 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         } else {
           addFileFailure(ufsStatus.getUfsFullPath().toString(),
               exception.getMessage(), exception.getStatus().getCode()
-              .value());
+                  .value());
         }
       }
       return false;
     }
     catch (CancellationException e) {
-      LOG.warn("[DistributedLoad] Task get canceled and will retry.", e);
+      LOG.warn("Task get canceled and will retry.", e);
       doraLoadTask.getFilesToLoad().forEach(it -> addFilesToRetry(it.getUfsFullPath().toString()));
       return true;
     }
