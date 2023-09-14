@@ -71,7 +71,6 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
     for (int i = 0; i <= 100; i++) {
       mThroughputPercentiles.add(throughputHistogram.getValueAtPercentile(i));
     }
-    // mergedTaskResults.clearAllThroughput();
   }
 
   /**
