@@ -89,12 +89,13 @@ public final class LoadTestUtils {
     Random random = new Random();
     FileInfo info = new FileInfo();
     String ufs = CommonUtils.randomAlphaNumString(6);
+    String filePath = CommonUtils.randomAlphaNumString(6);
     long blockSize = Math.abs(random.nextLong() % blockSizeLimit);
     List<Long> blockIds = LongStream.range(0, blockCount)
         .map(i -> random.nextLong())
         .boxed()
         .collect(ImmutableList.toImmutableList());
-    info.setUfsPath(ufs)
+    info.setUfsPath(ufs).setPath(filePath)
         .setBlockSizeBytes(blockSize)
         .setLength(blockSizeLimit * blockCount)
         .setBlockIds(blockIds)
