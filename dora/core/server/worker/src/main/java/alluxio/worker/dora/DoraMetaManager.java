@@ -29,6 +29,7 @@ import alluxio.underfs.options.ListOptions;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
@@ -87,7 +88,7 @@ public class DoraMetaManager implements Closeable {
     mUfsManager = ufsManager;
   }
 
-  private UnderFileSystem getUfsInstance(String ufsUriStr) {
+  public UnderFileSystem getUfsInstance(String ufsUriStr) {
     AlluxioURI ufsUriUri = new AlluxioURI(ufsUriStr);
     try {
       UnderFileSystem ufs = mUfsManager.getOrAdd(ufsUriUri,
