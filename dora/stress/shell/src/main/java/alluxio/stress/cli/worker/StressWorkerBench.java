@@ -340,6 +340,10 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       throw new IllegalStateException(String.format("%s cannot be %s when %s option provided",
           FileSystemParameters.WRITE_TYPE_OPTION_NAME, WritePType.MUST_CACHE, "--free"));
     }
+
+    if (FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength) > FormatUtils.parseSpaceSize("2.1GB")) {
+      throw new IllegalStateException("mRandomReadMaxLength cannot be larger than 2.1G");
+    }
   }
 
   private static final class BenchContext {
@@ -404,9 +408,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       mResult.setBaseParameters(mBaseParameters);
       mIsRandomRead = mParameters.mIsRandom;
       mRandom = new Random(mParameters.mRandomSeed);
-      mRandomMin = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
-      mRandomMax = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
-      mFileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
+      mRandomMin = FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
+      mRandomMax = FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
+      mFileSize = FormatUtils.parseSpaceSize(mParameters.mFileSize);
     }
 
     @Override
