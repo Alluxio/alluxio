@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.netty;
+package alluxio.worker.dora;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
