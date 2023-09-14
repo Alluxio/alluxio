@@ -54,7 +54,7 @@ Unzip this file and upload the file `u.user` into `ml-100k/` on Alluxio:
 
 ```shell
 $ ./bin/alluxio fs mkdir /ml-100k
-$ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port/ml-100k
+$ ./bin/alluxio fs cp file:///path/to/ml-100k/u.user alluxio://master_hostname:port/ml-100k
 ```
 
 View Alluxio WebUI at `http://master_hostname:19999` and you can see the directory and file Hive

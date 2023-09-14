@@ -133,6 +133,7 @@ public class DoraFileOutStream extends FileOutStream {
     if (mClosed) {
       return;
     }
+    Exception exceptionToThrow = null;
     try (Timer.Context ctx = MetricsSystem
         .uniformTimer(MetricKey.CLOSE_ALLUXIO_OUTSTREAM_LATENCY.getName()).time()) {
       try {
@@ -163,6 +164,7 @@ public class DoraFileOutStream extends FileOutStream {
             }
           }
         } catch (Exception e) {
+          LOG.warn("Flushing/canceling stream failed {}", mUri, e);
           // Ignore;
         } finally {
           // Only close this output stream when write is enabled.
@@ -172,7 +174,8 @@ public class DoraFileOutStream extends FileOutStream {
               mUnderStorageOutputStream.close();
             }
           } catch (Exception e) {
-            // Ignore;
+            LOG.warn("Closing stream failed {}", mUri, e);
+            exceptionToThrow = e;
           }
         }
       }
@@ -184,8 +187,12 @@ public class DoraFileOutStream extends FileOutStream {
           .build();
       mClosed = true;
       mDoraClient.completeFile(mUri.toString(), options, mUuid);
+      if (exceptionToThrow != null) {
+        throw exceptionToThrow;
+      }
     } catch (Exception e) {
-      // Ignore.
+      LOG.warn("Closing DoraFileOutStream failed: {}", mUri, e);
+      throw new RuntimeException(e);
     } finally {
       mClosed = true;
       mCloser.close();

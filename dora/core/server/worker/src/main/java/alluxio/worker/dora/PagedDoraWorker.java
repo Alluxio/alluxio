@@ -57,8 +57,10 @@ import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.membership.MasterMembershipManager;
 import alluxio.membership.MembershipManager;
-import alluxio.membership.NoOpMembershipManager;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.meta.DoraMeta;
@@ -242,8 +244,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     // the heartbeat is only used to notify the aliveness of this worker, so that clients
     // can get the latest worker list from master.
     // TODO(bowen): once we set up a worker discovery service in place of master, remove this
-    // TODO(lucy): temporary fallback logic during transition of removing master dependency
-    if (mMembershipManager instanceof NoOpMembershipManager) {
+    // TODO(lucy): fallback to original logic using master for registration
+    if (mMembershipManager instanceof MasterMembershipManager) {
       LOG.info("Using Master for heartbeating..");
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
@@ -262,7 +264,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     Preconditions.checkNotNull(mAddress, "worker not started");
     RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
     // For regression purpose, use the original way of regsiter
-    if (mMembershipManager instanceof NoOpMembershipManager) {
+    if (mMembershipManager instanceof MasterMembershipManager) {
       registerToMaster();
       return;
     }
@@ -350,16 +352,17 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         -1;
     boolean isRecursive = options.getRecursive();
     final Optional<ListStatusResult> resultFromCache = mMetaManager.listCached(path, isRecursive);
-
     if (resultFromCache.isPresent()
         && (syncIntervalMs < 0
         || System.nanoTime() - resultFromCache.get().mTimeStamp
         <= syncIntervalMs * Constants.MS_NANO)) {
+      MetricsSystem.counter(MetricKey.WORKER_LIST_STATUS_HIT_REQUESTS.getName()).inc();
       return resultFromCache.get().mUfsStatuses;
     }
     mMetaManager.invalidateListingCache(path);
     Optional<UfsStatus[]> ufsStatuses =
         mMetaManager.listFromUfsThenCache(path, isRecursive);
+    MetricsSystem.counter(MetricKey.WORKER_LIST_STATUS_EXTERNAL_REQUESTS.getName()).inc();
     return ufsStatuses.orElse(null);
   }
 
@@ -397,7 +400,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         status = Optional.empty();
       } else {
         status = mMetaManager.loadFromUfs(ufsFullPath);
+        MetricsSystem.counter(MetricKey.WORKER_GET_FILE_INFO_EXTERNAL_REQUESTS.getName()).inc();
       }
+    } else {
+      MetricsSystem.counter(MetricKey.WORKER_GET_FILE_INFO_HIT_REQUESTS.getName()).inc();
     }
 
     if (!status.isPresent()) {

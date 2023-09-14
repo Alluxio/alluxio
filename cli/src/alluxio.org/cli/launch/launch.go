@@ -39,7 +39,9 @@ func Run(jarEnvVars map[bool]map[string]string, appendClasspathJars map[string]f
 	var flagDebugLog bool
 	rootCmd.PersistentFlags().BoolVar(&flagDebugLog, "debug-log", false, "True to enable debug logging")
 	var flagIsDeployed bool
-	rootCmd.PersistentFlags().BoolVar(&flagIsDeployed, "deployed-env", false, "True to set paths to be compatible with a deployed environment")
+	const deployedEnv = "deployed-env"
+	rootCmd.PersistentFlags().BoolVar(&flagIsDeployed, deployedEnv, false, "True to set paths to be compatible with a deployed environment")
+	rootCmd.PersistentFlags().MarkHidden(deployedEnv)
 
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		if flagDebugLog {
