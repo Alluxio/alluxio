@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -69,9 +70,15 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   private Path[] mFilePaths;
   private FileSystemContext mFsContext;
 
-  /** generate random number in range [min, max] (include both min and max).*/
-  private Integer randomNumInRange(Random rand, int min, int max) {
-    return rand.nextInt(max - min + 1) + min;
+  /**
+   * generate random number in range [min, max] (include both min and max).
+   */
+  private long randomNumInRange(Random rand, long min, long max) {
+    return ThreadLocalRandom.current().nextLong(max - min + 1) + min;
+  }
+
+  private long minLong(long a, long b) {
+    return a > b ? a : b;
   }
 
   /**
@@ -380,9 +387,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     private final WorkerBenchTaskResult mResult;
     private final boolean mIsRandomRead;
     private final Random mRandom;
-    private final int mRandomMax;
-    private final int mRandomMin;
-    private final int mFileSize;
+    private final long mRandomMax;
+    private final long mRandomMin;
+    private final long mFileSize;
 
     private FSDataInputStream mInStream;
 
@@ -473,12 +480,12 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
       int bytesRead = 0;
       if (mIsRandomRead) {
-        int offset = randomNumInRange(mRandom, 0, mFileSize - 1 - mRandomMin);
-        int length = randomNumInRange(mRandom, mRandomMin,
-            Integer.min(mFileSize - offset, mRandomMax));
+        long offset = randomNumInRange(mRandom, 0, mFileSize - 1 - mRandomMin);
+        long length = randomNumInRange(mRandom, mRandomMin,
+            minLong(mFileSize - offset, mRandomMax));
         while (length > 0) {
           int actualReadLength = mInStream
-              .read(offset, mBuffer, 0, Integer.min(mBuffer.length, length));
+              .read(offset, mBuffer, 0, (int) minLong(mBuffer.length, length));
           if (actualReadLength < 0) {
             closeInStream();
             break;
