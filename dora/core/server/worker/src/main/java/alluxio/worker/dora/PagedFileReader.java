@@ -156,7 +156,7 @@ public class PagedFileReader extends BlockReader implements PositionReader {
 
     // cap length to the remaining of block, as the caller may pass in a longer length than what
     // is left in the block, but expect as many bytes as there is
-    length = Math.min(length, mPos - offset);
+    length = Math.min(length, mFileSize - offset);
     ensureReadable(offset, length);
 
     // must not use pooled buffer, see interface implementation note
@@ -172,7 +172,6 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     }
     buffer.position(0);
     buffer.limit(bytesRead);
-    mPos += bytesRead;
     return buffer;
   }
 

@@ -11,7 +11,7 @@
 
 package alluxio.worker.dora;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
@@ -39,7 +39,6 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.primitives.Bytes;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
@@ -61,7 +60,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -157,12 +155,10 @@ public class PagedFileReaderTest {
   @Test
   public void read() throws IOException {
     if (mFileLen > 0) {
-      mPagedFileReader.setPosition(mFileLen);
       int testNum = Math.min(mFileLen, mMinTestNum);
       for (int i = 0; i < testNum; i++) {
         int offset = mRandom.nextInt(mFileLen);
         int readLength = mRandom.nextInt(mFileLen - offset);
-        ByteBuffer buf = ByteBuffer.allocate(mFileLen);
         byte[] tmpBytes = Files.readAllBytes(Paths.get(mTestFileName));
         byte[] bytes = Arrays.copyOfRange(tmpBytes, offset, offset + readLength);
         ByteBuffer realByteBuffer = ByteBuffer.wrap(bytes);
@@ -181,13 +177,12 @@ public class PagedFileReaderTest {
       ByteBuf byteBuf = Unpooled.buffer(mFileLen);
 
       int bytesRead = mPagedFileReader.transferTo(byteBuf);
-
+      byte[] realBytesArray = new byte[bytesRead];
+      System.arraycopy(mTestData, offset, realBytesArray, 0, bytesRead);
       byte[] bytesArray = new byte[byteBuf.readableBytes()];
       byteBuf.readBytes(bytesArray);
-      List<Byte> listOfByte = Bytes.asList(bytesArray);
-      List<Byte> listOfRealByte = Bytes.asList(mTestData).subList(offset, offset + bytesRead);
-      assertTrue((mFileLen == 0 && bytesRead == -1) || bytesRead > 0);
-      assertEquals(listOfRealByte, listOfByte);
+      assertTrue(bytesRead > 0);
+      assertArrayEquals(realBytesArray, bytesArray);
     }
   }
 
