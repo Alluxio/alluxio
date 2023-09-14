@@ -3,13 +3,16 @@ layout: global
 title: User Command Line Interface
 ---
 
-[comment]: # (This is a generated file created by running command "bin/alluxio generate user-cli")
-[comment]: # (The command parses the golang command definitions and descriptions to generate the markdown in this file)
+{% comment %}
+This is a generated file created by running command "bin/alluxio generate user-cli"
+The command parses the golang command definitions and descriptions to generate the markdown in this file
+{% endcomment %}
 
 Alluxio's command line interface provides user access to various operations, such as:
 - Start or stop processes
 - Filesystem operations
 - Administrative commands
+
 Invoke the executable to view the possible subcommands:
 ```shell
 $ ./bin/alluxio
