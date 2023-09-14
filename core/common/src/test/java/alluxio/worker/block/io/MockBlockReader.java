@@ -14,6 +14,8 @@ package alluxio.worker.block.io;
 import io.netty.buffer.ByteBuf;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -24,6 +26,8 @@ import java.nio.channels.ReadableByteChannel;
 public final class MockBlockReader extends BlockReader {
   private final byte[] mBytes;
   private boolean mClosed;
+  private final InputStream mInputStream;
+  private final ReadableByteChannel mChannel;
 
   /**
    * Constructs a mock block reader which will read the given data.
@@ -33,6 +37,8 @@ public final class MockBlockReader extends BlockReader {
   public MockBlockReader(byte[] bytes) {
     mBytes = bytes;
     mClosed = false;
+    mInputStream = new ByteArrayInputStream(mBytes);
+    mChannel = Channels.newChannel(mInputStream);
   }
 
   @Override
@@ -46,9 +52,8 @@ public final class MockBlockReader extends BlockReader {
   }
 
   @Override
-  public int transferTo(ByteBuf buf) {
-    int remaining = buf.readableBytes();
-    return buf.writeBytes(mBytes).readableBytes() - remaining;
+  public int transferTo(ByteBuf buf) throws IOException {
+    return buf.writeBytes(mInputStream, buf.writableBytes());
   }
 
   @Override
@@ -63,7 +68,7 @@ public final class MockBlockReader extends BlockReader {
 
   @Override
   public ReadableByteChannel getChannel() {
-    return Channels.newChannel(new ByteArrayInputStream(mBytes));
+    return mChannel;
   }
 
   @Override
