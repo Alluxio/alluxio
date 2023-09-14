@@ -35,7 +35,7 @@ public class MetricsOutput {
   private List<SerializableMetricInfo> mMetricsInfo;
 
   private class SerializableMetricInfo {
-    private static final String PER_MINUTE = "/min";
+    private static final String PER_MINUTE = "/MIN";
     private String mKey;
     private String mType;
     private String mValue;
