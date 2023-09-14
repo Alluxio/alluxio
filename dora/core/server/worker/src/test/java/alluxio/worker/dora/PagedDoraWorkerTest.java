@@ -119,7 +119,9 @@ public class PagedDoraWorkerTest {
     BufferUtils.writeBufferToFile(ufsPath, buffer);
     alluxio.grpc.File file =
         alluxio.grpc.File.newBuilder().setUfsPath(ufsPath).setLength(length).setMountId(1).build();
-    ListenableFuture<List<LoadFileFailure>> load = mWorker.load(true, Collections.emptyList(),
+    UfsStatus ufsStatus = mWorker.getUfsInstance(ufsPath).getStatus(ufsPath);
+    List<UfsStatus> listUfsStatus = new ArrayList<>(Collections.singletonList(ufsStatus));
+    ListenableFuture<List<LoadFileFailure>> load = mWorker.load(true, listUfsStatus,
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build());
     List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS);
     Assert.assertEquals(0, fileFailures.size());
