@@ -11,18 +11,20 @@
 
 package alluxio.worker.netty;
 
+import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 
-public class PacketReadTaskStateMachineTest {
+public class NettyReadHandlerStateMachineTest {
 
   @Test
   public void testGenerateStateDiagram() throws IOException  {
-    ReadRequestContext context = new ReadRequestContext(null);
-    PacketReadTaskStateMachine stateMachine =
-        new PacketReadTaskStateMachine(context, null, null);
+    EmbeddedChannel embeddedChannel = new EmbeddedChannel();
+    NettyReadHandlerStateMachine<ReadRequest> stateMachine =
+        new NettyReadHandlerStateMachine<>(
+            embeddedChannel, ReadRequest.class, (readRequest) -> null);
     stateMachine.generateStateDiagram(new File("output.dot").toPath());
   }
 }

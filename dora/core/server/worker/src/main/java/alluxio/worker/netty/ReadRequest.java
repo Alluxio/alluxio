@@ -19,14 +19,14 @@ import javax.annotation.concurrent.ThreadSafe;
  * Represents a read request received from netty channel.
  */
 @ThreadSafe
-class ReadRequest {
+public class ReadRequest {
   private final long mId;
   private final long mStart;
   private final long mEnd;
-  private final long mPacketSize;
+  private final int mPacketSize;
   private final long mSessionId;
 
-  ReadRequest(long id, long start, long end, long packetSize) {
+  protected ReadRequest(long id, long start, long end, int packetSize) {
     mId = id;
     mStart = start;
     mEnd = end;
@@ -65,7 +65,7 @@ class ReadRequest {
   /**
    * @return the packet size in bytes of this read request
    */
-  public long getPacketSize() {
+  public int getPacketSize() {
     return mPacketSize;
   }
 }

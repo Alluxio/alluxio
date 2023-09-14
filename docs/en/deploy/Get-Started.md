@@ -131,14 +131,13 @@ Alluxio needs to be formatted before starting the process. The following command
 the Alluxio journal and worker storage directories.
 
 ```shell
-$ ./bin/alluxio format
+$ ./bin/alluxio init format
 ```
 
 Start the Alluxio services
 
 ```shell
-$ ./bin/alluxio-start.sh master
-$ ./bin/alluxio-start.sh worker SudoMount
+$ ./bin/alluxio process start local
 ```
 
 Congratulations! Alluxio is now up and running!
@@ -201,8 +200,7 @@ When the file is read, it will also be cached by Alluxio to speed up future data
 Stop Alluxio with the following command:
 
 ```shell
-$ ./bin/alluxio-stop.sh master
-$ ./bin/alluxio-stop.sh worker
+$ ./bin/alluxio process stop local
 ```
 
 ## Next Steps
@@ -226,7 +224,7 @@ our documentation, such as [Data Caching]({{ '/en/core-services/Data-Caching.htm
 
 For the users who are using macOS 11(Big Sur) or later, when running the command
 ```shell
-$ ./bin/alluxio format
+$ ./bin/alluxio init format
 ```
 you might get the error message:
 ```
@@ -260,5 +258,3 @@ resources on the worker side.
 1. Only one UFS is supported by Dora. Nested mounts are not supported yet.
 1. The Alluxio Master node still needs to be up and running. It is used for Dora worker discovery,
    cluster configuration updates, as well as handling write I/O operations.
-1. Alluxio Fuse is not supported with Dora on Kubernetes with the existing helm chart. The helm chart
-   supporting Alluxio Fuse is under development.

@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -102,7 +103,7 @@ public class PagedFileReader extends BlockReader implements PositionReader {
       throws IOException {
     if (mFileSize <= mPos) {
       // TODO(JiamingMai): consider throwing exception directly
-      return null;
+      return new CompositeDataBuffer(Collections.emptyList());
     }
     List<DataBuffer> dataBufferList = new ArrayList<>();
     long bytesToTransfer = Math.min(length, mFileSize - mPos);

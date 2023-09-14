@@ -18,6 +18,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.cache.context.CachePerThreadContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -63,6 +64,7 @@ public class LocalCacheFileInStream extends FileInStream {
   private final URIStatus mStatus;
   private final FileInStreamOpener mExternalFileInStreamOpener;
   private final int mBufferSize;
+  private final boolean mFallbackEnabled;
 
   private byte[] mBuffer = null;
   private long mBufferStartOffset;
@@ -127,6 +129,7 @@ public class LocalCacheFileInStream extends FileInStream {
     if (mBufferSize > 0) {
       mBuffer = new byte[mBufferSize];
     }
+    mFallbackEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_FALLBACK_ENABLED);
   }
 
   @Override
@@ -294,13 +297,22 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
+    if (!CachePerThreadContext.get().getCacheEnabled()) {
+      MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
+          .mark(len);
+      MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).inc();
+      return getExternalFileInStream().positionedRead(pos, b, off, len);
+    }
     try {
       return readInternal(new ByteArrayTargetBuffer(b, off), off, len,
           ReadType.READ_INTO_BYTE_ARRAY, pos, true);
     } catch (IOException | RuntimeException e) {
       LOG.warn("Failed to read from Alluxio's page cache.", e);
-      MetricsSystem.counter(MetricKey.CLIENT_CACHE_POSITION_READ_FALLBACK.getName()).inc();
-      return getExternalFileInStream().positionedRead(pos, b, off, len);
+      if (mFallbackEnabled) {
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_POSITION_READ_FALLBACK.getName()).inc();
+        return getExternalFileInStream().positionedRead(pos, b, off, len);
+      }
+      throw e;
     }
   }
 

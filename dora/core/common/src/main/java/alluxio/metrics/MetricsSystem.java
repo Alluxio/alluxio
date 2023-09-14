@@ -73,6 +73,8 @@ public final class MetricsSystem {
   private static final ConcurrentHashMap<String, String> CACHED_METRICS = new ConcurrentHashMap<>();
   private static int sResolveTimeout =
       (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+  private static boolean sUniqueIDEnabled =
+      Configuration.getBoolean(PropertyKey.METRICS_KEY_INCLUDING_UNIQUE_ID_ENABLED);
   // A map from AlluxioURI to corresponding cached escaped path.
   private static final ConcurrentHashMap<AlluxioURI, String> CACHED_ESCAPED_PATH
       = new ConcurrentHashMap<>();
@@ -483,10 +485,18 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   private static String getMetricNameWithUniqueId(InstanceType instance, String name) {
-    if (name.startsWith(instance.toString())) {
-      return Joiner.on(".").join(name, sSourceNameSupplier.get());
+    String metricsNameWithInstanceType = addInstanceTypeToMetricsName(instance, name);
+    if (sUniqueIDEnabled) {
+      return Joiner.on(".").join(metricsNameWithInstanceType, sSourceNameSupplier.get());
     }
-    return Joiner.on(".").join(instance, name, sSourceNameSupplier.get());
+    return metricsNameWithInstanceType;
+  }
+
+  private static String addInstanceTypeToMetricsName(InstanceType instance, String name) {
+    if (name.startsWith(instance.toString())) {
+      return name;
+    }
+    return Joiner.on(".").join(instance, name);
   }
 
   /**

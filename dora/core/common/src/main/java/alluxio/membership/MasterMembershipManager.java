@@ -20,16 +20,17 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * No-op membership manager to disable MembershipManager module
- * as default for regression purpose.
+ * A bypass no-op membership manager to disable MembershipManager module
+ * if used, the original way of using master for registration is leveraged
+ * for regression compatibility purpose.
  */
-public class NoOpMembershipManager implements MembershipManager {
+public class MasterMembershipManager implements MembershipManager {
 
   /**
-   * @return NoOpMembershipManager
+   * @return MasterMembershipManager
    */
-  public static NoOpMembershipManager create() {
-    return new NoOpMembershipManager();
+  public static MasterMembershipManager create() {
+    return new MasterMembershipManager();
   }
 
   @Override

@@ -506,7 +506,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         workerProvider = new MembershipManagerWorkerProvider(
             MembershipManager.Factory.create(Configuration.global()), schedulerFsContext);
         break;
-      case NOOP:
+      case MASTER:
         workerProvider = new DefaultWorkerProvider(this, schedulerFsContext);
         break;
       default:
