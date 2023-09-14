@@ -1411,6 +1411,29 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OSS_PROTOCOL =
+      stringBuilder(Name.UNDERFS_OSS_PROTOCOL)
+          .setAlias("alluxio.underfs.oss.protocol")
+          .setDefaultValue("http")
+          .setDescription("The protocol for OSS endpoint, by default http.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_PROXY_HOST =
+      stringBuilder(Name.UNDERFS_OSS_PROXY_HOST)
+          .setAlias("alluxio.underfs.oss.proxy.host")
+          .setDescription("The proxy host address for OSS connection, if any.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_PROXY_PORT =
+      intBuilder(Name.UNDERFS_OSS_PROXY_PORT)
+          .setAlias("alluxio.underfs.oss.proxy.port")
+          .setDefaultValue(0)
+          .setDescription("The proxy port for OSS connection, if any.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT =
       stringBuilder(Name.UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT)
           .setAlias("alluxio.underfs.oss.sts.ecs.metadata.service.endpoint")
@@ -6214,6 +6237,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_MAX_READER_CONCURRENCY =
+      intBuilder(Name.FUSE_MAX_READER_CONCURRENCY)
+          .setDefaultValue(128)
+          .setDescription("Max number of concurrent readers per file in FUSE")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey FUSE_MOUNT_ALLUXIO_PATH =
       stringBuilder(Name.FUSE_MOUNT_ALLUXIO_PATH)
           .setAlias(Name.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
@@ -7184,6 +7214,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout";
     public static final String UNDERFS_OSS_ECS_RAM_ROLE = "alluxio.underfs.oss.ecs.ram.role";
     public static final String UNDERFS_OSS_RETRY_MAX = "alluxio.underfs.oss.retry.max";
+    public static final String UNDERFS_OSS_PROTOCOL = "alluxio.underfs.oss.protocol";
+    public static final String UNDERFS_OSS_PROXY_HOST = "alluxio.underfs.oss.proxy.host";
+    public static final String UNDERFS_OSS_PROXY_PORT = "alluxio.underfs.oss.proxy.port";
     public static final String UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT =
         "alluxio.underfs.oss.sts.ecs.metadata.service.endpoint";
     public static final String UNDERFS_OSS_STS_ENABLED = "alluxio.underfs.oss.sts.enabled";
@@ -8267,6 +8300,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
+    public static final String FUSE_MAX_READER_CONCURRENCY =
+        "alluxio.fuse.max.reader.concurrency";
     public static final String FUSE_MOUNT_ALLUXIO_PATH =
         "alluxio.fuse.mount.alluxio.path";
     public static final String FUSE_MOUNT_OPTIONS =

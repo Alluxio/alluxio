@@ -135,8 +135,8 @@ For the purposes of this guide, the following are placeholders.
 Once you have configured Alluxio to your desired under storage system, start up Alluxio locally to see that everything works.
 
 ```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
+$ ./bin/alluxio init format
+$ ./bin/alluxio process start local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -145,7 +145,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 Run a simple example program:
 
 ```shell
-$ ./bin/alluxio runTests
+$ ./bin/alluxio exec basicIOTest
 ```
 
 Visit your container `<CONTAINER>/<DIRECTORY>` or bucket `<BUCKET>/<DIRECTORY>` to verify the files and directories created by Alluxio exist. If there are no errors, then you have successfully configured your storage system!
@@ -153,5 +153,5 @@ Visit your container `<CONTAINER>/<DIRECTORY>` or bucket `<BUCKET>/<DIRECTORY>` 
 To stop Alluxio, you can run:
 
 ``` shell
-$ ./bin/alluxio-stop.sh local
+$ ./bin/alluxio process stop local
 ```

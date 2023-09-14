@@ -12,34 +12,22 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.metrics.MetricsMasterClient;
-import alluxio.grpc.MetricValue;
-import alluxio.metrics.MetricsSystem;
-import alluxio.util.FormatUtils;
 
-import com.google.common.math.DoubleMath;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.Locale;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
  * Prints Alluxio metrics information.
  */
 public class MetricsCommand {
-  private static final String BYTES_METRIC_IDENTIFIER = "Bytes";
-  private static final String THROUGHPUT_METRIC_IDENTIFIER = "Throughput";
-  private static final DecimalFormat DECIMAL_FORMAT
-      = new DecimalFormat("###,###.#####", new DecimalFormatSymbols(Locale.US));
-  private static final String INFO_FORMAT = "%s  (Type: %s, Value: %s)%n";
-
   private final MetricsMasterClient mMetricsMasterClient;
   private final PrintStream mPrintStream;
-  private Map<String, MetricValue> mMetricsMap;
+  private static final Logger LOG = LoggerFactory.getLogger(JobServiceMetricsCommand.class);
 
   /**
    * Creates a new instance of {@link MetricsCommand}.
@@ -58,47 +46,18 @@ public class MetricsCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    mMetricsMap = mMetricsMasterClient.getMetrics();
-    SortedSet<String> names = new TreeSet<>(mMetricsMap.keySet());
-    for (String name : names) {
-      if (!isAlluxioMetric(name)) {
-        continue;
-      }
-      MetricValue metricValue = mMetricsMap.get(name);
-      String strValue;
-      if (metricValue.hasStringValue()) {
-        strValue = metricValue.getStringValue();
-      } else {
-        double doubleValue = metricValue.getDoubleValue();
-        if (name.contains(BYTES_METRIC_IDENTIFIER)) {
-          // Bytes long can be transformed to human-readable format
-          strValue = FormatUtils.getSizeFromBytes((long) doubleValue);
-          if (name.contains(THROUGHPUT_METRIC_IDENTIFIER)) {
-            strValue = strValue + "/MIN";
-          }
-        } else if (DoubleMath.isMathematicalInteger(doubleValue)) {
-          strValue = DECIMAL_FORMAT.format((long) doubleValue);
-        } else {
-          strValue = String.valueOf(doubleValue);
-        }
-      }
-      mPrintStream.printf(INFO_FORMAT, name, metricValue.getMetricType(), strValue);
+    ObjectMapper objectMapper = new ObjectMapper();
+    MetricsOutput metricsInfo = new MetricsOutput(mMetricsMasterClient.getMetrics());
+    try {
+      String json = objectMapper.writeValueAsString(metricsInfo);
+      mPrintStream.println(json);
+    } catch (JsonProcessingException e) {
+      mPrintStream.println("Failed to convert metricsInfo output to JSON. "
+          + "Check the command line log for the detailed error message.");
+      LOG.error("Failed to output JSON object {}", metricsInfo);
+      e.printStackTrace();
+      return -1;
     }
     return 0;
-  }
-
-  /**
-   * Checks if a metric is Alluxio metric.
-   *
-   * @param name name of the metrics to check
-   * @return true if a metric is an Alluxio metric, false otherwise
-   */
-  private boolean isAlluxioMetric(String name) {
-    for (MetricsSystem.InstanceType instance : MetricsSystem.InstanceType.values()) {
-      if (name.startsWith(instance.toString())) {
-        return true;
-      }
-    }
-    return false;
   }
 }
