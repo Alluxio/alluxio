@@ -54,7 +54,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -107,8 +106,6 @@ public class PagedDoraWorkerTest {
   }
 
   @Test
-  @Ignore
-  // TODO(elega) fix this broken test
   public void testLoad()
       throws AccessControlException, ExecutionException, InterruptedException, TimeoutException,
       IOException {
@@ -120,6 +117,7 @@ public class PagedDoraWorkerTest {
     alluxio.grpc.File file =
         alluxio.grpc.File.newBuilder().setUfsPath(ufsPath).setLength(length).setMountId(1).build();
     UfsStatus ufsStatus = mWorker.getUfsInstance(ufsPath).getStatus(ufsPath);
+    ufsStatus.setUfsFullPath(new AlluxioURI(ufsPath));
     List<UfsStatus> listUfsStatus = new ArrayList<>(Collections.singletonList(ufsStatus));
     ListenableFuture<List<LoadFileFailure>> load = mWorker.load(true, listUfsStatus,
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build());
