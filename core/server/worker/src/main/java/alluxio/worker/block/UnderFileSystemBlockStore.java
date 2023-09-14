@@ -274,7 +274,8 @@ public final class UnderFileSystemBlockStore implements SessionCleanable, Closea
               MetricsSystem.escape(uri)));
     BlockReader reader =
         UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, positionShort,
-            mLocalBlockStore, ufsClient, mUfsInstreamCache, ufsBytesRead, ufsBytesReadThroughput);
+            mLocalBlockStore, ufsClient, mUfsInstreamCache, mUfsManager.getRateLimiter(),
+            ufsBytesRead, ufsBytesReadThroughput);
     blockInfo.setBlockReader(reader);
     return reader;
   }

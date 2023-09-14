@@ -5290,6 +5290,48 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_UFS_READ_THROUGHPUT_LIMIT_ENABLED =
+      booleanBuilder(Name.WORKER_UFS_READ_THROUGHPUT_LIMIT_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether or not to enable limit throughput for reading from ufs.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WORKER_UFS_READ_THROUGHPUT_POLICY =
+      classBuilder(Name.WORKER_UFS_READ_THROUGHPUT_POLICY)
+          .setDefaultValue("The default throughput calculation policy for limit reading from ufs.")
+          .setDescription("alluxio.master.block.throughput.ConstantThroughputPolicy")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WORKER_UFS_READ_TOTAL_THROUGHPUT =
+      dataSizeBuilder(Name.WORKER_UFS_READ_TOTAL_THROUGHPUT)
+          .setDefaultValue("5GB")
+          .setDescription("The total throughput limit for cluster to read from ufs.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WORKER_UFS_READ_DEFAULT_THROUGHPUT =
+      dataSizeBuilder(Name.WORKER_UFS_READ_DEFAULT_THROUGHPUT)
+          .setDefaultValue("500MB")
+          .setDescription("The default throughput limit for worker to read from ufs.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WORKER_UFS_READ_MIN_THROUGHPUT =
+      dataSizeBuilder(Name.WORKER_UFS_READ_MIN_THROUGHPUT)
+          .setDefaultValue("100MB")
+          .setDescription("The min throughput limit for worker to read from ufs.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WORKER_UFS_READ_THROUGHPUT_MAX_MULTIPLE =
+      intBuilder(Name.WORKER_UFS_READ_THROUGHPUT_MAX_MULTIPLE)
+          .setDefaultValue(3)
+          .setDescription("The worker throughput can reach the maximum multiple of the average.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // Proxy related properties
@@ -8707,6 +8749,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
         "alluxio.worker.ufs.instream.cache.max.size";
     public static final String WORKER_WHITELIST = "alluxio.worker.whitelist";
+    public static final String WORKER_UFS_READ_THROUGHPUT_LIMIT_ENABLED =
+        "alluxio.worker.ufs.read.throughput.limit.enabled";
+    public static final String WORKER_UFS_READ_THROUGHPUT_POLICY =
+        "alluxio.worker.ufs.read.throughput.policy.class";
+    public static final String WORKER_UFS_READ_TOTAL_THROUGHPUT =
+        "alluxio.worker.ufs.read.total.throughput";
+    public static final String WORKER_UFS_READ_DEFAULT_THROUGHPUT =
+        "alluxio.worker.ufs.read.default.throughput";
+    public static final String WORKER_UFS_READ_MIN_THROUGHPUT =
+        "alluxio.worker.ufs.read.min.throughput";
+    public static final String WORKER_UFS_READ_THROUGHPUT_MAX_MULTIPLE =
+        "alluxio.worker.ufs.read.throughput.max.multiple";
 
     //
     // Proxy related properties

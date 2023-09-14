@@ -90,7 +90,8 @@ public class DefaultBlockWorkerExceptionTest {
     UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(() -> mUfs, new AlluxioURI(mRootUfs));
     when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mBlockWorker =
-        new DefaultBlockWorker(blockMasterClientPool, client, sessions, blockstore, workerId);
+        new DefaultBlockWorker(blockMasterClientPool, client, sessions, blockstore, workerId,
+            ufsManager.getRateLimiter());
   }
 
   @Test

@@ -26,6 +26,7 @@ import alluxio.worker.SessionCleanable;
 import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 
 import java.io.IOException;
 import java.util.List;
@@ -243,4 +244,9 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the worker address
    */
   WorkerNetAddress getWorkerAddress();
+
+  /**
+   * @return ufs read RateLimiter
+   */
+  UnderFileSystemReadRateLimiter getUfsReadRateLimiter();
 }

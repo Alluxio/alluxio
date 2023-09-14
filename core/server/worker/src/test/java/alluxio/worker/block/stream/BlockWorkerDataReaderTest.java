@@ -118,7 +118,7 @@ public class BlockWorkerDataReaderTest {
     MonoBlockStore blockStore =
         new MonoBlockStore(tieredBlockStore, blockMasterClientPool, ufsManager, workerId);
     mBlockWorker = new DefaultBlockWorker(blockMasterClientPool, fileSystemMasterClient,
-        sessions, blockStore, workerId);
+        sessions, blockStore, workerId, ufsManager.getRateLimiter());
 
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setBlockIds(Collections.singletonList(BLOCK_ID)));

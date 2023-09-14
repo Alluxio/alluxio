@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Sessions;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import org.slf4j.Logger;
@@ -41,12 +42,15 @@ public class AllMasterRegistrationBlockWorker extends DefaultBlockWorker {
    * @param sessions an object for tracking and cleaning up client sessions
    * @param blockStore an Alluxio block store
    * @param workerId worker id
+   * @param rateLimiter ufs read rate limiter
    */
   public AllMasterRegistrationBlockWorker(
       BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions,
-      BlockStore blockStore, AtomicReference<Long> workerId) {
-    super(blockMasterClientPool, fileSystemMasterClient, sessions, blockStore, workerId);
+      BlockStore blockStore, AtomicReference<Long> workerId,
+      UnderFileSystemReadRateLimiter rateLimiter) {
+    super(blockMasterClientPool, fileSystemMasterClient, sessions, blockStore, workerId,
+        rateLimiter);
   }
 
   @Override

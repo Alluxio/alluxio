@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import alluxio.Sessions;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 
 import org.junit.Test;
 
@@ -48,7 +49,8 @@ public class AllMasterRegistrationBlockWorkerTest extends DefaultBlockWorkerTest
 
     mBlockWorker = new AllMasterRegistrationBlockWorker(
         mBlockMasterClientPool, mFileSystemMasterClient,
-        mock(Sessions.class), mBlockStore, new AtomicReference<>(INVALID_WORKER_ID));
+        mock(Sessions.class), mBlockStore, new AtomicReference<>(INVALID_WORKER_ID),
+        new UnderFileSystemReadRateLimiter(1));
     BlockSyncMasterGroup.setBlockMasterClientFactory(
         new BlockSyncMasterGroup.BlockMasterClientFactory() {
           @Override

@@ -123,7 +123,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   public void heartbeat(long timeLimitMs) {
     boolean success = mBlockMasterSyncHelper.heartbeat(
         mWorkerId.get(), mBlockWorker.getReport(),
-        mBlockWorker.getStoreMeta(), this::handleMasterCommand);
+        mBlockWorker.getStoreMeta(), this::handleMasterCommand,
+        mBlockWorker.getUfsReadRateLimiter());
     if (success) {
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } else {

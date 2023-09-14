@@ -24,6 +24,7 @@ import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
 import com.codahale.metrics.Counter;
@@ -72,6 +73,7 @@ public final class UnderFileSystemBlockReader extends BlockReader {
   private BlockWriter mBlockWriter;
   /** If set, the reader is closed and should not be used afterwards. */
   private boolean mClosed;
+  private UnderFileSystemReadRateLimiter mRateLimiter;
 
   /**
    * The position of mUnderFileSystemInputStream (if not null) is blockStart + mInStreamPos.
@@ -91,17 +93,19 @@ public final class UnderFileSystemBlockReader extends BlockReader {
    * @param ufsClient the manager of ufs
    * @param positionShort whether the client op is a positioned read to a small buffer
    * @param ufsInStreamCache the UFS in stream cache
+   * @param rateLimiter the rate limiter for reading from ufs
    * @param ufsBytesRead counter metric to track ufs bytes read
    * @param ufsBytesReadThroughput meter metric to track bytes read throughput
    * @return the block reader
    */
   public static UnderFileSystemBlockReader create(UnderFileSystemBlockMeta blockMeta, long offset,
       boolean positionShort, LocalBlockStore localBlockStore, UfsManager.UfsClient ufsClient,
-      UfsInputStreamCache ufsInStreamCache, Counter ufsBytesRead, Meter ufsBytesReadThroughput)
+      UfsInputStreamCache ufsInStreamCache, UnderFileSystemReadRateLimiter rateLimiter,
+      Counter ufsBytesRead, Meter ufsBytesReadThroughput)
       throws IOException {
     UnderFileSystemBlockReader ufsBlockReader =
         new UnderFileSystemBlockReader(blockMeta, positionShort, localBlockStore, ufsClient,
-            ufsInStreamCache, ufsBytesRead, ufsBytesReadThroughput);
+            ufsInStreamCache, rateLimiter, ufsBytesRead, ufsBytesReadThroughput);
     ufsBlockReader.init(offset);
     return ufsBlockReader;
   }
@@ -119,7 +123,8 @@ public final class UnderFileSystemBlockReader extends BlockReader {
    */
   private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, boolean positionShort,
       LocalBlockStore localBlockStore, UfsManager.UfsClient ufsClient,
-      UfsInputStreamCache ufsInStreamCache, Counter ufsBytesRead, Meter ufsBytesReadThroughput) {
+      UfsInputStreamCache ufsInStreamCache, UnderFileSystemReadRateLimiter rateLimiter,
+      Counter ufsBytesRead, Meter ufsBytesReadThroughput) {
     mInitialBlockSize = blockMeta.getBlockSize();
     mBlockMeta = blockMeta;
     mLocalBlockStore = localBlockStore;
@@ -129,6 +134,7 @@ public final class UnderFileSystemBlockReader extends BlockReader {
     mIsPositionShort = positionShort;
     mUfsBytesRead = ufsBytesRead;
     mUfsBytesReadThroughput = ufsBytesReadThroughput;
+    mRateLimiter = rateLimiter;
   }
 
   /**
@@ -168,6 +174,9 @@ public final class UnderFileSystemBlockReader extends BlockReader {
       int read;
       try {
         read = mUnderFileSystemInputStream.read(data, bytesRead, (int) (bytesToRead - bytesRead));
+        if (mRateLimiter != null) {
+          mRateLimiter.acquire(read);
+        }
       } catch (IOException e) {
         throw AlluxioStatusException.fromIOException(e);
       }
@@ -229,6 +238,9 @@ public final class UnderFileSystemBlockReader extends BlockReader {
     int bytesToRead =
         (int) Math.min(buf.writableBytes(), mBlockMeta.getBlockSize() - mInStreamPos);
     int bytesRead = buf.writeBytes(mUnderFileSystemInputStream, bytesToRead);
+    if (mRateLimiter != null) {
+      mRateLimiter.acquire(bytesRead);
+    }
     if (bytesRead <= 0) {
       return bytesRead;
     }

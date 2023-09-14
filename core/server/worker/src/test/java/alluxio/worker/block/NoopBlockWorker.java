@@ -26,6 +26,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 
 import java.io.IOException;
 import java.util.List;
@@ -165,6 +166,10 @@ public class NoopBlockWorker implements BlockWorker {
   @Override
   public WorkerNetAddress getWorkerAddress() {
     throw new UnsupportedOperationException();
+  }
+
+  public UnderFileSystemReadRateLimiter getUfsReadRateLimiter() {
+    return null;
   }
 
   @Override

@@ -71,7 +71,7 @@ class BlockWorkerBase {
     Sessions sessions = mock(Sessions.class);
     mBlockWorker =
         new DefaultBlockWorker(blockMasterClientPool, fileSystemMasterClient, sessions, mBlockStore,
-            workerId);
+            workerId, ufsManager.getRateLimiter());
   }
 
   public void after() throws Exception {

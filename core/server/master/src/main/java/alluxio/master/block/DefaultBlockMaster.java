@@ -52,6 +52,7 @@ import alluxio.master.CoreMasterContext;
 import alluxio.master.WorkerState;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
+import alluxio.master.block.throughput.ThroughputPolicy;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.SingleEntryJournaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
@@ -73,6 +74,7 @@ import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
 import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.WaitForOptions;
@@ -304,6 +306,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private final boolean mStandbyMasterRpcEnabled = Configuration.getBoolean(
       PropertyKey.STANDBY_MASTER_GRPC_ENABLED);
 
+  private ThroughputPolicy mThroughputPolicy;
+
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
@@ -338,6 +342,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         this::getLostBlocksCount);
     MetricsSystem.registerCachedGaugeIfAbsent(MetricKey.MASTER_TO_REMOVE_BLOCK_COUNT.getName(),
         this::getToRemoveBlockCount, 30, TimeUnit.SECONDS);
+
+    if (Configuration.getBoolean(PropertyKey.WORKER_UFS_READ_THROUGHPUT_LIMIT_ENABLED)) {
+      mThroughputPolicy = ThroughputPolicy.Factory.create(Configuration.global());
+    }
   }
 
   /**
@@ -1730,6 +1738,23 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       LOG.warn("Adding block ids {} for worker {} but these blocks don't exist. "
           + "These blocks will be ignored", sb, workerId);
     }
+  }
+
+  @Override
+  public long refreshWorkerThroughput(long workerId, long throughput) {
+    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+    long newThroughput = 0;
+    if (worker == null) {
+      LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
+      return newThroughput;
+    }
+    if (mThroughputPolicy != null) {
+      worker.setReadUfsThroughput(throughput);
+      newThroughput = mThroughputPolicy.updateWorkerThroughput(mWorkers, worker);
+      LOG.debug("New throughput for worker {} is {}/s", workerId,
+          FormatUtils.getSizeFromBytes(newThroughput));
+    }
+    return newThroughput;
   }
 
   @Override

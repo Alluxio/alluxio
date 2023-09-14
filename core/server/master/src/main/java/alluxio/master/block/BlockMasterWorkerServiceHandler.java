@@ -87,11 +87,13 @@ public final class BlockMasterWorkerServiceHandler extends
 
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
+    final long throughput = request.getThroughput();
 
     RpcUtils.call(LOG, () ->
         BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
           capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
-            lostStorageMap, metrics)).build(),
+            lostStorageMap, metrics))
+                .setThroughput(mBlockMaster.refreshWorkerThroughput(workerId, throughput)).build(),
         "blockHeartbeat", "request=%s", responseObserver, request);
   }
 

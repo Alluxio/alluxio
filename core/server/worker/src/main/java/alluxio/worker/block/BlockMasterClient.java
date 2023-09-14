@@ -19,11 +19,11 @@ import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.BlockHeartbeatPRequest;
+import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockIdList;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
 import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.BuildVersion;
-import alluxio.grpc.Command;
 import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.ConfigProperty;
@@ -213,13 +213,14 @@ public class BlockMasterClient extends AbstractMasterClient {
    * @param removedBlocks a list of block removed from this worker
    * @param addedBlocks a mapping from storage tier alias to added blocks
    * @param lostStorage a mapping from storage tier alias to a list of lost storage paths
+   * @param throughput read ufs throughput
    * @param metrics a list of worker metrics
    * @return an optional command for the worker to execute
    */
-  public synchronized Command heartbeat(final long workerId,
+  public synchronized BlockHeartbeatPResponse heartbeat(final long workerId,
       final Map<String, Long> capacityBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final List<Long> removedBlocks, final Map<BlockStoreLocation, List<Long>> addedBlocks,
-      final Map<String, List<String>> lostStorage, final List<Metric> metrics)
+      final Map<String, List<String>> lostStorage, long throughput, final List<Metric> metrics)
       throws IOException {
     final BlockHeartbeatPOptions options = BlockHeartbeatPOptions.newBuilder()
         .addAllMetrics(metrics).putAllCapacityBytesOnTiers(capacityBytesOnTiers).build();
@@ -231,13 +232,14 @@ public class BlockMasterClient extends AbstractMasterClient {
             e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
 
     final BlockHeartbeatPRequest request = BlockHeartbeatPRequest.newBuilder().setWorkerId(workerId)
-        .putAllUsedBytesOnTiers(usedBytesOnTiers).addAllRemovedBlockIds(removedBlocks)
+        .putAllUsedBytesOnTiers(usedBytesOnTiers)
+        .addAllRemovedBlockIds(removedBlocks).setThroughput(throughput)
         .addAllAddedBlocks(entryList).setOptions(options)
         .putAllLostStorage(lostStorageMap).build();
 
     return retryRPC(() -> mClient.withDeadlineAfter(mContext.getClusterConf()
         .getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT), TimeUnit.MILLISECONDS)
-        .blockHeartbeat(request).getCommand(), LOG, "Heartbeat", "workerId=%d", workerId);
+        .blockHeartbeat(request), LOG, "Heartbeat", "workerId=%d", workerId);
   }
 
   private GetRegisterLeasePResponse acquireRegisterLease(

@@ -56,6 +56,7 @@ import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.io.UnderFileSystemReadRateLimiter;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.page.PagedBlockStore;
@@ -126,6 +127,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   private final CacheRequestManager mCacheManager;
   private final FuseManager mFuseManager;
+  private UnderFileSystemReadRateLimiter mRateLimiter;
 
   protected WorkerNetAddress mAddress;
 
@@ -137,11 +139,12 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
    * @param sessions an object for tracking and cleaning up client sessions
    * @param blockStore an Alluxio block store
    * @param workerId worker id
+   * @param rateLimiter ufs read rate limiter
    */
   @VisibleForTesting
   public DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
-      AtomicReference<Long> workerId) {
+      AtomicReference<Long> workerId, UnderFileSystemReadRateLimiter rateLimiter) {
     super(
         Configuration.getBoolean(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS)
             ? ExecutorServiceFactories.cachedThreadPool("block-worker-executor")
@@ -163,6 +166,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, fsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(fsContext));
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
+    mRateLimiter = rateLimiter;
 
     Metrics.registerGauges(this);
   }
@@ -574,6 +578,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     }
 
     private Metrics() {} // prevent instantiation
+  }
+
+  @Override
+  public UnderFileSystemReadRateLimiter getUfsReadRateLimiter() {
+    return mRateLimiter;
   }
 
   /**
