@@ -198,6 +198,9 @@ public class PagedFileReaderTest {
           mPagedFileReader.getMultipleDataFileChannel(mEmbeddedChannel, mFileLen);
       // TODO(Tony Sun): How to verify the correctness of CompositeDataBuffer?
       Assert.assertNotNull(compositeDataBuffer);
+    } else if (mFileLen == 0) {
+      throw new IOException(String.format("mFileLen: %d, mPos: %d",
+          mPagedFileReader.getLength(), mPagedFileReader.getPosition()));
     } else {
       Assert.assertNull(mPagedFileReader.getMultipleDataFileChannel(mEmbeddedChannel, mFileLen));
     }

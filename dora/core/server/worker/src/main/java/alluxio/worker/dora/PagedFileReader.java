@@ -97,6 +97,11 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     mPos = pos;
   }
 
+  @VisibleForTesting
+  long getPosition() {
+    return mPos;
+  }
+
   /**
    * Get a {@link CompositeDataBuffer} which has a list of {@link DataFileChannel}.
    *
