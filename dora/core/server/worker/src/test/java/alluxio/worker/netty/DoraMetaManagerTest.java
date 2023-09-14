@@ -31,6 +31,7 @@ import alluxio.worker.dora.DoraMetaManager;
 import alluxio.worker.dora.DoraUfsManager;
 import alluxio.worker.dora.PagedDoraWorker;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,13 +55,22 @@ public class DoraMetaManagerTest {
     mManager = new DoraMetaManager(conf, worker, cacheManager, doraUfsManager);
   }
 
+  @After
+  public void after() {
+    try {
+      mManager.close();
+    } catch (IOException e) {
+      mManager = null;
+    }
+  }
+
 
   @Test
   public void testGetUfsInstance() {
     try {
       mManager.getUfsInstance("");
     } catch (Exception e) {
-      // assertNotNull(e.getMessage());
+      assertNotNull(e);
     }
   }
 
