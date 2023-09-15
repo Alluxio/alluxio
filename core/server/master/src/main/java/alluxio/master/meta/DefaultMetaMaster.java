@@ -17,12 +17,12 @@ import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
-import alluxio.collections.Pair;
 import alluxio.conf.ClusterConfigSync;
 import alluxio.conf.Configuration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
+import alluxio.conf.UpdatedConfigEventDiff;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
@@ -765,8 +765,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public Pair<List<Map<String, String>>, Long> getUpdatedConfiguration(long version) {
-    return Configuration.getUpdatedConfigs(version);
+  public UpdatedConfigEventDiff getUpdatedConfiguration(long sourceVersion) {
+    return Configuration.getUpdatedConfigs(sourceVersion);
   }
 
   /**

@@ -15,6 +15,7 @@ import alluxio.cli.fsadmin.command.UpdateConfCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
+import alluxio.conf.UpdatedConfigEventDiff;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -67,15 +68,16 @@ public final class UpdateConfIntegrationTest extends AbstractFsAdminShellTest {
     Configuration.updateConfiguration(Collections.singletonMap("key2", "value2"), true);
     long t3 = System.nanoTime();
     Configuration.updateConfiguration(Collections.singletonMap("key3", "value3"), true);
-    Pair<List<Map<String, String>>, Long> pair = Configuration.getUpdatedConfigs(t1);
-    Assert.assertEquals(3, pair.getFirst().size());
-    Assert.assertTrue(pair.getSecond() > t3);
+    UpdatedConfigEventDiff diff = Configuration.getUpdatedConfigs(t1);
+    Assert.assertEquals(3, diff.getChangedProperties().size());
+    Assert.assertTrue(diff.getVersion() > t3);
     long t4 = System.nanoTime();
     Configuration.updateConfiguration(Collections.singletonMap("key3", "value3new"), true);
-    Assert.assertEquals(3, Configuration.getUpdatedConfigs(t2).getFirst().size());
-    Assert.assertEquals(2, Configuration.getUpdatedConfigs(t3).getFirst().size());
-    Assert.assertEquals(1, Configuration.getUpdatedConfigs(t4).getFirst().size());
-    Assert.assertEquals(0, Configuration.getUpdatedConfigs(System.nanoTime()).getFirst().size());
+    Assert.assertEquals(3, Configuration.getUpdatedConfigs(t2).getChangedProperties().size());
+    Assert.assertEquals(2, Configuration.getUpdatedConfigs(t3).getChangedProperties().size());
+    Assert.assertEquals(1, Configuration.getUpdatedConfigs(t4).getChangedProperties().size());
+    Assert.assertEquals(0,
+        Configuration.getUpdatedConfigs(System.nanoTime()).getChangedProperties().size());
   }
 
   @Test

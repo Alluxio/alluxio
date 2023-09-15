@@ -14,7 +14,6 @@ package alluxio.conf;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.collections.FixedSizeTreeMap;
-import alluxio.collections.Pair;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
@@ -94,8 +93,8 @@ public final class Configuration
   private static final AtomicReference<InstancedConfiguration> SERVER_CONFIG_REFERENCE =
       new AtomicReference<>();
 
-  private static final Pair DEFAULT_UPDATED_CONF_PAIR =
-      new Pair(Collections.emptyList(), 0L);
+  private static final UpdatedConfigEventDiff DEFAULT_UPDATED_CONF_PAIR =
+      new UpdatedConfigEventDiff(Collections.emptyList(), 0);
   private static final NavigableMap<Long, Map<String, String>> UPDATED_CONFIG_MAP =
       new FixedSizeTreeMap<>(500);
   private static long sLastAppliedUpdatedConfVersion;
@@ -776,13 +775,13 @@ public final class Configuration
    * @param version the specific updated config version
    * @return the Property key and value after the given version and the latest version
    */
-  public static Pair<List<Map<String, String>>, Long> getUpdatedConfigs(
+  public static UpdatedConfigEventDiff getUpdatedConfigs(
       long version) {
     synchronized (UPDATED_CONFIG_MAP) {
       SortedMap<Long, Map<String, String>> subMap =
           UPDATED_CONFIG_MAP.tailMap(version, false);
       if (!subMap.isEmpty()) {
-        return new Pair(Lists.newArrayList(subMap.values()), subMap.lastKey());
+        return new UpdatedConfigEventDiff(Lists.newArrayList(subMap.values()), subMap.lastKey());
       }
       return DEFAULT_UPDATED_CONF_PAIR;
     }
