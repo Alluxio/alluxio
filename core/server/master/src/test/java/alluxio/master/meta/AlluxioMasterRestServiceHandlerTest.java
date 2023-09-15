@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
+import alluxio.DefaultStorageTierAssoc;
 import alluxio.RuntimeConstants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -48,9 +49,11 @@ import alluxio.proto.meta.Block;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
+import alluxio.util.webui.UIFileInfo;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
+import alluxio.wire.MasterWebUILogs;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -60,6 +63,7 @@ import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricSet;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -70,6 +74,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
@@ -78,6 +83,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Response;
 
@@ -298,5 +304,58 @@ public final class AlluxioMasterRestServiceHandlerTest {
     assertTrue(handler.isMounted(MetricsSystem.escape(new AlluxioURI(s3Uri + "/"))));
     assertFalse(handler.isMounted(hdfsUri));
     assertFalse(handler.isMounted(MetricsSystem.escape(new AlluxioURI(hdfsUri))));
+  }
+
+  @Test
+  public void testGetWebUILogsByRegex() throws IOException {
+    File logsDir = mTestFolder.newFolder("logs");
+    logsDir.mkdirs();
+    String[] fileArray0 = new String[] {
+        "master.log",
+        "master.log.1",
+        "master.log.100",
+        "master.log",
+        "master.log.1",
+        "master.log.100",
+        "master.txt",
+        "alluxio-master-exit-metrics-20230526-085548.json"
+    };
+    String[] fileArray1 = new String[] {
+        "master.log.a",
+        "master.loga",
+        "master.bin",
+    };
+
+    for (String fileName : fileArray0) {
+      File file0 = new File(logsDir, fileName);
+      file0.createNewFile();
+    }
+    for (String fileName : fileArray1) {
+      File file0 = new File(logsDir, fileName);
+      file0.createNewFile();
+    }
+
+    Configuration.set(PropertyKey.LOGS_DIR, logsDir.getPath());
+    FileSystemMaster mockMaster = mock(FileSystemMaster.class);
+    BlockMaster mockBlockMaster = mock(BlockMaster.class);
+
+    AlluxioMasterProcess masterProcess = PowerMockito.mock(AlluxioMasterProcess.class);
+    when(masterProcess.getMaster(FileSystemMaster.class)).thenReturn(mockMaster);
+    when(masterProcess.getMaster(BlockMaster.class)).thenReturn(mockBlockMaster);
+    when(mockBlockMaster.getGlobalStorageTierAssoc()).thenReturn(
+        new DefaultStorageTierAssoc(
+            PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS,
+            PropertyKey.Template.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS));
+
+    ServletContext context = mock(ServletContext.class);
+    when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
+        masterProcess);
+    AlluxioMasterRestServiceHandler handler = new AlluxioMasterRestServiceHandler(context);
+    Response response = handler.getWebUILogs("", "0", "", "20");
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+    List<UIFileInfo> fileInfos = ((MasterWebUILogs) response.getEntity()).getFileInfos();
+    String[] actualFileNameArray =
+        fileInfos.stream().map(fileInfo -> fileInfo.getName()).toArray(String[]::new);
+    Arrays.equals(fileArray0, actualFileNameArray);
   }
 }
