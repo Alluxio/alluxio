@@ -51,7 +51,6 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -133,7 +132,6 @@ public class PagedFileReaderTest {
   @After
   public void after() throws IOException {
     mPagedFileReader.close();
-    new File(mTestFileName).delete();
     mLocalUfs.close();
   }
 
@@ -154,17 +152,15 @@ public class PagedFileReaderTest {
 
   @Test
   public void read() throws IOException {
-    if (mFileLen > 0) {
-      int testNum = Math.min(mFileLen, mMinTestNum);
-      for (int i = 0; i < testNum; i++) {
-        int offset = mRandom.nextInt(mFileLen);
-        int readLength = mRandom.nextInt(mFileLen - offset);
-        byte[] tmpBytes = Files.readAllBytes(Paths.get(mTestFileName));
-        byte[] bytes = Arrays.copyOfRange(tmpBytes, offset, offset + readLength);
-        ByteBuffer realByteBuffer = ByteBuffer.wrap(bytes);
-        ByteBuffer byteBuffer = mPagedFileReader.read(offset, readLength);
-        Assert.assertEquals(realByteBuffer, byteBuffer);
-      }
+    int testNum = Math.min(mFileLen, mMinTestNum);
+    for (int i = 0; i < testNum; i++) {
+      int offset = mRandom.nextInt(mFileLen);
+      int readLength = mRandom.nextInt(mFileLen - offset);
+      byte[] tmpBytes = Files.readAllBytes(Paths.get(mTestFileName));
+      byte[] bytes = Arrays.copyOfRange(tmpBytes, offset, offset + readLength);
+      ByteBuffer realByteBuffer = ByteBuffer.wrap(bytes);
+      ByteBuffer byteBuffer = mPagedFileReader.read(offset, readLength);
+      Assert.assertEquals(realByteBuffer, byteBuffer);
     }
   }
 
