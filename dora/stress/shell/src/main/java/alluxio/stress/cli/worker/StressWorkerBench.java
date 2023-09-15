@@ -342,7 +342,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     }
 
     if (FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength) > Integer.MAX_VALUE) {
-      throw new IllegalStateException("mRandomReadMaxLength cannot be larger than 2.1G");
+      throw new IllegalArgumentException("mRandomReadMaxLength cannot be larger than 2.1G");
     }
   }
 
