@@ -16,8 +16,11 @@ import alluxio.PositionReader;
 import alluxio.client.file.dora.netty.NettyDataReader;
 import alluxio.client.file.dora.netty.PartialReadException;
 import alluxio.file.ReadTargetBuffer;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
-import com.google.common.base.Throwables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
@@ -27,6 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class DoraCachePositionReader implements PositionReader {
+  private static final Logger LOG = LoggerFactory.getLogger(DoraCachePositionReader.class);
   private final NettyDataReader mNettyReader;
   private final long mFileLength;
   private final CloseableSupplier<PositionReader> mFallbackReader;
@@ -37,7 +41,6 @@ public class DoraCachePositionReader implements PositionReader {
    * @param length file length
    * @param fallbackReader the position reader to fallback to when errors happen
    */
-  // TODO(lu) structure for fallback position read
   public DoraCachePositionReader(NettyDataReader dataReader,
       long length, CloseableSupplier<PositionReader> fallbackReader) {
     mNettyReader = dataReader;
@@ -51,17 +54,20 @@ public class DoraCachePositionReader implements PositionReader {
     if (position >= mFileLength) { // at end of file
       return -1;
     }
+    int originalOffset = buffer.offset();
     try {
       return mNettyReader.read(position, buffer, length);
     } catch (PartialReadException e) {
       int bytesRead = e.getBytesRead();
       if (bytesRead == 0) {
-        // we didn't make any progress, throw the exception so that the caller needs to handle that
-        Throwables.propagateIfPossible(e.getCause(), IOException.class);
-        throw new IOException(e.getCause());
+        LOG.debug("Failed to read file from worker through Netty", e);
+        return fallback(position, buffer, length, originalOffset);
       }
-      // otherwise ignore the exception and let the caller decide whether to continue
+      buffer.offset(originalOffset + bytesRead);
       return bytesRead;
+    } catch (Throwable t) {
+      LOG.debug("Failed to read file from worker through Netty", t);
+      return fallback(position, buffer, length, originalOffset);
     }
   }
 
@@ -73,5 +79,16 @@ public class DoraCachePositionReader implements PositionReader {
     mClosed = true;
     mNettyReader.close();
     mFallbackReader.close();
+  }
+
+  private int fallback(long position, ReadTargetBuffer buffer,
+      int length, int originalOffset) throws IOException {
+    // In case any error in worker read, revert the offset change in the buffer
+    buffer.offset(originalOffset);
+    int read = mFallbackReader.get().read(position, buffer, length);
+    MetricsSystem.meter(MetricKey.CLIENT_WORKER_READ_UFS_FALLBACK_BYTES.getName())
+        .mark(read);
+    MetricsSystem.counter(MetricKey.CLIENT_WORKER_READ_UFS_FALLBACK.getName()).inc();
+    return read;
   }
 }

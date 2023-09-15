@@ -2560,6 +2560,20 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_WORKER_READ_UFS_FALLBACK =
+      new Builder("Client.WorkerReadUfsFallback")
+          .setDescription("Total number of data read fallback to UFS "
+              + "after encountering error when reading from worker.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_WORKER_READ_UFS_FALLBACK_BYTES =
+      new Builder("Client.WorkerReadUfsFallbackBytes")
+          .setDescription("Total bytes of data read fallback to UFS "
+              + "after encountering error when reading from worker.")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
 
   public static final MetricKey NETTY_CHANNEL_COUNT =
       new Builder("Process.NettyChannelCount")
