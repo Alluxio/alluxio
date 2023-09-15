@@ -380,8 +380,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         ? (options.getCommonOptions().hasSyncIntervalMs()
         ? options.getCommonOptions().getSyncIntervalMs() : -1) :
         -1;
-    alluxio.grpc.FileInfo fi = getGrpcFileInfo(ufsFullPath, syncIntervalMs,
-        options.getLoadMetadataType() != LoadMetadataPType.NEVER);
+    boolean loadIfNotExists = true;
+    if (options.hasLoadMetadataType() && options.getLoadMetadataType() == LoadMetadataPType.NEVER) {
+      loadIfNotExists = false;
+    }
+    alluxio.grpc.FileInfo fi = getGrpcFileInfo(ufsFullPath, syncIntervalMs, loadIfNotExists);
     int cachedPercentage = getCachedPercentage(fi, ufsFullPath);
 
     List<FileBlockInfo> fileBlockInfos = new ArrayList<>();
@@ -389,7 +392,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     BlockInfo blockInfo = new BlockInfo();
     BlockLocation blockLocation = new BlockLocation();
     blockLocation.setWorkerId(mWorkerId.get());
-    blockLocation.setWorkerAddress(getAddress());
+    if (getAddress() != null) {
+      blockLocation.setWorkerAddress(getAddress());
+    }
     List<BlockLocation> blockLocations = new ArrayList<>();
     blockLocations.add(blockLocation);
     blockInfo.setLocations(blockLocations);
@@ -911,9 +916,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         ? options.getCommonOptions().getSyncIntervalMs() : -1) :
         -1;
     try {
-      return getGrpcFileInfo(
-          path, syncIntervalMs,
-          options.getLoadMetadataType() != LoadMetadataPType.NEVER) != null;
+      boolean loadIfNotExists = true;
+      if (options.hasLoadMetadataType() && options.getLoadMetadataType() == LoadMetadataPType.NEVER) {
+        loadIfNotExists = false;
+      }
+      return getGrpcFileInfo(path, syncIntervalMs, loadIfNotExists) != null;
     } catch (FileNotFoundException e) {
       return false;
     }
