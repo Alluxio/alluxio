@@ -60,7 +60,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Random;
-import java.util.UUID;
 
 /**
  * Unit test of {@link PagedFileReader}.
@@ -113,7 +112,7 @@ public class PagedFileReaderTest {
     String localUfsRoot = mTemporaryFolder.getRoot().getAbsolutePath();
     mLocalUfs = UnderFileSystem.Factory.create(
         localUfsRoot, UnderFileSystemConfiguration.defaults(mConf));
-    Path path = Paths.get(localUfsRoot, "testFile" + UUID.randomUUID());
+    Path path = Paths.get(localUfsRoot, "testFile");
     mTestData = BufferUtils.getIncreasingByteArray(mFileLen);
     try (FileOutputStream os = new FileOutputStream(path.toFile())) {
       os.write(mTestData);
