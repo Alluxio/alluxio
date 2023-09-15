@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckAccessPRequest;
@@ -95,6 +96,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -226,7 +228,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public URIStatus getStatus(final AlluxioURI path, final GetStatusPOptions options)
       throws AlluxioStatusException {
     return retryRPC(() -> new URIStatus(GrpcUtils
-        .fromProto(mClient.getStatus(GetStatusPRequest.newBuilder().setPath(getTransportPath(path))
+        .fromProto(mClient.withDeadlineAfter(
+                mContext.getClusterConf().getMs(PropertyKey.WORKER_MASTER_RPC_TIMEOUT),
+                TimeUnit.MILLISECONDS).getStatus(GetStatusPRequest.newBuilder().setPath(getTransportPath(path))
             .setOptions(options).build()).getFileInfo())),
         RPC_LOG, "GetStatus", "path=%s,options=%s", path, options);
   }
