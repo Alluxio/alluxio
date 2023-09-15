@@ -384,6 +384,8 @@ $ ./bin/alluxio fs mkdir /users/Bob
 
 * `--readonly` 选项在Alluxio中设置挂载点为只读
 * `--option <key>=<val>` 选项传递一个属性到这个挂载点(如 S3 credential)
+* `--shared` 选项设置所有Alluxio用户都可以访问挂载点
+* `--exclude-ufs` 选项设置获取挂载点信息时不检查UFS信息
 
 使用举例：使用`mount`命令可以让其他存储系统中的数据在Alluxio中也能获取。
 

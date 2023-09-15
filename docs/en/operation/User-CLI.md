@@ -1308,6 +1308,7 @@ Options:
 * `--option <key>=<val>` option passes an property to this mount point, such as S3 credentials
 * `--readonly` option sets the mount point to be readonly in Alluxio
 * `--shared` option sets the permission bits of the mount point to be accessible for all Alluxio users
+* `--exclude-ufs` option gets mount point info without checking ufs
 
 Note that `--readonly` mounts are useful to prevent accidental write operations.
 If multiple Alluxio satellite clusters mount a remote storage cluster which serves as the central source of truth,
