@@ -464,8 +464,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       }
       WorkerBenchCoarseDataPoint dp = new WorkerBenchCoarseDataPoint(
           Long.parseLong(workerID),
-          Thread.currentThread().getId(),
-          new ArrayList<>(), new ArrayList<>());
+          Thread.currentThread().getId());
       int sliceCount = 0;
       int sliceIoBytes = 0;
       List<Long> throughputList = new ArrayList<>();
@@ -482,6 +481,10 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
             mResult.setIOBytes(mResult.getIOBytes() + bytesRead);
             sliceCount += 1;
             sliceIoBytes += bytesRead;
+            // if duration is 0ms, treat is as 1ms for now
+            if (duration == 0) {
+              throughputList.add(bytesRead);
+            }
             throughputList.add(bytesRead / duration);
             int currentSlice = (int) (startMs
                 / FormatUtils.parseTimeSize(mParameters.mSliceSize));

@@ -14,15 +14,16 @@ package alluxio.stress.worker;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * One coarse data point captures a series of data points.
- * All data points are group by thread and time slices.
+ * One coarse data point captures and merges the performance of I/O operations in a specified window.
+ * The I/O operations are grouped by worker and by thread. In other words, I/O operations in
+ * a window in different threads will be recorded in different coarse data points.
  */
 @JsonDeserialize(using = WorkerBenchCoarseDataPointDeserializer.class)
 public class WorkerBenchCoarseDataPoint {
-  // properties: workerId, threadId, sliceId, records
   @JsonProperty("workerId")
   private Long mWorkerId;
   @JsonProperty("threadId")
@@ -33,7 +34,20 @@ public class WorkerBenchCoarseDataPoint {
   private List<Long> mThroughput;
 
   /**
-   * Creates a coarse data point.
+   * Creates a coarse data point without data and throughput arrays.
+   *
+   * @param workerID the ID of the worker
+   * @param threadID the ID of the thread
+   */
+  public WorkerBenchCoarseDataPoint(Long workerID, Long threadID) {
+    mWorkerId = workerID;
+    mThreadId = threadID;
+    mData = new ArrayList<>();
+    mThroughput = new ArrayList<>();
+  }
+
+  /**
+   * Creates a coarse data point with data and throughput arrays.
    *
    * @param workerID the ID of the worker
    * @param threadID the ID of the thread
