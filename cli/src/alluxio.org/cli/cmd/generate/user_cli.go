@@ -26,9 +26,13 @@ import (
 	"alluxio.org/cli/env"
 )
 
-var UserCliDoc = &UserCliCommand{}
+var UserCliDoc = &UserCliCommand{
+	Dst: filepath.Join("docs", "en", "operation", "User-CLI.md"),
+}
 
-type UserCliCommand struct{}
+type UserCliCommand struct {
+	Dst string
+}
 
 func (c *UserCliCommand) ToCommand() *cobra.Command {
 	return &cobra.Command{
@@ -40,7 +44,7 @@ func (c *UserCliCommand) ToCommand() *cobra.Command {
 			for rootCmd = cmd; rootCmd.HasParent(); rootCmd = rootCmd.Parent() {
 			}
 
-			f, err := os.Create(filepath.Join("docs", "en", "operation", "User-CLI.md"))
+			f, err := os.Create(c.Dst)
 			if err != nil {
 				return stacktrace.Propagate(err, "error creating output file")
 			}

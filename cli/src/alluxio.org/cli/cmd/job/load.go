@@ -50,10 +50,10 @@ func (c *LoadCommand) ToCommand() *cobra.Command {
 For example, load can be used to prefetch data for analytics jobs.
 If load is run on a directory, files in the directory will be recursively loaded.`,
 		Example: `# Submit a load job
-$ ./bin/alluxio job load /path --submit
+$ ./bin/alluxio job load --path /path --submit
 
 # View the progress of a submitted job
-$ ./bin/alluxio job load /path --progress
+$ ./bin/alluxio job load --path /path --progress
 # Example output
 Progress for loading path '/path':
         Settings:       bandwidth: unlimited    verify: false
@@ -65,7 +65,7 @@ Progress for loading path '/path':
         Files Failed: 0
 
 # Stop a submitted job
-$ ./bin/alluxio job load /path --stop`,
+$ ./bin/alluxio job load --path /path --stop`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
