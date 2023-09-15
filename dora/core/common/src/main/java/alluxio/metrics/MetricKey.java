@@ -2207,6 +2207,22 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
+  public static final MetricKey CLIENT_BYTES_READ_ALLUXIO =
+      new Builder("Client.BytesReadAlluxio")
+          .setDescription("Total number of bytes read from Alluxio by this client. "
+              + "This includes both the case where the data has been cached on the "
+              + "workers, and the case where the workers need to load it from the "
+              + "UFS.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey CLIENT_BYTES_READ_UFS =
+      new Builder("Client.BytesReadUfs")
+          .setDescription("Total number of bytes read from UFS directly by this "
+              + "client, bypassing any kind of cache of Alluxio.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
   // Client cache metrics
   public static final MetricKey CLIENT_CACHE_BYTES_READ_CACHE =
       new Builder("Client.CacheBytesReadCache")

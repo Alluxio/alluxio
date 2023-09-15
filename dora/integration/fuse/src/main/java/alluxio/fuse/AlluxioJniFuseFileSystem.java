@@ -216,6 +216,7 @@ public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       if (mFuseOptions.specialCommandEnabled()
           && mFuseShell.isSpecialCommand(uri)) {
         // TODO(lu) add cache for isFuseSpecialCommand if needed
+        LOG.debug("Special commmand = {}", uri);
         AlluxioFuseUtils.fillStat(mAuthPolicy, stat, mFuseShell.runCommand(uri));
         return 0;
       }

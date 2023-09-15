@@ -14,8 +14,12 @@ package alluxio.client.file.dora.netty;
 import alluxio.PositionReader;
 import alluxio.client.file.FileSystemContext;
 import alluxio.file.ReadTargetBuffer;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.WorkerNetAddress;
+
+import com.codahale.metrics.Counter;
 
 import java.io.IOException;
 import java.util.function.Supplier;
@@ -60,7 +64,19 @@ public class NettyDataReader implements PositionReader {
       if (bytesRead == 0) {
         return -1;
       }
+      Metrics.BYTES_READ_ALLUXIO.inc(bytesRead);
       return bytesRead;
     }
+  }
+
+  /**
+   * Class that contains metrics about FileOutStream.
+   */
+  private static final class Metrics {
+    private static final Counter BYTES_READ_ALLUXIO =
+        MetricsSystem.counter(MetricKey.CLIENT_BYTES_READ_ALLUXIO.getName());
+
+    private Metrics() {
+    } // prevent instantiation
   }
 }

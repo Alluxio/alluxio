@@ -17,7 +17,10 @@ import alluxio.client.file.FileInStream;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.file.SeekableBufferedInputStream;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 
 import java.io.BufferedInputStream;
@@ -62,21 +65,28 @@ public class UfsFileInStream extends FileInStream {
       return -1;
     }
     mPosition++;
+    Metrics.BYTES_READ_UFS.inc(1);
     return res;
   }
 
   @Override
   public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
+    int totalBytesRead;
     if (byteBuffer.hasArray()) {
-      return read(byteBuffer.array(), off, len);
+      totalBytesRead = read(byteBuffer.array(), off, len);
+      if (totalBytesRead > 0) {
+        Metrics.BYTES_READ_UFS.inc(totalBytesRead);
+      }
+      return totalBytesRead;
     }
     byte[] byteArray = new byte[len];
-    int totalBytesRead = read(byteArray, 0, len);
+    totalBytesRead = read(byteArray, 0, len);
     if (totalBytesRead <= 0) {
       return totalBytesRead;
     }
     byteBuffer.position(off).limit(off + len);
     byteBuffer.put(byteArray, 0, totalBytesRead);
+    Metrics.BYTES_READ_UFS.inc(totalBytesRead);
     return totalBytesRead;
   }
 
@@ -95,6 +105,7 @@ public class UfsFileInStream extends FileInStream {
     if (bytesRead > 0) {
       mPosition += bytesRead;
     }
+    Metrics.BYTES_READ_UFS.inc(bytesRead);
     return bytesRead;
   }
 
@@ -183,5 +194,16 @@ public class UfsFileInStream extends FileInStream {
           : new BufferedInputStream(ufsInStream, BUFFER_SIZE);
     }
     mUfsInStream = Optional.of(ufsInStream);
+  }
+
+  /**
+   * Class that contains metrics about FileOutStream.
+   */
+  private static final class Metrics {
+    private static final Counter BYTES_READ_UFS =
+        MetricsSystem.counter(MetricKey.CLIENT_BYTES_READ_UFS.getName());
+
+    private Metrics() {
+    } // prevent instantiation
   }
 }
