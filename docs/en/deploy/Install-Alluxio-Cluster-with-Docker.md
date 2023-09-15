@@ -347,7 +347,6 @@ $ docker exec ${container_id} cat /opt/alluxio/conf/alluxio-env.sh
 
 Alluxio POSIX access is implemented via FUSE.
 To enable POSIX accesses to Alluxio in a docker environment, we will run a standalone Alluxio Fuse container.
-[POSIX API docs]({{ '/en/api/POSIX-API.html' | relative_url }}#fuse-on-worker-process) provides more details about how to configure Alluxio POSIX API.
 
 First make sure a directory with the right permissions exists on the host to [bind-mount](https://docs.docker.com/storage/bind-mounts/){:target="_blank"} in the Alluxio FUSE container:
 ```shell
@@ -388,6 +387,7 @@ capability.
   - "-o allow_other -o entry_timeout=3600 -o attr_timeout=3600allow_other -o entry_timeout=3600 -o attr_timeout=3600" - AlluxioFuse options
 
 See [Fuse Advanced Tuning]({{ '/en/fuse-sdk/Advanced-Tuning.html' | relativize_url }})
+and [Local Cache Tuning]({{ '/en/fuse-sdk/Local-Cache-Tuning.html' | relativize_url }})
 for more details about Alluxio Fuse mount options and tuning.
 
 ### Set up Alluxio Proxy
@@ -419,9 +419,6 @@ your issue, you can get help on the
 [user mailing list](https://groups.google.com/forum/#!forum/alluxio-users){:target="_blank"}
 or [github issues](https://github.com/Alluxio/alluxio/issues){:target="_blank"}.
 
-Logging can also have a performance impact if sufficiently verbose.
-You can [disable or redirect logging]({{ '/en/operation/Logging.html' | relativize_url }}#disable-certain-log-files)
-to mitigate this problem.
 
 ## FAQ
 
