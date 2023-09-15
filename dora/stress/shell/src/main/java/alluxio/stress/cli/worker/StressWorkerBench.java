@@ -341,7 +341,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
           FileSystemParameters.WRITE_TYPE_OPTION_NAME, WritePType.MUST_CACHE, "--free"));
     }
 
-    if (FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength) > FormatUtils.parseSpaceSize("2.1GB")) {
+    if (FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength) > Integer.MAX_VALUE) {
       throw new IllegalStateException("mRandomReadMaxLength cannot be larger than 2.1G");
     }
   }
