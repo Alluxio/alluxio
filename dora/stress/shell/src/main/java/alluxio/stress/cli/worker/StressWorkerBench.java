@@ -466,7 +466,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
           Long.parseLong(workerID),
           Thread.currentThread().getId(),
           new ArrayList<>(), new ArrayList<>());
-      List<WorkerBenchDataPoint> dpList = new ArrayList<>();
+      int sliceCount = 0;
+      int sliceIoBytes = 0;
       List<Long> throughputList = new ArrayList<>();
       int lastSlice = 0;
 
@@ -479,32 +480,31 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         if (startMs > 0) {
           if (bytesRead > 0) {
             mResult.setIOBytes(mResult.getIOBytes() + bytesRead);
+            sliceCount += 1;
+            sliceIoBytes += bytesRead;
             throughputList.add(bytesRead / duration);
             int currentSlice = (int) (startMs
-                / FormatUtils.parseTimeSize(mParameters.mSliceLength));
+                / FormatUtils.parseTimeSize(mParameters.mSliceSize));
             while (currentSlice > lastSlice) {
-              LOG.info("CurrentSlice: {}, LastSlice: {}, adding list to dp.",
-                  currentSlice, lastSlice);
-              dp.addDataPoints(new ArrayList<>(dpList));
-              dpList.clear();
+              dp.addDataPoint(new WorkerBenchDataPoint(sliceCount, sliceIoBytes));
+              sliceCount = 0;
+              sliceIoBytes = 0;
               lastSlice++;
             }
-            dpList.add(new WorkerBenchDataPoint(startMs, duration, bytesRead));
           } else {
             LOG.warn("Thread for file {} read 0 bytes from I/O", mFilePaths[mTargetFileIndex]);
           }
         } else {
-          SAMPLING_LOG.info("Ignored record during warmup: {}, {}", startMs, bytesRead);
+          SAMPLING_LOG.info("Ignored record during warmup: {} bytes", bytesRead);
         }
       }
 
       int finalSlice = (int) (FormatUtils.parseTimeSize(mParameters.mDuration)
-          / FormatUtils.parseTimeSize(mParameters.mSliceLength));
-      LOG.info("FinalSlice: {}", finalSlice);
+          / FormatUtils.parseTimeSize(mParameters.mSliceSize));
       while (finalSlice > lastSlice) {
-        LOG.info("FinalSlice: {}, LastSlice: {}, adding list to dp.", finalSlice, lastSlice);
-        dp.addDataPoints(new ArrayList<>(dpList));
-        dpList.clear();
+        dp.addDataPoint(new WorkerBenchDataPoint(sliceCount, sliceIoBytes));
+        sliceCount = 0;
+        sliceIoBytes = 0;
         lastSlice++;
       }
 

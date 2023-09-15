@@ -20,21 +20,20 @@ import java.util.List;
  * One coarse data point captures a series of data points.
  * All data points are group by thread and time slices.
  */
-// TODO(tongyu): compress data points in a coarse data point summary
 @JsonDeserialize(using = WorkerBenchCoarseDataPointDeserializer.class)
 public class WorkerBenchCoarseDataPoint {
   // properties: workerId, threadId, sliceId, records
-  @JsonProperty("wid")
-  private Long mWid;
-  @JsonProperty("tid")
-  private Long mTid;
+  @JsonProperty("workerId")
+  private Long mWorkerId;
+  @JsonProperty("threadId")
+  private Long mThreadId;
   @JsonProperty("data")
-  private List<List<WorkerBenchDataPoint>> mData;
+  private List<WorkerBenchDataPoint> mData;
   @JsonProperty("throughput")
   private List<Long> mThroughput;
 
   /**
-   * Create a coarse data point.
+   * Creates a coarse data point.
    *
    * @param workerID the ID of the worker
    * @param threadID the ID of the thread
@@ -42,10 +41,10 @@ public class WorkerBenchCoarseDataPoint {
    * @param throughput the list of throughput
    */
   public WorkerBenchCoarseDataPoint(Long workerID, Long threadID,
-                                    List<List<WorkerBenchDataPoint>> data,
+                                    List<WorkerBenchDataPoint> data,
                                     List<Long> throughput) {
-    mWid = workerID;
-    mTid = threadID;
+    mWorkerId = workerID;
+    mThreadId = threadID;
     mData = data;
     mThroughput = throughput;
   }
@@ -54,48 +53,48 @@ public class WorkerBenchCoarseDataPoint {
    * @return the ID of the worker
    */
   public Long getWid() {
-    return mWid;
+    return mWorkerId;
   }
 
   /**
    * @param wid the ID of the worker
    */
   public void setWid(Long wid) {
-    mWid = wid;
+    mWorkerId = wid;
   }
 
   /**
    * @return the ID of the thread
    */
   public Long getTid() {
-    return mTid;
+    return mThreadId;
   }
 
   /**
    * @param tid the ID of the thread
    */
   public void setTid(Long tid) {
-    mTid = tid;
+    mThreadId = tid;
   }
 
   /**
    * @return the list of data point lists
    */
-  public List<List<WorkerBenchDataPoint>> getData() {
+  public List<WorkerBenchDataPoint> getData() {
     return mData;
   }
 
   /**
    * @param data the list of data point lists
    */
-  public void setData(List<List<WorkerBenchDataPoint>> data) {
+  public void setData(List<WorkerBenchDataPoint> data) {
     mData = data;
   }
 
   /**
    * @param data add a data point list to the list of data point lists
    */
-  public void addDataPoints(List<WorkerBenchDataPoint> data) {
+  public void addDataPoint(WorkerBenchDataPoint data) {
     mData.add(data);
   }
 
@@ -114,7 +113,7 @@ public class WorkerBenchCoarseDataPoint {
   }
 
   /**
-   * remove the list of all throughput after worker aggregation.
+   * removes the list of all throughput after worker aggregation.
    */
   public void clearThroughput() {
     mThroughput.clear();

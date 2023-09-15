@@ -40,7 +40,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
   private long mIOBytes;
   private List<String> mErrors;
   private final List<WorkerBenchCoarseDataPoint> mDataPoints;
-  private List<Long> mAllThroughput;
+  private List<Long> mAllThroughputValues;
   private List<Long> mThroughputPercentiles;
 
   /**
@@ -50,7 +50,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
     // Default constructor required for json deserialization
     mErrors = new ArrayList<>();
     mDataPoints = new ArrayList<>();
-    mAllThroughput = new ArrayList<>();
+    mAllThroughputValues = new ArrayList<>();
     mThroughputPercentiles = new ArrayList<>();
   }
 
@@ -63,20 +63,20 @@ public final class WorkerBenchTaskResult implements TaskResult {
     // When merging results within a node, we need to merge all the error information.
     mErrors.addAll(result.mErrors);
 
-    if (mAllThroughput.isEmpty()) {
+    if (mAllThroughputValues.isEmpty()) {
       for (WorkerBenchCoarseDataPoint dataPoint : mDataPoints) {
-        mAllThroughput.addAll(new ArrayList<>(dataPoint.getThroughput()));
+        mAllThroughputValues.addAll(new ArrayList<>(dataPoint.getThroughput()));
         dataPoint.clearThroughput();
       }
     }
 
-    if (result.mAllThroughput.isEmpty()) {
+    if (result.mAllThroughputValues.isEmpty()) {
       for (WorkerBenchCoarseDataPoint dataPoint : result.mDataPoints) {
-        mAllThroughput.addAll(new ArrayList<>(dataPoint.getThroughput()));
+        mAllThroughputValues.addAll(new ArrayList<>(dataPoint.getThroughput()));
         dataPoint.clearThroughput();
       }
     } else {
-      mAllThroughput.addAll(result.mAllThroughput);
+      mAllThroughputValues.addAll(result.mAllThroughputValues);
     }
 
     mDataPoints.addAll(result.mDataPoints);
@@ -206,14 +206,14 @@ public final class WorkerBenchTaskResult implements TaskResult {
    * @return all instant throughput values of I/O operations
    */
   public List<Long> getAllThroughput() {
-    return mAllThroughput;
+    return mAllThroughputValues;
   }
 
   /**
-   * @param allThroughput all instant throughput values of I/O operations
+   * @param allThroughputValues all instant throughput values of I/O operations
    */
-  public void setAllThroughput(List<Long> allThroughput) {
-    mAllThroughput = allThroughput;
+  public void setAllThroughput(List<Long> allThroughputValues) {
+    mAllThroughputValues = allThroughputValues;
   }
 
   /**
@@ -223,7 +223,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
     Histogram throughputHistogram = new Histogram(
             FormatUtils.parseSpaceSize(mParameters.mFileSize),
             StressConstants.TIME_HISTOGRAM_PRECISION);
-    mAllThroughput.forEach(throughputHistogram::recordValue);
+    mAllThroughputValues.forEach(throughputHistogram::recordValue);
     for (int i = 0; i <= 100; i++) {
       mThroughputPercentiles.add(throughputHistogram.getValueAtPercentile(i));
     }
@@ -261,7 +261,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
    * Clears all data points from the result.
    */
   public void clearAllThroughput() {
-    mAllThroughput.clear();
+    mAllThroughputValues.clear();
   }
 
   @Override
@@ -280,7 +280,8 @@ public final class WorkerBenchTaskResult implements TaskResult {
         result.calculatePercentiles();
         mergedTaskResult.merge(result);
         result.clearAllThroughput();
-        LOG.info("Test results from worker {} has been merged.", result.getBaseParameters().mId);
+        LOG.info("Test results from worker {} has been merged. Individual data points are now cleared from output.",
+            result.getBaseParameters().mId);
         nodeResults.put(result.getBaseParameters().mId, result);
       }
 

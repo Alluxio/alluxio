@@ -21,58 +21,40 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
  */
 @JsonDeserialize(using = WorkerBenchDataPointDeserializer.class)
 public class WorkerBenchDataPoint {
-  @JsonProperty("duration")
-  public long mDuration;
-  @JsonProperty("startMs")
-  public long mStartMs;
+  @JsonProperty("count")
+  public long mCount;
   @JsonProperty("iobytes")
   public long mIOBytes;
 
   /**
-   * @param startMs start timestamp of the I/O
-   * @param duration duration of the file read operation
-   * @param ioBytes bytes read
+   * @param count number of files read
+   * @param ioBytes total bytes read
    */
   @JsonCreator
-  public WorkerBenchDataPoint(long startMs, long duration, long ioBytes) {
-    mStartMs = startMs;
-    mDuration = duration;
+  public WorkerBenchDataPoint(long count, long ioBytes) {
+    mCount = count;
     mIOBytes = ioBytes;
   }
 
   /**
-   * @return duration in ms
+   * @return number of files read
    */
-  public long getDuration() {
-    return mDuration;
+  public long getCount() {
+    return mCount;
   }
 
   /**
-   * @return start timestamp in long
-   */
-  public long getStartMs() {
-    return mStartMs;
-  }
-
-  /**
-   * @return bytes read
+   * @return total bytes read
    */
   public long getIOBytes() {
     return mIOBytes;
   }
 
   /**
-   * @param duration duration in ms
+   * @param count number of files read
    */
-  public void setDuration(long duration) {
-    mDuration = duration;
-  }
-
-  /**
-   * @param startMs start timestamp in long
-   */
-  public void setStartMs(long startMs) {
-    mStartMs = startMs;
+  public void setCount(long count) {
+    mCount = count;
   }
 
   /**

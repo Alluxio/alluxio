@@ -31,8 +31,8 @@ public class WorkerBenchCoarseDataPointDeserializer
       throws IOException {
     ObjectMapper mapper = (ObjectMapper) parser.getCodec();
     JsonNode node = parser.getCodec().readTree(parser);
-    Long wId = node.get("wid").asLong();
-    Long tId = node.get("tid").asLong();
+    Long wId = node.get("workerId").asLong();
+    Long tId = node.get("threadId").asLong();
     List<Long> tpList = new ArrayList<>();
     JsonNode tpNode = node.get("throughput");
     if (tpNode != null) {
@@ -40,17 +40,13 @@ public class WorkerBenchCoarseDataPointDeserializer
         tpList.add(throughput.asLong());
       }
     }
-    List<List<WorkerBenchDataPoint>> data = new ArrayList<>();
-    JsonNode dataNode = node.get("data");
-    if (dataNode != null) {
-      for (JsonNode listNode: dataNode) {
-        List<WorkerBenchDataPoint> dataPoints = new ArrayList<>();
-        for (JsonNode subListNode: listNode) {
-          WorkerBenchDataPoint dataPoint = mapper
-              .treeToValue(subListNode, WorkerBenchDataPoint.class);
-          dataPoints.add(dataPoint);
-        }
-        data.add(dataPoints);
+    List<WorkerBenchDataPoint> data = new ArrayList<>();
+    JsonNode dataNodes = node.get("data");
+    if (dataNodes != null) {
+      for (JsonNode dataNode: dataNodes) {
+        WorkerBenchDataPoint dataPoint = mapper
+            .treeToValue(dataNode, WorkerBenchDataPoint.class);
+        data.add(dataPoint);
       }
     }
     return new WorkerBenchCoarseDataPoint(wId, tId, data, tpList);
