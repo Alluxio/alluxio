@@ -280,7 +280,8 @@ public final class WorkerBenchTaskResult implements TaskResult {
         result.calculatePercentiles();
         mergedTaskResult.merge(result);
         result.clearAllThroughput();
-        LOG.info("Test results from worker {} has been merged. Individual data points are now cleared from output.",
+        LOG.info("Test results from worker {} has been merged."
+            + "Individual data points are now cleared from output.",
             result.getBaseParameters().mId);
         nodeResults.put(result.getBaseParameters().mId, result);
       }
