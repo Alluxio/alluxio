@@ -26,12 +26,7 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.util.FormatUtils;
-import javax.annotation.concurrent.ThreadSafe;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -39,6 +34,13 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Moves a file or a directory in the Alluxio filesystem using job service.
@@ -112,7 +114,7 @@ public final class CheckCachingCommand extends AbstractFileSystemCommand {
         .addOption(LIMIT_OPTION);
   }
 
-  // TODO validate limit value
+  // TODO(elega) validate limit value
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
@@ -149,7 +151,7 @@ public final class CheckCachingCommand extends AbstractFileSystemCommand {
 
     // TODO(elega) need an iterative API to avoid loading too many files
     List<URIStatus> statuses = mUfsFileSystem.listStatus(
-            mDoraCacheFileSystem.convertAlluxioPathToUFSPath(path)).stream()
+            mDoraCacheFileSystem.convertToUfsPath(path)).stream()
         .filter(it -> !it.isFolder() && it.isCompleted()
     ).collect(Collectors.toList());
     Collections.shuffle(statuses);

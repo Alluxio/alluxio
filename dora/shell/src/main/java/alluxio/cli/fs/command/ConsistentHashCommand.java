@@ -14,7 +14,6 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.cli.CommandUtils;
 import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -24,7 +23,15 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.wire.WorkerNetAddress;
-import javax.annotation.concurrent.ThreadSafe;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -35,17 +42,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Copies the specified file specified by "source path" to the path specified by "remote path".
@@ -57,11 +57,11 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
 
   private static final Logger LOG = LoggerFactory.getLogger(ConsistentHashCommand.class);
 
-  private final String folderName = "/consistent-hash-check-data_ALLUXIO";
+  private final String mFolderName = "/consistent-hash-check-data_ALLUXIO";
 
-  private final int fileNum = 1000;
+  private final int mFileNum = 1000;
 
-  private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss");
+  private SimpleDateFormat mSimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss");
 
   public static final Option CREATE_CHECK_FILE =
       Option.builder()
@@ -79,7 +79,6 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
           .desc("Compare check files to see if the hash ring has changed "
               + "and if data lost.")
           .build();
-
 
   public static final Option CLEAN_CHECK_DATA =
       Option.builder()
@@ -105,10 +104,15 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
     mFileSystem = FileSystem.Factory.create(updatedCtx);
   }
 
+  /**
+   * Clean all the check data.
+   * @throws IOException
+   * @throws AlluxioException
+   */
   public void cleanCheckData() throws IOException, AlluxioException {
-    AlluxioURI folder = new AlluxioURI(folderName);
-    for (int i = 0; i < fileNum; i++) {
-      System.out.println("Progress: " + (i + 1) + "/" + fileNum);
+    AlluxioURI folder = new AlluxioURI(mFolderName);
+    for (int i = 0; i < mFileNum; i++) {
+      System.out.println("Progress: " + (i + 1) + "/" + mFileNum);
       String fileName = "file" + i;
       AlluxioURI file = new AlluxioURI(folder, new AlluxioURI(fileName));
       if (mFileSystem.exists(file)) {
@@ -121,6 +125,11 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
     System.out.println("Check data has been cleaned successfully.");
   }
 
+  /**
+   * Create the check file.
+   * @throws IOException
+   * @throws AlluxioException
+   */
   public void createCheckFile() throws IOException, AlluxioException {
     // Step 1. create folder
     String folderName = "/consistent-hash-check-data_ALLUXIO";
@@ -131,8 +140,8 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
 
     // Step 2. generate 1000 files and put them into the folder
     Set<FileLocation> fileLocationSet = new HashSet<>();
-    for (int i = 0; i < fileNum; i++) {
-      System.out.println("Progress: " + (i+1) + "/" + fileNum);
+    for (int i = 0; i < mFileNum; i++) {
+      System.out.println("Progress: " + (i + 1) + "/" + mFileNum);
       String fileName = "file" + i;
       AlluxioURI file = new AlluxioURI(folder, new AlluxioURI(fileName));
 
@@ -145,7 +154,7 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
 
       if (mFileSystem.getDoraCacheFileSystem() != null) {
         DoraCacheFileSystem doraCacheFileSystem = mFileSystem.getDoraCacheFileSystem();
-        AlluxioURI ufsFullPath = doraCacheFileSystem.convertAlluxioPathToUFSPath(file);
+        AlluxioURI ufsFullPath = doraCacheFileSystem.convertToUfsPath(file);
         String fileUfsFullName = ufsFullPath.toString();
         boolean dataOnPreferredWorker = false;
         Set<String> workersThatHaveDataSet = new HashSet<>();
@@ -182,13 +191,14 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
     Gson gson = new Gson();
     String json = gson.toJson(fileLocationSet);
     String persistFileName = "/consistent-hash-check-"
-        + simpleDateFormat.format(new Date()) + ".json";
+        + mSimpleDateFormat.format(new Date()) + ".json";
     writeFile(new AlluxioURI(persistFileName), json.getBytes());
 
     System.out.println("Check file " + persistFileName + "  is generated successfully.");
   }
 
-  private Map<String, List<WorkerNetAddress>> checkFileLocation(AlluxioURI file) throws IOException {
+  private Map<String, List<WorkerNetAddress>> checkFileLocation(AlluxioURI file)
+      throws IOException {
     if (mFileSystem.getDoraCacheFileSystem() != null) {
       DoraCacheFileSystem doraCacheFileSystem = mFileSystem.getDoraCacheFileSystem();
       Map<String, List<WorkerNetAddress>> pathLocations =
@@ -258,7 +268,8 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
         isHashRingChanged = true;
       }
 
-      if (fileLocation.isDataOnPreferredWorker() && !anotherFileLocation.isDataOnPreferredWorker()) {
+      if (fileLocation.isDataOnPreferredWorker()
+          && !anotherFileLocation.isDataOnPreferredWorker()) {
         isDataLost = true;
       }
     }
@@ -268,7 +279,8 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
     return checkResult;
   }
 
-  private Set<FileLocation> loadCheckFile(AlluxioURI checkFileUri) throws IOException, AlluxioException {
+  private Set<FileLocation> loadCheckFile(AlluxioURI checkFileUri)
+      throws IOException, AlluxioException {
     StringBuffer stringBuffer = new StringBuffer();
     byte[] buf = new byte[Constants.MB];
     try (FileInStream is = mFileSystem.openFile(checkFileUri)) {
@@ -284,7 +296,6 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
     Set<FileLocation> fileLocationSet = gson.fromJson(json, type);
     return fileLocationSet;
   }
-
 
   @Override
   public void close() throws IOException {
@@ -350,21 +361,21 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
 
   class CheckResult {
 
-    private boolean hashRingChanged;
+    private boolean mHashRingChanged;
 
-    private boolean dataLost;
+    private boolean mDataLost;
 
     public CheckResult(boolean hashRingChanged, boolean dataLost) {
-      this.hashRingChanged = hashRingChanged;
-      this.dataLost = dataLost;
+      mHashRingChanged = hashRingChanged;
+      mDataLost = dataLost;
     }
 
     public boolean isHashRingChanged() {
-      return hashRingChanged;
+      return mHashRingChanged;
     }
 
     public boolean isDataLost() {
-      return dataLost;
+      return mDataLost;
     }
   }
 }

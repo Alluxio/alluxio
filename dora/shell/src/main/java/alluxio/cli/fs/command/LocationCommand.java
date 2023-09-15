@@ -19,7 +19,10 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.wire.WorkerNetAddress;
-import javax.annotation.concurrent.ThreadSafe;
+
+import com.google.gson.Gson;
+import org.apache.commons.cli.CommandLine;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
@@ -27,8 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import com.google.gson.Gson;
-import org.apache.commons.cli.CommandLine;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Displays a list of hosts that have the file specified in args stored.
@@ -60,7 +62,7 @@ public final class LocationCommand extends AbstractFileSystemCommand {
           doraCacheFileSystem.checkFileLocation(plainPath);
       WorkerNetAddress preferredWorker = doraCacheFileSystem.getWorkerNetAddress(plainPath);
 
-      AlluxioURI ufsFullPath = doraCacheFileSystem.convertAlluxioPathToUFSPath(plainPath);
+      AlluxioURI ufsFullPath = doraCacheFileSystem.convertToUfsPath(plainPath);
       String fileUfsFullName = ufsFullPath.toString();
       boolean dataOnPreferredWorker = false;
       Set<String> workersThatHaveDataSet = new HashSet<>();
@@ -82,7 +84,6 @@ public final class LocationCommand extends AbstractFileSystemCommand {
           preferredWorker.getHost(),
           dataOnPreferredWorker,
           workersThatHaveDataSet);
-
 
       Gson gson = new Gson();
       String pathLocationsJson = gson.toJson(fileLocation);
