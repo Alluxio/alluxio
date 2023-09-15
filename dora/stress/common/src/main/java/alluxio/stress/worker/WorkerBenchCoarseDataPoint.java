@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * One coarse data point captures and merges the performance of I/O operations in a specified window.
+ * One coarseDataPoint captures and merges the performance of I/O operations in a specified window.
  * The I/O operations are grouped by worker and by thread. In other words, I/O operations in
  * a window in different threads will be recorded in different coarse data points.
  */
