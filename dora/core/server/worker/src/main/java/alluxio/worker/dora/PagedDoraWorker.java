@@ -917,7 +917,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         -1;
     try {
       boolean loadIfNotExists = true;
-      if (options.hasLoadMetadataType() && options.getLoadMetadataType() == LoadMetadataPType.NEVER) {
+      if (options.hasLoadMetadataType()
+          && options.getLoadMetadataType() == LoadMetadataPType.NEVER) {
         loadIfNotExists = false;
       }
       return getGrpcFileInfo(path, syncIntervalMs, loadIfNotExists) != null;
