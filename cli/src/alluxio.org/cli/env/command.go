@@ -119,7 +119,7 @@ func (c *BaseJavaCommand) RunAndFormat(format string, stdin io.Reader, args []st
 			io.Copy(os.Stdout, buf)
 			return err
 		}
-		var obj interface{}
+		var obj json.RawMessage
 		if err := json.Unmarshal(buf.Bytes(), &obj); err != nil {
 			return stacktrace.Propagate(err, "error unmarshalling json from java command")
 		}

@@ -57,7 +57,7 @@ Defaults to summary if no arg is provided
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().StringVar(&c.format, "format", "yaml",
+	cmd.Flags().StringVar(&c.format, "format", "json",
 		"Set output format, any of [json, yaml]")
 	return cmd
 }
