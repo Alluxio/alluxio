@@ -114,7 +114,20 @@ func (c *BaseJavaCommand) RunWithIO(args []string, stdin io.Reader, stdout, stde
 func (c *BaseJavaCommand) RunAndFormat(format string, stdin io.Reader, args []string) error {
 	switch strings.ToLower(format) {
 	case "json":
-		return c.RunWithIO(args, stdin, os.Stdout, os.Stderr)
+		buf := &bytes.Buffer{}
+		if err := c.RunWithIO(args, stdin, buf, os.Stderr); err != nil {
+			io.Copy(os.Stdout, buf)
+			return err
+		}
+		var obj interface{}
+		if err := json.Unmarshal(buf.Bytes(), &obj); err != nil {
+			return stacktrace.Propagate(err, "error unmarshalling json from java command")
+		}
+		if prettyJson, err := json.MarshalIndent(obj, "", "    "); err == nil {
+			os.Stdout.Write(append(prettyJson, '\n'))
+		} else {
+			return stacktrace.Propagate(err, "error marshalling json to pretty format")
+		}
 	case "yaml":
 		buf := &bytes.Buffer{}
 		if err := c.RunWithIO(args, stdin, buf, os.Stderr); err != nil {

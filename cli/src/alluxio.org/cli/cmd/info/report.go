@@ -32,6 +32,7 @@ var Report = &ReportCommand{
 
 type ReportCommand struct {
 	*env.BaseJavaCommand
+	format string
 }
 
 func (c *ReportCommand) Base() *env.BaseJavaCommand {
@@ -56,6 +57,8 @@ Defaults to summary if no arg is provided
 			return c.Run(args)
 		},
 	})
+	cmd.Flags().StringVar(&c.format, "format", "yaml",
+		"Set output format, any of [json, yaml]")
 	return cmd
 }
 
@@ -78,5 +81,8 @@ func (c *ReportCommand) Run(args []string) error {
 		reportArg = args[0]
 	}
 	// TODO: output all in a serializable format and filter/trim as specified by flags
-	return c.Base().Run([]string{reportArg})
+	if c.format != "json" && c.format != "yaml" {
+		return stacktrace.NewError("Invalid format %v, must be one of [json, yaml]", c.format)
+	}
+	return c.Base().RunAndFormat(c.format, nil, []string{reportArg})
 }
