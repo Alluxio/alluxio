@@ -70,25 +70,6 @@ public class FileSystemFactoryTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Jiacheng",
-      comment = "fix master HA or remove if no longer needed")
-  @Ignore
-  public void multiMasterFileSystemCacheTest()  {
-    try (Closeable p = new SystemPropertyRule(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
-        "192.168.0.1:1234,192.168.0.2:1445,192.168.0.3:9943").toResource()) {
-      Configuration.reloadProperties();
-      AlluxioConfiguration conf = Configuration.global();
-      MasterInquireClient.ConnectDetails connectDetails =
-          MasterInquireClient.Factory.getConnectDetails(conf);
-      // Make sure we have a MultiMaster authority
-      assertTrue(connectDetails.toAuthority() instanceof MultiMasterAuthority);
-      fileSystemCacheTest();
-    } catch (IOException e) {
-      fail("Unable to set system properties");
-    }
-  }
-
-  @Test
   public void zkFileSystemCacheTest()  {
     Map<String, String> sysProps = new HashMap<>();
     sysProps.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), Boolean.toString(true));
