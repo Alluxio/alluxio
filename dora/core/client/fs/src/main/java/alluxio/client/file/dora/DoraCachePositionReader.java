@@ -13,7 +13,6 @@ package alluxio.client.file.dora;
 
 import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
-import alluxio.client.file.dora.netty.NettyDataReader;
 import alluxio.client.file.dora.netty.PartialReadException;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
@@ -23,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class DoraCachePositionReader implements PositionReader {
   private static final Logger LOG = LoggerFactory.getLogger(DoraCachePositionReader.class);
-  private final NettyDataReader mNettyReader;
+  private final PositionReader mNettyReader;
   private final long mFileLength;
   private final CloseableSupplier<PositionReader> mFallbackReader;
   private volatile boolean mClosed;
@@ -41,8 +41,8 @@ public class DoraCachePositionReader implements PositionReader {
    * @param length file length
    * @param fallbackReader the position reader to fallback to when errors happen
    */
-  public DoraCachePositionReader(NettyDataReader dataReader,
-      long length, CloseableSupplier<PositionReader> fallbackReader) {
+  public DoraCachePositionReader(PositionReader dataReader,
+      long length, @Nullable CloseableSupplier<PositionReader> fallbackReader) {
     mNettyReader = dataReader;
     mFileLength = length;
     mFallbackReader = fallbackReader;
@@ -61,13 +61,21 @@ public class DoraCachePositionReader implements PositionReader {
       int bytesRead = e.getBytesRead();
       if (bytesRead == 0) {
         LOG.debug("Failed to read file from worker through Netty", e);
-        return fallback(position, buffer, length, originalOffset);
+        buffer.offset(originalOffset);
+        if (mFallbackReader == null) {
+          throw e;
+        }
+        return fallback(position, buffer, length);
       }
       buffer.offset(originalOffset + bytesRead);
       return bytesRead;
     } catch (Throwable t) {
       LOG.debug("Failed to read file from worker through Netty", t);
-      return fallback(position, buffer, length, originalOffset);
+      buffer.offset(originalOffset);
+      if (mFallbackReader == null) {
+        throw t;
+      }
+      return fallback(position, buffer, length);
     }
   }
 
@@ -82,9 +90,7 @@ public class DoraCachePositionReader implements PositionReader {
   }
 
   private int fallback(long position, ReadTargetBuffer buffer,
-      int length, int originalOffset) throws IOException {
-    // In case any error in worker read, revert the offset change in the buffer
-    buffer.offset(originalOffset);
+      int length) throws IOException {
     int read = mFallbackReader.get().read(position, buffer, length);
     MetricsSystem.meter(MetricKey.CLIENT_WORKER_READ_UFS_FALLBACK_BYTES.getName())
         .mark(read);

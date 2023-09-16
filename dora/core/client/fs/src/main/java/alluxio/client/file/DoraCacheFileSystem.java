@@ -237,8 +237,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
             .setMountId(DUMMY_MOUNT_ID)
             .build();
     return mDoraClient.createNettyPositionReader(status, openUfsBlockOptions,
-        new CloseableSupplier<>(() ->
-            mDelegatedFileSystem.openPositionRead(status, mergedOptions)));
+        mUfsFallbackEnabled ? new CloseableSupplier<>(() ->
+            mDelegatedFileSystem.openPositionRead(status, mergedOptions)) : null);
   }
 
   @Override
