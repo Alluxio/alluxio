@@ -63,5 +63,5 @@ func (c *CheckCachedCommand) Run(args []string) error {
         javaArgs = append(javaArgs, "--limit", strconv.Itoa(c.limit))
     }
     javaArgs = append(javaArgs, args...)
-    return c.Base().Run(args)
+    return c.Base().Run(javaArgs)
 }
