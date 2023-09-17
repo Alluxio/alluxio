@@ -265,7 +265,8 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
       FileLocation anotherFileLocation = anotherFileLocationMap.get(fileName);
 
       if (anotherFileLocation == null
-          || (!fileLocation.getPreferredWorker().equals(anotherFileLocation.getPreferredWorker()))) {
+          || (!fileLocation.getPreferredWorker()
+          .equals(anotherFileLocation.getPreferredWorker()))) {
         isHashRingChanged = true;
       }
 
