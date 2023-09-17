@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -122,12 +123,15 @@ public final class MasterWorkerInfo {
       EnumSet.of(WorkerInfoField.WORKER_CAPACITY_BYTES,
         WorkerInfoField.WORKER_CAPACITY_BYTES_ON_TIERS,
         WorkerInfoField.WORKER_USED_BYTES,
-        WorkerInfoField.WORKER_USED_BYTES_ON_TIERS);
+        WorkerInfoField.WORKER_USED_BYTES_ON_TIERS,
+        WorkerInfoField.NUM_VCPU);
 
   /** Worker's last updated time in ms. */
   private final AtomicLong mLastUpdatedTimeMs;
   /** Worker's build version (including version and revision). */
   private final AtomicReference<BuildVersion> mBuildVersion;
+  /** Worker's number of available processors. */
+  private final AtomicInteger mNumVCpu;
   /** Worker metadata, this field is thread safe. */
   private final StaticWorkerMeta mMeta;
 
@@ -168,6 +172,7 @@ public final class MasterWorkerInfo {
     mToRemoveBlocks = new LongOpenHashSet();
     mLastUpdatedTimeMs = new AtomicLong(CommonUtils.getCurrentMs());
     mBuildVersion = new AtomicReference<>(BuildVersion.getDefaultInstance());
+    mNumVCpu = new AtomicInteger();
 
     // Init all locks
     mStatusLock = new StampedLock().asReadWriteLock();
@@ -342,6 +347,9 @@ public final class MasterWorkerInfo {
           BuildVersion v = mBuildVersion.get();
           info.setVersion(v.getVersion());
           info.setRevision(v.getRevision());
+          break;
+        case NUM_VCPU:
+          info.setNumVCpu(mNumVCpu.get());
           break;
         default:
           LOG.warn("Unrecognized worker info field: " + field);
@@ -537,7 +545,9 @@ public final class MasterWorkerInfo {
         .add("blocks", LOG.isDebugEnabled() ? mBlocks : CommonUtils.summarizeCollection(mBlocks))
         .add("lostStorage", mUsage.mLostStorage)
         .add("version", buildVersion.getVersion())
-        .add("revision", buildVersion.getRevision()).toString();
+        .add("revision", buildVersion.getRevision())
+        .add("numVCpu", mNumVCpu)
+        .toString();
   }
 
   /**
@@ -724,5 +734,23 @@ public final class MasterWorkerInfo {
    */
   public BuildVersion getBuildVersion() {
     return mBuildVersion.get();
+  }
+
+  /**
+   * Sets the number of available processors of the worker.
+   *
+   * @param numVCpu the number of available processors
+   */
+  public void setNumVCpu(int numVCpu) {
+    mNumVCpu.set(numVCpu);
+  }
+
+  /**
+   * Get the number of available processors on the worker.
+   *
+   * @return the number of available processors
+   */
+  public int getNumVCpu() {
+    return mNumVCpu.get();
   }
 }

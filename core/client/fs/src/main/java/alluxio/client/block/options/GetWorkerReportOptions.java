@@ -196,7 +196,8 @@ public final class GetWorkerReportOptions implements Serializable {
     WORKER_USED_BYTES,
     WORKER_USED_BYTES_ON_TIERS,
     BLOCK_COUNT,
-    BUILD_VERSION;
+    BUILD_VERSION,
+    NUM_VCPU;
 
     public static final Set<WorkerInfoField> ALL = EnumSet.allOf(WorkerInfoField.class);
 
