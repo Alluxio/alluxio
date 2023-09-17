@@ -41,7 +41,7 @@ func Cmds(className string) []env.Command {
         Test,
         Touch,
         Location,
-        CheckCaching,
+        CheckCached,
         ConsistentHash,
     } {
         ret = append(ret, c(className))

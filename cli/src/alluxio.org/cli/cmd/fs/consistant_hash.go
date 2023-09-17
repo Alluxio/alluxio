@@ -13,15 +13,16 @@ package fs
 
 import (
     "alluxio.org/cli/env"
+    "github.com/palantir/stacktrace"
     "github.com/spf13/cobra"
 )
 
 func ConsistentHash(className string) env.Command {
     return &ConsistentHashCommand{
         BaseJavaCommand: &env.BaseJavaCommand{
-            CommandName:   "consistentHash",
+            CommandName:   "consistent-hash",
             JavaClassName: className,
-            Parameters:    []string{"consistentHash"},
+            Parameters:    []string{"consistent-hash"},
         },
     }
 }
@@ -40,28 +41,32 @@ func (c *ConsistentHashCommand) Base() *env.BaseJavaCommand {
 
 func (c *ConsistentHashCommand) ToCommand() *cobra.Command {
     cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-        Use:   "consistentHash [--createCheckFile]|[--compareCheckFiles <1stCheckFilePath> <2ndCheckFilePath>]|[--cleanCheckData] ",
-        Short: "This command is for checking whether the consistent hash ring is changed or not. ",
+        Use:   "consistent-hash [--create]|[--compare <1stCheckFilePath> <2ndCheckFilePath>]|[--clean] ",
+        Short: "This command is for checking whether the consistent hash ring is changed or not",
         RunE: func(cmd *cobra.Command, args []string) error {
             return c.Run(args)
         },
     })
-    cmd.Flags().BoolVarP(&c.createCheckFile, "createCheckFile", "c", false, "Generate check file.")
-    cmd.Flags().BoolVarP(&c.compareCheckFiles, "compareCheckFiles", "C", false, "Compare check files to see if the hash ring has changed and if data lost.")
-    cmd.Flags().BoolVarP(&c.cleanCheckData, "cleanCheckData", "d", false, "Clean all check data.")
+    cmd.Flags().BoolVar(&c.createCheckFile, "create", false, "Generate check file.")
+    cmd.Flags().BoolVar(&c.compareCheckFiles, "compare", false, "Compare check files to see if the hash ring has changed and if data lost.")
+    cmd.Flags().BoolVar(&c.cleanCheckData, "clean", false, "Clean all check data.")
+    cmd.MarkFlagsMutuallyExclusive("create", "compare", "clean")
     return cmd
 }
 
 func (c *ConsistentHashCommand) Run(args []string) error {
     javaArgs := []string{}
     if c.createCheckFile {
-        javaArgs = append(javaArgs, "--createCheckFile")
+        javaArgs = append(javaArgs, "--create")
     }
     if c.compareCheckFiles {
-        javaArgs = append(javaArgs, "--compareCheckFiles")
+        if len(args) != 2 {
+            return stacktrace.NewError("expect 2 arguments with --compare-check-files but got %v", len(args))
+        }
+        javaArgs = append(javaArgs, "--compare")
     }
     if c.cleanCheckData {
-        javaArgs = append(javaArgs, "--cleanCheckData")
+        javaArgs = append(javaArgs, "--clean")
     }
 
     javaArgs = append(javaArgs, args...)

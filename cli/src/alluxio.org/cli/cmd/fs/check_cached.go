@@ -12,48 +12,50 @@
 package fs
 
 import (
-    "alluxio.org/cli/env"
-    "github.com/spf13/cobra"
     "strconv"
+
+    "github.com/spf13/cobra"
+
+    "alluxio.org/cli/env"
 )
 
-func CheckCaching(className string) env.Command {
-    return &CheckCachingCommand{
+func CheckCached(className string) env.Command {
+    return &CheckCachedCommand{
         BaseJavaCommand: &env.BaseJavaCommand{
-            CommandName:   "checkCaching",
+            CommandName:   "check-cached",
             JavaClassName: className,
-            Parameters:    []string{"checkCaching"},
+            Parameters:    []string{"check-cached"},
         },
     }
 }
 
-type CheckCachingCommand struct {
+type CheckCachedCommand struct {
     *env.BaseJavaCommand
 
     sample int
     limit  int
 }
 
-func (c *CheckCachingCommand) Base() *env.BaseJavaCommand {
+func (c *CheckCachedCommand) Base() *env.BaseJavaCommand {
     return c.BaseJavaCommand
 }
 
-func (c *CheckCachingCommand) ToCommand() *cobra.Command {
+func (c *CheckCachedCommand) ToCommand() *cobra.Command {
     cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-        Use:   "checkCaching [path]",
+        Use:   "check-cached [path]",
         Short: "Checks if files under a path have been cached in alluxio.",
         Args:  cobra.ExactArgs(1),
         RunE: func(cmd *cobra.Command, args []string) error {
             return c.Run(args)
         },
     })
-    cmd.Flags().IntVar(&c.sample, "sample", 0, "Sample ratio, 10 means sample 1 in every 10 files.")
-    cmd.Flags().IntVar(&c.limit, "limit", 0, "limit, default 1000")
+    cmd.Flags().IntVar(&c.sample, "sample", 1, "Sample ratio, 10 means sample 1 in every 10 files.")
+    cmd.Flags().IntVar(&c.limit, "limit", 1000, "Limit number of files to check")
     return cmd
 }
 
-func (c *CheckCachingCommand) Run(args []string) error {
-    javaArgs := []string{"checkCaching"}
+func (c *CheckCachedCommand) Run(args []string) error {
+    javaArgs := []string{"check-cached"}
     if c.sample != 0 {
         javaArgs = append(javaArgs, "--sample", strconv.Itoa(c.sample))
     }

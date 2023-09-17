@@ -47,8 +47,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 @PublicApi
-public final class CheckCachingCommand extends AbstractFileSystemCommand {
-  private static final Logger LOG = LoggerFactory.getLogger(CheckCachingCommand.class);
+public final class CheckCachedCommand extends AbstractFileSystemCommand {
+  private static final Logger LOG = LoggerFactory.getLogger(CheckCachedCommand.class);
 
   private static final int DEFAULT_LIMIT = 1000;
   private static final int LIMIT_WARNING_THRESHOLD = 10000;
@@ -75,7 +75,7 @@ public final class CheckCachingCommand extends AbstractFileSystemCommand {
   /**
    * @param fsContext the filesystem of Alluxio
    */
-  public CheckCachingCommand(FileSystemContext fsContext) {
+  public CheckCachedCommand(FileSystemContext fsContext) {
     super(fsContext);
     Preconditions.checkNotNull(mFileSystem.getDoraCacheFileSystem());
     mDoraCacheFileSystem = mFileSystem.getDoraCacheFileSystem();
@@ -104,7 +104,7 @@ public final class CheckCachingCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getCommandName() {
-    return "checkCaching";
+    return "check-cached";
   }
 
   @Override
@@ -235,7 +235,7 @@ public final class CheckCachingCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "checkCaching <path> [--sample <sample-ratio>] [--limit <limit-size>]";
+    return "check-cached <path> [--sample <sample-ratio>] [--limit <limit-size>]";
   }
 
   @Override

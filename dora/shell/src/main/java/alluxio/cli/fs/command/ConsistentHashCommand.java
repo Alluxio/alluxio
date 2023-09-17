@@ -65,7 +65,7 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
 
   public static final Option CREATE_CHECK_FILE =
       Option.builder()
-          .longOpt("createCheckFile")
+          .longOpt("create")
           .required(false)
           .hasArg(false)
           .desc("Generate check file.")
@@ -73,7 +73,7 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
 
   public static final Option COMPARE_CHECK_FILES =
       Option.builder()
-          .longOpt("compareCheckFiles")
+          .longOpt("compare")
           .required(false)
           .hasArg(false)
           .desc("Compare check files to see if the hash ring has changed "
@@ -82,7 +82,7 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
 
   public static final Option CLEAN_CHECK_DATA =
       Option.builder()
-          .longOpt("cleanCheckData")
+          .longOpt("clean")
           .required(false)
           .hasArg(false)
           .desc("Clean all check data.")
@@ -264,12 +264,14 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
       FileLocation fileLocation = entry.getValue();
       FileLocation anotherFileLocation = anotherFileLocationMap.get(fileName);
 
-      if (!fileLocation.getPreferredWorker().equals(anotherFileLocation.getPreferredWorker())) {
+      if (anotherFileLocation == null
+          || (!fileLocation.getPreferredWorker().equals(anotherFileLocation.getPreferredWorker()))) {
         isHashRingChanged = true;
       }
 
-      if (fileLocation.isDataOnPreferredWorker()
-          && !anotherFileLocation.isDataOnPreferredWorker()) {
+      if (anotherFileLocation == null
+          || (fileLocation.isDataOnPreferredWorker()
+          && !anotherFileLocation.isDataOnPreferredWorker())) {
         isDataLost = true;
       }
     }
@@ -306,7 +308,7 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getCommandName() {
-    return "consistentHash";
+    return "consistent-hash";
   }
 
   @Override
@@ -325,15 +327,15 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     Option[] options = cl.getOptions();
     switch (options[0].getLongOpt()) {
-      case "createCheckFile":
+      case "create":
         createCheckFile();
         break;
-      case "compareCheckFiles":
+      case "compare":
         String checkFilePath = args[0];
         String anotherCheckFilePath = args[1];
         compareCheckFile(checkFilePath, anotherCheckFilePath);
         break;
-      case "cleanCheckData":
+      case "clean":
         cleanCheckData();
         break;
       default:
@@ -344,10 +346,10 @@ public final class ConsistentHashCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "consistentHash "
-        + "[--createCheckFile] "
-        + "[--compareCheckFiles <1stCheckFilePath> <2ndCheckFilePath>] "
-        + "[--cleanCheckData] ";
+    return "consistent-hash "
+        + "[--create] "
+        + "[--compare <1stCheckFilePath> <2ndCheckFilePath>] "
+        + "[--clean] ";
   }
 
   @Override
