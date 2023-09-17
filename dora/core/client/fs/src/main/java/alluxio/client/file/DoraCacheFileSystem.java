@@ -64,7 +64,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 
 /**
  * Dora Cache file system implementation.
@@ -81,7 +83,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   private final DoraCacheClient mDoraClient;
   protected final FileSystemContext mFsContext;
   private final boolean mMetadataCacheEnabled;
-  private final boolean mUfsFallbackEnabled;
+  private boolean mUfsFallbackEnabled;
   private final long mDefaultVirtualBlockSize;
 
   private final boolean mClientWriteToUFSEnabled;
@@ -160,7 +162,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         throw ex;
       }
       UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client get status error ({} times). Fall back to UFS.",
+      LOG.error("Dora client get status error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       return mDelegatedFileSystem.getStatus(ufsFullPath, options).setFromUFSFallBack();
     }
@@ -202,7 +204,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         throw ex;
       }
       UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client open file error ({} times). Fall back to UFS.",
+      LOG.error("Dora client open file error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       return mDelegatedFileSystem.openFile(status, mergedOptions);
     }
@@ -271,7 +273,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       }
 
       UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client list status error ({} times). Fall back to UFS.",
+      LOG.error("Dora client list status error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       return mDelegatedFileSystem.listStatus(ufsFullPath, options);
     }
@@ -318,7 +320,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       // TODO(JiamingMai): delete the file
       // delete(alluxioPath);
       UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client CreateFile error ({} times). Fall back to UFS.",
+      LOG.error("Dora client CreateFile error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), e);
       return mDelegatedFileSystem.createFile(ufsFullPath, options);
     }
@@ -338,7 +340,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         throw ex;
       }
       UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client createDirectory error ({} times). Fall back to UFS.",
+      LOG.error("Dora client createDirectory error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       mDelegatedFileSystem.createDirectory(ufsFullPath, options);
     }
@@ -380,7 +382,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         throw ex;
       }
       UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client rename error ({} times). Fall back to UFS.",
+      LOG.error("Dora client rename error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       mDelegatedFileSystem.rename(srcUfsFullPath, dstUfsFullPath, options);
     }
@@ -408,7 +410,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         throw ex;
       }
       UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client exists error ({} times). Fall back to UFS.",
+      LOG.error("Dora client exists error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       return mDelegatedFileSystem.exists(ufsFullPath, options);
     }
@@ -429,7 +431,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         throw ex;
       }
       UFS_FALLBACK_COUNTER.inc();
-      LOG.debug("Dora client setAttribute error ({} times). Fall back to UFS.",
+      LOG.error("Dora client setAttribute error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       mDelegatedFileSystem.setAttribute(ufsFullPath, options);
     }
@@ -465,6 +467,46 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     return PathUtils.convertUfsPathToAlluxioPath(ufsPath, rootUfs);
   }
 
+  /**
+   * Get the worker address which the specified file locates at.
+   * @param path the file path
+   * @return the worker address which the file locates at
+   */
+  public WorkerNetAddress getWorkerNetAddress(AlluxioURI path) {
+    AlluxioURI ufsFullPath = convertToUfsPath(path);
+    return mDoraClient.getWorkerNetAddress(ufsFullPath.toString());
+  }
+
+  /**
+   * Check the location of the specified path.
+   * @param path the file path
+   * @return a map that maps the file path to a list of workers
+   * @throws IOException
+   */
+  public Map<String, List<WorkerNetAddress>> checkFileLocation(AlluxioURI path) throws IOException {
+    return checkFileLocation(path, GetStatusPOptions.getDefaultInstance());
+  }
+
+  /**
+   * Check the location of the specified path.
+   * @param path the file path
+   * @param options the get status options
+   * @return a map that maps the file path to a list of workers
+   * @throws IOException
+   */
+  public Map<String, List<WorkerNetAddress>> checkFileLocation(AlluxioURI path,
+      GetStatusPOptions options) throws IOException {
+    AlluxioURI ufsFullPath = convertToUfsPath(path);
+    return mDoraClient.checkFileLocation(ufsFullPath.toString(), options);
+  }
+
+  /**
+   * Get the location information of the specified file.
+   * @param path the path to get the location information
+   * @return the location information of the specified file
+   * @throws IOException
+   * @throws AlluxioException
+   */
   @Override
   public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
       throws IOException, AlluxioException {
@@ -474,6 +516,13 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     return getBlockLocations(status);
   }
 
+  /**
+   * Get the location information of the specified file.
+   * @param status the uri of the file
+   * @return the location information of the specified file
+   * @throws IOException
+   * @throws AlluxioException
+   */
   @Override
   public List<BlockLocationInfo> getBlockLocations(URIStatus status)
       throws IOException, AlluxioException {
@@ -505,5 +554,19 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       listBuilder.add(blockLocationInfo);
     }
     return listBuilder.build();
+  }
+
+  /**
+   * Dora Cache file system implementation.
+   * @param enabled is ufs fall back enabled
+   */
+  public void setUfsFallbackEnabled(boolean enabled) {
+    mUfsFallbackEnabled = enabled;
+  }
+
+  @Nullable
+  @Override
+  public DoraCacheFileSystem getDoraCacheFileSystem() {
+    return this;
   }
 }

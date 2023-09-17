@@ -1020,4 +1020,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   protected DoraOpenFileHandleContainer getOpenFileHandleContainer() {
     return mOpenFileHandleContainer;
   }
+
+  @Override
+  public WorkerNetAddress getAddress() {
+    return mAddress;
+  }
 }

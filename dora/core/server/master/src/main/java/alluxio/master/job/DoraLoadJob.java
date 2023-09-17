@@ -533,7 +533,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
           - response.getFailuresList().size();
       int totalLoadedFile =
           (int) (doraLoadTask.getFilesToLoad().stream().filter(UfsStatus::isFile).count()
-                        - response.getFailuresList().stream()
+              - response.getFailuresList().stream()
               .filter(it -> !it.getUfsStatus().getIsDirectory()).count());
       int totalLoadedDirectory = totalLoadedInodes - totalLoadedFile;
       Set<String> failedFullUfsPaths =
