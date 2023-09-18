@@ -12,14 +12,11 @@
 package alluxio.worker.dora;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.spy;
@@ -30,9 +27,6 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.worker.dora.DoraMetaManager;
-import alluxio.worker.dora.DoraUfsManager;
-import alluxio.worker.dora.PagedDoraWorker;
 
 import org.junit.After;
 import org.junit.Before;
@@ -49,12 +43,10 @@ public class DoraMetaManagerTest {
   public void before() throws IOException {
     AlluxioProperties prop = new AlluxioProperties();
     prop.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, "~/alluxio/metasotre");
-    // prop.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_TTL, "");
     AlluxioConfiguration conf = new InstancedConfiguration(prop);
     PagedDoraWorker worker = mock(PagedDoraWorker.class);
     CacheManager cacheManager = mock(CacheManager.class);
     DoraUfsManager doraUfsManager = mock(DoraUfsManager.class);
-    // when(doraUfsManager.getOrAdd(any(), any())).thenThrow(new IOException());
     mManager = new DoraMetaManager(conf, worker, cacheManager, doraUfsManager);
   }
 
@@ -64,20 +56,6 @@ public class DoraMetaManagerTest {
       mManager.close();
     } catch (IOException e) {
       mManager = null;
-    }
-  }
-
-
-  @Test
-  public void testGetUfsInstance() {
-    // assertThrows(Exception.class, () -> {
-    //   mManager.getUfsInstance("");
-    // });
-    try {
-      mManager.getUfsInstance("");
-    } catch (Exception e) {
-      System.out.println("exception");
-      assertNotNull(e);
     }
   }
 
