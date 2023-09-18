@@ -29,6 +29,7 @@ import alluxio.grpc.DeletePOptions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -88,6 +89,7 @@ public final class CheckCluster {
   }
 
   private static void handleException(Exception e) {
+    e.printStackTrace();
     System.out.println("Exception details: " + e.getMessage());
   }
 
@@ -126,10 +128,12 @@ public final class CheckCluster {
       } else if (!FAILED_WORKER.contains(assignedWorkers.get(0))) {
         workerMap.put(assignedWorkers.get(0), testFile);
       } else {
-        for (BlockWorkerInfo worker : sWorkerInfoList) {
-          for (BlockWorkerInfo sWorker : FAILED_WORKER) {
-            if (sWorker.getNetAddress().getRpcPort() == worker.getNetAddress().getRpcPort()) {
-              sWorkerInfoList.remove(worker);
+        Iterator<BlockWorkerInfo> iterator = sWorkerInfoList.iterator();
+        while (iterator.hasNext()) {
+          BlockWorkerInfo worker = iterator.next();
+          for (BlockWorkerInfo failedWorker : FAILED_WORKER) {
+            if (failedWorker.getNetAddress().getRpcPort() == worker.getNetAddress().getRpcPort()) {
+              iterator.remove();
               break;
             }
           }
