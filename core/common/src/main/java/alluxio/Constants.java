@@ -235,7 +235,7 @@ public final class Constants {
 
   // Log file pattern
   public static final Pattern LOG_FILE_PATTERN =
-      Pattern.compile(".*(\\.log|\\.out)(\\.\\d+)?$|.*.txt|.*.json");
+      Pattern.compile(".*(\\.log|\\.out)(\\.[0-9-]+)?$|.*.txt|.*.json");
 
   private Constants() {} // prevent instantiation
 }

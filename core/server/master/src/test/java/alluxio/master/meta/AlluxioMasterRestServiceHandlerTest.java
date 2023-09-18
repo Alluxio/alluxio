@@ -310,27 +310,30 @@ public final class AlluxioMasterRestServiceHandlerTest {
   public void testGetWebUILogsByRegex() throws IOException {
     File logsDir = mTestFolder.newFolder("logs");
     logsDir.mkdirs();
-    String[] fileArray0 = new String[] {
+    String[] wantedFiles = new String[] {
         "master.log",
         "master.log.1",
         "master.log.100",
-        "master.log",
-        "master.log.1",
-        "master.log.100",
+        "master.out",
+        "master.out.1",
+        "master.out.100",
         "master.txt",
+        "master.gc.log",
+        "master.gc.log.2023-09-15-14",
         "alluxio-master-exit-metrics-20230526-085548.json"
     };
-    String[] fileArray1 = new String[] {
+    Arrays.sort(wantedFiles);
+    String[] unwantedFiles = new String[] {
         "master.log.a",
         "master.loga",
         "master.bin",
     };
 
-    for (String fileName : fileArray0) {
+    for (String fileName : wantedFiles) {
       File file0 = new File(logsDir, fileName);
       file0.createNewFile();
     }
-    for (String fileName : fileArray1) {
+    for (String fileName : unwantedFiles) {
       File file0 = new File(logsDir, fileName);
       file0.createNewFile();
     }
@@ -356,6 +359,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
     List<UIFileInfo> fileInfos = ((MasterWebUILogs) response.getEntity()).getFileInfos();
     String[] actualFileNameArray =
         fileInfos.stream().map(fileInfo -> fileInfo.getName()).toArray(String[]::new);
-    Arrays.equals(fileArray0, actualFileNameArray);
+    Arrays.sort(actualFileNameArray);
+    Assert.assertArrayEquals(wantedFiles, actualFileNameArray);
   }
 }
