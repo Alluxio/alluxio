@@ -17,6 +17,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -47,7 +48,7 @@ public class DoraMetaManagerTest {
   @Before
   public void before() throws IOException {
     AlluxioProperties prop = new AlluxioProperties();
-    prop.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, "/opt/alluxio/metasotre");
+    prop.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, "~/alluxio/metasotre");
     // prop.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_TTL, "");
     AlluxioConfiguration conf = new InstancedConfiguration(prop);
     PagedDoraWorker worker = mock(PagedDoraWorker.class);
@@ -83,18 +84,16 @@ public class DoraMetaManagerTest {
   @Test
   public void testListFromUfsListUfsWhenFail() throws IOException {
     UnderFileSystem system = mock(UnderFileSystem.class);
-    when(system.listStatus(anyString())).thenThrow(new IOException());
+    doAnswer(invocation -> {
+      throw new IOException();
+    }).when(system).listStatus(anyString(), any());
 
     DoraMetaManager mManagerSpy = spy(mManager);
-    // no idea why this mock fail
-    // when(mManagerSpy.getUfsInstance(anyString())).thenReturn(system);
     doReturn(system).when(mManagerSpy).getUfsInstance(anyString());
 
-    try {
+    assertThrows(IOException.class, () -> {
       mManagerSpy.listFromUfs("/test", false);
-    } catch (IOException e) {
-      assertNotNull(e);
-    }
+    });
   }
 
   @Test
