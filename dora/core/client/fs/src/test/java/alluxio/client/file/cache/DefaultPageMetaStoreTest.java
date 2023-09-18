@@ -44,7 +44,7 @@ import java.util.Optional;
 /**
  * Tests for the {@link DefaultPageMetaStore} class.
  */
-public class DefaultMetaStoreTest {
+public class DefaultPageMetaStoreTest {
   protected final PageId mPage = new PageId("1L", 2L);
   protected final AlluxioConfiguration mConf = Configuration.global();
   protected PageStoreDir mPageStoreDir;
@@ -71,6 +71,15 @@ public class DefaultMetaStoreTest {
     mMetaStore = new DefaultPageMetaStore(ImmutableList.of(mPageStoreDir));
     mCachedPageGauge =
         MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricKey.CLIENT_CACHE_PAGES.getName());
+  }
+
+  @Test
+  public void commitFile() throws PageNotFoundException {
+    String newTempFile = "newTempFile";
+    PageId newTempPage = new PageId(newTempFile, 2L);
+    mMetaStore.addPage(mPage, mPageInfo);
+    mMetaStore.commitFile(mPage.getFileId(), newTempFile);
+    assertEquals(newTempFile, mMetaStore.getPageInfo(newTempPage).getPageId().getFileId());
   }
 
   @Test
