@@ -123,11 +123,11 @@ func (c *BaseJavaCommand) RunAndFormat(format string, stdin io.Reader, args []st
 		if err := json.Unmarshal(buf.Bytes(), &obj); err != nil {
 			return stacktrace.Propagate(err, "error unmarshalling json from java command")
 		}
-		if prettyJson, err := json.MarshalIndent(obj, "", "    "); err == nil {
-			os.Stdout.Write(append(prettyJson, '\n'))
-		} else {
+		prettyJson, err := json.MarshalIndent(obj, "", "    ")
+		if err != nil {
 			return stacktrace.Propagate(err, "error marshalling json to pretty format")
 		}
+		os.Stdout.Write(append(prettyJson, '\n'))
 	case "yaml":
 		buf := &bytes.Buffer{}
 		if err := c.RunWithIO(args, stdin, buf, os.Stderr); err != nil {
