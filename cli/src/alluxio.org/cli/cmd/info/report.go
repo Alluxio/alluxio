@@ -21,11 +21,12 @@ import (
 	"strings"
 	"time"
 
-	"alluxio.org/cli/cmd/names"
-	"alluxio.org/cli/env"
 	"github.com/iancoleman/orderedmap"
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
+
+	"alluxio.org/cli/cmd/names"
+	"alluxio.org/cli/env"
 )
 
 var Report = &ReportCommand{
