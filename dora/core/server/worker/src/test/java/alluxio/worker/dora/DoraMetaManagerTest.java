@@ -105,4 +105,26 @@ public class DoraMetaManagerTest {
     Optional<UfsStatus[]> status = mManager.listFromUfs("/test", false);
     assertEquals(status.get()[0].getName(), "test");
   }
+
+  @Test
+  public void testListFromUfsThenCacheWhenFail() throws IOException {
+    UnderFileSystem system = mock(UnderFileSystem.class);
+    doThrow(new IOException()).when(system).listStatus(anyString(), any());
+    doReturn(system).when(doraUfsManager).getOrAdd(any(), any());
+
+    assertThrows(IOException.class, () -> {
+      mManager.listFromUfsThenCache("/test", false);
+    });
+  }
+
+  @Test
+  public void testListFromUfsThenCacheWhenNull() throws IOException {
+    UnderFileSystem system = mock(UnderFileSystem.class);
+    when(system.listStatus(anyString())).thenReturn(null);
+    when(system.getStatus(anyString())).thenReturn(null);
+    doReturn(system).when(doraUfsManager).getOrAdd(any(), any());
+
+    Optional<UfsStatus[]> status = mManager.listFromUfsThenCache("/test", false);
+    assertEquals(status, Optional.empty());
+  }
 }
