@@ -14,6 +14,7 @@ package alluxio.cli;
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -22,12 +23,14 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.dora.WorkerLocationPolicy;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -41,6 +44,9 @@ public final class CheckCluster {
   public static final String ANSI_RESET = "\u001B[0m";
   public static final String ANSI_RED = "\u001B[31m";
   public static final String ANSI_GREEN = "\u001B[32m";
+  private static final List<BlockWorkerInfo> FAILED_WORKER = new ArrayList<>();
+  private static List<BlockWorkerInfo> sWorkerInfoList;
+  private static WorkerLocationPolicy sPolicy;
 
   private CheckCluster() {
   } // Prevent instantiation
@@ -55,20 +61,34 @@ public final class CheckCluster {
 
     try (FileSystemContext fsContext = FileSystemContext.create(Configuration.global())) {
       FileSystem fs = FileSystem.Factory.create(fsContext);
-      List<BlockWorkerInfo> workers = fsContext.getCachedWorkers();
+      sWorkerInfoList = fsContext.getCachedWorkers();
 
       // Test with caching
-      AlluxioURI testDir = initializeTestDirectory(fs);
-      HashMap<BlockWorkerInfo, AlluxioURI> workerMap = assignToWorkers(fs, testDir, workers, false);
-      verifyFileAssignments(fs, workerMap, false);
+      try {
+        runTestWithCaching(fs);
+      } catch (Exception e) {
+        System.out.println("Exception occurred during cache through test.");
+        handleException(e);
+      }
+
+      System.out.println("-----------------------");
 
       // Test without caching (only UFS)
-      testDir = initializeTestDirectory(fs);
-      workerMap = assignToWorkers(fs, testDir, workers, true);
-      verifyFileAssignments(fs, workerMap, true);
+      try {
+        runTestWithoutCaching(fs, fsContext);
+      } catch (Exception e) {
+        System.out.println("Exception occurred during through test.");
+        handleException(e);
+      }
     } catch (Exception e) {
-      System.out.println("Exception: " + e.getMessage());
+      System.out.println(
+          "Exception occurred during FileSystemContext creation or worker retrieval.");
+      handleException(e);
     }
+  }
+
+  private static void handleException(Exception e) {
+    System.out.println("Exception details: " + e.getMessage());
   }
 
   private static void setupConfiguration() {
@@ -78,59 +98,68 @@ public final class CheckCluster {
   }
 
   private static AlluxioURI initializeTestDirectory(FileSystem fs) throws Exception {
+    FileSystem underlyingFileSystem = ((DoraCacheFileSystem) fs).getUnderlyingFileSystem();
     String testDirName = Random.class.getSimpleName() + System.currentTimeMillis();
     AlluxioURI testDir = new AlluxioURI(DIRECTORY + testDirName);
-    if (!fs.exists(testDir)) {
-      fs.createDirectory(testDir);
+    DoraCacheFileSystem doraFs = (DoraCacheFileSystem) fs;
+    testDir = doraFs.convertToUfsPath(testDir);
+    if (!underlyingFileSystem.exists(testDir)) {
+      underlyingFileSystem.createDirectory(testDir);
     }
     return testDir;
   }
 
   private static HashMap<BlockWorkerInfo, AlluxioURI> assignToWorkers(FileSystem fs,
                                                                       AlluxioURI testDir,
-                                                                      List<BlockWorkerInfo> workers,
                                                                       boolean throughOnly)
       throws Exception {
     HashMap<BlockWorkerInfo, AlluxioURI> workerMap = new HashMap<>();
-    WorkerLocationPolicy policy = WorkerLocationPolicy.Factory.create(Configuration.global());
+    sPolicy = WorkerLocationPolicy.Factory.create(Configuration.global());
 
-    for (int i = 0; i < NUM_FILES && workerMap.size() < workers.size(); i++) {
+    for (int i = 0; i < NUM_FILES && workerMap.size() < sWorkerInfoList.size(); i++) {
       AlluxioURI testFile = new AlluxioURI(testDir.getPath() + "/" + i);
       writeFile(fs, testFile, throughOnly);
       List<BlockWorkerInfo> assignedWorkers =
-          policy.getPreferredWorkers(workers, testFile.getPath(), 1);
-      if (assignedWorkers.size() != 1 || workerMap.containsKey(assignedWorkers.get(0))) {
+          sPolicy.getPreferredWorkers(sWorkerInfoList, testFile.getPath(), 1);
+      if (workerMap.containsKey(assignedWorkers.get(0))) {
         fs.delete(testFile, DeletePOptions.newBuilder().setRecursive(true).build());
-      } else {
+      } else if (!FAILED_WORKER.contains(assignedWorkers.get(0))) {
         workerMap.put(assignedWorkers.get(0), testFile);
+      } else {
+        for (BlockWorkerInfo worker : sWorkerInfoList) {
+          for (BlockWorkerInfo sWorker : FAILED_WORKER) {
+            if (sWorker.getNetAddress().getRpcPort() == worker.getNetAddress().getRpcPort()) {
+              sWorkerInfoList.remove(worker);
+              break;
+            }
+          }
+        }
       }
     }
-
-    if (workerMap.size() != workers.size()) {
-      throw new Exception("Failed to assign workers for all files");
-    }
-
     return workerMap;
   }
 
   private static void writeFile(FileSystem fs, AlluxioURI testFile, boolean throughOnly)
-      throws Exception {
+      throws ResourceExhaustedException {
     WriteType writeType = throughOnly ? WriteType.THROUGH : WriteType.CACHE_THROUGH;
     try (FileOutStream outStream = fs.createFile(testFile,
         CreateFilePOptions.newBuilder().setWriteType(writeType.toProto()).build())) {
       outStream.write(TEST_CONTENT.getBytes());
+    } catch (Exception e) {
+      List<BlockWorkerInfo> workers =
+          sPolicy.getPreferredWorkers(sWorkerInfoList, testFile.getPath(), 1);
+      if (!FAILED_WORKER.contains(workers.get(0))) {
+        FAILED_WORKER.add(workers.get(0));
+      }
     }
   }
 
   private static void verifyFileAssignments(FileSystem fs,
                                             HashMap<BlockWorkerInfo, AlluxioURI> workerMap,
                                             boolean throughOnly) throws Exception {
-    int failedWorkers = 0;
-    int successfulWorkers = 0;
-    List<BlockWorkerInfo> failedWorkerList = new ArrayList<>();
-
-    for (BlockWorkerInfo worker : workerMap.keySet()) {
-      AlluxioURI testFile = workerMap.get(worker);
+    for (Map.Entry<BlockWorkerInfo, AlluxioURI> entry : workerMap.entrySet()) {
+      BlockWorkerInfo worker = entry.getKey();
+      AlluxioURI testFile = entry.getValue();
       URIStatus fileInfo = fs.getStatus(testFile);
       boolean isFailure = false;
 
@@ -141,24 +170,7 @@ public final class CheckCluster {
       }
 
       if (isFailure) {
-        failedWorkers++;
-        failedWorkerList.add(worker);
-        System.out.println(ANSI_RED + "Failure for worker: " + worker + ANSI_RESET);
-      } else {
-        successfulWorkers++;
-        System.out.println(ANSI_GREEN + "Success for worker: " + worker + ANSI_RESET);
-      }
-    }
-
-    // Summarize the results
-    System.out.println("\nTotal workers: " + workerMap.size());
-    System.out.println(ANSI_GREEN + "Successful workers: " + successfulWorkers + ANSI_RESET);
-    System.out.println(ANSI_RED + "Failed workers: " + failedWorkers + ANSI_RESET);
-
-    if (!failedWorkerList.isEmpty()) {
-      System.out.println(ANSI_RED + "\nList of failed workers:" + ANSI_RESET);
-      for (BlockWorkerInfo failedWorker : failedWorkerList) {
-        System.out.println(ANSI_RED + failedWorker.toString() + ANSI_RESET);
+        FAILED_WORKER.add(worker);
       }
     }
   }
@@ -171,9 +183,50 @@ public final class CheckCluster {
 
       if (!TEST_CONTENT.equals(readContent)) {
         throw new Exception("Read content does not match written content!");
-      } else {
-        System.out.println("Read and write tests passed!");
       }
     }
+  }
+
+  private static void printInfo() {
+    int successfulWorkers = sWorkerInfoList.size();
+    int failedWorkers = FAILED_WORKER.size();
+    int totalWorkers = successfulWorkers + failedWorkers;
+    System.out.println("\nTotal workers: " + totalWorkers);
+    System.out.println(ANSI_GREEN + "Successful workers: " + successfulWorkers + ANSI_RESET);
+    System.out.println(ANSI_RED + "Failed workers: " + failedWorkers + ANSI_RESET);
+
+    if (!FAILED_WORKER.isEmpty()) {
+      System.out.println(ANSI_RED + "\nList of failed workers:" + ANSI_RESET);
+      for (BlockWorkerInfo failedWorker : FAILED_WORKER) {
+        System.out.println("Failed worker capacity and port:");
+        System.out.println(ANSI_RED + "Capacity:" + failedWorker.getCapacityBytes() + " Port:"
+            + failedWorker.getNetAddress().getRpcPort() + ANSI_RESET);
+      }
+    }
+  }
+
+  private static void runTestWithCaching(FileSystem fs) throws Exception {
+    AlluxioURI testDir = initializeTestDirectory(fs);
+    HashMap<BlockWorkerInfo, AlluxioURI> workerMap = assignToWorkers(fs, testDir, false);
+    verifyFileAssignments(fs, workerMap, false);
+    for (Map.Entry<BlockWorkerInfo, AlluxioURI> entry : workerMap.entrySet()) {
+      verifyFileContent(fs, entry.getValue());
+    }
+    System.out.println("cache through test");
+    printInfo();
+  }
+
+  private static void runTestWithoutCaching(FileSystem fs, FileSystemContext fsContext)
+      throws Exception {
+    System.out.println("through test");
+    FAILED_WORKER.clear();
+    sWorkerInfoList = fsContext.getCachedWorkers();
+    AlluxioURI testDir = initializeTestDirectory(fs);
+    HashMap<BlockWorkerInfo, AlluxioURI> workerMap = assignToWorkers(fs, testDir, true);
+    verifyFileAssignments(fs, workerMap, true);
+    for (Map.Entry<BlockWorkerInfo, AlluxioURI> entry : workerMap.entrySet()) {
+      verifyFileContent(fs, entry.getValue());
+    }
+    printInfo();
   }
 }
