@@ -152,7 +152,7 @@ public class PagedDoraWorkerTest {
         WriteOptions.newBuilder().setOverwrite(false).setCheckContent(true).build();
     UfsReadOptions read =
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
-    <List<RouteFailure>> copy =
+    ListenableFuture<List<RouteFailure>> copy =
         mWorker.copy(Collections.singletonList(route), read, writeOptions);
     List<RouteFailure> failures = copy.get();
     assertEquals(0, failures.size());
