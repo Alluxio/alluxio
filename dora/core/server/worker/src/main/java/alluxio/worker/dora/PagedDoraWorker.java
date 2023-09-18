@@ -45,20 +45,24 @@ import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadFileFailure;
+import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
 import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TaskStatus;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
 import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.membership.MasterMembershipManager;
 import alluxio.membership.MembershipManager;
-import alluxio.membership.NoOpMembershipManager;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.meta.DoraMeta;
@@ -116,6 +120,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 import javax.inject.Named;
@@ -242,8 +248,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     // the heartbeat is only used to notify the aliveness of this worker, so that clients
     // can get the latest worker list from master.
     // TODO(bowen): once we set up a worker discovery service in place of master, remove this
-    // TODO(lucy): temporary fallback logic during transition of removing master dependency
-    if (mMembershipManager instanceof NoOpMembershipManager) {
+    // TODO(lucy): fallback to original logic using master for registration
+    if (mMembershipManager instanceof MasterMembershipManager) {
       LOG.info("Using Master for heartbeating..");
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
@@ -262,7 +268,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     Preconditions.checkNotNull(mAddress, "worker not started");
     RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
     // For regression purpose, use the original way of regsiter
-    if (mMembershipManager instanceof NoOpMembershipManager) {
+    if (mMembershipManager instanceof MasterMembershipManager) {
       registerToMaster();
       return;
     }
@@ -350,16 +356,17 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         -1;
     boolean isRecursive = options.getRecursive();
     final Optional<ListStatusResult> resultFromCache = mMetaManager.listCached(path, isRecursive);
-
     if (resultFromCache.isPresent()
         && (syncIntervalMs < 0
         || System.nanoTime() - resultFromCache.get().mTimeStamp
         <= syncIntervalMs * Constants.MS_NANO)) {
+      MetricsSystem.counter(MetricKey.WORKER_LIST_STATUS_HIT_REQUESTS.getName()).inc();
       return resultFromCache.get().mUfsStatuses;
     }
     mMetaManager.invalidateListingCache(path);
     Optional<UfsStatus[]> ufsStatuses =
         mMetaManager.listFromUfsThenCache(path, isRecursive);
+    MetricsSystem.counter(MetricKey.WORKER_LIST_STATUS_EXTERNAL_REQUESTS.getName()).inc();
     return ufsStatuses.orElse(null);
   }
 
@@ -389,7 +396,18 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       }
     }
     if (shouldLoad) {
-      status = mMetaManager.loadFromUfs(ufsFullPath);
+      // Checks if this file is under create/write.
+      OpenFileHandle handle = mOpenFileHandleContainer.find(ufsFullPath);
+      if (handle != null) {
+        // The target is being written to. It's fine to return FileNotFound.
+        LOG.debug("File {} is being written to.", ufsFullPath);
+        status = Optional.empty();
+      } else {
+        status = mMetaManager.loadFromUfs(ufsFullPath);
+        MetricsSystem.counter(MetricKey.WORKER_GET_FILE_INFO_EXTERNAL_REQUESTS.getName()).inc();
+      }
+    } else {
+      MetricsSystem.counter(MetricKey.WORKER_GET_FILE_INFO_HIT_REQUESTS.getName()).inc();
     }
 
     if (!status.isPresent()) {
@@ -496,15 +514,33 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return new PagedFileWriter(this, ufsPath, mCacheManager, fileId, mPageSize);
   }
 
+  private boolean isAllPageCached(UfsFileStatus status, Optional<DoraMeta.FileStatus> fileStatus) {
+    if (!fileStatus.isPresent()) {
+      return false;
+    }
+    alluxio.grpc.FileInfo fi = fileStatus.get().getFileInfo();
+    if (!fi.getContentHash().equals(status.getContentHash())) {
+      return false;
+    }
+    String cacheManagerFileId = status.getUfsFullPath().hash();
+    final long bytesInCache = mCacheManager.getUsage()
+        .flatMap(usage -> usage.partitionedBy(file(cacheManagerFileId)))
+        .map(CacheUsage::used).orElse(0L);
+    return bytesInCache == fi.getLength();
+  }
+
   @Override
-  public ListenableFuture<List<LoadFileFailure>> load(
-      boolean loadData, List<UfsStatus> ufsStatuses, UfsReadOptions options)
+  public ListenableFuture<LoadFileResponse> load(
+      boolean loadData, boolean skipIfExists, List<UfsStatus> ufsStatuses, UfsReadOptions options)
       throws AccessControlException, IOException {
     List<ListenableFuture<Void>> futures = new ArrayList<>();
     List<LoadFileFailure> errors = Collections.synchronizedList(new ArrayList<>());
+    AtomicInteger skippedFiles = new AtomicInteger();
+    AtomicLong skippedFileLength = new AtomicLong();
     for (UfsStatus status : ufsStatuses) {
       String ufsFullPath = status.getUfsFullPath().toString();
       DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath);
+      Optional<DoraMeta.FileStatus> originalFs = mMetaManager.getFromMetaStore(ufsFullPath);
       mMetaManager.put(ufsFullPath, fs);
       // We use the ufs status sent from master to construct the file metadata,
       // and that ufs status might be stale.
@@ -517,37 +553,55 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       // These two need UFS api support and cannot be achieved in a generic UFS interface.
       // We may be able to solve this by providing specific implementations for certain UFSes
       // in the future.
-      if (loadData && status.isFile() && (status.asUfsFileStatus().getContentLength() > 0)) {
-        try {
-          ListenableFuture<Void> loadFuture = Futures.submit(() -> {
-            try {
-              if (options.hasUser()) {
-                AuthenticatedClientUser.set(options.getUser());
-              }
-              loadData(status.getUfsFullPath().toString(), 0,
-                  status.asUfsFileStatus().getContentLength());
-            } catch (Throwable e) {
-              LOG.error("Loading {} failed", status, e);
-              boolean permissionCheckSucceeded = !(e instanceof AccessControlException);
-              AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
-              errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
-                  .setCode(t.getStatus().getCode().value())
-                  .setRetryable(t.isRetryable() && permissionCheckSucceeded)
-                  .setMessage(t.getMessage()).build());
+      if (!loadData || !status.isFile()) {
+        continue;
+      }
+      long fileLength = status.asUfsFileStatus().getContentLength();
+      boolean countAsSkipped =
+          skipIfExists && isAllPageCached(status.asUfsFileStatus(), originalFs);
+      if (countAsSkipped) {
+        skippedFiles.incrementAndGet();
+        skippedFileLength.addAndGet(status.asUfsFileStatus().getContentLength());
+        continue;
+      }
+      if (fileLength == 0) {
+        continue;
+      }
+      try {
+        ListenableFuture<Void> loadFuture = Futures.submit(() -> {
+          try {
+            if (options.hasUser()) {
+              AuthenticatedClientUser.set(options.getUser());
             }
-          }, GrpcExecutors.READER_EXECUTOR);
-          futures.add(loadFuture);
-        } catch (RejectedExecutionException ex) {
-          LOG.warn("BlockDataReaderExecutor overloaded.");
-          AlluxioRuntimeException t = AlluxioRuntimeException.from(ex);
-          errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
-              .setCode(t.getStatus().getCode().value())
-              .setRetryable(true)
-              .setMessage(t.getMessage()).build());
-        }
+            loadData(status.getUfsFullPath().toString(), 0,
+                status.asUfsFileStatus().getContentLength());
+          } catch (Throwable e) {
+            LOG.error("[DistributedLoad] Loading {} failed", status, e);
+            AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
+            errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
+                .setCode(t.getStatus().getCode().value())
+                .setRetryable(true)
+                .setMessage(t.getMessage()).build());
+          }
+        }, GrpcExecutors.READER_EXECUTOR);
+        futures.add(loadFuture);
+      } catch (RejectedExecutionException ex) {
+        LOG.warn("BlockDataReaderExecutor overloaded.");
+        AlluxioRuntimeException t = AlluxioRuntimeException.from(ex);
+        errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
+            .setCode(t.getStatus().getCode().value())
+            .setRetryable(true)
+            .setMessage(t.getMessage()).build());
       }
     }
-    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.READER_EXECUTOR);
+    return Futures.whenAllComplete(futures).call(() -> LoadFileResponse.newBuilder()
+            .addAllFailures(errors)
+            .setBytesSkipped(skippedFileLength.get())
+            .setFilesSkipped(skippedFiles.get())
+            // Status is a required field, put it as a placeholder
+            .setStatus(TaskStatus.SUCCESS)
+            .build(),
+        GrpcExecutors.READER_EXECUTOR);
   }
 
   protected void loadData(String ufsPath, long mountId, long length)
@@ -592,7 +646,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               AuthenticatedClientUser.set(readOptions.getUser());
             }
             checkCopyPermission(route.getSrc(), route.getDst());
-            if (!ValidateHandler.validate(route, writeOptions, srcFs, dstFs)) {
+            if (!ValidateHandler.validate(route, writeOptions, srcFs, dstFs, false)) {
               // Skip copy if there is a failure during validation.
               RouteFailure.Builder builder =
                   RouteFailure.newBuilder().setRoute(route).setIsSkip(true).setCode(0);
@@ -655,7 +709,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               AuthenticatedClientUser.set(readOptions.getUser());
             }
             checkMovePermission(route.getSrc(), route.getDst());
-            if (!ValidateHandler.validate(route, writeOptions, srcFs, dstFs)) {
+            if (!ValidateHandler.validate(route, writeOptions, srcFs, dstFs, true)) {
               throw new FailedPreconditionRuntimeException("File " + route.getDst()
                   + " is already in UFS");
             }
@@ -731,7 +785,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       boolean exists = ufs.exists(path);
       if (!overWrite && exists) {
         throw new RuntimeException(
-            new FileAlreadyExistsException("File already exists but no overwrite flag"));
+            new FileAlreadyExistsException(
+                String.format("File %s already exists but no overwrite flag", path)));
       } else if (overWrite) {
         // client is going to overwrite this file. We need to invalidate the cached meta and data.
         mMetaManager.removeFromMetaStore(path);
@@ -816,24 +871,32 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       throws IOException, AccessControlException {
     UnderFileSystem srcUfs = getUfsInstance(src);
     UnderFileSystem dstUfs = getUfsInstance(dst);
+    LOG.debug("Renaming from {} to {}", src, dst);
     // use strong reference comparison as UnderFileSystem does not support equality check
     // except by UFS type
     if (srcUfs != dstUfs) {
       throw new FailedPreconditionException("Cannot rename a file in one UFS to another UFS");
     }
 
+    boolean rc;
     try {
       UfsStatus status = srcUfs.getStatus(src);
       if (status.isFile()) {
-        srcUfs.renameFile(src, dst);
+        rc = srcUfs.renameFile(src, dst);
       } else {
-        srcUfs.renameDirectory(src, dst);
+        rc = srcUfs.renameDirectory(src, dst);
       }
-      mMetaManager.removeFromMetaStore(src);
-      mMetaManager.loadFromUfs(dst);
-      mMetaManager.invalidateListingCacheOfParent(dst);
+      if (rc) {
+        mMetaManager.removeFromMetaStore(src);
+        mMetaManager.loadFromUfs(dst);
+        mMetaManager.invalidateListingCacheOfParent(dst);
+      }
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+    LOG.debug("Renaming from {} to {} done: {}", src, dst, rc);
+    if (!rc) {
+      throw new RuntimeException(String.format("Failed to rename from '%s' to '%s'", src, dst));
     }
   }
 
@@ -956,5 +1019,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   protected DoraOpenFileHandleContainer getOpenFileHandleContainer() {
     return mOpenFileHandleContainer;
+  }
+
+  @Override
+  public WorkerNetAddress getAddress() {
+    return mAddress;
   }
 }

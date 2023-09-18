@@ -40,7 +40,7 @@ type CollectCommand struct {
 	includeLogs          []string
 	local                bool
 	maxThreads           int
-	outputPath           string
+	outputDir            string
 	startTime            string
 }
 
@@ -79,9 +79,9 @@ https://docs.alluxio.io/os/user/edge/en/operation/Troubleshooting.html#collect-a
 	cmd.Flags().StringSliceVar(&c.includeLogs, "include-logs", nil, "File name prefixes from ${ALLUXIO_HOME}/logs to include in the tarball, ignoring the default log files; cannot be used with --exclude-logs or --additional-logs")
 	cmd.Flags().BoolVar(&c.local, "local", false, "True to only collect information from the local machine")
 	cmd.Flags().IntVar(&c.maxThreads, "max-threads", 1, "Parallelism of the command; use a smaller value to limit network I/O when transferring tarballs")
-	const outputPath = "output-path"
-	cmd.Flags().StringVar(&c.outputPath, outputPath, "", "Output directory to write collect info tarball to")
-	cmd.MarkFlagRequired(outputPath)
+	const outputDir = "output-dir"
+	cmd.Flags().StringVar(&c.outputDir, outputDir, "", "Output directory to write collect info tarball to")
+	cmd.MarkFlagRequired(outputDir)
 	cmd.Flags().StringVar(&c.startTime, "start-time", "", "Logs that do not contain entries after this time will be ignored, format must be like "+dateFormat)
 	return cmd
 }
@@ -145,7 +145,7 @@ func (c *CollectCommand) Run(args []string) error {
 		javaArgs = append(javaArgs, "--start-time", c.startTime)
 	}
 
-	javaArgs = append(javaArgs, commandArg, c.outputPath)
+	javaArgs = append(javaArgs, "--output-dir", c.outputDir, commandArg)
 
 	return c.Base().Run(javaArgs)
 }

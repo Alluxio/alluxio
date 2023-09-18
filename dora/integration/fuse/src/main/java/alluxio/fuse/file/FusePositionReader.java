@@ -141,4 +141,9 @@ public class FusePositionReader implements FuseFileStream {
   public boolean isClosed() {
     return mClosed;
   }
+
+  @Override
+  public boolean isReadOnly() {
+    return true;
+  }
 }

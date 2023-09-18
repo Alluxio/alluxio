@@ -38,7 +38,9 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.file.ByteArrayTargetBuffer;
 import alluxio.file.NettyBufTargetBuffer;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -979,6 +981,24 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
+  public void getFaultyRead() throws Exception {
+    PageStoreOptions pageStoreOptions = PageStoreOptions.create(mConf).get(0);
+    FaultyPageStore pageStore = new FaultyPageStore();
+    PageStoreDir dir =
+        new LocalPageStoreDir(pageStoreOptions, pageStore, mEvictor);
+
+    mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
+    NoExceptionCacheManager cacheManager =
+        new NoExceptionCacheManager(createLocalCacheManager(mConf, mPageMetaStore));
+    cacheManager.put(PAGE_ID1, PAGE1);
+    ByteArrayTargetBuffer targetBuffer = new ByteArrayTargetBuffer(mBuf, 0);
+    pageStore.setGetFaulty(true);
+    assertEquals(-1, cacheManager.get(PAGE_ID1, PAGE1.length,
+        targetBuffer, CacheContext.defaults()));
+    assertEquals(0, targetBuffer.offset());
+  }
+
+  @Test
   public void deleteTimeout() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "2s");
     PageStoreOptions pageStoreOptions = PageStoreOptions.create(mConf).get(0);
@@ -1135,6 +1155,17 @@ public final class LocalCacheManagerTest {
 
     private AtomicBoolean mPutFaulty = new AtomicBoolean(false);
     private AtomicBoolean mDeleteFaulty = new AtomicBoolean(false);
+    private AtomicBoolean mGetFaulty = new AtomicBoolean(false);
+
+    @Override
+    public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
+        boolean isTemporary) throws IOException, PageNotFoundException {
+      if (mGetFaulty.get()) {
+        target.offset(target.offset() + 100);
+        throw new IOException("Page read fault");
+      }
+      return super.get(pageId, pageOffset, bytesToRead, target, isTemporary);
+    }
 
     @Override
     public void put(PageId pageId, ByteBuffer page, boolean isTemporary) throws IOException {
@@ -1158,6 +1189,10 @@ public final class LocalCacheManagerTest {
 
     void setDeleteFaulty(boolean faulty) {
       mDeleteFaulty.set(faulty);
+    }
+
+    void setGetFaulty(boolean faulty) {
+      mGetFaulty.set(faulty);
     }
   }
 

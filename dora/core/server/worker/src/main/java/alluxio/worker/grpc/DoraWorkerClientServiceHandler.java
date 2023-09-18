@@ -38,7 +38,6 @@ import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
-import alluxio.grpc.LoadFileFailure;
 import alluxio.grpc.LoadFileRequest;
 import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.MoveRequest;
@@ -130,18 +129,19 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   @Override
   public void loadFile(LoadFileRequest request, StreamObserver<LoadFileResponse> responseObserver) {
     try {
-      ListenableFuture<List<LoadFileFailure>> failures =
-          mWorker.load(!request.getLoadMetadataOnly(), request.getUfsStatusList().stream().map(
-              UfsStatus::fromProto).collect(
-              Collectors.toList()), request.getOptions());
-      ListenableFuture<LoadFileResponse> future = Futures.transform(failures, fail -> {
+      ListenableFuture<LoadFileResponse> response =
+          mWorker.load(!request.getLoadMetadataOnly(), request.getSkipIfExists(),
+              request.getUfsStatusList().stream().map(
+                  UfsStatus::fromProto).collect(
+                  Collectors.toList()), request.getOptions());
+      ListenableFuture<LoadFileResponse> future = Futures.transform(response, resp -> {
         int numFiles = request.getUfsStatusCount();
         TaskStatus taskStatus = TaskStatus.SUCCESS;
-        if (fail.size() > 0) {
-          taskStatus = numFiles > fail.size() ? TaskStatus.PARTIAL_FAILURE : TaskStatus.FAILURE;
+        if (!resp.getFailuresList().isEmpty()) {
+          taskStatus = numFiles > resp.getFailuresList().size()
+              ? TaskStatus.PARTIAL_FAILURE : TaskStatus.FAILURE;
         }
-        LoadFileResponse.Builder response = LoadFileResponse.newBuilder();
-        return response.addAllFailures(fail).setStatus(taskStatus).build();
+        return resp.toBuilder().setStatus(taskStatus).build();
       }, GrpcExecutors.WRITER_EXECUTOR);
       RpcUtils.invoke(LOG, future, "loadFile", "request=%s", responseObserver, request);
     } catch (Exception e) {

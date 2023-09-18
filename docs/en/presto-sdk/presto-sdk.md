@@ -9,8 +9,8 @@ can be cached locally on Presto Workers that execute the TableScan operator.
 
 ## Prerequisites
 - Setup Java for Java 8 Update 161 or higher (8u161+), 64-bit.
-- [Deploy Presto](https://prestodb.io/docs/current/installation/deployment.html).
-- Alluxio has been set up and is running following [the deployment guide here](https://github.com/Alluxio/alluxio/blob/dora/docs/en/Deploy-Alluxio-Cluster.md).
+- [Deploy Presto](https://prestodb.io/docs/current/installation/deployment.html){:target="_blank"}.
+- Alluxio has been set up and is running following [the deployment guide here]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}).
 - Make sure that the Alluxio client jar that provides the SDK is available. This Alluxio client jar file can be found at `/<PATH_TO_ALLUXIO>/client/alluxio-${VERSION}-client.jar` in the tarball downloaded from Alluxio download page.
 - Make sure that Hive Metastore is running to serve metadata information of Hive tables. The default port of Hive Metastore is `9083`. Executing `lsof -i:9083` can check whether the Hive Metastore process exists or not.
 
@@ -67,7 +67,7 @@ INSERT INTO employee_parquet_alluxio select 'amy', 20000, '2023-02-26';
 ```
 
 ### Query table using Presto
-Follow [Presto CLI instructions](https://prestodb.io/docs/current/installation/cli.html) to download the` presto-cli-<PRESTO_VERSION>-executable.jar`,  
+Follow [Presto CLI instructions](https://prestodb.io/docs/current/installation/cli.html){:target="_blank"} to download the` presto-cli-<PRESTO_VERSION>-executable.jar`,  
 rename it to `presto-cli`, and make it executable with `chmod + x`. Run a single query with `presto-cli` to select the data from the table.
 ```sql
 presto> SELECT * FROM employee_parquet_alluxio;

@@ -69,11 +69,10 @@ For the purposes of this guide, the following are placeholders.
         <td markdown="span">[CephObjectStorage]({{ '/en/ufs/CephObjectStorage.html' | relativize_url }})</td>
         <td markdown="span">`CEPH_BUCKET`, `CEPH_DIRECTORY`</td>
         <td markdown="span">
-            [S3](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) (preferred): `S3_ACCESS_KEY_ID`, `S3_SECRET_KEY_ID` <br />
+            `S3_ACCESS_KEY_ID`, `S3_SECRET_KEY_ID`
         </td>
         <td markdown="span">
-            Specify S3 properties: (preferred) <br />
-            `RGW_HOSTNAME`, `RGW_PORT`, `INHERIT_ACL` <br /><br />
+            `RGW_HOSTNAME`, `RGW_PORT`, `INHERIT_ACL`
         </td>
     </tr>
     <tr>
@@ -136,8 +135,8 @@ For the purposes of this guide, the following are placeholders.
 Once you have configured Alluxio to your desired under storage system, start up Alluxio locally to see that everything works.
 
 ```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
+$ ./bin/alluxio init format
+$ ./bin/alluxio process start local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -146,7 +145,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 Run a simple example program:
 
 ```shell
-$ ./bin/alluxio runTests
+$ ./bin/alluxio exec basicIOTest
 ```
 
 Visit your container `<CONTAINER>/<DIRECTORY>` or bucket `<BUCKET>/<DIRECTORY>` to verify the files and directories created by Alluxio exist. If there are no errors, then you have successfully configured your storage system!
@@ -154,5 +153,5 @@ Visit your container `<CONTAINER>/<DIRECTORY>` or bucket `<BUCKET>/<DIRECTORY>` 
 To stop Alluxio, you can run:
 
 ``` shell
-$ ./bin/alluxio-stop.sh local
+$ ./bin/alluxio process stop local
 ```

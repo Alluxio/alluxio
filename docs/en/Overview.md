@@ -7,13 +7,10 @@ Welcome to Alluxio Documentation! You will find resources regarding deploying Al
 
 ## Get Started with Alluxio
 
-### Install Alluxio Locally 
+### Quick Start Guide
 Check out our [Quick Start Guide]({{ '/en/deploy/Get-Started.html' | relativize_url }}) for step-by-step guidance on how to download and configure Alluxio, run Alluxio on a local machine, and perform basic tasks via Alluxio Shell.
 
 ▶️ [Get Alluxio Up & Running in Less Than 3 Min!](https://youtu.be/5YQvvznT5cI){:target="_blank"} (2:36)
-
-### Install Alluxio Cluster with HA
-Follow [Install Alluxio Cluster with HA]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}) to deploy an Alluxio cluster with High Availability (HA), which is achieved by running multiple Alluxio master processes on different nodes in the system.
 
 ### Install Alluxio on Kubernetes
 See [Install Alluxio on Kubernetes]({{ '/en/kubernetes/Install-Alluxio-On-Kubernetes.html' | relativize_url }}) on how to install Alluxio on Kubernetes via 
@@ -22,6 +19,15 @@ See [Install Alluxio on Kubernetes]({{ '/en/kubernetes/Install-Alluxio-On-Kubern
 Check out these 2 short videos on deployment and best practices with configurations & recommendations:  
 * ▶️ [Deploy Alluxio on Kubernetes](https://www.youtube.com/watch?v=FlvbekK_xG0){:target="_blank"} (5:12)  
 * ▶️ [Alluxio on Kubernetes Best Practices](https://www.youtube.com/watch?v=zwhMwiYmO8M){:target="_blank"} (5:26)
+
+### Install Alluxio on Bare Metal
+
+Make sure you have the proper [Software Requirements]({{ '/en/deploy/Software-Requirements.html' | relativize_url}}), then
+follow [Install Alluxio Cluster with HA]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}) to deploy an Alluxio cluster with High Availability (HA), which is achieved by running multiple Alluxio master processes on different nodes in the system.
+
+### Install Alluxio on Docker
+
+You can run an Alluxio cluster with a couple of `docker run` commands by following our tutorial for running Dockerized Alluxio on a single node with local disk as the under storage at [Install Alluxio on Docker]({{ '/en/deploy/Install-Alluxio-Cluster-with-Docker.html' | relativize_url }}). 
 
 ## Run a Compute Framework with Alluxio
 * [Running Presto with Alluxio]({{ '/en/compute/Presto.html' | relativize_url }})

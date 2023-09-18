@@ -56,6 +56,7 @@ public class ObjectMultipartUploader implements MultipartUploader {
   public ListenableFuture<Void> putPart(InputStream in, int partNumber, long partSize) throws IOException {
     ListenableFuture<Void> f = mExecutor.submit(() -> {
       try {
+        LOG.warn("put part for id {}, partnumber is {}.", mUploadId, partNumber);
         String etag = mUfs.uploadPartWithStream(mPath, mUploadId, partNumber, partSize, in,
             MultipartUfsOptions.defaultOption());
         Pair<Integer, String> etagPair = new Pair<>(partNumber, etag);
@@ -74,6 +75,7 @@ public class ObjectMultipartUploader implements MultipartUploader {
     long partSize = b.remaining();
     ListenableFuture<Void> f = mExecutor.submit(() -> {
       try {
+        LOG.warn("put part for id {}, partnumber is {}.", mUploadId, partNumber);
         InputStream in = new ByteBufferInputStream(b);
         String etag = mUfs.uploadPartWithStream(mPath, mUploadId, partNumber, partSize, in,
             MultipartUfsOptions.defaultOption());
@@ -109,11 +111,14 @@ public class ObjectMultipartUploader implements MultipartUploader {
         etags.add(mETags.get(partNum));
       }
     }
+    LOG.warn("complete mpu for id {}, mETags is {}.", mUploadId, etags);
     mContentHash = mUfs.completeMultiPart(mPath, mUploadId, etags, MultipartUfsOptions.defaultOption());
+    LOG.warn("complete mpu success for id {}, mETags is {}.", mUploadId, etags);
   }
 
   @Override
   public void abort() throws IOException {
+    LOG.warn("abort mpu for id {}.", mUploadId);
     mUfs.abortMultipartTask(mPath, mUploadId, MultipartUfsOptions.defaultOption());
   }
 

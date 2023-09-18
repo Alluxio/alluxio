@@ -15,12 +15,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.ConfigurationRule;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.util.CommonUtils;
-import alluxio.util.CommonUtils.ProcessType;
 import alluxio.util.network.NetworkAddressUtils.ServiceAttributeProvider;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
@@ -29,7 +26,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.Closeable;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -323,41 +319,6 @@ public class NetworkAddressUtilsTest {
     assertEquals(new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, 20000), address);
   }
 
-  @Test
-  public void getLocalNodeNameClient() throws Exception {
-    CommonUtils.PROCESS_TYPE.set(ProcessType.CLIENT);
-    try (Closeable c =
-        new ConfigurationRule(PropertyKey.LOCALITY_TIER_NODE, "client", mConfiguration)
-        .toResource()) {
-      assertEquals("client", NetworkAddressUtils.getLocalNodeName(mConfiguration));
-    }
-  }
-
-  @Test
-  public void getLocalNodeNameWorker() throws Exception {
-    CommonUtils.PROCESS_TYPE.set(ProcessType.WORKER);
-    try (Closeable c = new ConfigurationRule(PropertyKey.WORKER_HOSTNAME, "worker", mConfiguration)
-        .toResource()) {
-      assertEquals("worker", NetworkAddressUtils.getLocalNodeName(mConfiguration));
-    }
-  }
-
-  @Test
-  public void getLocalNodeNameMaster() throws Exception {
-    CommonUtils.PROCESS_TYPE.set(ProcessType.MASTER);
-    try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_HOSTNAME, "master", mConfiguration)
-        .toResource()) {
-      assertEquals("master", NetworkAddressUtils.getLocalNodeName(mConfiguration));
-    }
-  }
-
-  @Test
-  public void getLocalNodeNameLookup() throws Exception {
-    int resolveTimeout = (int) mConfiguration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
-    assertEquals(NetworkAddressUtils.getLocalHostName(resolveTimeout),
-        NetworkAddressUtils.getLocalNodeName(mConfiguration));
-  }
-
   /**
    * Tests the {@link NetworkAddressUtils#resolveHostName(String)} method.
    */
@@ -407,7 +368,7 @@ public class NetworkAddressUtilsTest {
 
   @Test
   public void getConfiguredClientHostname() {
-    mConfiguration.set(PropertyKey.LOCALITY_TIER_NODE, "clienthost");
+    mConfiguration.set(PropertyKey.USER_HOSTNAME, "clienthost");
     assertEquals("clienthost", NetworkAddressUtils.getClientHostName(mConfiguration));
   }
 
