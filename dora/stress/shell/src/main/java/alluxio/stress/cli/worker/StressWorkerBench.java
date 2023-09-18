@@ -73,7 +73,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   /**
    * generate random number in range [min, max] (include both min and max).
    */
-  private long randomNumInRange(Random rand, long min, long max) {
+  private long randomNumInRange(long min, long max) {
     return ThreadLocalRandom.current().nextLong(max - min + 1) + min;
   }
 
@@ -344,6 +344,10 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     if (FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength) > Integer.MAX_VALUE) {
       throw new IllegalArgumentException("mRandomReadMaxLength cannot be larger than 2.1G");
     }
+
+    if (FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength) < FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength)) {
+      throw new IllegalArgumentException("mRandomReadMinLength must not larger than mRandomReadMaxLength");
+    }
   }
 
   private static final class BenchContext {
@@ -408,8 +412,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       mResult.setBaseParameters(mBaseParameters);
       mIsRandomRead = mParameters.mIsRandom;
       mRandom = new Random(mParameters.mRandomSeed);
-      mRandomMin = FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
-      mRandomMax = FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
+      mRandomMin =  FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
+      mRandomMax =  FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
       mFileSize = FormatUtils.parseSpaceSize(mParameters.mFileSize);
     }
 
@@ -484,9 +488,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
       int bytesRead = 0;
       if (mIsRandomRead) {
-        long offset = randomNumInRange(mRandom, 0, mFileSize - 1 - mRandomMin);
-        long length = randomNumInRange(mRandom, mRandomMin,
-            minLong(mFileSize - offset, mRandomMax));
+        long offset = randomNumInRange(0, mFileSize - 1 - mRandomMin);
+        long lengthMax = Math.min(mFileSize - offset, mRandomMax);
+        long length = randomNumInRange(mRandomMin, lengthMax);
         while (length > 0) {
           int actualReadLength = mInStream
               .read(offset, mBuffer, 0, (int) minLong(mBuffer.length, length));
