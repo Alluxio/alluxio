@@ -175,11 +175,4 @@ public class JobServiceMetricsCommandTest {
     assertEquals("1547697600000", longestRunningJobs.get(0).get("timestamp").asText());
     assertEquals("Test1", longestRunningJobs.get(0).get("name").asText());
   }
-
-  private JobInfo createJobInfo(int id, String name, Status status, String datetime)
-      throws ParseException {
-    long timeMillis = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss").parse(datetime).getTime();
-    PlanInfo jobInfo = new PlanInfo(id, name, status, timeMillis, null);
-    return jobInfo;
-  }
 }
