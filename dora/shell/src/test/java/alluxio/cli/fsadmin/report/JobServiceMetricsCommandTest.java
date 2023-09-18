@@ -94,8 +94,8 @@ public class JobServiceMetricsCommandTest {
 
     List<JobInfo> jobInfos = new ArrayList<>();
 
-    jobInfos.add(createJobInfo(1, "Test1", Status.RUNNING, "2019-10-17 12:00:00"));
-    jobInfos.add(createJobInfo(2, "Test2", Status.FAILED, "2019-10-17 12:30:15"));
+    jobInfos.add(new PlanInfo(1, "Test1", Status.RUNNING, 1547697600000L, null));
+    jobInfos.add(new PlanInfo(2, "Test2", Status.FAILED, 1547699415000L, null));
 
     Mockito.when(mJobMasterClient.getJobServiceSummary())
             .thenReturn(new JobServiceSummary(jobInfos));
