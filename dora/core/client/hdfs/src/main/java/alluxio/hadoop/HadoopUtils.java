@@ -119,24 +119,6 @@ public final class HadoopUtils {
   }
 
   /**
-   * Adds Swift keys to the given Hadoop Configuration object if the user has specified them using
-   * System properties, and they're not already set.
-   *
-   * This function is duplicated from {@code alluxio.underfs.hdfs.HdfsUnderFileSystemUtils}, to
-   * prevent the module alluxio-core-client-hdfs from depending on the module alluxio-underfs.
-   *
-   * @param configuration Hadoop configuration
-   */
-
-  public static void addSwiftCredentials(Configuration configuration) {
-    PropertyKey[] propertyNames = { PropertyKey.SWIFT_TENANT_KEY, PropertyKey.SWIFT_USER_KEY,
-        PropertyKey.SWIFT_AUTH_URL_KEY, PropertyKey.SWIFT_AUTH_METHOD_KEY,
-        PropertyKey.SWIFT_PASSWORD_KEY, PropertyKey.SWIFT_SIMULATION,
-        PropertyKey.SWIFT_REGION_KEY };
-    setConfigurationFromSystemProperties(configuration, propertyNames);
-  }
-
-  /**
    * Set the System properties into Hadoop configuration.
    *
    * This method won't override existing properties even if they are set as System properties.

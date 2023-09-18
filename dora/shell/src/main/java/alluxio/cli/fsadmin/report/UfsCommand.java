@@ -12,11 +12,14 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.file.FileSystemMasterClient;
-import alluxio.util.FormatUtils;
 import alluxio.wire.MountPointInfo;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
-import java.util.Comparator;
 import java.util.Map;
 
 /**
@@ -24,6 +27,7 @@ import java.util.Map;
  */
 public class UfsCommand {
   private FileSystemMasterClient mFileSystemMasterClient;
+  private static final Logger LOG = LoggerFactory.getLogger(JobServiceMetricsCommand.class);
 
   /**
    * Creates a new instance of {@link UfsCommand}.
@@ -41,54 +45,17 @@ public class UfsCommand {
    */
   public int run() throws IOException {
     Map<String, MountPointInfo> mountTable = mFileSystemMasterClient.getMountTable();
-    System.out.println("Alluxio under storage system information:");
-    printMountInfo(mountTable);
-    return 0;
-  }
-
-  /**
-   * Prints mount information for a mount table.
-   *
-   * @param mountTable the mount table to get information from
-   */
-  public static void printMountInfo(Map<String, MountPointInfo> mountTable) {
-    for (Map.Entry<String, MountPointInfo> entry : mountTable.entrySet()) {
-      String mountPoint = entry.getKey();
-      MountPointInfo mountPointInfo = entry.getValue();
-
-      long capacityBytes = mountPointInfo.getUfsCapacityBytes();
-      long usedBytes = mountPointInfo.getUfsUsedBytes();
-
-      String usedPercentageInfo = "";
-      if (capacityBytes > 0) {
-        int usedPercentage = (int) (100.0 * usedBytes / capacityBytes);
-        usedPercentageInfo = String.format("(%s%%)", usedPercentage);
-      }
-
-      String leftAlignFormat = getAlignFormat(mountTable);
-
-      System.out.format(leftAlignFormat, mountPointInfo.getUfsUri(), mountPoint,
-          mountPointInfo.getUfsType(), FormatUtils.getSizeFromBytes(capacityBytes),
-          FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo,
-          mountPointInfo.getReadOnly() ? "" : "not ",
-          mountPointInfo.getShared() ? "" : "not ");
-      System.out.println("properties=" + mountPointInfo.getProperties() + ")");
+    ObjectMapper objectMapper = new ObjectMapper();
+    try {
+      String json = objectMapper.writeValueAsString(mountTable);
+      System.out.println(json);
+    } catch (JsonProcessingException e) {
+      System.out.println("Failed to convert mountTable output to JSON. "
+          + "Check the command line log for the detailed error message.");
+      LOG.error("Failed to output JSON object {}", mountTable);
+      e.printStackTrace();
+      return -1;
     }
-  }
-
-  /**
-   * Gets the align format according to the longest mount point/under storage path.
-   * @param mountTable the mount table to get information from
-   * @return the align format for printing mounted info
-   */
-  private static String getAlignFormat(Map<String, MountPointInfo> mountTable) {
-    int mountPointLength = mountTable.entrySet().stream().map(w -> w.getKey().length())
-        .max(Comparator.comparing(Integer::intValue)).get();
-    int usfLength = mountTable.entrySet().stream().map(w -> w.getValue().getUfsUri().length())
-        .max(Comparator.comparing(Integer::intValue)).get();
-
-    String leftAlignFormat = "%-" + usfLength + "s  on  %-" + mountPointLength
-        + "s  (%s, capacity=%s, used=%s, %sread-only, %sshared, ";
-    return leftAlignFormat;
+    return 0;
   }
 }

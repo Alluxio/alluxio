@@ -31,7 +31,6 @@ public final class UnderFileSystemTestUtils {
     return ufsAddress.startsWith(Constants.HEADER_S3)
         || ufsAddress.startsWith(Constants.HEADER_S3A)
         || ufsAddress.startsWith(Constants.HEADER_GCS)
-        || ufsAddress.startsWith(Constants.HEADER_SWIFT)
         || ufsAddress.startsWith(Constants.HEADER_OSS);
   }
 

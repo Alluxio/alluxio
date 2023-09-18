@@ -32,8 +32,8 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
+import alluxio.membership.MasterMembershipManager;
 import alluxio.membership.MembershipManager;
-import alluxio.membership.NoOpMembershipManager;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.NettyChannelPool;
 import alluxio.network.netty.NettyClient;
@@ -402,7 +402,7 @@ public class FileSystemContext implements Closeable {
    */
   protected FileSystemContext(AlluxioConfiguration conf, @Nullable BlockWorker blockWorker,
                             @Nullable List<InetSocketAddress> masterAddresses) {
-    mId = IdUtils.createFileSystemContextId();
+    mId = IdUtils.createOrGetAppIdFromConfig(conf);
     mBlockWorker = blockWorker;
     mMasterAddresses = masterAddresses;
     mWorkerRefreshPolicy =
@@ -862,7 +862,7 @@ public class FileSystemContext implements Closeable {
     // guard altogether
     try (ReinitBlockerResource r = blockReinit()) {
       // Use membership mgr
-      if (mMembershipManager != null && !(mMembershipManager instanceof NoOpMembershipManager)) {
+      if (mMembershipManager != null && !(mMembershipManager instanceof MasterMembershipManager)) {
         return mMembershipManager.getAllMembers().stream()
             .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
             .collect(toList());

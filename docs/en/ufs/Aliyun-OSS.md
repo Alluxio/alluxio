@@ -93,3 +93,11 @@ alluxio.underfs.oss.multipart.upload.threads
 # Multipart upload partition size for OSS. The default partition size is 64MB. 
 alluxio.underfs.oss.multipart.upload.partition.size
 ```
+
+## Contributed by the Alluxio Community
+
+Aliyun OSS UFS integration is contributed and maintained by the Alluxio community.
+The source code is located [here](https://github.com/Alluxio/alluxio/tree/main/dora/underfs/oss){:target="_blank"}.
+Feel free submit pull requests to improve the integration and update 
+the documentation [here](https://github.com/Alluxio/alluxio/blob/main/docs/en/ufs/Aliyun-OSS.md){:target="_blank"} 
+if any information is missing or out of date.

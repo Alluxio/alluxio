@@ -44,7 +44,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
 
   // underlying reed-only or write-only stream
   // only one of them should exist
-  private Optional<FuseFileInStream> mInStream = Optional.empty();
+  private volatile Optional<FuseFileInStream> mInStream = Optional.empty();
   private Optional<FuseFileOutStream> mOutStream;
   private volatile boolean mClosed = false;
 
@@ -164,5 +164,13 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   @Override
   public boolean isClosed() {
     return mClosed;
+  }
+
+  @Override
+  public boolean isReadOnly() {
+    // The inner in stream and out stream are mutual exclusive.
+    // Once the stream is used as an in stream, it cannot be
+    // used as an out stream anymore and hence it is read only.
+    return mInStream.isPresent();
   }
 }

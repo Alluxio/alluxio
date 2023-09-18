@@ -17,7 +17,7 @@ interface. Alluxio’s memory-first tiered architecture enables data access at s
 magnitude faster than existing solutions.
 
 In the data ecosystem, Alluxio lies between data driven applications, such as Apache Spark, Presto, Tensorflow, Apache HBase, Apache Hive, or Apache Flink, and various persistent storage systems, such
-as Amazon S3, Google Cloud Storage, OpenStack Swift, HDFS, IBM Cleversafe, EMC ECS, Ceph,
+as Amazon S3, Google Cloud Storage, HDFS, IBM Cleversafe, EMC ECS, Ceph,
 NFS, Minio, and Alibaba OSS. Alluxio unifies the data stored in these different storage systems,
 presenting unified client APIs and a global namespace to its upper layer data driven applications.
 

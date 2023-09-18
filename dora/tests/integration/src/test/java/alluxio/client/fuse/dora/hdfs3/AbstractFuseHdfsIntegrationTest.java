@@ -115,7 +115,7 @@ public class AbstractFuseHdfsIntegrationTest {
             .fromConf(Configuration.global())
             .setUfsFileSystemOptions(ufsOptions)
             .build();
-    mFuseFileSystem = new AlluxioJniFuseFileSystem(fsContext,
+    mFuseFileSystem = createJniFuseFileSystem(fsContext,
         mAlluxioClusterResource.get().getClient(),
         FuseOptions.Builder.fromConfig(Configuration.global())
             .setFileSystemOptions(fileSystemOptions)
@@ -126,5 +126,10 @@ public class AbstractFuseHdfsIntegrationTest {
       FuseUtils.umountFromShellIfMounted(MOUNT_POINT);
       fail("Could not setup FUSE mount point");
     }
+  }
+
+  protected AlluxioJniFuseFileSystem createJniFuseFileSystem(
+      FileSystemContext fsContext, alluxio.client.file.FileSystem fs, FuseOptions fuseOptions) {
+    return new AlluxioJniFuseFileSystem(fsContext, fs, fuseOptions);
   }
 }

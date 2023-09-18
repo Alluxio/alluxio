@@ -60,10 +60,6 @@ libModules:
     bundleWith:
       - default
       - fuse
-  underfs-swift:
-    generatedJarPath: "lib/alluxio-underfs-swift-${VERSION}.jar"
-    bundleWith:
-      - default
   underfs-wasb:
     generatedJarPath: "lib/alluxio-underfs-wasb-${VERSION}.jar"
     bundleWith:

@@ -12,6 +12,7 @@
 package alluxio.worker.dora;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -26,6 +27,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.ListOptions;
+import alluxio.util.logging.SamplingLogger;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -55,6 +57,8 @@ public class DoraMetaManager implements Closeable {
   private final PagedDoraWorker mDoraWorker;
   private final DoraUfsManager mUfsManager;
 
+  private static final Logger SAMPLING_LOG = new SamplingLogger(
+      LoggerFactory.getLogger(DoraMetaManager.class), 1L * Constants.MINUTE_MS);
   private final long mListingCacheCapacity
       = Configuration.getInt(PropertyKey.DORA_UFS_LIST_STATUS_CACHE_NR_FILES);
   private final boolean mGetRealContentHash
@@ -335,6 +339,7 @@ public class DoraMetaManager implements Closeable {
   }
 
   private void invalidateCachedFile(String path) {
+    SAMPLING_LOG.info("Invalidating cached file {}", path);
     FileId fileId = FileId.of(AlluxioURI.hash(path));
     mCacheManager.deleteFile(fileId.toString());
   }

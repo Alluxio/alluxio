@@ -205,14 +205,6 @@ public final class PropertyKeyTest {
   }
 
   @Test
-  public void localityTemplates() throws Exception {
-    assertTrue(PropertyKey.isValid("alluxio.locality.node"));
-    assertTrue(PropertyKey.isValid("alluxio.locality.custom"));
-
-    assertEquals("alluxio.locality.custom", Template.LOCALITY_TIER.format("custom").toString());
-  }
-
-  @Test
   public void isBuiltIn() {
     assertTrue(mTestProperty.isBuiltIn());
   }

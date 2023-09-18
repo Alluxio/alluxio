@@ -520,12 +520,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   public synchronized void initialize(URI uri, org.apache.hadoop.conf.Configuration conf,
       @Nullable AlluxioConfiguration alluxioConfiguration)
       throws IOException {
-    // Validates scheme and authority of FS Uri.
-    validateFsUri(uri);
-
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
-    HadoopUtils.addSwiftCredentials(conf);
     setConf(conf);
 
     // HDFS doesn't allow the authority to be empty; it must be "/" instead.
@@ -800,15 +796,6 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
    * @param uri an Alluxio Uri that may contain connection configuration
    */
   protected abstract Map<String, Object> getConfigurationFromUri(URI uri, Configuration conf);
-
-  /**
-   * Validates given FS base URI for scheme and authority.
-   *
-   * @param fsUri FS Uri
-   * @throws IOException
-   * @throws IllegalArgumentException
-   */
-  protected abstract void validateFsUri(URI fsUri) throws IOException, IllegalArgumentException;
 
   /**
    * Used to get FS scheme.

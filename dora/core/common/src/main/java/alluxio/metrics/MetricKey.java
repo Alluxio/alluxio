@@ -2158,6 +2158,26 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of the succeed master registration.")
           .setMetricType(MetricType.COUNTER)
           .build();
+  public static final MetricKey WORKER_LIST_STATUS_HIT_REQUESTS =
+      new Builder("Worker.ListStatusHitRequests")
+          .setDescription("Total number of ListStatus requests read from worker.")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey WORKER_LIST_STATUS_EXTERNAL_REQUESTS =
+      new Builder("Worker.ListStatusExternalRequests")
+          .setDescription("Total number of ListStatus read from external storage.")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey WORKER_GET_FILE_INFO_HIT_REQUESTS =
+      new Builder("Worker.GetFileInfoHitRequests")
+          .setDescription("Total number of GetFileInfo requests read from worker.")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey WORKER_GET_FILE_INFO_EXTERNAL_REQUESTS =
+      new Builder("Worker.GetFileInfoExternalRequests")
+          .setDescription("Total number of GetFileInfo read from external storage.")
+          .setMetricType(MetricType.COUNTER)
+          .build();
 
   // Client metrics
   public static final MetricKey CLIENT_BLOCK_READ_CHUNK_REMOTE =
@@ -2216,7 +2236,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_EXTERNAL_REQUESTS =
-      new Builder("Client.CacheBytesExternalRequests")
+      new Builder("Client.CacheExternalRequests")
           .setDescription("Total number of requests to read from external storage.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)

@@ -63,7 +63,9 @@ import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -72,12 +74,13 @@ import javax.annotation.Nullable;
  */
 public class DoraCacheClient {
   public static final int DUMMY_BLOCK_ID = -1;
-  public static final int PREFERRED_WORKER_COUNT = 1;
   private final FileSystemContext mContext;
   private final long mChunkSize;
   private final WorkerLocationPolicy mWorkerLocationPolicy;
 
   private final boolean mNettyTransEnabled;
+
+  private final int mPreferredWorkerCount;
 
   /**
    * Constructor.
@@ -91,6 +94,8 @@ public class DoraCacheClient {
         PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
     mNettyTransEnabled =
         context.getClusterConf().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
+    int minReplicaCount = context.getClusterConf().getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
+    mPreferredWorkerCount = Math.max(1, minReplicaCount);
   }
 
   /**
@@ -248,6 +253,45 @@ public class DoraCacheClient {
   }
 
   /**
+   * Get a map that maps file path to the workers list.
+   * @param path the file path to check
+   * @param options the get status options
+   * @return a map that maps file path to the workers list
+   * @throws IOException
+   */
+  public Map<String, List<WorkerNetAddress>> checkFileLocation(String path,
+      GetStatusPOptions options) throws IOException {
+    Map<String, List<WorkerNetAddress>> pathDistributionMap = new HashMap<>();
+    List<BlockWorkerInfo> workers = mContext.getCachedWorkers();
+    for (BlockWorkerInfo worker : workers) {
+      try (CloseableResource<BlockWorkerClient> client =
+               mContext.acquireBlockWorkerClient(worker.getNetAddress())) {
+        GetStatusPRequest request = GetStatusPRequest.newBuilder()
+            .setPath(path)
+            .setOptions(options)
+            .build();
+        try {
+          FileInfo fileInfo = client.get().getStatus(request).getFileInfo();
+          URIStatus uriStatus = new URIStatus(GrpcUtils.fromProto(fileInfo));
+          if (uriStatus.getInAlluxioPercentage() > 0) {
+            List<WorkerNetAddress> assignedWorkers = pathDistributionMap.get(path);
+            if (assignedWorkers == null) {
+              assignedWorkers = new ArrayList<>();
+            }
+            assignedWorkers.add(worker.getNetAddress());
+            pathDistributionMap.put(path, assignedWorkers);
+          }
+        } catch (Exception e) {
+          // ignore this exception
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return pathDistributionMap;
+  }
+
+  /**
    * Mark the newly created and written file as complete.
    *
    * This is called when out stream is closed. This is equivalent to close() in some file system.
@@ -388,14 +432,33 @@ public class DoraCacheClient {
       List<BlockWorkerInfo> workers = mContext.getCachedWorkers();
       List<BlockWorkerInfo> preferredWorkers =
           mWorkerLocationPolicy.getPreferredWorkers(workers,
-              path, PREFERRED_WORKER_COUNT);
+              path, mPreferredWorkerCount);
       checkState(preferredWorkers.size() > 0);
-      WorkerNetAddress workerNetAddress = preferredWorkers.get(0).getNetAddress();
+      WorkerNetAddress workerNetAddress = choosePreferredWorker(preferredWorkers).getNetAddress();
       return workerNetAddress;
     } catch (IOException e) {
       // If failed to find workers in the cluster or failed to find the specified number of
       // workers, throw an exception to the application
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Chooses a client preferred worker from multiple workers which hold multiple replicas.
+   *
+   * @param workers a list of workers
+   * @return the preferred worker
+   */
+  protected BlockWorkerInfo choosePreferredWorker(List<BlockWorkerInfo> workers) {
+    return workers.get(0);
+  }
+
+  /**
+   * Get Context.
+   *
+   * @return a file system context
+   */
+  public FileSystemContext getContext() {
+    return mContext;
   }
 }

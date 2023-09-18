@@ -63,4 +63,9 @@ public interface FuseFileStream extends AutoCloseable {
    * @return if the stream is closed
    */
   boolean isClosed();
+
+  /**
+   * @return if this stream is for read only
+   */
+  boolean isReadOnly();
 }

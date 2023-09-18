@@ -19,14 +19,16 @@ import static org.junit.Assert.fail;
 
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -47,6 +49,45 @@ public class ConsistentHashProviderTest {
   public void uninitializedThrowsException() {
     ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
     assertThrows(IllegalStateException.class, () -> provider.get(OBJECT_KEY, 0));
+  }
+
+  @Test
+  /**
+   * This test calculates the standard deviation over mean on the collection of
+   * virtual nodes assigned to physical nodes. It arbitrarily bounds it at 0.25,
+   * but ideally this number should get smaller over time as we improve hashing algorithm
+   * and use better ways to assign virtual nodes to physical nodes.
+   *
+   * This uses 2000 virtual nodes and 50 physical nodes, if these parameters change,
+   * the bound is likely going to change.
+   */
+  public void virtualNodeDistribution() {
+    ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
+    List<BlockWorkerInfo> workerList = generateRandomWorkerList(50);
+    // set initial state
+    provider.refresh(workerList,  2000);
+    NavigableMap<Integer, BlockWorkerInfo> map = provider.getActiveNodesMap();
+    Map<BlockWorkerInfo, Long> count = new HashMap<>();
+    long last = Integer.MIN_VALUE;
+    for (Map.Entry<Integer, BlockWorkerInfo> entry: map.entrySet()) {
+      count.put(entry.getValue(),  count.getOrDefault(entry.getValue(), 0L)
+          + (entry.getKey() - last));
+      last = entry.getKey().intValue();
+    }
+    assertTrue(calcSDoverMean(count.values()) < 0.25);
+  }
+
+  private double calcSDoverMean(Collection<Long> list) {
+    long sum = 0L;
+    double var = 0;
+    for (long num : list) {
+      sum += num;
+    }
+    double avg = sum * 1.0 / list.size();
+    for (long num : list) {
+      var = var + (num - avg) * (num - avg);
+    }
+    return Math.sqrt(var / list.size()) / avg;
   }
 
   @Test
@@ -196,8 +237,6 @@ public class ConsistentHashProviderTest {
       netAddress.setNettyDataPort(rng.nextInt(0, 65536));
       netAddress.setSecureRpcPort(rng.nextInt(0, 65536));
       netAddress.setWebPort(rng.nextInt(0, 65536));
-      netAddress.setTieredIdentity(
-          new TieredIdentity(ImmutableList.of(new TieredIdentity.LocalityTier("tier", "loc"))));
 
       BlockWorkerInfo workerInfo = new BlockWorkerInfo(netAddress,
           rng.nextLong(0, Constants.GB), rng.nextLong(0, Constants.GB));

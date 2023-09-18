@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache;
 
+import static org.junit.Assert.fail;
+
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
@@ -22,6 +24,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.cache.context.CachePerThreadContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -122,6 +125,7 @@ public class LocalCacheFileInStreamTest {
     MetricsSystem.clearAllMetrics();
     sConf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, mPageSize);
     sConf.set(PropertyKey.USER_CLIENT_CACHE_IN_STREAM_BUFFER_SIZE, mBufferSize);
+    CachePerThreadContext.get().setCacheEnabled(true);
   }
 
   @Test
@@ -590,10 +594,62 @@ public class LocalCacheFileInStreamTest {
     int fileSize = mPageSize * pages;
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
-    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
-    Assert.assertEquals(100, stream.positionedRead(0, new byte[10], 100, 100));
+    sConf.set(PropertyKey.USER_CLIENT_CACHE_FALLBACK_ENABLED, false);
+    //by default local cache fallback is not enabled, the read should fail for any error
+    LocalCacheFileInStream streamWithOutFallback = setupWithSingleFile(testData, manager);
+    try {
+      streamWithOutFallback.positionedRead(0, new byte[10], 100, 100);
+      fail("Expect position read fail here.");
+    } catch (ArrayIndexOutOfBoundsException e) {
+      //expected exception
+    }
+    sConf.set(PropertyKey.USER_CLIENT_CACHE_FALLBACK_ENABLED, true);
+    LocalCacheFileInStream streamWithFallback = setupWithSingleFile(testData, manager);
+    Assert.assertEquals(100, streamWithFallback.positionedRead(0, new byte[10], 100, 100));
     Assert.assertEquals(1,
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_POSITION_READ_FALLBACK.getName()).getCount());
+  }
+
+  @Test
+  public void testPositionReadWithPerThreadContextSameThread() throws Exception
+  {
+    int fileSize = mPageSize * 5;
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+
+    // read last page with cache enabled (cache miss)
+    CachePerThreadContext.get().setCacheEnabled(true);
+    stream.positionedRead(fileSize - mPageSize, new byte[mPageSize], 0, mPageSize);
+    Assert.assertEquals(0,
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).getCount());
+    Assert.assertEquals(0,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).getCount());
+    // read last page with cache enabled (cache hit)
+    stream.positionedRead(fileSize - mPageSize, new byte[mPageSize], 0, mPageSize);
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).getCount());
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).getCount());
+
+    MetricsSystem.clearAllMetrics();
+    // read first page with cache disabled (cache miss)
+    CachePerThreadContext.get().setCacheEnabled(false);
+    stream.positionedRead(0, new byte[mPageSize], 0, mPageSize);
+    Assert.assertEquals(0,
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).getCount());
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).getCount());
+    Assert.assertEquals(0,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).getCount());
+    // read last page again with cache enabled (cache miss)
+    stream.positionedRead(0, new byte[mPageSize], 0, mPageSize);
+    Assert.assertEquals(2,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).getCount());
+    Assert.assertEquals(0,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).getCount());
   }
 
   private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager)

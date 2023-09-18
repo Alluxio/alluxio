@@ -86,7 +86,7 @@ idiomatic way to create files is to use
 [`FileSystem#createFile(AlluxioURI)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.AlluxioURI-),
 which returns a stream object that can be used to write the file. For example:
 
-> Note: there are some file path name limitation when creating files through Alluxio. Please check [Alluxio limitations]({{ '/en/Troubleshooting.html' | relativize_url }}#file-path-limitations)
+> Note: there are some file path name limitation when creating files through Alluxio. Please check [Alluxio limitations]({{ '/en/reference/Troubleshooting.html' | relativize_url }}#file-path-limitations)
 
 ```java
 FileSystem fs = FileSystem.Factory.get();
@@ -171,7 +171,7 @@ customizedOut.close();
 
 Alluxio uses two different storage types: Alluxio managed storage and under storage. Alluxio managed
 storage is the memory, SSD, and/or HDD allocated to Alluxio workers. Under storage is the storage
-resource managed by the underlying storage system, such as S3, Swift or HDFS. Users can specify the
+resource managed by the underlying storage system, such as S3 or HDFS. Users can specify the
 interaction with Alluxio managed storage and under storage through `ReadType` and `WriteType`.
 `ReadType` specifies the data read behavior when reading a file. `WriteType` specifies the data
 write behavior when writing a new file, i.e. whether the data should be written in Alluxio Storage.

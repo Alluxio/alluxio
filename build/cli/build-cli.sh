@@ -18,8 +18,8 @@ CWD=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 OS_ARCH_TUPLES=(
 "linux amd64 Linux-x86_64"
 "darwin amd64 Darwin-x86_64"
-"linux arm64 Linux-aarch64"
-"darwin arm64 Darwin-aarch64"
+"linux arm64 Linux-arm64"
+"darwin arm64 Darwin-arm64"
 )
 
 MAIN_PATH="cli/main.go"
