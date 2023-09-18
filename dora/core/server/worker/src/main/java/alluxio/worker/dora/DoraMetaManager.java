@@ -88,7 +88,7 @@ public class DoraMetaManager implements Closeable {
     mUfsManager = ufsManager;
   }
 
-  public UnderFileSystem getUfsInstance(String ufsUriStr) {
+  private UnderFileSystem getUfsInstance(String ufsUriStr) {
     AlluxioURI ufsUriUri = new AlluxioURI(ufsUriStr);
     try {
       UnderFileSystem ufs = mUfsManager.getOrAdd(ufsUriUri,
