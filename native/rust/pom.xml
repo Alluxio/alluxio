@@ -33,6 +33,5 @@
 
   <modules>
     <module>archetype</module>
-    <module>alluxio-rust-example</module>
   </modules>
 </project>
