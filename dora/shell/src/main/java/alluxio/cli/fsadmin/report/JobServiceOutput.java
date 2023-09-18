@@ -16,7 +16,6 @@ import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobServiceSummary;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.StatusSummary;
-import alluxio.util.CommonUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,15 +35,15 @@ public class JobServiceOutput {
     private String mHost;
     private int mPort;
     private String mState;
-    private String mStartTime;
+    private long mStartTime;
     private String mVersion;
     private String mRevision;
 
-    public SerializableJobMasterStatus(JobMasterStatus jobMasterStatus, String dateFormat) {
+    public SerializableJobMasterStatus(JobMasterStatus jobMasterStatus) {
       mHost = jobMasterStatus.getMasterAddress().getHost();
       mPort = jobMasterStatus.getMasterAddress().getRpcPort();
       mState = jobMasterStatus.getState();
-      mStartTime = CommonUtils.convertMsToDate(jobMasterStatus.getStartTime(), dateFormat);
+      mStartTime = jobMasterStatus.getStartTime();
       mVersion = jobMasterStatus.getVersion().getVersion();
       mRevision = jobMasterStatus.getVersion().getRevision();
     }
@@ -73,11 +72,11 @@ public class JobServiceOutput {
       mState = state;
     }
 
-    public String getStartTime() {
+    public long getStartTime() {
       return mStartTime;
     }
 
-    public void setStartTime(String startTime) {
+    public void setStartTime(long startTime) {
       mStartTime = startTime;
     }
 
@@ -201,23 +200,23 @@ public class JobServiceOutput {
   }
 
   private static class SerializableJobInfo {
-    private String mTimestamp;
+    private long mTimestamp;
     private long mId;
     private String mName;
     private String mStatus;
 
-    public SerializableJobInfo(JobInfo jobInfo, String dateFormat) {
-      mTimestamp = CommonUtils.convertMsToDate(jobInfo.getLastUpdated(), dateFormat);
+    public SerializableJobInfo(JobInfo jobInfo) {
+      mTimestamp = jobInfo.getLastUpdated();
       mId = jobInfo.getId();
       mName = jobInfo.getName();
       mStatus = jobInfo.getStatus().toString();
     }
 
-    public String getTimestamp() {
+    public long getTimestamp() {
       return mTimestamp;
     }
 
-    public void setTimestamp(String timestamp) {
+    public void setTimestamp(long timestamp) {
       mTimestamp = timestamp;
     }
 
@@ -252,15 +251,13 @@ public class JobServiceOutput {
    * @param allMasterStatus status of all masters
    * @param allWorkerHealth health info of all workers
    * @param jobServiceSummary summary of job service
-   * @param dateFormat specify the pattern of dates
    */
   public JobServiceOutput(List<JobMasterStatus> allMasterStatus,
                           List<JobWorkerHealth> allWorkerHealth,
-                          JobServiceSummary jobServiceSummary,
-                          String dateFormat) {
+                          JobServiceSummary jobServiceSummary) {
     mMasterStatus = new ArrayList<>();
     for (JobMasterStatus masterStatus : allMasterStatus) {
-      mMasterStatus.add(new SerializableJobMasterStatus(masterStatus, dateFormat));
+      mMasterStatus.add(new SerializableJobMasterStatus(masterStatus));
     }
 
     mWorkerHealth = new ArrayList<>();
@@ -276,13 +273,13 @@ public class JobServiceOutput {
     mRecentFailedJobs = new ArrayList<>();
     mLongestRunningJobs = new ArrayList<>();
     for (JobInfo jobInfo : jobServiceSummary.getRecentActivities()) {
-      mRecentModifiedJobs.add(new SerializableJobInfo(jobInfo, dateFormat));
+      mRecentModifiedJobs.add(new SerializableJobInfo(jobInfo));
     }
     for (JobInfo jobInfo : jobServiceSummary.getRecentFailures()) {
-      mRecentFailedJobs.add(new SerializableJobInfo(jobInfo, dateFormat));
+      mRecentFailedJobs.add(new SerializableJobInfo(jobInfo));
     }
     for (JobInfo jobInfo : jobServiceSummary.getLongestRunning()) {
-      mLongestRunningJobs.add(new SerializableJobInfo(jobInfo, dateFormat));
+      mLongestRunningJobs.add(new SerializableJobInfo(jobInfo));
     }
   }
 
