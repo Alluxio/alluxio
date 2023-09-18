@@ -18,6 +18,7 @@ import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.spy;
@@ -46,7 +47,7 @@ public class DoraMetaManagerTest {
   @Before
   public void before() throws IOException {
     AlluxioProperties prop = new AlluxioProperties();
-    prop.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, "/Users/dengxinyu/git/src/alluxio.com/alluxio/metasotre");
+    prop.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, "/opt/alluxio/metasotre");
     // prop.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_TTL, "");
     AlluxioConfiguration conf = new InstancedConfiguration(prop);
     PagedDoraWorker worker = mock(PagedDoraWorker.class);
@@ -80,7 +81,7 @@ public class DoraMetaManagerTest {
   }
 
   @Test
-  public void testListFromUfsListUfsStatusFail() throws IOException {
+  public void testListFromUfsListUfsWhenFail() throws IOException {
     UnderFileSystem system = mock(UnderFileSystem.class);
     when(system.listStatus(anyString())).thenThrow(new IOException());
 
@@ -97,7 +98,7 @@ public class DoraMetaManagerTest {
   }
 
   @Test
-  public void testListFromUfsGetStatusNull() throws IOException {
+  public void testListFromUfsGetWhenNull() throws IOException {
     UnderFileSystem system = mock(UnderFileSystem.class);
     when(system.listStatus(anyString())).thenReturn(null);
     when(system.getStatus(anyString())).thenReturn(null);
@@ -110,7 +111,7 @@ public class DoraMetaManagerTest {
   }
 
   @Test
-  public void testListFromUfsGetStatusFail() throws IOException {
+  public void testListFromUfsGetWhenFail() throws IOException {
     UnderFileSystem system = mock(UnderFileSystem.class);
     when(system.listStatus(anyString())).thenReturn(null);
     when(system.getStatus(anyString())).thenThrow(new FileNotFoundException());
@@ -123,17 +124,17 @@ public class DoraMetaManagerTest {
   }
 
   @Test
-  public void testListFromUfsGetStatusSuccess() throws IOException {
+  public void testListFromUfsGetWhenSuccess() throws IOException {
     UnderFileSystem system = mock(UnderFileSystem.class);
     UfsStatus fakeStatus = mock(UfsStatus.class);
     when(system.listStatus(anyString())).thenReturn(null);
     when(system.getStatus(anyString())).thenReturn(fakeStatus);
-    when(fakeStatus.getName()).thenReturn("testtest");
+    when(fakeStatus.getName()).thenReturn("test");
 
     DoraMetaManager mManagerSpy = spy(mManager);
     doReturn(system).when(mManagerSpy).getUfsInstance(anyString());
 
     Optional<UfsStatus[]> status = mManagerSpy.listFromUfs("/test", false);
-    assertEquals(status.get()[0].getName(), "testtest");
+    assertEquals(status.get()[0].getName(), "test");
   }
 }
