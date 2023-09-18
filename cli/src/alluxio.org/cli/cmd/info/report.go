@@ -21,13 +21,11 @@ import (
 	"strings"
 	"time"
 
+	"alluxio.org/cli/cmd/names"
+	"alluxio.org/cli/env"
 	"github.com/iancoleman/orderedmap"
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
-
-	"alluxio.org/cli/cmd/names"
-	"alluxio.org/cli/env"
 )
 
 var Report = &ReportCommand{
@@ -40,7 +38,6 @@ var Report = &ReportCommand{
 
 type ReportCommand struct {
 	*env.BaseJavaCommand
-	format string
 }
 
 func (c *ReportCommand) Base() *env.BaseJavaCommand {
@@ -65,8 +62,6 @@ Defaults to summary if no arg is provided
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().StringVar(&c.format, "format", "json",
-		"Set output format, any of [json, yaml]")
 	return cmd
 }
 
@@ -88,10 +83,7 @@ func (c *ReportCommand) Run(args []string) error {
 		}
 		reportArg = args[0]
 	}
-	// TODO: output all in a serializable format and filter/trim as specified by flags
-	if c.format != "json" && c.format != "yaml" {
-		return stacktrace.NewError("unfamiliar output format %s, must be one of [json, yaml]", c.format)
-	}
+
 	buf := &bytes.Buffer{}
 	if err := c.RunWithIO([]string{reportArg}, nil, buf, os.Stderr); err != nil {
 		io.Copy(os.Stdout, buf)
@@ -185,19 +177,11 @@ func (c *ReportCommand) Run(args []string) error {
 		}
 	}
 
-	if c.format == "json" {
-		prettyJson, err := json.MarshalIndent(obj, "", "    ")
-		if err != nil {
-			return stacktrace.Propagate(err, "error marshalling json to pretty format")
-		}
-		os.Stdout.Write(append(prettyJson, '\n'))
-	} else if c.format == "yaml" {
-		out, err := yaml.Marshal(obj)
-		if err != nil {
-			return stacktrace.Propagate(err, "error marshalling yaml")
-		}
-		os.Stdout.Write(out)
+	prettyJson, err := json.MarshalIndent(obj, "", "    ")
+	if err != nil {
+		return stacktrace.Propagate(err, "error marshalling json to pretty format")
 	}
+	os.Stdout.Write(append(prettyJson, '\n'))
 	return nil
 }
 
