@@ -46,7 +46,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
@@ -345,8 +344,10 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       throw new IllegalArgumentException("mRandomReadMaxLength cannot be larger than 2.1G");
     }
 
-    if (FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength) < FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength)) {
-      throw new IllegalArgumentException("mRandomReadMinLength must not larger than mRandomReadMaxLength");
+    if (FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength)
+        < FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength)) {
+      throw new IllegalArgumentException("mRandomReadMinLength must not larger"
+          + " than mRandomReadMaxLength");
     }
   }
 
@@ -394,7 +395,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     private final byte[] mBuffer;
     private final WorkerBenchTaskResult mResult;
     private final boolean mIsRandomRead;
-    private final Random mRandom;
     private final long mRandomMax;
     private final long mRandomMin;
     private final long mFileSize;
@@ -411,7 +411,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       mResult.setParameters(mParameters);
       mResult.setBaseParameters(mBaseParameters);
       mIsRandomRead = mParameters.mIsRandom;
-      mRandom = new Random(mParameters.mRandomSeed);
       mRandomMin =  FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
       mRandomMax =  FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
       mFileSize = FormatUtils.parseSpaceSize(mParameters.mFileSize);
