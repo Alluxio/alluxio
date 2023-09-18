@@ -118,7 +118,7 @@ public class PagedDoraWorkerTest {
     UfsStatus ufsStatus = mWorker.getUfsInstance(ufsPath).getStatus(ufsPath);
     ufsStatus.setUfsFullPath(new AlluxioURI(ufsPath));
     List<UfsStatus> listUfsStatus = new ArrayList<>(Collections.singletonList(ufsStatus));
-    ListenableFuture<LoadFileResponse> load = mWorker.load(true, listUfsStatus,
+    ListenableFuture<LoadFileResponse> load = mWorker.load(true, false, listUfsStatus,
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build());
     List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS).getFailuresList();
     Assert.assertEquals(0, fileFailures.size());
