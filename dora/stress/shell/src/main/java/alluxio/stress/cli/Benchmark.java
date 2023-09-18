@@ -195,8 +195,8 @@ public abstract class Benchmark<T extends TaskResult> {
       command.add(conf.get(PropertyKey.HOME) + "/bin/alluxio");
       command.add("exec");
       command.add("class");
-      command.add("--");
       command.add(className);
+      command.add("--");
       command.addAll(Arrays.asList(args));
       command.add(BaseParameters.IN_PROCESS_FLAG);
       command.addAll(mBaseParameters.mJavaOpts.stream().map(String::trim)

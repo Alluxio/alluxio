@@ -39,7 +39,7 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
   private long mDurationMs;
   private long mEndTimeMs;
   private long mIOBytes;
-  private List<Long> mDurationPercentiles;
+  private List<Long> mThroughputPercentiles;
 
   /**
    * Creates an instance.
@@ -47,7 +47,7 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
    */
   public WorkerBenchSummary() {
     mNodeResults = new HashMap<>();
-    mDurationPercentiles = new ArrayList<>();
+    mThroughputPercentiles = new ArrayList<>();
   }
 
   /**
@@ -65,15 +65,13 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
     mNodeResults = nodes;
     mThroughput = getIOMBps();
 
-    mDurationPercentiles = new ArrayList<>();
-    Histogram durationHistogram = new Histogram(
-        FormatUtils.parseTimeSize(mParameters.mDuration)
-            + FormatUtils.parseTimeSize(mParameters.mWarmup),
+    mThroughputPercentiles = new ArrayList<>();
+    Histogram throughputHistogram = new Histogram(
+        FormatUtils.parseSpaceSize(mParameters.mFileSize),
         StressConstants.TIME_HISTOGRAM_PRECISION);
-    mergedTaskResults.getDataPoints().forEach(stat ->
-        durationHistogram.recordValue(stat.getDuration()));
+    mergedTaskResults.getAllThroughput().forEach(throughputHistogram::recordValue);
     for (int i = 0; i <= 100; i++) {
-      mDurationPercentiles.add(durationHistogram.getValueAtPercentile(i));
+      mThroughputPercentiles.add(throughputHistogram.getValueAtPercentile(i));
     }
   }
 
@@ -150,15 +148,15 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
   /**
    * @return 0~100 percentiles of recorded durations
    */
-  public List<Long> getDurationPercentiles() {
-    return mDurationPercentiles;
+  public List<Long> getThroughputPercentiles() {
+    return mThroughputPercentiles;
   }
 
   /**
    * @param percentiles a list of  calculated percentiles from recorded durations
    */
-  public void setDurationPercentiles(List<Long> percentiles) {
-    mDurationPercentiles = percentiles;
+  public void setThroughputPercentiles(List<Long> percentiles) {
+    mThroughputPercentiles = percentiles;
   }
 
   @Override
@@ -185,7 +183,7 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
       Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
           summaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
 
-      // Split up common description into 100 character chunks, for the sub title
+      // Split up common description into 100 character chunks, for the subtitle
       List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
           summaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
 
