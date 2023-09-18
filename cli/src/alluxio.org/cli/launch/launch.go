@@ -23,34 +23,49 @@ import (
 	"alluxio.org/log"
 )
 
-func Run(jarEnvVars map[bool]map[string]string, appendClasspathJars map[string]func(*viper.Viper, string) string) error {
-	rootCmd := &cobra.Command{
-		Use: "bin/alluxio",
-	}
+type Launcher struct {
+	JarEnvVars          map[bool]map[string]string
+	AppendClasspathJars map[string]func(*viper.Viper, string) string
+
+	RootPath   string
+	DebugLog   bool
+	IsDeployed bool
+}
+
+func (l *Launcher) AddFlags(cmd *cobra.Command) error {
 	const rootPathName = "rootPath"
-	var flagRootPath string
-	rootCmd.PersistentFlags().StringVar(&flagRootPath, rootPathName, "", "Path to root of Alluxio installation")
-	if err := rootCmd.MarkPersistentFlagRequired(rootPathName); err != nil {
+	cmd.PersistentFlags().StringVar(&l.RootPath, rootPathName, "", "Path to root of Alluxio installation")
+	if err := cmd.MarkPersistentFlagRequired(rootPathName); err != nil {
 		return stacktrace.Propagate(err, "error marking %v flag required", rootPathName)
 	}
-	if err := rootCmd.PersistentFlags().MarkHidden(rootPathName); err != nil {
+	if err := cmd.PersistentFlags().MarkHidden(rootPathName); err != nil {
 		return stacktrace.Propagate(err, "error marking %v flag hidden", rootPathName)
 	}
-	var flagDebugLog bool
-	rootCmd.PersistentFlags().BoolVar(&flagDebugLog, "debug-log", false, "True to enable debug logging")
-	var flagIsDeployed bool
-	rootCmd.PersistentFlags().BoolVar(&flagIsDeployed, "deployed-env", false, "True to set paths to be compatible with a deployed environment")
+	cmd.PersistentFlags().BoolVar(&l.DebugLog, "debug-log", false, "True to enable debug logging")
+	const deployedEnv = "deployed-env"
+	cmd.PersistentFlags().BoolVar(&l.IsDeployed, deployedEnv, false, "True to set paths to be compatible with a deployed environment")
+	cmd.PersistentFlags().MarkHidden(deployedEnv)
+	return nil
+}
 
-	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
-		if flagDebugLog {
+func (l *Launcher) GetPreRunFunc() func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		if l.DebugLog {
 			log.Logger.SetLevel(logrus.DebugLevel)
 		}
-		if err := env.InitAlluxioEnv(filepath.Clean(flagRootPath), jarEnvVars[flagIsDeployed], appendClasspathJars); err != nil {
+		if err := env.InitAlluxioEnv(filepath.Clean(l.RootPath), l.JarEnvVars[l.IsDeployed], l.AppendClasspathJars); err != nil {
 			return stacktrace.Propagate(err, "error defining alluxio environment")
 		}
 		return nil
 	}
+}
 
+func (l *Launcher) Run() error {
+	rootCmd := &cobra.Command{
+		Use: "bin/alluxio",
+	}
+	l.AddFlags(rootCmd)
+	rootCmd.PersistentPreRunE = l.GetPreRunFunc()
 	env.InitServiceCommandTree(rootCmd)
 
 	return rootCmd.Execute()

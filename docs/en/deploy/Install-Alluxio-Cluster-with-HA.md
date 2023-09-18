@@ -89,10 +89,10 @@ Before Alluxio can be started for the first time, the Alluxio master journal and
 
 On all the Alluxio master nodes, list all the worker hostnames in the `conf/workers` file, and list all the masters in the `conf/masters` file. 
 This will allow alluxio scripts to run operations on the cluster nodes.
-`format` Alluxio cluster with the following command in one of the master nodes:
+`init format` Alluxio cluster with the following command in one of the master nodes:
 
 ```shell
-$ ./bin/alluxio format
+$ ./bin/alluxio init format
 ```
 
 ### Launch Alluxio
@@ -100,14 +100,11 @@ $ ./bin/alluxio format
 In one of the master nodes, start the Alluxio cluster with the following command:
 
 ```shell
-$ ./bin/alluxio-start.sh all SudoMount
+$ ./bin/alluxio process start all
 ```
 
 This will start Alluxio masters on all the nodes specified in `conf/masters`, and start the workers
 on all the nodes specified in `conf/workers`.
-Argument `SudoMount` indicates to mount the RamFS on each worker using `sudo` privilege, if it is
-not already mounted.
-On MacOS, make sure your terminal has full disk access (tutorial [here](https://osxdaily.com/2018/10/09/fix-operation-not-permitted-terminal-error-macos/)).
 
 ### Verify Alluxio Cluster
 
@@ -115,7 +112,7 @@ To verify that Alluxio is running, you can visit the web UI of the leading maste
 leading master, run:
 
 ```shell
-$ ./bin/alluxio fs masterInfo
+$ ./bin/alluxio info report
 ```
 
 Then, visit `http://<LEADER_HOSTNAME>:19999` to see the status page of the Alluxio leading master.
@@ -124,7 +121,7 @@ Alluxio comes with a simple program that writes and reads sample files in Alluxi
 program with:
 
 ```shell
-$ ./bin/alluxio runTests
+$ ./bin/alluxio exec basicIOTest
 ```
 
 ## Access an Alluxio Cluster with HA
@@ -217,7 +214,7 @@ Below are common operations to perform on an Alluxio cluster.
 To stop an Alluxio service, run:
 
 ```shell
-$ ./bin/alluxio-stop.sh all
+$ ./bin/alluxio process stop all
 ```
 
 This will stop all the processes on all nodes listed in `conf/workers` and `conf/masters`.
@@ -225,8 +222,8 @@ This will stop all the processes on all nodes listed in `conf/workers` and `conf
 You can stop just the masters and just the workers with the following commands:
 
 ```shell
-$ ./bin/alluxio-stop.sh masters # stops all masters in conf/masters
-$ ./bin/alluxio-stop.sh workers # stops all workers in conf/workers
+$ ./bin/alluxio process stop masters # stops all masters in conf/masters
+$ ./bin/alluxio process stop workers # stops all workers in conf/workers
 ```
 
 If you do not want to use `ssh` to login to all the nodes and stop all the processes, you can run
@@ -234,8 +231,8 @@ commands on each node individually to stop each component.
 For any node, you can stop a master or worker with:
 
 ```shell
-$ ./bin/alluxio-stop.sh master # stops the local master
-$ ./bin/alluxio-stop.sh worker # stops the local worker
+$ ./bin/alluxio process stop master # stops the local master
+$ ./bin/alluxio process stop worker # stops the local worker
 ```
 
 ### Restart Alluxio
@@ -244,14 +241,14 @@ Starting Alluxio is similar. If `conf/workers` and `conf/masters` are both popul
 the cluster with:
 
 ```shell
-$ ./bin/alluxio-start.sh all
+$ ./bin/alluxio process start all
 ```
 
 You can start just the masters and just the workers with the following commands:
 
 ```shell
-$ ./bin/alluxio-start.sh masters # starts all masters in conf/masters
-$ ./bin/alluxio-start.sh workers # starts all workers in conf/workers
+$ ./bin/alluxio process start masters # starts all masters in conf/masters
+$ ./bin/alluxio process start workers # starts all workers in conf/workers
 ```
 
 If you do not want to use `ssh` to login to all the nodes and start all the processes, you can run
@@ -259,8 +256,8 @@ commands on each node individually to start each component. For any node, you ca
 worker with:
 
 ```shell
-$ ./bin/alluxio-start.sh master # starts the local master
-$ ./bin/alluxio-start.sh worker # starts the local worker
+$ ./bin/alluxio process start master # starts the local master
+$ ./bin/alluxio process start worker # starts the local worker
 ```
 
 ### Add/Remove Workers Dynamically
@@ -271,7 +268,7 @@ In most cases, the new worker's configuration should be the same as all the othe
 Run the following command on the new worker to add
 
 ```shell
-$ ./bin/alluxio-start.sh worker SudoMount # starts the local worker
+$ ./bin/alluxio process start worker # starts the local worker
 ```
 
 Once the worker is started, it will register itself with the Alluxio leading master and become part of the Alluxio cluster.
@@ -279,7 +276,7 @@ Once the worker is started, it will register itself with the Alluxio leading mas
 Removing a worker is as simple as stopping the worker process.
 
 ```shell
-$ ./bin/alluxio-stop.sh worker # stops the local worker
+$ ./bin/alluxio process stop worker # stops the local worker
 ```
 
 Once the worker is stopped, and after

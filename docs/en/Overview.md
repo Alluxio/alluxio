@@ -25,6 +25,10 @@ Check out these 2 short videos on deployment and best practices with configurati
 Make sure you have the proper [Software Requirements]({{ '/en/deploy/Software-Requirements.html' | relativize_url}}), then
 follow [Install Alluxio Cluster with HA]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}) to deploy an Alluxio cluster with High Availability (HA), which is achieved by running multiple Alluxio master processes on different nodes in the system.
 
+### Install Alluxio on Docker
+
+You can run an Alluxio cluster with a couple of `docker run` commands by following our tutorial for running Dockerized Alluxio on a single node with local disk as the under storage at [Install Alluxio on Docker]({{ '/en/deploy/Install-Alluxio-Cluster-with-Docker.html' | relativize_url }}). 
+
 ## Run a Compute Framework with Alluxio
 * [Running Presto with Alluxio]({{ '/en/compute/Presto.html' | relativize_url }})
 * [Running Trino with Alluxio]({{ '/en/compute/Trino.html' | relativize_url }})

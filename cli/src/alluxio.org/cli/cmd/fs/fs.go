@@ -12,37 +12,40 @@
 package fs
 
 import (
-	"alluxio.org/cli/cmd/names"
-	"alluxio.org/cli/env"
+    "alluxio.org/cli/cmd/names"
+    "alluxio.org/cli/env"
 )
 
 var Service = &env.Service{
-	Name:        "fs",
-	Description: "Operations to interface with the Alluxio filesystem",
-	Commands:    Cmds(names.FileSystemShellJavaClass),
+    Name:        "fs",
+    Description: "Operations to interface with the Alluxio filesystem",
+    Commands:    Cmds(names.FileSystemShellJavaClass),
 }
 
 func Cmds(className string) []env.Command {
-	var ret []env.Command
-	for _, c := range []func(string) env.Command{
-		Cat,
-		Checksum,
-		Chgrp,
-		Chmod,
-		Chown,
-		Cp,
-		Head,
-		Ls,
-		Mkdir,
-		Mv,
-		Rm,
-		Stat,
-		Tail,
-		Test,
-		Touch,
-	} {
-		ret = append(ret, c(className))
-	}
+    var ret []env.Command
+    for _, c := range []func(string) env.Command{
+        Cat,
+        Checksum,
+        Chgrp,
+        Chmod,
+        Chown,
+        Cp,
+        Head,
+        Ls,
+        Mkdir,
+        Mv,
+        Rm,
+        Stat,
+        Tail,
+        Test,
+        Touch,
+        Location,
+        CheckCached,
+        ConsistentHash,
+    } {
+        ret = append(ret, c(className))
+    }
 
-	return ret
+    return ret
 }

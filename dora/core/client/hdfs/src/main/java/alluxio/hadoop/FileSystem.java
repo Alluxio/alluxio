@@ -15,11 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.uri.Authority;
 import alluxio.uri.EmbeddedLogicalAuthority;
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.SingleMasterAuthority;
-import alluxio.uri.UnknownAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.uri.ZookeeperLogicalAuthority;
 
@@ -27,7 +25,6 @@ import com.google.common.base.Preconditions;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -138,18 +135,6 @@ public class FileSystem extends AbstractFileSystem {
       alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), zkAddress.toString());
     }
     return alluxioConfProperties;
-  }
-
-  @Override
-  protected void validateFsUri(URI fsUri) throws IOException, IllegalArgumentException {
-    Preconditions.checkArgument(fsUri.getScheme().equals(getScheme()),
-        "URI scheme %s does not match the expected scheme %s", fsUri.getScheme(), getScheme());
-
-    Authority auth = Authority.fromString(fsUri.getAuthority());
-    if (auth instanceof UnknownAuthority) {
-      throw new IOException(String.format("Authority \"%s\" is unknown. The client can not be "
-              + "configured with the authority from %s", auth, fsUri));
-    }
   }
 
   @Override

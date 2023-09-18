@@ -14,7 +14,6 @@ package alluxio.cli.fsadmin.command;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
-import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.cli.fsadmin.report.JobServiceMetricsCommand;
 import alluxio.cli.fsadmin.report.MetricsCommand;
 import alluxio.cli.fsadmin.report.ProxyCommand;
@@ -78,7 +77,6 @@ public final class ReportCommand extends AbstractFsAdminCommand {
           .build();
 
   enum Command {
-    CAPACITY, // Report worker capacity information
     METRICS, // Report metrics information
     SUMMARY, // Report cluster summary
     UFS, // Report under filesystem information
@@ -120,9 +118,6 @@ public final class ReportCommand extends AbstractFsAdminCommand {
     Command command = Command.SUMMARY;
     if (args.length == 1) {
       switch (args[0]) {
-        case "capacity":
-          command = Command.CAPACITY;
-          break;
         case "metrics":
           command = Command.METRICS;
           break;
@@ -145,20 +140,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
       }
     }
 
-    // Only capacity category has [category args]
-    if (!command.equals(Command.CAPACITY)) {
-      if (cl.getOptions().length > 0) {
-        throw new InvalidArgumentException(
-            String.format("report %s does not support arguments: %s",
-                command.toString().toLowerCase(), cl.getOptions()[0].getOpt()));
-      }
-    }
-
     switch (command) {
-      case CAPACITY:
-        CapacityCommand capacityCommand = new CapacityCommand(mBlockClient, mPrintStream);
-        capacityCommand.run(cl);
-        break;
       case METRICS:
         MetricsCommand metricsCommand = new MetricsCommand(mMetricsClient, mPrintStream);
         metricsCommand.run();
@@ -225,7 +207,6 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         + "Where [category] is an optional argument. If no arguments are passed in, "
         + "summary information will be printed out.\n"
         + "[category] can be one of the following:\n"
-        + "    capacity         worker capacity information\n"
         + "    metrics          metrics information\n"
         + "    summary          cluster summary\n"
         + "    ufs              under storage system information\n"
