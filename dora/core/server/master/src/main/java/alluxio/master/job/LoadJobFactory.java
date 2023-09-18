@@ -52,7 +52,8 @@ public class LoadJobFactory implements JobFactory {
         bandwidth,
         partialListing,
         verificationEnabled,
-        options.getLoadMetadataOnly()
+        options.getLoadMetadataOnly(),
+        options.getSkipIfExists()
     );
   }
 }
