@@ -11,7 +11,6 @@
     See the NOTICE file distributed with this work for information regarding copyright ownership.
 
 -->
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
@@ -30,7 +29,7 @@
          properly from sub-project directories -->
     <build.path>\${project.parent.parent.parent.basedir}/build</build.path>
     <!-- Version of the rust toolchain -->
-    <toolchain.version>${toolchain_version}</toolchain.version>
+    <toolchain.version>\${toolchain_version}</toolchain.version>
   </properties>
 
   <dependencies>

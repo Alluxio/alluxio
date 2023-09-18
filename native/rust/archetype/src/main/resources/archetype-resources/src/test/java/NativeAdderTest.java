@@ -9,16 +9,18 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package ${package};
 
-public class NativeAdder {
-  private static native int add0(int a, int b);
+import static org.junit.Assert.assertEquals;
 
-  static {
-    System.loadLibrary("rust-adder");
-  }
+import ${package}.NativeAdder;
 
-  public static int add(int a, int b) {
-    return add0(a, b);
+import org.junit.Test;
+
+public class NativeAdderTest {
+  @Test
+  public void addOneAndOneIsTwo() {
+    NativeAdder adder = new NativeAdder();
+    assertEquals(2, adder.add(1, 1));
   }
 }

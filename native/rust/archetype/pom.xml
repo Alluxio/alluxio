@@ -15,11 +15,11 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.alluxio</groupId>
-    <artifactId>alluxio-native-archetypes</artifactId>
+    <artifactId>alluxio-native-rust</artifactId>
     <version>305-SNAPSHOT</version>
   </parent>
 
-  <artifactId>alluxio-native-archetype-rust</artifactId>
+  <artifactId>alluxio-native-rust-archetype</artifactId>
   <packaging>maven-archetype</packaging>
   <name>Alluxio Native Components - Rust Archetype</name>
   <description>Project template for Rust components</description>
@@ -54,6 +54,13 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-archetype-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

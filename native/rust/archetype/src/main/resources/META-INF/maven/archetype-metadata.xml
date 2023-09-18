@@ -16,6 +16,9 @@
                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                       name="alluxio-native-archetype-rust">
   <requiredProperties>
+    <requiredProperty key="package">
+      <defaultValue>alluxio</defaultValue>
+    </requiredProperty>
     <requiredProperty key="groupId">
       <defaultValue>org.alluxio</defaultValue>
     </requiredProperty>
@@ -32,6 +35,7 @@
     </requiredProperty>
     <!-- the rustc version used in rust-toolchain.toml -->
     <requiredProperty key="toolchain_version">
+      <defaultValue>${toolchain.version}</defaultValue>
       <validationRegex>^\d+\.\d+\.\d+$</validationRegex>
     </requiredProperty>
   </requiredProperties>
@@ -39,6 +43,12 @@
   <fileSets>
     <fileSet filtered="true" packaged="true" encoding="UTF-8">
       <directory>src/main/java</directory>
+      <includes>
+        <include>**/*.java</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" packaged="true" encoding="UTF-8">
+      <directory>src/test/java</directory>
       <includes>
         <include>**/*.java</include>
       </includes>

@@ -13,7 +13,7 @@ name = "${cargo_crate_name}"
 edition = "2021"
 version = "0.1.0"
 license = "Apache-2.0"
-authors = "Alluxio Developers"
+authors = [ "Alluxio Developers" ]
 
 [lib]
 crate-type = [ "${cargo_crate_type}" ]

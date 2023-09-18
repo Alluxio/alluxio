@@ -18,31 +18,21 @@
     <artifactId>alluxio-native</artifactId>
     <version>305-SNAPSHOT</version>
   </parent>
-
-  <artifactId>alluxio-native-archetypes</artifactId>
+  <artifactId>alluxio-native-rust</artifactId>
   <packaging>pom</packaging>
-  <name>Alluxio Native Components - Archetypes</name>
-  <description>Archetypes for generating projects for native components</description>
+  <name>Alluxio Native Components - Rust Components</name>
+  <description>Rust components used by Alluxio</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
+    <!-- Version of Rust toolchain that will be set in rust-toolchain.toml -->
+    <toolchain.version>1.66.1</toolchain.version>
   </properties>
 
   <modules>
-    <module>rust-archetype</module>
+    <module>archetype</module>
+    <module>alluxio-rust-example</module>
   </modules>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-checkstyle-plugin</artifactId>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 </project>

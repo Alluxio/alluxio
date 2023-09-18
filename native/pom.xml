@@ -30,6 +30,6 @@
   </properties>
 
   <modules>
-    <module>archetypes</module>
+    <module>rust</module>
   </modules>
 </project>
