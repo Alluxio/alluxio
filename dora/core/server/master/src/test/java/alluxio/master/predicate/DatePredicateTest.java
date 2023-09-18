@@ -21,6 +21,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * Unit tests for {@link DatePredicate}.
  */
@@ -30,48 +34,74 @@ public class DatePredicateTest {
    */
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
+  private SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy/MM/dd");
 
   @Test
-  public void testDatePredicateFactories() {
-    FileFilter filter = FileFilter.newBuilder().setName("lastModifiedDate")
-        .setValue("2020/01/01").build();
+  public void testDatePredicateFactories() throws ParseException {
+    FileFilter filter =
+        FileFilter.newBuilder().setName("lastModifiedDate").setValue("2020/01/01").build();
     long timestamp = System.currentTimeMillis();
     FileInfo info = new FileInfo();
     info.setLastModificationTimeMs(timestamp);
 
     assertTrue(FilePredicate.create(filter).get().test(info));
-
-    //2019/09/05
-    info.setLastModificationTimeMs(1568523242000L);
+    info.setLastModificationTimeMs(mDateFormat.parse("2019/09/05").getTime());
     assertFalse(FilePredicate.create(filter).get().test(info));
-  }
-
-  @Test
-  public void testDatePredicateInterval() {
-    FileFilter filter = FileFilter.newBuilder().setName("lastModifiedDate")
-        .setValue("2020/01/01, 2023/09/14").build();
-    FileInfo info = new FileInfo();
-    //2021/09/15
-    info.setLastModificationTimeMs(1631681642000L);
-
+    info.setLastModificationTimeMs(mDateFormat.parse("2020/01/01").getTime());
     assertTrue(FilePredicate.create(filter).get().test(info));
+  }
 
-    //2019/09/05
-    info.setLastModificationTimeMs(1568523242000L);
+  @Test
+  public void testDatePredicateInterval() throws ParseException {
+
+    FileFilter filter =
+        FileFilter.newBuilder().setName("lastModifiedDate").setValue("2020/01/01, 2023/09/14")
+                  .build();
+    FileInfo info = new FileInfo();
+    info.setLastModificationTimeMs(mDateFormat.parse("2021/09/15").getTime());
+    assertTrue(FilePredicate.create(filter).get().test(info));
+    info.setLastModificationTimeMs(mDateFormat.parse("2019/09/05").getTime());
+    assertFalse(FilePredicate.create(filter).get().test(info));
+
+    Date d = mDateFormat.parse("2023/09/16");
+    info.setLastModificationTimeMs(d.getTime());
+    assertFalse(FilePredicate.create(filter).get().test(info));
+    info.setLastModificationTimeMs(mDateFormat.parse("2020/01/01").getTime());
+    assertTrue(FilePredicate.create(filter).get().test(info));
+    info.setLastModificationTimeMs(mDateFormat.parse("2023/09/14").getTime() - 1);
+    assertTrue(FilePredicate.create(filter).get().test(info));
+    info.setLastModificationTimeMs(mDateFormat.parse("2023/09/13").getTime());
+    assertTrue(FilePredicate.create(filter).get().test(info));
+    info.setLastModificationTimeMs(mDateFormat.parse("2023/09/14").getTime());
+    assertFalse(FilePredicate.create(filter).get().test(info));
+    info.setLastModificationTimeMs(mDateFormat.parse("2023/09/14").getTime() + 1);
     assertFalse(FilePredicate.create(filter).get().test(info));
   }
 
   @Test
-  public void testInvalidDate() {
-    FileFilter filter = FileFilter.newBuilder().setName("lastModifiedDate")
-        .setValue("2020-01-01, 2023-09-14").build();
+  public void testInvalidDateFormat() throws ParseException {
+    FileFilter filter =
+        FileFilter.newBuilder().setName("lastModifiedDate").setValue("2020-01-01, 2023-09-14")
+                  .build();
     FileInfo info = new FileInfo();
-    //2021/09/15
-    info.setLastModificationTimeMs(1631681642000L);
+    info.setLastModificationTimeMs(mDateFormat.parse("2021/09/15").getTime());
 
     mThrown.expect(UnsupportedOperationException.class);
     mThrown.expectMessage("Invalid filter name: ");
 
+    FilePredicate.create(filter).get().test(info);
+  }
+
+  @Test
+  public void testInvalidDateString() throws ParseException {
+    FileFilter filter =
+        FileFilter.newBuilder().setName("lastModifiedDate").setValue("2020/01/01, 2023/09/14")
+                  .build();
+    FileInfo info = new FileInfo();
+
+    mThrown.expect(ParseException.class);
+    mThrown.expectMessage("Unparseable date: \"2021-09-15\"");
+    info.setLastModificationTimeMs(mDateFormat.parse("2021-09-15").getTime());
     FilePredicate.create(filter).get().test(info);
   }
 }

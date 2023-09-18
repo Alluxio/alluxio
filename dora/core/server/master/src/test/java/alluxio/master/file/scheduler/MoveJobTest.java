@@ -260,4 +260,40 @@ public class MoveJobTest {
     assertEquals(PathUtils.concatPath(srcPath, "bbbbbb"), routes.get(0).getSrc());
     assertEquals(1, routes.size());
   }
+
+  @Test
+  public void testLastModifiedDateFilter() throws Exception {
+    String srcPath = "/src";
+    String dstPath = "/dst";
+    List<FileInfo> fileInfos = Lists.newArrayList();
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+    long timestamp = System.currentTimeMillis();
+    // qualified file
+    fileInfos.add(new FileInfo().setName("aaaaaa")
+        .setPath(PathUtils.concatPath(srcPath, "aaaaaa"))
+        .setUfsPath(PathUtils.concatPath(srcPath, "aaaaaa"))
+        .setLastModificationTimeMs(timestamp));
+    // disqualified file
+    fileInfos.add(new FileInfo().setName("bbbbbb")
+        .setPath(PathUtils.concatPath(srcPath, "bbbbbb"))
+        .setUfsPath(PathUtils.concatPath(srcPath, "bbbbbb"))
+        .setLastModificationTimeMs(1631681642000L));
+    DefaultFileSystemMaster fileSystemMaster = mock(DefaultFileSystemMaster.class);
+    JournalContext journalContext = mock(JournalContext.class);
+    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
+    when(fileSystemMaster.listStatus(any(), any())).thenReturn(fileInfos);
+    Optional<String> user = Optional.of("user");
+
+    FileFilter.Builder builder = FileFilter.newBuilder().setValue("2022/01/01").setName("lastModifiedDate");
+    FilePredicate filePredicate = FilePredicate.create(builder.build());
+    FileIterable files =
+        new FileIterable(fileSystemMaster, srcPath, user, false, filePredicate.get());
+    MoveJob job = spy(new MoveJob(srcPath, dstPath, false, user, "1",
+        OptionalLong.empty(), false, false, false, files,
+        Optional.of(builder.build())));
+
+    List<Route> routes = job.getNextRoutes(3);
+    assertEquals(PathUtils.concatPath(srcPath, "aaaaaa"), routes.get(0).getSrc());
+    assertEquals(1, routes.size());
+  }
 }
