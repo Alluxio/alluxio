@@ -622,7 +622,7 @@ public class S3NettyHandler {
    */
   public AlluxioURI getUfsPath(AlluxioURI objectPath) throws S3Exception {
     if (mFsClient instanceof DoraCacheFileSystem) {
-      return ((DoraCacheFileSystem) mFsClient).convertAlluxioPathToUFSPath(objectPath);
+      return ((DoraCacheFileSystem) mFsClient).convertToUfsPath(objectPath);
     } else {
       throw new S3Exception(objectPath.toString(), S3ErrorCode.INTERNAL_ERROR);
     }

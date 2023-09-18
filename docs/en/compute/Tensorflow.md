@@ -69,7 +69,7 @@ If the data is not in a remote data storage, you can copy it to Alluxio namespac
 ```shell
 $ wget http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz
 $ ./bin/alluxio fs mkdir /training-data/imagenet 
-$ ./bin/alluxio fs copyFromLocal inception-2015-12-05.tgz /training-data/imagenet 
+$ ./bin/alluxio fs cp file://inception-2015-12-05.tgz /training-data/imagenet
 ```
 
 Suppose the ImageNet's data is stored in an S3 bucket `s3://alluxio-tensorflow-imagenet/`,

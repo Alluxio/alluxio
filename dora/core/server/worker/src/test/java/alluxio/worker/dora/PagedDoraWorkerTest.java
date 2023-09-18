@@ -36,6 +36,7 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadFileFailure;
+import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
@@ -117,9 +118,9 @@ public class PagedDoraWorkerTest {
     UfsStatus ufsStatus = mWorker.getUfsInstance(ufsPath).getStatus(ufsPath);
     ufsStatus.setUfsFullPath(new AlluxioURI(ufsPath));
     List<UfsStatus> listUfsStatus = new ArrayList<>(Collections.singletonList(ufsStatus));
-    ListenableFuture<List<LoadFileFailure>> load = mWorker.load(true, listUfsStatus,
+    ListenableFuture<LoadFileResponse> load = mWorker.load(true, listUfsStatus,
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build());
-    List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS);
+    List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS).getFailuresList();
     Assert.assertEquals(0, fileFailures.size());
     List<PageId> cachedPages =
         mCacheManager.getCachedPageIdsByFileId(new AlluxioURI(ufsPath).hash(), length);
@@ -151,7 +152,11 @@ public class PagedDoraWorkerTest {
         WriteOptions.newBuilder().setOverwrite(false).setCheckContent(true).build();
     UfsReadOptions read =
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
-    ListenableFuture<List<RouteFailure>> copy =
+    
+    
+    
+    
+    <List<RouteFailure>> copy =
         mWorker.copy(Collections.singletonList(route), read, writeOptions);
     List<RouteFailure> failures = copy.get();
     assertEquals(0, failures.size());
@@ -767,11 +772,11 @@ public class PagedDoraWorkerTest {
       AccessControlException {
     UfsStatus ufsStatus = mWorker.getUfsInstance(path).getStatus(path);
     ufsStatus.setUfsFullPath(new AlluxioURI(path));
-    ListenableFuture<List<LoadFileFailure>> load =
-        mWorker.load(true, Collections.singletonList(ufsStatus),
+    ListenableFuture<LoadFileResponse> load =
+        mWorker.load(true, false, Collections.singletonList(ufsStatus),
             UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false)
                 .build());
-    List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS);
+    List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS).getFailuresList();
     assertEquals(0, fileFailures.size());
   }
 

@@ -31,11 +31,10 @@ list.
 
 Some source files in Alluxio are generated from templates or compiled from other languages.
 
-1. gRPC and ProtoBuf definitions are compiled into Java source files. Alluxio 2.2 moved generated 
-   gRPC proto source files into `core/transport/target/generated-sources/protobuf/`.
-2. Compile time project constants are defined in 
-   `core/common/src/main/java-templates/` and compiled to
-   `core/common/target/generated-sources/java-templates/`.
+1. gRPC and ProtoBuf definitions are compiled into Java source files and generated files are located in `common/transport/target/generated-sources/protobuf/`.
+1. Compile time project constants are defined in 
+   `dora/core/common/src/main/java-templates/` and compiled to
+   `dora/core/common/target/generated-sources/java-templates/`.
 
 You will need to mark these directories as "Generated Sources Root" for IntelliJ to resolve the 
 source files. Alternatively, you can let IntelliJ generate them and mark the directories 
@@ -50,13 +49,12 @@ action from the `Navigate > Search Everywhere` dialog.
 
 ##### Start a single master Alluxio cluster
 1. Run `dev/intellij/install-runconfig.sh`
-2. Restart IntelliJ IDEA
-3. Edit `conf/alluxio-site.properties` to contain these configurations
+1. Restart IntelliJ IDEA
+1. Edit `conf/alluxio-site.properties` to contain these configurations
    ```properties
    alluxio.master.hostname=localhost
-   alluxio.job.master.hostname=localhost
    ```
-4. Edit `conf/log4j.properties` to print log in console
+1. Edit `conf/log4j.properties` to print log in console
    Replace the `log4j.rootLogger` configuration with
     ```properties
     log4j.rootLogger=INFO, ${alluxio.logger.type}, ${alluxio.remote.logger.type}, stdout
@@ -68,13 +66,10 @@ action from the `Navigate > Search Everywhere` dialog.
     log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
     log4j.appender.stdout.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n
     ```
-5. Format the Alluxio master by running `bin/alluxio formatMasters`
-6. In Intellij, start Alluxio master process by selecting `Run > Run > AlluxioMaster`
-7. In Intellij, start Alluxio job master process by selecting `Run > Run > AlluxioJobMaster`
-8. Prepare the RamFS and format the Alluxio Worker with `bin/alluxio-mount.sh SudoMount && bin/alluxio formatWorker`
-9. In Intellij, start Alluxio worker process by selecting `Run > Run > AlluxioWorker`
-10. In Intellij, start Alluxio job worker process by selecting `Run > Run > AlluxioJobWorker`
-11. [Verify the Alluxio cluster is up]({{ '/en/deploy/Get-Started.html#starting-alluxio' | relativize_url }}).
+1. Format the Alluxio master by running `bin/alluxio journal format`
+1. In Intellij, start Alluxio master process by selecting `Run > Run > AlluxioMaster`
+1. In Intellij, start Alluxio worker process by selecting `Run > Run > AlluxioWorker`
+1. [Verify the Alluxio cluster is up]({{ '/en/deploy/Get-Started.html#starting-alluxio' | relativize_url }}).
 
 ##### Start a High Availability (HA) Alluxio cluster
 1. Create journal directories for the masters 
@@ -87,9 +82,9 @@ action from the `Navigate > Search Everywhere` dialog.
    `alluxio/dev/intellij/runConfigurations/AlluxioMaster_0.xml`.
     > Note: If the journal folders exist, and you want to apply a new HA cluster, you should clear 
     > files in the journal folders first.  
-2. Run `dev/intellij/install-runconfig.sh`
-3. Restart IntelliJ IDEA
-4. Edit `conf/alluxio-site.properties` to contain these configurations
+1. Run `dev/intellij/install-runconfig.sh`
+1. Restart IntelliJ IDEA
+1. Edit `conf/alluxio-site.properties` to contain these configurations
     ```properties
     alluxio.master.hostname=localhost
     alluxio.job.master.hostname=localhost
@@ -97,57 +92,17 @@ action from the `Navigate > Search Everywhere` dialog.
     alluxio.master.rpc.addresses=localhost:19998,localhost:19988,localhost:19978
     ```
    The ports are defined in the run configurations.
-5. In Intellij, start the Alluxio master processes by selecting `Run > Run > 
+1. In Intellij, start the Alluxio master processes by selecting `Run > Run > 
    AlluxioMaster-0`, `Run > Run > AlluxioMaster-1`, and `Run > Run > AlluxioMaster-2`
-6. Prepare the RamFS and format the Alluxio Worker with `bin/alluxio-mount.sh SudoMount && bin/alluxio formatWorker`
-7. In Intellij, start the Alluxio worker process by selecting `Run > Run > AlluxioWorker`
-8. In Intellij, start the Alluxio job master process by selecting `Run > Run > AlluxioJobMaster`
-9. In Intellij, start the Alluxio job worker process by selecting `Run > Run > AlluxioJobWorker`
-10. Verify the HA Alluxio cluster is up, by running 
-    `bin/alluxio fsadmin journal quorum info -domain MASTER`, and you will see output like this:
-    ```shell
-    Journal domain	: MASTER
-    Quorum size	: 3
-    Quorum leader	: localhost:19201
-    
-    STATE       | PRIORITY | SERVER ADDRESS
-    AVAILABLE   | 0        | localhost:19200
-    AVAILABLE   | 0        | localhost:19201
-    AVAILABLE   | 0        | localhost:19202
-    ```
-
-**You can also start a High Availability (HA) Job Master process on this basis.**
-
-1. Stop the Alluxio job master and job worker processes from steps 8 and 9 if they are running. 
-2. Edit `conf/alluxio-site.properties` and add these configurations
-   ```properties
-   alluxio.job.master.rpc.addresses=localhost:20001,localhost:20011,localhost:20021
-   alluxio.job.master.embedded.journal.addresses=localhost:20003,localhost:20013,localhost:20023
-   ```
-3. In Intellij, start the Alluxio job master processes by selecting `Run > Run > 
-   AlluxioJobMaster-0`, `Run > Run > AlluxioJobMaster-1`, and `Run > Run > AlluxioJobMaster-2`
-4. In Intellij, start the Alluxio job worker process by selecting `Run > Run > AlluxioJobWorker`
-5. Verify the HA JobMaster cluster is up, by running 
-`bin/alluxio fsadmin journal quorum info -domain JOB_MASTER`, and you will 
-   see output like this:
-   ```shell
-   Journal domain	: JOB_MASTER
-   Quorum size	: 3
-   Quorum leader	: localhost:20013
-    
-   STATE       | PRIORITY | SERVER ADDRESS
-   AVAILABLE   | 0        | localhost:20003
-   AVAILABLE   | 0        | localhost:20013
-   AVAILABLE   | 0        | localhost:20023
-   ```
+1. In Intellij, start the Alluxio worker process by selecting `Run > Run > AlluxioWorker`
 
 ##### Start an AlluxioFuse process
 
 1. Start a [single master Alluxio cluster](#start-a-single-master-alluxio-cluster) 
    or a [High Availability cluster](#start-a-high-availability-ha-alluxio-cluster) in Intellij.
-2. In Intellij, start AlluxioFuse process by selecting `Run > Run > AlluxioFuse`. 
+1. In Intellij, start AlluxioFuse process by selecting `Run > Run > AlluxioFuse`. 
    This creates a FUSE mount point at `/tmp/alluxio-fuse`.
-3. Verify the FUSE filesystem is working by running these commands:
+1. Verify the FUSE filesystem is working by running these commands:
     ```shell
     $ touch /tmp/alluxio-fuse/tmp1
     $ ls /tmp/alluxio-fuse
@@ -169,7 +124,7 @@ You may also have to add the classpath variable `M2_REPO` by running:
 $ mvn -Declipse.workspace="your Eclipse Workspace" eclipse:configure-workspace
 ```
 
-> Note: Alluxio 2.2 moved generated gRPC proto source files into `alluxio/core/transport/target/generated-sources/protobuf/`.
+> Note: Generated gRPC proto source files are located in `alluxio/core/transport/target/generated-sources/protobuf/`.
 You will need to mark the directory as a source folder for Eclipse to resolve the source files.
 
 ## Maven Targets and Plugins

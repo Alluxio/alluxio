@@ -76,14 +76,14 @@ Depending on the Hadoop version, you may need to replace `./bin` with `./sbin`.
 Start Alluxio locally:
 
 ```shell
-$ ./bin/alluxio-start.sh local SudoMount
+$ ./bin/alluxio process start local
 ```
 
 You can add a sample file to Alluxio to run MapReduce wordcount on. From your Alluxio directory:
 
 ```shell
 $ ./bin/alluxio fs mkdir /wordcount
-$ ./bin/alluxio fs copyFromLocal LICENSE /wordcount/input.txt
+$ ./bin/alluxio fs cp file://LICENSE /wordcount/input.txt
 ```
 
 This command will copy the `LICENSE` file into the Alluxio namespace with the path

@@ -80,7 +80,7 @@ Unzip this file and upload the file `u.user` into `/ml-100k/` in Alluxio:
 
 ```shell
 $ ./bin/alluxio fs mkdir /ml-100k
-$ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
+$ ./bin/alluxio fs cp file:///path/to/ml-100k/u.user alluxio:///ml-100k
 ```
 
 Create an external Hive table pointing to the Alluxio file location.

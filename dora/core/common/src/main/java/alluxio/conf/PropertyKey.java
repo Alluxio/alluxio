@@ -704,6 +704,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .build();
+
+  public static final PropertyKey METRICS_KEY_INCLUDING_UNIQUE_ID_ENABLED =
+      booleanBuilder(Name.METRICS_KEY_INCLUDING_UNIQUE_ID_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to include the unique id such as hostname in the metrcis key.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey NETWORK_CONNECTION_AUTH_TIMEOUT =
       durationBuilder(Name.NETWORK_CONNECTION_AUTH_TIMEOUT)
           .setDefaultValue("30sec")
@@ -1400,6 +1408,29 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setAlias("alluxio.underfs.oss.retry.max")
           .setDefaultValue(3)
           .setDescription("The maximum number of OSS error retry.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_PROTOCOL =
+      stringBuilder(Name.UNDERFS_OSS_PROTOCOL)
+          .setAlias("alluxio.underfs.oss.protocol")
+          .setDefaultValue("http")
+          .setDescription("The protocol for OSS endpoint, by default http.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_PROXY_HOST =
+      stringBuilder(Name.UNDERFS_OSS_PROXY_HOST)
+          .setAlias("alluxio.underfs.oss.proxy.host")
+          .setDescription("The proxy host address for OSS connection, if any.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_PROXY_PORT =
+      intBuilder(Name.UNDERFS_OSS_PROXY_PORT)
+          .setAlias("alluxio.underfs.oss.proxy.port")
+          .setDefaultValue(0)
+          .setDescription("The proxy port for OSS connection, if any.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -2260,6 +2291,38 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_SCHEDULER_RESTORE_JOB_FROM_JOURNAL =
+      booleanBuilder(Name.MASTER_SCHEDULER_RESTORE_JOB_FROM_JOURNAL)
+          .setDefaultValue(true)
+          .setDescription("If set to true, master will restore incomplete jobs from journal. "
+          + "Turn this off if you don't want the scheduler to automatically restore jobs.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD =
+      intBuilder(Name.MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD)
+          .setDefaultValue(-1)
+          .setDescription("The load job total load failure count threshold. -1 means never fail.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_RATIO_THRESHOLD =
+      doubleBuilder(Name.MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_RATIO_THRESHOLD)
+          .setDefaultValue(1.00)
+          .setDescription("The load job total load failure ratio threshold (0,1)."
+              + " 1.00 means never fail.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey MASTER_DORA_LOAD_JOB_RETRIES =
+      intBuilder(Name.MASTER_DORA_LOAD_JOB_RETRIES)
+          .setDefaultValue(3)
+          .setDescription("The number of retry attempts before a load of file "
+              + "is considered as failure")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+
   public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
       enumBuilder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE, GraceMode.class)
           .setDefaultValue(GraceMode.FORCED)
@@ -6206,6 +6269,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_MAX_READER_CONCURRENCY =
+      intBuilder(Name.FUSE_MAX_READER_CONCURRENCY)
+          .setDefaultValue(128)
+          .setDescription("Max number of concurrent readers per file in FUSE")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey FUSE_MOUNT_ALLUXIO_PATH =
       stringBuilder(Name.FUSE_MOUNT_ALLUXIO_PATH)
           .setAlias(Name.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
@@ -7042,6 +7112,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.metrics.executor.task.warn.size";
     public static final String METRICS_EXECUTOR_TASK_WARN_FREQUENCY =
         "alluxio.metrics.executor.task.warn.frequency";
+    public static final String METRICS_KEY_INCLUDING_UNIQUE_ID_ENABLED =
+        "alluxio.metrics.key.including.unique.id.enabled";
     public static final String NETWORK_CONNECTION_AUTH_TIMEOUT =
         "alluxio.network.connection.auth.timeout";
     public static final String NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT =
@@ -7174,6 +7246,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout";
     public static final String UNDERFS_OSS_ECS_RAM_ROLE = "alluxio.underfs.oss.ecs.ram.role";
     public static final String UNDERFS_OSS_RETRY_MAX = "alluxio.underfs.oss.retry.max";
+    public static final String UNDERFS_OSS_PROTOCOL = "alluxio.underfs.oss.protocol";
+    public static final String UNDERFS_OSS_PROXY_HOST = "alluxio.underfs.oss.proxy.host";
+    public static final String UNDERFS_OSS_PROXY_PORT = "alluxio.underfs.oss.proxy.port";
     public static final String UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT =
         "alluxio.underfs.oss.sts.ecs.metadata.service.endpoint";
     public static final String UNDERFS_OSS_STS_ENABLED = "alluxio.underfs.oss.sts.enabled";
@@ -7353,6 +7428,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.block.scan.invalid.batch.max.size";
     public static final String MASTER_SCHEDULER_INITIAL_WAIT_TIME =
         "alluxio.master.scheduler.initial.wait.time";
+    public static final String MASTER_SCHEDULER_RESTORE_JOB_FROM_JOURNAL =
+        "alluxio.master.scheduler.restore.job.from.journal";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
         "alluxio.master.shell.backup.state.lock.grace.mode";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION =
@@ -7361,6 +7438,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.shell.backup.state.lock.sleep.duration";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT =
         "alluxio.master.shell.backup.state.lock.timeout";
+    public static final String MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD =
+        "alluxio.master.dora.load.job.total.failure.count.threshold";
+    public static final String MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_RATIO_THRESHOLD =
+        "alluxio.master.dora.load.job.total.failure.ratio.threshold";
+    public static final String MASTER_DORA_LOAD_JOB_RETRIES =
+        "alluxio.master.dora.load.job.retries";
     public static final String MASTER_DAILY_BACKUP_ENABLED =
         "alluxio.master.daily.backup.enabled";
     public static final String MASTER_DAILY_BACKUP_FILES_RETAINED =
@@ -8257,6 +8340,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
     public static final String FUSE_LOGGING_THRESHOLD = "alluxio.fuse.logging.threshold";
+    public static final String FUSE_MAX_READER_CONCURRENCY =
+        "alluxio.fuse.max.reader.concurrency";
     public static final String FUSE_MOUNT_ALLUXIO_PATH =
         "alluxio.fuse.mount.alluxio.path";
     public static final String FUSE_MOUNT_OPTIONS =

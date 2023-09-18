@@ -35,7 +35,7 @@ This guide is tested with `Trino-352`.
 
 Trino gets the database and table metadata information (including file system locations) from
 the Hive Metastore, via Trino's Hive connector.
-Here is a example Trino configuration file `${Trino_HOME}/etc/catalog/hive.properties`,
+Here is a example Trino configuration file `${TRINO_HOME}/etc/catalog/hive.properties`,
 for a catalog using the Hive connector, where the metastore is located on `localhost`.
 
 ```properties
@@ -48,12 +48,12 @@ hive.metastore.uri=thrift://localhost:9083
 In order for Trino to be able to communicate with the Alluxio servers, the Alluxio client
 jar must be in the classpath of Trino servers.
 Put the Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into the directory
-`${Trino_HOME}/plugin/hive-hadoop2/`
+`${TRINO_HOME}/plugin/hive-hadoop2/`
 (this directory may differ across versions) on all Trino servers. Restart the Trino workers and
 coordinator:
 
 ```shell
-$ ${Trino_HOME}/bin/launcher restart
+$ ${TRINO_HOME}/bin/launcher restart
 ```
 
 After completing the basic configuration,
@@ -72,7 +72,7 @@ Unzip this file and upload the file `u.user` into `/ml-100k/` in Alluxio:
 
 ```shell
 $ ./bin/alluxio fs mkdir /ml-100k
-$ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
+$ ./bin/alluxio fs cp file:///path/to/ml-100k/u.user alluxio:///ml-100k
 ```
 
 Create an external Hive table pointing to the Alluxio file location.
@@ -104,10 +104,10 @@ $ ${HIVE_HOME}/bin/hive --service metastore
 ### Start Trino server
 
 Start your Trino server. Trino server runs on port `8080` by default (configurable with
-`http-server.http.port` in `${Trino_HOME}/etc/config.properties` ):
+`http-server.http.port` in `${TRINO_HOME}/etc/config.properties` ):
 
 ```shell
-$ ${Trino_HOME}/bin/launcher run
+$ ${TRINO_HOME}/bin/launcher run
 ```
 
 ### Query tables using Trino
@@ -140,7 +140,7 @@ $ -Xbootclasspath/a:<path-to-alluxio-conf>
 
 Alternatively, add Alluxio properties to the Hadoop configuration files
 (`core-site.xml`, `hdfs-site.xml`), and use the Trino property `hive.config.resources` in the
-file `${Trino_HOME}/etc/catalog/hive.properties` to point to the Hadoop resource locations for
+file `${TRINO_HOME}/etc/catalog/hive.properties` to point to the Hadoop resource locations for
 every Trino worker. 
 
 ```properties
