@@ -508,7 +508,7 @@ public class LocalCacheFileInStreamTest {
 
   @Test
   @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen")
-  @Ignore("check whether this needs to be fixed or not")
+//  @Ignore("check whether this needs to be fixed or not")
   public void readMultipleFiles() throws Exception {
     Random random = new Random();
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
@@ -689,6 +689,7 @@ public class LocalCacheFileInStreamTest {
     FileInfo info = new FileInfo();
     info.setFileId(path.hashCode());
     info.setPath(path);
+    info.setUfsPath(path);
     info.setLength(len);
     return new URIStatus(info);
   }
