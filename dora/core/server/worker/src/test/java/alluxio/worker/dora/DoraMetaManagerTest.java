@@ -111,10 +111,8 @@ public class DoraMetaManagerTest {
     when(system.getStatus(anyString())).thenReturn(fakeStatus);
     doReturn(system).when(mDoraUfsManager).getOrAdd(any(), any());
 
-    when(fakeStatus.getName()).thenReturn("test");
-
     Optional<UfsStatus[]> status = mManager.listFromUfs("/test", false);
-    assertEquals(status.get()[0].getName(), "test");
+    assertEquals(status.get()[0], fakeStatus);
   }
 
   @Test
