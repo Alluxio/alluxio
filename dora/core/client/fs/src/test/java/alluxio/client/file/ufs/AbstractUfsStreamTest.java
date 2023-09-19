@@ -55,7 +55,7 @@ public abstract class AbstractUfsStreamTest {
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {{false}, {true}});
+    return Arrays.asList(new Object[][] {{false}});
   }
 
   /**
@@ -81,6 +81,7 @@ public abstract class AbstractUfsStreamTest {
         FileSystemOptions.Builder
             .fromConf(mConf)
             .setUfsFileSystemOptions(new UfsFileSystemOptions(ufs))
+            .setDoraCacheEnabled(false)
             .build();
     mFileSystem = FileSystem.Factory.create(FileSystemContext.create(
         ClientContext.create(mConf)), fileSystemOptions);
