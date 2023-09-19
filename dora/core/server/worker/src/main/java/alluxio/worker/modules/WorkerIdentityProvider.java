@@ -43,7 +43,6 @@ import java.util.stream.Collectors;
  */
 public class WorkerIdentityProvider implements Provider<WorkerIdentity> {
   private static final Logger LOG = LoggerFactory.getLogger(WorkerIdentityProvider.class);
-  private static final String WORKER_IDENTITY_FILE = "worker_identity";
   private final AlluxioConfiguration mConf;
 
   /**
@@ -61,7 +60,7 @@ public class WorkerIdentityProvider implements Provider<WorkerIdentity> {
    *     Alluxio configuration. This includes JVM system properties, alluxio-site.properties, etc.
    *   </li>
    *   <li>
-   *     Persisted storage. A identity file is persisted in the worker process's working directory.
+   *     Persisted storage. A persistent identity file provided by the user.
    *   </li>
    *   <li>
    *     Automatically generated as a UUID.
@@ -79,9 +78,8 @@ public class WorkerIdentityProvider implements Provider<WorkerIdentity> {
     }
 
     // Try loading from the identity file
-    String workDir = mConf.getString(PropertyKey.WORK_DIR);
-    Path workDirPath = Paths.get(workDir);
-    Path idFile = workDirPath.resolve(WORKER_IDENTITY_FILE);
+    String filePathStr = mConf.getString(PropertyKey.WORKER_IDENTITY_UUID_FILE_PATH);
+    Path idFile = Paths.get(filePathStr);
     try (BufferedReader reader = Files.newBufferedReader(idFile)) {
       List<String> nonCommentLines = reader.lines()
           .filter(line -> !line.startsWith("#"))
