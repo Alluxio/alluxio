@@ -41,12 +41,15 @@ func Cmds(className string) []env.Command {
 	var ret []env.Command
 	for _, c := range []func(string) env.Command{
 		Cat,
+		CheckCached,
 		Checksum,
 		Chgrp,
 		Chmod,
 		Chown,
+		ConsistentHash,
 		Cp,
 		Head,
+		Location,
 		Ls,
 		Mkdir,
 		Mv,
@@ -55,9 +58,6 @@ func Cmds(className string) []env.Command {
 		Tail,
 		Test,
 		Touch,
-		Location,
-		CheckCached,
-		ConsistentHash,
 	} {
 		ret = append(ret, c(className))
 	}
