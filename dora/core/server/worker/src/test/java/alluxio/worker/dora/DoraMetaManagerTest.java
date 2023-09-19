@@ -19,6 +19,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
@@ -34,24 +35,23 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Optional;
 
 public class DoraMetaManagerTest {
   DoraMetaManager mManager;
-  DoraUfsManager doraUfsManager;
-  String testMetaStorePath = "./testFolderForMetaStore";
+  DoraUfsManager mDoraUfsManager;
+  String mTestMetaStorePath = "./testFolderForMetaStore";
 
   @Before
   public void before() throws IOException {
     AlluxioProperties prop = new AlluxioProperties();
-    prop.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, String.format("%s/metastore", testMetaStorePath));
+    prop.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, String.format("%s/metastore",
+        mTestMetaStorePath));
     AlluxioConfiguration conf = new InstancedConfiguration(prop);
     PagedDoraWorker worker = mock(PagedDoraWorker.class);
     CacheManager cacheManager = mock(CacheManager.class);
-    doraUfsManager = mock(DoraUfsManager.class);
-    mManager = new DoraMetaManager(conf, worker, cacheManager, doraUfsManager);
+    mDoraUfsManager = mock(DoraUfsManager.class);
+    mManager = new DoraMetaManager(conf, worker, cacheManager, mDoraUfsManager);
   }
 
   @After
@@ -61,7 +61,7 @@ public class DoraMetaManagerTest {
     } catch (IOException e) {
       mManager = null;
     }
-    File testDir = new File(testMetaStorePath);
+    File testDir = new File(mTestMetaStorePath);
     if (testDir.exists()) {
       deleteDirectory(testDir);
     } else {
@@ -73,7 +73,7 @@ public class DoraMetaManagerTest {
   public void testListFromUfsListUfsWhenFail() throws IOException {
     UnderFileSystem system = mock(UnderFileSystem.class);
     doThrow(new IOException()).when(system).listStatus(anyString(), any());
-    doReturn(system).when(doraUfsManager).getOrAdd(any(), any());
+    doReturn(system).when(mDoraUfsManager).getOrAdd(any(), any());
 
     assertThrows(IOException.class, () -> {
       mManager.listFromUfs("/test", false);
@@ -85,7 +85,7 @@ public class DoraMetaManagerTest {
     UnderFileSystem system = mock(UnderFileSystem.class);
     when(system.listStatus(anyString())).thenReturn(null);
     when(system.getStatus(anyString())).thenReturn(null);
-    doReturn(system).when(doraUfsManager).getOrAdd(any(), any());
+    doReturn(system).when(mDoraUfsManager).getOrAdd(any(), any());
 
     Optional<UfsStatus[]> status = mManager.listFromUfs("/test", false);
     assertEquals(status, Optional.empty());
@@ -96,7 +96,7 @@ public class DoraMetaManagerTest {
     UnderFileSystem system = mock(UnderFileSystem.class);
     when(system.listStatus(anyString())).thenReturn(null);
     when(system.getStatus(anyString())).thenThrow(new FileNotFoundException());
-    doReturn(system).when(doraUfsManager).getOrAdd(any(), any());
+    doReturn(system).when(mDoraUfsManager).getOrAdd(any(), any());
 
     Optional<UfsStatus[]> status = mManager.listFromUfs("/test", false);
     assertEquals(status, Optional.empty());
@@ -108,7 +108,7 @@ public class DoraMetaManagerTest {
     UfsStatus fakeStatus = mock(UfsStatus.class);
     when(system.listStatus(anyString())).thenReturn(null);
     when(system.getStatus(anyString())).thenReturn(fakeStatus);
-    doReturn(system).when(doraUfsManager).getOrAdd(any(), any());
+    doReturn(system).when(mDoraUfsManager).getOrAdd(any(), any());
 
     when(fakeStatus.getName()).thenReturn("test");
 
@@ -120,7 +120,7 @@ public class DoraMetaManagerTest {
   public void testListFromUfsThenCacheWhenFail() throws IOException {
     UnderFileSystem system = mock(UnderFileSystem.class);
     doThrow(new IOException()).when(system).listStatus(anyString(), any());
-    doReturn(system).when(doraUfsManager).getOrAdd(any(), any());
+    doReturn(system).when(mDoraUfsManager).getOrAdd(any(), any());
 
     assertThrows(IOException.class, () -> {
       mManager.listFromUfsThenCache("/test", false);
@@ -132,7 +132,7 @@ public class DoraMetaManagerTest {
     UnderFileSystem system = mock(UnderFileSystem.class);
     when(system.listStatus(anyString())).thenReturn(null);
     when(system.getStatus(anyString())).thenReturn(null);
-    doReturn(system).when(doraUfsManager).getOrAdd(any(), any());
+    doReturn(system).when(mDoraUfsManager).getOrAdd(any(), any());
 
     Optional<UfsStatus[]> status = mManager.listFromUfsThenCache("/test", false);
     assertEquals(status, Optional.empty());
@@ -141,7 +141,7 @@ public class DoraMetaManagerTest {
   private void deleteDirectory(File dir) {
     File[] filelist = dir.listFiles();
     if (filelist != null) {
-      for(File file : filelist) {
+      for (File file : filelist) {
         if (file.isDirectory()) {
           deleteDirectory(file);
         } else {
