@@ -81,7 +81,7 @@ public class DoraMetaManagerTest {
   }
 
   @Test
-  public void testListFromUfsGetWhenNull() throws IOException {
+  public void listFromUfsWhenGetNull() throws IOException {
     UnderFileSystem system = mock(UnderFileSystem.class);
     when(system.listStatus(anyString())).thenReturn(null);
     when(system.getStatus(anyString())).thenReturn(null);
@@ -92,7 +92,7 @@ public class DoraMetaManagerTest {
   }
 
   @Test
-  public void testListFromUfsGetWhenFail() throws IOException {
+  public void listFromUfsWhenGetFail() throws IOException {
     UnderFileSystem system = mock(UnderFileSystem.class);
     when(system.listStatus(anyString())).thenReturn(null);
     when(system.getStatus(anyString())).thenThrow(new FileNotFoundException());
@@ -103,7 +103,7 @@ public class DoraMetaManagerTest {
   }
 
   @Test
-  public void testListFromUfsGetWhenSuccess() throws IOException {
+  public void listFromUfsGetWhenGetSuccess() throws IOException {
     UnderFileSystem system = mock(UnderFileSystem.class);
     UfsStatus fakeStatus = mock(UfsStatus.class);
     when(system.listStatus(anyString())).thenReturn(null);
@@ -117,7 +117,7 @@ public class DoraMetaManagerTest {
   }
 
   @Test
-  public void testListFromUfsThenCacheWhenFail() throws IOException {
+  public void listFromUfsThenCacheWhenGetFail() throws IOException {
     UnderFileSystem system = mock(UnderFileSystem.class);
     doThrow(new IOException()).when(system).listStatus(anyString(), any());
     doReturn(system).when(mDoraUfsManager).getOrAdd(any(), any());
@@ -128,7 +128,7 @@ public class DoraMetaManagerTest {
   }
 
   @Test
-  public void testListFromUfsThenCacheWhenNull() throws IOException {
+  public void listFromUfsThenCacheWhenGetNull() throws IOException {
     UnderFileSystem system = mock(UnderFileSystem.class);
     when(system.listStatus(anyString())).thenReturn(null);
     when(system.getStatus(anyString())).thenReturn(null);
