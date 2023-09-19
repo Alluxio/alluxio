@@ -38,8 +38,14 @@ func (c *FormatCommand) Base() *env.BaseJavaCommand {
 func (c *FormatCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Format.CommandName,
-		Short: "Format Alluxio worker nodes.",
-		Args:  cobra.NoArgs,
+		Short: "Format Alluxio worker running locally",
+		Long: `The format command formats the Alluxio worker on this host.
+This deletes all the cached data stored by the worker. Data in the under storage will not be changed.
+
+> Warning: Format should only be called when the worker is not running`,
+		Example: `# Format worker
+$ ./bin/alluxio cache format`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},

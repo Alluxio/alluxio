@@ -115,7 +115,7 @@ An alternative way to modify logging configurations is use the `logLevel` comman
 This allows someone to modify the configuration at runtime without needing to restart processes.
 This is not the recommended way as any modifications will not be persisted across restart,
 and causes a configuration mismatch between the running process and its `log4j.properties` file.
-See the [logLevel command documentation]({{ '/en/operation/User-CLI.html#loglevel' | relativize_url }})
+See the [logLevel command documentation]({{ '/en/operation/User-CLI.html#conf-log' | relativize_url }})
 for the command options.
 
 For example, the following command sets the logger level of the class `alluxio.underfs.hdfs.HdfsUnderFileSystem` to

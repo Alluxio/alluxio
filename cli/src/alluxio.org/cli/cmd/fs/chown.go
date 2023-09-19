@@ -41,13 +41,17 @@ func (c *ChownCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   fmt.Sprintf("%s <owner>[:<group>] <path>", c.CommandName),
 		Short: "Changes the owner of a file or directory specified by args",
-		Args:  cobra.NoArgs,
+		Long: `The chown command changes the owner of a file or directory in Alluxio.
+The ownership of a file can only be altered by a superuser`,
+		Example: `# Change the owner of /input/file1 to alluxio-user
+$ ./bin/alluxio fs chown alluxio-user /input/file1`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
 	})
 	cmd.Flags().BoolVarP(&c.recursive, "recursive", "R", false,
-		"change the owner recursively")
+		"change the owner recursively for all files and directories under the given path")
 	return cmd
 }
 

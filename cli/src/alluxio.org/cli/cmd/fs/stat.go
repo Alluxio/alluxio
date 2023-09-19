@@ -44,7 +44,19 @@ func (c *StatCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   "stat",
 		Short: "Displays info for the specified file or directory",
-		Args:  cobra.NoArgs,
+		Long:  `The stat command dumps the FileInfo representation of a file or a directory to the shell.`,
+		Example: `# Display file's stat
+$ ./bin/alluxio fs stat /data/2015/logs-1.txt
+
+# Display directory's stat
+$ ./bin/alluxio fs stat /data/2015
+
+# Display the size of file
+$ ./bin/alluxio fs stat -f %z /data/2015/logs-1.txt
+
+# Find the file by fileID and display the stat, useful in troubleshooting
+$ ./bin/alluxio fs stat -fileId 12345678`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(nil)
 		},
