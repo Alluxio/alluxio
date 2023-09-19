@@ -507,8 +507,6 @@ public class LocalCacheFileInStreamTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen")
-//  @Ignore("check whether this needs to be fixed or not")
   public void readMultipleFiles() throws Exception {
     Random random = new Random();
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
