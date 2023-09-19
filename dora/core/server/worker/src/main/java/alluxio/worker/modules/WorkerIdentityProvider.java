@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
  */
 public class WorkerIdentityProvider implements Provider<WorkerIdentity> {
   private static final Logger LOG = LoggerFactory.getLogger(WorkerIdentityProvider.class);
+  private static final String WORKER_IDENTITY_FILE = "worker_identity";
   private final AlluxioConfiguration mConf;
 
   /**
@@ -74,12 +75,22 @@ public class WorkerIdentityProvider implements Provider<WorkerIdentity> {
     // Look at configurations first
     if (mConf.isSetByUser(PropertyKey.WORKER_IDENTITY_UUID)) {
       String uuidStr = mConf.getString(PropertyKey.WORKER_IDENTITY_UUID);
-      return WorkerIdentity.ParserV1.INSTANCE.fromUUID(uuidStr);
+      final WorkerIdentity workerIdentity = WorkerIdentity.ParserV1.INSTANCE.fromUUID(uuidStr);
+      LOG.debug("Loaded worker identity from configuration: {}", workerIdentity);
+      return workerIdentity;
     }
 
     // Try loading from the identity file
-    String filePathStr = mConf.getString(PropertyKey.WORKER_IDENTITY_UUID_FILE_PATH);
-    Path idFile = Paths.get(filePathStr);
+    final Path idFile;
+    if (mConf.isSet(PropertyKey.WORKER_IDENTITY_UUID_FILE_PATH)) {
+      String filePathStr = mConf.getString(PropertyKey.WORKER_IDENTITY_UUID_FILE_PATH);
+      idFile = Paths.get(filePathStr);
+    } else {
+      // user does not set the config file path, try the current working directory
+      String workDir = mConf.getString(PropertyKey.WORK_DIR);
+      Path workDirPath = Paths.get(workDir);
+      idFile = workDirPath.resolve(WORKER_IDENTITY_FILE);
+    }
     try (BufferedReader reader = Files.newBufferedReader(idFile)) {
       List<String> nonCommentLines = reader.lines()
           .filter(line -> !line.startsWith("#"))
@@ -90,10 +101,14 @@ public class WorkerIdentityProvider implements Provider<WorkerIdentity> {
               idFile);
         }
         String uuidStr = nonCommentLines.get(0);
-        return WorkerIdentity.ParserV1.INSTANCE.fromUUID(uuidStr);
+        final WorkerIdentity workerIdentity = WorkerIdentity.ParserV1.INSTANCE.fromUUID(uuidStr);
+        LOG.debug("Loaded worker identity from file {}: {}",
+            idFile, workerIdentity);
+        return workerIdentity;
       }
     } catch (FileNotFoundException | NoSuchFileException ignored) {
       // if not existent, proceed to auto generate one
+      LOG.debug("Worker identity file {} not found", idFile);
     } catch (IOException e) {
       // in case of other IO error, better stop worker from starting up than use a new identity
       throw new RuntimeException(
@@ -102,8 +117,10 @@ public class WorkerIdentityProvider implements Provider<WorkerIdentity> {
 
     // No identity is supplied by the user
     // Assume this is the first time the worker starts up, and generate a new one
+    LOG.debug("Auto generating worker identity as not identity is supplied by the user");
     UUID generatedId = UUID.randomUUID();
     WorkerIdentity identity = WorkerIdentity.ParserV1.INSTANCE.fromUUID(generatedId);
+    LOG.debug("Generated worker identity as {}", identity);
     try (BufferedWriter writer = Files.newBufferedWriter(idFile)) {
       writer.write("# Worker identity automatically generated at ");
       writer.write(LocalDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
