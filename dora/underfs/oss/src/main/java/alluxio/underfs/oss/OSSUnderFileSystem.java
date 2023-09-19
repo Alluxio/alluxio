@@ -62,13 +62,10 @@ import com.google.common.util.concurrent.MoreExecutors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -497,12 +494,6 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     } catch (OSSException | ClientException e) {
       throw new IOException(e);
     }
-  }
-
-  @Override
-  protected OutputStream uploadPart(String key, String uploadId, int partNum, ByteBuffer b,
-                                    MultipartUfsOptions options) throws IOException {
-    return super.uploadPart(key, uploadId, partNum, b, options);
   }
 
   @Override

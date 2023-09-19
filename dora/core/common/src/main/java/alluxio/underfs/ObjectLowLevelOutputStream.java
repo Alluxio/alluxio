@@ -127,7 +127,7 @@ public class ObjectLowLevelOutputStream extends OutputStream
    *
    * @param bucketName the name of the bucket
    * @param key the key of the file
-   * @param streamingUploadPartitionSize the size in bytes for partitions of streaming uploads
+   * @param multipartUploader the uploader to complete the multipart upload task
    * @param ufsConf the object store under file system configuration
    */
   public ObjectLowLevelOutputStream(
@@ -322,21 +322,4 @@ public class ObjectLowLevelOutputStream extends OutputStream
   public Optional<String> getContentHash() throws IOException {
     return Optional.ofNullable(mMultipartUploader.getContentHash());
   }
-//
-//  protected abstract void uploadPartInternal(
-//      File file,
-//      int partNumber,
-//      boolean isLastPart,
-//      @Nullable String md5)
-//      throws IOException;
-//
-//  protected abstract void initMultiPartUploadInternal() throws IOException;
-//
-//  protected abstract void completeMultiPartUploadInternal() throws IOException;
-//
-//  protected abstract void abortMultiPartUploadInternal() throws IOException;
-//
-//  protected abstract void createEmptyObject(String key) throws IOException;
-//
-//  protected abstract void putObject(String key, File file, @Nullable String md5) throws IOException;
 }

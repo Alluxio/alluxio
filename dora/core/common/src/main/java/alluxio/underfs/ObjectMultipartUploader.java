@@ -1,23 +1,8 @@
 package alluxio.underfs;
 
 import alluxio.collections.Pair;
-import alluxio.exception.status.CanceledException;
 import alluxio.underfs.options.MultipartUfsOptions;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
+
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -25,6 +10,21 @@ import org.apache.zookeeper.server.ByteBufferInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
+/**
+ * The multipart uploader implementation for object-store UFS to support multipart uploading.
+ */
 public class ObjectMultipartUploader implements MultipartUploader {
   private static final Logger LOG = LoggerFactory.getLogger(ObjectMultipartUploader.class);
 
@@ -36,10 +36,20 @@ public class ObjectMultipartUploader implements MultipartUploader {
   private final ObjectUnderFileSystem mUfs;
   private final ListeningExecutorService mExecutor;
 
+  /**
+   * Gets the content hash of the final completed file.
+   * @return content hash
+   */
   public String getContentHash() {
     return mContentHash;
   }
 
+  /**
+   * Constructs an instance of {@link ObjectMultipartUploader}.
+   * @param path
+   * @param ufs
+   * @param executor
+   */
   public ObjectMultipartUploader(String path, ObjectUnderFileSystem ufs,
                                  ListeningExecutorService executor) {
     mPath = path;
@@ -53,7 +63,8 @@ public class ObjectMultipartUploader implements MultipartUploader {
   }
 
   @Override
-  public ListenableFuture<Void> putPart(InputStream in, int partNumber, long partSize) throws IOException {
+  public ListenableFuture<Void> putPart(InputStream in, int partNumber, long partSize)
+      throws IOException {
     ListenableFuture<Void> f = mExecutor.submit(() -> {
       try {
         LOG.warn("put part for id {}, partnumber is {}.", mUploadId, partNumber);
@@ -96,7 +107,7 @@ public class ObjectMultipartUploader implements MultipartUploader {
     // Just create an empty file and set up the permissions in this case.
     if (mUploadTasks.isEmpty()) {
       mUfs.createEmptyObject(mPath);
-      //TODO (wyy) get content hash
+      //TODO(wyy) get content hash
       LOG.debug("Object store ufs multipart upload finished for {}", mPath);
       return;
     }
@@ -112,7 +123,8 @@ public class ObjectMultipartUploader implements MultipartUploader {
       }
     }
     LOG.warn("complete mpu for id {}, mETags is {}.", mUploadId, etags);
-    mContentHash = mUfs.completeMultiPart(mPath, mUploadId, etags, MultipartUfsOptions.defaultOption());
+    mContentHash =
+        mUfs.completeMultiPart(mPath, mUploadId, etags, MultipartUfsOptions.defaultOption());
     LOG.warn("complete mpu success for id {}, mETags is {}.", mUploadId, etags);
   }
 
@@ -146,20 +158,12 @@ public class ObjectMultipartUploader implements MultipartUploader {
     }
   }
 
-  // TODO (wyy) to record the UploadTask in memory
-  private class UploadTask{
+  private class UploadTask {
     private int mPartNumber;
     private long mSize;
     private ListenableFuture<Void> mFuture;
 
     public UploadTask(int partNumber, long size, ListenableFuture<Void> future) {
-      mPartNumber = partNumber;
-      mSize = size;
-      mFuture = future;
-
-    }
-
-    public UploadTask(int partNumber, Path path, long size, ListenableFuture<Void> future) {
       mPartNumber = partNumber;
       mSize = size;
       mFuture = future;
@@ -170,7 +174,7 @@ public class ObjectMultipartUploader implements MultipartUploader {
         mFuture.get();
         return true;
       } catch (Exception e) {
-        //log
+        LOG.warn("error in get result in uploading part:", e);
         return false;
       }
     }

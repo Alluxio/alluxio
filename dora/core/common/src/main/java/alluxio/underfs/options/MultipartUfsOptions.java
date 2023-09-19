@@ -12,6 +12,7 @@
 package alluxio.underfs.options;
 
 import alluxio.annotation.PublicApi;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -20,6 +21,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public class MultipartUfsOptions {
+  /**
+   * Constructs the default instance of {@link MultipartUfsOptions}.
+   * @return Default multipartUfsOptions
+   */
   public static MultipartUfsOptions defaultOption() {
     return new MultipartUfsOptions();
   }

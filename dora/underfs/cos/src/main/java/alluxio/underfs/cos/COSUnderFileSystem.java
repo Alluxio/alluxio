@@ -60,7 +60,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -387,12 +386,6 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
     } catch (CosClientException e) {
       throw new IOException(e.getMessage());
     }
-  }
-
-  @Override
-  protected OutputStream uploadPart(String key, String uploadId, int partNum, ByteBuffer b,
-                                    MultipartUfsOptions options) throws IOException {
-    return super.uploadPart(key, uploadId, partNum, b, options);
   }
 
   @Override

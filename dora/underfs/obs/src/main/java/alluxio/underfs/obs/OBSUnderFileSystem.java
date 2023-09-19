@@ -64,7 +64,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -505,13 +504,6 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
       LOG.debug("failed to init multi part upload", e);
       throw new IOException("failed to init multi part upload", e);
     }
-  }
-
-  @Override
-  protected OutputStream uploadPart(String key, String uploadId, int partNum, ByteBuffer b,
-                                    MultipartUfsOptions options) throws IOException {
-    // TODO(wyy) ?
-    return super.uploadPart(key, uploadId, partNum, b, options);
   }
 
   @Override

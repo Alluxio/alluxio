@@ -32,7 +32,7 @@ public interface MultipartUploader {
    * Put part as part of a multipart upload.
    * It is possible to have parts uploaded in any order (or in parallel).
    *
-   * @param in         the stream containing the data to upload for the new part.
+   * @param in         the stream containing the data to upload for the new part
    * @param partNumber the part number of this file part
    * @param partSize
    * @return a future of the async upload task

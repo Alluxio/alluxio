@@ -113,7 +113,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -1129,13 +1128,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     } catch (AmazonClientException e) {
       throw AlluxioS3Exception.from(e);
     }
-  }
-
-  @Override
-  protected OutputStream uploadPart(String key, String uploadId, int partNum, ByteBuffer b,
-                                    MultipartUfsOptions options) throws IOException {
-    // TODO(wyy) upload with the stream
-    return super.uploadPart(key, uploadId, partNum, b, options);
   }
 
   @Override

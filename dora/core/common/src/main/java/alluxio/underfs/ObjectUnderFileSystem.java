@@ -47,7 +47,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1243,40 +1242,67 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     return parentKey != null && isDirectory(parentKey);
   }
 
+  /**
+   * Init a multipart upload task in the ufs.
+   * @param options
+   * @return uploadId
+   * @throws IOException
+   */
   protected String initMultiPart(String key, MultipartUfsOptions options)
       throws IOException {
     throw new IOException("not support");
   }
 
-  protected OutputStream uploadPart(String key, String uploadId, int partNum, ByteBuffer b,
-                                    MultipartUfsOptions options)
-      throws IOException {
-    throw new IOException("not support");
-  }
-
+  /**
+   * Uploads the part with an existed stream.
+   * @param options
+   * @return etag of the uploaded part
+   * @throws IOException
+   */
   protected String uploadPartWithStream(String key, String uploadId, int partNum, long fileSize,
                                         InputStream stream, MultipartUfsOptions options)
       throws IOException {
     throw new IOException("not support");
   }
 
+  /**
+   * Complete a multipart upload task in UFS.
+   * @param options
+   * @return etag of the completed file
+   * @throws IOException
+   */
   protected String completeMultiPart(String key, String uploadId, List<Pair<Integer, String>> etags,
                                      MultipartUfsOptions options)
       throws IOException {
     throw new IOException("not support");
   }
 
+  /**
+   * Gets the uploaded part list of a multipart upload task in UFS.
+   * @param options
+   * @return list of part info
+   * @throws IOException
+   */
   protected List<PartSummaryInfo> listParts(String key, String uploadId,
                                             MultipartUfsOptions options)
       throws IOException {
     throw new IOException("not support");
   }
 
+  /**
+   * Gets the list of the multipart upload tasks in UFS.
+   * @param options
+   * @return list of multipartUpload task info
+   */
   public ListMultipartUploadResult listMultipartUploads(ListMultiPartOptions options)
       throws IOException {
     throw new IOException("not support");
   }
 
+  /**
+   * abort a multipart upload task in UFS.
+   * @param options
+   */
   protected void abortMultipartTask(String key, String uploadId,
                                     alluxio.underfs.options.MultipartUfsOptions options)
       throws IOException {
