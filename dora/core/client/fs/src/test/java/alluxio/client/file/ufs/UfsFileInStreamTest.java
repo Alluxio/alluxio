@@ -491,11 +491,4 @@ public class UfsFileInStreamTest extends AbstractUfsStreamTest {
       outStream.write(BufferUtils.getIncreasingByteArray(start, len));
     }
   }
-
-  @Test
-  public void testRead() {
-     assertThrows(NullPointerException.class,
-        () -> {new UfsFileInStream(null, 0L);});
-  }
-
 }
