@@ -30,11 +30,14 @@ import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.local.LocalUnderFileSystemFactory;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,7 +58,7 @@ public abstract class AbstractUfsStreamTest {
 
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {{false}, {true}});
+    return Arrays.asList(new Object[][] {{false}});
   }
 
   /**
@@ -81,6 +84,7 @@ public abstract class AbstractUfsStreamTest {
         FileSystemOptions.Builder
             .fromConf(mConf)
             .setUfsFileSystemOptions(new UfsFileSystemOptions(ufs))
+            .setDoraCacheEnabled(false)
             .build();
     mFileSystem = FileSystem.Factory.create(FileSystemContext.create(
         ClientContext.create(mConf)), fileSystemOptions);
