@@ -31,18 +31,22 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Optional;
 
 public class DoraMetaManagerTest {
   DoraMetaManager mManager;
   DoraUfsManager doraUfsManager;
+  String testMetaStorePath = "./testFolderForMetaStore";
 
   @Before
   public void before() throws IOException {
     AlluxioProperties prop = new AlluxioProperties();
-    prop.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, "~/alluxio/metasotre");
+    prop.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, String.format("%s/metastore", testMetaStorePath));
     AlluxioConfiguration conf = new InstancedConfiguration(prop);
     PagedDoraWorker worker = mock(PagedDoraWorker.class);
     CacheManager cacheManager = mock(CacheManager.class);
@@ -56,6 +60,12 @@ public class DoraMetaManagerTest {
       mManager.close();
     } catch (IOException e) {
       mManager = null;
+    }
+    File testDir = new File(testMetaStorePath);
+    if (testDir.exists()) {
+      deleteDirectory(testDir);
+    } else {
+      throw new RuntimeException("testDir doesn't exist");
     }
   }
 
@@ -126,5 +136,19 @@ public class DoraMetaManagerTest {
 
     Optional<UfsStatus[]> status = mManager.listFromUfsThenCache("/test", false);
     assertEquals(status, Optional.empty());
+  }
+
+  private void deleteDirectory(File dir) {
+    File[] filelist = dir.listFiles();
+    if (filelist != null) {
+      for(File file : filelist) {
+        if (file.isDirectory()) {
+          deleteDirectory(file);
+        } else {
+          file.delete();
+        }
+      }
+    }
+    dir.delete();
   }
 }
