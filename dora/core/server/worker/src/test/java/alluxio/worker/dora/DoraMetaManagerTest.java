@@ -28,6 +28,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 
+import org.apache.hadoop.fs.FileUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,7 +64,7 @@ public class DoraMetaManagerTest {
     }
     File testDir = new File(mTestMetaStorePath);
     if (testDir.exists()) {
-      deleteDirectory(testDir);
+      FileUtil.fullyDelete(testDir);
     } else {
       throw new RuntimeException("testDir doesn't exist");
     }
@@ -136,19 +137,5 @@ public class DoraMetaManagerTest {
 
     Optional<UfsStatus[]> status = mManager.listFromUfsThenCache("/test", false);
     assertEquals(status, Optional.empty());
-  }
-
-  private void deleteDirectory(File dir) {
-    File[] filelist = dir.listFiles();
-    if (filelist != null) {
-      for (File file : filelist) {
-        if (file.isDirectory()) {
-          deleteDirectory(file);
-        } else {
-          file.delete();
-        }
-      }
-    }
-    dir.delete();
   }
 }
