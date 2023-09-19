@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -474,18 +475,27 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
           && CommonUtils.getCurrentMs() < mContext.getEndMs()) {
         // Keep reading the same file
         long startMs = CommonUtils.getCurrentMs() - recordMs;
+        long startNs = System.nanoTime();
         long bytesRead = applyOperation();
-        long duration = CommonUtils.getCurrentMs() - recordMs - startMs;
+        long duration = System.nanoTime() - startNs;
         if (startMs > 0) {
           if (bytesRead > 0) {
             mResult.setIOBytes(mResult.getIOBytes() + bytesRead);
             sliceCount += 1;
             sliceIoBytes += bytesRead;
-            // if duration is 0ms, treat is as 1ms for now
-            if (duration == 0) {
-              throughputList.add(bytesRead);
+            if (duration > 0) {
+              // throughput unit: MB/s
+              // max file size allowed: 9223372036B (8.5GB)
+              throughputList.add(bytesRead * 1000000000 / (1024 * 1024 * duration));
+            } else if (duration == 0) {
+              // if duration is 0ns, treat is as 1ns
+              throughputList.add(bytesRead * 1000000000 / (1024 * 1024));
+            } else {
+              // if duration is negative, throw an exception
+              throw new IllegalStateException(String.format(
+                  "Negative duration for file read. Start: %d, End: %d",
+                  startNs, startNs + duration));
             }
-            throughputList.add(bytesRead / duration);
             int currentSlice = (int) (startMs
                 / FormatUtils.parseTimeSize(mParameters.mSliceSize));
             while (currentSlice > lastSlice) {
