@@ -12,8 +12,6 @@
 package alluxio.underfs.obs;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -25,8 +23,10 @@ import alluxio.conf.PropertyKey;
 import alluxio.retry.CountingRetry;
 
 import com.obs.services.ObsClient;
+import com.obs.services.exception.ObsException;
 import com.obs.services.model.GetObjectRequest;
 import com.obs.services.model.ObsObject;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -51,6 +51,8 @@ public class OBSInputStreamTest {
   private InputStream[] mInputStreamSpy;
   private ObsObject[] mObjects;
 
+  private static final byte[] INPUT_ARRAY = new byte[] {0, 1, 2};
+
   /**
    * The exception expected to be thrown.
    */
@@ -61,19 +63,18 @@ public class OBSInputStreamTest {
   public void setUp() throws IOException {
     mObsClient = mock(ObsClient.class);
 
-    byte[] input = new byte[]{1, 2, 3};
-    mObjects = new ObsObject[input.length];
-    mInputStreamSpy = new InputStream[input.length];
-    for (int i = 0; i < input.length; ++i) {
+    mObjects = new ObsObject[INPUT_ARRAY.length];
+    mInputStreamSpy = new InputStream[INPUT_ARRAY.length];
+    for (int i = 0; i < INPUT_ARRAY.length; ++i) {
       final long pos = i;
       mObjects[i] = mock(ObsObject.class);
       when(mObsClient.getObject(argThat(argument -> {
         if (argument instanceof GetObjectRequest) {
-          return ((GetObjectRequest) argument).getRangeStart() == pos;
+          return argument.getRangeStart() == pos;
         }
         return false;
       }))).thenReturn(mObjects[i]);
-      byte[] mockInput = Arrays.copyOfRange(input, i, input.length);
+      byte[] mockInput = Arrays.copyOfRange(INPUT_ARRAY, i, INPUT_ARRAY.length);
       mInputStreamSpy[i] = spy(new ByteArrayInputStream(mockInput));
       when(mObjects[i].getObjectContent()).thenReturn(mInputStreamSpy[i]);
     }
@@ -92,23 +93,36 @@ public class OBSInputStreamTest {
 
   @Test
   public void readInt() throws IOException {
-    assertEquals(1, mOBSInputStream.read());
-    assertEquals(2, mOBSInputStream.read());
-    assertEquals(3, mOBSInputStream.read());
+    for (int i = 0; i < INPUT_ARRAY.length; ++i) {
+      Assert.assertEquals(INPUT_ARRAY[i], mOBSInputStream.read());
+    }
   }
 
   @Test
   public void readByteArray() throws IOException {
-    byte[] bytes = new byte[3];
-    int readCount = mOBSInputStream.read(bytes, 0, 3);
-    assertEquals(3, readCount);
-    assertArrayEquals(new byte[]{1, 2, 3}, bytes);
+    byte[] bytes = new byte[INPUT_ARRAY.length];
+    int readCount = mOBSInputStream.read(bytes, 0, INPUT_ARRAY.length);
+    Assert.assertEquals(INPUT_ARRAY.length, readCount);
+    Assert.assertArrayEquals(INPUT_ARRAY, bytes);
   }
 
   @Test
   public void skip() throws IOException {
-    assertEquals(1, mOBSInputStream.read());
+    Assert.assertEquals(0, mOBSInputStream.read());
     mOBSInputStream.skip(1);
-    assertEquals(3, mOBSInputStream.read());
+    Assert.assertEquals(2, mOBSInputStream.read());
+  }
+
+  @Test
+  public void testException() {
+
+    for (int i = 0; i < INPUT_ARRAY.length; ++i) {
+      when(mObjects[i].getObjectContent()).thenThrow(ObsException.class);
+      try {
+        mOBSInputStream.read();
+      } catch (Exception e) {
+        Assert.assertTrue(e instanceof IOException);
+      }
+    }
   }
 }

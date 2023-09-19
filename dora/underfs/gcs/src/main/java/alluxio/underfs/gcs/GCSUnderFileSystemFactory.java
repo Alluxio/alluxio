@@ -44,27 +44,41 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
-    Preconditions.checkNotNull(path, "path");
+    Preconditions.checkNotNull(path, "Unable to create UnderFileSystem instance:"
+        + " URI path should not be null");
 
-    if (conf.getInt(PropertyKey.UNDERFS_GCS_VERSION) == GCS_VERSION_TWO) {
-      try {
-        return GCSV2UnderFileSystem.createInstance(new AlluxioURI(path), conf);
-      } catch (IOException e) {
-        LOG.error("Failed to create GCSV2UnderFileSystem.", e);
-        throw Throwables.propagate(e);
-      }
-    } else {
-      try {
-        return GCSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
-      } catch (ServiceException e) {
-        LOG.error("Failed to create GCSUnderFileSystem.", e);
-        throw Throwables.propagate(e);
+    if (checkGCSCredentials(conf)) {
+      if (conf.getInt(PropertyKey.UNDERFS_GCS_VERSION) == GCS_VERSION_TWO) {
+        try {
+          return GCSV2UnderFileSystem.createInstance(new AlluxioURI(path), conf);
+        } catch (IOException e) {
+          LOG.error("Failed to create GCSV2UnderFileSystem.", e);
+          throw Throwables.propagate(e);
+        }
+      } else {
+        try {
+          return GCSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
+        } catch (ServiceException e) {
+          LOG.error("Failed to create GCSUnderFileSystem.", e);
+          throw Throwables.propagate(e);
+        }
       }
     }
+    String err = "GCS credentials or version not available, cannot create GCS Under File System.";
+    throw Throwables.propagate(new IOException(err));
   }
 
   @Override
   public boolean supportsPath(String path) {
     return path != null && path.startsWith(Constants.HEADER_GCS);
+  }
+
+  /**
+   * @param conf optional configuration object for the UFS
+   * @return true if access, secret and endpoint keys are present, false otherwise
+   */
+  private boolean checkGCSCredentials(UnderFileSystemConfiguration conf) {
+    return conf.isSet(PropertyKey.GCS_ACCESS_KEY)
+        && conf.isSet(PropertyKey.GCS_SECRET_KEY);
   }
 }
