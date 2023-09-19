@@ -36,6 +36,7 @@ type LoadCommand struct {
 	verify         bool
 	partialListing bool
 	metadataOnly   bool
+	skipIfExists   bool
 }
 
 func (c *LoadCommand) Base() *env.BaseJavaCommand {
@@ -80,6 +81,7 @@ $ ./bin/alluxio job load --path /path --stop`,
 	cmd.Flags().BoolVar(&c.verify, "verify", false, "[submit] Run verification when load finishes and load new files if any")
 	cmd.Flags().BoolVar(&c.partialListing, "partial-listing", false, "[submit] Use partial directory listing, initializing load before reading the entire directory but cannot report on certain progress details")
 	cmd.Flags().BoolVar(&c.metadataOnly, "metadata-only", false, "[submit] Only load file metadata")
+	cmd.Flags().BoolVar(&c.skipIfExists, "skip-if-exists", false, "[submit] Skip existing fullly cached files")
 	return cmd
 }
 
@@ -98,6 +100,9 @@ func (c *LoadCommand) Run(_ []string) error {
 	}
 	if c.metadataOnly {
 		javaArgs = append(javaArgs, "--metadata-only")
+	}
+	if c.skipIfExists {
+		javaArgs = append(javaArgs, "--skip-if-exists")
 	}
 	return c.Base().Run(javaArgs)
 }

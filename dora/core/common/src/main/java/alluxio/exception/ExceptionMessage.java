@@ -34,6 +34,8 @@ public enum ExceptionMessage {
   INODE_NOT_IN_PARTIAL_LISTING("Inode not found in root path \"{0}\" during partial listing. "
       + "It was likely moved across listing calls."),
   PATH_MUST_BE_FILE("Path \"{0}\" must be a file."),
+  PATH_MUST_BE_DIRECTORY("Path \"{0}\" must be a directory."),
+
   PATH_INVALID("Path \"{0}\" is invalid."),
   STATE_LOCK_TIMED_OUT("Failed to acquire the lock after {0}ms"),
 

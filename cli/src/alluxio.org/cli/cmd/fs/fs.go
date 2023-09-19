@@ -55,6 +55,9 @@ func Cmds(className string) []env.Command {
 		Tail,
 		Test,
 		Touch,
+		Location,
+		CheckCached,
+		ConsistentHash,
 	} {
 		ret = append(ret, c(className))
 	}
