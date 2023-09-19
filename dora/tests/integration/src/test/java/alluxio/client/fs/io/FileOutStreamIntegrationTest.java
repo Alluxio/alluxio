@@ -13,7 +13,6 @@ package alluxio.client.fs.io;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
@@ -32,7 +31,6 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerInfo;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -46,9 +44,6 @@ import java.util.List;
  * types.
  */
 @RunWith(Parameterized.class)
-@Ignore
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
-    comment = "fix the tests")
 public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamIntegrationTest {
   // TODO(binfan): Run tests with local writes enabled and disabled.
 
@@ -82,6 +77,17 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
         checkFileInUnderStorage(filePath, len);
       }
     }
+  }
+
+  @Test
+  public void writeByte() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    CreateFilePOptions options = CreateFilePOptions.newBuilder()
+        .setWriteType(mWriteType.toProto()).setRecursive(true).build();
+    AlluxioURI filePath =
+        new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + "One_Byte" + "_" + mWriteType));
+    writeOneIntegerToFile(filePath, 1, options);
+    // TODO(Yichuan): Add asserts, create a new method in parents class or assert here.
   }
 
   /**

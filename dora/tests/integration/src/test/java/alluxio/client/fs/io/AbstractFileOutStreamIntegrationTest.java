@@ -53,8 +53,6 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
 
   @Before
   public void before() throws Exception {
-    mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
-    mLocalAlluxioJobCluster.start();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
 
@@ -141,6 +139,13 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
       int len2 = fileLen - len1;
       os.write(BufferUtils.getIncreasingByteArray(0, len1), 0, len1);
       os.write(BufferUtils.getIncreasingByteArray(len1, len2), 0, len2);
+    }
+  }
+
+  protected void writeOneIntegerToFile(AlluxioURI filePath, int b, CreateFilePOptions options)
+      throws Exception {
+    try (FileOutStream fileOutStream = mFileSystem.createFile(filePath, options)) {
+      fileOutStream.write(b);
     }
   }
 
