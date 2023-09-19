@@ -200,16 +200,6 @@ public class UfsBaseFileSystemTest {
   }
 
   @Test
-  public void listStatus() throws IOException, AlluxioException {
-    AlluxioURI dir = mRootUfs.join("/dir1/dir2/dir3");
-    AlluxioURI fileName = dir.join("/testFile");
-    mFileSystem.createDirectory(dir,
-        CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
-    mFileSystem.createFile(fileName);
-    // TODO(Yichuan): Add asserts;
-  }
-
-  @Test
   public void deleteDirectoryWithRecursive() throws IOException, AlluxioException {
     AlluxioURI parentDir = mRootUfs.join("/dir1");
     AlluxioURI currentDir = parentDir.join("dir2");
