@@ -346,17 +346,17 @@ public class UfsBaseFileSystemTest {
     Assert.assertEquals(chunkSize, mFileSystem.getStatus(uri).getLength());
   }
 
-/*  @Test
+  @Test
   public void getStatusWhenWriting() throws IOException, AlluxioException {
     AlluxioURI uri = mRootUfs.join("getStatusWhenWriting");
     int chunkSize = 512;
     try (FileOutStream outStream = mFileSystem.createFile(uri)) {
+      // TODO(Yichuan): Please verify its correctness.
       outStream.write(BufferUtils.getIncreasingByteArray(chunkSize));
-      // local & S3 both failed here
-      Assert.assertEquals(chunkSize, mFileSystem.getStatus(uri).getLength());
       outStream.write(BufferUtils.getIncreasingByteArray(chunkSize, chunkSize));
+      outStream.close();
       Assert.assertEquals(chunkSize * 2, mFileSystem.getStatus(uri).getLength());
     }
     Assert.assertEquals(chunkSize * 2, mFileSystem.getStatus(uri).getLength());
-  }*/
+  }
 }
