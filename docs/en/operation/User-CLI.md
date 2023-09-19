@@ -30,7 +30,7 @@ Available Commands:
   init        Initialization operations such as format and validate
   job         Command line tool for interacting with the job service.
   journal     Journal related operations
-  process     Start, stop, and other operations related to the cluster processes
+  process     Start or stop cluster processes
 
 Flags:
       --debug-log   True to enable debug logging
@@ -51,17 +51,38 @@ Worker-related file system and format operations.
 ### cache format
 Usage: `bin/alluxio cache format`
 
-Format Alluxio worker nodes.
+The format command formats the Alluxio worker on this host.
+This deletes all the cached data stored by the worker. Data in the under storage will not be changed.
+
+> Warning: Format should only be called when the worker is not running
+
+Examples:
+```shell
+# Format worker
+$ ./bin/alluxio cache format
+```
+
 
 ### cache free
 Usage: `bin/alluxio cache free [flags]`
 
-Synchronously free all blocks and directories of specific worker, or free the space occupied by a file or a directory in Alluxio
+Synchronously free cached files along a path or held by a specific worker
 
 Flags:
-- `--force`,`-f`: Force freeing pinned files in the directory (Default: false)
 - `--path`: The file or directory to free (Default: "")
 - `--worker`: The worker to free (Default: "")
+
+Examples:
+```shell
+# Free a file by its path
+$ ./bin/alluxio cache free --path /path/to/file
+```
+
+```shell
+# Free files on a worker
+$ ./bin/alluxio cache free --worker <workerHostName>
+```
+
 
 ## conf
 Get, set, and validate configuration settings, primarily those defined in conf/alluxio-site.properties
@@ -150,7 +171,7 @@ Run the main method of an Alluxio class, or end-to-end tests on an Alluxio clust
 ### exec basicIOTest
 Usage: `bin/alluxio exec basicIOTest [flags]`
 
-Run all end-to-end tests, or a specific test, on an Alluxio cluster.
+Run all end-to-end tests or a specific test, on an Alluxio cluster.
 
 Flags:
 - `--directory`: Alluxio path for the tests working directory. Default: / (Default: "")
@@ -160,8 +181,20 @@ By default both operations are tested. (Default: "")
 By default all readTypes are tested. (Default: "")
 - `--workers`: Alluxio worker addresses to run tests on. 
 If not specified, random ones will be used. (Default: "")
-- `--writeType`: The write type to use, one of MUST_CACHE, CACHE_THROUGH, THROUGH, ASYNC_THROUGH. 
+- `--writeType`: The write type to use, one of MUST_CACHE, CACHE_THROUGH, THROUGH. 
 By default all writeTypes are tested. (Default: "")
+
+Examples:
+```shell
+# Run all permutations of IO tests
+$ ./bin/alluxio exec basicIOTest
+```
+
+```shell
+# Run a specific permutation of the IO tests
+$ ./bin/alluxio exec basicIOtest --operation BASIC --readType NO_CACHE --writeType THROUGH
+```
+
 
 ### exec class
 Usage: `bin/alluxio exec class [flags]`
@@ -186,7 +219,10 @@ Flags:
 ### exec ufsIOTest
 Usage: `bin/alluxio exec ufsIOTest [flags]`
 
-A benchmarking tool for the I/O between Alluxio and UFS.This test will measure the I/O throughput between Alluxio workers and the specified UFS path. Each worker will create concurrent clients to first generate test files of the specified size then read those files. The write/read I/O throughput will be measured in the process.
+A benchmarking tool for the I/O between Alluxio and UFS.
+This test will measure the I/O throughput between Alluxio workers and the specified UFS path.
+Each worker will create concurrent clients to first generate test files of the specified size then read those files.
+The write/read I/O throughput will be measured in the process.
 
 Flags:
 - `--cluster`: specifies the benchmark is run in the Alluxio cluster.
@@ -202,6 +238,27 @@ This can be repeated. The options must be quoted and prefixed with a space.
 For example: --java-opt " -Xmx4g" --java-opt " -Xms2g". (Default: [])
 - `--path`: (Required) specifies the path to write/read temporary data in.
 - `--threads`: specifies the number of threads to concurrently use on each worker. (Default: 4)
+
+Examples:
+```shell
+# This runs the I/O benchmark to HDFS in your process locally
+$ ./bin/alluxio runUfsIOTest --path hdfs://<hdfs-address>
+```
+
+```shell
+# This invokes the I/O benchmark to HDFS in the Alluxio cluster
+# 1 worker will be used. 4 threads will be created, each writing then reading 4G of data
+$ ./bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limit 1
+```
+
+```shell
+# This invokes the I/O benchmark to HDFS in the Alluxio cluster
+# 2 workers will be used
+# 2 threads will be created on each worker
+# Each thread is writing then reading 512m of data
+$ ./bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limit 2 --io-size 512m --threads 2
+```
+
 
 ### exec ufsTest
 Usage: `bin/alluxio exec ufsTest [flags]`
@@ -240,6 +297,15 @@ Examples:
 $ ./bin/alluxio fs cat /output/part-00000
 ```
 
+
+### fs check-cached
+Usage: `bin/alluxio fs check-cached [path] [flags]`
+
+Checks if files under a path have been cached in alluxio.
+
+Flags:
+- `--limit`: Limit number of files to check (Default: 1000)
+- `--sample`: Sample ratio, 10 means sample 1 in every 10 files. (Default: 1)
 
 ### fs checksum
 Usage: `bin/alluxio fs checksum [path]`
@@ -309,6 +375,16 @@ $ ./bin/alluxio fs chown alluxio-user /input/file1
 ```
 
 
+### fs consistent-hash
+Usage: `bin/alluxio fs consistent-hash [--create]|[--compare <1stCheckFilePath> <2ndCheckFilePath>]|[--clean] [flags]`
+
+This command is for checking whether the consistent hash ring is changed or not
+
+Flags:
+- `--clean`: Delete generated check data (Default: false)
+- `--compare`: Compare check files to see if the hash ring has changed (Default: false)
+- `--create`: Generate check file (Default: false)
+
 ### fs cp
 Usage: `bin/alluxio fs cp [srcPath] [dstPath] [flags]`
 
@@ -359,6 +435,11 @@ Examples:
 $ ./bin/alluxio fs head -c 2048 /output/part-00000
 ```
 
+
+### fs location
+Usage: `bin/alluxio fs location [path]`
+
+Displays the list of hosts storing the specified file.
 
 ### fs ls
 Usage: `bin/alluxio fs ls [path] [flags]`
@@ -596,7 +677,7 @@ Usage: `bin/alluxio info nodes`
 Show all registered workers' status
 
 ### info report
-Usage: `bin/alluxio info report [arg]`
+Usage: `bin/alluxio info report [arg] [flags]`
 
 Reports Alluxio running cluster information
 [arg] can be one of the following values:
@@ -607,6 +688,9 @@ Reports Alluxio running cluster information
 
 Defaults to summary if no arg is provided
 
+
+Flags:
+- `--format`: Set output format, any of [json, yaml] (Default: "")
 
 ### info version
 Usage: `bin/alluxio info version`
@@ -676,7 +760,9 @@ Command line tool for interacting with the job service.
 ### job load
 Usage: `bin/alluxio job load [flags]`
 
-Submit or manage load jobs
+The load command moves data from the under storage system into Alluxio storage.
+For example, load can be used to prefetch data for analytics jobs.
+If load is run on a directory, files in the directory will be recursively loaded.
 
 Flags:
 - `--bandwidth`: [submit] Single worker read bandwidth limit (Default: "")
@@ -685,6 +771,7 @@ Flags:
 - `--partial-listing`: [submit] Use partial directory listing, initializing load before reading the entire directory but cannot report on certain progress details (Default: false)
 - `--path`: (Required) [all] Source path of load operation
 - `--progress`: View progress of submitted job (Default: false)
+- `--skip-if-exists`: [submit] Skip existing fullly cached files (Default: false)
 - `--stop`: Stop running job (Default: false)
 - `--submit`: Submit job (Default: false)
 - `--verbose`: [progress] Verbose output (Default: false)
@@ -693,12 +780,12 @@ Flags:
 Examples:
 ```shell
 # Submit a load job
-$ ./bin/alluxio job load /path --submit
+$ ./bin/alluxio job load --path /path --submit
 ```
 
 ```shell
 # View the progress of a submitted job
-$ ./bin/alluxio job load /path --progress
+$ ./bin/alluxio job load --path /path --progress
 # Example output
 Progress for loading path '/path':
         Settings:       bandwidth: unlimited    verify: false
@@ -712,7 +799,7 @@ Progress for loading path '/path':
 
 ```shell
 # Stop a submitted job
-$ ./bin/alluxio job load /path --stop
+$ ./bin/alluxio job load --path /path --stop
 ```
 
 
@@ -751,12 +838,14 @@ Dumping journal of type EMBEDDED to /Users/alluxio/journal_dump-1602698211916
 
 
 ## process
-Start, stop, and other operations related to the cluster processes
+Start or stop cluster processes
 
 ### process start
 Usage: `bin/alluxio process start [flags]`
 
-Starts one or more processes
+Starts a single process locally or a group of similar processes across the cluster.
+For starting a group, it is assumed the local host has passwordless SSH access to other nodes in the cluster.
+The command will parse the hostnames to run on by reading the conf/masters and conf/workers files, depending on the process type.
 
 Flags:
 - `--async`,`-a`: Asynchronously start processes without monitoring for start completion (Default: false)
@@ -765,7 +854,9 @@ Flags:
 ### process stop
 Usage: `bin/alluxio process stop [flags]`
 
-Stops one or more processes
+Stops a single process locally or a group of similar processes across the cluster.
+For stopping a group, it is assumed the local host has passwordless SSH access to other nodes in the cluster.
+The command will parse the hostnames to run on by reading the conf/masters and conf/workers files, depending on the process type.
 
 Flags:
 - `--soft`,`-s`: Soft kill only, don't forcibly kill the process (Default: false)
