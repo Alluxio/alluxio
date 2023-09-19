@@ -39,9 +39,9 @@ import java.io.IOException;
 import java.util.Optional;
 
 public class DoraMetaManagerTest {
-  DoraMetaManager mManager;
-  DoraUfsManager mDoraUfsManager;
-  String mTestMetaStorePath = "./testFolderForMetaStore";
+  private DoraMetaManager mManager;
+  private DoraUfsManager mDoraUfsManager;
+  private String mTestMetaStorePath = "./testFolderForMetaStore";
 
   @Before
   public void before() throws IOException {
