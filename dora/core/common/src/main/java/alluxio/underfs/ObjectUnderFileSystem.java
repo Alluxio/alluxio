@@ -1250,7 +1250,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   protected String initMultiPart(String key, MultipartUfsOptions options)
       throws IOException {
-    throw new IOException("not support");
+    throw new UnsupportedOperationException("not support by default");
   }
 
   /**
@@ -1262,7 +1262,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected String uploadPartWithStream(String key, String uploadId, int partNum, long fileSize,
                                         InputStream stream, MultipartUfsOptions options)
       throws IOException {
-    throw new IOException("not support");
+    throw new UnsupportedOperationException("not support by default");
   }
 
   /**
@@ -1274,7 +1274,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected String completeMultiPart(String key, String uploadId, List<Pair<Integer, String>> etags,
                                      MultipartUfsOptions options)
       throws IOException {
-    throw new IOException("not support");
+    throw new UnsupportedOperationException("not support by default");
   }
 
   /**
@@ -1286,7 +1286,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected List<PartSummaryInfo> listParts(String key, String uploadId,
                                             MultipartUfsOptions options)
       throws IOException {
-    throw new IOException("not support");
+    throw new UnsupportedOperationException("not support by default");
   }
 
   /**
@@ -1296,7 +1296,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   public ListMultipartUploadResult listMultipartUploads(ListMultiPartOptions options)
       throws IOException {
-    throw new IOException("not support");
+    throw new UnsupportedOperationException("not support by default");
   }
 
   /**
@@ -1306,7 +1306,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   protected void abortMultipartTask(String key, String uploadId,
                                     alluxio.underfs.options.MultipartUfsOptions options)
       throws IOException {
-    throw new IOException("not support");
+    throw new UnsupportedOperationException("not support by default");
   }
 
   /**

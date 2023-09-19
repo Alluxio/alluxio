@@ -43,13 +43,9 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.BufferedOutputStream;
@@ -57,7 +53,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.security.DigestOutputStream;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
 
 /**
  * Unit tests for the {@link ObjectLowLevelOutputStream} with {@link S3AUnderFileSystem}.
@@ -89,7 +84,8 @@ public class S3ALowLevelOutputStreamTest {
     mockFileAndOutputStream();
 
     sConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE, PARTITION_SIZE);
-    ObjectMultipartUploader mpuUploader = new ObjectMultipartUploader(KEY, mMockS3Ufs, mMockExecutor);
+    ObjectMultipartUploader mpuUploader =
+        new ObjectMultipartUploader(KEY, mMockS3Ufs, mMockExecutor);
     mStream = new ObjectLowLevelOutputStream(BUCKET_NAME, KEY, mpuUploader, sConf);
   }
 
