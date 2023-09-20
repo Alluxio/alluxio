@@ -37,6 +37,10 @@ var Report = &ReportCommand{
 	},
 }
 
+const (
+	RFC3339 = "2006-01-02T15:04:05Z07:00"
+)
+
 type ReportCommand struct {
 	*env.BaseJavaCommand
 }
@@ -188,8 +192,7 @@ func (c *ReportCommand) Run(args []string) error {
 
 func convertMsToDatetime(timeMs float64) string {
 	tm := time.Unix(int64(timeMs)/1000, 0)
-	format := "2006-01-02T15:04:05-07:00"
-	return tm.Format(format)
+	return tm.Format(RFC3339)
 }
 
 func convertMsToDuration(timeMs float64) string {
