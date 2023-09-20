@@ -25,10 +25,12 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -129,7 +131,8 @@ public class WorkerIdentityProvider implements Provider<WorkerIdentity> {
     UUID generatedId = mUUIDGenerator.get();
     WorkerIdentity identity = WorkerIdentity.ParserV1.INSTANCE.fromUUID(generatedId);
     LOG.debug("Generated worker identity as {}", identity);
-    try (BufferedWriter writer = Files.newBufferedWriter(idFile)) {
+    try (BufferedWriter writer = Files.newBufferedWriter(idFile, StandardCharsets.UTF_8,
+        StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
       writer.write("# Worker identity automatically generated at ");
       writer.write(OffsetDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
       writer.newLine();

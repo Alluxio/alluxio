@@ -29,6 +29,7 @@ import alluxio.wire.WorkerIdentity;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -168,5 +169,28 @@ public class WorkerIdentityProviderTest {
         Files.getPosixFilePermissions(mUuidFilePath);
     Set<PosixFilePermission> writePerms = ImmutableSet.of(OWNER_WRITE, GROUP_WRITE, OTHERS_WRITE);
     assertTrue(Sets.intersection(filePerms, writePerms).isEmpty());
+  }
+
+  @Test
+  public void shouldNotOverwriteExistingIdFile() throws Exception {
+    AlluxioProperties props = new AlluxioProperties();
+    props.set(PropertyKey.WORKER_IDENTITY_UUID_FILE_PATH, mUuidFilePath);
+    // create the file first, but add only comment lines
+    // it should not be overwritten with the auto generated id
+    try (BufferedWriter fout = Files.newBufferedWriter(mUuidFilePath)) {
+      fout.write("# comment");
+      fout.newLine();
+    }
+    AlluxioConfiguration conf = new InstancedConfiguration(props);
+    WorkerIdentityProvider provider = new WorkerIdentityProvider(conf, () -> mReferenceUuid);
+    // this should succeed without any exception
+    WorkerIdentity identity = provider.get();
+    assertEquals(mReferenceUuid, WorkerIdentity.ParserV1.INSTANCE.toUUID(identity));
+    // the original id file is left intact
+    assertTrue(Files.exists(mUuidFilePath));
+    try (BufferedReader reader = Files.newBufferedReader(mUuidFilePath)) {
+      String content = IOUtils.toString(reader);
+      assertEquals("# comment\n", content);
+    }
   }
 }
