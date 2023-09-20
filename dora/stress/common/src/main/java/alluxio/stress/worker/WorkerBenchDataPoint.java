@@ -36,6 +36,9 @@ public class WorkerBenchDataPoint {
     mIOBytes = ioBytes;
   }
 
+  /**
+   * A constructor without parameters.
+   */
   public WorkerBenchDataPoint() {
     mCount = 0;
     mIOBytes = 0;
