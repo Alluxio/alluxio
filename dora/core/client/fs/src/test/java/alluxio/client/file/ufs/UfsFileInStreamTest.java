@@ -26,8 +26,6 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -37,18 +35,15 @@ import java.util.Random;
 /**
  * Add unit tests for {@link UfsFileInStream}.
  */
-@RunWith(Parameterized.class)
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
     comment = "check if UfsBaseFS is still relevant and fix the tests if so")
 @Ignore
 public class UfsFileInStreamTest extends AbstractUfsStreamTest {
   /**
    * Runs {@link UfsFileInStreamTest} with different configuration combinations.
-   *
-   * @param localDataCacheEnabled whether local data cache is enabled
    */
-  public UfsFileInStreamTest(boolean localDataCacheEnabled) {
-    super(localDataCacheEnabled);
+  public UfsFileInStreamTest() {
+    super();
   }
 
   @Test

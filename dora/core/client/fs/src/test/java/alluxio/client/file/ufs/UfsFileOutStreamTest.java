@@ -24,8 +24,6 @@ import alluxio.util.io.BufferUtils;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,18 +31,15 @@ import java.io.InputStream;
 /**
  * Add unit tests for {@link UfsFileOutStream}.
  */
-@RunWith(Parameterized.class)
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
     comment = "check if UfsBaseFS is still relevant and fix the tests if so")
 @Ignore
 public class UfsFileOutStreamTest extends AbstractUfsStreamTest {
   /**
    * Runs {@link UfsFileInStreamTest} with different configuration combinations.
-   *
-   * @param localDataCacheEnabled whether local data cache is enabled
    */
-  public UfsFileOutStreamTest(boolean localDataCacheEnabled) {
-    super(localDataCacheEnabled);
+  public UfsFileOutStreamTest() {
+    super();
   }
 
   @Test
