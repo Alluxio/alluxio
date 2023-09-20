@@ -200,24 +200,24 @@ public class JobServiceOutput {
   }
 
   private static class SerializableJobInfo {
-    private long mTimestamp;
+    private long mLastUpdatedTime;
     private long mId;
     private String mName;
     private String mStatus;
 
     public SerializableJobInfo(JobInfo jobInfo) {
-      mTimestamp = jobInfo.getLastUpdated();
+      mLastUpdatedTime = jobInfo.getLastUpdated();
       mId = jobInfo.getId();
       mName = jobInfo.getName();
       mStatus = jobInfo.getStatus().toString();
     }
 
-    public long getTimestamp() {
-      return mTimestamp;
+    public long getLastUpdatedTime() {
+      return mLastUpdatedTime;
     }
 
-    public void setTimestamp(long timestamp) {
-      mTimestamp = timestamp;
+    public void setLastUpdatedTime(long lastUpdatedTime) {
+      mLastUpdatedTime = lastUpdatedTime;
     }
 
     public long getId() {

@@ -28,8 +28,8 @@ public class SummaryOutput {
   private String mMasterAddress;
   private int mWebPort;
   private int mRpcPort;
-  private long mStarted;
-  private long mUptime;
+  private long mStartTime;
+  private long mUptimeDuration;
   private String mVersion;
   private boolean mSafeMode;
 
@@ -43,7 +43,7 @@ public class SummaryOutput {
   private int mLostWorkers;
   private Map<String, Long> mTotalCapacityOnTiers;
   private Map<String, Long> mUsedCapacityOnTiers;
-  private long mFreeCapacity;
+  private long mFreeCapacityBytes;
 
   private static class SerializableMasterVersion {
     private String mHost;
@@ -102,8 +102,8 @@ public class SummaryOutput {
     mMasterAddress = masterInfo.getLeaderMasterAddress();
     mWebPort = masterInfo.getWebPort();
     mRpcPort = masterInfo.getRpcPort();
-    mStarted = masterInfo.getStartTimeMs();
-    mUptime = masterInfo.getUpTimeMs();
+    mStartTime = masterInfo.getStartTimeMs();
+    mUptimeDuration = masterInfo.getUpTimeMs();
     mVersion = masterInfo.getVersion();
     mSafeMode = masterInfo.getSafeMode();
 
@@ -124,16 +124,16 @@ public class SummaryOutput {
     mLostWorkers = blockMasterInfo.getLostWorkerNum();
 
     mTotalCapacityOnTiers = new TreeMap<>();
+    Map<String, Long> totalBytesOnTiers = blockMasterInfo.getCapacityBytesOnTiers();
+    for (Map.Entry<String, Long> entry : totalBytesOnTiers.entrySet()){
+      mTotalCapacityOnTiers.put(entry.getKey() + "Bytes", entry.getValue());
+    }
     mUsedCapacityOnTiers = new TreeMap<>();
-    Map<String, Long> totalBytesOnTiers =
-        new TreeMap<>(FileSystemAdminShellUtils::compareTierNames);
-    totalBytesOnTiers.putAll(blockMasterInfo.getCapacityBytesOnTiers());
-    mTotalCapacityOnTiers.putAll(totalBytesOnTiers);
-    Map<String, Long> usedBytesOnTiers =
-        new TreeMap<>(FileSystemAdminShellUtils::compareTierNames);
-    usedBytesOnTiers.putAll(blockMasterInfo.getUsedBytesOnTiers());
-    mUsedCapacityOnTiers.putAll(usedBytesOnTiers);
-    mFreeCapacity = blockMasterInfo.getFreeBytes();
+    Map<String, Long> usedBytesOnTiers = blockMasterInfo.getUsedBytesOnTiers();
+    for (Map.Entry<String, Long> entry : usedBytesOnTiers.entrySet()){
+      mUsedCapacityOnTiers.put(entry.getKey() + "Bytes", entry.getValue());
+    }
+    mFreeCapacityBytes = blockMasterInfo.getFreeBytes();
   }
 
   /**
@@ -195,17 +195,17 @@ public class SummaryOutput {
    *
    * @return started time
    */
-  public long getStarted() {
-    return mStarted;
+  public long getStartTime() {
+    return mStartTime;
   }
 
   /**
    * Set started time.
    *
-   * @param started started time
+   * @param startTime started time
    */
-  public void setStarted(long started) {
-    mStarted = started;
+  public void setStartTime(long startTime) {
+    mStartTime = startTime;
   }
 
   /**
@@ -213,17 +213,17 @@ public class SummaryOutput {
    *
    * @return time running
    */
-  public long getUptime() {
-    return mUptime;
+  public long getUptimeDuration() {
+    return mUptimeDuration;
   }
 
   /**
    * Set time running.
    *
-   * @param uptime time running
+   * @param uptimeDuration time running
    */
-  public void setUptime(long uptime) {
-    mUptime = uptime;
+  public void setUptimeDuration(long uptimeDuration) {
+    mUptimeDuration = uptimeDuration;
   }
 
   /**
@@ -389,21 +389,21 @@ public class SummaryOutput {
   }
 
   /**
-   * Get free capacity.
+   * Get free capacity in bytes.
    *
    * @return free capacity
    */
-  public long getFreeCapacity() {
-    return mFreeCapacity;
+  public long getFreeCapacityBytes() {
+    return mFreeCapacityBytes;
   }
 
   /**
-   * Set free capacity.
+   * Set free capacity in bytes.
    *
-   * @param freeCapacity free capacity
+   * @param freeCapacityBytes free capacity
    */
-  public void setFreeCapacity(long freeCapacity) {
-    mFreeCapacity = freeCapacity;
+  public void setFreeCapacityBytes(long freeCapacityBytes) {
+    mFreeCapacityBytes = freeCapacityBytes;
   }
 
   /**
