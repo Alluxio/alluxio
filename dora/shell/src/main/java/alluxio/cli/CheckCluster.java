@@ -49,7 +49,7 @@ public final class CheckCluster {
   // Constants should be all uppercase with underscores
   private static final AlluxioURI DIRECTORY = new AlluxioURI(AlluxioURI.SEPARATOR);
   private static final String TEST_CONTENT = "Hello Alluxio!";
-  private static final int NUM_FILES = 1000;
+  private static int sNumFiles;
   public static final String ANSI_RESET = "\u001B[0m";
   public static final String ANSI_RED = "\u001B[31m";
   public static final String ANSI_GREEN = "\u001B[32m";
@@ -71,6 +71,16 @@ public final class CheckCluster {
     try (FileSystemContext fsContext = FileSystemContext.create(Configuration.global())) {
       FileSystem fs = FileSystem.Factory.create(fsContext);
       sWorkerInfoList = fsContext.getCachedWorkers();
+      int numWorkers = sWorkerInfoList.size();
+      if (numWorkers == 0) {
+        System.out.println("No workers found.");
+        return;
+      }
+      else if (numWorkers <= 100) {
+        sNumFiles = 2000;
+      } else {
+        sNumFiles = numWorkers * 20;
+      }
 
       // Test with caching
       try {
@@ -125,7 +135,7 @@ public final class CheckCluster {
     HashMap<BlockWorkerInfo, AlluxioURI> workerMap = new HashMap<>();
     sPolicy = WorkerLocationPolicy.Factory.create(Configuration.global());
 
-    for (int i = 0; i < NUM_FILES && workerMap.size() < sWorkerInfoList.size(); i++) {
+    for (int i = 0; i < sNumFiles && workerMap.size() < sWorkerInfoList.size(); i++) {
       AlluxioURI testFile = new AlluxioURI(testDir.getPath() + "/" + i);
       writeFile(fs, testFile, throughOnly);
       List<BlockWorkerInfo> assignedWorkers =
