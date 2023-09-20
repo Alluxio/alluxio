@@ -116,7 +116,7 @@ public abstract class AbstractUfsManager implements UfsManager {
    * @return the UFS instance
    */
   public UnderFileSystem getOrAdd(AlluxioURI ufsUri,
-      Supplier<UnderFileSystemConfiguration> ufsConfSupplier) {
+                                  Supplier<UnderFileSystemConfiguration> ufsConfSupplier) {
     Key key = generateKey(ufsUri);
     return get(key)
         .orElseGet(() -> add(key, ufsUri, ufsConfSupplier, Recorder.noopRecorder()));

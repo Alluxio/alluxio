@@ -135,16 +135,16 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   // for now Dora Worker does not support Alluxio <-> UFS mapping,
   // and assumes all UFS paths belong to the same UFS.
   private static final int MOUNT_POINT = 1;
-  protected final Closer mResourceCloser = Closer.create();
+  private final Closer mResourceCloser = Closer.create();
   // TODO(lucy) change to string typed once membership manager got enabled by default
   private final AtomicReference<Long> mWorkerId;
   protected final CacheManager mCacheManager;
   protected final DoraUfsManager mUfsManager;
-  private DoraMetaManager mMetaManager;
+  private final DoraMetaManager mMetaManager;
   private final MembershipManager mMembershipManager;
   private final UfsInputStreamCache mUfsStreamCache;
   private final long mPageSize;
-  private final AlluxioConfiguration mConf;
+  protected final AlluxioConfiguration mConf;
   private final BlockMasterClientPool mBlockMasterClientPool;
   private FileSystemContext mFsContext;
   private MkdirsOptions mMkdirsRecursive;
