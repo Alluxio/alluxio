@@ -5594,11 +5594,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT =
-      intBuilder(Name.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT)
+  public static final PropertyKey USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER =
+      intBuilder(Name.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER)
           .setDefaultValue(2000)
-          .setDescription("This is the number of virtual nodes in the consistent hashing "
-              + "algorithm. In a consistent hashing algorithm, on membership changes, some "
+          .setDescription("This is the number of virtual nodes for one worker in the consistent "
+              + "hashing algorithm. In a consistent hashing algorithm, on membership changes, some "
               + "virtual nodes are re-distributed instead of rebuilding the whole hash table. "
               + "This guarantees the hash table is changed only in a minimal. In order to achieve "
               + "that, the number of virtual nodes should be X times the physical nodes in "
@@ -8160,8 +8160,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.timeout.threads";
     public static final String USER_CLIENT_REPORT_VERSION_ENABLED =
         "alluxio.user.client.report.version.enabled";
-    public static final String USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT =
-        "alluxio.user.consistent.hash.virtual.node.count";
+    public static final String USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER =
+        "alluxio.user.consistent.hash.virtual.node.count.per.worker";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
