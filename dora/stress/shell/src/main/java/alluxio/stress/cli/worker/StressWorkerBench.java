@@ -381,8 +381,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
     public synchronized void mergeThreadResult(WorkerBenchTaskResult threadResult) {
       if (mResult == null) {
-        mResult = threadResult;
-        return;
+        mResult = new WorkerBenchTaskResult();
       }
       try {
         mResult.merge(threadResult);
