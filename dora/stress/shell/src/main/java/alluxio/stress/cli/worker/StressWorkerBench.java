@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -466,58 +465,54 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       WorkerBenchCoarseDataPoint dp = new WorkerBenchCoarseDataPoint(
           Long.parseLong(workerID),
           Thread.currentThread().getId());
-      int sliceCount = 0;
-      int sliceIoBytes = 0;
+      WorkerBenchDataPoint slice = new WorkerBenchDataPoint();
       List<Long> throughputList = new ArrayList<>();
-      int lastSlice = 0;
+      long lastSlice = 0;
 
       while (!Thread.currentThread().isInterrupted()
           && CommonUtils.getCurrentMs() < mContext.getEndMs()) {
         // Keep reading the same file
         long startMs = CommonUtils.getCurrentMs() - recordMs;
-        long startNs = System.nanoTime();
-        long bytesRead = applyOperation();
-        long duration = System.nanoTime() - startNs;
+        ApplyOperationOutput fileReadOutput = applyOperation();
         if (startMs > 0) {
-          if (bytesRead > 0) {
-            mResult.setIOBytes(mResult.getIOBytes() + bytesRead);
-            sliceCount += 1;
-            sliceIoBytes += bytesRead;
-            if (duration > 0) {
+          if (fileReadOutput.mBytesRead > 0) {
+            mResult.setIOBytes(mResult.getIOBytes() + fileReadOutput.mBytesRead);
+            slice.mCount += 1;
+            slice.mIOBytes += fileReadOutput.mBytesRead;
+            if (fileReadOutput.mDuration > 0) {
               // throughput unit: MB/s
               // max file size allowed: 9223372036B (8.5GB)
-              throughputList.add(bytesRead * 1000000000 / (1024 * 1024 * duration));
-            } else if (duration == 0) {
+              throughputList.add(fileReadOutput.mBytesRead * 1000000000
+                  / (1024 * 1024 * fileReadOutput.mDuration));
+            } else if (fileReadOutput.mDuration == 0) {
               // if duration is 0ns, treat is as 1ns
-              throughputList.add(bytesRead * 1000000000 / (1024 * 1024));
+              throughputList.add(fileReadOutput.mBytesRead * 1000000000
+                  / (1024 * 1024));
             } else {
               // if duration is negative, throw an exception
               throw new IllegalStateException(String.format(
-                  "Negative duration for file read. Start: %d, End: %d",
-                  startNs, startNs + duration));
+                  "Negative duration for file read: %d", fileReadOutput.mDuration));
             }
             int currentSlice = (int) (startMs
                 / FormatUtils.parseTimeSize(mParameters.mSliceSize));
             while (currentSlice > lastSlice) {
-              dp.addDataPoint(new WorkerBenchDataPoint(sliceCount, sliceIoBytes));
-              sliceCount = 0;
-              sliceIoBytes = 0;
+              dp.addDataPoint(slice);
+              slice = new WorkerBenchDataPoint();
               lastSlice++;
             }
           } else {
             LOG.warn("Thread for file {} read 0 bytes from I/O", mFilePaths[mTargetFileIndex]);
           }
         } else {
-          SAMPLING_LOG.info("Ignored record during warmup: {} bytes", bytesRead);
+          SAMPLING_LOG.info("Ignored record during warmup: {} bytes", fileReadOutput.mBytesRead);
         }
       }
 
       int finalSlice = (int) (FormatUtils.parseTimeSize(mParameters.mDuration)
           / FormatUtils.parseTimeSize(mParameters.mSliceSize));
       while (finalSlice > lastSlice) {
-        dp.addDataPoint(new WorkerBenchDataPoint(sliceCount, sliceIoBytes));
-        sliceCount = 0;
-        sliceIoBytes = 0;
+        dp.addDataPoint(slice);
+        slice = new WorkerBenchDataPoint();
         lastSlice++;
       }
 
@@ -525,15 +520,26 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       mResult.addDataPoint(dp);
     }
 
+    private class ApplyOperationOutput {
+      public final long mBytesRead;
+      public final long mDuration;
+
+      public ApplyOperationOutput(long bytesRead, long duration) {
+        mBytesRead = bytesRead;
+        mDuration = duration;
+      }
+    }
+
     /**
      * Read the file by the offset and length based on the given index.
      * @return the actual red byte number
      */
-    private long applyOperation() throws IOException {
+    private ApplyOperationOutput applyOperation() throws IOException {
       Path filePath = mFilePaths[mTargetFileIndex];
       int offset = mOffsets[mTargetFileIndex];
       int length = mLengths[mTargetFileIndex];
 
+      long startReadNs = System.nanoTime();
       if (mInStream == null) {
         mInStream = mFs.open(filePath);
       }
@@ -565,7 +571,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
           }
         }
       }
-      return bytesRead;
+      long afterReadNs = System.nanoTime();
+      return new ApplyOperationOutput(bytesRead, afterReadNs - startReadNs);
     }
 
     private void closeInStream() {
