@@ -75,6 +75,9 @@ public class DoraWorkerModule extends AbstractModule {
     bind(UfsManager.class).to(DoraUfsManager.class).in(Scopes.SINGLETON);
     bind(AlluxioConfiguration.class).toProvider(() -> Configuration.global());
 
+    FileSystemContext fileSystemContext = FileSystemContext.create();
+    bind(FileSystemContext.class).toInstance(fileSystemContext);
+
     // Note that dora can only use Paged Store
     try {
       CacheManagerOptions cacheManagerOptions =

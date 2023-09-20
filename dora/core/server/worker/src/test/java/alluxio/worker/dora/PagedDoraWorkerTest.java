@@ -19,10 +19,12 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageMetaStore;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
@@ -101,9 +103,12 @@ public class PagedDoraWorkerTest {
         CacheManager.Factory.create(Configuration.global(), cacheManagerOptions, pageMetaStore);
     mMembershipManager =
         MembershipManager.Factory.create(Configuration.global());
-    mWorker = new PagedDoraWorker(
-        new AtomicReference<>(WorkerIdentity.ParserV0.INSTANCE.fromLong(1L)),
-        Configuration.global(), mCacheManager, mMembershipManager, new BlockMasterClientPool());
+    DoraUfsManager ufsManager = new DoraUfsManager();
+    DoraMetaManager metaManager = new DoraMetaManager(Configuration.global(),
+        mCacheManager, ufsManager);
+    mWorker = new PagedDoraWorker(new AtomicReference<>(WorkerIdentity.ParserV0.INSTANCE.fromLong(1L)),
+        Configuration.global(), mCacheManager, mMembershipManager, ufsManager, metaManager,
+        FileSystemContext.create(), new BlockMasterClientPool());
   }
 
   @After

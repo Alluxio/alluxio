@@ -14,6 +14,7 @@ package alluxio.worker.grpc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.PageMetaStore;
@@ -23,8 +24,14 @@ import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
 import alluxio.membership.MembershipManager;
 import alluxio.util.io.PathUtils;
+<<<<<<< HEAD
 import alluxio.wire.WorkerIdentity;
 import alluxio.worker.block.BlockMasterClientPool;
+||||||| parent of 4ff13c31ea (other changes to make dep injection happen)
+=======
+import alluxio.worker.dora.DoraMetaManager;
+import alluxio.worker.dora.DoraUfsManager;
+>>>>>>> 4ff13c31ea (other changes to make dep injection happen)
 import alluxio.worker.dora.PagedDoraWorker;
 
 import io.grpc.stub.StreamObserver;
@@ -67,9 +74,11 @@ public class DoraWorkerClientServiceHandlerTest {
         CacheManager.Factory.create(Configuration.global(), cacheManagerOptions, pageMetaStore);
     mMembershipManager =
         MembershipManager.Factory.create(Configuration.global());
-    mWorker = new PagedDoraWorker(
-        new AtomicReference<>(WorkerIdentity.ParserV0.INSTANCE.fromLong(1L)),
-        Configuration.global(), mCacheManager, mMembershipManager, new BlockMasterClientPool());
+    DoraUfsManager ufsManager = new DoraUfsManager();
+    DoraMetaManager metaManager = new DoraMetaManager(Configuration.global(),
+        mCacheManager, ufsManager);
+    mWorker = new PagedDoraWorker(new AtomicReference<>(WorkerIdentity.ParserV0.INSTANCE.fromLong(1L)),
+            Configuration.global(), mCacheManager, mMembershipManager, ufsManager, metaManager, new BlockMasterClientPool());
     mServiceHandler = new DoraWorkerClientServiceHandler(mWorker);
   }
 
