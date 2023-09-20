@@ -129,8 +129,8 @@ public final class StressBenchDefinition
     command.add(Configuration.get(PropertyKey.HOME) + "/bin/alluxio");
     command.add("exec");
     command.add("class");
-    command.add("--");
     command.add(config.getClassName());
+    command.add("--");
 
     // the cluster will run distributed tasks
     command.add(BaseParameters.DISTRIBUTED_FLAG);

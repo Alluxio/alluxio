@@ -101,9 +101,9 @@ Both of them mask credential properties. The difference is the latter command fa
 `collectConfig` will collect all the configuration files under `${alluxio.work.dir}/conf`.
 From Alluxio 2.4, the `alluxio-site.properties` file will not be copied,
 as many users tend to put their plaintext credentials to the UFS in this file.
-Instead, the `collectAlluxioInfo` will run a `alluxio getConf` command
+Instead, the `collectAlluxioInfo` will run a `alluxio conf get` command
 which prints all the configuration properties, with the credential fields masked.
-The [getConf command]({{ '/en/operation/User-CLI.html#getconf' | relativize_url }}) will collect all the current node configuration.
+The [conf get command]({{ '/en/operation/User-CLI.html#conf-get' | relativize_url }}) will collect all the current node configuration.
 
 So in order to collect Alluxio configuration in the tarball,
 please make sure `collectAlluxioInfo` sub-command is run.

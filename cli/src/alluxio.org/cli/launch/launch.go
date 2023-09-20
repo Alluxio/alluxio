@@ -64,6 +64,7 @@ func (l *Launcher) Run() error {
 	rootCmd := &cobra.Command{
 		Use: "bin/alluxio",
 	}
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	l.AddFlags(rootCmd)
 	rootCmd.PersistentPreRunE = l.GetPreRunFunc()
 	env.InitServiceCommandTree(rootCmd)
