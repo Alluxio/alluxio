@@ -123,7 +123,7 @@ Formatting the journal deletes all of its content and restores it to a fresh sta
 Before starting Alluxio for the first time, the journal must be formatted.
 
 **Warning**: the following command permanently deletes all Alluxio metadata,
-so be careful with this command or backup your journal first (see next section).
+so be careful with this command.
 
 ```shell
 $ ./bin/alluxio init format --skip-worker
@@ -159,6 +159,28 @@ make the checkpointing a few times faster(depending how many threads are used).
 `alluxio.master.metastore.rocks.parallel.backup.threads` controls how many threads to use.
 `alluxio.master.metastore.rocks.parallel.backup.compression.level` specifies the compression level, 
 where smaller means bigger file and less CPU consumption, and larger means smaller file and more CPU consumption. 
+
+#### Checkpointing on the leading master
+
+Checkpointing requires a pause in master metadata changes and causes temporary service
+unavailability while the leading master is writing a checkpoint.
+This operation may take hours depending on Alluxio's namespace size.
+Therefore, Alluxio's leading master will not create checkpoints by default.
+
+Restarting the current leading master to transfer the leadership to another running master periodically
+can help avoid leading master journal logs from growing unbounded when Alluxio is running in HA mode.
+
+Starting from version 2.4, Alluxio embedded journal HA mode supports automatically transferring checkpoints from standby masters to the leading master.
+The leading master can use those checkpoints as taken locally to truncate its journal size without causing temporary service unavailability.
+No need to manually transfer leadership anymore.
+
+If HA mode is not an option, the following command can be used to manually trigger the checkpoint:
+
+```shell
+$ ./bin/alluxio journal checkpoint
+```
+
+The `checkpoint` command should be used on an off-peak time to avoid interfering with other users of the system.
 
 ### Exiting upon Demotion
 
