@@ -30,11 +30,12 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -43,15 +44,21 @@ import java.util.stream.Collectors;
  */
 public class WorkerIdentityProvider implements Provider<WorkerIdentity> {
   private static final Logger LOG = LoggerFactory.getLogger(WorkerIdentityProvider.class);
-  private static final String WORKER_IDENTITY_FILE = "worker_identity";
+  static final String WORKER_IDENTITY_FILE = "worker_identity";
   private final AlluxioConfiguration mConf;
+  private final Supplier<UUID> mUUIDGenerator;
 
   /**
    * @param conf configuration
    */
   @Inject
   public WorkerIdentityProvider(AlluxioConfiguration conf) {
+    this(conf, UUID::randomUUID);
+  }
+
+  protected WorkerIdentityProvider(AlluxioConfiguration conf, Supplier<UUID> uuidGenerator) {
     mConf = conf;
+    mUUIDGenerator = uuidGenerator;
   }
 
   /**
@@ -94,6 +101,7 @@ public class WorkerIdentityProvider implements Provider<WorkerIdentity> {
     try (BufferedReader reader = Files.newBufferedReader(idFile)) {
       List<String> nonCommentLines = reader.lines()
           .filter(line -> !line.startsWith("#"))
+          .filter(line -> !line.trim().isEmpty())
           .collect(Collectors.toList());
       if (nonCommentLines.size() > 0) {
         if (nonCommentLines.size() > 1) {
@@ -118,12 +126,12 @@ public class WorkerIdentityProvider implements Provider<WorkerIdentity> {
     // No identity is supplied by the user
     // Assume this is the first time the worker starts up, and generate a new one
     LOG.debug("Auto generating new worker identity as no identity is supplied by the user");
-    UUID generatedId = UUID.randomUUID();
+    UUID generatedId = mUUIDGenerator.get();
     WorkerIdentity identity = WorkerIdentity.ParserV1.INSTANCE.fromUUID(generatedId);
     LOG.debug("Generated worker identity as {}", identity);
     try (BufferedWriter writer = Files.newBufferedWriter(idFile)) {
       writer.write("# Worker identity automatically generated at ");
-      writer.write(LocalDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
+      writer.write(OffsetDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME));
       writer.newLine();
       writer.write(generatedId.toString());
       writer.newLine();
