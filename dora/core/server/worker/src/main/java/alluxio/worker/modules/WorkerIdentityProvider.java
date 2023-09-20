@@ -117,7 +117,7 @@ public class WorkerIdentityProvider implements Provider<WorkerIdentity> {
 
     // No identity is supplied by the user
     // Assume this is the first time the worker starts up, and generate a new one
-    LOG.debug("Auto generating worker identity as not identity is supplied by the user");
+    LOG.debug("Auto generating new worker identity as no identity is supplied by the user");
     UUID generatedId = UUID.randomUUID();
     WorkerIdentity identity = WorkerIdentity.ParserV1.INSTANCE.fromUUID(generatedId);
     LOG.debug("Generated worker identity as {}", identity);
