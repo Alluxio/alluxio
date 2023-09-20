@@ -444,7 +444,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @return a FileInfo
    */
   public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath,
-                                                          Map<String, String> xattrMap)
+                                                          @Nullable Map<String, String> xattrMap)
       throws IOException {
     UnderFileSystem ufs = getUfsInstance(ufsFullPath);
     String filename = new AlluxioURI(ufsFullPath).getName();
