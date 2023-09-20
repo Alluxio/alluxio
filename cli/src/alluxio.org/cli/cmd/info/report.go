@@ -43,6 +43,7 @@ const (
 
 type ReportCommand struct {
 	*env.BaseJavaCommand
+	readable bool
 }
 
 func (c *ReportCommand) Base() *env.BaseJavaCommand {
@@ -67,6 +68,8 @@ Defaults to summary if no arg is provided
 			return c.Run(args)
 		},
 	})
+	cmd.Flags().BoolVar(&c.readable, "readable", false,
+		"Determine whether to use human-readable format for bytes, datetime, and duration.")
 	return cmd
 }
 
@@ -100,84 +103,86 @@ func (c *ReportCommand) Run(args []string) error {
 		return stacktrace.Propagate(err, "error unmarshalling json from java command")
 	}
 
-	if reportArg == "summary" {
-		if val, ok := obj.Get("freeCapacity"); ok {
-			obj.Set("freeCapacity", convertBytesToString(val.(float64)))
-		}
-		if val, ok := obj.Get("started"); ok {
-			obj.Set("started", convertMsToDatetime(val.(float64)))
-		}
-		if val, ok := obj.Get("uptime"); ok {
-			obj.Set("uptime", convertMsToDuration(val.(float64)))
-		}
-		if val, ok := obj.Get("totalCapacityOnTiers"); ok {
-			oMap := val.(orderedmap.OrderedMap)
-			for key := range oMap.Values() {
-				if val, ok := oMap.Get(key); ok {
-					oMap.Set(key, convertBytesToString(val.(float64)))
-				}
+	if c.readable {
+		if reportArg == "summary" {
+			if val, ok := obj.Get("freeCapacity"); ok {
+				obj.Set("freeCapacity", convertBytesToString(val.(float64)))
 			}
-		}
-		if val, ok := obj.Get("usedCapacityOnTiers"); ok {
-			oMap := val.(orderedmap.OrderedMap)
-			for key := range oMap.Values() {
-				if val, ok := oMap.Get(key); ok {
-					oMap.Set(key, convertBytesToString(val.(float64)))
-				}
+			if val, ok := obj.Get("started"); ok {
+				obj.Set("started", convertMsToDatetime(val.(float64)))
 			}
-		}
-	}
-
-	if reportArg == "ufs" {
-		for key := range obj.Values() {
-			if val, ok := obj.Get(key); ok {
+			if val, ok := obj.Get("uptime"); ok {
+				obj.Set("uptime", convertMsToDuration(val.(float64)))
+			}
+			if val, ok := obj.Get("totalCapacityOnTiers"); ok {
 				oMap := val.(orderedmap.OrderedMap)
-				if v, ok := oMap.Get("ufsCapacityBytes"); ok {
-					oMap.Set("ufsCapacityBytes", convertBytesToString(v.(float64)))
+				for key := range oMap.Values() {
+					if val, ok := oMap.Get(key); ok {
+						oMap.Set(key, convertBytesToString(val.(float64)))
+					}
 				}
-				if v, ok := oMap.Get("ufsUsedBytes"); ok {
-					oMap.Set("ufsUsedBytes", convertBytesToString(v.(float64)))
+			}
+			if val, ok := obj.Get("usedCapacityOnTiers"); ok {
+				oMap := val.(orderedmap.OrderedMap)
+				for key := range oMap.Values() {
+					if val, ok := oMap.Get(key); ok {
+						oMap.Set(key, convertBytesToString(val.(float64)))
+					}
 				}
-				obj.Set(key, oMap)
 			}
 		}
-	}
 
-	if reportArg == "jobservice" {
-		if val, ok := obj.Get("masterStatus"); ok {
-			for _, item := range val.([]interface{}) {
-				oMap := item.(orderedmap.OrderedMap)
-				if v, ok := oMap.Get("startTime"); ok {
-					oMap.Set("startTime", convertMsToDatetime(v.(float64)))
+		if reportArg == "ufs" {
+			for key := range obj.Values() {
+				if val, ok := obj.Get(key); ok {
+					oMap := val.(orderedmap.OrderedMap)
+					if v, ok := oMap.Get("ufsCapacityBytes"); ok {
+						oMap.Set("ufsCapacityBytes", convertBytesToString(v.(float64)))
+					}
+					if v, ok := oMap.Get("ufsUsedBytes"); ok {
+						oMap.Set("ufsUsedBytes", convertBytesToString(v.(float64)))
+					}
+					obj.Set(key, oMap)
 				}
-				item = oMap
 			}
 		}
-		if val, ok := obj.Get("longestRunningJobs"); ok {
-			for _, item := range val.([]interface{}) {
-				oMap := item.(orderedmap.OrderedMap)
-				if v, ok := oMap.Get("timestamp"); ok {
-					oMap.Set("timestamp", convertMsToDatetime(v.(float64)))
+
+		if reportArg == "jobservice" {
+			if val, ok := obj.Get("masterStatus"); ok {
+				for _, item := range val.([]interface{}) {
+					oMap := item.(orderedmap.OrderedMap)
+					if v, ok := oMap.Get("startTime"); ok {
+						oMap.Set("startTime", convertMsToDatetime(v.(float64)))
+					}
+					item = oMap
 				}
-				item = oMap
 			}
-		}
-		if val, ok := obj.Get("recentFailedJobs"); ok {
-			for _, item := range val.([]interface{}) {
-				oMap := item.(orderedmap.OrderedMap)
-				if v, ok := oMap.Get("timestamp"); ok {
-					oMap.Set("timestamp", convertMsToDatetime(v.(float64)))
+			if val, ok := obj.Get("longestRunningJobs"); ok {
+				for _, item := range val.([]interface{}) {
+					oMap := item.(orderedmap.OrderedMap)
+					if v, ok := oMap.Get("timestamp"); ok {
+						oMap.Set("timestamp", convertMsToDatetime(v.(float64)))
+					}
+					item = oMap
 				}
-				item = oMap
 			}
-		}
-		if val, ok := obj.Get("recentModifiedJobs"); ok {
-			for _, item := range val.([]interface{}) {
-				oMap := item.(orderedmap.OrderedMap)
-				if v, ok := oMap.Get("timestamp"); ok {
-					oMap.Set("timestamp", convertMsToDatetime(v.(float64)))
+			if val, ok := obj.Get("recentFailedJobs"); ok {
+				for _, item := range val.([]interface{}) {
+					oMap := item.(orderedmap.OrderedMap)
+					if v, ok := oMap.Get("timestamp"); ok {
+						oMap.Set("timestamp", convertMsToDatetime(v.(float64)))
+					}
+					item = oMap
 				}
-				item = oMap
+			}
+			if val, ok := obj.Get("recentModifiedJobs"); ok {
+				for _, item := range val.([]interface{}) {
+					oMap := item.(orderedmap.OrderedMap)
+					if v, ok := oMap.Get("timestamp"); ok {
+						oMap.Set("timestamp", convertMsToDatetime(v.(float64)))
+					}
+					item = oMap
+				}
 			}
 		}
 	}
