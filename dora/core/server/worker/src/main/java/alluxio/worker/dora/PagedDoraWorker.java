@@ -206,6 +206,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         .getBoolean(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED);
   }
 
+  /**
+   * Finds the matching UFS instance for a UFS path.
+   *
+   * @param ufsUriStr the UFS path to find a UFS instance for
+   * @return the corresponding UFS instance
+   */
   @VisibleForTesting
   public UnderFileSystem getUfsInstance(String ufsUriStr) {
     AlluxioURI ufsUriUri = new AlluxioURI(ufsUriStr);
