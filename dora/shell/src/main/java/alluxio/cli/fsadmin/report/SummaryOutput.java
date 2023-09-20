@@ -11,7 +11,6 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterVersion;
 import alluxio.wire.BlockMasterInfo;
@@ -125,12 +124,12 @@ public class SummaryOutput {
 
     mTotalCapacityOnTiers = new TreeMap<>();
     Map<String, Long> totalBytesOnTiers = blockMasterInfo.getCapacityBytesOnTiers();
-    for (Map.Entry<String, Long> entry : totalBytesOnTiers.entrySet()){
+    for (Map.Entry<String, Long> entry : totalBytesOnTiers.entrySet()) {
       mTotalCapacityOnTiers.put(entry.getKey() + "Bytes", entry.getValue());
     }
     mUsedCapacityOnTiers = new TreeMap<>();
     Map<String, Long> usedBytesOnTiers = blockMasterInfo.getUsedBytesOnTiers();
-    for (Map.Entry<String, Long> entry : usedBytesOnTiers.entrySet()){
+    for (Map.Entry<String, Long> entry : usedBytesOnTiers.entrySet()) {
       mUsedCapacityOnTiers.put(entry.getKey() + "Bytes", entry.getValue());
     }
     mFreeCapacityBytes = blockMasterInfo.getFreeBytes();

@@ -155,23 +155,23 @@ public class JobServiceMetricsCommandTest {
     JsonNode recentModifiedJobs = jsonNode.get("recentModifiedJobs");
     assertEquals("2", recentModifiedJobs.get(0).get("id").asText());
     assertEquals("FAILED", recentModifiedJobs.get(0).get("status").asText());
-    assertEquals("1547699415000", recentModifiedJobs.get(0).get("timestamp").asText());
+    assertEquals("1547699415000", recentModifiedJobs.get(0).get("lastUpdatedTime").asText());
     assertEquals("Test2", recentModifiedJobs.get(0).get("name").asText());
     assertEquals("1", recentModifiedJobs.get(1).get("id").asText());
     assertEquals("RUNNING", recentModifiedJobs.get(1).get("status").asText());
-    assertEquals("1547697600000", recentModifiedJobs.get(1).get("timestamp").asText());
+    assertEquals("1547697600000", recentModifiedJobs.get(1).get("lastUpdatedTime").asText());
     assertEquals("Test1", recentModifiedJobs.get(1).get("name").asText());
 
     JsonNode recentFailedJobs = jsonNode.get("recentFailedJobs");
     assertEquals("2", recentFailedJobs.get(0).get("id").asText());
     assertEquals("FAILED", recentFailedJobs.get(0).get("status").asText());
-    assertEquals("1547699415000", recentFailedJobs.get(0).get("timestamp").asText());
+    assertEquals("1547699415000", recentFailedJobs.get(0).get("lastUpdatedTime").asText());
     assertEquals("Test2", recentFailedJobs.get(0).get("name").asText());
 
     JsonNode longestRunningJobs = jsonNode.get("longestRunningJobs");
     assertEquals("1", longestRunningJobs.get(0).get("id").asText());
     assertEquals("RUNNING", longestRunningJobs.get(0).get("status").asText());
-    assertEquals("1547697600000", longestRunningJobs.get(0).get("timestamp").asText());
+    assertEquals("1547697600000", longestRunningJobs.get(0).get("lastUpdatedTime").asText());
     assertEquals("Test1", longestRunningJobs.get(0).get("name").asText());
   }
 }

@@ -185,8 +185,8 @@ public class SummaryCommandTest {
     assertEquals("1231", jsonNode.get("webPort").asText());
     assertEquals("8462", jsonNode.get("rpcPort").asText());
     assertEquals("testVersion", jsonNode.get("version").asText());
-    assertEquals("1131242343122", jsonNode.get("started").asText());
-    assertEquals("12412412312", jsonNode.get("uptime").asText());
+    assertEquals("1131242343122", jsonNode.get("startTime").asText());
+    assertEquals("12412412312", jsonNode.get("uptimeDuration").asText());
     assertEquals("false", jsonNode.get("safeMode").asText());
 
     // check zookeeper and raft
@@ -215,12 +215,12 @@ public class SummaryCommandTest {
     // check worker
     assertEquals("12", jsonNode.get("liveWorkers").asText());
     assertEquals("4", jsonNode.get("lostWorkers").asText());
-    assertEquals("1278919", jsonNode.get("freeCapacity").asText());
-    assertEquals("236501", jsonNode.get("totalCapacityOnTiers").get("DOM").asText());
-    assertEquals("1341353", jsonNode.get("totalCapacityOnTiers").get("MEM").asText());
-    assertEquals("23112", jsonNode.get("totalCapacityOnTiers").get("RAM").asText());
-    assertEquals("74235", jsonNode.get("usedCapacityOnTiers").get("DOM").asText());
-    assertEquals("62434", jsonNode.get("usedCapacityOnTiers").get("MEM").asText());
-    assertEquals("6243", jsonNode.get("usedCapacityOnTiers").get("RAM").asText());
+    assertEquals("1278919", jsonNode.get("freeCapacityBytes").asText());
+    assertEquals("236501", jsonNode.get("totalCapacityOnTiers").get("DOMBytes").asText());
+    assertEquals("1341353", jsonNode.get("totalCapacityOnTiers").get("MEMBytes").asText());
+    assertEquals("23112", jsonNode.get("totalCapacityOnTiers").get("RAMBytes").asText());
+    assertEquals("74235", jsonNode.get("usedCapacityOnTiers").get("DOMBytes").asText());
+    assertEquals("62434", jsonNode.get("usedCapacityOnTiers").get("MEMBytes").asText());
+    assertEquals("6243", jsonNode.get("usedCapacityOnTiers").get("RAMBytes").asText());
   }
 }
