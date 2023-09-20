@@ -71,6 +71,7 @@ public class ObjectMultipartUploader implements MultipartUploader {
   @Override
   public void startUpload() throws IOException {
     mUploadId = mUfs.initMultiPart(mPath, MultipartUfsOptions.defaultOption());
+    LOG.warn("init MPU for {}, upload id is {}", mPath, mUploadId);
   }
 
   @Override
@@ -117,9 +118,10 @@ public class ObjectMultipartUploader implements MultipartUploader {
     // If there is no upload task, it means the file is empty.
     // Just create an empty file and set up the permissions in this case.
     if (mUploadTasks.isEmpty()) {
-      mUfs.createEmptyObject(mPath);
       //TODO(wyy) get content hash
-      LOG.debug("Object store ufs multipart upload finished for {}", mPath);
+      mUfs.createEmptyObject(mPath);
+      abort();
+      LOG.warn("Object store ufs multipart upload finished for {}", mPath);
       return;
     }
 

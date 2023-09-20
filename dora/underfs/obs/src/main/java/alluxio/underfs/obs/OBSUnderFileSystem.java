@@ -28,6 +28,7 @@ import alluxio.underfs.options.ListMultiPartOptions;
 import alluxio.underfs.options.MultipartUfsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.underfs.response.ListMultipartUploadResult;
+import alluxio.underfs.response.MultipartUploadInfo;
 import alluxio.underfs.response.PartSummaryInfo;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -39,6 +40,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.obs.services.ObsClient;
 import com.obs.services.exception.ObsException;
+import com.obs.services.internal.utils.ServiceUtils;
 import com.obs.services.model.AbortMultipartUploadRequest;
 import com.obs.services.model.CompleteMultipartUploadRequest;
 import com.obs.services.model.DeleteObjectsRequest;
@@ -47,6 +49,8 @@ import com.obs.services.model.InitiateMultipartUploadRequest;
 import com.obs.services.model.KeyAndVersion;
 import com.obs.services.model.ListMultipartUploadsRequest;
 import com.obs.services.model.ListObjectsRequest;
+import com.obs.services.model.ListPartsRequest;
+import com.obs.services.model.ListPartsResult;
 import com.obs.services.model.MultipartUpload;
 import com.obs.services.model.MultipartUploadListing;
 import com.obs.services.model.ObjectListing;
@@ -551,13 +555,63 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected List<PartSummaryInfo> listParts(String key, String uploadId,
                                             MultipartUfsOptions options) throws IOException {
-    return super.listParts(key, uploadId, options);
+    try {
+      ListPartsRequest request = new ListPartsRequest(mBucketName, key, uploadId);
+      ListPartsResult result = mClient.listParts(request);
+      List<PartSummaryInfo> partList = result.getMultipartList().stream().map(
+          part -> new PartSummaryInfo(part.getPartNumber(),
+              ServiceUtils.formatIso8601Date(part.getLastModified()), part.getEtag(),
+              part.getSize())).collect(Collectors.toList());
+      return partList;
+    } catch (ObsException e) {
+      LOG.debug("failed to list part.", e);
+      throw new IOException(
+          String.format("failed to list the part of multi part upload, key: %s, upload id: %s",
+              key, uploadId) + e);
+    }
   }
 
   @Override
   public ListMultipartUploadResult listMultipartUploads(ListMultiPartOptions options)
       throws IOException {
-    return super.listMultipartUploads(options);
+    ListMultipartUploadsRequest request = new ListMultipartUploadsRequest(mBucketName);
+    if (options.getPrefix() != null) {
+      request.setPrefix(stripPrefixIfPresent(options.getPrefix()));
+    }
+    if (options.getDelimiter() != null) {
+      request.setDelimiter(options.getDelimiter());
+    }
+    if (options.getKeyMarker() != null) {
+      request.setKeyMarker(stripPrefixIfPresent(options.getKeyMarker()));
+    }
+    if (options.getUploadIdMarker() != null) {
+      request.setUploadIdMarker(options.getUploadIdMarker());
+    }
+    if (options.getMaxUploads() >= 0) {
+      request.setMaxUploads(options.getMaxUploads());
+    }
+    try {
+      MultipartUploadListing result = mClient.listMultipartUploads(request);
+      List<MultipartUploadInfo> uploadInfoList = result.getMultipartTaskList().stream().map(
+              task -> new MultipartUploadInfo(
+                  Constants.HEADER_S3 + mBucketName + "/" + task.getObjectKey(), task.getUploadId(),
+                  ServiceUtils.formatIso8601Date(task.getInitiatedDate())))
+          .collect(Collectors.toList());
+      ListMultipartUploadResult listResult = new ListMultipartUploadResult(uploadInfoList);
+      listResult.setPrefix(result.getPrefix());
+      listResult.setDelimiter(result.getDelimiter());
+      listResult.setMaxUploads(result.getMaxUploads());
+      listResult.setTruncated(result.isTruncated());
+      listResult.setKeyMarker(Constants.HEADER_S3 + mBucketName + "/" + result.getKeyMarker());
+      listResult.setUploadIdMarker(result.getUploadIdMarker());
+      listResult.setNextKeyMarker(
+          Constants.HEADER_S3 + mBucketName + "/" + result.getNextKeyMarker());
+      listResult.setNextUploadIdMarker(result.getNextUploadIdMarker());
+      return listResult;
+    } catch (ObsException e) {
+      LOG.debug("failed to list multi part upload", e);
+      throw new IOException("failed to list multi part upload task.");
+    }
   }
 
   @Override

@@ -28,6 +28,7 @@ import alluxio.underfs.options.ListMultiPartOptions;
 import alluxio.underfs.options.MultipartUfsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.underfs.response.ListMultipartUploadResult;
+import alluxio.underfs.response.MultipartUploadInfo;
 import alluxio.underfs.response.PartSummaryInfo;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -40,6 +41,7 @@ import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.OSSException;
 import com.aliyun.oss.ServiceException;
 import com.aliyun.oss.common.comm.Protocol;
+import com.aliyun.oss.common.utils.DateUtil;
 import com.aliyun.oss.internal.Mimetypes;
 import com.aliyun.oss.model.AbortMultipartUploadRequest;
 import com.aliyun.oss.model.CompleteMultipartUploadRequest;
@@ -48,13 +50,16 @@ import com.aliyun.oss.model.DeleteObjectsResult;
 import com.aliyun.oss.model.InitiateMultipartUploadRequest;
 import com.aliyun.oss.model.ListMultipartUploadsRequest;
 import com.aliyun.oss.model.ListObjectsRequest;
+import com.aliyun.oss.model.ListPartsRequest;
 import com.aliyun.oss.model.MultipartUpload;
 import com.aliyun.oss.model.MultipartUploadListing;
 import com.aliyun.oss.model.OSSObjectSummary;
 import com.aliyun.oss.model.ObjectListing;
 import com.aliyun.oss.model.ObjectMetadata;
 import com.aliyun.oss.model.PartETag;
+import com.aliyun.oss.model.PartListing;
 import com.aliyun.oss.model.UploadPartRequest;
+import com.amazonaws.AmazonClientException;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -71,6 +76,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -529,13 +535,58 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected List<PartSummaryInfo> listParts(String key, String uploadId,
                                             MultipartUfsOptions options) throws IOException {
-    return super.listParts(key, uploadId, options);
+    try {
+      ListPartsRequest request = new ListPartsRequest(mBucketName, key, uploadId);
+      PartListing result = mClient.listParts(request);
+      List<PartSummaryInfo> partList = result.getParts().stream().map(
+          part -> new PartSummaryInfo(part.getPartNumber(),
+              DateUtil.formatIso8601Date(part.getLastModified()), part.getETag(),
+              part.getSize())).collect(Collectors.toList());
+      return partList;
+    } catch (OSSException | ClientException e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
   public ListMultipartUploadResult listMultipartUploads(ListMultiPartOptions options)
       throws IOException {
-    return super.listMultipartUploads(options);
+    ListMultipartUploadsRequest request = new ListMultipartUploadsRequest(mBucketName);
+    if (options.getPrefix() != null) {
+      request.setPrefix(stripPrefixIfPresent(options.getPrefix()));
+    }
+    if (options.getDelimiter() != null) {
+      request.setDelimiter(options.getDelimiter());
+    }
+    if (options.getKeyMarker() != null) {
+      request.setKeyMarker(stripPrefixIfPresent(options.getKeyMarker()));
+    }
+    if (options.getUploadIdMarker() != null) {
+      request.setUploadIdMarker(options.getUploadIdMarker());
+    }
+    if (options.getMaxUploads() >= 0) {
+      request.setMaxUploads(options.getMaxUploads());
+    }
+    try {
+      MultipartUploadListing result = mClient.listMultipartUploads(request);
+      List<MultipartUploadInfo> uploadInfoList = result.getMultipartUploads().stream().map(
+              task -> new MultipartUploadInfo(Constants.HEADER_S3 + mBucketName + "/" + task.getKey(),
+                  task.getUploadId(), DateUtil.formatIso8601Date(task.getInitiated())))
+          .collect(Collectors.toList());
+      ListMultipartUploadResult listResult = new ListMultipartUploadResult(uploadInfoList);
+      listResult.setPrefix(result.getPrefix());
+      listResult.setDelimiter(result.getDelimiter());
+      listResult.setMaxUploads(result.getMaxUploads());
+      listResult.setTruncated(result.isTruncated());
+      listResult.setKeyMarker(Constants.HEADER_S3 + mBucketName + "/" + result.getKeyMarker());
+      listResult.setUploadIdMarker(result.getUploadIdMarker());
+      listResult.setNextKeyMarker(
+          Constants.HEADER_S3 + mBucketName + "/" + result.getNextKeyMarker());
+      listResult.setNextUploadIdMarker(result.getNextUploadIdMarker());
+      return listResult;
+    } catch (OSSException | ClientException e) {
+      throw new IOException(e);
+    }
   }
 
   @Override

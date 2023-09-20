@@ -26,6 +26,7 @@ import alluxio.underfs.options.ListMultiPartOptions;
 import alluxio.underfs.options.MultipartUfsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.underfs.response.ListMultipartUploadResult;
+import alluxio.underfs.response.MultipartUploadInfo;
 import alluxio.underfs.response.PartSummaryInfo;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -47,12 +48,17 @@ import com.qcloud.cos.model.CompleteMultipartUploadRequest;
 import com.qcloud.cos.model.DeleteObjectsRequest;
 import com.qcloud.cos.model.DeleteObjectsResult;
 import com.qcloud.cos.model.InitiateMultipartUploadRequest;
+import com.qcloud.cos.model.ListMultipartUploadsRequest;
 import com.qcloud.cos.model.ListObjectsRequest;
+import com.qcloud.cos.model.ListPartsRequest;
+import com.qcloud.cos.model.MultipartUploadListing;
 import com.qcloud.cos.model.ObjectListing;
 import com.qcloud.cos.model.ObjectMetadata;
 import com.qcloud.cos.model.PartETag;
+import com.qcloud.cos.model.PartListing;
 import com.qcloud.cos.model.UploadPartRequest;
 import com.qcloud.cos.region.Region;
+import com.qcloud.cos.utils.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -184,7 +190,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
-    if (mUfsConf.getBoolean(PropertyKey.UNDERFS_OBS_STREAMING_UPLOAD_ENABLED)) {
+    if (mUfsConf.getBoolean(PropertyKey.UNDERFS_COS_STREAMING_UPLOAD_ENABLED)) {
       ObjectMultipartUploader multipartUploader =
           new ObjectMultipartUploader(key, this, mMultipartUploadExecutor.get());
       return new ObjectLowLevelOutputStream(mBucketName, key, multipartUploader, mUfsConf);
@@ -428,13 +434,58 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected List<PartSummaryInfo> listParts(String key, String uploadId,
                                             MultipartUfsOptions options) throws IOException {
-    return super.listParts(key, uploadId, options);
+    try {
+      ListPartsRequest request = new ListPartsRequest(mBucketName, key, uploadId);
+      PartListing result = mClient.listParts(request);
+      List<PartSummaryInfo> partList = result.getParts().stream().map(
+          part -> new PartSummaryInfo(part.getPartNumber(),
+              DateUtils.formatISO8601Date(part.getLastModified()), part.getETag(),
+              part.getSize())).collect(Collectors.toList());
+      return partList;
+    } catch (CosClientException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   @Override
   public ListMultipartUploadResult listMultipartUploads(ListMultiPartOptions options)
       throws IOException {
-    return super.listMultipartUploads(options);
+    ListMultipartUploadsRequest request = new ListMultipartUploadsRequest(mBucketName);
+    if (options.getPrefix() != null) {
+      request.setPrefix(stripPrefixIfPresent(options.getPrefix()));
+    }
+    if (options.getDelimiter() != null) {
+      request.setDelimiter(options.getDelimiter());
+    }
+    if (options.getKeyMarker() != null) {
+      request.setKeyMarker(stripPrefixIfPresent(options.getKeyMarker()));
+    }
+    if (options.getUploadIdMarker() != null) {
+      request.setUploadIdMarker(options.getUploadIdMarker());
+    }
+    if (options.getMaxUploads() >= 0) {
+      request.setMaxUploads(options.getMaxUploads());
+    }
+    try {
+      MultipartUploadListing result = mClient.listMultipartUploads(request);
+      List<MultipartUploadInfo> uploadInfoList = result.getMultipartUploads().stream().map(
+              task -> new MultipartUploadInfo(Constants.HEADER_S3 + mBucketName + "/" + task.getKey(),
+                  task.getUploadId(), DateUtils.formatISO8601Date(task.getInitiated())))
+          .collect(Collectors.toList());
+      ListMultipartUploadResult listResult = new ListMultipartUploadResult(uploadInfoList);
+      listResult.setPrefix(result.getPrefix());
+      listResult.setDelimiter(result.getDelimiter());
+      listResult.setMaxUploads(result.getMaxUploads());
+      listResult.setTruncated(result.isTruncated());
+      listResult.setKeyMarker(Constants.HEADER_S3 + mBucketName + "/" + result.getKeyMarker());
+      listResult.setUploadIdMarker(result.getUploadIdMarker());
+      listResult.setNextKeyMarker(
+          Constants.HEADER_S3 + mBucketName + "/" + result.getNextKeyMarker());
+      listResult.setNextUploadIdMarker(result.getNextUploadIdMarker());
+      return listResult;
+    } catch (CosClientException e) {
+      throw new IOException(e.getMessage());
+    }
   }
 
   @Override

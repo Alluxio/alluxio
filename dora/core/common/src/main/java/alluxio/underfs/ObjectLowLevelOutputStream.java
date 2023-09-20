@@ -116,9 +116,6 @@ public class ObjectLowLevelOutputStream extends OutputStream
    * so that object storage knows the part sequence to concatenate the parts to a single object.
    */
   private final AtomicInteger mPartNumber;
-//
-//  /** Whether the multi upload has been initialized. */
-//  private boolean mMultiPartUploadInitialized = false;
 
   private final ObjectMultipartUploader mMultipartUploader;
 
@@ -145,11 +142,6 @@ public class ObjectLowLevelOutputStream extends OutputStream
         ufsConf.getBytes(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE);
     mPartitionSize = Math.max(UPLOAD_THRESHOLD, streamingUploadPartitionSize);
     mPartNumber = new AtomicInteger(1);
-//    if (ufsConf.isSet(PropertyKey.UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT)) {
-//      mUploadPartTimeoutMills =
-//          ufsConf.getDuration(PropertyKey.UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT)
-//              .toMillis();
-//    }
     mMultipartUploader = multipartUploader;
     try {
       mMultipartUploader.startUpload();
@@ -193,9 +185,6 @@ public class ObjectLowLevelOutputStream extends OutputStream
 
   @Override
   public void flush() throws IOException {
-//    if (!mMultiPartUploadInitialized) {
-//      return;
-//    }
     // We try to minimize the time use to close()
     // because Fuse release() method which calls close() is async.
     // In flush(), we upload the current writing file if it is bigger than 5 MB,
@@ -218,33 +207,13 @@ public class ObjectLowLevelOutputStream extends OutputStream
     // Set the closed flag, we never retry close() even if exception occurs
     mClosed = true;
 
-//    // Multi-part upload has not been initialized
-//    if (!mMultiPartUploadInitialized) {
-//      if (mFile == null) {
-//        LOG.debug("Streaming upload output stream closed without uploading any data.");
-//        RetryUtils.retry("put empty object for key" + mKey, mMultipartUploader::complete,
-//            mRetryPolicy.get());
-//      } else {
-//        try {
-//          mLocalOutputStream.close();
-//          final String md5 = mHash != null ? Base64.encodeBase64String(mHash.digest()) : null;
-//          RetryUtils.retry("put object for key" + mKey, () -> putObject(mKey, mFile, md5),
-//              mRetryPolicy.get());
-//        } finally {
-//          if (!mFile.delete()) {
-//            LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
-//          }
-//        }
-//      }
-//      return;
-//    }
-
     try {
 
       if (mFile == null) {
         LOG.debug("Streaming upload output stream closed without uploading any data.");
         RetryUtils.retry("put empty object for key" + mKey, mMultipartUploader::complete,
             mRetryPolicy.get());
+        return;
       } else {
         mLocalOutputStream.close();
         int partNumber = mPartNumber.getAndIncrement();
@@ -279,11 +248,6 @@ public class ObjectLowLevelOutputStream extends OutputStream
     if (mFile == null) {
       return;
     }
-//    if (!mMultiPartUploadInitialized) {
-//      RetryUtils.retry("init multipart upload", mMultipartUploader::startUpload,
-//          mRetryPolicy.get());
-//      mMultiPartUploadInitialized = true;
-//    }
     mLocalOutputStream.close();
     int partNumber = mPartNumber.getAndIncrement();
     File partFile = new File(mFile.getPath());
