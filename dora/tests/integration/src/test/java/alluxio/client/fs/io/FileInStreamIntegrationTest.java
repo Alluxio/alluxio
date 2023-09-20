@@ -427,8 +427,6 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  // @LocalAlluxioClusterResource.Config(
-      // confParams = {PropertyKey.Name.USER_FILE_SEQUENTIAL_PREAD_THRESHOLD, "700KB"})
   public void positionedReadWithLargeThreshold() throws Exception {
     List<CreateFilePOptions> optionSet = new ArrayList<>(2);
     optionSet.add(mWriteBoth);
@@ -448,8 +446,6 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  // @LocalAlluxioClusterResource.Config(
-  //     confParams = {PropertyKey.Name.USER_FILE_SEQUENTIAL_PREAD_THRESHOLD, "200KB"})
   public void positionedReadWithSmallThreshold() throws Exception {
     List<CreateFilePOptions> optionSet = new ArrayList<>(2);
     optionSet.add(mWriteBoth);
