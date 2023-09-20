@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>304-SNAPSHOT</version>
+    <version>305-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-shell</artifactId>
   <packaging>jar</packaging>
@@ -38,6 +38,11 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java-util</artifactId>
+      <version>${protobuf.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>
@@ -82,7 +87,6 @@
       <groupId>org.jline</groupId>
       <artifactId>jline</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>

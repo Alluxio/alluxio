@@ -294,7 +294,7 @@ func parseMenuUrl(menuPath string) (map[string]struct{}, error) {
 	}
 	menuMap := map[string]struct{}{}
 	var errMsgs []string
-	checkAndSaveUrl(ret, menuMap, errMsgs)
+	errMsgs = checkAndSaveUrl(ret, menuMap, errMsgs)
 	if len(errMsgs) > 0 {
 		return nil, fmt.Errorf("encountered errors parsing %v:\n%v", menuPath, strings.Join(errMsgs, "\n"))
 	}
@@ -302,7 +302,7 @@ func parseMenuUrl(menuPath string) (map[string]struct{}, error) {
 }
 
 // recursion function for more levels of docs
-func checkAndSaveUrl(files []File, menuMap map[string]struct{}, errMsgs []string) {
+func checkAndSaveUrl(files []File, menuMap map[string]struct{}, errMsgs []string) []string {
 	for _, file := range files {
 		// if buttonTitle have whitespace, the button for list-nav-item in html will not expand
 		if strings.ContainsAny(file.ButtonTitle, " \t\n\r") {
@@ -316,7 +316,7 @@ func checkAndSaveUrl(files []File, menuMap map[string]struct{}, errMsgs []string
 			// ignore the folder path
 			if subfile.URL == "" {
 				//recall the function until subfile.subFiles is empty
-				checkAndSaveUrl(subfile.Subfiles, menuMap, errMsgs)
+				errMsgs = checkAndSaveUrl(subfile.Subfiles, menuMap, errMsgs)
 				continue
 			}
 			// replace the url ending to .md in order to compare with actually list of docs in directory of docs
@@ -324,6 +324,7 @@ func checkAndSaveUrl(files []File, menuMap map[string]struct{}, errMsgs []string
 			menuMap[subfilePath] = struct{}{}
 		}
 	}
+	return errMsgs
 }
 
 // Check menu.yml URLs should match exactly with list of all markdown doc files

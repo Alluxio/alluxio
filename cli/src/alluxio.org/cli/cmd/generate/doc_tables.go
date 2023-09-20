@@ -19,26 +19,26 @@ import (
 	"alluxio.org/cli/env"
 )
 
-var Docs = &DocsCommand{
+var DocTables = &DocTablesCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "docs",
+		CommandName:   "doc-tables",
 		JavaClassName: "alluxio.cli.DocGenerator",
 		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
 	},
 }
 
-type DocsCommand struct {
+type DocTablesCommand struct {
 	*env.BaseJavaCommand
 }
 
-func (c *DocsCommand) Base() *env.BaseJavaCommand {
+func (c *DocTablesCommand) Base() *env.BaseJavaCommand {
 	return c.BaseJavaCommand
 }
 
-func (c *DocsCommand) ToCommand() *cobra.Command {
+func (c *DocTablesCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   Docs.CommandName,
-		Short: "Generate docs automatically.",
+		Use:   DocTables.CommandName,
+		Short: "Generate configuration and metric tables used in documentation",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
@@ -47,6 +47,6 @@ func (c *DocsCommand) ToCommand() *cobra.Command {
 	return cmd
 }
 
-func (c *DocsCommand) Run(args []string) error {
+func (c *DocTablesCommand) Run(args []string) error {
 	return c.Base().Run(args)
 }

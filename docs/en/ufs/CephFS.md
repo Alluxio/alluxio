@@ -72,6 +72,12 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 $ cp conf/core-site.xml.template conf/core-site.xml
 ```
 
+Set the following property to define CephFS as the root mount
+
+```properties
+alluxio.dora.client.ufs.root=cephfs://mon1\;mon2\;mon3/
+```
+
 {% navtabs Setup %}
 {% navtab cephfs %}
 
@@ -148,20 +154,15 @@ Modify `conf/core-site.xml` to include:
 
 Once you have configured Alluxio to CephFS, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
 
-{% navtabs Test %}
-{% navtab cephfs %}
-
-Issue the following command to use the ufs cephfs:
-
 ```shell
-$ ./bin/alluxio fs mkdir /mnt/cephfs
-$ ./bin/alluxio fs mount /mnt/cephfs cephfs://mon1\;mon2\;mon3/
+$ ./bin/alluxio init format
+$ ./bin/alluxio process start local
 ```
 
 Run a simple example program:
 
 ```shell
-$ ./bin/alluxio runTests --path cephfs://mon1\;mon2\;mon3/
+$ ./bin/alluxio exec basicIOTest
 ```
 
 Visit your cephfs to verify the files and directories created by Alluxio exist. You should see files named like:
@@ -176,38 +177,6 @@ In Alluxio, you can visit the nested directory in the Alluxio. Alluxio's [Comman
 ```
 /mnt/cephfs/default_tests_files/Basic_CACHE_THROUGH
 ```
-
-{% endnavtab %}
-{% navtab cephfs-hadoop %}
-
-Issue the following command to use the ufs cephfs-hadoop:
-
-```shell
-$ ./bin/alluxio fs mkdir /mnt/cephfs-hadoop
-$ ./bin/alluxio fs mount /mnt/cephfs-hadoop cephfs://mon1\;mon2\;mon3/
-```
-
-Run a simple example program:
-
-```shell
-$ ./bin/alluxio runTests --path cephfs://mon1\;mon2\;mon3/
-```
-
-Visit your cephfs-hadoop to verify the files and directories created by Alluxio exist. You should see files named like:
-
-```
-${cephfs-hadoop-dir}/default_tests_files/Basic_CACHE_THROUGH
-```
-In cephfs, you can visit cephfs with ceph-fuse or mount by POSIX APIs. [Mounting CephFS](https://docs.ceph.com/en/latest/cephfs/#mounting-cephfs){:target="_blank"}
-
-In Alluxio, you can visit the nested directory in the Alluxio. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
-
-```
-/mnt/cephfs-hadoop/default_tests_files/Basic_CACHE_THROUGH
-```
-
-{% endnavtab %}
-{% endnavtabs %}
 
 ## Contributed by the Alluxio Community
 

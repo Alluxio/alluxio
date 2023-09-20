@@ -12,6 +12,8 @@
 package alluxio.master.scheduler;
 
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.DefaultFileSystemMaster;
@@ -37,6 +39,8 @@ public class JournaledJobMetaStore implements JobMetaStore, Journaled {
   private static final Logger LOG = LoggerFactory.getLogger(JournaledJobMetaStore.class);
   private final DefaultFileSystemMaster mFileSystemMaster;
   private final Set<Job<?>> mExistingJobs = new ConcurrentHashSet<>();
+  private static final boolean RESTORE_JOB_FROM_JOURNAL = Configuration.getBoolean(
+      PropertyKey.MASTER_SCHEDULER_RESTORE_JOB_FROM_JOURNAL);
 
   /**
    * Creates a new instance of {@link JournaledJobMetaStore}.
@@ -55,6 +59,9 @@ public class JournaledJobMetaStore implements JobMetaStore, Journaled {
 
   @Override
   public boolean processJournalEntry(Journal.JournalEntry entry) {
+    if (!RESTORE_JOB_FROM_JOURNAL) {
+      return false;
+    }
     if (!entry.hasLoadJob() && !entry.hasCopyJob() && !entry.hasMoveJob()) {
       return false;
     }

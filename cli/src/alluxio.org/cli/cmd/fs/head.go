@@ -41,12 +41,16 @@ func (c *HeadCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   "head [path]",
 		Short: "Print the leading bytes from the specified file",
-		Args:  cobra.ExactArgs(1),
+		Long: `The head command prints the first 1KB of data of a file to the shell.
+Specifying the -c flag sets the number of bytes to print.`,
+		Example: `# Print first 2048 bytes of a file
+$ ./bin/alluxio fs head -c 2048 /output/part-00000`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().StringVar(&c.bytes, "bytes", "", "Byte size to print")
+	cmd.Flags().StringVarP(&c.bytes, "bytes", "c", "", "Byte size to print")
 	return cmd
 }
 

@@ -36,6 +36,7 @@ type LoadCommand struct {
 	verify         bool
 	partialListing bool
 	metadataOnly   bool
+	skipIfExists   bool
 }
 
 func (c *LoadCommand) Base() *env.BaseJavaCommand {
@@ -46,7 +47,27 @@ func (c *LoadCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Load.CommandName,
 		Short: "Submit or manage load jobs",
-		Args:  cobra.NoArgs,
+		Long: `The load command moves data from the under storage system into Alluxio storage.
+For example, load can be used to prefetch data for analytics jobs.
+If load is run on a directory, files in the directory will be recursively loaded.`,
+		Example: `# Submit a load job
+$ ./bin/alluxio job load --path /path --submit
+
+# View the progress of a submitted job
+$ ./bin/alluxio job load --path /path --progress
+# Example output
+Progress for loading path '/path':
+        Settings:       bandwidth: unlimited    verify: false
+        Job State: SUCCEEDED
+        Files Processed: 1000
+        Bytes Loaded: 125.00MB
+        Throughput: 2509.80KB/s
+        Block load failure rate: 0.00%
+        Files Failed: 0
+
+# Stop a submitted job
+$ ./bin/alluxio job load --path /path --stop`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
@@ -60,6 +81,7 @@ func (c *LoadCommand) ToCommand() *cobra.Command {
 	cmd.Flags().BoolVar(&c.verify, "verify", false, "[submit] Run verification when load finishes and load new files if any")
 	cmd.Flags().BoolVar(&c.partialListing, "partial-listing", false, "[submit] Use partial directory listing, initializing load before reading the entire directory but cannot report on certain progress details")
 	cmd.Flags().BoolVar(&c.metadataOnly, "metadata-only", false, "[submit] Only load file metadata")
+	cmd.Flags().BoolVar(&c.skipIfExists, "skip-if-exists", false, "[submit] Skip existing fullly cached files")
 	return cmd
 }
 
@@ -78,6 +100,9 @@ func (c *LoadCommand) Run(_ []string) error {
 	}
 	if c.metadataOnly {
 		javaArgs = append(javaArgs, "--metadata-only")
+	}
+	if c.skipIfExists {
+		javaArgs = append(javaArgs, "--skip-if-exists")
 	}
 	return c.Base().Run(javaArgs)
 }

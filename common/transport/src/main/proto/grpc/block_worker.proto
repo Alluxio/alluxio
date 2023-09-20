@@ -242,6 +242,7 @@ message LoadFileRequest {
   repeated UfsStatus ufs_status = 1;
   required UfsReadOptions options = 2;
   optional bool load_metadata_only = 3; // If set false, only the metadata of file will be loaded.
+  optional bool skip_if_exists = 4;
 }
 
 message File{
@@ -255,6 +256,8 @@ message File{
 message LoadFileResponse {
   required TaskStatus status = 1;
   repeated LoadFileFailure failures = 2;
+  optional int32 files_skipped = 3;
+  optional int64 bytes_skipped = 4;
 }
 
 message FreeWorkerRequest{}

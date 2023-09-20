@@ -230,7 +230,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   // Get next chunk of listing result.
-  private StorageObjectsChunk getObjectListingChunk(String key, String delimiter,
+  protected StorageObjectsChunk getObjectListingChunk(String key, String delimiter,
       String priorLastKey) {
     StorageObjectsChunk res;
     try {

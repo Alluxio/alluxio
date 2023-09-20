@@ -12,7 +12,6 @@
 package alluxio.client.file.dora;
 
 import static com.google.common.hash.Hashing.murmur3_32_fixed;
-import static java.lang.Math.ceil;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -241,9 +240,8 @@ public class ConsistentHashProvider {
           List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
     Preconditions.checkArgument(!workerInfos.isEmpty(), "worker list is empty");
     NavigableMap<Integer, BlockWorkerInfo> activeNodesByConsistentHashing = new TreeMap<>();
-    int weight = (int) ceil(1.0 * numVirtualNodes / workerInfos.size());
     for (BlockWorkerInfo workerInfo : workerInfos) {
-      for (int i = 0; i < weight; i++) {
+      for (int i = 0; i < numVirtualNodes; i++) {
         activeNodesByConsistentHashing.put(
             HASH_FUNCTION.hashString(format("%s%d", workerInfo.getNetAddress().dumpMainInfo(), i),
                 UTF_8).asInt(),

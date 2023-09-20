@@ -35,6 +35,8 @@
                 url: /en/deploy/Software-Requirements.html
               - title: Install Alluxio Cluster with HA
                 url: /en/deploy/Install-Alluxio-Cluster-with-HA.html
+    - title: Install Alluxio on Docker
+      url: /en/deploy/Install-Alluxio-Cluster-with-Docker.html
   
 - title: Compute Integrations
   buttonTitle: Compute_Integrations

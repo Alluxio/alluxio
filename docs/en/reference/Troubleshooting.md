@@ -59,7 +59,7 @@ export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,sus
 export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60000"
 ```
 
-After setting this parameter, you can add the `-debug` flag to start a debug server such as `bin/alluxio fs -debug ls /`.
+After setting this parameter, you can add the `-debug` flag to start a debug server such as `bin/alluxio fs ls / --attach-debug`.
 
 After completing this setup, learn how [to attach](#to-attach).
 
@@ -91,19 +91,19 @@ Then all the tarballs will be bundled into the final tarball, which contains all
 You should ALWAYS CHECK what is in the tarball and REMOVE the sensitive information from the tarball before sharing it with someone!
 
 ### Collect Alluxio cluster information
-`collectAlluxioInfo` will run a set of Alluxio commands that collect information about the Alluxio cluster, like `bin/alluxio fsadmin report` etc.
+`collectAlluxioInfo` will run a set of Alluxio commands that collect information about the Alluxio cluster, like `bin/alluxio info report` etc.
 When the Alluxio cluster is not running, this command will fail to collect some information.
-This sub-command will run both `alluxio getConf` which collects local configuration properties, 
-and `alluxio getConf --master --source` which prints configuration properties that are received from the master.
+This sub-command will run both `bin/alluxio conf get` which collects local configuration properties,
+and `bin/alluxio conf get --master --source` which prints configuration properties that are received from the master.
 Both of them mask credential properties. The difference is the latter command fails if the Alluxio cluster is not up. 
 
 ### Collect Alluxio configuration files
 `collectConfig` will collect all the configuration files under `${alluxio.work.dir}/conf`.
 From Alluxio 2.4, the `alluxio-site.properties` file will not be copied,
 as many users tend to put their plaintext credentials to the UFS in this file.
-Instead, the `collectAlluxioInfo` will run a `alluxio getConf` command
+Instead, the `collectAlluxioInfo` will run a `alluxio conf get` command
 which prints all the configuration properties, with the credential fields masked.
-The [getConf command]({{ '/en/operation/User-CLI.html#getconf' | relativize_url }}) will collect all the current node configuration.
+The [conf get command]({{ '/en/operation/User-CLI.html#conf-get' | relativize_url }}) will collect all the current node configuration.
 
 So in order to collect Alluxio configuration in the tarball,
 please make sure `collectAlluxioInfo` sub-command is run.
@@ -140,19 +140,39 @@ like `-Daws.access.key=XXX`, DO NOT share the collected tarball with anybody unl
 The `collectInfo` command has the below options.
 
 ```shell
-$ bin/alluxio collectInfo 
-    [--max-threads <threadNum>] 
-    [--local] 
-    [--help]
-    [--additional-logs <filename-prefixes>] 
-    [--exclude-logs <filename-prefixes>] 
-    [--include-logs <filename-prefixes>] 
-    [--start-time <datetime>] 
-    [--end-time <datetime>]
-    COMMAND <outputPath>
+Collects information such as logs, config, metrics, and more from the running Alluxio cluster and bundle into a single tarball
+[command] must be one of the following values:
+  all      runs all the commands below
+  cluster: runs a set of Alluxio commands to collect information about the Alluxio cluster
+  conf:    collects the configuration files under ${ALLUXIO_HOME}/config/
+  env:     runs a set of linux commands to collect information about the cluster
+  jvm:     collects jstack from the JVMs
+  log:     collects the log files under ${ALLUXIO_HOME}/logs/
+  metrics: collects Alluxio system metrics
+
+WARNING: This command MAY bundle credentials. To understand the risks refer to the docs here.
+https://docs.alluxio.io/os/user/edge/en/operation/Troubleshooting.html#collect-alluxio-cluster-information
+
+Usage:
+  bin/alluxio info collect [command] [flags]
+
+Flags:
+      --additional-logs strings   Additional file name prefixes from ${ALLUXIO_HOME}/logs to include in the tarball, inclusive of the default log files
+      --attach-debug              True to attach debug opts specified by $ALLUXIO_USER_ATTACH_OPTS
+      --end-time string           Logs that do not contain entries before this time will be ignored, format must be like 2006-01-02T15:04:05
+      --exclude-logs strings      File name prefixes from ${ALLUXIO_HOME}/logs to exclude; this is evaluated after adding files from --additional-logs
+      --exclude-worker-metrics    True to skip worker metrics collection
+  -h, --help                      help for collect
+      --include-logs strings      File name prefixes from ${ALLUXIO_HOME}/logs to include in the tarball, ignoring the default log files; cannot be used with --exclude-logs or --additional-logs
+  -D, --java-opts strings         Alluxio properties to apply, ex. -Dkey=value
+      --local                     True to only collect information from the local machine
+      --max-threads int           Parallelism of the command; use a smaller value to limit network I/O when transferring tarballs (default 1)
+      --output-dir string         Output directory to write collect info tarball to
+      --start-time string         Logs that do not contain entries after this time will be ignored, format must be like 2006-01-02T15:04:05
+
 ```
 
-`<outputPath>` is the directory you want the final tarball to be written into.
+`--output-dir` is a required flag, specifying the directory to write the final tarball to.
 
 Options:
 1. `--max-threads threadNum` option configures how many threads to use for concurrently collecting information and transmitting tarballs.

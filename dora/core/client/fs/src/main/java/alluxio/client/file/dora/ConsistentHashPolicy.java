@@ -46,7 +46,7 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
    * @param conf the configuration used by the policy
    */
   public ConsistentHashPolicy(AlluxioConfiguration conf) {
-    mNumVirtualNodes = conf.getInt(PropertyKey.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT);
+    mNumVirtualNodes = conf.getInt(PropertyKey.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER);
   }
 
   @Override
