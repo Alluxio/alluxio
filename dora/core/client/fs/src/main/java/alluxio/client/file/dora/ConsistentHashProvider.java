@@ -12,7 +12,6 @@
 package alluxio.client.file.dora;
 
 import static com.google.common.hash.Hashing.murmur3_32_fixed;
-import static java.lang.Math.ceil;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
