@@ -112,7 +112,7 @@ public abstract class AbstractUfsManager implements UfsManager {
    * return it.
    *
    * @param ufsUri  the UFS path
-//   * @param ufsConf the UFS configuration
+   * @param ufsConfSupplier supplier for UFS configuration
    * @return the UFS instance
    */
   public UnderFileSystem getOrAdd(AlluxioURI ufsUri,
@@ -127,7 +127,7 @@ public abstract class AbstractUfsManager implements UfsManager {
    * return it and record the execution process.
    *
    * @param ufsUri the UFS path
-//   * @param ufsConf the UFS configuration
+   * @param ufsConfSupplier supplier for UFS configuration
    * @param recorder recorder used to record the detailed execution process
    * @return the UFS instance
    */
@@ -145,14 +145,14 @@ public abstract class AbstractUfsManager implements UfsManager {
   // On cache miss, synchronize the creation to ensure ufs is only created once
   private synchronized UnderFileSystem add(Key key, AlluxioURI ufsUri,
        Supplier<UnderFileSystemConfiguration> ufsConfSupplier, Recorder recorder) {
-    LOG.info("Adding UFS instance on request to {}", ufsUri);
+    LOG.debug("Creating UFS instance on request to {}", ufsUri);
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
       recorder.record("Using cached instance of UFS {} identified by key {}",
           cachedFs.getClass().getSimpleName(), key.toString());
       return cachedFs;
     }
-    LOG.info("Generating specific conf set for UFS {}://{}", key.mScheme, key.mAuthority);
+    LOG.debug("Generating specific conf set for UFS {}://{}", key.mScheme, key.mAuthority);
     UnderFileSystemConfiguration ufsConf = ufsConfSupplier.get();
     UnderFileSystem fs = UnderFileSystem.Factory.createWithRecorder(
         ufsUri.toString(), ufsConf, recorder);
@@ -230,7 +230,6 @@ public abstract class AbstractUfsManager implements UfsManager {
    * Gets an instance for the given UFS URI and configuration, if such exists.
    *
    * @param ufsUri the URI of the UFS
-//   * @param ufsConf the configuration for the UFS
    * @return a UFS instance, or none if not registered
    */
   public Optional<UnderFileSystem> get(AlluxioURI ufsUri) {

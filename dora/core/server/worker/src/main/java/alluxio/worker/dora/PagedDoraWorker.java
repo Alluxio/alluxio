@@ -140,13 +140,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final AtomicReference<Long> mWorkerId;
   protected final CacheManager mCacheManager;
   protected final DoraUfsManager mUfsManager;
-  protected DoraMetaManager mMetaManager;
+  private DoraMetaManager mMetaManager;
   private final MembershipManager mMembershipManager;
   private final UfsInputStreamCache mUfsStreamCache;
   private final long mPageSize;
-  protected final AlluxioConfiguration mConf;
+  private final AlluxioConfiguration mConf;
   private final BlockMasterClientPool mBlockMasterClientPool;
-  protected FileSystemContext mFsContext;
+  private FileSystemContext mFsContext;
   private MkdirsOptions mMkdirsRecursive;
   private MkdirsOptions mMkdirsNonRecursive;
 
@@ -168,13 +168,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       @Named("workerId") AtomicReference<Long> workerId,
       AlluxioConfiguration conf,
       CacheManager cacheManager,
-      MembershipManager membershipManager,
-      DoraUfsManager ufsManager,
-      DoraMetaManager metaManager,
-      FileSystemContext fileSystemContext
+      MembershipManager membershipManager
   ) {
-    this(workerId, conf, cacheManager, membershipManager, ufsManager, metaManager,
-            new BlockMasterClientPool(), fileSystemContext);
+    this(workerId, conf, cacheManager, membershipManager, new BlockMasterClientPool(),
+        FileSystemContext.create(conf));
   }
 
   protected PagedDoraWorker(
@@ -182,27 +179,23 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       AlluxioConfiguration conf,
       CacheManager cacheManager,
       MembershipManager membershipManager,
-      DoraUfsManager ufsManager,
-      DoraMetaManager metaManager,
       BlockMasterClientPool blockMasterClientPool,
       FileSystemContext fileSystemContext) {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
     mWorkerId = workerId;
     mConf = conf;
+    mUfsManager = mResourceCloser.register(new DoraUfsManager());
+    String rootUFS = mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
+    mUfsManager.getOrAdd(new AlluxioURI(rootUFS),
+        () -> UnderFileSystemConfiguration.defaults(mConf));
     mFsContext = mResourceCloser.register(fileSystemContext);
     mUfsStreamCache = new UfsInputStreamCache();
 
     mPageSize = mConf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
     mBlockMasterClientPool = blockMasterClientPool;
     mCacheManager = cacheManager;
-    // TODO(jiacheng): use dep injection for UfsManager and DoraMetaManager
-    mUfsManager = mResourceCloser.register(ufsManager);
-    String rootUFS = mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
-    mUfsManager.getOrAdd(new AlluxioURI(rootUFS),
-            () -> UnderFileSystemConfiguration.defaults(mConf));
-//    mMetaManager = mResourceCloser.register(
-//        new DoraMetaManager(mConf, this, mCacheManager, mUfsManager));
-    mMetaManager = mResourceCloser.register(metaManager);
+    mMetaManager = mResourceCloser.register(
+        new DoraMetaManager(mConf, this, mCacheManager, mUfsManager));
     mMembershipManager = membershipManager;
     mOpenFileHandleContainer = new DoraOpenFileHandleContainer();
 
@@ -445,13 +438,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @param ufsFullPath
    * @return a FileInfo
    */
-  // TODO(jiacheng): move this static method elsewhere
-  public static alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(Optional<CacheUsage> cacheUsage, String ufsType, UfsStatus status, String ufsFullPath) {
-//    UnderFileSystem ufs = getUfsInstance(ufsFullPath);
+  public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath) {
+    UnderFileSystem ufs = getUfsInstance(ufsFullPath);
     String filename = new AlluxioURI(ufsFullPath).getName();
 
     alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
-        .setUfsType(ufsType)
+        .setUfsType(ufs.getUnderFSType())
         .setFileId(ufsFullPath.hashCode())
         .setName(filename)
         .setPath(ufsFullPath)
@@ -474,7 +466,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
       // get cached percentage
       String cacheManagerFileId = new AlluxioURI(ufsFullPath).hash();
-      final long bytesInCache = cacheUsage
+      final long bytesInCache = mCacheManager.getUsage()
           .flatMap(usage -> usage.partitionedBy(file(cacheManagerFileId)))
           .map(CacheUsage::used).orElse(0L);
       final long fileLength = fileStatus.getContentLength();
@@ -498,9 +490,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @param ufsFullPath the full ufs path
    * @return the file status
    */
-  public static DoraMeta.FileStatus buildFileStatusFromUfsStatus(Optional<CacheUsage> cacheUsage, String ufsType, UfsStatus status, String ufsFullPath) {
+  public DoraMeta.FileStatus buildFileStatusFromUfsStatus(UfsStatus status, String ufsFullPath) {
     return DoraMeta.FileStatus.newBuilder()
-        .setFileInfo(buildFileInfoFromUfsStatus(cacheUsage, ufsType, status, ufsFullPath))
+        .setFileInfo(buildFileInfoFromUfsStatus(status, ufsFullPath))
         .setTs(System.nanoTime())
         .build();
   }
@@ -544,9 +536,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     AtomicLong skippedFileLength = new AtomicLong();
     for (UfsStatus status : ufsStatuses) {
       String ufsFullPath = status.getUfsFullPath().toString();
-      DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(
-              mCacheManager.getUsage(),
-              getUfsInstance(ufsFullPath).getUnderFSType(), status, ufsFullPath);
+      DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath);
       Optional<DoraMeta.FileStatus> originalFs = mMetaManager.getFromMetaStore(ufsFullPath);
       mMetaManager.put(ufsFullPath, fs);
       // We use the ufs status sent from master to construct the file metadata,
@@ -762,7 +752,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   public OpenFileHandle createFile(String path, CreateFilePOptions options)
       throws AccessControlException, IOException {
     UnderFileSystem ufs = getUfsInstance(path);
-    LOG.info("Got UFS instance for createFile path {}", path);
     // TODO(yuyang): Lock is needed.
     alluxio.grpc.FileInfo info;
     OpenFileHandle existingHandle = mOpenFileHandleContainer.find(path);
@@ -811,18 +800,16 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                                 group,
                                 createOption.getMode().toShort(),
                                 DUMMY_BLOCK_SIZE);
-      info = buildFileInfoFromUfsStatus(mCacheManager.getUsage(), getUfsInstance(path).getUnderFSType(), status, path);
+      info = buildFileInfoFromUfsStatus(status, path);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
 
     OutputStream outStream;
     if (mClientWriteToUFSEnabled) {
-      LOG.info("Writing directly to UFS, not through worker");
       // client is writing directly to UFS. Worker does not write to UFS.
       outStream = null;
     } else {
-      LOG.info("Writing through worker to UFS");
       outStream = ufs.create(path, createOption);
     }
 
@@ -1015,10 +1002,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @VisibleForTesting
   DoraMetaManager getMetaManager() {
     return mMetaManager;
-  }
-
-  public Optional<CacheUsage> getCacheUsage() {
-    return mCacheManager.getUsage();
   }
 
   protected void checkCopyPermission(String srcPath, String dstPath)
