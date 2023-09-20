@@ -233,7 +233,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
         // the list status do not include xattr now. GetAttr will cause some additional overhead.
         // And not every request requires the Xattr. Now only get file xattr in GetStatus.
         alluxio.grpc.FileInfo fi =
-            ((PagedDoraWorker) mWorker).buildFileInfoFromUfsStatus(status, ufsFullPath, null);
+            ((PagedDoraWorker) mWorker).buildFileInfoFromUfsStatus(((PagedDoraWorker) mWorker).getCacheUsage(), status, ufsFullPath, null);
 
         builder.addFileInfos(fi);
         if (builder.getFileInfosCount() == LIST_STATUS_BATCH_SIZE) {

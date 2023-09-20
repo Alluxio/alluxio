@@ -36,6 +36,8 @@ import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+
 import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -54,7 +56,7 @@ public class DoraMetaManager implements Closeable {
   private final AlluxioConfiguration mConf;
   private final DoraMetaStore mMetaStore;
   private final CacheManager mCacheManager;
-  private final PagedDoraWorker mDoraWorker;
+//  private final PagedDoraWorker mDoraWorker;
   protected final DoraUfsManager mUfsManager;
 
   private static final Logger SAMPLING_LOG = new SamplingLogger(
@@ -77,12 +79,13 @@ public class DoraMetaManager implements Closeable {
   /**
    * Creates a dora meta manager.
    * @param conf configuration
-   * @param doraWorker the dora worker instance
+//   * @param doraWorker the dora worker instance
    * @param cacheManger the cache manager to manage the page cache
    * @param ufsManager the ufs Manager
    */
+  @Inject
   public DoraMetaManager(AlluxioConfiguration conf,
-      PagedDoraWorker doraWorker, CacheManager cacheManger,
+      CacheManager cacheManger,
       DoraUfsManager ufsManager) {
     mConf = conf;
     String dbDir = mConf.getString(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR);
@@ -90,7 +93,6 @@ public class DoraMetaManager implements Closeable {
     long ttl = (duration.isNegative() || duration.isZero()) ? -1 : duration.getSeconds();
     mMetaStore = new RocksDBDoraMetaStore(dbDir, ttl);
     mCacheManager = cacheManger;
-    mDoraWorker = doraWorker;
     mUfsManager = ufsManager;
   }
 
@@ -98,7 +100,7 @@ public class DoraMetaManager implements Closeable {
     AlluxioURI ufsUriUri = new AlluxioURI(ufsUriStr);
     try {
       UnderFileSystem ufs = mUfsManager.getOrAdd(ufsUriUri,
-          () -> UnderFileSystemConfiguration.defaults(mConf));
+              () -> UnderFileSystemConfiguration.defaults(mConf));
       return ufs;
     } catch (Exception e) {
       LOG.debug("failed to get UFS instance for URI {}", ufsUriStr, e);
@@ -116,11 +118,13 @@ public class DoraMetaManager implements Closeable {
       UnderFileSystem ufs = getUfsInstance(path);
       UfsStatus status = ufs.getStatus(path,
           GetStatusOptions.defaults().setIncludeRealContentHash(mGetRealContentHash));
+      // TODO(jiacheng): do not keep a worker ref here?
+//      DoraMeta.FileStatus fs = mDoraWorker.buildFileStatusFromUfsStatus(status, path);
       Map<String, String> xattrMap = null;
       if (mXAttrWriteToUFSEnabled) {
         xattrMap = ufs.getAttributes(path);
       }
-      DoraMeta.FileStatus fs = mDoraWorker.buildFileStatusFromUfsStatus(status, path, xattrMap);
+      DoraMeta.FileStatus fs = PagedDoraWorker.buildFileStatusFromUfsStatus(mCacheManager.getUsage(), ufs.getUnderFSType(), status, path, xattrMap);
       return Optional.ofNullable(fs);
     } catch (FileNotFoundException e) {
       return Optional.empty();
