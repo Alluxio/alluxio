@@ -82,6 +82,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey())
           .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
           .setNumWorkers(2)
+          .setProperty(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED, false)
           .setStartCluster(false);
 
   private static final String TEST_BUCKET = "test-bucket";

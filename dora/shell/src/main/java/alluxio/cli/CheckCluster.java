@@ -35,7 +35,15 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * Example to show the basic operations of Alluxio.
+ * In this test, we cover all workers by performing the following steps:
+ * 1. We initialize a test directory in Alluxio's distributed file system.
+ * 2. We assign files to different block workers based on a policy (e.g., consistent hashing).
+ * 3. We verify the assignments and content of the files.
+ * 4. If a worker fails during the test, we add it to the list of FAILED_WORKER.
+ * 5. At the end of the test, this method prints information about all the failed workers,
+ *    including their hostname, port, available space, and capacity.
+ * This allows us to analyze which workers encountered issues during the test and get insights
+ * into their resource availability and capacity.
  */
 public final class CheckCluster {
   // Constants should be all uppercase with underscores
@@ -89,7 +97,6 @@ public final class CheckCluster {
   }
 
   private static void handleException(Exception e) {
-    e.printStackTrace();
     System.out.println("Exception details: " + e.getMessage());
   }
 
@@ -198,39 +205,71 @@ public final class CheckCluster {
     System.out.println("\nTotal workers: " + totalWorkers);
     System.out.println(ANSI_GREEN + "Successful workers: " + successfulWorkers + ANSI_RESET);
     System.out.println(ANSI_RED + "Failed workers: " + failedWorkers + ANSI_RESET);
+    if (failedWorkers == 0) {
+      return;
+    }
+    System.out.println("\nList of failed workers:");
 
-    if (!FAILED_WORKER.isEmpty()) {
-      System.out.println(ANSI_RED + "\nList of failed workers:" + ANSI_RESET);
-      for (BlockWorkerInfo failedWorker : FAILED_WORKER) {
-        System.out.println("Failed worker capacity and port:");
-        System.out.println(ANSI_RED + "Capacity:" + failedWorker.getCapacityBytes() + " Port:"
-            + failedWorker.getNetAddress().getRpcPort() + ANSI_RESET);
-      }
+    for (BlockWorkerInfo failedWorker : FAILED_WORKER) {
+      String hostname = failedWorker.getNetAddress().getHost();
+      int port = failedWorker.getNetAddress().getRpcPort();
+      long availableSpace = failedWorker.getCapacityBytes() - failedWorker.getUsedBytes();
+      long capacity = failedWorker.getCapacityBytes();
+
+      String workerInfo =
+          String.format("[%s:%d] Available space %d/%d", hostname, port, availableSpace, capacity);
+      System.out.println(workerInfo);
     }
   }
 
   private static void runTestWithCaching(FileSystem fs) throws Exception {
     AlluxioURI testDir = initializeTestDirectory(fs);
-    HashMap<BlockWorkerInfo, AlluxioURI> workerMap = assignToWorkers(fs, testDir, false);
-    verifyFileAssignments(fs, workerMap, false);
-    for (Map.Entry<BlockWorkerInfo, AlluxioURI> entry : workerMap.entrySet()) {
-      verifyFileContent(fs, entry.getValue());
+    try {
+      HashMap<BlockWorkerInfo, AlluxioURI> workerMap = assignToWorkers(fs, testDir, false);
+      verifyFileAssignments(fs, workerMap, false);
+      for (Map.Entry<BlockWorkerInfo, AlluxioURI> entry : workerMap.entrySet()) {
+        verifyFileContent(fs, entry.getValue());
+      }
+      System.out.println("Test with CACHE_THROUGH write type");
+      printInfo();
+    } catch (Exception e) {
+      System.out.println("Exception occurred during cache through test.");
+      handleException(e);
+    } finally {
+      // Clean up the test directory and its contents
+      try {
+        fs.delete(testDir, DeletePOptions.newBuilder().setRecursive(true).build());
+      } catch (Exception e) {
+        System.out.println("Failed to clean up the test directory.");
+        handleException(e);
+      }
     }
-    System.out.println("cache through test");
-    printInfo();
   }
 
   private static void runTestWithoutCaching(FileSystem fs, FileSystemContext fsContext)
       throws Exception {
-    System.out.println("through test");
+    System.out.println("Test with THROUGH write type");
     FAILED_WORKER.clear();
     sWorkerInfoList = fsContext.getCachedWorkers();
     AlluxioURI testDir = initializeTestDirectory(fs);
-    HashMap<BlockWorkerInfo, AlluxioURI> workerMap = assignToWorkers(fs, testDir, true);
-    verifyFileAssignments(fs, workerMap, true);
-    for (Map.Entry<BlockWorkerInfo, AlluxioURI> entry : workerMap.entrySet()) {
-      verifyFileContent(fs, entry.getValue());
+    try {
+      HashMap<BlockWorkerInfo, AlluxioURI> workerMap = assignToWorkers(fs, testDir, true);
+      verifyFileAssignments(fs, workerMap, true);
+      for (Map.Entry<BlockWorkerInfo, AlluxioURI> entry : workerMap.entrySet()) {
+        verifyFileContent(fs, entry.getValue());
+      }
+      printInfo();
+    } catch (Exception e) {
+      System.out.println("Exception occurred during through test.");
+      handleException(e);
+    } finally {
+      // Clean up the test directory and its contents
+      try {
+        fs.delete(testDir, DeletePOptions.newBuilder().setRecursive(true).build());
+      } catch (Exception e) {
+        System.out.println("Failed to clean up the test directory.");
+        handleException(e);
+      }
     }
-    printInfo();
   }
 }
