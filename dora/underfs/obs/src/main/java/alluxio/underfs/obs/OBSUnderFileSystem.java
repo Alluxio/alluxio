@@ -193,7 +193,11 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public void setObjectTagging(String path, String name, String value) throws IOException {
+    ObjectMetadata metadata = mClient.getObjectMetadata(mBucketName, path);
     SetObjectMetadataRequest request = new SetObjectMetadataRequest(mBucketName, path);
+    for (Map.Entry<String, Object> meta : metadata.getMetadata().entrySet()) {
+      request.addUserMetadata(meta.getKey(), String.valueOf(meta.getValue()));
+    }
     request.addUserMetadata(name, value);
     mClient.setObjectMetadata(request);
   }
