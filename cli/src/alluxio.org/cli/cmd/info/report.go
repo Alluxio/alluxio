@@ -99,92 +99,19 @@ func (c *ReportCommand) Run(args []string) error {
 	}
 
 	obj := orderedmap.New()
-	if err := json.Unmarshal(buf.Bytes(), &obj); err != nil {
+	if err := obj.UnmarshalJSON(buf.Bytes()); err != nil {
 		return stacktrace.Propagate(err, "error unmarshalling json from java command")
 	}
 
 	if c.readable {
-		if reportArg == "summary" {
-			if val, ok := obj.Get("freeCapacity"); ok {
-				obj.Set("freeCapacity", convertBytesToString(val.(float64)))
-			}
-			if val, ok := obj.Get("started"); ok {
-				obj.Set("started", convertMsToDatetime(val.(float64)))
-			}
-			if val, ok := obj.Get("uptime"); ok {
-				obj.Set("uptime", convertMsToDuration(val.(float64)))
-			}
-			if val, ok := obj.Get("totalCapacityOnTiers"); ok {
-				oMap := val.(orderedmap.OrderedMap)
-				for key := range oMap.Values() {
-					if val, ok := oMap.Get(key); ok {
-						oMap.Set(key, convertBytesToString(val.(float64)))
-					}
-				}
-			}
-			if val, ok := obj.Get("usedCapacityOnTiers"); ok {
-				oMap := val.(orderedmap.OrderedMap)
-				for key := range oMap.Values() {
-					if val, ok := oMap.Get(key); ok {
-						oMap.Set(key, convertBytesToString(val.(float64)))
-					}
-				}
+		newObj := orderedmap.New()
+		for _, key := range obj.Keys() {
+			if val, ok := obj.Get(key); ok {
+				k, v := processKeyValuePair(key, val)
+				newObj.Set(k, v)
 			}
 		}
-
-		if reportArg == "ufs" {
-			for key := range obj.Values() {
-				if val, ok := obj.Get(key); ok {
-					oMap := val.(orderedmap.OrderedMap)
-					if v, ok := oMap.Get("ufsCapacityBytes"); ok {
-						oMap.Set("ufsCapacityBytes", convertBytesToString(v.(float64)))
-					}
-					if v, ok := oMap.Get("ufsUsedBytes"); ok {
-						oMap.Set("ufsUsedBytes", convertBytesToString(v.(float64)))
-					}
-					obj.Set(key, oMap)
-				}
-			}
-		}
-
-		if reportArg == "jobservice" {
-			if val, ok := obj.Get("masterStatus"); ok {
-				for _, item := range val.([]interface{}) {
-					oMap := item.(orderedmap.OrderedMap)
-					if v, ok := oMap.Get("startTime"); ok {
-						oMap.Set("startTime", convertMsToDatetime(v.(float64)))
-					}
-					item = oMap
-				}
-			}
-			if val, ok := obj.Get("longestRunningJobs"); ok {
-				for _, item := range val.([]interface{}) {
-					oMap := item.(orderedmap.OrderedMap)
-					if v, ok := oMap.Get("timestamp"); ok {
-						oMap.Set("timestamp", convertMsToDatetime(v.(float64)))
-					}
-					item = oMap
-				}
-			}
-			if val, ok := obj.Get("recentFailedJobs"); ok {
-				for _, item := range val.([]interface{}) {
-					oMap := item.(orderedmap.OrderedMap)
-					if v, ok := oMap.Get("timestamp"); ok {
-						oMap.Set("timestamp", convertMsToDatetime(v.(float64)))
-					}
-					item = oMap
-				}
-			}
-			if val, ok := obj.Get("recentModifiedJobs"); ok {
-				for _, item := range val.([]interface{}) {
-					oMap := item.(orderedmap.OrderedMap)
-					if v, ok := oMap.Get("timestamp"); ok {
-						oMap.Set("timestamp", convertMsToDatetime(v.(float64)))
-					}
-					item = oMap
-				}
-			}
-		}
+		obj = newObj
 	}
 
 	prettyJson, err := json.MarshalIndent(obj, "", "    ")
@@ -222,4 +149,37 @@ func convertBytesToString(bytes float64) string {
 	size := strconv.FormatFloat(value, 'f', 2, 64)
 	suffixes := []string{"B", "KB", "MB", "GB", "TB", "PB"}
 	return size + suffixes[exp]
+}
+
+func processKeyValuePair(key string, data interface{}) (string, interface{}) {
+	switch value := data.(type) {
+	case float64:
+		if strings.HasSuffix(key, "Time") {
+			return strings.TrimSuffix(key, "Time"), convertMsToDatetime(value)
+		} else if strings.HasSuffix(key, "Duration") {
+			return strings.TrimSuffix(key, "Duration"), convertMsToDuration(value)
+		} else if strings.HasSuffix(key, "Bytes") {
+			return strings.TrimSuffix(key, "Bytes"), convertBytesToString(value)
+		} else {
+			return key, value
+		}
+	case []interface{}:
+		array := make([]interface{}, 0)
+		for _, item := range value {
+			_, processedItem := processKeyValuePair(key, item)
+			array = append(array, processedItem)
+		}
+		return key, array
+	case orderedmap.OrderedMap:
+		processedMap := orderedmap.New()
+		for _, key := range value.Keys() {
+			if val, ok := value.Get(key); ok {
+				k, v := processKeyValuePair(key, val)
+				processedMap.Set(k, v)
+			}
+		}
+		return key, processedMap
+	default:
+		return key, value
+	}
 }
