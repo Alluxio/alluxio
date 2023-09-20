@@ -143,6 +143,16 @@ public final class BlockMasterClientServiceHandler
   }
 
   @Override
+  public void getLostWorkerList(GetWorkerInfoListPOptions options,
+                                StreamObserver<GetWorkerInfoListPResponse> responseObserver) {
+    RpcUtils.call(LOG,
+        () -> GetWorkerInfoListPResponse.newBuilder()
+            .addAllWorkerInfos(mBlockMaster.getLostWorkersInfoList()
+                .stream().map(GrpcUtils::toProto).collect(Collectors.toList())).build(),
+        "GetLostWorkerList", "options=%s", responseObserver, options);
+  }
+
+  @Override
   public void removeDisabledWorker(RemoveDisabledWorkerPOptions options,
        StreamObserver<RemoveDisabledWorkerPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {

@@ -60,6 +60,13 @@ public interface BlockMasterClient extends Client {
   List<WorkerInfo> getWorkerInfoList() throws IOException;
 
   /**
+   * Gets the worker information of lost workers.
+   *
+   * @return a list of lost worker information
+   */
+  List<WorkerInfo> getLostWorkerInfoList() throws IOException;
+
+  /**
    * Revert disabling a worker, enabling it to register to the cluster.
    *
    * @param options contains the info used to find the target worker(s)
