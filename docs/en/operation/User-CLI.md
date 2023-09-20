@@ -806,6 +806,13 @@ $ ./bin/alluxio job load --path /path --stop
 ## journal
 Journal related operations
 
+### journal checkpoint
+Usage: `bin/alluxio journal checkpoint`
+
+The checkpoint command creates a checkpoint the local Alluxio master's journal.
+This command is mainly used for debugging and to avoid master journal logs from growing unbounded.
+Checkpointing requires a pause in master metadata changes, so use this command sparingly to avoid interfering with other users of the system.
+
 ### journal format
 Usage: `bin/alluxio journal format`
 
