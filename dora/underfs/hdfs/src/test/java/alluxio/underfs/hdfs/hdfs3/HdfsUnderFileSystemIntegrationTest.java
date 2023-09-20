@@ -12,6 +12,7 @@
 package alluxio.underfs.hdfs.hdfs3;
 
 import static junit.framework.TestCase.assertEquals;
+
 import org.junit.Test;
 
 import java.io.IOException;
