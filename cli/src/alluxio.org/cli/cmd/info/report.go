@@ -43,7 +43,7 @@ const (
 
 type ReportCommand struct {
 	*env.BaseJavaCommand
-	readable bool
+	raw bool
 }
 
 func (c *ReportCommand) Base() *env.BaseJavaCommand {
@@ -68,8 +68,8 @@ Defaults to summary if no arg is provided
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().BoolVar(&c.readable, "readable", false,
-		"Determine whether to use human-readable format for bytes, datetime, and duration.")
+	cmd.Flags().BoolVar(&c.raw, "raw", false,
+		"Output raw JSON data instead of human-readable format for bytes, datetime, and duration.")
 	return cmd
 }
 
@@ -103,7 +103,7 @@ func (c *ReportCommand) Run(args []string) error {
 		return stacktrace.Propagate(err, "error unmarshalling json from java command")
 	}
 
-	if c.readable {
+	if !c.raw {
 		newObj := orderedmap.New()
 		for _, key := range obj.Keys() {
 			if val, ok := obj.Get(key); ok {
