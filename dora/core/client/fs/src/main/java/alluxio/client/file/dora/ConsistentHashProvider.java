@@ -241,9 +241,8 @@ public class ConsistentHashProvider {
           List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
     Preconditions.checkArgument(!workerInfos.isEmpty(), "worker list is empty");
     NavigableMap<Integer, BlockWorkerInfo> activeNodesByConsistentHashing = new TreeMap<>();
-    int weight = (int) ceil(1.0 * numVirtualNodes / workerInfos.size());
     for (BlockWorkerInfo workerInfo : workerInfos) {
-      for (int i = 0; i < weight; i++) {
+      for (int i = 0; i < numVirtualNodes; i++) {
         activeNodesByConsistentHashing.put(
             HASH_FUNCTION.hashString(format("%s%d", workerInfo.getNetAddress().dumpMainInfo(), i),
                 UTF_8).asInt(),
