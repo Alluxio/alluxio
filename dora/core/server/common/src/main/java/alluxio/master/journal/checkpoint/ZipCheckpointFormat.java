@@ -26,7 +26,7 @@ public class ZipCheckpointFormat implements CheckpointFormat {
 
   @Override
   public void parseToHumanReadable(CheckpointInputStream in, PrintStream out) {
-    out.println("No human-readable string representation available. Use bin/alluxio readJournal "
+    out.println("No human-readable string representation available. Use bin/alluxio journal read "
         + "to inspect the checkpoint");
   }
 

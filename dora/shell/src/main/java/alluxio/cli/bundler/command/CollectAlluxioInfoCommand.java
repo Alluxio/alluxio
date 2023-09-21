@@ -60,41 +60,21 @@ public class CollectAlluxioInfoCommand extends ExecuteShellCollectInfoCommand {
 
   @Override
   protected void registerCommands() {
-    // TODO(jiacheng): a command to find lost blocks?
     // alluxio getConf will mask the credential fields
-    registerCommand("getConf",
-        new AlluxioCommand(mAlluxioPath, "getConf"), null);
-    registerCommand("getConf master",
-        new AlluxioCommand(mAlluxioPath, "getConf --master --source"), null);
-    registerCommand("fsadmin",
-        new AlluxioCommand(mAlluxioPath, "fsadmin report"), null);
+    registerCommand("conf",
+        new AlluxioCommand(mAlluxioPath, "conf get"), null);
+    registerCommand("conf master",
+        new AlluxioCommand(mAlluxioPath, "conf get --master --source"), null);
+    registerCommand("report",
+        new AlluxioCommand(mAlluxioPath, "info report"), null);
     registerCommand("mount",
-        new AlluxioCommand(mAlluxioPath, "fs mount"), null);
+        new AlluxioCommand(mAlluxioPath, "mount show"), null);
     registerCommand("version",
-        new AlluxioCommand(mAlluxioPath, "version -r"), null);
-    registerCommand("job",
-        new AlluxioCommand(mAlluxioPath, "job ls"), null);
-    registerCommand("journal",
-        new AlluxioCommand(mAlluxioPath, String.format("fs ls -R %s",
-            mFsContext.getClusterConf().get(PropertyKey.MASTER_JOURNAL_FOLDER))),
-        getListJournalCommand());
-    registerCommand("runTests",
-        new AlluxioCommand(mAlluxioPath, "runTests"), null);
-    registerCommand("validateConf",
-        new AlluxioCommand(mAlluxioPath, "validateConf"), null);
-  }
-
-  /**
-   * Determine how to list the journal based on the type of UFS.
-   * TODO(jiacheng): phase 2 support smarter detection
-   * */
-  private ShellCommand getListJournalCommand() {
-    String journalPath = mFsContext.getClusterConf().getString(PropertyKey.MASTER_JOURNAL_FOLDER);
-    if (journalPath.startsWith("hdfs:")) {
-      return new ShellCommand(new String[]{"hdfs", "dfs", "-ls", "-R", journalPath});
-    } else {
-      return new ShellCommand(new String[]{"ls", "-al", "-R", journalPath});
-    }
+        new AlluxioCommand(mAlluxioPath, "info version"), null);
+    registerCommand("basicIOTests",
+        new AlluxioCommand(mAlluxioPath, "exec basicIOTest"), null);
+    registerCommand("init validate conf",
+            new AlluxioCommand(mAlluxioPath, "init validate --type conf"), null);
   }
 
   @Override
