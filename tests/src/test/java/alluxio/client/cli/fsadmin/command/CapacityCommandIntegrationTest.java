@@ -42,8 +42,8 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
     Assert.assertTrue(lines[9].matches(
         "Worker Name {6,}State {11,}Last Heartbeat {3}Storage {7}MEM {14}Version {10}Revision *"));
     Assert.assertTrue(lines[10].contains("ACTIVE"));
-    Assert.assertTrue(lines[11].contains("capacity      " + size));
-    Assert.assertTrue(lines[12].contains("used          0B (0%)"));
+    Assert.assertTrue(lines[10].contains("capacity      " + size));
+    Assert.assertTrue(lines[11].contains("used          0B (0%)"));
   }
 
   @Test
@@ -73,8 +73,8 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
     Assert.assertTrue(lines[9].matches(
         "Worker Name {6,}State {11,}Last Heartbeat {3}Storage {7}MEM {14}Version {10}Revision *"));
     Assert.assertTrue(lines[10].contains("ACTIVE"));
-    Assert.assertTrue(lines[11].contains("capacity      " + size));
-    Assert.assertTrue(lines[12].contains("used          0B (0%)"));
+    Assert.assertTrue(lines[10].contains("capacity      " + size));
+    Assert.assertTrue(lines[11].contains("used          0B (0%)"));
   }
 
   @Test
