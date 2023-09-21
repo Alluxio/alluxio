@@ -3991,6 +3991,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + " and should be used with discretion")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.WORKER)
+          .setHidden(true)
           .build();
 
   public static final PropertyKey WORKER_KEYTAB_FILE = stringBuilder(Name.WORKER_KEYTAB_FILE)
