@@ -19,19 +19,16 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.SystemPropertyRule;
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterInquireClient;
 import alluxio.security.User;
-import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.ZookeeperAuthority;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.Closeable;
