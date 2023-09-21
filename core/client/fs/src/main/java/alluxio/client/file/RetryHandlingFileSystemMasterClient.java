@@ -230,7 +230,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     return retryRPC(() -> new URIStatus(GrpcUtils
         .fromProto(mClient.withDeadlineAfter(
                 mContext.getClusterConf().getMs(PropertyKey.WORKER_MASTER_RPC_TIMEOUT),
-                TimeUnit.MILLISECONDS).getStatus(GetStatusPRequest.newBuilder().setPath(getTransportPath(path))
+                TimeUnit.MILLISECONDS)
+                .getStatus(GetStatusPRequest.newBuilder().setPath(getTransportPath(path))
             .setOptions(options).build()).getFileInfo())),
         RPC_LOG, "GetStatus", "path=%s,options=%s", path, options);
   }
