@@ -3978,8 +3978,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .build();
   public static final PropertyKey WORKER_IDENTITY_UUID_FILE_PATH =
       stringBuilder(Name.WORKER_IDENTITY_UUID_FILE_PATH)
-          .setDescription(String.format("The path to the file containing the identity of the "
-              + "worker that would otherwise be specified by %s", Name.WORKER_IDENTITY_UUID))
+          .setDescription("The path to the file containing the identity of the "
+              + "worker specified as a UUID. This path should be readable and writable "
+              + "to the worker process. Worker instances in a "
+              + "Alluxio cluster must have different identities.")
+          .setDefaultValue("${alluxio.conf.dir}/worker_identity")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();

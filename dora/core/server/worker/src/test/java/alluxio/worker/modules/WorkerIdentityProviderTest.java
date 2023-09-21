@@ -57,14 +57,11 @@ public class WorkerIdentityProviderTest {
   public TemporaryFolder mTempFolder =
       new TemporaryFolder(AlluxioTestDirectory.ALLUXIO_TEST_DIRECTORY);
 
-  private Path mUuidFileParentFolder;
   private Path mUuidFilePath;
 
   @Before
   public void setup() throws Exception {
-    mUuidFileParentFolder = mTempFolder.newFolder().toPath();
-    mUuidFilePath = mUuidFileParentFolder
-        .resolve(WorkerIdentityProvider.WORKER_IDENTITY_FILE);
+    mUuidFilePath = mTempFolder.newFolder().toPath().resolve("worker_identity_file");
   }
 
   @Test
@@ -102,9 +99,9 @@ public class WorkerIdentityProviderTest {
   }
 
   @Test
-  public void readFromWorkingDirIfIdFilePathNotSetButFileExists() throws Exception {
+  public void readFromWorkingDirIfIdFilePathNotExplicitlySetButFileExists() throws Exception {
     AlluxioProperties props = new AlluxioProperties();
-    props.put(PropertyKey.WORK_DIR, mUuidFileParentFolder.toString(), Source.DEFAULT);
+    props.put(PropertyKey.WORKER_IDENTITY_UUID_FILE_PATH, mUuidFilePath.toString(), Source.DEFAULT);
     try (BufferedWriter fout = Files.newBufferedWriter(mUuidFilePath, StandardCharsets.UTF_8,
         StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
       fout.write(mReferenceUuid.toString());
@@ -119,10 +116,10 @@ public class WorkerIdentityProviderTest {
   @Test
   public void autoGenerateIfIdFilePathNotSetAndFileNotExists() throws Exception {
     AlluxioProperties props = new AlluxioProperties();
-    props.put(PropertyKey.WORK_DIR, mUuidFileParentFolder.toString(), Source.DEFAULT);
-    // put the identity in a file with a different name, which cannot be detected
-    Path path =
-        mUuidFileParentFolder.resolve("not_really_" + WorkerIdentityProvider.WORKER_IDENTITY_FILE);
+    props.put(PropertyKey.WORKER_IDENTITY_UUID_FILE_PATH, mUuidFilePath.toString(), Source.DEFAULT);
+    // put the identity in a file in the same directory but with a different name,
+    // which cannot be detected
+    Path path = mUuidFilePath.getParent().resolve("not_really_worker_identity");
     try (BufferedWriter fout = Files.newBufferedWriter(path, StandardCharsets.UTF_8,
         StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
       fout.write(mReferenceUuid.toString());
@@ -141,6 +138,7 @@ public class WorkerIdentityProviderTest {
     AlluxioProperties props = new AlluxioProperties();
     props.set(PropertyKey.WORKER_IDENTITY_UUID_FILE_PATH, mUuidFilePath);
     AlluxioConfiguration conf = new InstancedConfiguration(props);
+    assertFalse(Files.exists(mUuidFilePath));
     WorkerIdentityProvider provider = new WorkerIdentityProvider(conf, () -> mReferenceUuid);
     WorkerIdentity identity = provider.get();
     assertEquals(mReferenceUuid, WorkerIdentity.ParserV1.INSTANCE.toUUID(identity));

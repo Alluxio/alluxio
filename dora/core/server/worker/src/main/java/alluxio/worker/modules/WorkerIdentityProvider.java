@@ -46,7 +46,6 @@ import java.util.stream.Collectors;
  */
 public class WorkerIdentityProvider implements Provider<WorkerIdentity> {
   private static final Logger LOG = LoggerFactory.getLogger(WorkerIdentityProvider.class);
-  static final String WORKER_IDENTITY_FILE = "worker_identity";
   private final AlluxioConfiguration mConf;
   private final Supplier<UUID> mUUIDGenerator;
 
@@ -90,16 +89,8 @@ public class WorkerIdentityProvider implements Provider<WorkerIdentity> {
     }
 
     // Try loading from the identity file
-    final Path idFile;
-    if (mConf.isSet(PropertyKey.WORKER_IDENTITY_UUID_FILE_PATH)) {
-      String filePathStr = mConf.getString(PropertyKey.WORKER_IDENTITY_UUID_FILE_PATH);
-      idFile = Paths.get(filePathStr);
-    } else {
-      // user does not set the config file path, try the current working directory
-      String workDir = mConf.getString(PropertyKey.WORK_DIR);
-      Path workDirPath = Paths.get(workDir);
-      idFile = workDirPath.resolve(WORKER_IDENTITY_FILE);
-    }
+    String filePathStr = mConf.getString(PropertyKey.WORKER_IDENTITY_UUID_FILE_PATH);
+    final Path idFile = Paths.get(filePathStr);
     try (BufferedReader reader = Files.newBufferedReader(idFile)) {
       List<String> nonCommentLines = reader.lines()
           .filter(line -> !line.startsWith("#"))
