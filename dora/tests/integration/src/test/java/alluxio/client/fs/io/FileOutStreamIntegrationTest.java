@@ -28,7 +28,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerInfo;
 
 import org.junit.Assert;
