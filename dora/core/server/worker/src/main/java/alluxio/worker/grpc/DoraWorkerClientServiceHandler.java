@@ -232,7 +232,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
         UfsStatus status = statuses[i];
         String ufsFullPath = PathUtils.concatPath(request.getPath(), status.getName());
 
-        // TODO(wyy) the list statues do not include xattr now.
+        // the list statues do not include xattr now.
         alluxio.grpc.FileInfo fi =
             ((PagedDoraWorker) mWorker).buildFileInfoFromUfsStatus(status, ufsFullPath, null);
 

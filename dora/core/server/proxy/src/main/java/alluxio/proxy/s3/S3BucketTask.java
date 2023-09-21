@@ -214,6 +214,7 @@ public class S3BucketTask extends S3BaseTask {
           try {
             List<URIStatus> children = mHandler.getMetaFS().listStatus(new AlluxioURI(
                     S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR));
+            // GetListing doesn't contain the xattr info, so get status for MPU files.
             List<URIStatus> mpuList = new ArrayList<>();
             for (URIStatus status : children) {
               URIStatus filemeta = mHandler.getMetaFS().getStatus(new AlluxioURI(status.getPath()));

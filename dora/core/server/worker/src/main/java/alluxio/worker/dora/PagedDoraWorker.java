@@ -504,7 +504,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @return the file status
    */
   public DoraMeta.FileStatus buildFileStatusFromUfsStatus(UfsStatus status, String ufsFullPath,
-                                                          Map<String, String> xattrMap)
+                                                          @Nullable Map<String, String> xattrMap)
       throws IOException {
     return DoraMeta.FileStatus.newBuilder()
         .setFileInfo(buildFileInfoFromUfsStatus(status, ufsFullPath, xattrMap))

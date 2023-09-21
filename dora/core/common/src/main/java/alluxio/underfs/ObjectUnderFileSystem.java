@@ -612,9 +612,22 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
   }
 
+  /**
+   * Sets a tag to an object in the ObjectUnderFilesystem.
+   * @param path file path
+   * @param name the name of the tag
+   * @param value the value of the tag
+   * @throws IOException
+   */
   protected abstract void setObjectTagging(String path, String name, String value)
       throws IOException;
 
+  /**
+   * Gets the all tags of an object in ObjectUnderFilesystem.
+   * @param path file path
+   * @return the map contains all tags.
+   * @throws IOException
+   */
   protected abstract Map<String, String> getObjectTags(String path) throws IOException;
 
   @Override
