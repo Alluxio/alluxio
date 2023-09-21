@@ -24,6 +24,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
+import io.etcd.jetcd.ClientBuilder;
 import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.Watch;
 import io.etcd.jetcd.kv.GetResponse;
@@ -107,8 +108,15 @@ public class AlluxioEtcdClient {
         String.format("%s%s%s", BASE_PATH, MembershipManager.PATH_SEPARATOR, clusterName));
     // TODO(lucy) add more options as needed for io.etcd.jetcd.ClientBuilder
     // to control underneath grpc parameters.
-    mClient = Client.builder().endpoints(mEndpoints)
-        .build();
+    ClientBuilder jetcdClientBuilder = Client.builder().endpoints(mEndpoints);
+    if (conf.isSet(PropertyKey.ETCD_USERNAME) && conf.isSet(PropertyKey.ETCD_PASSWORD)) {
+      jetcdClientBuilder
+          .user(ByteSequence.from(
+              conf.getString(PropertyKey.ETCD_USERNAME), StandardCharsets.UTF_8))
+          .password(ByteSequence.from(
+              conf.getString(PropertyKey.ETCD_PASSWORD), StandardCharsets.UTF_8));
+    }
+    mClient = jetcdClientBuilder.build();
   }
 
   /**
