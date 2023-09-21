@@ -71,7 +71,7 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
     Assert.assertEquals("    Free Percentage: 100%", lines[7]);
     Assert.assertEquals("", lines[8]);
     Assert.assertTrue(lines[9].matches(
-            "Worker Name {6,}State {11,}Last Heartbeat {3}Storage {7}MEM {14}Version {10}Revision *"));
+        "Worker Name {6,}State {11,}Last Heartbeat {3}Storage {7}MEM {14}Version {10}Revision *"));
     Assert.assertTrue(lines[10].contains("ACTIVE"));
     Assert.assertTrue(lines[11].contains("capacity      " + size));
     Assert.assertTrue(lines[12].contains("used          0B (0%)"));
