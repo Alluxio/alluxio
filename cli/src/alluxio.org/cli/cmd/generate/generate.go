@@ -31,7 +31,7 @@ type DocsCommand struct{}
 
 func (c *DocsCommand) ToCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:   DocTables.CommandName,
+		Use:   "docs",
 		Short: "Generate all documentation files",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
