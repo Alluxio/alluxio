@@ -14,6 +14,7 @@ package alluxio.underfs.gcs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -46,16 +47,16 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "Unable to create UnderFileSystem instance:"
         + " URI path should not be null");
-
-    if (checkGCSCredentials(conf)) {
-      if (conf.getInt(PropertyKey.UNDERFS_GCS_VERSION) == GCS_VERSION_TWO) {
-        try {
-          return GCSV2UnderFileSystem.createInstance(new AlluxioURI(path), conf);
-        } catch (IOException e) {
-          LOG.error("Failed to create GCSV2UnderFileSystem.", e);
-          throw Throwables.propagate(e);
-        }
-      } else {
+    if (conf.getInt(PropertyKey.UNDERFS_GCS_VERSION) == GCS_VERSION_TWO) {
+      try {
+        return GCSV2UnderFileSystem.createInstance(new AlluxioURI(path), conf);
+      } catch (IOException e) {
+        LOG.error("Failed to create GCSV2UnderFileSystem.", e);
+        throw Throwables.propagate(e);
+      }
+    }
+    else {
+      if (checkGCSCredentials(conf)) {
         try {
           return GCSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
         } catch (ServiceException e) {
@@ -65,7 +66,7 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
       }
     }
     String err = "GCS credentials or version not available, cannot create GCS Under File System.";
-    throw Throwables.propagate(new IOException(err));
+    throw new InvalidArgumentRuntimeException(err);
   }
 
   @Override
