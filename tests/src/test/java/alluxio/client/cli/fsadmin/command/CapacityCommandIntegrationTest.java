@@ -31,7 +31,7 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
     String[] lines = output.split("\n");
     Assert.assertEquals(12, lines.length);
     Assert.assertEquals("Capacity information for all workers: ", lines[0]);
-    Assert.assertEquals("    Total vCPUs: 0", lines[1]);
+    Assert.assertEquals("    Total vCPUs: 2", lines[1]);
     Assert.assertEquals("    Total Capacity: " + size, lines[2]);
     Assert.assertEquals("        Tier: MEM  Size: " + size, lines[3]);
     Assert.assertEquals("    Used Capacity: 0B", lines[4]);
@@ -62,7 +62,7 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
     String[] lines = output.split("\n");
     Assert.assertEquals(12, lines.length);
     Assert.assertEquals("Capacity information for live workers: ", lines[0]);
-    Assert.assertEquals("    Total vCPUs: 0", lines[1]);
+    Assert.assertEquals("    Total vCPUs: 2", lines[1]);
     Assert.assertEquals("    Total Capacity: " + size, lines[2]);
     Assert.assertEquals("        Tier: MEM  Size: " + size, lines[3]);
     Assert.assertEquals("    Used Capacity: 0B", lines[4]);
