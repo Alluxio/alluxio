@@ -13,12 +13,37 @@ package generate
 
 import (
 	"alluxio.org/cli/env"
+	"github.com/palantir/stacktrace"
+	"github.com/spf13/cobra"
 )
 
 var Service = &env.Service{
 	Name:        "generate",
-	Description: "Generate docs automatically if one doesn't exist.",
+	Description: "Generate files used in documentation",
 	Commands: []env.Command{
-		Docs,
+		&DocsCommand{},
+		DocTables,
+		UserCliDoc,
 	},
+}
+
+type DocsCommand struct{}
+
+func (c *DocsCommand) ToCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "docs",
+		Short: "Generate all documentation files",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			for _, c := range []env.Command{
+				UserCliDoc,
+				DocTables,
+			} {
+				if err := c.ToCommand().RunE(cmd, args); err != nil {
+					return stacktrace.Propagate(err, "error running %v", c.ToCommand().Use)
+				}
+			}
+			return nil
+		},
+	}
 }

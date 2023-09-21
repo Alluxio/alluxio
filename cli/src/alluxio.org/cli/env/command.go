@@ -43,9 +43,14 @@ type BaseJavaCommand struct {
 	ShellJavaOpts      string   // default java opts encoded as part of the specific command
 }
 
+const (
+	AttachDebugName = "attach-debug"
+	JavaOptsName    = "java-opts"
+)
+
 func (c *BaseJavaCommand) InitRunJavaClassCmd(cmd *cobra.Command) *cobra.Command {
-	cmd.Flags().BoolVar(&c.DebugMode, "attach-debug", false, fmt.Sprintf("True to attach debug opts specified by $%v", ConfAlluxioUserAttachOpts.EnvVar))
-	cmd.Flags().StringSliceVarP(&c.InlineJavaOpts, "java-opts", "D", nil, `Alluxio properties to apply, ex. -Dkey=value`)
+	cmd.Flags().BoolVar(&c.DebugMode, AttachDebugName, false, fmt.Sprintf("True to attach debug opts specified by $%v", ConfAlluxioUserAttachOpts.EnvVar))
+	cmd.Flags().StringSliceVarP(&c.InlineJavaOpts, JavaOptsName, "D", nil, `Alluxio properties to apply, ex. -Dkey=value`)
 	return cmd
 }
 
@@ -114,7 +119,20 @@ func (c *BaseJavaCommand) RunWithIO(args []string, stdin io.Reader, stdout, stde
 func (c *BaseJavaCommand) RunAndFormat(format string, stdin io.Reader, args []string) error {
 	switch strings.ToLower(format) {
 	case "json":
-		return c.RunWithIO(args, stdin, os.Stdout, os.Stderr)
+		buf := &bytes.Buffer{}
+		if err := c.RunWithIO(args, stdin, buf, os.Stderr); err != nil {
+			io.Copy(os.Stdout, buf)
+			return err
+		}
+		var obj json.RawMessage
+		if err := json.Unmarshal(buf.Bytes(), &obj); err != nil {
+			return stacktrace.Propagate(err, "error unmarshalling json from java command")
+		}
+		prettyJson, err := json.MarshalIndent(obj, "", "    ")
+		if err != nil {
+			return stacktrace.Propagate(err, "error marshalling json to pretty format")
+		}
+		os.Stdout.Write(append(prettyJson, '\n'))
 	case "yaml":
 		buf := &bytes.Buffer{}
 		if err := c.RunWithIO(args, stdin, buf, os.Stderr); err != nil {

@@ -36,6 +36,14 @@ func (c *FormatCommand) ToCommand() *cobra.Command {
 		Use:   "format",
 		Args:  cobra.NoArgs,
 		Short: "Format Alluxio master and all workers",
+		Long: `The format command formats the Alluxio master and all its workers.
+
+Running this command on an existing Alluxio cluster deletes everything persisted in Alluxio, including cached data and any metadata information.
+Data in under storage will not be changed.
+
+> Warning: Formatting is required when you run Alluxio for the first time.
+It should only be called while the cluster is not running.
+`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if c.localFileSystem {
 				// check if alluxio.master.mount.table.root.ufs set
@@ -59,7 +67,7 @@ func (c *FormatCommand) ToCommand() *cobra.Command {
 			if env.Env.EnvVar.GetString(env.ConfAlluxioMasterJournalType.EnvVar) == "EMBEDDED" {
 				if err := processes.RunSshCommand(
 					strings.Join(append([]string{cliPath}, journalArgs...), " "),
-					processes.HostGroupWorkers); err != nil {
+					processes.HostGroupMasters); err != nil {
 					return stacktrace.Propagate(err, "error formatting masters")
 				}
 			} else {
@@ -73,6 +81,6 @@ func (c *FormatCommand) ToCommand() *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolVarP(&c.localFileSystem, "localFileSystem", "s", false,
-		"if -s specified, only format if underfs is local and doesn't already exist")
+		"If specified, only format if underfs is local and doesn't already exist")
 	return cmd
 }

@@ -3,709 +3,554 @@ layout: global
 title: User Command Line Interface
 ---
 
-Alluxio's command line interface provides users with basic file system operations. You can invoke
-the following command line utility to get all the subcommands:
+{% comment %}
+This is a generated file created by running command "bin/alluxio generate user-cli"
+The command parses the golang command definitions and descriptions to generate the markdown in this file
+{% endcomment %}
 
+Alluxio's command line interface provides user access to various operations, such as:
+- Start or stop processes
+- Filesystem operations
+- Administrative commands
+
+Invoke the executable to view the possible subcommands:
 ```shell
 $ ./bin/alluxio
-Usage: alluxio [COMMAND]
-       [format [-s]]
-       [getConf [key]]
-       [logLevel]
-       [runTests]
-       ...
+Usage:
+  bin/alluxio [command]
+
+Available Commands:
+  cache       Worker-related file system and format operations.
+  conf        Get, set, and validate configuration settings, primarily those defined in conf/alluxio-site.properties
+  exec        Run the main method of an Alluxio class, or end-to-end tests on an Alluxio cluster.
+  fs          Operations to interface with the Alluxio filesystem
+  generate    Generate files used in documentation
+  help        Help about any command
+  info        Retrieve and/or display info about the running Alluxio cluster
+  init        Initialization operations such as format and validate
+  job         Command line tool for interacting with the job service.
+  journal     Journal related operations
+  process     Start or stop cluster processes
+
+Flags:
+      --debug-log   True to enable debug logging
+
+Use "bin/alluxio [command] --help" for more information about a command.
+
 ```
 
-Alluxio shell users can put JVM system properties `-Dproperty=value` after the `fs` command and
-before the subcommand to specify Alluxio user properties from the command line.
-For example, the following Alluxio shell command sets the write type to `CACHE_THROUGH` when copying
-files to Alluxio:
+To set JVM system properties as part of the command, set the `-D` flag in the form of `-Dproperty=value`.
+
+To attach debugging java options specified by `$ALLUXIO_USER_ATTACH_OPTS`, set the `--attach-debug` flag
+
+Note that, as a part of Alluxio deployment, the Alluxio shell will also take the configuration in `${ALLUXIO_HOME}/conf/alluxio-site.properties` when it is run from Alluxio installation at `${ALLUXIO_HOME}`.
+
+## cache
+Worker-related file system and format operations.
+
+### cache format
+Usage: `bin/alluxio cache format`
+
+The format command formats the Alluxio worker on this host.
+This deletes all the cached data stored by the worker. Data in the under storage will not be changed.
+
+> Warning: Format should only be called when the worker is not running
+
+Examples:
+```shell
+# Format worker
+$ ./bin/alluxio cache format
+```
+
+
+### cache free
+Usage: `bin/alluxio cache free [flags]`
+
+Synchronously free cached files along a path or held by a specific worker
+
+Flags:
+- `--path`: The file or directory to free (Default: "")
+- `--worker`: The worker to free (Default: "")
+
+Examples:
+```shell
+# Free a file by its path
+$ ./bin/alluxio cache free --path /path/to/file
+```
 
 ```shell
-$ ./bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH \
-    copyFromLocal README.md /README.md
+# Free files on a worker
+$ ./bin/alluxio cache free --worker <workerHostName>
 ```
 
-Note that, as a part of Alluxio deployment, the Alluxio shell will also take the configuration in
-`${ALLUXIO_HOME}/conf/alluxio-site.properties` when it is run from Alluxio installation at
-`${ALLUXIO_HOME}`.
 
-## General operations
+## conf
+Get, set, and validate configuration settings, primarily those defined in conf/alluxio-site.properties
 
-This section lists usages and examples of general Alluxio operations
+### conf get
+Usage: `bin/alluxio conf get [key] [flags]`
 
-### format
-
-The `format` command formats the Alluxio master and all its workers.
-
-If `-s` specified, only format if under storage is local and does not already exist
-
-Running this command on an existing Alluxio cluster deletes everything persisted in Alluxio,
-including cached data and any metadata information.
-Data in under storage will not be changed.
-
-> Warning: `format` is required when you run Alluxio for the first time.
-`format` should only be called while the cluster is not running.
-
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio format -s
-```
-
-### journal
-
-The `journal` command manages the Alluxio master journal on this host.
-
-The Alluxio master stores various forms of metadata, including:
-- file system operations
-- where files are located on workers
-- journal transactions
-- under storage file metadata
-There are two operations that can be performed on the journal:
-- `format`: formats the journal
-- `read`: read an Alluxio journal file to a human-readable version
-
-For `journal format`, all this information is deleted if `journal format` is run.
-
-> Warning: `journal format` should only be called while the cluster is not running.
-
-```shell
-$ ./bin/alluxio journal format
-```
-
-For `journal read`, the journal file is read and printed to the console.
-```shell
-$ ./bin/alluxio journal read
-```
-
-### init
-
-The `init format` command formats the Alluxio masters/workers.
-This operation deletes all the information stored in Alluxio.
-Data in under storage will not be changed.
-
-> Warning: `init format` should only be called while the cluster is not running.
-
-```shell
-$ ./bin/alluxio init format [flags]
-```
-
-### fs
-
-See [File System Operations](#file-system-operations).
-
-### getConf
-
-The `getConf` command prints the configured value for the given key.
+The get command prints the configured value for the given key.
 If the key is invalid, it returns a nonzero exit code.
-If the key is valid but isn't set,  an empty string is printed.
+If the key is valid but isn't set, an empty string is printed.
 If no key is specified, the full configuration is printed.
 
-**Options:**
+> Note: This command does not require the Alluxio cluster to be running.
 
-* `--master` option prints any configuration properties used by the master.
-* `--source` option prints the source of the configuration properties.
-* `--unit <arg>` option displays the configuration value in the given unit.
-For example, with `--unit KB`, a configuration value of `4096B` returns as `4`,
-and with `--unit S`, a configuration value of `5000ms` returns as `5`.
-Possible unit options include B, KB, MB, GB, TP, PB as units of byte size and
-MS, S, M, H, D as units of time.
+Flags:
+- `--master`: Show configuration properties used by the master (Default: false)
+- `--source`: Show source of the configuration property instead of the value (Default: false)
+- `--unit`: Unit of the value to return, converted to correspond to the given unit.
+E.g., with "--unit KB", a configuration value of "4096B" will return 4
+Possible options include B, KB, MB, GB, TP, PB, MS, S, M, H, D (Default: "")
 
+Examples:
 ```shell
 # Display all the current node configuration
-$ ./bin/alluxio getConf
+$ ./bin/alluxio conf get
 ```
 
 ```shell
 # Display the value of a property key
-$ ./bin/alluxio getConf alluxio.master.hostname
+$ ./bin/alluxio conf get alluxio.master.hostname
 ```
 
 ```shell
 # Display the configuration of the current running Alluxio leading master
-$ ./bin/alluxio getConf --master
+$ ./bin/alluxio conf get --master
 ```
 
 ```shell
 # Display the source of the configuration
-$ ./bin/alluxio getConf --source
+$ ./bin/alluxio conf get --source
 ```
 
 ```shell
 # Display the values in a given unit
-$ ./bin/alluxio getConf --unit KB alluxio.user.block.size.bytes.default
-$ ./bin/alluxio getConf --unit S alluxio.master.journal.flush.timeout
+$ ./bin/alluxio conf get alluxio.user.block.size.bytes.default --unit KB
+$ ./bin/alluxio conf get alluxio.master.journal.flush.timeout --unit S
+
 ```
 
-> Note: This command does not require the Alluxio cluster to be running.
 
-### logLevel
+### conf log
+Usage: `bin/alluxio conf log [flags]`
 
-The `logLevel` command returns the current value of or updates the log level of a particular class
-on specific instances. Users are able to change Alluxio server-side log levels at runtime.
+The log command returns the current value of or updates the log level of a particular class on specific instances.
+Users are able to change Alluxio server-side log levels at runtime.
 
-The command follows the format `alluxio logLevel --logName=NAME [--target=<master|workers|job_master|job_workers|host:webPort[:role]>] [--level=LEVEL]`,
-where:
-* `--logName <arg>` indicates the logger's class (e.g. `alluxio.master.file.DefaultFileSystemMaster`)
-* `--target <arg>` lists the Alluxio master or workers to set.
-The target could be of the form `<master|workers|job_master|job_workers|host:webPort[:role]>` and multiple targets can be listed as comma-separated entries.
-`role` can be one of `master|worker|job_master|job_worker`. Using the `role` option is useful when an Alluxio process
-is configured to use a non-standard web port (e.g. if an Alluxio master does not use 19999 as its web port).
+The --target flag specifies which processes to apply the log level change to.
+The target could be of the form <master|workers|job_master|job_workers|host:webPort[:role]> and multiple targets can be listed as comma-separated entries.
+The role can be one of master,worker,job_master,job_worker.
+Using the role option is useful when an Alluxio process is configured to use a non-standard web port (e.g. if an Alluxio master does not use 19999 as its web port).
 The default target value is the primary master, primary job master, all workers and job workers.
-* `--level <arg>` If provided, the command changes to the given logger level,
-otherwise it returns the current logger level.
-
-See [here]({{ '/en/operation/Logging.html#modifying-server-logging-at-runtime' | relativize_url }})
-for more examples.
-
-> Note: This command requires the Alluxio cluster to be running.
-> You are not able to set the logger level on the standby masters.
-> The standby masters/job masters do not have a running web server.
-> So they are not accepting the requests from this command.
-> If you want to modify the logger level for standby masters,
-> update the `log4j.properties` and restart the process.
-
-### readJournal
-
-The `readJournal` command parses the current journal and outputs a human readable version to the local folder.
-Note this command may take a while depending on the size of the journal.
-Note that Alluxio master is required to stop before reading the local embedded journal.
-
-* `-help` provides detailed guidance.
-* `-start <arg>` the start log sequence number (exclusive). (Default: `0`)
-* `-end <arg>` the end log sequence number (exclusive). (Default: `+inf`)
-* `-inputDir <arg>` the input directory on-disk to read journal content from. (Default: Read from system configuration)
-* `-outputDir <arg>` the output directory to write journal content to. (Default: journal_dump-${timestamp})
-* `-master <arg>` (advanced) the name of the master (e.g. FileSystemMaster, BlockMaster). (Default: "FileSystemMaster")
-
-```shell
-$ ./bin/alluxio readJournal
-
-Dumping journal of type EMBEDDED to /Users/alluxio/journal_dump-1602698211916
-2020-10-14 10:56:51,960 INFO  RaftStorageDirectory - Lock on /Users/alluxio/alluxio/journal/raft/02511d47-d67c-49a3-9011-abb3109a44c1/in_use.lock acquired by nodename 78602@alluxio-user
-2020-10-14 10:56:52,254 INFO  RaftJournalDumper - Read 223 entries from log /Users/alluxio/alluxio/journal/raft/02511d47-d67c-49a3-9011-abb3109a44c1/current/log_0-222.
-```
-
-> Note: This command requires that the Alluxio cluster is **NOT** running.
-
-### killAll
-
-The `killAll` command kills all processes containing the specified word.
-> Note: This kills non-Alluxio processes as well.
-
-### copyDir
-
-The `copyDir` command copies the directory at `PATH` to all master nodes listed in `conf/masters`
-and all worker nodes listed in `conf/workers`.
-
-```shell
-$ ./bin/alluxio copyDir conf/alluxio-site.properties
-```
-
-> Note: This command does not require the Alluxio cluster to be running.
-
-### clearCache
-
-The `clearCache` command drops the OS buffer cache.
-
-> Note: This command does not require the Alluxio cluster to be running.
-
-### docGen
-
-The `docGen` command autogenerates documentation based on the current source code.
-
-Usage: `docGen [--metric] [--conf]`
-* `--metric` flag indicates to generate Metric docs
-* `--conf` flag indicates to generate Configuration docs
-
-Supplying neither flag will default to generating both docs.
-
-> Note: This command does not require the Alluxio cluster to be running.
-
-### version
-
-The `version` command prints Alluxio version.
-
-Usage: `version --revision [revision_length]`
-* `-r,--revision [revision_length]` Prints the git revision along with the Alluxio version. Optionally specify the revision length.
-
-```shell
-$ ./bin/alluxio version
-```
-
-> Note: This command does not require the Alluxio cluster to be running.
-
-### validateConf
-
-The `validateConf` command validates the local Alluxio configuration files, checking for common misconfigurations.
-
-```shell
-$ ./bin/alluxio validateConf
-```
-
-> Note: This command does not require the Alluxio cluster to be running.
-
-### collectInfo
-
-The `collectInfo` command collects information to troubleshoot an Alluxio cluster.
-For more information see the [collectInfo command page]({{ '/en/reference/Troubleshooting.html#alluxio-collectinfo-command' | relativize_url }}).
-
-> Note: This command does not require the Alluxio cluster to be running.
-> But if the cluster is not running, this command will fail to gather some information from it.
-
-## File System Operations
-
-```shell
-$ ./bin/alluxio fs
-
-Usage: alluxio fs [generic options]
-       [cat <path>]
-       [checkConsistency [-r] <Alluxio path>]
-       ...
-```
-
-For `fs` subcommands that take Alluxio URIs as argument (e.g. `ls`, `mkdir`), the argument should
-be either a complete Alluxio URI, such as `alluxio://<master-hostname>:<master-port>/<path>`,
-or a path without its header, such as `/<path>`, to use the default hostname and port set in the
-`conf/alluxio-site.properties`.
 
 > Note: This command requires the Alluxio cluster to be running.
 
->**Wildcard Input:**
->
->Most of the commands which require path components allow wildcard arguments for ease of use. For
->example:
->
->```shell
->$ ./bin/alluxio fs rm '/data/2014*'
->```
->
->The example command deletes anything in the `data` directory with a prefix of `2014`.
->
->Note that some shells will attempt to glob the input paths, causing strange errors (Note: the
->number 21 could be different and comes from the number of matching files in your local
->filesystem):
->
->```
->rm takes 1 arguments,  not 21
->```
->
->As a workaround, you can disable globbing (depending on the shell type; for example, `set -f`) or by
->escaping wildcards, for example:
->
->```shell
->$ ./bin/alluxio fs cat /\\*
->```
->
->Note the double escape; this is because the shell script will eventually call a java program
->which should have the final escaped parameters (`cat /\\*`).
+Flags:
+- `--level`: If specified, sets the specified logger at the given level (Default: "")
+- `--name`: (Required) Logger name (ex. alluxio.master.file.DefaultFileSystemMaster)
+- `--target`: A target name among <master|workers|job_master|job_workers|host:webPort[:role]>. Defaults to master,workers,job_master,job_workers (Default: [])
 
-### cat
-
-The `cat` command prints the contents of a file in Alluxio to the shell.
-If you wish to copy the file to your local file system, `copyToLocal` should be used.
-
-For example, when testing a new computation job, `cat` can be used as a quick way to check the output:
+Examples:
+```shell
+# Set DEBUG level for DefaultFileSystemMaster class on master processes
+$ ./bin/alluxio conf log --logName alluxio.master.file.DefaultFileSystemMaster --target=master --level=DEBUG
+```
 
 ```shell
+# Set WARN level for PagedDoraWorker class on the worker process on host myHostName
+$ ./bin/alluxio conf log --logName alluxio.worker.dora.PagedDoraWorker.java --target=myHostName:worker --level=WARN
+
+```
+
+
+## exec
+Run the main method of an Alluxio class, or end-to-end tests on an Alluxio cluster.
+
+### exec basicIOTest
+Usage: `bin/alluxio exec basicIOTest [flags]`
+
+Run all end-to-end tests or a specific test, on an Alluxio cluster.
+
+Flags:
+- `--directory`: Alluxio path for the tests working directory. Default: / (Default: "")
+- `--operation`: The operation to test, either BASIC or BASIC_NON_BYTE_BUFFER. 
+By default both operations are tested. (Default: "")
+- `--readType`: The read type to use, one of NO_CACHE, CACHE, CACHE_PROMOTE. 
+By default all readTypes are tested. (Default: "")
+- `--workers`: Alluxio worker addresses to run tests on. 
+If not specified, random ones will be used. (Default: "")
+- `--writeType`: The write type to use, one of MUST_CACHE, CACHE_THROUGH, THROUGH. 
+By default all writeTypes are tested. (Default: "")
+
+Examples:
+```shell
+# Run all permutations of IO tests
+$ ./bin/alluxio exec basicIOTest
+```
+
+```shell
+# Run a specific permutation of the IO tests
+$ ./bin/alluxio exec basicIOtest --operation BASIC --readType NO_CACHE --writeType THROUGH
+```
+
+
+### exec class
+Usage: `bin/alluxio exec class [flags]`
+
+Run the main method of an Alluxio class.
+
+Flags:
+- `--jar`: Determine a JAR file to run. (Default: "")
+- `--m`: Determine a module to run. (Default: "")
+
+### exec hdfsMountTest
+Usage: `bin/alluxio exec hdfsMountTest [flags]`
+
+Tests runs a set of validations against the given hdfs path.
+
+Flags:
+- `--option`: options associated with this mount point. (Default: "")
+- `--path`: (Required) specifies the HDFS path you want to validate.
+- `--readonly`: mount point is readonly in Alluxio. (Default: false)
+- `--shared`: mount point is shared. (Default: false)
+
+### exec ufsIOTest
+Usage: `bin/alluxio exec ufsIOTest [flags]`
+
+A benchmarking tool for the I/O between Alluxio and UFS.
+This test will measure the I/O throughput between Alluxio workers and the specified UFS path.
+Each worker will create concurrent clients to first generate test files of the specified size then read those files.
+The write/read I/O throughput will be measured in the process.
+
+Flags:
+- `--cluster`: specifies the benchmark is run in the Alluxio cluster.
+If not specified, this benchmark will run locally. (Default: false)
+- `--cluster-limit`: specifies how many Alluxio workers to run the benchmark concurrently.
+If >0, it will only run on that number of workers.
+If 0, it will run on all available cluster workers.
+If <0, will run on the workers from the end of the worker list.
+This flag is only used if --cluster is enabled. (Default: 0)
+- `--io-size`: specifies the amount of data each thread writes/reads. (Default: "")
+- `--java-opt`: The java options to add to the command line to for the task.
+This can be repeated. The options must be quoted and prefixed with a space.
+For example: --java-opt " -Xmx4g" --java-opt " -Xms2g". (Default: [])
+- `--path`: (Required) specifies the path to write/read temporary data in.
+- `--threads`: specifies the number of threads to concurrently use on each worker. (Default: 4)
+
+Examples:
+```shell
+# This runs the I/O benchmark to HDFS in your process locally
+$ ./bin/alluxio runUfsIOTest --path hdfs://<hdfs-address>
+```
+
+```shell
+# This invokes the I/O benchmark to HDFS in the Alluxio cluster
+# 1 worker will be used. 4 threads will be created, each writing then reading 4G of data
+$ ./bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limit 1
+```
+
+```shell
+# This invokes the I/O benchmark to HDFS in the Alluxio cluster
+# 2 workers will be used
+# 2 threads will be created on each worker
+# Each thread is writing then reading 512m of data
+$ ./bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limit 2 --io-size 512m --threads 2
+```
+
+
+### exec ufsTest
+Usage: `bin/alluxio exec ufsTest [flags]`
+
+Test the integration between Alluxio and the given UFS to validate UFS semantics
+
+Flags:
+- `--path`: (Required) the full UFS path to run tests against.
+- `--test`: Test name, this option can be passed multiple times to indicate multipleZ tests (Default: [])
+
+## fs
+Operations to interface with the Alluxio filesystem
+For commands that take Alluxio URIs as an argument such as ls or mkdir, the argument should be either
+- A complete Alluxio URI, such as alluxio://<masterHostname>:<masterPort>/<path>
+- A path without its scheme header, such as /path, in order to use the default hostname and port set in alluxio-site.properties
+
+> Note: All fs commands require the Alluxio cluster to be running.
+
+Most of the commands which require path components allow wildcard arguments for ease of use.
+For example, the command "bin/alluxio fs rm '/data/2014*'" deletes anything in the data directory with a prefix of 2014.
+
+Some shells will attempt to glob the input paths, causing strange errors.
+As a workaround, you can disable globbing (depending on the shell type; for example, set -f) or by escaping wildcards
+For example, the command "bin/alluxio fs cat /\\*" uses the escape backslash character twice.
+This is because the shell script will eventually call a java program which should have the final escaped parameters "cat /\\*".
+
+
+### fs cat
+Usage: `bin/alluxio fs cat [path]`
+
+The cat command prints the contents of a file in Alluxio to the shell.
+
+Examples:
+```shell
+# Print the contents of /output/part-00000
 $ ./bin/alluxio fs cat /output/part-00000
 ```
 
-### checkConsistency
 
-The `checkConsistency` command compares Alluxio and under storage metadata for a given path.
-If the path is a directory, the entire subtree will be compared.
-The command returns a message listing each inconsistent file or directory.
-The system administrator should reconcile the differences of these files at their discretion.
-To avoid metadata inconsistencies between Alluxio and under storages,
-design your systems to modify files and directories through Alluxio
-and avoid directly modifying the under storage.
+### fs check-cached
+Usage: `bin/alluxio fs check-cached [path] [flags]`
 
-If the `-r` option is used, the `checkConsistency` command will repair all inconsistent files and
-directories under the given path.
-If an inconsistent file or directory exists only in under storage, its metadata will be added to Alluxio.
-If an inconsistent file exists in Alluxio and its data is fully present in Alluxio,
-its metadata will be loaded to Alluxio again.
+Checks if files under a path have been cached in alluxio.
 
-If the `-t <thread count>` option is specified, the provided number of threads will be used when
-repairing consistency. Defaults to the number of CPU cores available,
-* This option has no effect if `-r` is not specified
+Flags:
+- `--limit`: Limit number of files to check (Default: 1000)
+- `--sample`: Sample ratio, 10 means sample 1 in every 10 files. (Default: 1)
 
-NOTE: This command requires a read lock on the subtree being checked, meaning writes and updates
-to files or directories in the subtree cannot be completed until this command completes.
+### fs checksum
+Usage: `bin/alluxio fs checksum [path]`
 
-For example, `checkConsistency` can be used to periodically validate the integrity of the namespace.
+The checksum command outputs the md5 value of a file in Alluxio.
+This can be used to verify the contents of a file stored in Alluxio.
 
+Examples:
 ```shell
-# List each inconsistent file or directory
-$ ./bin/alluxio fs checkConsistency /
-```
-
-```shell
-# Repair the inconsistent files or directories
-$ ./bin/alluxio fs checkConsistency -r /
-```
-
-### checksum
-
-The `checksum` command outputs the md5 value of a file in Alluxio.
-
-For example, `checksum` can be used to verify the contents of a file stored in Alluxio.
-
-```shell
+# Compare the checksum values
+# value from Alluxio filesystem
 $ ./bin/alluxio fs checksum /LICENSE
-
 md5sum: bf0513403ff54711966f39b058e059a3
+# value from local filesystem
 md5 LICENSE
 MD5 (LICENSE) = bf0513403ff54711966f39b058e059a3
 ```
 
-### chgrp
 
-The `chgrp` command changes the group of the file or directory in Alluxio.
-Alluxio supports file authorization with Posix file permission.
-Group is an authorizable entity in Posix file permissions model.
-The file owner or super user can execute this command to change the group of the file or directory.
+### fs chgrp
+Usage: `bin/alluxio fs chgrp [group] [path] [flags]`
 
-Adding `-R` option also changes the group of child file and child directory recursively.
+The chgrp command changes the group of the file or directory in Alluxio.
+Alluxio supports file authorization with POSIX file permissions.
+The file owner or superuser can execute this command.
 
-For example, `chgrp` can be used as a quick way to change the group of file:
-
-```shell
-$ ./bin/alluxio fs chgrp alluxio-group-new /input/file1
-```
-
-### chmod
-
-The `chmod` command changes the permission of file or directory in Alluxio.
-Currently, octal mode is supported: the numerical format accepts three octal digits
-which refer to permissions for the file owner, the group and other users.
-Here is number-permission mapping table:
-
-<table class="table table-striped">
-  <tr><th>Number</th><th>Permission</th><th>rwx</th></tr>
-  {% for item in site.data.table.chmod-permission %}
-    <tr>
-      <td>{{ item.number }}</td>
-      <td>{{ item.permission }}</td>
-      <td>{{ item.rwx }}</td>
-    </tr>
-  {% endfor %}
-</table>
-
-Adding `-R` option also changes the permission of child file and child directory recursively.
-
-For example, `chmod` can be used as a quick way to change the permission of file:
-
-```shell
-$ ./bin/alluxio fs chmod 755 /input/file1
-```
-
-### chown
-
-The `chown` command changes the owner of the file or directory in Alluxio.
-For security reasons, the ownership of a file can only be altered by a super user.
-
-For example, `chown` can be used as a quick way to change the owner of file:
-
-```shell
-$ ./bin/alluxio fs chown alluxio-user /input/file1
-$ ./bin/alluxio fs chown alluxio-user:alluxio-group /input/file2
-```
-
-Adding `-R` option also changes the owner of child file and child directory recursively.
-
-### copyFromLocal
-
-The `copyFromLocal` command copies the contents of a file in the local file system into Alluxio.
-If the node you run the command from has an Alluxio worker, the data will be available on that worker.
-Otherwise, the data will be copied to a random remote node running an Alluxio worker.
-If a directory is specified, the directory and all its contents will be copied recursively
-(parallel at file level up to the number of available threads).
-
-Usage: `copyFromLocal [--thread <num>] [--buffersize <bytes>] <src> <remoteDst>`
-* `--thread <num>` (optional) Number of threads used to copy files in parallel, default value is CPU cores * 2
-* `--buffersize <bytes>` (optional) Read buffer size in bytes, default is 8MB when copying from local and 64MB when copying to local
-* `<src>` file or directory path on the local filesystem
-* `<remoteDst>` file or directory path on the Alluxio filesystem
-
-For example, `copyFromLocal` can be used as a quick way to inject data into the system for processing:
-
-```shell
-$ ./bin/alluxio fs copyFromLocal /local/data /input
-```
-
-### copyToLocal
-
-The `copyToLocal` command copies a file in Alluxio to the local file system.
-If a directory is specified, the directory and all its contents will be copied recursively.
-
-Usage: `copyToLocal [--buffersize <bytes>] <src> <localDst>`
-* `--buffersize <bytes>` (optional) file transfer buffer size in bytes
-* `<src>` file or directory path on the Alluxio filesystem
-* `<localDst>` file or directory path on the local filesystem
-
-For example, `copyToLocal` can be used as a quick way to download output data
-for additional investigation or debugging.
-
-```shell
-$ ./bin/alluxio fs copyToLocal /output/part-00000 part-00000
-$ wc -l part-00000
-```
-
-### head
-
-The `head` command prints the first 1 KB of data in a file to the shell.
-
-Using the `-c [bytes]` option will print the first `n` bytes of data to the shell.
-
-```shell
-$ ./bin/alluxio fs head -c 2048 /output/part-00000
-```
-
-### help
-
-The `help` command prints the help message for a given `fs` subcommand.
-If the given command does not exist, it prints help messages for all supported subcommands.
+Flags:
+- `--recursive`,`-R`: change the group recursively for all files and directories under the given path (Default: false)
 
 Examples:
 ```shell
-# Print all subcommands
-$ ./bin/alluxio fs help
+# Change the group of a file
+$ ./bin/alluxio fs chgrp alluxio-group-new /input/file1
+```
+
+
+### fs chmod
+Usage: `bin/alluxio fs chmod [mode] [path] [flags]`
+
+The chmod command changes the permission of a file or directory in Alluxio.
+The permission mode is represented as an octal 3 digit value.
+Refer to https://en.wikipedia.org/wiki/Chmod#Numerical_permissions for a detailed description of the modes.
+
+Flags:
+- `--recursive`,`-R`: change the permission recursively for all files and directories under the given path (Default: false)
+
+Examples:
+```shell
+# Set mode 755 for /input/file
+$ ./bin/alluxio fs chmod 755 /input/file1
+```
+
+
+### fs chown
+Usage: `bin/alluxio fs chown <owner>[:<group>] <path> [flags]`
+
+The chown command changes the owner of a file or directory in Alluxio.
+The ownership of a file can only be altered by a superuser
+
+Flags:
+- `--recursive`,`-R`: change the owner recursively for all files and directories under the given path (Default: false)
+
+Examples:
+```shell
+# Change the owner of /input/file1 to alluxio-user
+$ ./bin/alluxio fs chown alluxio-user /input/file1
+```
+
+
+### fs consistent-hash
+Usage: `bin/alluxio fs consistent-hash [--create]|[--compare <1stCheckFilePath> <2ndCheckFilePath>]|[--clean] [flags]`
+
+This command is for checking whether the consistent hash ring is changed or not
+
+Flags:
+- `--clean`: Delete generated check data (Default: false)
+- `--compare`: Compare check files to see if the hash ring has changed (Default: false)
+- `--create`: Generate check file (Default: false)
+
+### fs cp
+Usage: `bin/alluxio fs cp [srcPath] [dstPath] [flags]`
+
+Copies a file or directory in the Alluxio filesystem or between local and Alluxio filesystems.
+The file:// scheme indicates a local filesystem path and the alluxio:// scheme or no scheme indicates an Alluxio filesystem path.
+
+Flags:
+- `--buffer-size`: Read buffer size when coping to or from local, with defaults of 64MB and 8MB respectively (Default: "")
+- `--preserve`,`-p`: Preserve file permission attributes when copying files; all ownership, permissions, and ACLs will be preserved (Default: false)
+- `--recursive`,`-R`: True to copy the directory subtree to the destination directory (Default: false)
+- `--thread`: Number of threads used to copy files in parallel, defaults to 2 * CPU cores (Default: 0)
+
+Examples:
+```shell
+# Copy within the Alluxio filesystem
+$ ./bin/alluxio fs cp /file1 /file2
 ```
 
 ```shell
-# Print help message for ls
-$ ./bin/alluxio fs help ls
+# Copy a local file to the Alluxio filesystem
+$ ./bin/alluxio fs cp file:///file1 /file2
 ```
-
-### leader
-
-The `leader` command prints the current Alluxio leading master hostname.
 
 ```shell
-$ ./bin/alluxio fs leader
+# Copy a file in Alluxio to local
+$ ./bin/alluxio fs cp alluxio:///file1 file:///file2
 ```
-
-### load
-
-The `load` command load data/metadata from the under storage system into Alluxio storage.
-For example, `load` can be used to prefetch data for analytics jobs.
-If `load` is run on a directory, files in the directory will be recursively loaded.
-```shell
-$ ./bin/alluxio fs load <path> --submit [--metadata-only]
-```
-**Options:**
-* `--metadata-only` option specify whether loading metadata only 
-
-After submit the command, you can check the status by running the following
-```shell
-$ ./bin/alluxio fs load <path> --progress [--format TEXT|JSON] [--verbose]
-```
-And you would get the following output:
-```shell
-Progress for loading path '/dir-99':
-        Settings:       bandwidth: unlimited    verify: false
-        Job State: SUCCEEDED
-        Files Processed: 1000
-        Bytes Loaded: 125.00MB
-        Throughput: 2509.80KB/s
-        Block load failure rate: 0.00%
-        Files Failed: 0
-```
-**Options:**
-* `--format` option specify output format. TEXT as default
-* `--verbose` option output job details. 
 
 ```shell
-# If you want to stop the command, run the following
-$ ./bin/alluxio fs load <path> --stop
+# Recursively copy a directory within the Alluxio filesystem
+$ ./bin/alluxio fs cp -R /dir1 /dir2
+
 ```
 
-### ls
 
-The `ls` command lists all the immediate children in a directory and displays the file size, last
-modification time, and in memory status of the files.
-Using `ls` on a file will only display the information for that specific file.
+### fs head
+Usage: `bin/alluxio fs head [path] [flags]`
 
-The `ls` command will also load the metadata for any file or immediate children of a directory
-from the under storage system to Alluxio namespace if it does not exist in Alluxio.
-`ls` queries the under storage system for any file or directory matching the given path
-and creates a mirror of the file in Alluxio backed by that file.
+The head command prints the first 1KB of data of a file to the shell.
+Specifying the -c flag sets the number of bytes to print.
+
+Flags:
+- `--bytes`,`-c`: Byte size to print (Default: "")
+
+Examples:
+```shell
+# Print first 2048 bytes of a file
+$ ./bin/alluxio fs head -c 2048 /output/part-00000
+```
+
+
+### fs location
+Usage: `bin/alluxio fs location [path]`
+
+Displays the list of hosts storing the specified file.
+
+### fs ls
+Usage: `bin/alluxio fs ls [path] [flags]`
+
+The ls command lists all the immediate children in a directory and displays the file size, last modification time, and in memory status of the files.
+Using ls on a file will only display the information for that specific file.
+
+The ls command will also load the metadata for any file or immediate children of a directory from the under storage system to Alluxio namespace if it does not exist in Alluxio.
+It queries the under storage system for any file or directory matching the given path and creates a mirror of the file in Alluxio backed by that file.
 Only the metadata, such as the file name and size, are loaded this way and no data transfer occurs.
 
-**Options:**
+Flags:
+- `--help`: help for this command (Default: false)
+- `--human-readable`,`-h`: Print sizes in human readable format (Default: false)
+- `--list-dir-as-file`,`-d`: List directories as files (Default: false)
+- `--load-metadata`,`-f`: Force load metadata for immediate children in a directory (Default: false)
+- `--omit-mount-info`,`-m`: Omit mount point related information such as the UFS path (Default: false)
+- `--pinned-files`,`-p`: Only show pinned files (Default: false)
+- `--recursive`,`-R`: List subdirectories recursively (Default: false)
+- `--reverse`,`-r`: Reverse sorted order (Default: false)
+- `--sort`: Sort entries by column, one of {creationTime|inMemoryPercentage|lastAccessTime|lastModificationTime|name|path|size} (Default: "")
+- `--timestamp`: Display specified timestamp of entry, one of {createdTime|lastAccessTime|lastModifiedTime} (Default: "")
 
-* `-d` option lists the directories as plain files. For example, `ls -d /` shows the attributes of root directory.
-* `-f` option forces loading metadata for immediate children in a directory.
-By default, it loads metadata only at the first time at which a directory is listed.
-`-f` is equivalent to `-Dalluxio.user.file.metadata.sync.interval=0`.
-* `-h` option displays file sizes in human-readable formats.
-* `-p` option lists all pinned files.
-* `-R` option also recursively lists child directories, displaying the entire subtree starting from the input path.
-* `--sort` sorts the result by the given option. Possible values are size, creationTime, inMemoryPercentage, lastModificationTime, lastAccessTime and path.
-* `-r` reverses the sorting order.
-* `--timestamp` display the timestamp of the given option. Possible values are creationTime, lastModificationTime, and lastAccessTime.
-The default option is lastModificationTime.
-* `-m` option excludes mount point related information.
-
-For example, `ls` can be used to browse the file system.
-
+Examples:
 ```shell
-$ ./bin/alluxio fs mount /s3/data s3://data-bucket/
+# List and load metadata for all immediate children of /s3/data
+$ ./bin/alluxio fs ls /s3/data
 ```
 
 ```shell
-# Loads metadata for all immediate children of /s3/data and lists them
-$ ./bin/alluxio fs ls /s3/data/
-```
-
-```shell
-# Forces loading metadata
-$ aws s3 cp /tmp/somedata s3://data-bucket/somedata
+# Force loading metadata of /s3/data
 $ ./bin/alluxio fs ls -f /s3/data
 ```
 
+
+### fs mkdir
+Usage: `bin/alluxio fs mkdir [path1 path2 ...]`
+
+The mkdir command creates a new directory in the Alluxio filesystem.
+It is recursive and will create any parent directories that do not exist.
+Note that the created directory will not be created in the under storage system until a file in the directory is persisted to the underlying storage.
+Using mkdir on an invalid or existing path will fail.
+
+Examples:
 ```shell
-# Files are not removed from Alluxio if they are removed from the UFS (s3 here) only
-$ aws s3 rm s3://data-bucket/somedata
-$ ./bin/alluxio fs ls -f /s3/data
-```
-
-Metadata sync is an expensive operation. A rough estimation is metadata sync
-on 1 million files will consume 2GB heap until the sync operation is complete.
-Therefore, we recommend not using forced sync to avoid accidental repeated sync operations.
-It is recommended to always specify a non-zero sync interval for metadata sync, so
-even if the sync is repeatedly triggered, the paths that have just been sync-ed can be identified and skipped. 
-
-```shell
-# Should be avoided
-$ ./bin/alluxio fs ls -f -R /s3/data
-```
-```shell
-# RECOMMENDED. This will not sync files repeatedly in 1 minute.
-$ ./bin/alluxio fs ls -Dalluxio.user.file.metadata.sync.interval=1min -R /s3/data
-```
-
-### masterInfo
-
-The `masterInfo` command prints information regarding master fault tolerance such as leader address,
-list of master addresses, and the configured Zookeeper address.
-If Alluxio is running in single master mode, `masterInfo` prints the master address.
-If Alluxio is running in fault tolerance mode, the leader address, list of master addresses
-and the configured Zookeeper address is printed.
-
-For example, `masterInfo` can be used to print information regarding master fault tolerance.
-
-```shell
-$ ./bin/alluxio fs masterInfo
-```
-
-### mkdir
-
-The `mkdir` command creates a new directory in Alluxio space.
-It is recursive and will create any nonexistent parent directories.
-Note that the created directory will not be created in the under storage system
-until a file in the directory is persisted to the underlying storage.
-Using `mkdir` on an invalid or existing path will fail.
-
-For example, `mkdir` can be used by an admin to set up the basic folder structures.
-
-```shell
+# Creating a folder structure
 $ ./bin/alluxio fs mkdir /users
 $ ./bin/alluxio fs mkdir /users/Alice
 $ ./bin/alluxio fs mkdir /users/Bob
 ```
 
-### mv
 
-The `mv` command moves a file or directory to another path in Alluxio.
+### fs mv
+Usage: `bin/alluxio fs mv [srcPath] [dstPath]`
+
+The mv command moves a file or directory to another path in Alluxio.
 The destination path must not exist or be a directory.
 If it is a directory, the file or directory will be placed as a child of the directory.
-`mv` is purely a metadata operation and does not affect the data blocks of the file.
-`mv` cannot be done between mount points of different under storage systems.
+The command is purely a metadata operation and does not affect the data blocks of the file.
 
-For example, `mv` can be used to re-organize your files.
-
+Examples:
 ```shell
+# Moving a file
 $ ./bin/alluxio fs mv /data/2014 /data/archives/2014
 ```
 
-### rm
 
-The `rm` command removes a file from Alluxio space and the under storage system.
-The file will be unavailable immediately after this command returns,
-but the actual data may be deleted a while later.
+### fs rm
+Usage: `bin/alluxio fs rm [path] [flags]`
 
-* Adding `-R` option deletes all contents of the directory and the directory itself.
-* Adding `-U` option skips the check for whether the UFS contents being deleted are in-sync with Alluxio
-before attempting to delete persisted directories. We recommend always using the `-U` option for the best performance and resource efficiency.
-* Adding `--alluxioOnly` option removes data and metadata from Alluxio space only.
-The under storage system will not be affected.
+The rm command removes a file from Alluxio space and the under storage system.
+The file will be unavailable immediately after this command returns, but the actual data may be deleted a while later.
 
+Flags:
+- `--alluxio-only`: True to only remove data and metadata from Alluxio cache (Default: false)
+- `--recursive`,`-R`: True to recursively remove files within the specified directory subtree (Default: false)
+- `--skip-ufs-check`,`-U`: True to skip checking if corresponding UFS contents are in sync (Default: false)
+
+Examples:
 ```shell
-# Remove a file from Alluxio space and the under storage system
+# Remove a file from Alluxio and the under storage system
 $ ./bin/alluxio fs rm /tmp/unused-file
 ```
 
 ```shell
-# Remove a file from Alluxio space only
-$ ./bin/alluxio fs rm --alluxioOnly /tmp/unused-file2
+# Remove a file from Alluxio filesystem only
+$ ./bin/alluxio fs rm --alluxio-only --skip-ufs-check /tmp/unused-file2
+# Note it is recommended to use both --alluxio-only and --skip-ufs-check together in this situation
 ```
 
-When deleting only from Alluxio but leaving the files in UFS, we recommend using `-U` and `-Dalluxio.user.file.metadata.sync.interval=-1`
-to skip the metadata sync and the UFS check. This will save time and memory consumption on the Alluxio master.
-```shell
-$ bin/alluxio fs rm -R -U --alluxioOnly -Dalluxio.user.file.metadata.sync.interval=-1 /dir
-```
 
-When deleting a large directory (with millions of files) recursively both from Alluxio and UFS,
-the operation is expensive. 
+### fs stat
+Usage: `bin/alluxio fs stat [flags]`
 
-We recommend doing the deletion in the following way:
-1. Perform a direct sanity check against the UFS path with the corresponding file system API
-or CLI to make sure everything can be deleted safely. 
-For example if the UFS is HDFS, use `hdfs dfs -ls -R /dir` to list the UFS files and check.
-We do not recommend doing this sanity check from Alluxio using a command like `alluxio fs ls -R -f /dir`,
-because the loaded file metadata will be deleted anyway, and the expensive metadata sync operation
-will essentially be wasted.
+The stat command dumps the FileInfo representation of a file or a directory to the shell.
 
-2. Issue the deletion from Alluxio to delete files from both Alluxio and the UFS:
-```shell
-# Disable the sync and skip the UFS check, to reduce memory consumption on the master side
-$ bin/alluxio fs rm -R -U -Dalluxio.user.file.metadata.sync.interval=-1 /dir
-```
+Flags:
+- `--file-id`: File id of file (Default: "")
+- `--format`,`-f`: Display info in the given format:
+  "%N": name of the file
+  "%z": size of file in bytes
+  "%u": owner
+  "%g": group name of owner
+  "%i": file id of the file
+  "%y": modification time in UTC in 'yyyy-MM-dd HH:mm:ss' format
+  "%Y": modification time as Unix timestamp in milliseconds
+  "%b": Number of blocks allocated for file
+ (Default: "")
+- `--path`: Path to file or directory (Default: "")
 
-Per 1 million files deleted, the memory overhead can be estimated as follows:
-* If both metadata sync and UFS check are disabled, recursively deleting from Alluxio only will hold 2GB JVM heap memory until the deletion completes.
-* If files are also deleted from UFS, there will not be extra heap consumption but the operation will take longer to complete.
-* If metadata sync is enabled, there will be another around 2GB overhead on the JVM heap until the operation completes.
-* If UFS check is enabled, there will another around 2GB overhead on the JVM heap until the operation completes.
-
-Using this example as a guideline, estimate the total additional memory overhead as a proportion to the number of files to be deleted. 
-Ensure that the leading master has sufficient available heap memory to perform the operation before issuing a large recursive delete command.
-A general good practice is to break deleting a large directory into deleting each individual children directories.
-
-
-### stat
-
-The `stat` command dumps the FileInfo representation of a file or a directory to the shell.
-It is primarily intended to assist power users in debugging their system.
-Generally viewing the file info in the UI will be easier to understand.
-
-One can specify `-f <arg>` to display info in given format:
-* `%N`: name of the file
-* `%z`: size of file in bytes
-* `%u`: owner
-* `%g`: group name of owner
-* `%y` or `%Y`: modification time, where `%y` shows the UTC date in the form `yyyy-MM-dd HH:mm:ss`
- and `%Y` shows the number of milliseconds since January 1, 1970 UTC
-* `%b`: Number of blocks allocated for file
-* `%i`: file ID(inode ID) of the file
-
-For example, `stat` can be used to debug the block locations of a file.
-This is useful when trying to achieve locality for compute workloads.
-
+Examples:
 ```shell
 # Display file's stat
 $ ./bin/alluxio fs stat /data/2015/logs-1.txt
@@ -722,18 +567,304 @@ $ ./bin/alluxio fs stat -f %z /data/2015/logs-1.txt
 ```
 
 ```shell
-# Find the file by fileID/inodeID and display the stat, useful in troubleshooting
+# Find the file by fileID and display the stat, useful in troubleshooting
 $ ./bin/alluxio fs stat -fileId 12345678
 ```
 
-### tail
 
-The `tail` command outputs the last 1 KB of data in a file to the shell.
-Using the `-c [bytes]` option will print the last `n` bytes of data to the shell.
+### fs tail
+Usage: `bin/alluxio fs tail [path] [flags]`
 
-For example, `tail` can be used to verify the output of a job is in the expected format
-or contains expected values.
+The tail command prints the last 1KB of data of a file to the shell.
+Specifying the -c flag sets the number of bytes to print.
+
+Flags:
+- `--bytes`: Byte size to print (Default: "")
+
+Examples:
+```shell
+# Print last 2048 bytes of a file
+$ ./bin/alluxio fs tail -c 2048 /output/part-00000
+```
+
+
+### fs test
+Usage: `bin/alluxio fs test [path] [flags]`
+
+Test a property of a path, returning 0 if the property is true, or 1 otherwise
+
+Flags:
+- `--dir`,`-d`: Test if path is a directory (Default: false)
+- `--exists`,`-e`: Test if path exists (Default: false)
+- `--file`,`-f`: Test if path is a file (Default: false)
+- `--not-empty`,`-s`: Test if path is not empty (Default: false)
+- `--zero`,`-z`: Test if path is zero length (Default: false)
+
+### fs touch
+Usage: `bin/alluxio fs touch [path]`
+
+Create a 0 byte file at the specified path, which will also be created in the under file system
+
+## generate
+Generate files used in documentation
+
+### generate doc-tables
+Usage: `bin/alluxio generate doc-tables`
+
+Generate all documentation files
+
+### generate doc-tables
+Usage: `bin/alluxio generate doc-tables`
+
+Generate configuration and metric tables used in documentation
+
+### generate user-cli
+Usage: `bin/alluxio generate user-cli [flags]`
+
+Generate content for `operation/User-CLI.md`
+
+Flags:
+- `--help`,`-h`: help for user-cli (Default: false)
+
+## info
+Retrieve and/or display info about the running Alluxio cluster
+
+### info cache
+Usage: `bin/alluxio info cache [flags]`
+
+Reports worker capacity information
+
+Flags:
+- `--live`: Only show live workers for capacity report (Default: false)
+- `--lost`: Only show lost workers for capacity report (Default: false)
+- `--worker`: Only show specified workers for capacity report, labeled by hostname or IP address (Default: [])
+
+### info collect
+Usage: `bin/alluxio info collect [command] [flags]`
+
+Collects information such as logs, config, metrics, and more from the running Alluxio cluster and bundle into a single tarball
+
+[command] must be one of the following values:
+- all: runs all the commands below
+- cluster: runs a set of Alluxio commands to collect information about the Alluxio cluster
+- conf: collects the configuration files under ${ALLUXIO_HOME}/config/
+- env: runs a set of linux commands to collect information about the cluster
+- jvm: collects jstack from the JVMs
+- log: collects the log files under ${ALLUXIO_HOME}/logs/
+- metrics: collects Alluxio system metrics
+
+> WARNING: This command MAY bundle credentials. Inspect the output tarball for any sensitive information and remove it before sharing with others.
+
+Flags:
+- `--additional-logs`: Additional file name prefixes from ${ALLUXIO_HOME}/logs to include in the tarball, inclusive of the default log files (Default: [])
+- `--end-time`: Logs that do not contain entries before this time will be ignored, format must be like 2006-01-02T15:04:05 (Default: "")
+- `--exclude-logs`: File name prefixes from ${ALLUXIO_HOME}/logs to exclude; this is evaluated after adding files from --additional-logs (Default: [])
+- `--exclude-worker-metrics`: True to skip worker metrics collection (Default: false)
+- `--include-logs`: File name prefixes from ${ALLUXIO_HOME}/logs to include in the tarball, ignoring the default log files; cannot be used with --exclude-logs or --additional-logs (Default: [])
+- `--local`: True to only collect information from the local machine (Default: false)
+- `--max-threads`: Parallelism of the command; use a smaller value to limit network I/O when transferring tarballs (Default: 1)
+- `--output-dir`: (Required) Output directory to write collect info tarball to
+- `--start-time`: Logs that do not contain entries after this time will be ignored, format must be like 2006-01-02T15:04:05 (Default: "")
+
+### info doctor
+Usage: `bin/alluxio info doctor [type]`
+
+Runs doctor configuration or storage command
+
+### info nodes
+Usage: `bin/alluxio info nodes`
+
+Show all registered workers' status
+
+### info report
+Usage: `bin/alluxio info report [arg] [flags]`
+
+Reports Alluxio running cluster information
+[arg] can be one of the following values:
+  jobservice: job service metrics information
+  metrics:    metrics information
+  summary:    cluster summary
+  ufs:        under storage system information
+
+Defaults to summary if no arg is provided
+
+
+Flags:
+- `--format`: Set output format, any of [json, yaml] (Default: "")
+
+### info version
+Usage: `bin/alluxio info version`
+
+Print Alluxio version.
+
+## init
+Initialization operations such as format and validate
+
+### init clear-os-cache
+Usage: `bin/alluxio init clear-os-cache`
+
+The clear-os-cache command drops the OS buffer cache
+
+### init copy-dir
+Usage: `bin/alluxio init copy-dir [path]`
+
+The copy-dir command copies the directory at given path to all master nodes listed in conf/masters and all worker nodes listed in conf/workers.
+
+> Note: This command does not require the Alluxio cluster to be running.
+
+Examples:
+```shell
+# copy alluxio-site properties file to all nodes
+$ ./bin/alluxio init copy-dir conf/alluxio-site.properties
+```
+
+
+### init format
+Usage: `bin/alluxio init format [flags]`
+
+The format command formats the Alluxio master and all its workers.
+
+Running this command on an existing Alluxio cluster deletes everything persisted in Alluxio, including cached data and any metadata information.
+Data in under storage will not be changed.
+
+> Warning: Formatting is required when you run Alluxio for the first time.
+It should only be called while the cluster is not running.
+
+
+Flags:
+- `--localFileSystem`,`-s`: If specified, only format if underfs is local and doesn't already exist (Default: false)
+
+### init validate
+Usage: `bin/alluxio init validate [flags]`
+
+Validate Alluxio configuration or environment
+
+Flags:
+- `--type`: Decide the type to validate. Valid inputs: [conf, env] (Default: "")
+
+Examples:
+```shell
+# Validate configuration
+$ ./bin/alluxio init validate --type conf
+```
 
 ```shell
-$ ./bin/alluxio fs tail /output/part-00000
+# Validate environment
+$ ./bin/alluxio init validate --type env
 ```
+
+
+## job
+Command line tool for interacting with the job service.
+
+### job load
+Usage: `bin/alluxio job load [flags]`
+
+The load command moves data from the under storage system into Alluxio storage.
+For example, load can be used to prefetch data for analytics jobs.
+If load is run on a directory, files in the directory will be recursively loaded.
+
+Flags:
+- `--bandwidth`: [submit] Single worker read bandwidth limit (Default: "")
+- `--format`: [progress] Format of output, either TEXT or JSON (Default: "")
+- `--metadata-only`: [submit] Only load file metadata (Default: false)
+- `--partial-listing`: [submit] Use partial directory listing, initializing load before reading the entire directory but cannot report on certain progress details (Default: false)
+- `--path`: (Required) [all] Source path of load operation
+- `--progress`: View progress of submitted job (Default: false)
+- `--skip-if-exists`: [submit] Skip existing fullly cached files (Default: false)
+- `--stop`: Stop running job (Default: false)
+- `--submit`: Submit job (Default: false)
+- `--verbose`: [progress] Verbose output (Default: false)
+- `--verify`: [submit] Run verification when load finishes and load new files if any (Default: false)
+
+Examples:
+```shell
+# Submit a load job
+$ ./bin/alluxio job load --path /path --submit
+```
+
+```shell
+# View the progress of a submitted job
+$ ./bin/alluxio job load --path /path --progress
+# Example output
+Progress for loading path '/path':
+        Settings:       bandwidth: unlimited    verify: false
+        Job State: SUCCEEDED
+        Files Processed: 1000
+        Bytes Loaded: 125.00MB
+        Throughput: 2509.80KB/s
+        Block load failure rate: 0.00%
+        Files Failed: 0
+```
+
+```shell
+# Stop a submitted job
+$ ./bin/alluxio job load --path /path --stop
+```
+
+
+## journal
+Journal related operations
+
+### journal checkpoint
+Usage: `bin/alluxio journal checkpoint`
+
+The checkpoint command creates a checkpoint the local Alluxio master's journal.
+This command is mainly used for debugging and to avoid master journal logs from growing unbounded.
+Checkpointing requires a pause in master metadata changes, so use this command sparingly to avoid interfering with other users of the system.
+
+### journal format
+Usage: `bin/alluxio journal format`
+
+The format command formats the local Alluxio master's journal.
+
+> Warning: Formatting should only be called while the cluster is not running.
+
+### journal read
+Usage: `bin/alluxio journal read [flags]`
+
+The read command parses the current journal and outputs a human readable version to the local folder.
+This command may take a while depending on the size of the journal.
+> Note: This command requies that the Alluxio cluster is NOT running.
+
+Flags:
+- `--end`: end log sequence number (exclusive) (Default: -1)
+- `--input-dir`: input directory on-disk to read the journal content from (Default: "")
+- `--master`: name of the master class (Default: "")
+- `--output-dir`: output directory to write journal content to (Default: "")
+- `--start`: start log sequence number (inclusive) (Default: 0)
+
+Examples:
+```shell
+$ ./bin/alluxio readJournal
+# output
+Dumping journal of type EMBEDDED to /Users/alluxio/journal_dump-1602698211916
+2020-10-14 10:56:51,960 INFO  RaftStorageDirectory - Lock on /Users/alluxio/alluxio/journal/raft/02511d47-d67c-49a3-9011-abb3109a44c1/in_use.lock acquired by nodename 78602@alluxio-user
+2020-10-14 10:56:52,254 INFO  RaftJournalDumper - Read 223 entries from log /Users/alluxio/alluxio/journal/raft/02511d47-d67c-49a3-9011-abb3109a44c1/current/log_0-222.
+```
+
+
+## process
+Start or stop cluster processes
+
+### process start
+Usage: `bin/alluxio process start [flags]`
+
+Starts a single process locally or a group of similar processes across the cluster.
+For starting a group, it is assumed the local host has passwordless SSH access to other nodes in the cluster.
+The command will parse the hostnames to run on by reading the conf/masters and conf/workers files, depending on the process type.
+
+Flags:
+- `--async`,`-a`: Asynchronously start processes without monitoring for start completion (Default: false)
+- `--skip-kill-prev`,`-N`: Avoid killing previous running processes when starting (Default: false)
+
+### process stop
+Usage: `bin/alluxio process stop [flags]`
+
+Stops a single process locally or a group of similar processes across the cluster.
+For stopping a group, it is assumed the local host has passwordless SSH access to other nodes in the cluster.
+The command will parse the hostnames to run on by reading the conf/masters and conf/workers files, depending on the process type.
+
+Flags:
+- `--soft`,`-s`: Soft kill only, don't forcibly kill the process (Default: false)
+

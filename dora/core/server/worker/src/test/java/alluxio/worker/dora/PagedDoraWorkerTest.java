@@ -36,6 +36,7 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadFileFailure;
+import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
@@ -54,7 +55,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -107,8 +107,6 @@ public class PagedDoraWorkerTest {
   }
 
   @Test
-  @Ignore
-  // TODO(elega) fix this broken test
   public void testLoad()
       throws AccessControlException, ExecutionException, InterruptedException, TimeoutException,
       IOException {
@@ -117,11 +115,12 @@ public class PagedDoraWorkerTest {
     String ufsPath = mTestFolder.newFile("test").getAbsolutePath();
     byte[] buffer = BufferUtils.getIncreasingByteArray((int) length);
     BufferUtils.writeBufferToFile(ufsPath, buffer);
-    alluxio.grpc.File file =
-        alluxio.grpc.File.newBuilder().setUfsPath(ufsPath).setLength(length).setMountId(1).build();
-    ListenableFuture<List<LoadFileFailure>> load = mWorker.load(true, Collections.emptyList(),
+    UfsStatus ufsStatus = mWorker.getUfsInstance(ufsPath).getStatus(ufsPath);
+    ufsStatus.setUfsFullPath(new AlluxioURI(ufsPath));
+    List<UfsStatus> listUfsStatus = new ArrayList<>(Collections.singletonList(ufsStatus));
+    ListenableFuture<LoadFileResponse> load = mWorker.load(true, false, listUfsStatus,
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build());
-    List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS);
+    List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS).getFailuresList();
     Assert.assertEquals(0, fileFailures.size());
     List<PageId> cachedPages =
         mCacheManager.getCachedPageIdsByFileId(new AlluxioURI(ufsPath).hash(), length);
@@ -769,11 +768,11 @@ public class PagedDoraWorkerTest {
       AccessControlException {
     UfsStatus ufsStatus = mWorker.getUfsInstance(path).getStatus(path);
     ufsStatus.setUfsFullPath(new AlluxioURI(path));
-    ListenableFuture<List<LoadFileFailure>> load =
-        mWorker.load(true, Collections.singletonList(ufsStatus),
+    ListenableFuture<LoadFileResponse> load =
+        mWorker.load(true, false, Collections.singletonList(ufsStatus),
             UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false)
                 .build());
-    List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS);
+    List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS).getFailuresList();
     assertEquals(0, fileFailures.size());
   }
 
