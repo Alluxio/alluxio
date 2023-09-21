@@ -56,6 +56,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -64,6 +65,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class AlluxioFuse {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuse.class);
+
+  @Nullable
   private FuseWebServer mWebServer = null;
 
   // prevent instantiation
@@ -77,7 +80,7 @@ public class AlluxioFuse {
    * @param fuseOptions Fuse options from conf or command line
    * @param fsContext the file system context for this client
    */
-  protected void start_common(AlluxioConfiguration conf,
+  protected void startCommon(AlluxioConfiguration conf,
                               FuseOptions fuseOptions,
                               FileSystemContext fsContext) {
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
@@ -112,7 +115,7 @@ public class AlluxioFuse {
     }
   }
 
-  protected void stop_common() {
+  protected void stopCommon() {
     if (mWebServer != null) {
       try {
         mWebServer.stop();
@@ -139,9 +142,9 @@ public class AlluxioFuse {
       conf = AlluxioFuseUtils.tryLoadingConfigFromMaster(fsContext);
     }
 
-    start_common(conf, fuseOptions, fsContext); // This will be blocked until quitting
+    startCommon(conf, fuseOptions, fsContext); // This will be blocked until quitting
 
-    stop_common();
+    stopCommon();
   }
 
   /**
