@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -36,10 +37,6 @@ var Report = &ReportCommand{
 		Parameters:    []string{"report"},
 	},
 }
-
-const (
-	RFC3339 = "2006-01-02T15:04:05Z07:00"
-)
 
 type ReportCommand struct {
 	*env.BaseJavaCommand
@@ -124,7 +121,7 @@ func (c *ReportCommand) Run(args []string) error {
 
 func convertMsToDatetime(timeMs float64) string {
 	tm := time.Unix(int64(timeMs)/1000, 0)
-	return tm.Format(RFC3339)
+	return tm.Format(time.RFC3339)
 }
 
 func convertMsToDuration(timeMs float64) string {
@@ -140,14 +137,14 @@ func convertMsToDuration(timeMs float64) string {
 
 func convertBytesToString(bytes float64) string {
 	const unit = 1024
-	div, exp := 1, 0
-	for n := int64(bytes); n > 5*unit; n /= unit {
-		div *= unit
+	suffixes := []string{"B", "KB", "MB", "GB", "TB", "PB"}
+	exp, n := 0, int64(bytes)
+	for n > 5*unit && exp < len(suffixes)-1 {
+		n /= unit
 		exp++
 	}
-	value := bytes / float64(div)
+	value := bytes / math.Pow(unit, float64(exp))
 	size := strconv.FormatFloat(value, 'f', 2, 64)
-	suffixes := []string{"B", "KB", "MB", "GB", "TB", "PB"}
 	return size + suffixes[exp]
 }
 
@@ -164,10 +161,10 @@ func processKeyValuePair(key string, data interface{}) (string, interface{}) {
 			return key, value
 		}
 	case []interface{}:
-		array := make([]interface{}, 0)
-		for _, item := range value {
+		array := make([]interface{}, len(value))
+		for i, item := range value {
 			_, processedItem := processKeyValuePair(key, item)
-			array = append(array, processedItem)
+			array[i] = processedItem
 		}
 		return key, array
 	case orderedmap.OrderedMap:
