@@ -6802,14 +6802,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + " role permission on all keys with prefix '/'. "
               + "Refer to etcd official site for authentication:"
               + "https://etcd.io/docs/v3.2/op-guide/authentication/")
-          .setDefaultValue("root")
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey ETCD_PASSWORD =
       stringBuilder(Name.ETCD_PASSWORD)
           .setDescription("User password used for EtcdMembership module to do worker"
               + " registration")
-          .setDefaultValue("root")
           .setScope(Scope.ALL)
           .build();
 
