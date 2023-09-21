@@ -3986,7 +3986,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_IDENTITY_UUID =
       stringBuilder(Name.WORKER_IDENTITY_UUID)
           .setDescription("The identity of the worker specified as a UUID. Worker instances in a "
-              + "Alluxio cluster must have different identities.")
+              + "Alluxio cluster must have different identities. "
+              + "This overrides " + Name.WORKER_IDENTITY_UUID_FILE_PATH
+              + " and should be used with discretion")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.WORKER)
           .build();
