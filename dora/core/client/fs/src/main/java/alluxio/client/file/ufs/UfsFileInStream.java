@@ -65,7 +65,7 @@ public class UfsFileInStream extends FileInStream {
       return -1;
     }
     mPosition++;
-    Metrics.BYTES_READ_UFS.inc(1);
+    Metrics.BYTES_READ_FROM_UFS.inc(1);
     return res;
   }
 
@@ -75,7 +75,7 @@ public class UfsFileInStream extends FileInStream {
     if (byteBuffer.hasArray()) {
       totalBytesRead = read(byteBuffer.array(), off, len);
       if (totalBytesRead > 0) {
-        Metrics.BYTES_READ_UFS.inc(totalBytesRead);
+        Metrics.BYTES_READ_FROM_UFS.inc(totalBytesRead);
       }
       return totalBytesRead;
     }
@@ -86,7 +86,7 @@ public class UfsFileInStream extends FileInStream {
     }
     byteBuffer.position(off).limit(off + len);
     byteBuffer.put(byteArray, 0, totalBytesRead);
-    Metrics.BYTES_READ_UFS.inc(totalBytesRead);
+    Metrics.BYTES_READ_FROM_UFS.inc(totalBytesRead);
     return totalBytesRead;
   }
 
@@ -105,7 +105,7 @@ public class UfsFileInStream extends FileInStream {
     if (bytesRead > 0) {
       mPosition += bytesRead;
     }
-    Metrics.BYTES_READ_UFS.inc(bytesRead);
+    Metrics.BYTES_READ_FROM_UFS.inc(bytesRead);
     return bytesRead;
   }
 
@@ -200,8 +200,8 @@ public class UfsFileInStream extends FileInStream {
    * Class that contains metrics about FileOutStream.
    */
   private static final class Metrics {
-    private static final Counter BYTES_READ_UFS =
-        MetricsSystem.counter(MetricKey.CLIENT_BYTES_READ_UFS.getName());
+    private static final Counter BYTES_READ_FROM_UFS =
+        MetricsSystem.counter(MetricKey.CLIENT_BYTES_READ_FROM_UFS.getName());
 
     private Metrics() {
     } // prevent instantiation
