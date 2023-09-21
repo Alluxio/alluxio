@@ -220,7 +220,6 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     }
     mClosed = true;
     mPositionReader.close();
-    mUfs.close();
     super.close();
   }
 
