@@ -49,7 +49,6 @@ public class PagedFileReader extends BlockReader implements PositionReader {
   private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocate(0);
   private final long mFileSize;
   private final LocalCachePositionReader mPositionReader;
-  private final UnderFileSystem mUfs;
   private long mPos;
   private volatile boolean mClosed = false;
 
@@ -86,7 +85,6 @@ public class PagedFileReader extends BlockReader implements PositionReader {
   public PagedFileReader(UnderFileSystem ufs,
                          LocalCachePositionReader localCachePositionReader,
                          long fileSize, long startPosition) {
-    mUfs = Preconditions.checkNotNull(ufs);
     mPositionReader = Preconditions.checkNotNull(localCachePositionReader);
     mFileSize = fileSize;
     mPos = startPosition;
