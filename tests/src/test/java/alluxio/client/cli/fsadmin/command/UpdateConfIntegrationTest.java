@@ -15,6 +15,7 @@ import alluxio.ClientContext;
 import alluxio.cli.GetConf;
 import alluxio.cli.fsadmin.command.UpdateConfCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
+import alluxio.conf.PropertyKey;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -36,12 +37,22 @@ public final class UpdateConfIntegrationTest extends AbstractFsAdminShellTest {
   public void updateUnknownKey() {
     // Support update non-existing key
     int ret = mFsAdminShell.run("updateConf", "unknown-key=unknown-value");
-    Assert.assertEquals(0, ret);
+    Assert.assertEquals(-2, ret);
     ret = mFsAdminShell.run("updateConf", "unknown-key");
     Assert.assertEquals(-1, ret);
+  }
+
+  @Test
+  public void updateValueWithEquals() {
     // We support value contain `=`
-    ret = mFsAdminShell.run("updateConf", "unknown-key=1=2");
+    int ret = mFsAdminShell.run("updateConf",
+        PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING.getName() + "=id1=user1;id2=user2");
     Assert.assertEquals(0, ret);
+    GetConf.getConf(ClientContext.create(), "--master",
+        PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING.getName());
+    String output = mOutput.toString();
+    String lastLineOutput = lastLine(output);
+    Assert.assertTrue(lastLineOutput, lastLine(output).contains("user1;id2=user2"));
   }
 
   @Test

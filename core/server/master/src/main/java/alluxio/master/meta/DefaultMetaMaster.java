@@ -729,13 +729,8 @@ public class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
       try {
         PropertyKey key;
-        try {
-          // Build template key if possible
-          key = PropertyKey.fromString(entry.getKey());
-        } catch (IllegalArgumentException e) {
-          // Build custom key with and set build-in, so it can be displayed to user.
-          key = PropertyKey.getOrBuildCustom(entry.getKey(), true);
-        }
+        // Build template key if possible, IllegalArgumentException for unknown key
+        key = PropertyKey.fromString(entry.getKey());
         if (Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
             && key.isDynamic()) {
           Object oldValue = null;
