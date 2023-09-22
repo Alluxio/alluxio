@@ -87,7 +87,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     CreateFilePOptions options = CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build();
     AlluxioURI filePath =
-        new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + "One_Byte" + "_" + mWriteType));
+        new AlluxioURI(PathUtils.concatPath(uniqPath, "file_One_Byte_" + mWriteType));
     writeOneIntegerToFile(filePath, 0, options);
     if (mWriteType.getAlluxioStorageType().isStore()) {
       checkFileInAlluxio(filePath, 1);
