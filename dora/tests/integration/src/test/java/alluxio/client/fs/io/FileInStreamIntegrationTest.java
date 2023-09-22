@@ -14,7 +14,6 @@ package alluxio.client.fs.io;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -34,7 +33,6 @@ import alluxio.worker.block.BlockStoreType;
 import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -55,9 +53,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Integration tests for {@link alluxio.client.file.FileInStream}.
  */
 @RunWith(Parameterized.class)
-@Ignore
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
-    comment = "fix the tests")
 public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   // The block size needs to be sufficiently large based on TCP send/receive buffers, set to 1MB.
   private static final int BLOCK_SIZE = Constants.MB;
@@ -386,7 +381,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
           PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB",
           PropertyKey.Name.WORKER_RAMDISK_SIZE, "1GB"})
   public void remoteReadLargeFile() throws Exception {
-    // write a file outside of Alluxio
+    // write a file outside Alluxio
     AlluxioURI filePath = new AlluxioURI(mTestPath + "/test");
     try (FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setBlockSizeBytes(16 * Constants.MB).setWriteType(WritePType.THROUGH).build())) {
