@@ -53,8 +53,6 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
 
   @Before
   public void before() throws Exception {
-    mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
-    mLocalAlluxioJobCluster.start();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
 
