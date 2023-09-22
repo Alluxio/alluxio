@@ -31,7 +31,6 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerInfo;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -45,9 +44,6 @@ import java.util.List;
  * types.
  */
 @RunWith(Parameterized.class)
-@Ignore
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
-    comment = "fix the tests")
 public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamIntegrationTest {
   // TODO(binfan): Run tests with local writes enabled and disabled.
 
@@ -80,6 +76,25 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
       if (mWriteType.getUnderStorageType().isSyncPersist()) {
         checkFileInUnderStorage(filePath, len);
       }
+    }
+  }
+
+  /**
+   * Tests {@link FileOutStream#write(int)}.
+   */
+  @Test
+  public void writeByte() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    CreateFilePOptions options = CreateFilePOptions.newBuilder()
+        .setWriteType(mWriteType.toProto()).setRecursive(true).build();
+    AlluxioURI filePath =
+        new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + "One_Byte" + "_" + mWriteType));
+    writeOneIntegerToFile(filePath, 0, options);
+    if (mWriteType.getAlluxioStorageType().isStore()) {
+      checkFileInAlluxio(filePath, 1);
+    }
+    if (mWriteType.getUnderStorageType().isSyncPersist()) {
+      checkFileInUnderStorage(filePath, 1);
     }
   }
 
