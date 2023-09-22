@@ -45,7 +45,6 @@ $ ./bin/alluxio init validate --type conf
 
 # Validate environment
 $ ./bin/alluxio init validate --type env`,
-		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},

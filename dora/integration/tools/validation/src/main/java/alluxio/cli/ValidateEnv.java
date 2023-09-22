@@ -257,7 +257,7 @@ public final class ValidateEnv {
     String argStr = String.join(" ", cmd.getArgs());
     String homeDir = mConf.getString(PropertyKey.HOME);
     String remoteCommand = String.format(
-        "%s/bin/alluxio validateEnv %s %s %s",
+        "%s/bin/alluxio init validate --type env %s %s %s",
         homeDir, target, name == null ? "" : name, argStr);
     String localCommand = String.format(
         "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",

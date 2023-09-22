@@ -163,7 +163,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
   private Properties getNodeConf(String node) throws IOException {
     String homeDir = mConf.getString(PropertyKey.HOME);
     String remoteCommand = String.format(
-        "%s/bin/alluxio getConf", homeDir);
+        "%s/bin/alluxio conf get", homeDir);
     String localCommand = String.format(
         "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",
         node, remoteCommand);
