@@ -23,8 +23,14 @@ import alluxio.uri.ZookeeperLogicalAuthority;
 
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.BlockLocation;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsAction;
+import org.apache.hadoop.security.AccessControlException;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -150,5 +156,38 @@ public class FileSystem extends AbstractFileSystem {
   @Override
   protected Path getFsPath(String fsUriHeader, URIStatus fileStatus) {
     return new Path(fsUriHeader + fileStatus.getPath());
+  }
+
+  @Override
+  public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len)
+      throws IOException {
+    if (mFileSystem.getConf().getBoolean(PropertyKey.DORA_ENABLED)) {
+      return super.getFileBlockLocations(file, start, len);
+    } else {
+      // If Dora is not enabled, use the localhost as the default block location.
+      if (file == null) {
+        return null;
+      }
+
+      if (start < 0 || len < 0) {
+        throw new IllegalArgumentException("Invalid start or len parameter");
+      }
+
+      if (file.getLen() <= start) {
+        return new BlockLocation[0];
+      }
+      String[] name = {"localhost:29997"};
+      String[] host = {"localhost"};
+      return new BlockLocation[] {
+          new BlockLocation(name, host, 0, file.getLen())};
+    }
+  }
+
+  @Override
+  public void access(Path path, FsAction mode) throws AccessControlException,
+      FileNotFoundException, IOException {
+    if (mFileSystem.getConf().getBoolean(PropertyKey.DORA_ENABLED)) {
+      super.access(path, mode);
+    }
   }
 }
