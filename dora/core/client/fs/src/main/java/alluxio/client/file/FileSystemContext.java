@@ -620,6 +620,10 @@ public class FileSystemContext implements Closeable {
     return mUriValidationEnabled;
   }
 
+  /**
+   * Sets current uri path with given uri path.
+   * @param uriPath
+   */
   public void setUriPath(String uriPath) {
     mUriPath = uriPath;
   }
