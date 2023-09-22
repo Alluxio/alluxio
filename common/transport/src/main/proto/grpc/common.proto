@@ -146,3 +146,11 @@ message BuildVersion {
   /** the git revision at the time of building */
   optional string revision = 2;
 }
+
+message WorkerIdentity {
+  /** opaque identifier that uniquely identifies a worker */
+  /** exactly how this byte sequence is interpreted depends on the version of its definition */
+  optional bytes identifier = 1;
+  /** version of the definition of the opaque identifier */
+  optional int32 version = 2;
+}

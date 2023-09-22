@@ -47,6 +47,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -160,6 +161,8 @@ public abstract class AbstractLocalAlluxioCluster {
         Configuration.set(PropertyKey.WORKER_PAGE_STORE_DIRS, pageStoreDir);
         Configuration.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, pageStoreDir);
       }
+      // each worker needs distinct identity
+      Configuration.set(PropertyKey.WORKER_IDENTITY_UUID, UUID.randomUUID().toString());
       WorkerProcess worker = WorkerProcess.Factory.create();
       mWorkers.add(worker);
       Runnable runWorker = () -> {

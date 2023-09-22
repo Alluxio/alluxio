@@ -4031,6 +4031,26 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setDescription("The hostname of Alluxio worker.")
       .setScope(Scope.WORKER)
       .build();
+  public static final PropertyKey WORKER_IDENTITY_UUID =
+      stringBuilder(Name.WORKER_IDENTITY_UUID)
+          .setDescription("The identity of the worker specified as a UUID. Worker instances in a "
+              + "Alluxio cluster must have different identities. "
+              + "This overrides " + Name.WORKER_IDENTITY_UUID_FILE_PATH
+              + " and should be used with discretion")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.WORKER)
+          .setIsHidden(true)
+          .build();
+  public static final PropertyKey WORKER_IDENTITY_UUID_FILE_PATH =
+      stringBuilder(Name.WORKER_IDENTITY_UUID_FILE_PATH)
+          .setDescription("The path to the file containing the identity of the "
+              + "worker specified as a UUID. This path should be readable and writable "
+              + "to the worker process. Worker instances in a "
+              + "Alluxio cluster must have different identities.")
+          .setDefaultValue("${alluxio.conf.dir}/worker_identity")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_KEYTAB_FILE = stringBuilder(Name.WORKER_KEYTAB_FILE)
       .setDescription("Kerberos keytab file for Alluxio worker.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -7824,6 +7844,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
     public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
+    public static final String WORKER_IDENTITY_UUID = "alluxio.worker.identity.uuid";
+    public static final String WORKER_IDENTITY_UUID_FILE_PATH =
+        "alluxio.worker.identity.uuid.file.path";
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
     public static final String WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
         "alluxio.worker.master.connect.retry.timeout";
