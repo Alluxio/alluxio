@@ -6797,17 +6797,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey ETCD_USERNAME =
       stringBuilder(Name.ETCD_USERNAME)
-          .setDescription("User name used for EtcdMembership module to do worker"
-              + " registration. Make sure the given user has the full readwrite"
+          .setDescription("Username for communication with Etcd."
+              + "Make sure the given user has the full readwrite"
               + " role permission on all keys with prefix '/'. "
-              + "Refer to etcd official site for authentication:"
-              + "https://etcd.io/docs/v3.2/op-guide/authentication/")
+              + "Refer to etcd official site for Authentication section.")
           .setScope(Scope.ALL)
           .build();
   public static final PropertyKey ETCD_PASSWORD =
       stringBuilder(Name.ETCD_PASSWORD)
-          .setDescription("User password used for EtcdMembership module to do worker"
-              + " registration")
+          .setDescription("User password for communication with Etcd.")
           .setScope(Scope.ALL)
           .build();
 

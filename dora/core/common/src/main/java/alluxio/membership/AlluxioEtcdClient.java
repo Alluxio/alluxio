@@ -109,7 +109,11 @@ public class AlluxioEtcdClient {
     // TODO(lucy) add more options as needed for io.etcd.jetcd.ClientBuilder
     // to control underneath grpc parameters.
     ClientBuilder jetcdClientBuilder = Client.builder().endpoints(mEndpoints);
+    Preconditions.checkArgument(
+        !(conf.isSet(PropertyKey.ETCD_USERNAME) ^ conf.isSet(PropertyKey.ETCD_PASSWORD)),
+        "Need to set both username/password for etcd connection, only one is set.");
     if (conf.isSet(PropertyKey.ETCD_USERNAME) && conf.isSet(PropertyKey.ETCD_PASSWORD)) {
+
       jetcdClientBuilder
           .user(ByteSequence.from(
               conf.getString(PropertyKey.ETCD_USERNAME), StandardCharsets.UTF_8))
