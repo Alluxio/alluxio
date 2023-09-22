@@ -145,6 +145,21 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   }
 
   /**
+   * Helper to write an Alluxio file with one byte from an int.
+   * {@link FileOutStream#write(byte[], int, int)} invocations.
+   *
+   * @param filePath path of the tmp file
+   * @param b byte about to write
+   * @param options options to create file
+   */
+  protected void writeOneIntegerToFile(AlluxioURI filePath, int b, CreateFilePOptions options)
+      throws Exception {
+    try (FileOutStream fileOutStream = mFileSystem.createFile(filePath, options)) {
+      fileOutStream.write(b);
+    }
+  }
+
+  /**
    * Checks the given file exists in Alluxio storage and expects its content to be an increasing
    * array of the given length.
    *
