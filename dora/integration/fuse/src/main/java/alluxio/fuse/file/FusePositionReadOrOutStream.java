@@ -186,7 +186,9 @@ public class FusePositionReadOrOutStream implements FuseFileStream {
       mPositionReader.get().releaseLock();
       return;
     }
-    mOutStream.ifPresent(FuseFileOutStream::releaseLock);
+    synchronized (this) {
+      mOutStream.ifPresent(FuseFileOutStream::releaseLock);
+    }
   }
 
   @Override
@@ -199,6 +201,8 @@ public class FusePositionReadOrOutStream implements FuseFileStream {
       mPositionReader.get().closeStream();
       return;
     }
-    mOutStream.ifPresent(FuseFileOutStream::closeStream);
+    synchronized (this) {
+      mOutStream.ifPresent(FuseFileOutStream::closeStream);
+    }
   }
 }
