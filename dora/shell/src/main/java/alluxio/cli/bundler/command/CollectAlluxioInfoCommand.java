@@ -67,8 +67,10 @@ public class CollectAlluxioInfoCommand extends ExecuteShellCollectInfoCommand {
         new AlluxioCommand(mAlluxioPath, "conf get --master --source"), null);
     registerCommand("report",
         new AlluxioCommand(mAlluxioPath, "info report"), null);
-    registerCommand("mount",
-        new AlluxioCommand(mAlluxioPath, "mount show"), null);
+    registerCommand("nodes info",
+        new AlluxioCommand(mAlluxioPath, "info nodes"), null);
+    registerCommand("cache info",
+        new AlluxioCommand(mAlluxioPath, "info cache"), null);
     registerCommand("version",
         new AlluxioCommand(mAlluxioPath, "info version"), null);
     registerCommand("basicIOTests",
