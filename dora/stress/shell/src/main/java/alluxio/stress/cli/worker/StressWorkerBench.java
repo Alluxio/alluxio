@@ -73,7 +73,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
    * generate random number in range [min, max] (include both min and max).
    */
   private long randomNumInRange(long min, long max) {
-    return ThreadLocalRandom.current().nextLong(max - min + 1) + min;
+    return ThreadLocalRandom.current().nextLong(min, max + 1) + min;
   }
 
   private long minLong(long a, long b) {
