@@ -11,30 +11,44 @@
 
 package alluxio.conf;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The changed update config events.
+ */
 public class UpdatedConfigEventDiff {
   List<Map<String, String>> mChangedProperties;
   long mVersion;
 
+  /**
+   * Construct an instance of {@link UpdatedConfigEventDiff}
+   * @param changedProperties a list of changed properties
+   * @param version the last update event version
+   */
   public UpdatedConfigEventDiff(List<Map<String, String>> changedProperties, long version) {
     mChangedProperties = changedProperties;
     mVersion = version;
   }
 
+  /**
+   * @return a list of changed properties
+   */
   public List<Map<String, String>> getChangedProperties() {
-    return mChangedProperties;
+    return Collections.unmodifiableList(mChangedProperties);
   }
 
-  public void setChangedProperties(List<Map<String, String>> changedProperties) {
-    mChangedProperties = changedProperties;
-  }
-
+  /**
+   * @return the last update event version
+   */
   public long getVersion() {
     return mVersion;
   }
 
+  /**
+   * @param version the version of the last update event
+   */
   public void setVersion(long version) {
     mVersion = version;
   }
