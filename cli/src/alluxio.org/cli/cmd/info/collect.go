@@ -33,6 +33,7 @@ var Collect = &CollectCommand{
 type CollectCommand struct {
 	*env.BaseJavaCommand
 
+	AdditionalCommands   map[string]string
 	additionalLogs       []string
 	endTime              string
 	excludeLogs          []string
@@ -95,6 +96,9 @@ func (c *CollectCommand) Run(args []string) error {
 		"jvm":     "collectJvmInfo",
 		"log":     "collectLog",
 		"metrics": "collectMetrics",
+	}
+	for k, v := range c.AdditionalCommands {
+		commands[k] = v
 	}
 	commandArg, ok := commands[args[0]]
 	if !ok {
