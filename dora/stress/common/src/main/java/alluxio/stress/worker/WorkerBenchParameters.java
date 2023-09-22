@@ -71,11 +71,14 @@ public final class WorkerBenchParameters extends FileSystemParameters {
   public Integer mRandomSeed = 1;
 
   @Parameter(names = {"--random-max-length"},
-      description = "The random max length upper bound")
+      description = "The random max length upper bound."
+          + "As this InputStream.read() only accept read offset and"
+          + " length as Integer, so this max length must smaller than 2.1GB.")
   public String mRandomMaxReadLength = "4m";
 
   @Parameter(names = {"--random-min-length"},
-      description = "The random max length upper bound")
+      description = "The random max length lower bound."
+         + "this random min length must not larger than random max length.")
   public String mRandomMinReadLength = "1m";
 
   @Parameter(names = {"--free"},
