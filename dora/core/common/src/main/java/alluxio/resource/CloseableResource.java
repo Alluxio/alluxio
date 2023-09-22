@@ -31,6 +31,8 @@ public abstract class CloseableResource<T> implements Closeable {
 
   private final T mResource;
 
+  private boolean mClosed = false;
+
   @Nullable
   private final ResourceLeakTracker<CloseableResource> mTracker = DETECTOR.track(this);
 
@@ -57,10 +59,18 @@ public abstract class CloseableResource<T> implements Closeable {
       mTracker.close(this);
     }
     closeResource();
+    mClosed = true;
   }
 
   /**
    * Performs any cleanup operations necessary when the resource is no longer in use.
    */
   public abstract void closeResource();
+
+  /**
+   * @return if the resource has been closed
+   */
+  public boolean isClosed() {
+    return mClosed;
+  }
 }
