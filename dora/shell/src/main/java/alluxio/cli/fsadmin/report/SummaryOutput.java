@@ -11,11 +11,8 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterVersion;
-import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
 import alluxio.wire.BlockMasterInfo;
 
 import java.util.ArrayList;
@@ -30,8 +27,8 @@ public class SummaryOutput {
   private String mMasterAddress;
   private int mWebPort;
   private int mRpcPort;
-  private String mStarted;
-  private String mUptime;
+  private long mStartTime;
+  private long mUptimeDuration;
   private String mVersion;
   private boolean mSafeMode;
 
@@ -43,9 +40,9 @@ public class SummaryOutput {
 
   private int mLiveWorkers;
   private int mLostWorkers;
-  private Map<String, String> mTotalCapacityOnTiers;
-  private Map<String, String> mUsedCapacityOnTiers;
-  private String mFreeCapacity;
+  private Map<String, Long> mTotalCapacityOnTiers;
+  private Map<String, Long> mUsedCapacityOnTiers;
+  private long mFreeCapacityBytes;
 
   private static class SerializableMasterVersion {
     private String mHost;
@@ -98,16 +95,14 @@ public class SummaryOutput {
    *
    * @param masterInfo given master info
    * @param blockMasterInfo given block master info
-   * @param dateFormatPattern specify the pattern of dates
    */
-  public SummaryOutput(MasterInfo masterInfo, BlockMasterInfo blockMasterInfo,
-        String dateFormatPattern) {
+  public SummaryOutput(MasterInfo masterInfo, BlockMasterInfo blockMasterInfo) {
     // give values to internal properties
     mMasterAddress = masterInfo.getLeaderMasterAddress();
     mWebPort = masterInfo.getWebPort();
     mRpcPort = masterInfo.getRpcPort();
-    mStarted = CommonUtils.convertMsToDate(masterInfo.getStartTimeMs(), dateFormatPattern);
-    mUptime = CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs());
+    mStartTime = masterInfo.getStartTimeMs();
+    mUptimeDuration = masterInfo.getUpTimeMs();
     mVersion = masterInfo.getVersion();
     mSafeMode = masterInfo.getSafeMode();
 
@@ -128,22 +123,16 @@ public class SummaryOutput {
     mLostWorkers = blockMasterInfo.getLostWorkerNum();
 
     mTotalCapacityOnTiers = new TreeMap<>();
+    Map<String, Long> totalBytesOnTiers = blockMasterInfo.getCapacityBytesOnTiers();
+    for (Map.Entry<String, Long> entry : totalBytesOnTiers.entrySet()) {
+      mTotalCapacityOnTiers.put(entry.getKey() + "Bytes", entry.getValue());
+    }
     mUsedCapacityOnTiers = new TreeMap<>();
-    Map<String, Long> totalBytesOnTiers =
-        new TreeMap<>(FileSystemAdminShellUtils::compareTierNames);
-    totalBytesOnTiers.putAll(blockMasterInfo.getCapacityBytesOnTiers());
-    for (Map.Entry<String, Long> totalBytesOnTier : totalBytesOnTiers.entrySet()) {
-      mTotalCapacityOnTiers.put(totalBytesOnTier.getKey(),
-          FormatUtils.getSizeFromBytes(totalBytesOnTier.getValue()));
+    Map<String, Long> usedBytesOnTiers = blockMasterInfo.getUsedBytesOnTiers();
+    for (Map.Entry<String, Long> entry : usedBytesOnTiers.entrySet()) {
+      mUsedCapacityOnTiers.put(entry.getKey() + "Bytes", entry.getValue());
     }
-    Map<String, Long> usedBytesOnTiers =
-        new TreeMap<>(FileSystemAdminShellUtils::compareTierNames);
-    usedBytesOnTiers.putAll(blockMasterInfo.getUsedBytesOnTiers());
-    for (Map.Entry<String, Long> usedBytesOnTier : usedBytesOnTiers.entrySet()) {
-      mUsedCapacityOnTiers.put(usedBytesOnTier.getKey(),
-          FormatUtils.getSizeFromBytes(usedBytesOnTier.getValue()));
-    }
-    mFreeCapacity = FormatUtils.getSizeFromBytes(blockMasterInfo.getFreeBytes());
+    mFreeCapacityBytes = blockMasterInfo.getFreeBytes();
   }
 
   /**
@@ -205,17 +194,17 @@ public class SummaryOutput {
    *
    * @return started time
    */
-  public String getStarted() {
-    return mStarted;
+  public long getStartTime() {
+    return mStartTime;
   }
 
   /**
    * Set started time.
    *
-   * @param started started time
+   * @param startTime started time
    */
-  public void setStarted(String started) {
-    mStarted = started;
+  public void setStartTime(long startTime) {
+    mStartTime = startTime;
   }
 
   /**
@@ -223,17 +212,17 @@ public class SummaryOutput {
    *
    * @return time running
    */
-  public String getUptime() {
-    return mUptime;
+  public long getUptimeDuration() {
+    return mUptimeDuration;
   }
 
   /**
    * Set time running.
    *
-   * @param uptime time running
+   * @param uptimeDuration time running
    */
-  public void setUptime(String uptime) {
-    mUptime = uptime;
+  public void setUptimeDuration(long uptimeDuration) {
+    mUptimeDuration = uptimeDuration;
   }
 
   /**
@@ -399,21 +388,21 @@ public class SummaryOutput {
   }
 
   /**
-   * Get free capacity.
+   * Get free capacity in bytes.
    *
    * @return free capacity
    */
-  public String getFreeCapacity() {
-    return mFreeCapacity;
+  public long getFreeCapacityBytes() {
+    return mFreeCapacityBytes;
   }
 
   /**
-   * Set free capacity.
+   * Set free capacity in bytes.
    *
-   * @param freeCapacity free capacity
+   * @param freeCapacityBytes free capacity
    */
-  public void setFreeCapacity(String freeCapacity) {
-    mFreeCapacity = freeCapacity;
+  public void setFreeCapacityBytes(long freeCapacityBytes) {
+    mFreeCapacityBytes = freeCapacityBytes;
   }
 
   /**
@@ -421,7 +410,7 @@ public class SummaryOutput {
    *
    * @return capacity by tiers
    */
-  public Map<String, String> getTotalCapacityOnTiers() {
+  public Map<String, Long> getTotalCapacityOnTiers() {
     return mTotalCapacityOnTiers;
   }
 
@@ -430,7 +419,7 @@ public class SummaryOutput {
    *
    * @param totalCapacityOnTiers capacity by tiers
    */
-  public void setTotalCapacityOnTiers(Map<String, String> totalCapacityOnTiers) {
+  public void setTotalCapacityOnTiers(Map<String, Long> totalCapacityOnTiers) {
     mTotalCapacityOnTiers = totalCapacityOnTiers;
   }
 
@@ -439,7 +428,7 @@ public class SummaryOutput {
    *
    * @return used capacity by tiers
    */
-  public Map<String, String> getUsedCapacityOnTiers() {
+  public Map<String, Long> getUsedCapacityOnTiers() {
     return mUsedCapacityOnTiers;
   }
 
@@ -448,7 +437,7 @@ public class SummaryOutput {
    *
    * @param usedCapacityOnTiers used capacity by tiers
    */
-  public void setUsedCapacityOnTiers(Map<String, String> usedCapacityOnTiers) {
+  public void setUsedCapacityOnTiers(Map<String, Long> usedCapacityOnTiers) {
     mUsedCapacityOnTiers = usedCapacityOnTiers;
   }
 }

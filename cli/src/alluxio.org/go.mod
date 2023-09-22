@@ -3,6 +3,7 @@ module alluxio.org
 go 1.18
 
 require (
+	github.com/iancoleman/orderedmap v0.3.0
 	github.com/palantir/stacktrace v0.0.0-20161112013806-78658fd2d177
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/sirupsen/logrus v1.9.0
