@@ -68,8 +68,12 @@ public final class DoraS3PathIntegrationTest extends BaseIntegrationTest {
           .setStartCluster(false);
 
   private static final String TEST_BUCKET = "test-bucket";
+  private static final String TEST_BUCKET_OTHER = "test-bucket-other";
+
   public static final String TEST_FILENAME = "s3://" + TEST_BUCKET + "/test-file";
+  public static final String TEST_FILENAME_OTHER = "s3://" + TEST_BUCKET_OTHER + "/test-file-other";
   public static final Path TEST_PATH = new Path(TEST_FILENAME);
+  public static final Path TEST_PATH_OTHER = new Path(TEST_FILENAME_OTHER);
   private static final String TEST_CONTENT = "test-content";
 
   @Rule
@@ -77,6 +81,7 @@ public final class DoraS3PathIntegrationTest extends BaseIntegrationTest {
   private AmazonS3 mS3Client = null;
   private FileSystem mHadoopFileSystem;
   private LocalAlluxioClusterResource mClusterResource;
+  private Configuration mHadoopConf;
 
   @Before
   public void before() throws Exception {
@@ -95,11 +100,11 @@ public final class DoraS3PathIntegrationTest extends BaseIntegrationTest {
         .build();
     mS3Client.createBucket(TEST_BUCKET);
 
-    Configuration conf = new Configuration();
-    conf.set("fs.s3.impl", "alluxio.hadoop.FileSystem");
-    conf.set("fs.AbstractFileSystem.s3.impl", "alluxio.hadoop.AlluxioFileSystem");
+    mHadoopConf = new Configuration();
+    mHadoopConf.set("fs.s3.impl", "alluxio.hadoop.FileSystem");
+    mHadoopConf.set("fs.AbstractFileSystem.s3.impl", "alluxio.hadoop.AlluxioFileSystem");
 
-    mHadoopFileSystem = FileSystem.get(new URI("s3://test-bucket/"), conf);
+    mHadoopFileSystem = FileSystem.get(new URI(TEST_FILENAME), mHadoopConf);
   }
 
   @After
@@ -135,5 +140,22 @@ public final class DoraS3PathIntegrationTest extends BaseIntegrationTest {
     in.read(buffReadFromDora);
     in.close();
     assertEquals(buf.length, mHadoopFileSystem.getFileStatus(TEST_PATH).getLen());
+  }
+
+  @Test
+  public void testOtherBucket() throws Exception
+  {
+    mS3Client.createBucket(TEST_BUCKET_OTHER);
+    mHadoopFileSystem = FileSystem.get(new URI(TEST_FILENAME_OTHER), mHadoopConf);
+    FSDataOutputStream out = mHadoopFileSystem.create(TEST_PATH_OTHER);
+    byte[] buf = TEST_CONTENT.getBytes(Charset.defaultCharset());
+    out.write(buf);
+    out.close();
+
+    FSDataInputStream in = mHadoopFileSystem.open(TEST_PATH_OTHER);
+    byte[] buffReadFromDora = new byte[buf.length];
+    in.read(buffReadFromDora);
+    in.close();
+    assertEquals(Arrays.toString(buf), Arrays.toString(buffReadFromDora));
   }
 }
