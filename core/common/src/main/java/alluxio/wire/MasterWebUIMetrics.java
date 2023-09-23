@@ -46,6 +46,7 @@ public final class MasterWebUIMetrics implements Serializable {
   private String mCacheHitLocal;
   private String mCacheHitRemote;
   private String mCacheMiss;
+  private String mCacheMissNew;
   private String mTotalBytesReadLocal;
   private String mTotalBytesReadLocalThroughput;
   private String mTotalBytesReadRemote;
@@ -96,6 +97,9 @@ public final class MasterWebUIMetrics implements Serializable {
     return mCacheMiss;
   }
 
+  public String getCacheMissNew() {
+    return mCacheMissNew;
+  }
   /**
    * Gets master capacity free percentage.
    *
@@ -388,6 +392,11 @@ public final class MasterWebUIMetrics implements Serializable {
    */
   public MasterWebUIMetrics setCacheMiss(String CacheMiss) {
     mCacheMiss = CacheMiss;
+    return this;
+  }
+
+  public MasterWebUIMetrics setCacheMissNew(String CacheMissNew) {
+    mCacheMissNew = CacheMissNew;
     return this;
   }
 
@@ -724,7 +733,7 @@ public final class MasterWebUIMetrics implements Serializable {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("cacheHitLocal", mCacheHitLocal)
-        .add("cacheHitRemote", mCacheHitRemote).add("cacheMiss", mCacheMiss)
+        .add("cacheHitRemote", mCacheHitRemote).add("cacheMiss", mCacheMiss).add("cacheMissNew", mCacheMissNew)
         .add("masterCapacityFreePercentage", mMasterCapacityFreePercentage)
         .add("masterCapacityUsedPercentage", mMasterCapacityUsedPercentage)
         .add("masterUnderfsCapacityFreePercentage", mMasterUnderfsCapacityFreePercentage)

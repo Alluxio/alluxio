@@ -26,12 +26,14 @@ public final class UfsBlockReadOptions {
   private final long mOffsetInFile;
   private final String mUfsPath;
   private final boolean mCacheIntoAlluxio;
+  private final String mUser;
 
-  UfsBlockReadOptions(long mountId, long offsetInFile, String ufsPath, boolean cacheIntoAlluxio) {
+  UfsBlockReadOptions(long mountId, long offsetInFile, String ufsPath, boolean cacheIntoAlluxio, String user) {
     mMountId = mountId;
     mOffsetInFile = offsetInFile;
     mUfsPath = ufsPath;
     mCacheIntoAlluxio = cacheIntoAlluxio;
+    mUser = user;
   }
 
   /**
@@ -47,7 +49,7 @@ public final class UfsBlockReadOptions {
         "missing offset in file for UFS block read");
     Preconditions.checkArgument(options.hasUfsPath(), "missing UFS path for UFS block read");
     return new UfsBlockReadOptions(options.getMountId(),
-        options.getOffsetInFile(), options.getUfsPath(), !options.getNoCache());
+        options.getOffsetInFile(), options.getUfsPath(), !options.getNoCache(), options.getUser());
   }
 
   /**
@@ -69,6 +71,10 @@ public final class UfsBlockReadOptions {
    */
   public String getUfsPath() {
     return mUfsPath;
+  }
+
+  public String getUser() {
+    return mUser;
   }
 
   /**

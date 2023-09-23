@@ -6310,6 +6310,16 @@
                 "id": 4,
                 "name": "pathConfigHash",
                 "type": "string"
+              },
+              {
+                "id": 5,
+                "name": "clusterConfigLastUpdateTime",
+                "type": "int64"
+              },
+              {
+                "id": 6,
+                "name": "pathConfigLastUpdateTime",
+                "type": "int64"
               }
             ],
             "maps": [

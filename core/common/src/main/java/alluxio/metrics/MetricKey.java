@@ -1711,6 +1711,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Bytes read per minute throughput from all Alluxio UFSes by all workers")
           .setMetricType(MetricType.GAUGE)
           .build();
+
+  public static final MetricKey CLUSTER_BYTES_READ_CACHE =
+          new Builder("Cluster.BytesReadCache")
+                  .setDescription("Total number of bytes read from all worker's cache by all workers")
+                  .setMetricType(MetricType.COUNTER)
+                  .build();
+
   public static final MetricKey CLUSTER_BYTES_WRITTEN_REMOTE =
       new Builder("Cluster.BytesWrittenRemote")
           .setDescription("Total number of bytes written to workers via network (RPC). "
@@ -2003,6 +2010,14 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
+
+  public static final MetricKey WORKER_BYTES_READ_CACHE =
+          new Builder("Worker.BytesReadCache")
+                  .setDescription("Total number of bytes read from the worker's cache by the worker")
+                  .setMetricType(MetricType.COUNTER)
+                  .setIsClusterAggregated(true)
+                  .build();
+
   public static final MetricKey WORKER_BYTES_WRITTEN_DIRECT =
       new Builder("Worker.BytesWrittenDirect")
           .setDescription("Total number of bytes written to this worker "

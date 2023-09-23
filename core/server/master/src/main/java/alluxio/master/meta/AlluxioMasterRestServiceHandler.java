@@ -1001,6 +1001,15 @@ public final class AlluxioMasterRestServiceHandler {
           .setCacheHitRemote(String.format("%.2f", cacheHitRemotePercentage))
           .setCacheMiss(String.format("%.2f", cacheMissPercentage));
 
+      Long bytesReadCache = counters.get(
+              MetricKey.CLUSTER_BYTES_READ_CACHE.getName()).getCount();
+      long newbytesReadTotal = bytesReadCache + bytesReadUfs;
+      double newcacheMissPercentage =
+              (newbytesReadTotal > 0) ? (100D * bytesReadUfs / newbytesReadTotal) : 0;
+      response.setCacheMissNew(String.format("%.2f", newcacheMissPercentage));
+
+
+
       // cluster write size
       Long bytesWrittenLocal = counters
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount();
