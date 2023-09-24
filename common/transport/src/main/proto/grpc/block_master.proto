@@ -158,6 +158,11 @@ service BlockMasterClientService {
   rpc GetWorkerInfoList(GetWorkerInfoListPOptions) returns (GetWorkerInfoListPResponse);
 
   /**
+ * Returns a list of workers information.
+ */
+  rpc GetLostWorkerList(GetWorkerInfoListPOptions) returns (GetWorkerInfoListPResponse);
+
+  /**
    * If target worker is in the decommissioned worker set,
    * return true, remove target worker from decommissioned worker set; else, return false.
    */

@@ -6896,6 +6896,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
+  public static final PropertyKey USER_DYNAMIC_CONSISTENT_HASH_RING_ENABLED =
+      booleanBuilder(Name.USER_DYNAMIC_CONSISTENT_HASH_RING_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("If true, use live worker list to build consistent hash ring. Otherwise, "
+              + "use all worker list that includes lost workers to build consistent hash ring.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.CLIENT)
+          .build();
+
   public static final PropertyKey WORKER_HTTP_SERVER_ENABLED =
       booleanBuilder(Name.WORKER_HTTP_SERVER_ENABLED)
           .setDefaultValue(true)
@@ -8517,6 +8526,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_NETTY_DATA_TRANSMISSION_ENABLED =
         "alluxio.user.netty.data.transmission.enabled";
 
+    public static final String USER_DYNAMIC_CONSISTENT_HASH_RING_ENABLED =
+        "alluxio.user.dynamic.consistent.hash.ring.enabled";
     public static final String WORKER_HTTP_SERVER_ENABLED =
         "alluxio.worker.http.server.enabled";
 
