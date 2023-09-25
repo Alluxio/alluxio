@@ -1004,8 +1004,6 @@ public final class AlluxioMasterRestServiceHandler {
           .setCacheHitRemote(String.format("%.2f", cacheHitRemotePercentage))
           .setCacheMiss(String.format("%.2f", cacheMissPercentage));
 
-
-
       // cluster write size
       Long bytesWrittenLocal = counters
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount();

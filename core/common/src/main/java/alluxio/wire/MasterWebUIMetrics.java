@@ -391,7 +391,6 @@ public final class MasterWebUIMetrics implements Serializable {
     return this;
   }
 
-
   /**
    * Sets master capacity free percentage.
    *

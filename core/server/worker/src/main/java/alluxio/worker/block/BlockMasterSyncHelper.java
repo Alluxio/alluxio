@@ -136,8 +136,6 @@ public class BlockMasterSyncHelper {
     // Send the heartbeat and execute the response
     Command cmdFromMaster = null;
     List<alluxio.grpc.Metric> metrics = MetricsSystem.reportWorkerMetrics();
-    LOG.warn("ly-----metrics: {}", metrics);
-    LOG.warn("ly-----WORKER_BYTES_READ_CACHE: {}", MetricsSystem.counter(MetricKey.WORKER_BYTES_READ_CACHE.getName()).getCount());
     try {
       cmdFromMaster = mMasterClient.heartbeat(workerId, storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
