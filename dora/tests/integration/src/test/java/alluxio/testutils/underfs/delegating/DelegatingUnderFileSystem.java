@@ -343,8 +343,8 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public Map<String, String> getAttribute(String path) throws IOException {
-    return mUfs.getAttribute(path);
+  public Map<String, String> getAttributes(String path) throws IOException {
+    return mUfs.getAttributes(path);
   }
 
   @Override

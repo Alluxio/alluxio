@@ -47,7 +47,7 @@ public class HdfsUnderFileSystemIntegrationTest extends HdfsUnderFileSystemInteg
     String attrKey = "key1";
     String attrValue = "value1";
     mUfs.setAttribute(testFilePath, attrKey, attrValue.getBytes());
-    Map<String, String> attrMap =  mUfs.getAttribute(testFilePath);
+    Map<String, String> attrMap =  mUfs.getAttributes(testFilePath);
     assertEquals(attrMap.get(attrKey), attrValue);
   }
 }

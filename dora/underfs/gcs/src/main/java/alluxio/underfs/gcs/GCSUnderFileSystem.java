@@ -134,12 +134,12 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public void setObjectTagging(String path, String name, String value) throws IOException {
-    throw new UnimplementedRuntimeException("set attribute is not implemented");
+    throw new UnimplementedRuntimeException("setObjectTagging is not implemented");
   }
 
   @Override
   public Map<String, String> getObjectTags(String path) throws IOException {
-    throw new UnimplementedRuntimeException("get attribute is not implemented");
+    throw new UnimplementedRuntimeException("getObjectTags is not implemented");
   }
 
   // Setting GCS mode via Alluxio is not supported yet. This is a no-op.

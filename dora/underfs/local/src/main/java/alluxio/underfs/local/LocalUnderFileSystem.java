@@ -461,7 +461,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public Map<String, String> getAttribute(String path) throws IOException {
+  public Map<String, String> getAttributes(String path) throws IOException {
     path = stripPath(path);
     return FileUtils.getLocalFileUserDefinedAttribute(path);
   }

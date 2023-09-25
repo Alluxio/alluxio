@@ -54,6 +54,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -196,6 +197,9 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public void setObjectTagging(String path, String name, String value) throws IOException {
+    // It's a read-and-update race condition. When there is a competitive conflict scenario,
+    // it may lead to inconsistent final results. The final conflict occurs in UFS,
+    // UFS will determine the final result.
     TagSet taggingResult = mClient.getObjectTagging(mBucketName, path);
     taggingResult.setTag(name, value);
     SetObjectTaggingRequest request =
@@ -206,7 +210,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public Map<String, String> getObjectTags(String path) throws IOException {
     TagSet taggingResult = mClient.getObjectTagging(mBucketName, path);
-    return taggingResult.getAllTags();
+    return Collections.unmodifiableMap(taggingResult.getAllTags());
   }
 
   // No ACL integration currently, no-op

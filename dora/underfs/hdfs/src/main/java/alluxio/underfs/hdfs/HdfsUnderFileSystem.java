@@ -749,6 +749,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   @Override
   public void setAttribute(String path, String name, byte[] value) throws IOException {
     if (StringUtils.isEmpty(name)) {
+      LOG.warn("Try to set Xattr to an empty file name.");
       return;
     }
     FileSystem hdfs = getFs();
@@ -764,15 +765,15 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public Map<String, String> getAttribute(String path) throws IOException {
+  public Map<String, String> getAttributes(String path) throws IOException {
     FileSystem hdfs = getFs();
     try {
       Map<String, byte[]> attrMap = hdfs.getXAttrs(new Path(path));
-      return attrMap.entrySet().stream()
-          .filter(entry -> entry.getKey().startsWith(USER_NAMESPACE_PREFIX))
-          .collect(HashMap::new,
-              (map, entry) -> map.put(entry.getKey().substring(entry.getKey().indexOf(".") + 1),
-                  new String(entry.getValue())), HashMap::putAll);
+      Map<String, String> resMap = new HashMap<>();
+      attrMap.entrySet().stream().filter(entry -> entry.getKey().startsWith(USER_NAMESPACE_PREFIX))
+          .map(entry -> resMap.put(entry.getKey().substring(entry.getKey().indexOf(".") + 1),
+              new String(entry.getValue())));
+      return Collections.unmodifiableMap(resMap);
     } catch (IOException e) {
       LOG.warn("Failed to get XAttr for {}.", path);
       throw e;

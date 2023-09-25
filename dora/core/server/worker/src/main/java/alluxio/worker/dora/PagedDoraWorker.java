@@ -552,7 +552,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     for (UfsStatus status : ufsStatuses) {
       String ufsFullPath = status.getUfsFullPath().toString();
       UnderFileSystem ufs = getUfsInstance(ufsFullPath);
-      Map<String, String> xattrMap = ufs.getAttribute(ufsFullPath);
+      Map<String, String> xattrMap = ufs.getAttributes(ufsFullPath);
       DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath, xattrMap);
       Optional<DoraMeta.FileStatus> originalFs = mMetaManager.getFromMetaStore(ufsFullPath);
       mMetaManager.put(ufsFullPath, fs);

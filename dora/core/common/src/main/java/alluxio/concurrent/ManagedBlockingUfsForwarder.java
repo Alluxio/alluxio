@@ -569,11 +569,11 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public Map<String, String> getAttribute(String path) throws IOException {
+  public Map<String, String> getAttributes(String path) throws IOException {
     return new ManagedBlockingUfsMethod<Map<String, String>>() {
       @Override
       public Map<String, String> execute() throws IOException {
-        return mUfs.getAttribute(path);
+        return mUfs.getAttributes(path);
       }
     }.get();
   }

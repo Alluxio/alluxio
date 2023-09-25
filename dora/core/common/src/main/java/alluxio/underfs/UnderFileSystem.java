@@ -873,13 +873,14 @@ public interface UnderFileSystem extends Closeable, AsyncUfsClient {
   void setAttribute(String path, String name, byte[] value) throws IOException;
 
   /**
-   * Gets the attribute of the given path. An empty implementation should be provided if
+   * Gets the attributes of the given path. An empty implementation should be provided if
    * unsupported.
+   * The returned attribute map is read-only and unmodifiable.
    *
    * @param path the path of the file
    * @return the map of all attributes
    */
-  Map<String, String> getAttribute(String path) throws IOException;
+  Map<String, String> getAttributes(String path) throws IOException;
 
   /**
    * Whether this type of UFS supports flush.

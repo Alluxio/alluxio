@@ -53,6 +53,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -156,14 +157,17 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
     GetObjectTaggingRequest getTaggingReq = new GetObjectTaggingRequest(mBucketNameInternal, path);
     GetObjectTaggingResult taggingResult = mClient.getObjectTagging(getTaggingReq);
     List<Tag> tagList = taggingResult.getTagSet();
-    boolean existed = false;
+    // It's a read-and-update race condition. When there is a competitive conflict scenario,
+    // it may lead to inconsistent final results. The final conflict occurs in UFS,
+    // UFS will determine the final result.
+    boolean matchFound = false;
     for (Tag tag : tagList) {
       if (tag.getKey().equals(name)) {
-        existed = true;
+        matchFound = true;
         tag.setValue(value);
       }
     }
-    if (!existed) {
+    if (!matchFound) {
       Tag tag = new Tag(name, value);
       tagList.add(tag);
     }
@@ -176,9 +180,9 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
     GetObjectTaggingRequest getTaggingReq = new GetObjectTaggingRequest(mBucketNameInternal, path);
     GetObjectTaggingResult taggingResult = mClient.getObjectTagging(getTaggingReq);
     List<Tag> tagList = taggingResult.getTagSet();
-    return tagList.stream()
+    return Collections.unmodifiableMap(tagList.stream()
         .collect(HashMap::new, (map, tag) -> map.put(tag.getKey(), tag.getValue()),
-            HashMap::putAll);
+            HashMap::putAll));
   }
 
   @Override

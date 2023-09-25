@@ -492,7 +492,7 @@ public final class S3RestUtils {
    */
   public static TaggingData deserializeTags(Map<String, byte[]> xAttr)
       throws IOException {
-    Map<String, String> tagMap = new HashMap<>();
+    Map<String, String> tagMap = new HashMap<>(xAttr.size());
     for (Map.Entry<String, byte[]> tags : xAttr.entrySet()) {
       tagMap.put(tags.getKey(), new String(tags.getValue()));
     }

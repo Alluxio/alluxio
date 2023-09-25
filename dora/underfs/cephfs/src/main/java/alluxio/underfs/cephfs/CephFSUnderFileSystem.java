@@ -609,12 +609,12 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
 
   @Override
   public void setAttribute(String path, String name, byte[] value) throws IOException {
-    throw new UnimplementedRuntimeException("set attribute is not implemented");
+    throw new UnimplementedRuntimeException("setAttribute is not implemented");
   }
 
   @Override
-  public Map<String, String> getAttribute(String path) throws IOException {
-    throw new UnimplementedRuntimeException("get attribute is not implemented");
+  public Map<String, String> getAttributes(String path) throws IOException {
+    throw new UnimplementedRuntimeException("getAttributes is not implemented");
   }
 
   @Override

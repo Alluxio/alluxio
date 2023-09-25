@@ -51,6 +51,7 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.nio.file.attribute.UserPrincipal;
 import java.nio.file.attribute.UserPrincipalLookupService;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -114,7 +115,8 @@ public final class FileUtils {
       UserDefinedFileAttributeView attributeView =
           Files.getFileAttributeView(Paths.get(filePath), UserDefinedFileAttributeView.class);
       if (attributeView == null) {
-        throw new UnimplementedRuntimeException("set attribute is not implemented");
+        throw new UnimplementedRuntimeException(
+            "UFS does not support getting FileAttributeView with Java.");
       }
       attributeView.write(name, ByteBuffer.wrap(value));
     } catch (UnsupportedOperationException e) {
@@ -141,7 +143,7 @@ public final class FileUtils {
       if (attributeView == null) {
         throw new UnimplementedRuntimeException("set attribute is not implemented");
       }
-      Map<String, String> attrMap = new HashMap<>();
+      Map<String, String> attrMap = new HashMap<>(attributeView.list().size());
       for (String attributeName : attributeView.list()) {
         int attributeSize = attributeView.size(attributeName);
         ByteBuffer attributeBuffer = ByteBuffer.allocate(attributeSize);
@@ -151,7 +153,7 @@ public final class FileUtils {
         String attributeValue = new String(attributeBuffer.array(), 0, attributeSize);
         attrMap.put(attributeName, attributeValue);
       }
-      return attrMap;
+      return Collections.unmodifiableMap(attrMap);
     } catch (UnsupportedOperationException e) {
       throw new UnimplementedRuntimeException(e, ErrorType.External);
     } catch (ClassCastException | IllegalArgumentException e) {

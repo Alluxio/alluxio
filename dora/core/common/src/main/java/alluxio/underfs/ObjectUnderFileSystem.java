@@ -596,7 +596,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public Map<String, String> getAttribute(String path) throws IOException {
+  public Map<String, String> getAttributes(String path) throws IOException {
     path = stripPrefixIfPresent(path);
     try {
       if (isDirectory(path)) {
@@ -625,7 +625,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Gets the all tags of an object in ObjectUnderFilesystem.
    * @param path file path
-   * @return the map contains all tags.
+   * @return the map contains all tags
    * @throws IOException
    */
   protected abstract Map<String, String> getObjectTags(String path) throws IOException;

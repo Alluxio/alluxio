@@ -102,6 +102,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -494,17 +495,20 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public void setObjectTagging(String path, String name, String value) throws IOException {
+    // It's a read-and-update race condition. When there is a competitive conflict scenario,
+    // it may lead to inconsistent final results. The final conflict occurs in UFS,
+    // UFS will determine the final result.
     GetObjectTaggingRequest getTaggingReq = new GetObjectTaggingRequest(mBucketName, path);
     GetObjectTaggingResult taggingResult = mClient.getObjectTagging(getTaggingReq);
     List<Tag> tagList = taggingResult.getTagSet();
-    boolean existed = false;
+    boolean matchFound = false;
     for (Tag tag : tagList) {
       if (tag.getKey().equals(name)) {
-        existed = true;
+        matchFound = true;
         tag.setValue(value);
       }
     }
-    if (!existed) {
+    if (!matchFound) {
       Tag tag = new Tag(name, value);
       tagList.add(tag);
     }
@@ -518,9 +522,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       GetObjectTaggingRequest getTaggingReq = new GetObjectTaggingRequest(mBucketName, path);
       GetObjectTaggingResult taggingResult = mClient.getObjectTagging(getTaggingReq);
       List<Tag> tagList = taggingResult.getTagSet();
-      return tagList.stream()
+      return Collections.unmodifiableMap(tagList.stream()
           .collect(HashMap::new, (map, tag) -> map.put(tag.getKey(), tag.getValue()),
-              HashMap::putAll);
+              HashMap::putAll));
     } catch (AmazonClientException e) {
       throw AlluxioS3Exception.from(e);
     }
