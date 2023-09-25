@@ -49,7 +49,8 @@ public class DoraMetaManagerTest {
   @Before
   public void before() throws IOException {
     AlluxioProperties prop = new AlluxioProperties();
-    mTestMetaStorePath = Paths.get(mTemporaryFolder.getRoot().getAbsolutePath(), "testFile").toString();
+    mTestMetaStorePath = Paths.get(mTemporaryFolder.getRoot().getAbsolutePath(),
+        "testFile").toString();
     prop.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, String.format("%s/metastore",
         mTestMetaStorePath));
     AlluxioConfiguration conf = new InstancedConfiguration(prop);
