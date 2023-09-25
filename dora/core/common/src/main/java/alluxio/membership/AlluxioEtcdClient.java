@@ -120,7 +120,16 @@ public class AlluxioEtcdClient {
     if (sAlluxioEtcdClient == null) {
       try (LockResource lockResource = new LockResource(INSTANCE_LOCK)) {
         if (sAlluxioEtcdClient == null) {
+          LOG.debug("Creating ETCD client");
           sAlluxioEtcdClient = new AlluxioEtcdClient(conf);
+          Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+              destroy();
+            } catch (Throwable t) {
+              LOG.error("Failed to destroy ETCD client", t);
+            }
+          }, "alluxio-etcd-client-shutdown-hook"));
+          LOG.debug("ETCD client created");
         }
       }
     }
@@ -536,5 +545,28 @@ public class AlluxioEtcdClient {
    */
   public Client getEtcdClient() {
     return mClient;
+  }
+
+  /**
+   * Destroys the client and corresponding resources.
+   *
+   * We don't implement {@link AutoCloseable} because the client is used by client
+   * FileSystemContext. FileSystemContext has reinit() logic which may close and recreate
+   * all resources. We don't want the life cycle of one FileSystemContext to close the global
+   * singleton ETCD client.
+   */
+  public static void destroy() {
+    LOG.debug("Destroying ETCD client {}", sAlluxioEtcdClient);
+    try (LockResource lockResource = new LockResource(INSTANCE_LOCK)) {
+      if (sAlluxioEtcdClient != null) {
+        sAlluxioEtcdClient.mServiceDiscovery.close();
+        Client client = sAlluxioEtcdClient.getEtcdClient();
+        if (client != null) {
+          client.close();
+        }
+        sAlluxioEtcdClient = null;
+      }
+    }
+    LOG.debug("ETCD client destroyed");
   }
 }

@@ -206,5 +206,6 @@ public class EtcdMembershipManager implements MembershipManager {
   @Override
   public void close() throws Exception {
     // NOTHING TO CLOSE
+    // The EtcdClient is a singleton so its life cycle is managed by the class itself
   }
 }

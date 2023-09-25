@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  * ServiceDiscoveryRecipe for etcd, to track health status
  * of all registered services.
  */
-public class ServiceDiscoveryRecipe {
+public class ServiceDiscoveryRecipe implements AutoCloseable {
   private static final Logger LOG = LoggerFactory.getLogger(ServiceDiscoveryRecipe.class);
   final AlluxioEtcdClient mAlluxioEtcdClient;
   private final ScheduledExecutorService mExecutor;
@@ -70,7 +70,7 @@ public class ServiceDiscoveryRecipe {
     mAlluxioEtcdClient = client;
     mRegisterPathPrefix = pathPrefix;
     mExecutor = Executors.newSingleThreadScheduledExecutor(
-        ThreadFactoryUtils.build("service-discovery-checker", false));
+        ThreadFactoryUtils.build("service-discovery-checker", true));
     mExecutor.scheduleWithFixedDelay(this::checkAllForReconnect,
         AlluxioEtcdClient.DEFAULT_LEASE_TTL_IN_SEC, AlluxioEtcdClient.DEFAULT_LEASE_TTL_IN_SEC,
         TimeUnit.SECONDS);
@@ -332,6 +332,7 @@ public class ServiceDiscoveryRecipe {
    * to renew the lease with new keepalive client.
    */
   private void checkAllForReconnect() {
+    LOG.debug("instance {} - Checking if any service needs reconnection ...", this);
     // No need for lock over all services, just individual DefaultServiceEntity is enough
     for (Map.Entry<String, DefaultServiceEntity> entry : mRegisteredServices.entrySet()) {
       DefaultServiceEntity entity = entry.getValue();
@@ -344,8 +345,22 @@ public class ServiceDiscoveryRecipe {
           newLeaseInternal(entity);
           entity.mNeedReconnect.set(false);
         } catch (IOException | UnavailableRuntimeException e) {
-          LOG.info("Failed trying to new the lease for service:{}", entity, e);
+          LOG.warn("Failed trying to new the lease for service:{}", entity, e);
         }
+      }
+    }
+  }
+
+  @Override
+  public void close() {
+    if (mExecutor != null) {
+      mExecutor.shutdown();
+      try {
+        mExecutor.awaitTermination(5, TimeUnit.SECONDS);
+      } catch (InterruptedException e) {
+        LOG.warn("interrupted while terminating the thread used to poll ETCD");
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(e);
       }
     }
   }
