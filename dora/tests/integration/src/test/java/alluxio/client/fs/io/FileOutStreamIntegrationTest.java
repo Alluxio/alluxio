@@ -11,7 +11,6 @@
 
 package alluxio.client.fs.io;
 
-import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.WriteType;
@@ -67,7 +66,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
       CreateFilePOptions op = CreateFilePOptions.newBuilder().setWriteType(mWriteType.toProto())
           .setRecursive(true).build();
       AlluxioURI filePath =
-          new AlluxioURI(PathUtils.concatPath(path, "file_" + len + "_Byte_" + mWriteType));
+          new AlluxioURI(PathUtils.concatPath(mPath, "file_" + len + "_Byte_" + mWriteType));
       writeIncreasingBytesToFile(filePath, len, op);
       if (mWriteType.getAlluxioStorageType().isStore()) {
         checkFileInAlluxio(filePath, len);
@@ -86,7 +85,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     CreateFilePOptions options = CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build();
     AlluxioURI filePath =
-        new AlluxioURI(PathUtils.concatPath(path, "file_One_Byte_" + mWriteType));
+        new AlluxioURI(PathUtils.concatPath(mPath, "file_One_Byte_" + mWriteType));
     writeOneIntegerToFile(filePath, 0, options);
     if (mWriteType.getAlluxioStorageType().isStore()) {
       checkFileInAlluxio(filePath, 1);
@@ -104,8 +103,8 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     CreateFilePOptions op = CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
         .setRecursive(true).build();
     AlluxioURI filePath =
-        new AlluxioURI(PathUtils.concatPath(path, "file_" + MIN_LEN + "_" + mWriteType));
-    AlluxioURI parentPath = new AlluxioURI(path.toString());
+        new AlluxioURI(PathUtils.concatPath(mPath, "file_" + MIN_LEN + "_" + mWriteType));
+    AlluxioURI parentPath = new AlluxioURI(mPath.toString());
 
     // create a directory without a backing directory in UFS
     mFileSystem.createDirectory(parentPath, CreateDirectoryPOptions.newBuilder()
@@ -133,7 +132,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
       CreateFilePOptions op = CreateFilePOptions.newBuilder().setWriteType(mWriteType.toProto())
           .setRecursive(true).build();
       AlluxioURI filePath =
-          new AlluxioURI(PathUtils.concatPath(path, "file_" + len + "_" + mWriteType));
+          new AlluxioURI(PathUtils.concatPath(mPath, "file_" + len + "_" + mWriteType));
       writeIncreasingByteArrayToFile(filePath, len, op);
       if (mWriteType.getAlluxioStorageType().isStore()) {
         checkFileInAlluxio(filePath, len);
@@ -153,7 +152,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
       CreateFilePOptions op = CreateFilePOptions.newBuilder().setWriteType(mWriteType.toProto())
           .setRecursive(true).build();
       AlluxioURI filePath =
-          new AlluxioURI(PathUtils.concatPath(path, "file_" + len + "_" + mWriteType));
+          new AlluxioURI(PathUtils.concatPath(mPath, "file_" + len + "_" + mWriteType));
       writeTwoIncreasingByteArraysToFile(filePath, len, op);
       if (mWriteType.getAlluxioStorageType().isStore()) {
         checkFileInAlluxio(filePath, len);
@@ -170,7 +169,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    */
   @Test
   public void longWrite() throws Exception {
-    AlluxioURI filePath = new AlluxioURI(path.toString());
+    AlluxioURI filePath = new AlluxioURI(mPath.toString());
     final int length = 2;
     try (FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
@@ -193,7 +192,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    */
   @Test
   public void outOfOrderWrite() throws Exception {
-    AlluxioURI filePath = new AlluxioURI(path.toString());
+    AlluxioURI filePath = new AlluxioURI(mPath.toString());
     // A length greater than 0.5 * BUFFER_BYTES and less than BUFFER_BYTES.
     int length = (BUFFER_BYTES * 3) / 4;
     try (FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
@@ -220,7 +219,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
           PropertyKey.Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "250ms"})
   @Test
   public void cancelWrite() throws Exception {
-    AlluxioURI filePath = new AlluxioURI(path.toString());
+    AlluxioURI filePath = new AlluxioURI(mPath.toString());
     try (FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
       os.write(BufferUtils.getIncreasingByteArray(0, BLOCK_SIZE_BYTES * 3 + 1));

@@ -55,7 +55,7 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
 
   protected FileSystem mFileSystem = null;
 
-  Path path;
+  Path mPath;
 
   @Rule
   public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
@@ -64,7 +64,7 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     String localUfsRoot = mTemporaryFolder.getRoot().getAbsolutePath();
-    path = Paths.get(localUfsRoot, "testFile" + UUID.randomUUID());
+    mPath = Paths.get(localUfsRoot, "testFile" + UUID.randomUUID());
   }
 
   @After
