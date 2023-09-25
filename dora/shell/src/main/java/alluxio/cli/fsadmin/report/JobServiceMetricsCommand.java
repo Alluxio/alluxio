@@ -23,11 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Prints job service metric information.
@@ -53,10 +49,6 @@ public class JobServiceMetricsCommand {
     mDateFormatPattern = dateFormatPattern;
   }
 
-  public static final DateTimeFormatter DATETIME_FORMAT =
-      DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).ofPattern("yyyyMMdd-HHmmss")
-          .withLocale(Locale.getDefault()).withZone(ZoneId.systemDefault());
-
   /**
    * Runs a job services report metrics command.
    *
@@ -68,8 +60,8 @@ public class JobServiceMetricsCommand {
     List<JobWorkerHealth> allWorkerHealth = mJobMasterClient.getAllWorkerHealth();
     JobServiceSummary jobServiceSummary = mJobMasterClient.getJobServiceSummary();
 
-    JobServiceOutput jobServiceInfo = new JobServiceOutput(allMasterStatus, allWorkerHealth,
-        jobServiceSummary, mDateFormatPattern);
+    JobServiceOutput jobServiceInfo = new JobServiceOutput(
+        allMasterStatus, allWorkerHealth, jobServiceSummary);
     try {
       String json = objectMapper.writeValueAsString(jobServiceInfo);
       mPrintStream.println(json);

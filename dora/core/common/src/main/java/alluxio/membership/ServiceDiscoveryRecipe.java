@@ -81,7 +81,7 @@ public class ServiceDiscoveryRecipe {
    * given DefaultServiceEntity in atomic fashion.
    * Atomicity:
    * creation of given DefaultServiceEntity entry on etcd is handled by etcd transaction
-   * iff the version = 0 which means when there's no such key present.
+   * if the version = 0 which means when there's no such key present.
    * (expired lease will automatically delete the kv attached with it on etcd)
    * update of the DefaultServiceEntity fields(lease,revision num) is guarded by
    * lock within DefaultServiceEntity instance.

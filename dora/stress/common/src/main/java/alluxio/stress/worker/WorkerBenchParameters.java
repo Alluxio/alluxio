@@ -71,11 +71,14 @@ public final class WorkerBenchParameters extends FileSystemParameters {
   public Integer mRandomSeed = 1;
 
   @Parameter(names = {"--random-max-length"},
-      description = "The random max length upper bound")
+      description = "The random max length upper bound."
+          + "As this InputStream.read() only accept read offset and"
+          + " length as Integer, so this max length must smaller than 2.1GB.")
   public String mRandomMaxReadLength = "4m";
 
   @Parameter(names = {"--random-min-length"},
-      description = "The random max length upper bound")
+      description = "The random max length lower bound."
+         + "this random min length must not larger than random max length.")
   public String mRandomMinReadLength = "1m";
 
   @Parameter(names = {"--free"},
@@ -86,6 +89,13 @@ public final class WorkerBenchParameters extends FileSystemParameters {
   @Parameter(names = {"--skip-creation"},
       description = "If true, skip the data file creation")
   public boolean mSkipCreation = false;
+
+  @Parameter(names = {"--slice-size"},
+      description = "There will be too many I/O operations during the test, "
+          + "so instead of keeping one data point for each operation, "
+          + "the I/O performed in a small window will be tracked in one result. "
+          + "This argument sets the size of that window.")
+  public String mSliceSize = "1s";
 
   @DynamicParameter(names = "--conf", description = "HDFS client configuration. Can be repeated.")
   public Map<String, String> mConf = new HashMap<>();

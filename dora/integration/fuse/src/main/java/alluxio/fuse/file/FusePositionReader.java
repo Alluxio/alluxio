@@ -124,16 +124,10 @@ public class FusePositionReader implements FuseFileStream {
 
   @Override
   public synchronized void close() {
-    if (mClosed) {
-      return;
-    }
-    mClosed = true;
     try {
-      mPositionReader.close();
-    } catch (IOException e) {
-      throw AlluxioRuntimeException.from(e);
+      closeStream();
     } finally {
-      mLockResource.close();
+      releaseLock();
     }
   }
 
@@ -145,5 +139,25 @@ public class FusePositionReader implements FuseFileStream {
   @Override
   public boolean isReadOnly() {
     return true;
+  }
+
+  @Override
+  public synchronized void releaseLock() {
+    if (!mLockResource.isClosed()) {
+      mLockResource.close();
+    }
+  }
+
+  @Override
+  public synchronized void closeStream() {
+    if (mClosed) {
+      return;
+    }
+    mClosed = true;
+    try {
+      mPositionReader.close();
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
   }
 }

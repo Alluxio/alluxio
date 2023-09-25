@@ -150,15 +150,33 @@ public class FuseFileInOrOutStream implements FuseFileStream {
 
   @Override
   public synchronized void close() {
+    try {
+      closeStream();
+    } finally {
+      releaseLock();
+    }
+  }
+
+  @Override
+  public synchronized void releaseLock() {
+    if (mInStream.isPresent()) {
+      mInStream.get().releaseLock();
+      return;
+    }
+    mOutStream.ifPresent(FuseFileOutStream::releaseLock);
+  }
+
+  @Override
+  public synchronized void closeStream() {
     if (mClosed) {
       return;
     }
     mClosed = true;
     if (mInStream.isPresent()) {
-      mInStream.get().close();
+      mInStream.get().closeStream();
       return;
     }
-    mOutStream.ifPresent(FuseFileOutStream::close);
+    mOutStream.ifPresent(FuseFileOutStream::closeStream);
   }
 
   @Override

@@ -56,6 +56,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -65,8 +66,64 @@ import javax.annotation.concurrent.ThreadSafe;
 public class AlluxioFuse {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuse.class);
 
+  @Nullable
+  private FuseWebServer mWebServer = null;
+
   // prevent instantiation
   protected AlluxioFuse() {
+  }
+
+  /**
+   * Start common functionalities for a fuse client.
+   *
+   * @param conf the Alluxio configuration
+   * @param fuseOptions Fuse options from conf or command line
+   * @param fsContext the file system context for this client
+   */
+  protected void startCommon(AlluxioConfiguration conf,
+                              FuseOptions fuseOptions,
+                              FileSystemContext fsContext) {
+    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
+    MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
+    if (conf.getBoolean(PropertyKey.FUSE_WEB_ENABLED)) {
+      mWebServer = new FuseWebServer(
+          NetworkAddressUtils.ServiceType.FUSE_WEB.getServiceName(),
+          NetworkAddressUtils.getBindAddress(
+              NetworkAddressUtils.ServiceType.FUSE_WEB,
+              Configuration.global()));
+      mWebServer.start();
+    }
+    startJvmMonitorProcess();
+    ExecutorService executor = null;
+    if (fuseOptions.updateCheckEnabled()) {
+      executor = Executors.newSingleThreadExecutor();
+      executor.submit(new HeartbeatThread(HeartbeatContext.FUSE_UPDATE_CHECK,
+          UpdateChecker.create(fuseOptions), () -> new FixedIntervalSupplier(Constants.DAY_MS),
+          Configuration.global(), UserState.Factory.create(conf)));
+    }
+    try (FileSystem fs = createBaseFileSystem(fsContext, fuseOptions)) {
+      AlluxioJniFuseFileSystem fuseFileSystem = createFuseFileSystem(fsContext, fs, fuseOptions);
+      setupFuseFileSystem(fuseFileSystem);
+      launchFuse(fuseFileSystem, fsContext, fuseOptions, true); // This will block until umount
+    } catch (Throwable t) {
+      if (executor != null) {
+        executor.shutdown();
+      }
+      // TODO(lu) FUSE unmount gracefully
+      LOG.error("Failed to launch FUSE", t);
+      System.exit(-1);
+    }
+  }
+
+  protected void stopCommon() {
+    if (mWebServer != null) {
+      try {
+        mWebServer.stop();
+      } catch (Exception e) {
+        LOG.error("Failed to shut down fuse web server gracefully.", e);
+      }
+      mWebServer = null;
+    }
   }
 
   /**
@@ -85,36 +142,9 @@ public class AlluxioFuse {
       conf = AlluxioFuseUtils.tryLoadingConfigFromMaster(fsContext);
     }
 
-    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
-    MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
-    if (conf.getBoolean(PropertyKey.FUSE_WEB_ENABLED)) {
-      FuseWebServer webServer = new FuseWebServer(
-          NetworkAddressUtils.ServiceType.FUSE_WEB.getServiceName(),
-          NetworkAddressUtils.getBindAddress(
-              NetworkAddressUtils.ServiceType.FUSE_WEB,
-              Configuration.global()));
-      webServer.start();
-    }
-    startJvmMonitorProcess();
-    ExecutorService executor = null;
-    if (fuseOptions.updateCheckEnabled()) {
-      executor = Executors.newSingleThreadExecutor();
-      executor.submit(new HeartbeatThread(HeartbeatContext.FUSE_UPDATE_CHECK,
-          UpdateChecker.create(fuseOptions), () -> new FixedIntervalSupplier(Constants.DAY_MS),
-          Configuration.global(), UserState.Factory.create(conf)));
-    }
-    try (FileSystem fs = createBaseFileSystem(fsContext, fuseOptions)) {
-      AlluxioJniFuseFileSystem fuseFileSystem = createFuseFileSystem(fsContext, fs, fuseOptions);
-      setupFuseFileSystem(fuseFileSystem);
-      launchFuse(fuseFileSystem, fsContext, fuseOptions, true);
-    } catch (Throwable t) {
-      if (executor != null) {
-        executor.shutdown();
-      }
-      // TODO(lu) FUSE unmount gracefully
-      LOG.error("Failed to launch FUSE", t);
-      System.exit(-1);
-    }
+    startCommon(conf, fuseOptions, fsContext); // This will be blocked until quitting
+
+    stopCommon();
   }
 
   /**

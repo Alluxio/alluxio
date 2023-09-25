@@ -39,7 +39,16 @@ func (c *ChecksumCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   "checksum [path]",
 		Short: "Calculates the md5 checksum of a specified file",
-		Args:  cobra.ExactArgs(1),
+		Long: `The checksum command outputs the md5 value of a file in Alluxio.
+This can be used to verify the contents of a file stored in Alluxio.`,
+		Example: `# Compare the checksum values
+# value from Alluxio filesystem
+$ ./bin/alluxio fs checksum /LICENSE
+md5sum: bf0513403ff54711966f39b058e059a3
+# value from local filesystem
+md5 LICENSE
+MD5 (LICENSE) = bf0513403ff54711966f39b058e059a3`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},

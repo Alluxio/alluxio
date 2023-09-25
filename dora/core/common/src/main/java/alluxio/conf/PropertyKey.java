@@ -2291,6 +2291,38 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_SCHEDULER_RESTORE_JOB_FROM_JOURNAL =
+      booleanBuilder(Name.MASTER_SCHEDULER_RESTORE_JOB_FROM_JOURNAL)
+          .setDefaultValue(true)
+          .setDescription("If set to true, master will restore incomplete jobs from journal. "
+          + "Turn this off if you don't want the scheduler to automatically restore jobs.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD =
+      intBuilder(Name.MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD)
+          .setDefaultValue(-1)
+          .setDescription("The load job total load failure count threshold. -1 means never fail.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_RATIO_THRESHOLD =
+      doubleBuilder(Name.MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_RATIO_THRESHOLD)
+          .setDefaultValue(1.00)
+          .setDescription("The load job total load failure ratio threshold (0,1)."
+              + " 1.00 means never fail.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey MASTER_DORA_LOAD_JOB_RETRIES =
+      intBuilder(Name.MASTER_DORA_LOAD_JOB_RETRIES)
+          .setDefaultValue(3)
+          .setDescription("The number of retry attempts before a load of file "
+              + "is considered as failure")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+
   public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
       enumBuilder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE, GraceMode.class)
           .setDefaultValue(GraceMode.FORCED)
@@ -3999,6 +4031,26 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setDescription("The hostname of Alluxio worker.")
       .setScope(Scope.WORKER)
       .build();
+  public static final PropertyKey WORKER_IDENTITY_UUID =
+      stringBuilder(Name.WORKER_IDENTITY_UUID)
+          .setDescription("The identity of the worker specified as a UUID. Worker instances in a "
+              + "Alluxio cluster must have different identities. "
+              + "This overrides " + Name.WORKER_IDENTITY_UUID_FILE_PATH
+              + " and should be used with discretion")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.WORKER)
+          .setIsHidden(true)
+          .build();
+  public static final PropertyKey WORKER_IDENTITY_UUID_FILE_PATH =
+      stringBuilder(Name.WORKER_IDENTITY_UUID_FILE_PATH)
+          .setDescription("The path to the file containing the identity of the "
+              + "worker specified as a UUID. This path should be readable and writable "
+              + "to the worker process. Worker instances in a "
+              + "Alluxio cluster must have different identities.")
+          .setDefaultValue("${alluxio.conf.dir}/worker_identity")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_KEYTAB_FILE = stringBuilder(Name.WORKER_KEYTAB_FILE)
       .setDescription("Kerberos keytab file for Alluxio worker.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -5562,11 +5614,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT =
-      intBuilder(Name.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT)
+  public static final PropertyKey USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER =
+      intBuilder(Name.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER)
           .setDefaultValue(2000)
-          .setDescription("This is the number of virtual nodes in the consistent hashing "
-              + "algorithm. In a consistent hashing algorithm, on membership changes, some "
+          .setDescription("This is the number of virtual nodes for one worker in the consistent "
+              + "hashing algorithm. In a consistent hashing algorithm, on membership changes, some "
               + "virtual nodes are re-distributed instead of rebuilding the whole hash table. "
               + "This guarantees the hash table is changed only in a minimal. In order to achieve "
               + "that, the number of virtual nodes should be X times the physical nodes in "
@@ -6845,6 +6897,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
+  public static final PropertyKey USER_DYNAMIC_CONSISTENT_HASH_RING_ENABLED =
+      booleanBuilder(Name.USER_DYNAMIC_CONSISTENT_HASH_RING_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("If true, use live worker list to build consistent hash ring. Otherwise, "
+              + "use all worker list that includes lost workers to build consistent hash ring.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.CLIENT)
+          .build();
+
   public static final PropertyKey WORKER_HTTP_SERVER_ENABLED =
       booleanBuilder(Name.WORKER_HTTP_SERVER_ENABLED)
           .setDefaultValue(true)
@@ -7397,6 +7458,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.block.scan.invalid.batch.max.size";
     public static final String MASTER_SCHEDULER_INITIAL_WAIT_TIME =
         "alluxio.master.scheduler.initial.wait.time";
+    public static final String MASTER_SCHEDULER_RESTORE_JOB_FROM_JOURNAL =
+        "alluxio.master.scheduler.restore.job.from.journal";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
         "alluxio.master.shell.backup.state.lock.grace.mode";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION =
@@ -7405,6 +7468,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.shell.backup.state.lock.sleep.duration";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT =
         "alluxio.master.shell.backup.state.lock.timeout";
+    public static final String MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD =
+        "alluxio.master.dora.load.job.total.failure.count.threshold";
+    public static final String MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_RATIO_THRESHOLD =
+        "alluxio.master.dora.load.job.total.failure.ratio.threshold";
+    public static final String MASTER_DORA_LOAD_JOB_RETRIES =
+        "alluxio.master.dora.load.job.retries";
     public static final String MASTER_DAILY_BACKUP_ENABLED =
         "alluxio.master.daily.backup.enabled";
     public static final String MASTER_DAILY_BACKUP_FILES_RETAINED =
@@ -7785,6 +7854,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
     public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
+    public static final String WORKER_IDENTITY_UUID = "alluxio.worker.identity.uuid";
+    public static final String WORKER_IDENTITY_UUID_FILE_PATH =
+        "alluxio.worker.identity.uuid.file.path";
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
     public static final String WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
         "alluxio.worker.master.connect.retry.timeout";
@@ -8121,8 +8193,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.timeout.threads";
     public static final String USER_CLIENT_REPORT_VERSION_ENABLED =
         "alluxio.user.client.report.version.enabled";
-    public static final String USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT =
-        "alluxio.user.consistent.hash.virtual.node.count";
+    public static final String USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER =
+        "alluxio.user.consistent.hash.virtual.node.count.per.worker";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
@@ -8455,6 +8527,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_NETTY_DATA_TRANSMISSION_ENABLED =
         "alluxio.user.netty.data.transmission.enabled";
 
+    public static final String USER_DYNAMIC_CONSISTENT_HASH_RING_ENABLED =
+        "alluxio.user.dynamic.consistent.hash.ring.enabled";
     public static final String WORKER_HTTP_SERVER_ENABLED =
         "alluxio.worker.http.server.enabled";
 

@@ -42,7 +42,23 @@ func (c *LogCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Log.CommandName,
 		Short: "Get or set the log level for the specified logger",
-		Args:  cobra.NoArgs,
+		Long: `The log command returns the current value of or updates the log level of a particular class on specific instances.
+Users are able to change Alluxio server-side log levels at runtime.
+
+The --target flag specifies which processes to apply the log level change to.
+The target could be of the form <master|workers|job_master|job_workers|host:webPort[:role]> and multiple targets can be listed as comma-separated entries.
+The role can be one of master,worker,job_master,job_worker.
+Using the role option is useful when an Alluxio process is configured to use a non-standard web port (e.g. if an Alluxio master does not use 19999 as its web port).
+The default target value is the primary master, primary job master, all workers and job workers.
+
+> Note: This command requires the Alluxio cluster to be running.`,
+		Example: `# Set DEBUG level for DefaultFileSystemMaster class on master processes
+$ ./bin/alluxio conf log --logName alluxio.master.file.DefaultFileSystemMaster --target=master --level=DEBUG
+
+# Set WARN level for PagedDoraWorker class on the worker process on host myHostName
+$ ./bin/alluxio conf log --logName alluxio.worker.dora.PagedDoraWorker.java --target=myHostName:worker --level=WARN
+`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},

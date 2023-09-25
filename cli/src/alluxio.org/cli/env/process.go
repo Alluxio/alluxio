@@ -15,8 +15,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -143,15 +145,31 @@ func (p *BaseProcess) Stop(cmd *StopProcessCommand) error {
 	if err != nil {
 		return stacktrace.Propagate(err, "error listing processes")
 	}
+	currentUser, err := user.Current()
+	if err != nil {
+		return stacktrace.Propagate(err, "error fetching the current user")
+	}
+	uid, err := strconv.Atoi(currentUser.Uid)
+	if err != nil {
+		return stacktrace.Propagate(err, "error converting UID to int")
+	}
+
 	var matchingProcesses []*process.Process
 	for _, ps := range processes {
-		cmdline, err := ps.Cmdline()
+		procUIDs, err := ps.Uids()
 		if err != nil {
-			// process may have been terminated since listing
 			continue
 		}
-		if strings.Contains(cmdline, p.JavaClassName) {
-			matchingProcesses = append(matchingProcesses, ps)
+		// match uid first
+		if len(procUIDs) > 0 && int32(uid) == procUIDs[0] {
+			cmdline, err := ps.Cmdline()
+			if err != nil {
+				// process may have been terminated since listing
+				continue
+			}
+			if strings.Contains(cmdline, p.JavaClassName) {
+				matchingProcesses = append(matchingProcesses, ps)
+			}
 		}
 	}
 	if len(matchingProcesses) == 0 {
