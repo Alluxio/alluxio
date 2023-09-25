@@ -66,6 +66,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -154,7 +155,7 @@ public class DoraCacheClient {
    */
   public DoraCachePositionReader createNettyPositionReader(URIStatus status,
       Protocol.OpenUfsBlockOptions ufsOptions,
-      CloseableSupplier<PositionReader> externalPositionReader) {
+      Optional<CloseableSupplier<PositionReader>> externalPositionReader) {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.toString());
     // Construct the partial read request
     NettyDataReader reader = createNettyDataReader(workerNetAddress, ufsOptions);

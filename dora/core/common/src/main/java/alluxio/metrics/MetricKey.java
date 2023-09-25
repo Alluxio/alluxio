@@ -2592,24 +2592,31 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   public static final MetricKey CLIENT_UFS_FALLBACK_COUNT =
-      new Builder("Client.UfsFallBackCount")
+      new Builder("Client.UfsFallbackCount")
           .setDescription("The number of fallbacks to UFS when failing to open file in Alluxio "
               + "distributed cache.")
-          .setMetricType(MetricType.GAUGE)
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_UFS_FALLBACK_READ_BYTES =
+      new Builder("Client.UfsFallbackReadBytes")
+          .setDescription("Total bytes of data read fallback to UFS "
+              + "after encountering error when reading from worker.")
+          .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
 
   public static final MetricKey CLOSE_UFS_OUTSTREAM_LATENCY =
-          new Builder("Client.CloseUFSOutStreamLatency")
-                  .setDescription("Latency of close UFS outstream latency")
-                  .setMetricType(MetricType.TIMER)
-                  .build();
+      new Builder("Client.CloseUFSOutStreamLatency")
+          .setDescription("Latency of close UFS outstream latency")
+          .setMetricType(MetricType.TIMER)
+          .build();
 
   public static final MetricKey CLOSE_ALLUXIO_OUTSTREAM_LATENCY =
-          new Builder("Client.CloseAlluxioOutStreamLatency")
-                  .setDescription("Latency of close Alluxio outstream latency")
-                  .setMetricType(MetricType.TIMER)
-                  .build();
+      new Builder("Client.CloseAlluxioOutStreamLatency")
+          .setDescription("Latency of close Alluxio outstream latency")
+          .setMetricType(MetricType.TIMER)
+          .build();
 
   // Fuse operation timer and failure counter metrics are added dynamically.
   // Other Fuse related metrics are added here
