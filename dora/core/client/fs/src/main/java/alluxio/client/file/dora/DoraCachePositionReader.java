@@ -41,7 +41,8 @@ public class DoraCachePositionReader implements PositionReader {
   /**
    * @param dataReader     reader to read data through network
    * @param length         file length
-   * @param fallbackReader the position reader to fallback to when errors happen
+   * @param fallbackReader the position reader to fallback to when errors happen,
+   *    or none if no fallback read is needed
    */
   public DoraCachePositionReader(PositionReader dataReader,
       long length, Optional<CloseableSupplier<PositionReader>> fallbackReader) {
