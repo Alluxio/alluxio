@@ -124,6 +124,7 @@ public class CacheRequestManager {
       // gRPC thread pool is drained due to highly concurrent caching workloads. In these cases,
       // return as async caching is at best effort.
       mNumRejected.incrementAndGet();
+      CACHE_REJECTED_BLOCKS.inc();
       SAMPLING_LOG.warn(String.format(
           "Failed to cache block locally as the thread pool is at capacity."
               + " To increase, update the parameter '%s'. numRejected: {} error: {}",
@@ -351,6 +352,8 @@ public class CacheRequestManager {
           MetricsSystem.counter(MetricKey.WORKER_CACHE_REMOTE_BLOCKS.getName());
   private static final Counter CACHE_SUCCEEDED_BLOCKS =
           MetricsSystem.counter(MetricKey.WORKER_CACHE_SUCCEEDED_BLOCKS.getName());
+  private static final Counter CACHE_REJECTED_BLOCKS =
+      MetricsSystem.counter(MetricKey.WORKER_CACHE_REJECTED_BLOCKS.getName());
   private static final Counter CACHE_UFS_BLOCKS =
           MetricsSystem.counter(MetricKey.WORKER_CACHE_UFS_BLOCKS.getName());
   private static final Counter CACHE_BLOCKS_SIZE =
