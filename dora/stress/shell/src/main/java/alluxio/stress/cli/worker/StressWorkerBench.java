@@ -11,6 +11,8 @@
 
 package alluxio.stress.cli.worker;
 
+import static alluxio.Constants.MB;
+import static alluxio.Constants.SECOND_NANO;
 import static alluxio.stress.BaseParameters.DEFAULT_TASK_ID;
 
 import alluxio.Constants;
@@ -472,25 +474,25 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
           && CommonUtils.getCurrentMs() < mContext.getEndMs()) {
         // Keep reading the same file
         long startMs = CommonUtils.getCurrentMs() - recordMs;
-        ApplyOperationOutput fileReadOutput = applyOperation();
+        ApplyOperationOutput output = applyOperation();
         if (startMs > 0) {
-          if (fileReadOutput.mBytesRead > 0) {
-            mResult.setIOBytes(mResult.getIOBytes() + fileReadOutput.mBytesRead);
+          if (output.mBytesRead > 0) {
+            mResult.setIOBytes(mResult.getIOBytes() + output.mBytesRead);
             slice.mCount += 1;
-            slice.mIOBytes += fileReadOutput.mBytesRead;
-            if (fileReadOutput.mDuration > 0) {
+            slice.mIOBytes += output.mBytesRead;
+            if (output.mDuration > 0) {
               // throughput unit: MB/s
               // max file size allowed: 9223372036B (8.5GB)
-              throughputList.add(fileReadOutput.mBytesRead * 1000000000
-                  / (1024 * 1024 * fileReadOutput.mDuration));
-            } else if (fileReadOutput.mDuration == 0) {
+              throughputList.add(output.mBytesRead * SECOND_NANO / (MB * output.mDuration));
+            } else if (output.mDuration == 0) {
               // if duration is 0ns, treat is as 1ns
-              throughputList.add(fileReadOutput.mBytesRead * 1000000000
-                  / (1024 * 1024));
+              throughputList.add(output.mBytesRead * SECOND_NANO / MB);
+              SAMPLING_LOG.warn("Thread for file {} read operation finished in 0ns",
+                      mFilePaths[mTargetFileIndex]);
             } else {
               // if duration is negative, throw an exception
               throw new IllegalStateException(String.format(
-                  "Negative duration for file read: %d", fileReadOutput.mDuration));
+                  "Negative duration for file read: %d", output.mDuration));
             }
             int currentSlice = (int) (startMs
                 / FormatUtils.parseTimeSize(mParameters.mSliceSize));
@@ -503,7 +505,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
             LOG.warn("Thread for file {} read 0 bytes from I/O", mFilePaths[mTargetFileIndex]);
           }
         } else {
-          SAMPLING_LOG.info("Ignored record during warmup: {} bytes", fileReadOutput.mBytesRead);
+          SAMPLING_LOG.info("Ignored record during warmup: {} bytes", output.mBytesRead);
         }
       }
 
@@ -570,6 +572,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
           }
         }
       }
+      // We use the nanoTime only to calculate elapsed time
       long afterReadNs = System.nanoTime();
       return new ApplyOperationOutput(bytesRead, afterReadNs - startReadNs);
     }
