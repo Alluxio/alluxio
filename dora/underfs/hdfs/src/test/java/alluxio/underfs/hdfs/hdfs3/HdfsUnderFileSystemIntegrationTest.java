@@ -49,5 +49,33 @@ public class HdfsUnderFileSystemIntegrationTest extends HdfsUnderFileSystemInteg
     mUfs.setAttribute(testFilePath, attrKey, attrValue.getBytes());
     Map<String, String> attrMap =  mUfs.getAttributes(testFilePath);
     assertEquals(attrMap.get(attrKey), attrValue);
+
+    String attrKey2 = "key2";
+    String attrEmptyValue = "";
+    mUfs.setAttribute(testFilePath, attrKey2, attrEmptyValue.getBytes());
+    attrMap =  mUfs.getAttributes(testFilePath);
+    assertEquals(attrMap.get(attrKey), attrValue);
+    assertEquals(attrMap.get(attrKey2), attrEmptyValue);
+    mUfs.deleteFile(testFilePath);
+  }
+
+  @Test
+  public void testSetDuplicatedKeyToXAttr() throws Exception {
+    // create empty file
+    String testFilePath = "/dup_xattr_file";
+    OutputStream os = mUfs.create(testFilePath, getCreateOption());
+    os.close();
+    assertEquals(0, mUfs.getStatus(testFilePath).asUfsFileStatus().getContentLength());
+
+    // setXAttr
+    String attrKey = "key1";
+    String attrValue1 = "value1";
+    String attrValue2 = "value2";
+    mUfs.setAttribute(testFilePath, attrKey, attrValue1.getBytes());
+    mUfs.setAttribute(testFilePath, attrKey, attrValue2.getBytes());
+    Map<String, String> attrMap =  mUfs.getAttributes(testFilePath);
+    assertEquals(attrMap.size(), 1);
+    assertEquals(attrMap.get(attrKey), attrValue2);
+    mUfs.deleteFile(testFilePath);
   }
 }

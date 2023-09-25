@@ -769,9 +769,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     FileSystem hdfs = getFs();
     try {
       Map<String, byte[]> attrMap = hdfs.getXAttrs(new Path(path));
-      Map<String, String> resMap = new HashMap<>();
+      Map<String, String> resMap = new HashMap<>(attrMap.size());
       attrMap.entrySet().stream().filter(entry -> entry.getKey().startsWith(USER_NAMESPACE_PREFIX))
-          .map(entry -> resMap.put(entry.getKey().substring(entry.getKey().indexOf(".") + 1),
+          .forEach(entry -> resMap.put(entry.getKey().substring(entry.getKey().indexOf(".") + 1),
               new String(entry.getValue())));
       return Collections.unmodifiableMap(resMap);
     } catch (IOException e) {
