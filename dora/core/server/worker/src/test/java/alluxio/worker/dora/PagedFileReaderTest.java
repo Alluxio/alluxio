@@ -122,7 +122,7 @@ public class PagedFileReaderTest {
         .createForWorker(mConf);
     String fileId = new AlluxioURI(mTestFileName).hash();
     CacheManager cacheManager = CacheManager.Factory.create(
-        Configuration.global(), cacheManagerOptions, pageMetaStore);
+        mConf, cacheManagerOptions, pageMetaStore);
     mPagedFileReader = PagedFileReader.create(
         mConf, cacheManager, mLocalUfs, fileId, mTestFileName, mFileLen, 0);
     mPositionReaderTest = new PositionReaderTest(mPagedFileReader, mFileLen);
@@ -132,6 +132,7 @@ public class PagedFileReaderTest {
   public void after() throws IOException {
     mPagedFileReader.close();
     mLocalUfs.close();
+    mEmbeddedChannel.close();
   }
 
   @Test
@@ -188,14 +189,8 @@ public class PagedFileReaderTest {
 
   @Test
   public void getMultipleDataFileChannel() throws IOException {
-    if (mFileLen > 0) {
-      CompositeDataBuffer compositeDataBuffer =
-          mPagedFileReader.getMultipleDataFileChannel(mEmbeddedChannel, mFileLen);
-      // TODO(Tony Sun): How to verify the correctness of CompositeDataBuffer?
-      Assert.assertEquals(mFileLen, compositeDataBuffer.getLength());
-    } else {
-      Assert.assertEquals(0,
-          mPagedFileReader.getMultipleDataFileChannel(mEmbeddedChannel, mFileLen).getLength());
-    }
+    CompositeDataBuffer compositeDataBuffer =
+        mPagedFileReader.getMultipleDataFileChannel(mEmbeddedChannel, mFileLen);
+    Assert.assertEquals(mFileLen, compositeDataBuffer.getLength());
   }
 }
