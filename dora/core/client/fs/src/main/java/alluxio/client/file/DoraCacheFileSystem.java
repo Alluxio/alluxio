@@ -65,6 +65,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
@@ -239,8 +240,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
             .setMountId(DUMMY_MOUNT_ID)
             .build();
     return mDoraClient.createNettyPositionReader(status, openUfsBlockOptions,
-        mUfsFallbackEnabled ? new CloseableSupplier<>(() ->
-            mDelegatedFileSystem.openPositionRead(status, mergedOptions)) : null);
+        mUfsFallbackEnabled ? Optional.of(new CloseableSupplier<>(() ->
+            mDelegatedFileSystem.openPositionRead(status, mergedOptions))) : Optional.empty());
   }
 
   @Override

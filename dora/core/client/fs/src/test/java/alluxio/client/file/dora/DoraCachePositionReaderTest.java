@@ -29,6 +29,7 @@ import org.junit.runners.Parameterized;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -64,7 +65,7 @@ public class DoraCachePositionReaderTest {
     mBufferSize = bufferSize;
     mData = BufferUtils.getIncreasingByteArray(dataLength);
     mReader = new DoraCachePositionReader(new FaultyPositionReader(mData), dataLength,
-        new CloseableSupplier<>(() -> new ByteArrayPositionReader(mData)));
+        Optional.of(new CloseableSupplier<>(() -> new ByteArrayPositionReader(mData))));
     mRandom = new Random();
   }
 

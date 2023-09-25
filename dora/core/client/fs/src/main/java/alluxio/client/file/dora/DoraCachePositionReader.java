@@ -18,11 +18,13 @@ import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import javax.annotation.Nullable;
+import java.util.Optional;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -33,16 +35,16 @@ public class DoraCachePositionReader implements PositionReader {
   private static final Logger LOG = LoggerFactory.getLogger(DoraCachePositionReader.class);
   private final PositionReader mNettyReader;
   private final long mFileLength;
-  private final CloseableSupplier<PositionReader> mFallbackReader;
+  private final Optional<CloseableSupplier<PositionReader>> mFallbackReader;
   private volatile boolean mClosed;
 
   /**
-   * @param dataReader reader to read data through network
-   * @param length file length
+   * @param dataReader     reader to read data through network
+   * @param length         file length
    * @param fallbackReader the position reader to fallback to when errors happen
    */
   public DoraCachePositionReader(PositionReader dataReader,
-      long length, @Nullable CloseableSupplier<PositionReader> fallbackReader) {
+      long length, Optional<CloseableSupplier<PositionReader>> fallbackReader) {
     mNettyReader = dataReader;
     mFileLength = length;
     mFallbackReader = fallbackReader;
@@ -62,20 +64,22 @@ public class DoraCachePositionReader implements PositionReader {
       if (bytesRead == 0) {
         LOG.debug("Failed to read file from worker through Netty", e);
         buffer.offset(originalOffset);
-        if (mFallbackReader == null) {
+        if (mFallbackReader.isPresent()) {
+          return fallback(mFallbackReader.get().get(), position, buffer, length);
+        } else {
           throw e;
         }
-        return fallback(position, buffer, length);
       }
       buffer.offset(originalOffset + bytesRead);
       return bytesRead;
     } catch (Throwable t) {
       LOG.debug("Failed to read file from worker through Netty", t);
       buffer.offset(originalOffset);
-      if (mFallbackReader == null) {
+      if (mFallbackReader.isPresent()) {
+        return fallback(mFallbackReader.get().get(), position, buffer, length);
+      } else {
         throw t;
       }
-      return fallback(position, buffer, length);
     }
   }
 
@@ -86,15 +90,23 @@ public class DoraCachePositionReader implements PositionReader {
     }
     mClosed = true;
     mNettyReader.close();
-    mFallbackReader.close();
+    if (mFallbackReader.isPresent()) {
+      mFallbackReader.get().close();
+    }
   }
 
-  private int fallback(long position, ReadTargetBuffer buffer,
+  private static int fallback(PositionReader fallbackReader, long position, ReadTargetBuffer buffer,
       int length) throws IOException {
-    int read = mFallbackReader.get().read(position, buffer, length);
-    MetricsSystem.meter(MetricKey.CLIENT_WORKER_READ_UFS_FALLBACK_BYTES.getName())
-        .mark(read);
-    MetricsSystem.counter(MetricKey.CLIENT_WORKER_READ_UFS_FALLBACK.getName()).inc();
+    int read = fallbackReader.read(position, buffer, length);
+    Metrics.UFS_FALLBACK_READ_BYTES.mark(read);
+    Metrics.UFS_FALLBACK_COUNT.inc();
     return read;
+  }
+
+  private static class Metrics {
+    static final Counter UFS_FALLBACK_COUNT =
+        MetricsSystem.counter(MetricKey.CLIENT_UFS_FALLBACK_COUNT.getName());
+    static final Meter UFS_FALLBACK_READ_BYTES =
+        MetricsSystem.meter(MetricKey.CLIENT_UFS_FALLBACK_READ_BYTES.getName());
   }
 }
