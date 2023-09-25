@@ -11,16 +11,26 @@
 
 package alluxio.master;
 
+import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
+import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -39,6 +49,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
+
+  private static final Logger LOG = LoggerFactory.getLogger(LocalAlluxioCluster.class);
   private boolean mIncludeProxy;
 
   private LocalAlluxioMaster mMaster;
@@ -147,6 +159,23 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     if (mIncludeProxy) {
       super.startProxy();
     }
+  }
+
+  @Override
+  protected void waitForMasterServing() throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("master starts serving RPCs", () -> {
+      try (BlockMasterClient blockMasterClient = BlockMasterClient.Factory.create(
+          MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build())) {
+        List<WorkerInfo> workerInfoList = blockMasterClient.getWorkerInfoList();
+        return true;
+      } catch (IOException ioe) {
+        LOG.error("getWorkerInfoList() ERROR: ", ioe);
+        return false;
+      } catch (Throwable throwable) {
+        LOG.error("Unexpected throwable /: " + throwable.getMessage());
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(10_000));
   }
 
   @Override

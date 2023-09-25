@@ -30,6 +30,7 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.journal.JournalType;
+import alluxio.membership.MembershipType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
@@ -45,8 +46,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 
 /**
  * Integration tests for Alluxio Client (reuse the {@link LocalAlluxioCluster}).
@@ -76,12 +80,12 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001")
           .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2")
           .setProperty(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true)
-          .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, "s3://" + TEST_BUCKET)
-          .setProperty(PropertyKey.DORA_CLIENT_UFS_ROOT, "s3://" + TEST_BUCKET)
+          .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, "s3://" + TEST_BUCKET + "/")
+          .setProperty(PropertyKey.DORA_CLIENT_UFS_ROOT, "s3://" + TEST_BUCKET + "/")
           .setProperty(PropertyKey.WORKER_HTTP_SERVER_ENABLED, false)
           .setProperty(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey())
           .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
-          .setNumWorkers(2)
+          .setNumWorkers(1)
           .setStartCluster(false);
 
   private static final String TEST_BUCKET = "test-bucket";
@@ -94,9 +98,24 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
   private AmazonS3 mS3Client = null;
+  @Rule
+  public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Before
   public void before() throws Exception {
+    File file = mFolder.newFile();
+    try (PrintStream ps = new PrintStream(file)) {
+      ps.println("localhost");
+//      ps.println("worker2");
+//      ps.println("worker3");
+    }
+    mLocalAlluxioClusterResourceBuilder
+        .setProperty(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED, false)
+        .setProperty(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.STATIC)
+        .setProperty(
+            PropertyKey.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE, file.getAbsolutePath())
+        .setProperty(PropertyKey.WORKER_RPC_PORT, 24999)
+        .setProperty(PropertyKey.WORKER_WEB_PORT, 25999);
   }
 
   private void startCluster(LocalAlluxioClusterResource cluster) throws Exception {
