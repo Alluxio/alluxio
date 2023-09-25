@@ -70,7 +70,7 @@ public class ServiceDiscoveryRecipe implements AutoCloseable {
     mAlluxioEtcdClient = client;
     mRegisterPathPrefix = pathPrefix;
     mExecutor = Executors.newSingleThreadScheduledExecutor(
-        ThreadFactoryUtils.build("service-discovery-checker", false));
+        ThreadFactoryUtils.build("service-discovery-checker", true));
     mExecutor.scheduleWithFixedDelay(this::checkAllForReconnect,
         AlluxioEtcdClient.DEFAULT_LEASE_TTL_IN_SEC, AlluxioEtcdClient.DEFAULT_LEASE_TTL_IN_SEC,
         TimeUnit.SECONDS);

@@ -120,7 +120,16 @@ public class AlluxioEtcdClient {
     if (sAlluxioEtcdClient == null) {
       try (LockResource lockResource = new LockResource(INSTANCE_LOCK)) {
         if (sAlluxioEtcdClient == null) {
+          LOG.debug("Creating ETCD client");
           sAlluxioEtcdClient = new AlluxioEtcdClient(conf);
+          Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+              destroy();
+            } catch (Throwable t) {
+              LOG.error("Failed to destroy ETCD client", t);
+            }
+          }, "alluxio-etcd-client-shutdown-hook"));
+          LOG.debug("ETCD client created");
         }
       }
     }
@@ -140,14 +149,12 @@ public class AlluxioEtcdClient {
 
   private <V> V retryInternal(String description, RetryPolicy retryPolicy,
                               EtcdUtilCallable<V> etcdCallable) {
-    LOG.debug("retry = {} desc= {}", retryPolicy, description);
     Exception ex = null;
     // TODO(lucy) Currently retry on all sorts of exception and report the last exception,
     // As jetcd exception often hides underneath CompletableFuture.get(), find
     // more info later on distinguishing different possible exceptions.
     while (retryPolicy.attempt()) {
       try {
-        LOG.debug("AlluxioEtcdClient calling. AttemptCount = {}", retryPolicy.getAttemptCount());
         return etcdCallable.call();
       } catch (Exception e) {
         // TODO(lucy) check in future if io.etcd.jetcd.common.exception.EtcdException
@@ -541,9 +548,17 @@ public class AlluxioEtcdClient {
   }
 
   public static void destroy() {
-    LOG.debug("Destroying {}", sAlluxioEtcdClient);
-    sAlluxioEtcdClient.mServiceDiscovery.close();
-    sAlluxioEtcdClient.getEtcdClient().close();
-    sAlluxioEtcdClient = null;
+    LOG.debug("Destroying ETCD client {}", sAlluxioEtcdClient);
+    try (LockResource lockResource = new LockResource(INSTANCE_LOCK)) {
+      if (sAlluxioEtcdClient != null) {
+        sAlluxioEtcdClient.mServiceDiscovery.close();
+        Client client = sAlluxioEtcdClient.getEtcdClient();
+        if (client != null) {
+          client.close();
+        }
+        sAlluxioEtcdClient = null;
+      }
+    }
+    LOG.debug("ETCD client destroyed");
   }
 }
