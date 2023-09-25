@@ -2195,15 +2195,31 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
-  public static final MetricKey CLIENT_BYTES_WRITTEN_ALLUXIO =
-      new Builder("Client.BytesWrittenAlluxio")
-          .setDescription("Total number of bytes write to Alluxio by this client")
+  public static final MetricKey CLIENT_BYTES_WRITTEN_TO_WORKERS =
+      new Builder("Client.BytesWrittenToWorkers")
+          .setDescription("Total number of bytes write to Alluxio workers by this client")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
-  public static final MetricKey CLIENT_BYTES_WRITTEN_UFS =
-      new Builder("Client.BytesWrittenUfs")
+  public static final MetricKey CLIENT_BYTES_WRITTEN_TO_UFS =
+      new Builder("Client.BytesWrittenToUfs")
           .setDescription("Total number of bytes write to UFS by this client")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey CLIENT_BYTES_READ_FROM_WORKERS =
+      new Builder("Client.BytesReadFromWorkers")
+          .setDescription("Total number of bytes read from Alluxio workers by this client. "
+              + "This includes both the case where the data has been cached on the "
+              + "workers, and the case where the workers need to load it from the "
+              + "UFS.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey CLIENT_BYTES_READ_FROM_UFS =
+      new Builder("Client.BytesReadFromUfs")
+          .setDescription("Total number of bytes read from UFS directly by this "
+              + "client, bypassing any kind of cache of Alluxio.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
