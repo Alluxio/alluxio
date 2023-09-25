@@ -13,6 +13,8 @@ package alluxio.worker.page;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -40,6 +42,8 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import alluxio.worker.block.UnderFileSystemBlockStore.BytesReadMetricKey;
+
 /**
  * Block reader that reads from UFS.
  */
@@ -55,8 +59,9 @@ public class PagedUfsBlockReader extends BlockReader {
   private long mLastPageIndex = -1;
   private boolean mClosed = false;
   private long mPosition;
-  private final ConcurrentMap<PagedUfsBlockReader.BytesReadMetricKey, Counter> mUfsBytesReadMetrics =
+  private final ConcurrentMap<BytesReadMetricKey, Counter> mUfsBytesReadMetrics =
           new ConcurrentHashMap<>();
+  private final Counter mUfsBytesRead;
 
   /**
    * @param ufsManager
@@ -68,7 +73,7 @@ public class PagedUfsBlockReader extends BlockReader {
    */
   public PagedUfsBlockReader(UfsManager ufsManager,
       UfsInputStreamCache ufsInStreamCache, BlockMeta blockMeta,
-      long offset, UfsBlockReadOptions ufsBlockReadOptions, long pageSize) {
+      long offset, UfsBlockReadOptions ufsBlockReadOptions, long pageSize) throws UnavailableException, NotFoundException {
     Preconditions.checkArgument(offset >= 0 && offset <= blockMeta.getBlockSize(),
         "Attempt to read block %s which is %s bytes long at invalid byte offset %s",
         blockMeta.getBlockId(), blockMeta.getBlockSize(), offset);
@@ -80,6 +85,19 @@ public class PagedUfsBlockReader extends BlockReader {
     mInitialOffset = offset;
     mLastPage = ByteBuffer.allocateDirect((int) mPageSize);
     mPosition = offset;
+    UfsManager.UfsClient ufsClient = mUfsManager.get(mUfsBlockOptions.getMountId());
+    mUfsBytesRead = mUfsBytesReadMetrics.computeIfAbsent(
+            new BytesReadMetricKey(ufsClient.getUfsMountPointUri(), mUfsBlockOptions.getUser()),
+            key -> key.mUser == null
+                    ? MetricsSystem.counterWithTags(
+                    MetricKey.WORKER_BYTES_READ_UFS.getName(),
+                    MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
+                    MetricInfo.TAG_UFS, MetricsSystem.escape(key.mUri))
+                    : MetricsSystem.counterWithTags(
+                    MetricKey.WORKER_BYTES_READ_UFS.getName(),
+                    MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
+                    MetricInfo.TAG_UFS, MetricsSystem.escape(key.mUri),
+                    MetricInfo.TAG_USER, key.mUser));
   }
 
   @Override
@@ -155,20 +173,7 @@ public class PagedUfsBlockReader extends BlockReader {
     mLastPage.flip();
     mLastPageIndex = pageIndex;
     fillWithCachedPage(buffer, pageIndex * mPageSize, totalBytesRead);
-    UfsManager.UfsClient ufsClient = mUfsManager.get(mUfsBlockOptions.getMountId());
-    Counter ufsBytesRead = mUfsBytesReadMetrics.computeIfAbsent(
-            new PagedUfsBlockReader.BytesReadMetricKey(ufsClient.getUfsMountPointUri(), mUfsBlockOptions.getUser()),
-            key -> key.mUser == null
-                    ? MetricsSystem.counterWithTags(
-                    MetricKey.WORKER_BYTES_READ_UFS.getName(),
-                    MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
-                    MetricInfo.TAG_UFS, MetricsSystem.escape(key.mUri))
-                    : MetricsSystem.counterWithTags(
-                    MetricKey.WORKER_BYTES_READ_UFS.getName(),
-                    MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
-                    MetricInfo.TAG_UFS, MetricsSystem.escape(key.mUri),
-                    MetricInfo.TAG_USER, key.mUser));
-    ufsBytesRead.inc(totalBytesRead);
+    mUfsBytesRead.inc(totalBytesRead);
     return totalBytesRead;
   }
 
@@ -323,33 +328,6 @@ public class PagedUfsBlockReader extends BlockReader {
         }
         mClosed = true;
       }
-    }
-  }
-  private static class BytesReadMetricKey {
-    private final AlluxioURI mUri;
-    private final String mUser;
-
-    BytesReadMetricKey(AlluxioURI uri, String user) {
-      mUri = uri;
-      mUser = user;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (o == null || getClass() != o.getClass()) {
-        return false;
-      }
-
-      PagedUfsBlockReader.BytesReadMetricKey that = (PagedUfsBlockReader.BytesReadMetricKey) o;
-      return mUri.equals(that.mUri) && mUser.equals(that.mUser);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(mUri, mUser);
     }
   }
 }

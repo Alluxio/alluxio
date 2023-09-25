@@ -387,11 +387,11 @@ public final class UnderFileSystemBlockStore implements SessionCleanable, Closea
     }
   }
 
-  private static class BytesReadMetricKey {
-    private final AlluxioURI mUri;
-    private final String mUser;
+  public static class BytesReadMetricKey {
+    public final AlluxioURI mUri;
+    public final String mUser;
 
-    BytesReadMetricKey(AlluxioURI uri, String user) {
+    public BytesReadMetricKey(AlluxioURI uri, String user) {
       mUri = uri;
       mUser = user;
     }

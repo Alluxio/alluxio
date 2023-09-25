@@ -988,8 +988,11 @@ public final class AlluxioMasterRestServiceHandler {
           .setTotalBytesReadRemote(FormatUtils.getSizeFromBytes(bytesReadRemote))
           .setTotalBytesReadUfs(FormatUtils.getSizeFromBytes(bytesReadUfs));
 
+      Long bytesReadCache = counters.get(
+              MetricKey.CLUSTER_BYTES_READ_CACHE.getName()).getCount();
+
       // cluster cache hit and miss
-      long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadDomainSocket;
+      long bytesReadTotal = bytesReadLocal + bytesReadCache + bytesReadUfs;
       double cacheHitLocalPercentage =
           (bytesReadTotal > 0)
               ? (100D * (bytesReadLocal + bytesReadDomainSocket) / bytesReadTotal) : 0;
@@ -1000,13 +1003,6 @@ public final class AlluxioMasterRestServiceHandler {
       response.setCacheHitLocal(String.format("%.2f", cacheHitLocalPercentage))
           .setCacheHitRemote(String.format("%.2f", cacheHitRemotePercentage))
           .setCacheMiss(String.format("%.2f", cacheMissPercentage));
-
-      Long bytesReadCache = counters.get(
-              MetricKey.CLUSTER_BYTES_READ_CACHE.getName()).getCount();
-      long newbytesReadTotal = bytesReadCache + bytesReadUfs;
-      double newcacheMissPercentage =
-              (newbytesReadTotal > 0) ? (100D * bytesReadUfs / newbytesReadTotal) : 0;
-      response.setCacheMissNew(String.format("%.2f", newcacheMissPercentage));
 
 
 

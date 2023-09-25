@@ -29,6 +29,8 @@ import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.status.DeadlineExceededException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.ErrorType;
@@ -299,8 +301,16 @@ public class PagedBlockStore implements BlockStore {
       LOG.debug("Client did not provide enough info to read block {} from UFS", blockId, e);
     }
     final Optional<PagedUfsBlockReader> ufsBlockReader =
-        readOptions.map(opt -> new PagedUfsBlockReader(
-            mUfsManager, mUfsInStreamCache, blockMeta, offset, opt, mPageSize));
+        readOptions.map(opt -> {
+          try {
+            return new PagedUfsBlockReader(
+                mUfsManager, mUfsInStreamCache, blockMeta, offset, opt, mPageSize);
+          } catch (UnavailableException e) {
+            throw new RuntimeException(e);
+          } catch (NotFoundException e) {
+            throw new RuntimeException(e);
+          }
+        });
     return new PagedBlockReader(mCacheManager, blockMeta, offset, ufsBlockReader, mPageSize);
   }
 
