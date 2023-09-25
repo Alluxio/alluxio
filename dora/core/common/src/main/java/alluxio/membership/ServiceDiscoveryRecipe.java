@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  * ServiceDiscoveryRecipe for etcd, to track health status
  * of all registered services.
  */
-public class ServiceDiscoveryRecipe {
+public class ServiceDiscoveryRecipe implements AutoCloseable {
   private static final Logger LOG = LoggerFactory.getLogger(ServiceDiscoveryRecipe.class);
   final AlluxioEtcdClient mAlluxioEtcdClient;
   private final ScheduledExecutorService mExecutor;
@@ -332,6 +332,7 @@ public class ServiceDiscoveryRecipe {
    * to renew the lease with new keepalive client.
    */
   private void checkAllForReconnect() {
+    LOG.debug("Start Checking all for reconnect ...@{}", this);
     // No need for lock over all services, just individual DefaultServiceEntity is enough
     for (Map.Entry<String, DefaultServiceEntity> entry : mRegisteredServices.entrySet()) {
       DefaultServiceEntity entity = entry.getValue();
@@ -348,5 +349,9 @@ public class ServiceDiscoveryRecipe {
         }
       }
     }
+  }
+
+  public void close() {
+    mExecutor.shutdown();
   }
 }

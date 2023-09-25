@@ -140,12 +140,14 @@ public class AlluxioEtcdClient {
 
   private <V> V retryInternal(String description, RetryPolicy retryPolicy,
                               EtcdUtilCallable<V> etcdCallable) {
+    LOG.debug("retry = {} desc= {}", retryPolicy, description);
     Exception ex = null;
     // TODO(lucy) Currently retry on all sorts of exception and report the last exception,
     // As jetcd exception often hides underneath CompletableFuture.get(), find
     // more info later on distinguishing different possible exceptions.
     while (retryPolicy.attempt()) {
       try {
+        LOG.debug("AlluxioEtcdClient calling. AttemptCount = {}", retryPolicy.getAttemptCount());
         return etcdCallable.call();
       } catch (Exception e) {
         // TODO(lucy) check in future if io.etcd.jetcd.common.exception.EtcdException
@@ -536,5 +538,12 @@ public class AlluxioEtcdClient {
    */
   public Client getEtcdClient() {
     return mClient;
+  }
+
+  public static void destroy() {
+    LOG.debug("Destroying {}", sAlluxioEtcdClient);
+    sAlluxioEtcdClient.mServiceDiscovery.close();
+    sAlluxioEtcdClient.getEtcdClient().close();
+    sAlluxioEtcdClient = null;
   }
 }
