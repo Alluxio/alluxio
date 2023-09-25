@@ -188,7 +188,6 @@
     <module>common</module>
     <module>dora</module>
     <module>webui</module>
-    <module>native</module>
   </modules>
 
   <dependencyManagement>
@@ -1738,6 +1737,13 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+
+    <profile>
+      <id>native-components</id>
+      <modules>
+        <module>native</module>
+      </modules>
     </profile>
   </profiles>
 </project>
