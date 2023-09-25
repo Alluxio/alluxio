@@ -28,24 +28,28 @@ import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 
-import org.apache.hadoop.fs.FileUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 public class DoraMetaManagerTest {
   private DoraMetaManager mManager;
   private DoraUfsManager mDoraUfsManager;
-  private String mTestMetaStorePath = "./testFolderForMetaStore";
+  @Rule
+  public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
+  String mTestMetaStorePath;
 
   @Before
   public void before() throws IOException {
     AlluxioProperties prop = new AlluxioProperties();
+    mTestMetaStorePath = Paths.get(mTemporaryFolder.getRoot().getAbsolutePath(), "testFile").toString();
     prop.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, String.format("%s/metastore",
         mTestMetaStorePath));
     AlluxioConfiguration conf = new InstancedConfiguration(prop);
@@ -61,12 +65,6 @@ public class DoraMetaManagerTest {
       mManager.close();
     } catch (IOException e) {
       mManager = null;
-    }
-    File testDir = new File(mTestMetaStorePath);
-    if (testDir.exists()) {
-      FileUtil.fullyDelete(testDir);
-    } else {
-      throw new RuntimeException("testDir doesn't exist");
     }
   }
 
