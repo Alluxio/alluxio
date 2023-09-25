@@ -20,6 +20,8 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.wire.WorkerIdentity;
+import alluxio.wire.WorkerIdentityTestUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
@@ -47,10 +49,12 @@ public class ConsistentHashPolicyTest {
     List<BlockWorkerInfo> workers = new ArrayList<>();
     WorkerNetAddress workerAddr1 = new WorkerNetAddress()
         .setHost("master1").setRpcPort(29998).setDataPort(29999).setWebPort(30000);
-    workers.add(new BlockWorkerInfo(workerAddr1, 1024, 0));
+    workers.add(new BlockWorkerInfo(
+        WorkerIdentityTestUtils.randomLegacyId(), workerAddr1, 1024, 0));
     WorkerNetAddress workerAddr2 = new WorkerNetAddress()
         .setHost("master2").setRpcPort(29998).setDataPort(29999).setWebPort(30000);
-    workers.add(new BlockWorkerInfo(workerAddr2, 1024, 0));
+    workers.add(new BlockWorkerInfo(
+        WorkerIdentityTestUtils.randomLegacyId(), workerAddr2, 1024, 0));
 
     List<BlockWorkerInfo> assignedWorkers = policy.getPreferredWorkers(workers, "hdfs://a/b/c", 1);
     assertEquals(1, assignedWorkers.size());
@@ -69,11 +73,14 @@ public class ConsistentHashPolicyTest {
     // Prepare a worker list
     List<BlockWorkerInfo> workers = new ArrayList<>();
     WorkerNetAddress workerAddr1 = new WorkerNetAddress()
-            .setHost("master1").setRpcPort(29998).setDataPort(29999).setWebPort(30000);
-    workers.add(new BlockWorkerInfo(workerAddr1, 1024, 0));
+        .setHost("master1").setRpcPort(29998).setDataPort(29999).setWebPort(30000);
+    final WorkerIdentity identity = WorkerIdentityTestUtils.randomLegacyId();
+    workers.add(new BlockWorkerInfo(
+        identity, workerAddr1, 1024, 0));
     WorkerNetAddress workerAddr2 = new WorkerNetAddress()
-            .setHost("master2").setRpcPort(29998).setDataPort(29999).setWebPort(30000);
-    workers.add(new BlockWorkerInfo(workerAddr2, 1024, 0));
+        .setHost("master2").setRpcPort(29998).setDataPort(29999).setWebPort(30000);
+    workers.add(new BlockWorkerInfo(
+        WorkerIdentityTestUtils.randomLegacyId(), workerAddr2, 1024, 0));
 
     List<BlockWorkerInfo> assignedWorkers = policy.getPreferredWorkers(workers, "hdfs://a/b/c", 2);
     assertEquals(2, assignedWorkers.size());
@@ -81,7 +88,8 @@ public class ConsistentHashPolicyTest {
 
     assertThrows(ResourceExhaustedException.class, () -> {
       // Getting 2 out of 1 worker will result in an error
-      policy.getPreferredWorkers(ImmutableList.of(new BlockWorkerInfo(workerAddr1, 1024, 0)),
+      policy.getPreferredWorkers(
+          ImmutableList.of(new BlockWorkerInfo(identity, workerAddr1, 1024, 0)),
           "hdfs://a/b/c", 2);
     });
   }

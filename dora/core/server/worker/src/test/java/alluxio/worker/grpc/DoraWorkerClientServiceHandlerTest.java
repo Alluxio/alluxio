@@ -24,6 +24,7 @@ import alluxio.grpc.ListStatusPResponse;
 import alluxio.membership.MembershipManager;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerIdentity;
+import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.dora.PagedDoraWorker;
 
 import io.grpc.stub.StreamObserver;
@@ -68,7 +69,7 @@ public class DoraWorkerClientServiceHandlerTest {
         MembershipManager.Factory.create(Configuration.global());
     mWorker = new PagedDoraWorker(new AtomicReference<>(1L),
         WorkerIdentity.ParserV0.INSTANCE.fromLong(1L),
-        Configuration.global(), mCacheManager, mMembershipManager);
+        Configuration.global(), mCacheManager, mMembershipManager, new BlockMasterClientPool());
     mServiceHandler = new DoraWorkerClientServiceHandler(mWorker);
   }
 

@@ -94,6 +94,7 @@ public class WorkerInfoTest {
     String revision = DigestUtils.sha1Hex(RandomStringUtils.random(10));
 
     result.setId(id);
+    result.setIdentity(WorkerIdentity.ParserV0.INSTANCE.fromLong(id));
     result.setAddress(address);
     result.setLastContactSec(lastContactSec);
     result.setCapacityBytes(capacityBytes);

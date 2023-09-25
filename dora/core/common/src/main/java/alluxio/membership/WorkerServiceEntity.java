@@ -12,7 +12,7 @@
 package alluxio.membership;
 
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.util.HashUtils;
+import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -40,6 +40,9 @@ public class WorkerServiceEntity extends DefaultServiceEntity {
   }
 
   @Expose
+  @com.google.gson.annotations.SerializedName("Identity")
+  WorkerIdentity mIdentity;
+  @Expose
   @com.google.gson.annotations.SerializedName("WorkerNetAddress")
   WorkerNetAddress mAddress;
   @Expose
@@ -57,26 +60,37 @@ public class WorkerServiceEntity extends DefaultServiceEntity {
 
   /**
    * CTOR  for WorkerServiceEntity with given WorkerNetAddress.
+   *
+   * @param identity
    * @param addr
    */
-  public WorkerServiceEntity(WorkerNetAddress addr) {
-    super(HashUtils.hashAsStringMD5(addr.dumpMainInfo()));
+  public WorkerServiceEntity(WorkerIdentity identity, WorkerNetAddress addr) {
+    super(identity.toString());
+    mIdentity = identity;
     mAddress = addr;
     mState = State.AUTHORIZED;
   }
 
   /**
    * Get WorkerNetAddress field.
+   *
    * @return WorkerNetAddress
    */
   public WorkerNetAddress getWorkerNetAddress() {
     return mAddress;
   }
 
+  /**
+   * @return worker identity
+   */
+  public WorkerIdentity getIdentity() {
+    return mIdentity;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("WorkerId", getServiceEntityName())
+        .add("WorkerId", mIdentity)
         .add("WorkerAddr", mAddress.toString())
         .add("State", mState.toString())
         .toString();
@@ -91,7 +105,8 @@ public class WorkerServiceEntity extends DefaultServiceEntity {
       return false;
     }
     WorkerServiceEntity anotherO = (WorkerServiceEntity) o;
-    return mAddress.equals(anotherO.mAddress)
+    return mIdentity.equals(anotherO.mIdentity)
+        && mAddress.equals(anotherO.mAddress)
         && getServiceEntityName().equals(anotherO.getServiceEntityName());
   }
 

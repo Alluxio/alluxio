@@ -20,9 +20,11 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
 import alluxio.membership.MembershipManager;
+import alluxio.membership.MembershipType;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerIdentity;
 import alluxio.worker.Worker;
+import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.dora.DoraUfsManager;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.PagedDoraWorker;
@@ -48,10 +50,22 @@ public class DoraWorkerModule extends AbstractModule {
     bind(new TypeLiteral<AtomicReference<Long>>() {
     }).annotatedWith(Names.named("workerId"))
         .toInstance(new AtomicReference<>(-1L));
-    bind(WorkerIdentity.class).toProvider(WorkerIdentityProvider.class).in(Scopes.SINGLETON);
+    if (Configuration.getEnum(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.class)
+        == MembershipType.MASTER) {
+      bind(WorkerIdentity.class)
+          .toProvider(LegacyWorkerIdentityProvider.class)
+          .in(Scopes.SINGLETON);
+    } else { // for etcd-based and static membership managers
+      bind(WorkerIdentity.class)
+          .toProvider(WorkerIdentityProvider.class)
+          .in(Scopes.SINGLETON);
+    }
 
     bind(FileSystemMasterClient.class).toProvider(() -> new FileSystemMasterClient(
         MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build()));
+    bind(BlockMasterClientPool.class)
+        .toProvider(BlockMasterClientPool::new)
+        .in(Scopes.SINGLETON);
     bind(UfsManager.class).to(DoraUfsManager.class).in(Scopes.SINGLETON);
     bind(AlluxioConfiguration.class).toProvider(() -> Configuration.global());
 

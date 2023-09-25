@@ -50,6 +50,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.WorkerIdentity;
+import alluxio.worker.block.BlockMasterClientPool;
 
 import com.google.common.base.Strings;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -100,7 +101,7 @@ public class PagedDoraWorkerTest {
         MembershipManager.Factory.create(Configuration.global());
     mWorker = new PagedDoraWorker(new AtomicReference<>(1L),
         WorkerIdentity.ParserV0.INSTANCE.fromLong(1L),
-        Configuration.global(), mCacheManager, mMembershipManager);
+        Configuration.global(), mCacheManager, mMembershipManager, new BlockMasterClientPool());
   }
 
   @After

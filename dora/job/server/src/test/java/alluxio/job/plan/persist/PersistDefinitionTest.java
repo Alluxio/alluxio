@@ -27,6 +27,8 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerIdentity;
+import alluxio.wire.WorkerIdentityTestUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -63,13 +65,21 @@ public final class PersistDefinitionTest {
     PersistConfig config = new PersistConfig(uri.getPath(), -1, true, "");
 
     WorkerNetAddress workerNetAddress1 = new WorkerNetAddress().setDataPort(10).setHost("host1");
+    WorkerIdentity workerIdentity1 = WorkerIdentityTestUtils.randomLegacyId();
     WorkerNetAddress workerNetAddress2 = new WorkerNetAddress().setDataPort(100).setHost("host2");
+    WorkerIdentity workerIdentity2 = WorkerIdentityTestUtils.randomLegacyId();
 
-    BlockWorkerInfo blockWorkerInfo1 = new BlockWorkerInfo(workerNetAddress1, 1, 1);
-    BlockWorkerInfo blockWorkerInfo2 = new BlockWorkerInfo(workerNetAddress2, 1, 1);
+    BlockWorkerInfo blockWorkerInfo1 =
+        new BlockWorkerInfo(workerIdentity1, workerNetAddress1, 1, 1);
+    BlockWorkerInfo blockWorkerInfo2 =
+        new BlockWorkerInfo(workerIdentity2, workerNetAddress2, 1, 1);
 
-    WorkerInfo workerInfo1 = new WorkerInfo().setAddress(workerNetAddress1);
-    WorkerInfo workerInfo2 = new WorkerInfo().setAddress(workerNetAddress2);
+    WorkerInfo workerInfo1 = new WorkerInfo()
+        .setIdentity(workerIdentity1)
+        .setAddress(workerNetAddress1);
+    WorkerInfo workerInfo2 = new WorkerInfo()
+        .setIdentity(workerIdentity2)
+        .setAddress(workerNetAddress2);
 
     FileBlockInfo fileBlockInfo1 = mockFileBlockInfo(1, workerNetAddress2);
     FileBlockInfo fileBlockInfo2 = mockFileBlockInfo(2, workerNetAddress1);

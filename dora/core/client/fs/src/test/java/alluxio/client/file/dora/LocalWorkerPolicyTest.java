@@ -21,6 +21,8 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.wire.WorkerIdentity;
+import alluxio.wire.WorkerIdentityTestUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
@@ -32,6 +34,8 @@ import java.util.List;
 
 public class LocalWorkerPolicyTest {
   private static final String LOCAL_HOSTNAME = "localhost";
+  private static final WorkerIdentity LOCAL_WORKER_ID =
+      WorkerIdentityTestUtils.randomLegacyId();
 
   InstancedConfiguration mConf;
 
@@ -51,14 +55,17 @@ public class LocalWorkerPolicyTest {
     List<BlockWorkerInfo> workers = new ArrayList<>();
     WorkerNetAddress workerAddr1 = new WorkerNetAddress()
         .setHost(LOCAL_HOSTNAME).setRpcPort(29998).setDataPort(29999).setWebPort(30000);
-    workers.add(new BlockWorkerInfo(workerAddr1, 1024, 0));
+    workers.add(new BlockWorkerInfo(
+        LOCAL_WORKER_ID, workerAddr1, 1024, 0));
     WorkerNetAddress workerAddr2 = new WorkerNetAddress()
         .setHost("remotehost").setRpcPort(29998).setDataPort(29999).setWebPort(30000);
-    workers.add(new BlockWorkerInfo(workerAddr2, 1024, 0));
+    workers.add(new BlockWorkerInfo(
+        WorkerIdentityTestUtils.randomLegacyId(), workerAddr2, 1024, 0));
 
     List<BlockWorkerInfo> assignedWorkers = policy.getPreferredWorkers(workers, "hdfs://a/b/c", 1);
     assertEquals(1, assignedWorkers.size());
     assertTrue(contains(workers, assignedWorkers.get(0)));
+    assertEquals(LOCAL_WORKER_ID, assignedWorkers.get(0).getIdentity());
     assertEquals(LOCAL_HOSTNAME, assignedWorkers.get(0).getNetAddress().getHost());
 
     assertThrows(ResourceExhaustedException.class, () -> {
@@ -75,10 +82,12 @@ public class LocalWorkerPolicyTest {
     List<BlockWorkerInfo> workers = new ArrayList<>();
     WorkerNetAddress workerAddr1 = new WorkerNetAddress()
         .setHost(LOCAL_HOSTNAME).setRpcPort(29998).setDataPort(29999).setWebPort(30000);
-    workers.add(new BlockWorkerInfo(workerAddr1, 1024, 0));
+    workers.add(new BlockWorkerInfo(
+        LOCAL_WORKER_ID, workerAddr1, 1024, 0));
     WorkerNetAddress workerAddr2 = new WorkerNetAddress()
         .setHost("master2").setRpcPort(29998).setDataPort(29999).setWebPort(30000);
-    workers.add(new BlockWorkerInfo(workerAddr2, 1024, 0));
+    workers.add(new BlockWorkerInfo(
+        WorkerIdentityTestUtils.randomLegacyId(), workerAddr2, 1024, 0));
 
     assertThrows(ResourceExhaustedException.class, () -> {
       // There is only one local worker and getting 2 will get an error
@@ -87,10 +96,12 @@ public class LocalWorkerPolicyTest {
 
     WorkerNetAddress workerAddr3 = new WorkerNetAddress()
         .setHost(LOCAL_HOSTNAME).setRpcPort(30001).setDataPort(30002).setWebPort(30003);
-    workers.add(new BlockWorkerInfo(workerAddr3, 1024, 0));
+    workers.add(new BlockWorkerInfo(
+        WorkerIdentityTestUtils.randomLegacyId(), workerAddr3, 1024, 0));
     List<BlockWorkerInfo> localWorkers = policy.getPreferredWorkers(workers, "hdfs://a/b/c", 2);
     assertEquals(2, localWorkers.size());
     assertNotEquals(localWorkers.get(0).getNetAddress(), localWorkers.get(1).getNetAddress());
+    assertNotEquals(localWorkers.get(0).getIdentity(), localWorkers.get(1).getIdentity());
     assertEquals(LOCAL_HOSTNAME, localWorkers.get(0).getNetAddress().getHost());
     assertEquals(LOCAL_HOSTNAME, localWorkers.get(1).getNetAddress().getHost());
   }

@@ -61,6 +61,7 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.membership.MasterMembershipManager;
 import alluxio.membership.MembershipManager;
+import alluxio.membership.MembershipType;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
@@ -165,6 +166,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @param conf
    * @param cacheManager
    * @param membershipManager
+   * @param blockMasterClientPool
    */
   @Inject
   public PagedDoraWorker(
@@ -172,9 +174,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       WorkerIdentity identity,
       AlluxioConfiguration conf,
       CacheManager cacheManager,
-      MembershipManager membershipManager
+      MembershipManager membershipManager,
+      BlockMasterClientPool blockMasterClientPool
   ) {
-    this(workerId, identity, conf, cacheManager, membershipManager, new BlockMasterClientPool(),
+    this(workerId, identity, conf, cacheManager, membershipManager, blockMasterClientPool,
         FileSystemContext.create(conf));
   }
 
@@ -282,7 +285,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       try {
         LOG.info("{} membership manager starts joining...",
             mConf.get(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE));
-        mMembershipManager.join(new WorkerInfo().setAddress(mAddress));
+        mMembershipManager.join(new WorkerInfo().setIdentity(mWorkerIdentity).setAddress(mAddress));
         mWorkerId.set(HashUtils.hashAsLong(mAddress.dumpMainInfo()));
         break;
       } catch (UnavailableRuntimeException ioe) {
@@ -303,10 +306,21 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   private void registerToMaster() throws IOException {
     Preconditions.checkNotNull(mAddress, "worker not started");
+    final long workerId;
+    try {
+      workerId = WorkerIdentity.ParserV0.INSTANCE.toLong(mWorkerIdentity);
+      mWorkerId.set(workerId);
+    } catch (IllegalArgumentException e) {
+      throw new IllegalStateException("Worker identity is not a `long`. The worker is trying "
+          + "to register with the master using a legacy long-based ID, but the identity "
+          + "cannot be parsed as a `long`. Make sure "
+          + PropertyKey.Name.WORKER_MEMBERSHIP_MANAGER_TYPE
+          + " is set to " + MembershipType.MASTER
+      );
+    }
     RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
     while (true) {
       try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
-        mWorkerId.set(bmc.get().getId(mAddress));
         StorageTierAssoc storageTierAssoc =
             new DefaultStorageTierAssoc(ImmutableList.of(Constants.MEDIUM_MEM));
         bmc.get().register(
