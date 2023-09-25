@@ -23,7 +23,7 @@ public class UpdatedConfigEventDiff {
   long mVersion;
 
   /**
-   * Construct an instance of {@link UpdatedConfigEventDiff}
+   * Construct an instance of {@link UpdatedConfigEventDiff}.
    * @param changedProperties a list of changed properties
    * @param version the last update event version
    */
