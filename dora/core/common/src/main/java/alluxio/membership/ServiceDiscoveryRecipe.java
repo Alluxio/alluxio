@@ -332,7 +332,7 @@ public class ServiceDiscoveryRecipe implements AutoCloseable {
    * to renew the lease with new keepalive client.
    */
   private void checkAllForReconnect() {
-    LOG.debug("Start Checking all for reconnect ...@{}", this);
+    LOG.debug("instance {} - Checking if any service needs reconnection ...", this);
     // No need for lock over all services, just individual DefaultServiceEntity is enough
     for (Map.Entry<String, DefaultServiceEntity> entry : mRegisteredServices.entrySet()) {
       DefaultServiceEntity entity = entry.getValue();
@@ -345,13 +345,23 @@ public class ServiceDiscoveryRecipe implements AutoCloseable {
           newLeaseInternal(entity);
           entity.mNeedReconnect.set(false);
         } catch (IOException | UnavailableRuntimeException e) {
-          LOG.info("Failed trying to new the lease for service:{}", entity, e);
+          LOG.warn("Failed trying to new the lease for service:{}", entity, e);
         }
       }
     }
   }
 
+  @Override
   public void close() {
-    mExecutor.shutdown();
+    if (mExecutor != null) {
+      mExecutor.shutdown();
+      try {
+        mExecutor.awaitTermination(5, TimeUnit.SECONDS);
+      } catch (InterruptedException e) {
+        LOG.warn("interrupted while terminating the thread used to poll ETCD");
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(e);
+      }
+    }
   }
 }

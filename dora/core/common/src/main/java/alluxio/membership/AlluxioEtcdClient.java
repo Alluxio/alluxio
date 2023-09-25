@@ -547,6 +547,14 @@ public class AlluxioEtcdClient {
     return mClient;
   }
 
+  /**
+   * Destroys the client and corresponding resources.
+   *
+   * We don't implement {@link AutoCloseable} because the client is used by client
+   * FileSystemContext. FileSystemContext has reinit() logic which may close and recreate
+   * all resources. We don't want the life cycle of one FileSystemContext to close the global
+   * singleton ETCD client.
+   */
   public static void destroy() {
     LOG.debug("Destroying ETCD client {}", sAlluxioEtcdClient);
     try (LockResource lockResource = new LockResource(INSTANCE_LOCK)) {
