@@ -154,6 +154,11 @@ public class AlluxioFuse {
       startCommon(conf, fuseOptions, fsContext); // This will be blocked until quitting
 
       stopCommon();
+      // Explicitly exit() so non daemon threads will be terminated
+      System.exit(0);
+    } catch (Throwable t) {
+      LOG.error("Failed running FUSE", t);
+      System.exit(-1);
     }
   }
 
