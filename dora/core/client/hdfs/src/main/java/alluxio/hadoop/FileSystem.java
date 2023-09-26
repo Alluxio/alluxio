@@ -45,11 +45,14 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class FileSystem extends AbstractFileSystem {
+  private final boolean mEnabledDora;
+
   /**
    * Constructs a new {@link FileSystem}.
    */
   public FileSystem() {
     super();
+    mEnabledDora = mFileSystem.getConf().getBoolean(PropertyKey.DORA_ENABLED);
   }
 
   /**
@@ -60,6 +63,7 @@ public class FileSystem extends AbstractFileSystem {
    */
   public FileSystem(alluxio.client.file.FileSystem fileSystem) {
     super(fileSystem);
+    mEnabledDora = mFileSystem.getConf().getBoolean(PropertyKey.DORA_ENABLED);
   }
 
   @Override
@@ -162,7 +166,7 @@ public class FileSystem extends AbstractFileSystem {
   @Override
   public BlockLocation[] getFileBlockLocations(FileStatus file, long start, long len)
       throws IOException {
-    if (mFileSystem.getConf().getBoolean(PropertyKey.DORA_ENABLED)) {
+    if (mEnabledDora) {
       return super.getFileBlockLocations(file, start, len);
     } else {
       // If Dora is not enabled, use the localhost as the default block location.
@@ -187,7 +191,7 @@ public class FileSystem extends AbstractFileSystem {
   @Override
   public void access(Path path, FsAction mode) throws AccessControlException,
       FileNotFoundException, IOException {
-    if (mFileSystem.getConf().getBoolean(PropertyKey.DORA_ENABLED)) {
+    if (mEnabledDora) {
       super.access(path, mode);
     }
   }
