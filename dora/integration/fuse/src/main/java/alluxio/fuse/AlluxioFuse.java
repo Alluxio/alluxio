@@ -278,6 +278,7 @@ public class AlluxioFuse {
     final boolean debugEnabled = conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
     FuseSignalHandler fuseSignalHandler = new FuseSignalHandler(fuseFs);
     Signal.handle(new Signal("TERM"), fuseSignalHandler);
+    Signal.handle(new Signal("INT"), fuseSignalHandler);
     try {
       LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
           mountPoint, String.join(",", fuseOptions.getFuseMountOptions()));

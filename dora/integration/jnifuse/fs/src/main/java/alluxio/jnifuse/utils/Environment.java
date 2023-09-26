@@ -11,6 +11,14 @@
 
 package alluxio.jnifuse.utils;
 
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 /**
  * This file mostly derived from rocksdb lib.
  */
@@ -123,5 +131,46 @@ public class Environment {
       return ".dll";
     }
     return isMac() ? ".jnilib" : ".so";
+  }
+
+
+  public static Pair<Integer, String> runCommandAndCapture(String... command)
+      throws IOException, InterruptedException {
+    String[] cmds = new String[command.length];
+    int i = 0;
+    for (String cmd : command) {
+      cmds[i++] = cmd;
+    }
+    Process p = new ProcessBuilder(cmds).start();
+    int exitCode = -1;
+    ByteArrayOutputStream bout = new ByteArrayOutputStream();
+    InputStream in = null;
+    InputStream err = null;
+    OutputStream out = null;
+    try {
+      int c;
+      in = p.getInputStream();
+      while ((c = in.read()) != -1) {
+        bout.write(c);
+      }
+      err = p.getErrorStream();
+      while ((c = err.read()) != -1) {
+        bout.write(c);
+      }
+      out = p.getOutputStream();
+      exitCode = p.waitFor();
+    } finally {
+      Closeable[] closeables = new Closeable[]{in, out, err};
+      for (Closeable c : closeables) {
+        if (c != null) {
+          try {
+            c.close();
+          } catch (Exception e) {
+            // Ignore
+          }
+        }
+      }
+    }
+    return Pair.of(exitCode, bout.toString());
   }
 }

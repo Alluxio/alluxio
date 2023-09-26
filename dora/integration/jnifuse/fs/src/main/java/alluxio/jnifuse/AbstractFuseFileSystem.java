@@ -15,13 +15,21 @@ import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
+import alluxio.jnifuse.utils.Environment;
 import alluxio.jnifuse.utils.SecurityUtils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.checkerframework.checker.units.qual.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -160,14 +168,21 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     mMounted.set(false);
   }
 
+  private Pair<Integer, String> waitAndCapture(Process p) throws InterruptedException, IOException {
+
+  }
+
   private void umountInternal() {
     int exitCode;
+    String outputStr = "";
     String mountPath = mMountPoint.toString();
     if (SystemUtils.IS_OS_WINDOWS) {
       throw new FuseException("Unable to umount FS in a windows system.");
     } else if (SystemUtils.IS_OS_MAC_OSX) {
       try {
-        exitCode = new ProcessBuilder("umount", "-f", mountPath).start().waitFor();
+        Pair<Integer, String> output = Environment.runCommandAndCapture("umount", "-f", mountPath);
+        exitCode = output.getLeft();
+        outputStr = output.getRight();
       } catch (InterruptedException ie) {
         Thread.currentThread().interrupt();
         throw new FuseException("Unable to umount FS", ie);
@@ -176,16 +191,23 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
       }
     } else {
       try {
-        exitCode = new ProcessBuilder("fusermount", "-u", "-z", mountPath).start().waitFor();
+        Pair<Integer, String> output = Environment.runCommandAndCapture(
+            "fusermount", "-u", "-z", mountPath);
+        exitCode = output.getLeft();
+        outputStr = output.getRight();
         if (exitCode != 0) {
-          throw new Exception(String.format("fusermount returns %d", exitCode));
+          throw new Exception(String.format("fusermount returns %d, cmd output:%s",
+              exitCode, outputStr));
         }
       } catch (Exception e) {
         if (e instanceof InterruptedException) {
           Thread.currentThread().interrupt();
         }
         try {
-          exitCode = new ProcessBuilder("umount", mountPath).start().waitFor();
+          Pair<Integer, String> output = Environment.runCommandAndCapture(
+              "umount", mountPath);
+          exitCode = output.getLeft();
+          outputStr = output.getRight();
         } catch (InterruptedException ie) {
           Thread.currentThread().interrupt();
           throw new FuseException("Unable to umount FS", e);
@@ -196,7 +218,8 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
       }
     }
     if (exitCode != 0) {
-      throw new FuseException("Unable to umount FS with exit code " + exitCode);
+      throw new FuseException("Unable to umount FS with exit code " + exitCode
+       + ", cmd output:" + outputStr);
     }
   }
 

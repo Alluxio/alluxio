@@ -41,7 +41,7 @@ public class FuseSignalHandler implements SignalHandler {
     LOG.info("Receive signal name {}, number {}, system exiting",
         signal.getName(), signal.getNumber());
     int number = signal.getNumber();
-    if (number == 15) {
+    if (number == 15 || number == 2) {
       try {
         mFuseUmountable.umount(false);
       } catch (Throwable t) {
