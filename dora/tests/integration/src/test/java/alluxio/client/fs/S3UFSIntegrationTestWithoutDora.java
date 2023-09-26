@@ -1,12 +1,22 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.client.fs;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
 import alluxio.conf.PropertyKey;
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.util.Arrays;
+
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
@@ -25,6 +35,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
+import java.net.URI;
+import java.nio.charset.Charset;
+import java.util.Arrays;
 
 public class S3UFSIntegrationTestWithoutDora {
   @Rule
@@ -101,7 +115,7 @@ public class S3UFSIntegrationTestWithoutDora {
     assertEquals(buf.length, fileStatus.getLen());
     BlockLocation[] blockLocations =
         mAlluxioS3Client.getFileBlockLocations(fileStatus, 0, fileStatus.getLen());
-    assertEquals("localhost",blockLocations[0].getHosts()[0]);
+    assertEquals("localhost", blockLocations[0].getHosts()[0]);
     mAlluxioS3Client.delete(TEST_PATH, false);
   }
 
