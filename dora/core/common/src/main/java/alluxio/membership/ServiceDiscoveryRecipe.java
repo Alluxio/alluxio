@@ -91,8 +91,8 @@ public class ServiceDiscoveryRecipe implements AutoCloseable {
    */
   private void newLeaseInternal(DefaultServiceEntity service, boolean force) throws IOException {
     try (LockResource lockResource = new LockResource(service.getLock())) {
-      if (!force &&
-          service.getLease() != null && !mAlluxioEtcdClient.isLeaseExpired(service.getLease())) {
+      if (!force && service.getLease() != null
+          && !mAlluxioEtcdClient.isLeaseExpired(service.getLease())) {
         LOG.info("Lease attached with service:{} is not expired, bail from here.",
             service.getServiceEntityName());
         return;
@@ -120,8 +120,7 @@ public class ServiceDiscoveryRecipe implements AutoCloseable {
             r -> kvs.addAll(r.getKvs())).collect(Collectors.toList());
         if (!txnResponse.isSucceeded()) {
           if (!kvs.isEmpty()) {
-            throw new AlreadyExistsException("Same service kv pair is there but "
-                + "attached lease is expired, this should not happen");
+            throw new AlreadyExistsException("Same service kv pair already exists.");
           }
           throw new IOException("Failed to new a lease for service:" + service.toString());
         }
