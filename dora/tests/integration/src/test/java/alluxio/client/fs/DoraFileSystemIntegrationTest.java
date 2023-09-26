@@ -85,6 +85,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_HTTP_SERVER_ENABLED, false)
           .setProperty(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey())
           .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
+          .setProperty(PropertyKey.WORKER_BIND_HOST, "localhost")
           .setNumWorkers(1)
           .setStartCluster(false);
 
@@ -245,6 +246,10 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   @Test
   public void testWriteThenDeleteFromUfs() throws Exception {
     writeThenDeleteFromUfs(true);
+  }
+
+  @Test
+  public void ddd() throws Exception {
     writeThenDeleteFromUfs(false);
   }
 
