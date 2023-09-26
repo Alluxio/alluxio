@@ -145,12 +145,13 @@ public class FileSystem extends AbstractFileSystem {
 
   @Override
   protected String getFsScheme(URI fsUri) {
-    return getScheme();
+    return fsUri.getScheme();
   }
 
   @Override
   protected AlluxioURI getAlluxioPath(Path path) {
-    return new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
+    // Use the path directly instead of converting it.
+    return new AlluxioURI(path.toString());
   }
 
   @Override
