@@ -297,14 +297,16 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
       it.remove();
       return Collections.unmodifiableList(tasks);
     }
-    List<Route> routes = getNextRoutes(BATCH_SIZE);
-    if (routes.isEmpty()) {
-      return Collections.unmodifiableList(tasks);
+    for (WorkerInfo ignored : workers) {
+      List<Route> routes = getNextRoutes(BATCH_SIZE);
+      if (routes.isEmpty()) {
+        return Collections.unmodifiableList(tasks);
+      }
+      WorkerInfo workerInfo = mWorkerAssignPolicy.pickAWorker(StringUtil.EMPTY_STRING, workers);
+      MoveTask moveTask = new MoveTask(routes);
+      moveTask.setMyRunningWorker(workerInfo);
+      tasks.add(moveTask);
     }
-    WorkerInfo workerInfo = mWorkerAssignPolicy.pickAWorker(StringUtil.EMPTY_STRING, workers);
-    MoveTask moveTask = new MoveTask(routes);
-    moveTask.setMyRunningWorker(workerInfo);
-    tasks.add(moveTask);
     return Collections.unmodifiableList(tasks);
   }
 
