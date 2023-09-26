@@ -4834,9 +4834,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_MEMBERSHIP_MANAGER_TYPE =
       enumBuilder(Name.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.class)
           .setDefaultValue(MembershipType.MASTER.name())
-          .setDescription("Type of membership manager used for workers."
-              + "Choose STATIC for pre-configured members."
-              + "Choose ETCD for using etcd for membership management"
+          .setDescription("Type of membership manager used for workers. "
+              + "Choose STATIC for pre-configured members. "
+              + "Choose ETCD for using etcd for membership management. "
+              + "Choose KUBERNETES for using Kubernetes Api Server for membership management. "
               + "Default is MASTER which does not enable membership module"
               + " and uses master to register")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)

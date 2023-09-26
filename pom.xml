@@ -393,6 +393,11 @@
         <version>0.7.5</version>
       </dependency>
       <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-client</artifactId>
+        <version>6.8.1</version>
+      </dependency>
+      <dependency>
         <groupId>io.github.opendataio</groupId>
         <artifactId>cephfs-hadoop</artifactId>
         <version>${cephfs-hadoop.version}</version>
