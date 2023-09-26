@@ -269,7 +269,7 @@ public class AlluxioWorkerProcess implements WorkerProcess {
 
     // TODO(Yichuan Sun): Throwable cannot catch anything here, but it fails.
     // Start serving the web server, this will not block.
-    mWebServer.start();
+//    mWebServer.start();
 
     // Start HTTP Server
     if (mHttpServer != null && Configuration.getBoolean(PropertyKey.WORKER_HTTP_SERVER_ENABLED)) {
@@ -369,7 +369,7 @@ public class AlluxioWorkerProcess implements WorkerProcess {
     try {
       CommonUtils.waitFor(this + " to start",
           () -> isServing() && mRegistry.get(DataWorker.class).getWorkerId() != null
-              && mWebServer != null && mWebServer.getServer().isRunning(),
+              ,
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {
