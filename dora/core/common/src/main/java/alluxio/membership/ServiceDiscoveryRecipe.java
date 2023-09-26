@@ -86,11 +86,13 @@ public class ServiceDiscoveryRecipe implements AutoCloseable {
    * update of the DefaultServiceEntity fields(lease,revision num) is guarded by
    * lock within DefaultServiceEntity instance.
    * @param service
+   * @param force
    * @throws IOException
    */
-  private void newLeaseInternal(DefaultServiceEntity service) throws IOException {
+  private void newLeaseInternal(DefaultServiceEntity service, boolean force) throws IOException {
     try (LockResource lockResource = new LockResource(service.getLock())) {
-      if (service.getLease() != null && !mAlluxioEtcdClient.isLeaseExpired(service.getLease())) {
+      if (!force &&
+          service.getLease() != null && !mAlluxioEtcdClient.isLeaseExpired(service.getLease())) {
         LOG.info("Lease attached with service:{} is not expired, bail from here.",
             service.getServiceEntityName());
         return;
@@ -153,7 +155,7 @@ public class ServiceDiscoveryRecipe implements AutoCloseable {
       throw new AlreadyExistsException("Service " + service.getServiceEntityName()
           + " already registered.");
     }
-    newLeaseInternal(service);
+    newLeaseInternal(service, false);
     DefaultServiceEntity existEntity = mRegisteredServices.putIfAbsent(
         service.getServiceEntityName(), service);
     if (existEntity != null) {
@@ -342,7 +344,9 @@ public class ServiceDiscoveryRecipe implements AutoCloseable {
       if (entity.mNeedReconnect.get()) {
         try {
           LOG.info("Start reconnect for service:{}", entity.getServiceEntityName());
-          newLeaseInternal(entity);
+          // Always force create a new lease as when onCompleted / onError called
+          // from RetryKeepAliveObserver, the lease might not directly got expired at the time.
+          newLeaseInternal(entity, true);
           entity.mNeedReconnect.set(false);
         } catch (IOException | UnavailableRuntimeException e) {
           LOG.warn("Failed trying to new the lease for service:{}", entity, e);
