@@ -22,7 +22,7 @@ This is done by a Maven plugin that delegates the Rust build to Cargo, the Rust 
 Running the following command from this module's root directory will build all Rust submodules:
 
 ```console
-$ mvn clean install
+mvn clean install
 ```
 
 ## Generating a new submodule for Rust component
@@ -33,7 +33,7 @@ In order to use the template to generate a new submodule, you need to first inst
 Run maven build for the archetype module from the root of this module:
 
 ```console
-$ mvn clean install -f archetype
+mvn clean install -f archetype
 ```
 
 This will install the archetype locally so that it can be used later to generate new projects.
