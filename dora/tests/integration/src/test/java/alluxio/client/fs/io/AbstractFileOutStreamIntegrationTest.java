@@ -34,8 +34,6 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * Abstract classes for all integration tests of {@link FileOutStream}.
@@ -54,7 +52,7 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
 
   protected FileSystem mFileSystem = null;
 
-  protected Path mPath;
+  protected String mRoot;
 
   @Rule
   public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
@@ -62,8 +60,7 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    String localUfsRoot = mTemporaryFolder.getRoot().getAbsolutePath();
-    mPath = Paths.get(localUfsRoot, "testFile");
+    mRoot = mTemporaryFolder.getRoot().getAbsolutePath();
   }
 
   @After
