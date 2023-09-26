@@ -11,6 +11,8 @@
 
 package alluxio.stress.cli.worker;
 
+import static alluxio.Constants.MB;
+import static alluxio.Constants.SECOND_NANO;
 import static alluxio.stress.BaseParameters.DEFAULT_TASK_ID;
 
 import alluxio.Constants;
@@ -374,8 +376,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
     public synchronized void mergeThreadResult(WorkerBenchTaskResult threadResult) {
       if (mResult == null) {
-        mResult = threadResult;
-        return;
+        mResult = new WorkerBenchTaskResult();
       }
       try {
         mResult.merge(threadResult);
@@ -464,49 +465,54 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       WorkerBenchCoarseDataPoint dp = new WorkerBenchCoarseDataPoint(
           Long.parseLong(workerID),
           Thread.currentThread().getId());
-      int sliceCount = 0;
-      int sliceIoBytes = 0;
+      WorkerBenchDataPoint slice = new WorkerBenchDataPoint();
       List<Long> throughputList = new ArrayList<>();
-      int lastSlice = 0;
+      long lastSlice = 0;
 
       while (!Thread.currentThread().isInterrupted()
           && CommonUtils.getCurrentMs() < mContext.getEndMs()) {
         // Keep reading the same file
         long startMs = CommonUtils.getCurrentMs() - recordMs;
-        long bytesRead = applyOperation();
-        long duration = CommonUtils.getCurrentMs() - recordMs - startMs;
+        ApplyOperationOutput output = applyOperation();
         if (startMs > 0) {
-          if (bytesRead > 0) {
-            mResult.setIOBytes(mResult.getIOBytes() + bytesRead);
-            sliceCount += 1;
-            sliceIoBytes += bytesRead;
-            // if duration is 0ms, treat is as 1ms for now
-            if (duration == 0) {
-              throughputList.add(bytesRead);
+          if (output.mBytesRead > 0) {
+            mResult.setIOBytes(mResult.getIOBytes() + output.mBytesRead);
+            slice.mCount += 1;
+            slice.mIOBytes += output.mBytesRead;
+            if (output.mDuration > 0) {
+              // throughput unit: MB/s
+              // max file size allowed: 9223372036B (8.5GB)
+              throughputList.add(output.mBytesRead * SECOND_NANO / (MB * output.mDuration));
+            } else if (output.mDuration == 0) {
+              // if duration is 0ns, treat is as 1ns
+              throughputList.add(output.mBytesRead * SECOND_NANO / MB);
+              SAMPLING_LOG.warn("Thread for file {} read operation finished in 0ns",
+                      mFilePaths[mTargetFileIndex]);
+            } else {
+              // if duration is negative, throw an exception
+              throw new IllegalStateException(String.format(
+                  "Negative duration for file read: %d", output.mDuration));
             }
-            throughputList.add(bytesRead / duration);
             int currentSlice = (int) (startMs
                 / FormatUtils.parseTimeSize(mParameters.mSliceSize));
             while (currentSlice > lastSlice) {
-              dp.addDataPoint(new WorkerBenchDataPoint(sliceCount, sliceIoBytes));
-              sliceCount = 0;
-              sliceIoBytes = 0;
+              dp.addDataPoint(slice);
+              slice = new WorkerBenchDataPoint();
               lastSlice++;
             }
           } else {
             LOG.warn("Thread for file {} read 0 bytes from I/O", mFilePaths[mTargetFileIndex]);
           }
         } else {
-          SAMPLING_LOG.info("Ignored record during warmup: {} bytes", bytesRead);
+          SAMPLING_LOG.info("Ignored record during warmup: {} bytes", output.mBytesRead);
         }
       }
 
       int finalSlice = (int) (FormatUtils.parseTimeSize(mParameters.mDuration)
           / FormatUtils.parseTimeSize(mParameters.mSliceSize));
       while (finalSlice > lastSlice) {
-        dp.addDataPoint(new WorkerBenchDataPoint(sliceCount, sliceIoBytes));
-        sliceCount = 0;
-        sliceIoBytes = 0;
+        dp.addDataPoint(slice);
+        slice = new WorkerBenchDataPoint();
         lastSlice++;
       }
 
@@ -514,13 +520,24 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       mResult.addDataPoint(dp);
     }
 
+    private class ApplyOperationOutput {
+      public final long mBytesRead;
+      public final long mDuration;
+
+      public ApplyOperationOutput(long bytesRead, long duration) {
+        mBytesRead = bytesRead;
+        mDuration = duration;
+      }
+    }
+
     /**
      * Read the file by the offset and length based on the given index.
      * @return the actual red byte number
      */
-    private long applyOperation() throws IOException {
+    private ApplyOperationOutput applyOperation() throws IOException {
       Path filePath = mFilePaths[mTargetFileIndex];
 
+      long startReadNs = System.nanoTime();
       if (mInStream == null) {
         mInStream = mFs.open(filePath);
       }
@@ -555,7 +572,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
           }
         }
       }
-      return bytesRead;
+      // We use the nanoTime only to calculate elapsed time
+      long afterReadNs = System.nanoTime();
+      return new ApplyOperationOutput(bytesRead, afterReadNs - startReadNs);
     }
 
     private void closeInStream() {
