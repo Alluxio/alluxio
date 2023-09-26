@@ -96,6 +96,15 @@ public abstract class AbstractLocalAlluxioCluster {
 
     // Reset contexts so that they pick up the updated configuration.
     reset();
+
+    // TODO(Yichuan): test for acquiring a BlockWorkerClient.
+//    int clusterNumWorkers = getNumOfWorkers();
+//    if (clusterNumWorkers != mNumWorkers) {
+//      throw new Exception("worker number is not match");
+//    }
+//    DoraCacheClient doraCacheClient = new DoraCacheClient(FileSystemContext.create());
+//    List<URIStatus> workerNetAddress = doraCacheClient.listStatus(
+//        "/", ListStatusPOptions.newBuilder().build());
   }
 
   /**
@@ -115,6 +124,13 @@ public abstract class AbstractLocalAlluxioCluster {
         throw new RuntimeException(e);
       }
     }, WaitForOptions.defaults().setTimeoutMs(WAIT_MASTER_START_TIMEOUT_MS));
+  }
+
+  /**
+   * get the number of workers.
+   */
+  public int getNumOfWorkers() throws UnsupportedOperationException{
+    throw new UnsupportedOperationException();
   }
 
   /**

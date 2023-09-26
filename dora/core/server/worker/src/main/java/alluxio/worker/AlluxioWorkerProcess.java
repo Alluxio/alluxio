@@ -267,6 +267,7 @@ public class AlluxioWorkerProcess implements WorkerProcess {
     // Consequence: worker id is granted
     startWorkers();
 
+    // TODO(Yichuan Sun): Throwable cannot catch anything here, but it fails.
     // Start serving the web server, this will not block.
     mWebServer.start();
 
@@ -296,6 +297,7 @@ public class AlluxioWorkerProcess implements WorkerProcess {
 
     // Start serving RPC, this will block
     AtomicReference<Long> workerId = mRegistry.get(DataWorker.class).getWorkerId();
+    System.out.println("Alluxio worker started.");
     LOG.info("Alluxio worker started. id={}, bindHost={}, connectHost={}, rpcPort={}, webPort={}",
         workerId,
         NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, Configuration.global()),

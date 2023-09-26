@@ -178,6 +178,17 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     }, WaitForOptions.defaults().setTimeoutMs(10_000));
   }
 
+  public int getNumOfWorkers() throws UnsupportedOperationException{
+    try (BlockMasterClient blockMasterClient = BlockMasterClient.Factory.create(
+        MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build())) {
+      List<WorkerInfo> workerInfoList = blockMasterClient.getWorkerInfoList();
+      return workerInfoList.size();
+    } catch (IOException ioe) {
+      LOG.error("getWorkerInfoList() ERROR when check worker amount: ", ioe);
+      return 0;
+    }
+  }
+
   @Override
   public void stop() throws Exception {
     super.stop();

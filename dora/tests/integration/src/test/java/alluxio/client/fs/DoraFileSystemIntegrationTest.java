@@ -115,7 +115,11 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
         .setProperty(
             PropertyKey.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE, file.getAbsolutePath())
         .setProperty(PropertyKey.WORKER_RPC_PORT, 24999)
-        .setProperty(PropertyKey.WORKER_WEB_PORT, 25999);
+        .setProperty(PropertyKey.WORKER_WEB_PORT, 25999)
+        .setProperty(PropertyKey.WORKER_DATA_PORT, 26988)
+        .setProperty(PropertyKey.WORKER_HTTP_SERVER_PORT, 27988)
+        .setProperty(PropertyKey.WORKER_REST_PORT, 28988);
+    // TODO(Yichuan): Prevent potential "Address already in used." Sometimes it happened.
   }
 
   private void startCluster(LocalAlluxioClusterResource cluster) throws Exception {
