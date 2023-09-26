@@ -31,6 +31,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.gaul.s3proxy.junit.S3ProxyRule;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,14 +53,18 @@ public class S3UfsDisableDoraIntegrationTest {
   public static final String TEST_FILENAME = "s3://" + TEST_BUCKET + "/test-file";
   public static final String TEST_BUCKET_URI = "s3://" + TEST_BUCKET + "/";
   public static final Path TEST_PATH = new Path(TEST_FILENAME);
+  public static final String TEST_BUCKET_OTHER = "test-bucket-other";
+  public static final String TEST_BUCKET_OTHER_URI = "s3://" + TEST_BUCKET_OTHER + "/";
   private static final String TEST_CONTENT = "test-content";
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
   private FileSystem mAlluxioS3Client;
+  private AmazonS3 mS3Client;
+  private Configuration mHadoopConf;
 
   @Before
   public void before() throws Exception {
-    AmazonS3 s3Client = AmazonS3ClientBuilder
+    mS3Client = AmazonS3ClientBuilder
         .standard()
         .withPathStyleAccessEnabled(true)
         .withCredentials(
@@ -69,19 +74,26 @@ public class S3UfsDisableDoraIntegrationTest {
             new AwsClientBuilder.EndpointConfiguration(mS3Proxy.getUri().toString(),
                 Regions.US_WEST_2.getName()))
         .build();
-    s3Client.createBucket(TEST_BUCKET);
+    mS3Client.createBucket(TEST_BUCKET);
+    mS3Client.createBucket(TEST_BUCKET_OTHER);
 
-    Configuration conf = new Configuration();
-    conf.set("fs.s3.impl", "alluxio.hadoop.FileSystem");
-    conf.set("fs.AbstractFileSystem.s3.impl", "alluxio.hadoop.AlluxioFileSystem");
-    conf.setBoolean(PropertyKey.DORA_ENABLED.getName(), false);
-    conf.set(PropertyKey.S3A_ACCESS_KEY.getName(), mS3Proxy.getAccessKey());
-    conf.set(PropertyKey.S3A_SECRET_KEY.getName(), mS3Proxy.getSecretKey());
-    conf.set(PropertyKey.UNDERFS_S3_ENDPOINT.getName(), "localhost:8001");
-    conf.set(PropertyKey.UNDERFS_S3_ENDPOINT_REGION.getName(), "us-west-2");
-    conf.setBoolean(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS.getName(), true);
+    mHadoopConf = new Configuration();
+    mHadoopConf.set("fs.s3.impl", "alluxio.hadoop.FileSystem");
+    mHadoopConf.set("fs.AbstractFileSystem.s3.impl", "alluxio.hadoop.AlluxioFileSystem");
+    mHadoopConf.setBoolean(PropertyKey.DORA_ENABLED.getName(), false);
+    mHadoopConf.set(PropertyKey.S3A_ACCESS_KEY.getName(), mS3Proxy.getAccessKey());
+    mHadoopConf.set(PropertyKey.S3A_SECRET_KEY.getName(), mS3Proxy.getSecretKey());
+    mHadoopConf.set(PropertyKey.UNDERFS_S3_ENDPOINT.getName(), "localhost:8001");
+    mHadoopConf.set(PropertyKey.UNDERFS_S3_ENDPOINT_REGION.getName(), "us-west-2");
+    mHadoopConf.setBoolean(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS.getName(), true);
 
-    mAlluxioS3Client = FileSystem.get(new URI(TEST_BUCKET_URI), conf);
+    mAlluxioS3Client = FileSystem.get(new URI(TEST_BUCKET_URI), mHadoopConf);
+  }
+
+  @After
+  public void after() throws Exception {
+    mS3Client.deleteBucket(TEST_BUCKET);
+    mS3Client.deleteBucket(TEST_BUCKET_OTHER);
   }
 
   @Test
@@ -137,5 +149,24 @@ public class S3UfsDisableDoraIntegrationTest {
 
     mAlluxioS3Client.delete(fullDirPath, true);
     mAlluxioS3Client.delete(fullFilePath, false);
+  }
+
+  @Test
+  public void testOtherBucket() throws Exception
+  {
+    String testFileOther = TEST_BUCKET_OTHER_URI + "/test-file-other";
+    FileSystem otherBucketFileSystem = FileSystem.get(new URI(testFileOther), mHadoopConf);
+    FSDataOutputStream out = otherBucketFileSystem.create(new Path(testFileOther));
+    byte[] buf = TEST_CONTENT.getBytes(Charset.defaultCharset());
+    out.write(buf);
+    out.close();
+
+    FSDataInputStream in = otherBucketFileSystem.open(new Path(testFileOther));
+    byte[] buffReadFromDora = new byte[buf.length];
+    in.read(buffReadFromDora);
+    in.close();
+    assertEquals(Arrays.toString(buf), Arrays.toString(buffReadFromDora));
+
+    otherBucketFileSystem.delete(new Path(testFileOther), true);
   }
 }
