@@ -40,7 +40,7 @@ import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-public class S3UFSIntegrationTestWithoutDora {
+public class S3UfsDisableDoraIntegrationTest {
   @Rule
   public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
       .withBlobStoreProvider("transient")
@@ -55,12 +55,11 @@ public class S3UFSIntegrationTestWithoutDora {
   private static final String TEST_CONTENT = "test-content";
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
-  private AmazonS3 mS3Client = null;
   private FileSystem mAlluxioS3Client;
 
   @Before
   public void before() throws Exception {
-    mS3Client = AmazonS3ClientBuilder
+    AmazonS3 s3Client = AmazonS3ClientBuilder
         .standard()
         .withPathStyleAccessEnabled(true)
         .withCredentials(
@@ -70,7 +69,7 @@ public class S3UFSIntegrationTestWithoutDora {
             new AwsClientBuilder.EndpointConfiguration(mS3Proxy.getUri().toString(),
                 Regions.US_WEST_2.getName()))
         .build();
-    mS3Client.createBucket(TEST_BUCKET);
+    s3Client.createBucket(TEST_BUCKET);
 
     Configuration conf = new Configuration();
     conf.set("fs.s3.impl", "alluxio.hadoop.FileSystem");
