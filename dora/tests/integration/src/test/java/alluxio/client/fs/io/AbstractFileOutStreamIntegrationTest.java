@@ -54,7 +54,7 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
 
   protected FileSystem mFileSystem = null;
 
-  Path mPath;
+  protected Path mPath;
 
   @Rule
   public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
