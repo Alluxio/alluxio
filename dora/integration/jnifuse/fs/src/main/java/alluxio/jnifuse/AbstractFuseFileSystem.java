@@ -168,10 +168,6 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     mMounted.set(false);
   }
 
-  private Pair<Integer, String> waitAndCapture(Process p) throws InterruptedException, IOException {
-
-  }
-
   private void umountInternal() {
     int exitCode;
     String outputStr = "";
