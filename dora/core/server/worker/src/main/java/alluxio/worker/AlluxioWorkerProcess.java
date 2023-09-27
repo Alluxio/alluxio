@@ -367,7 +367,7 @@ public class AlluxioWorkerProcess implements WorkerProcess {
     try {
       CommonUtils.waitFor(this + " to start",
           () -> isServing() && mRegistry.get(DataWorker.class).getWorkerId() != null
-              ,
+              && mWebServer != null && mWebServer.getServer().isRunning(),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {
