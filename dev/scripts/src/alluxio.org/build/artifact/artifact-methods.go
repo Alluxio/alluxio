@@ -52,8 +52,13 @@ func (a *ArtifactGroup) WriteToFile(outputFile string) error {
 	if err != nil {
 		return stacktrace.Propagate(err, "error marshalling artifact to yaml")
 	}
-	if err := os.WriteFile(outputFile, yOut, os.ModePerm); err != nil {
-		return stacktrace.Propagate(err, "error writing to file")
+	f, err := os.OpenFile(outputFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	if err != nil {
+		return stacktrace.Propagate(err, "error opening file %v", outputFile)
+	}
+	defer f.Close()
+	if _, err = f.Write(yOut); err != nil {
+		return stacktrace.Propagate(err, "error writing to file %v", outputFile)
 	}
 	return nil
 }
