@@ -75,12 +75,17 @@ public class NoExceptionCacheManager implements CacheManager {
 
   @Override
   public int get(PageId pageId, int pageOffset, ReadTargetBuffer buffer,
-                 CacheContext cacheContext) {
+      CacheContext cacheContext) {
     try {
-      return mCacheManager.get(pageId, pageOffset, buffer, cacheContext);
+      int bytesRead =  mCacheManager.get(pageId, pageOffset, buffer, cacheContext);
+      if (bytesRead == -1) {
+        LOG.error("Read cached data failed, we should reset the offset, but actually not");
+      }
+      return bytesRead;
     } catch (Exception e) {
       LOG.error("Failed to get page {}", pageId, e);
       Metrics.GET_ERRORS.inc();
+      LOG.error("Read cached data failed, we should reset the offset, but actually not");
       return -1;
     }
   }
