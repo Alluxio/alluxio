@@ -140,7 +140,6 @@ public final class WorkerIdentity implements Serializable {
     }
   }
 
-
   /**
    * Parsers for worker identity.
    */
@@ -417,7 +416,6 @@ public final class WorkerIdentity implements Serializable {
       return getVersionSpecificRepresentation0(identity);
     }
   }
-
 
   /**
    * Utility for ser/de with Gson.
