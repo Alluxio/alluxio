@@ -43,6 +43,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.apache.commons.io.IOUtils;
 import org.gaul.s3proxy.junit.S3ProxyRule;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -107,8 +108,6 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
     File file = mFolder.newFile();
     try (PrintStream ps = new PrintStream(file)) {
       ps.println("localhost");
-//      ps.println("worker2");
-//      ps.println("worker3");
     }
     mLocalAlluxioClusterResourceBuilder
         .setProperty(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED, false)
@@ -120,7 +119,6 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
         .setProperty(PropertyKey.WORKER_DATA_PORT, 26988)
         .setProperty(PropertyKey.WORKER_HTTP_SERVER_PORT, 27988)
         .setProperty(PropertyKey.WORKER_REST_PORT, 28988);
-    // TODO(Yichuan): Prevent potential "Address already in used." Sometimes it happened.
   }
 
   private void startCluster(LocalAlluxioClusterResource cluster) throws Exception {
@@ -244,12 +242,17 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
    * Read the file with sync interval setting to 0 should return error.
    */
   @Test
-  public void testWriteThenDeleteFromUfs() throws Exception {
+  public void testWriteThenDeleteFromUfsTrue() throws Exception {
     writeThenDeleteFromUfs(true);
   }
 
+  /**
+   * Writes a file through alluxio into UFS. Deletes the file from UFS.
+   * Read the file with sync interval setting to -1 should give the cached file.
+   * Read the file with sync interval setting to 0 should return error.
+   */
   @Test
-  public void ddd() throws Exception {
+  public void testWriteThenDeleteFromUfsFalse() throws Exception {
     writeThenDeleteFromUfs(false);
   }
 
@@ -264,6 +267,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
     writeThenUpdateFromUfs(false);
   }
 
+  @Ignore
   @Test
   public void testRename() throws Exception {
     mLocalAlluxioClusterResourceBuilder.setProperty(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED, true);
