@@ -69,7 +69,7 @@ public abstract class AbstractLocalAlluxioCluster {
   protected String mWorkDirectory;
   protected String mHostname;
 
-  private int mNumWorkers;
+  protected int mNumWorkers;
 
   /**
    * @param numWorkers the number of workers to run
@@ -102,6 +102,8 @@ public abstract class AbstractLocalAlluxioCluster {
    * Configures and starts the master(s).
    */
   protected abstract void startMasters() throws Exception;
+
+  protected abstract void waitForWorkerServing() throws TimeoutException, InterruptedException;
 
   protected void waitForMasterServing() throws TimeoutException, InterruptedException {
     CommonUtils.waitFor("master starts serving RPCs", () -> {

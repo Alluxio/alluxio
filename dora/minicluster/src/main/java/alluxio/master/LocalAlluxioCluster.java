@@ -14,12 +14,14 @@ package alluxio.master;
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.block.BlockMasterClient;
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
@@ -28,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -171,9 +174,57 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
       } catch (IOException ioe) {
         LOG.error("getWorkerInfoList() ERROR: ", ioe);
         return false;
-      } catch (Throwable throwable) {
-        LOG.error("Unexpected throwable /: " + throwable.getMessage());
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(10_000));
+  }
+
+  @Override
+  public void startWorkers() throws Exception {
+    mWorkers = new ArrayList<>();
+    for (int i = 0; i < mNumWorkers; ++i) {
+      // If dora is enabled, automatically setting the worker page store and rocksdb dirs.
+      if (Configuration.getBoolean(PropertyKey.DORA_ENABLED)) {
+        String pageStoreDir = PathUtils.concatPath(mWorkDirectory, "worker" + i);
+        Configuration.set(PropertyKey.WORKER_PAGE_STORE_DIRS, pageStoreDir);
+        Configuration.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, pageStoreDir);
+      }
+      WorkerProcess worker = WorkerProcess.Factory.create();
+      mWorkers.add(worker);
+      Runnable runWorker = () -> {
+        try {
+          worker.start();
+        } catch (InterruptedException e) {
+          // this is expected
+        } catch (Exception e) {
+          // Log the exception as the RuntimeException will be caught and handled silently by
+          // JUnit
+          LOG.error("Start worker error", e);
+          throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+        }
+      };
+      Thread thread = new Thread(runWorker);
+      thread.setName("WorkerThread-" + System.identityHashCode(thread));
+      mWorkerThreads.add(thread);
+      thread.start();
+    }
+
+    waitForWorkerServing();
+  }
+
+  @Override
+  protected void waitForWorkerServing() throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("worker starts serving RPCs", () -> {
+      try (FileSystemContext fsContext = FileSystemContext.create()) {
+        List<BlockWorkerInfo> workerInfoList = fsContext.getCachedWorkers();
+        LOG.info(String.format("now worker number is %d", workerInfoList.size()));
+        return workerInfoList.size() == mNumWorkers;
+      } catch (IOException ioe) {
+        LOG.error(ioe.getMessage());
         return false;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
       }
     }, WaitForOptions.defaults().setTimeoutMs(10_000));
   }
