@@ -749,7 +749,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   @Override
   public void setAttribute(String path, String name, byte[] value) throws IOException {
     if (StringUtils.isEmpty(name)) {
-      LOG.warn("Try to set Xattr to an empty file name.");
+      LOG.warn("Try to set Xattr to an empty file name for path {}", path);
       return;
     }
     FileSystem hdfs = getFs();

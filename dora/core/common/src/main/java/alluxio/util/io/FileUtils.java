@@ -120,12 +120,17 @@ public final class FileUtils {
       }
       attributeView.write(name, ByteBuffer.wrap(value));
     } catch (UnsupportedOperationException e) {
+      LOG.warn("UFS does not support getting FileAttributeView with Java.");
       throw new UnimplementedRuntimeException(e, ErrorType.External);
     } catch (ClassCastException | IllegalArgumentException e) {
-      throw new InvalidArgumentRuntimeException(e);
+      String msg = "UFS does not support getting FileAttributeView with Java.";
+      LOG.warn(msg);
+      throw new InvalidArgumentRuntimeException(msg, e);
     } catch (SecurityException e) {
+      LOG.warn("UFS does not support getting FileAttributeView with Java.");
       throw new PermissionDeniedRuntimeException(e);
     } catch (IOException e) {
+      LOG.warn("UFS does not support getting FileAttributeView with Java.");
       throw new UnknownRuntimeException(e);
     }
   }
@@ -141,7 +146,8 @@ public final class FileUtils {
       UserDefinedFileAttributeView attributeView =
           Files.getFileAttributeView(Paths.get(filePath), UserDefinedFileAttributeView.class);
       if (attributeView == null) {
-        throw new UnimplementedRuntimeException("set attribute is not implemented");
+        throw new UnimplementedRuntimeException(
+            "UFS does not support getting FileAttributeView with Java.");
       }
       Map<String, String> attrMap = new HashMap<>(attributeView.list().size());
       for (String attributeName : attributeView.list()) {
@@ -155,12 +161,17 @@ public final class FileUtils {
       }
       return Collections.unmodifiableMap(attrMap);
     } catch (UnsupportedOperationException e) {
+      LOG.warn("UFS does not support getting FileAttributeView with Java.");
       throw new UnimplementedRuntimeException(e, ErrorType.External);
     } catch (ClassCastException | IllegalArgumentException e) {
-      throw new InvalidArgumentRuntimeException(e);
+      String msg = "UFS does not support getting FileAttributeView with Java.";
+      LOG.warn(msg);
+      throw new InvalidArgumentRuntimeException(msg, e);
     } catch (SecurityException e) {
+      LOG.warn("UFS does not support getting FileAttributeView with Java.");
       throw new PermissionDeniedRuntimeException(e);
     } catch (IOException e) {
+      LOG.warn("UFS does not support getting FileAttributeView with Java.");
       throw new UnknownRuntimeException(e);
     }
   }
