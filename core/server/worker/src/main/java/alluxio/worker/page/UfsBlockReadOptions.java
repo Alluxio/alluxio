@@ -28,7 +28,8 @@ public final class UfsBlockReadOptions {
   private final boolean mCacheIntoAlluxio;
   private final String mUser;
 
-  UfsBlockReadOptions(long mountId, long offsetInFile, String ufsPath, boolean cacheIntoAlluxio, String user) {
+  UfsBlockReadOptions(long mountId, long offsetInFile, String ufsPath, boolean cacheIntoAlluxio,
+                      String user) {
     mMountId = mountId;
     mOffsetInFile = offsetInFile;
     mUfsPath = ufsPath;
@@ -73,9 +74,11 @@ public final class UfsBlockReadOptions {
     return mUfsPath;
   }
 
-  public String getUser() {
-    return mUser;
-  }
+  /**
+   *
+   * @return user
+   */
+  public String getUser() { return mUser; }
 
   /**
    * @return whether the UFS block should be cached into Alluxio

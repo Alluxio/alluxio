@@ -39,7 +39,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class PagedBlockReader extends BlockReader {
-
   private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocate(0);
   private final long mPageSize;
   private final CacheManager mCacheManager;

@@ -1714,7 +1714,7 @@ public final class MetricKey implements Comparable<MetricKey> {
 
   public static final MetricKey CLUSTER_BYTES_READ_CACHE =
           new Builder("Cluster.BytesReadCache")
-                  .setDescription("Total number of bytes read from all worker's cache by all workers")
+                  .setDescription("Total number of bytes read from all worker's cache")
                   .setMetricType(MetricType.COUNTER)
                   .build();
 
@@ -2013,7 +2013,7 @@ public final class MetricKey implements Comparable<MetricKey> {
 
   public static final MetricKey WORKER_BYTES_READ_CACHE =
           new Builder("Worker.BytesReadCache")
-                  .setDescription("Total number of bytes read from the worker's cache by the worker")
+                  .setDescription("Total number of bytes read from the worker's cache")
                   .setMetricType(MetricType.COUNTER)
                   .setIsClusterAggregated(true)
                   .build();

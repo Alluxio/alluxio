@@ -11,7 +11,6 @@
 
 package alluxio.worker.page;
 
-import alluxio.AlluxioURI;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
@@ -25,11 +24,11 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
 import alluxio.worker.block.UfsInputStreamCache;
+import alluxio.worker.block.UnderFileSystemBlockStore.BytesReadMetricKey;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
 
 import com.codahale.metrics.Counter;
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 
@@ -41,8 +40,6 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ReadableByteChannel;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import alluxio.worker.block.UnderFileSystemBlockStore.BytesReadMetricKey;
 
 /**
  * Block reader that reads from UFS.
@@ -73,7 +70,8 @@ public class PagedUfsBlockReader extends BlockReader {
    */
   public PagedUfsBlockReader(UfsManager ufsManager,
       UfsInputStreamCache ufsInStreamCache, BlockMeta blockMeta,
-      long offset, UfsBlockReadOptions ufsBlockReadOptions, long pageSize) throws UnavailableException, NotFoundException {
+      long offset, UfsBlockReadOptions ufsBlockReadOptions, long pageSize)
+          throws UnavailableException, NotFoundException {
     Preconditions.checkArgument(offset >= 0 && offset <= blockMeta.getBlockSize(),
         "Attempt to read block %s which is %s bytes long at invalid byte offset %s",
         blockMeta.getBlockId(), blockMeta.getBlockSize(), offset);

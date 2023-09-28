@@ -18,7 +18,6 @@ import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.Scope;
-import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
