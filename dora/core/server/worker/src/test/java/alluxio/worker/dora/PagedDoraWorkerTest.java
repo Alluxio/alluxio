@@ -99,8 +99,8 @@ public class PagedDoraWorkerTest {
         CacheManager.Factory.create(Configuration.global(), cacheManagerOptions, pageMetaStore);
     mMembershipManager =
         MembershipManager.Factory.create(Configuration.global());
-    mWorker = new PagedDoraWorker(new AtomicReference<>(1L),
-        WorkerIdentity.ParserV0.INSTANCE.fromLong(1L),
+    mWorker = new PagedDoraWorker(
+        new AtomicReference<>(WorkerIdentity.ParserV0.INSTANCE.fromLong(1L)),
         Configuration.global(), mCacheManager, mMembershipManager, new BlockMasterClientPool());
   }
 

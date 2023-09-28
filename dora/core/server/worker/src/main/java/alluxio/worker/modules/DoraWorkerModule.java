@@ -47,17 +47,20 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DoraWorkerModule extends AbstractModule {
   @Override
   protected void configure() {
-    bind(new TypeLiteral<AtomicReference<Long>>() {
-    }).annotatedWith(Names.named("workerId"))
-        .toInstance(new AtomicReference<>(-1L));
     if (Configuration.getEnum(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.class)
         == MembershipType.MASTER) {
-      bind(WorkerIdentity.class)
-          .toProvider(LegacyWorkerIdentityProvider.class)
-          .in(Scopes.SINGLETON);
+      bind(new TypeLiteral<AtomicReference<WorkerIdentity>>() {
+      })
+          .annotatedWith(Names.named("workerId"))
+          .toInstance(new AtomicReference<>(null));
     } else { // for etcd-based and static membership managers
       bind(WorkerIdentity.class)
           .toProvider(WorkerIdentityProvider.class)
+          .in(Scopes.SINGLETON);
+      bind(new TypeLiteral<AtomicReference<WorkerIdentity>>() {
+      })
+          .annotatedWith(Names.named("workerId"))
+          .toProvider(() -> new AtomicReference<>(getProvider(WorkerIdentity.class).get()))
           .in(Scopes.SINGLETON);
     }
 

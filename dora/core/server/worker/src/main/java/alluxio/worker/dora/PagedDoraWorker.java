@@ -61,7 +61,6 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.membership.MasterMembershipManager;
 import alluxio.membership.MembershipManager;
-import alluxio.membership.MembershipType;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
@@ -83,7 +82,6 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
-import alluxio.util.HashUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
@@ -139,8 +137,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private static final int MOUNT_POINT = 1;
   private final Closer mResourceCloser = Closer.create();
   // TODO(lucy) change to string typed once membership manager got enabled by default
-  private final AtomicReference<Long> mWorkerId;
-  private final WorkerIdentity mWorkerIdentity;
+  private final AtomicReference<WorkerIdentity> mWorkerId;
   private final CacheManager mCacheManager;
   protected final DoraUfsManager mUfsManager;
   private final DoraMetaManager mMetaManager;
@@ -162,7 +159,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * Constructor.
    *
    * @param workerId
-   * @param identity
    * @param conf
    * @param cacheManager
    * @param membershipManager
@@ -170,20 +166,18 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    */
   @Inject
   public PagedDoraWorker(
-      @Named("workerId") AtomicReference<Long> workerId,
-      WorkerIdentity identity,
+      @Named("workerId") AtomicReference<WorkerIdentity> workerId,
       AlluxioConfiguration conf,
       CacheManager cacheManager,
       MembershipManager membershipManager,
       BlockMasterClientPool blockMasterClientPool
   ) {
-    this(workerId, identity, conf, cacheManager, membershipManager, blockMasterClientPool,
+    this(workerId, conf, cacheManager, membershipManager, blockMasterClientPool,
         FileSystemContext.create(conf));
   }
 
   protected PagedDoraWorker(
-      AtomicReference<Long> workerId,
-      WorkerIdentity identity,
+      AtomicReference<WorkerIdentity> workerId,
       AlluxioConfiguration conf,
       CacheManager cacheManager,
       MembershipManager membershipManager,
@@ -191,7 +185,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       FileSystemContext fileSystemContext) {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
     mWorkerId = workerId;
-    mWorkerIdentity = identity;
     mConf = conf;
     mUfsManager = mResourceCloser.register(new DoraUfsManager());
     String rootUFS = mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
@@ -285,8 +278,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       try {
         LOG.info("{} membership manager starts joining...",
             mConf.get(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE));
-        mMembershipManager.join(new WorkerInfo().setIdentity(mWorkerIdentity).setAddress(mAddress));
-        mWorkerId.set(HashUtils.hashAsLong(mAddress.dumpMainInfo()));
+        mMembershipManager.join(new WorkerInfo().setIdentity(mWorkerId.get()).setAddress(mAddress));
         break;
       } catch (UnavailableRuntimeException ioe) {
         /* We should only expect such exception when situation such as
@@ -306,25 +298,17 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   private void registerToMaster() throws IOException {
     Preconditions.checkNotNull(mAddress, "worker not started");
-    final long workerId;
-    try {
-      workerId = WorkerIdentity.ParserV0.INSTANCE.toLong(mWorkerIdentity);
-      mWorkerId.set(workerId);
-    } catch (IllegalArgumentException e) {
-      throw new IllegalStateException("Worker identity is not a `long`. The worker is trying "
-          + "to register with the master using a legacy long-based ID, but the identity "
-          + "cannot be parsed as a `long`. Make sure "
-          + PropertyKey.Name.WORKER_MEMBERSHIP_MANAGER_TYPE
-          + " is set to " + MembershipType.MASTER
-      );
-    }
     RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
     while (true) {
       try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
+        long id = bmc.get().getId(mAddress);
+        LOG.debug("Obtained worker id {} from master", id);
+        WorkerIdentity identity = WorkerIdentity.ParserV0.INSTANCE.fromLong(id);
+        mWorkerId.set(identity);
         StorageTierAssoc storageTierAssoc =
             new DefaultStorageTierAssoc(ImmutableList.of(Constants.MEDIUM_MEM));
         bmc.get().register(
-            mWorkerId.get(),
+            id,
             storageTierAssoc.getOrderedStorageAliases(),
             ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.GB),
             ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
@@ -362,7 +346,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public AtomicReference<Long> getWorkerId() {
+  public AtomicReference<WorkerIdentity> getWorkerId() {
     return mWorkerId;
   }
 
@@ -991,9 +975,18 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private class BlockMasterSync implements HeartbeatExecutor {
     @Override
     public void heartbeat(long timeLimitMs) throws InterruptedException {
+      WorkerIdentity identity = mWorkerId.get();
+      Preconditions.checkState(identity != null, "worker not registered");
+      final long numericId;
+      try {
+        numericId = WorkerIdentity.ParserV0.INSTANCE.toLong(identity);
+      } catch (IllegalArgumentException e) {
+        throw new IllegalStateException("Worker is using identity based on UUID, which should "
+            + "not be doing block master sync", e);
+      }
       final Command cmdFromMaster;
       try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
-        cmdFromMaster = bmc.get().heartbeat(mWorkerId.get(),
+        cmdFromMaster = bmc.get().heartbeat(numericId,
             ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.GB),
             ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
             ImmutableList.of(),
