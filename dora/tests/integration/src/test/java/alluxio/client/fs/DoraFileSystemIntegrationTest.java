@@ -86,8 +86,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_HTTP_SERVER_ENABLED, false)
           .setProperty(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey())
           .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
-          .setProperty(PropertyKey.WORKER_BIND_HOST, "localhost")
-          .setNumWorkers(1)
+          .setNumWorkers(2)
           .setStartCluster(false);
 
   private static final String TEST_BUCKET = "test-bucket";
@@ -107,18 +106,14 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   public void before() throws Exception {
     File file = mFolder.newFile();
     try (PrintStream ps = new PrintStream(file)) {
-      ps.println("localhost");
+      ps.println("worker1");
+      ps.println("worker2");
     }
     mLocalAlluxioClusterResourceBuilder
         .setProperty(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED, false)
         .setProperty(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.STATIC)
         .setProperty(
-            PropertyKey.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE, file.getAbsolutePath())
-        .setProperty(PropertyKey.WORKER_RPC_PORT, 24999)
-        .setProperty(PropertyKey.WORKER_WEB_PORT, 25999)
-        .setProperty(PropertyKey.WORKER_DATA_PORT, 26988)
-        .setProperty(PropertyKey.WORKER_HTTP_SERVER_PORT, 27988)
-        .setProperty(PropertyKey.WORKER_REST_PORT, 28988);
+            PropertyKey.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE, file.getAbsolutePath());
   }
 
   private void startCluster(LocalAlluxioClusterResource cluster) throws Exception {
@@ -242,7 +237,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
    * Read the file with sync interval setting to 0 should return error.
    */
   @Test
-  public void testWriteThenDeleteFromUfsTrue() throws Exception {
+  public void testWriteThenDeleteFromUfsThrough() throws Exception {
     writeThenDeleteFromUfs(true);
   }
 
@@ -252,7 +247,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
    * Read the file with sync interval setting to 0 should return error.
    */
   @Test
-  public void testWriteThenDeleteFromUfsFalse() throws Exception {
+  public void testWriteThenDeleteFromUfsNotThrough() throws Exception {
     writeThenDeleteFromUfs(false);
   }
 

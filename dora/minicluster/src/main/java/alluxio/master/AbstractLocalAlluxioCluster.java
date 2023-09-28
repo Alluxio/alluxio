@@ -257,7 +257,6 @@ public abstract class AbstractLocalAlluxioCluster {
    * Stops both the alluxio and underfs service threads.
    */
   public void stop() throws Exception {
-    LOG.info("stop abstract local alluxio cluster.");
     stopFS();
     reset();
     Configuration.reloadProperties();
