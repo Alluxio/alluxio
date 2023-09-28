@@ -65,8 +65,6 @@ import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.RenamePResponse;
 import alluxio.grpc.ReverseResolvePRequest;
 import alluxio.grpc.ReverseResolvePResponse;
-import alluxio.grpc.ScheduleAsyncPersistencePRequest;
-import alluxio.grpc.ScheduleAsyncPersistencePResponse;
 import alluxio.grpc.SetAclPRequest;
 import alluxio.grpc.SetAclPResponse;
 import alluxio.grpc.SetAttributePRequest;
@@ -97,7 +95,6 @@ import alluxio.master.file.contexts.GrpcCallTracker;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.contexts.RenameContext;
-import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.job.JobFactoryProducer;
@@ -405,16 +402,6 @@ public final class FileSystemMasterClientServiceHandler
       AlluxioURI alluxioPath = mFileSystemMaster.reverseResolve(ufsUri);
       return ReverseResolvePResponse.newBuilder().setAlluxioPath(alluxioPath.getPath()).build();
     }, "ReverseResolve", "request=%s", responseObserver, request);
-  }
-
-  @Override
-  public void scheduleAsyncPersistence(ScheduleAsyncPersistencePRequest request,
-      StreamObserver<ScheduleAsyncPersistencePResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
-      mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(request.getPath()),
-          ScheduleAsyncPersistenceContext.create(request.getOptions().toBuilder()));
-      return ScheduleAsyncPersistencePResponse.newBuilder().build();
-    }, "ScheduleAsyncPersist", "request=%s", responseObserver, request);
   }
 
   @Override

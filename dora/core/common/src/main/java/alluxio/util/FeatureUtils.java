@@ -82,16 +82,6 @@ public final class FeatureUtils {
   }
 
   /**
-   * Utility to check persistence black list is empty.
-   *
-   * @return true, if persistence black list is empty
-   */
-  public static boolean isPersistenceBlacklistEmpty() {
-    return !Configuration.isSet(PropertyKey.MASTER_PERSISTENCE_BLACKLIST)
-        || Configuration.getList(PropertyKey.MASTER_PERSISTENCE_BLACKLIST).isEmpty();
-  }
-
-  /**
    * Utility to check unsafe direct persistence is enabled.
    *
    * @return true, if unsafe direct persistence is enabled
