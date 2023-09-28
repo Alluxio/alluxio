@@ -34,8 +34,6 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * Abstract classes for all integration tests of {@link FileOutStream}.
