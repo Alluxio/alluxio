@@ -29,6 +29,8 @@ var Format = &FormatCommand{}
 
 type FormatCommand struct {
 	localFileSystem bool
+	skipMaster      bool
+	skipWorker      bool
 }
 
 func (c *FormatCommand) ToCommand() *cobra.Command {
@@ -54,25 +56,29 @@ It should only be called while the cluster is not running.
 
 			cliPath := filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), names.BinAlluxio)
 
-			//run cache format on workers
-			workerArgs := []string{"cache", "format"}
-			if err := processes.RunSshCommand(
-				strings.Join(append([]string{cliPath}, workerArgs...), " "),
-				processes.HostGroupWorkers); err != nil {
-				return stacktrace.Propagate(err, "error formatting workers")
+			if !c.skipWorker {
+				// run cache format on workers
+				workerArgs := []string{"cache", "format"}
+				if err := processes.RunSshCommand(
+					strings.Join(append([]string{cliPath}, workerArgs...), " "),
+					processes.HostGroupWorkers); err != nil {
+					return stacktrace.Propagate(err, "error formatting workers")
+				}
 			}
 
-			// run journal format on masters
-			journalArgs := []string{"journal", "format"}
-			if env.Env.EnvVar.GetString(env.ConfAlluxioMasterJournalType.EnvVar) == "EMBEDDED" {
-				if err := processes.RunSshCommand(
-					strings.Join(append([]string{cliPath}, journalArgs...), " "),
-					processes.HostGroupMasters); err != nil {
-					return stacktrace.Propagate(err, "error formatting masters")
-				}
-			} else {
-				if err := exec.Command(cliPath, journalArgs...).Run(); err != nil {
-					return stacktrace.Propagate(err, "error formatting master")
+			if !c.skipMaster {
+				// run journal format on masters
+				journalArgs := []string{"journal", "format"}
+				if env.Env.EnvVar.GetString(env.ConfAlluxioMasterJournalType.EnvVar) == "EMBEDDED" {
+					if err := processes.RunSshCommand(
+						strings.Join(append([]string{cliPath}, journalArgs...), " "),
+						processes.HostGroupMasters); err != nil {
+						return stacktrace.Propagate(err, "error formatting masters")
+					}
+				} else {
+					if err := exec.Command(cliPath, journalArgs...).Run(); err != nil {
+						return stacktrace.Propagate(err, "error formatting master")
+					}
 				}
 			}
 			log.Logger.Infof("Format successful on master and workers.")
@@ -81,6 +87,10 @@ It should only be called while the cluster is not running.
 		},
 	}
 	cmd.Flags().BoolVarP(&c.localFileSystem, "localFileSystem", "s", false,
-		"If specified, only format if underfs is local and doesn't already exist")
+		"Only format if underfs is local and doesn't already exist")
+	const skipMaster, skipWorker = "skip-master", "skip-worker"
+	cmd.Flags().BoolVar(&c.skipMaster, skipMaster, false, "Skip formatting journal on all masters")
+	cmd.Flags().BoolVar(&c.skipWorker, skipWorker, false, "Skip formatting cache on all workers")
+	cmd.MarkFlagsMutuallyExclusive(skipMaster, skipWorker)
 	return cmd
 }
