@@ -41,6 +41,7 @@ public class K8sMembershipManager implements MembershipManager {
    * @return
    */
   public static K8sMembershipManager create(AlluxioConfiguration conf) {
+    LOG.info("create k8s membership manager");
     return new K8sMembershipManager(conf);
   }
   /**

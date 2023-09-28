@@ -503,6 +503,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         MembershipType.class)) {
       case STATIC:
       case ETCD:
+      case KUBERNETES:
         workerProvider = new MembershipManagerWorkerProvider(
             MembershipManager.Factory.create(Configuration.global()), schedulerFsContext);
         break;
