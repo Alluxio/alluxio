@@ -215,6 +215,7 @@ message UfsReadOptions{
   required bool position_short = 2;
   optional int64 bandwidth = 3;
   optional string user = 4;
+  optional WorkerNetAddress worker_net_address = 5;
 }
 
 message Block{
@@ -241,8 +242,9 @@ enum TaskStatus {
 message LoadFileRequest {
   repeated UfsStatus ufs_status = 1;
   required UfsReadOptions options = 2;
-  optional bool load_metadata_only = 3; // If set false, only the metadata of file will be loaded.
+  optional bool load_metadata_only = 3; // If set true, only the metadata of file will be loaded.
   optional bool skip_if_exists = 4;
+  repeated WorkerNetAddress main_workers = 5;
 }
 
 message File{

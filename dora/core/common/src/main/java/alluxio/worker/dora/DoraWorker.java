@@ -107,7 +107,7 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @return a list of failed files
    */
   ListenableFuture<LoadFileResponse> load(
-      boolean loadData, boolean skipIfExists, List<UfsStatus> ufsStatuses, UfsReadOptions options)
+      boolean loadData, boolean skipIfExists, List<UfsStatus> ufsStatuses, UfsReadOptions options, List<WorkerNetAddress> workerAddresses)
       throws AccessControlException, IOException;
 
   /**

@@ -16,12 +16,15 @@ import static alluxio.client.file.cache.CacheUsage.PartitionDescriptor.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
+import alluxio.PositionReader;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheUsage;
+import alluxio.client.file.cache.PageId;
+import alluxio.client.file.dora.netty.NettyDataReader;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
@@ -73,7 +76,6 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsFileStatus;
-import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -85,6 +87,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.HashUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerInfo;
@@ -114,6 +117,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -144,7 +148,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   protected final DoraUfsManager mUfsManager;
   private final DoraMetaManager mMetaManager;
   private final MembershipManager mMembershipManager;
-  private final UfsInputStreamCache mUfsStreamCache;
   private final long mPageSize;
   protected final AlluxioConfiguration mConf;
   private final BlockMasterClientPool mBlockMasterClientPool;
@@ -195,7 +198,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mUfsManager.getOrAdd(new AlluxioURI(rootUFS),
         UnderFileSystemConfiguration.defaults(mConf));
     mFsContext = mResourceCloser.register(fileSystemContext);
-    mUfsStreamCache = new UfsInputStreamCache();
 
     mPageSize = mConf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
     mBlockMasterClientPool = blockMasterClientPool;
@@ -537,13 +539,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public ListenableFuture<LoadFileResponse> load(
-      boolean loadData, boolean skipIfExists, List<UfsStatus> ufsStatuses, UfsReadOptions options)
+      boolean loadData, boolean skipIfExists, List<UfsStatus> ufsStatuses, UfsReadOptions options, List<WorkerNetAddress> workerAddresses)
       throws AccessControlException, IOException {
     List<ListenableFuture<Void>> futures = new ArrayList<>();
     List<LoadFileFailure> errors = Collections.synchronizedList(new ArrayList<>());
     AtomicInteger skippedFiles = new AtomicInteger();
     AtomicLong skippedFileLength = new AtomicLong();
-    for (UfsStatus status : ufsStatuses) {
+    for (int i=0; i<ufsStatuses.size(); i++) {
+      UfsStatus status = ufsStatuses.get(i);
       String ufsFullPath = status.getUfsFullPath().toString();
       DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath);
       Optional<DoraMeta.FileStatus> originalFs = mMetaManager.getFromMetaStore(ufsFullPath);
@@ -574,13 +577,19 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         continue;
       }
       try {
+        int finalI = i;
         ListenableFuture<Void> loadFuture = Futures.submit(() -> {
           try {
             if (options.hasUser()) {
               AuthenticatedClientUser.set(options.getUser());
             }
-            loadData(status.getUfsFullPath().toString(), 0,
-                status.asUfsFileStatus().getContentLength());
+            if (workerAddresses.isEmpty() || mAddress.equals(workerAddresses.get(finalI))) {
+              loadDataFromUfs(status.getUfsFullPath().toString(), 0,
+                status.asUfsFileStatus().getContentLength());}
+            else {
+              loadDataFromRemoteWorker(status.getUfsFullPath().toString(),
+                  status.asUfsFileStatus().getContentLength(), workerAddresses.get(finalI));
+            }
           } catch (Throwable e) {
             LOG.error("[DistributedLoad] Loading {} failed", status, e);
             AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
@@ -610,7 +619,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         GrpcExecutors.READER_EXECUTOR);
   }
 
-  protected void loadData(String ufsPath, long mountId, long length)
+  protected void loadDataFromUfs(String ufsPath, long mountId, long length)
       throws AccessControlException, IOException {
     Protocol.OpenUfsBlockOptions options =
         Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(ufsPath).setMountId(mountId)
@@ -627,6 +636,38 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       throw AlluxioRuntimeException.from(e);
     } finally {
       buf.release();
+    }
+  }
+
+  protected void loadDataFromRemoteWorker(String ufsPath, long length, WorkerNetAddress workerNetAddress)
+      throws AccessControlException, IOException {
+    int capacity = (int) mPageSize;
+    Protocol.OpenUfsBlockOptions options =
+        Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(ufsPath).setMountId(0).setNoCache(false).setOffsetInFile(0).setBlockSize(length)
+                                    .build();
+    Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder().setBlockId(-1).setOpenUfsBlockOptions(options)
+                                                               .setChunkSize(capacity);
+
+
+    ByteBuffer buf = ByteBuffer.allocate(capacity);
+    int position = 0;
+    String fileId = new AlluxioURI(ufsPath).hash();
+    try (PositionReader reader = new NettyDataReader(mFsContext, workerNetAddress, builder)) {
+      while (position < length) {
+        long currentPageIndex = position / mPageSize;
+        PageId pageId = new PageId(fileId.toString(), currentPageIndex);
+        int lengthToRead = (int) Math.min(capacity, length - position);
+        int lengthRead = reader.read(position, buf, lengthToRead);
+        if (lengthRead != lengthToRead) {
+          throw new FailedPreconditionRuntimeException("Read " + lengthRead + " bytes, expected to read " + lengthToRead + " bytes");
+        }
+        buf.flip();
+        mCacheManager.put(pageId, buf);
+        position += lengthToRead;
+        buf.clear();
+      }
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
     }
   }
 
@@ -1028,6 +1069,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
+  @VisibleForTesting
   public WorkerNetAddress getAddress() {
     return mAddress;
   }
