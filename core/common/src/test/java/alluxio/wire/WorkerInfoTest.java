@@ -92,6 +92,7 @@ public class WorkerInfoTest {
     String version = String.format("%d.%d.%d", random.nextInt(10),
         random.nextInt(20), random.nextInt(10));
     String revision = DigestUtils.sha1Hex(RandomStringUtils.random(10));
+    int numVCpu = random.nextInt(128);
 
     result.setId(id);
     result.setAddress(address);
@@ -104,6 +105,7 @@ public class WorkerInfoTest {
     result.setUsedBytesOnTiers(usedBytesOnTiers);
     result.setVersion(version);
     result.setRevision(revision);
+    result.setNumVCpu(numVCpu);
     return result;
   }
 }
