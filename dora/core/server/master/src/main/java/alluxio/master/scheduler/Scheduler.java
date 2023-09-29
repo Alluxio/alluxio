@@ -276,6 +276,7 @@ public final class Scheduler {
    */
   @VisibleForTesting
   public Set<WorkerInfo> getActiveWorkers() {
+    updateWorkers();
     return mWorkerInfoHub.mActiveWorkers.keySet().stream()
         .map(x -> x.mWorkerInfo).collect(Collectors.toSet());
   }
