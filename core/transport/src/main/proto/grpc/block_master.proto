@@ -69,6 +69,7 @@ message WorkerInfo {
   map<string, int64> capacityBytesOnTiers = 8;
   map<string, int64> usedBytesOnTiers = 9;
   optional BuildVersion buildVersion = 10;
+  optional int32 numVCpu = 11;
 }
 
 enum WorkerRange {
@@ -91,6 +92,7 @@ enum WorkerInfoField {
   WORKER_USED_BYTES_ON_TIERS = 9;
   BLOCK_COUNT = 10;
   BUILD_VERSION = 11;
+  NUM_VCPU = 12;
 }
 
 message GetWorkerReportPOptions {
@@ -290,6 +292,7 @@ message RegisterWorkerPOptions {
   repeated grpc.ConfigProperty configs = 1;
   /** the worker version to display in info pages (useful for rolling upgrades) */
   optional BuildVersion buildVersion = 2;
+  optional int32 numVCpu = 3;
 }
 message RegisterWorkerPRequest {
   /** the id of the worker */

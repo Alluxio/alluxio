@@ -58,6 +58,7 @@ public class CapacityCommand {
   private int mIndentationLevel = 0;
   private long mSumCapacityBytes;
   private long mSumUsedBytes;
+  private int mSumNumVCpus;
   private Map<String, Long> mSumCapacityBytesOnTierMap;
   private Map<String, Long> mSumUsedBytesOnTierMap;
   private TreeMap<String, Map<String, String>> mCapacityTierInfoMap;
@@ -141,8 +142,10 @@ public class CapacityCommand {
     for (WorkerInfo workerInfo : workerInfoList) {
       long usedBytes = workerInfo.getUsedBytes();
       long capacityBytes = workerInfo.getCapacityBytes();
+      int vCpu = workerInfo.getNumVCpu();
       mSumCapacityBytes += capacityBytes;
       mSumUsedBytes += usedBytes;
+      mSumNumVCpus += vCpu;
 
       String workerName = workerInfo.getAddress().getHost();
 
@@ -183,6 +186,7 @@ public class CapacityCommand {
         options.getWorkerRange().toString().toLowerCase()));
 
     mIndentationLevel++;
+    print("Total vCPUs: " + mSumNumVCpus);
     print("Total Capacity: " + FormatUtils.getSizeFromBytes(mSumCapacityBytes));
     mIndentationLevel++;
     for (Map.Entry<String, Long> totalBytesTier : mSumCapacityBytesOnTierMap.entrySet()) {
@@ -405,7 +409,7 @@ public class CapacityCommand {
         WorkerInfoField.WORKER_CAPACITY_BYTES, WorkerInfoField.WORKER_CAPACITY_BYTES_ON_TIERS,
         WorkerInfoField.LAST_CONTACT_SEC, WorkerInfoField.WORKER_USED_BYTES,
         WorkerInfoField.WORKER_USED_BYTES_ON_TIERS, WorkerInfoField.BUILD_VERSION,
-        WorkerInfoField.ID, WorkerInfoField.STATE);
+        WorkerInfoField.ID, WorkerInfoField.STATE, WorkerInfoField.NUM_VCPU);
     workerOptions.setFieldRange(fieldRange);
 
     if (cl.hasOption(ReportCommand.LIVE_OPTION_NAME)) {
@@ -444,6 +448,7 @@ public class CapacityCommand {
   private void initVariables() {
     mSumCapacityBytes = 0;
     mSumUsedBytes = 0;
+    mSumNumVCpus = 0;
     mSumCapacityBytesOnTierMap = new TreeMap<>(FileSystemAdminShellUtils::compareTierNames);
     mSumUsedBytesOnTierMap = new TreeMap<>(FileSystemAdminShellUtils::compareTierNames);
 

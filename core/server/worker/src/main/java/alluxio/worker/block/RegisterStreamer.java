@@ -183,7 +183,10 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
     mUsedBytesOnTiers = usedBytesOnTiers;
 
     mOptions = RegisterWorkerPOptions.newBuilder().addAllConfigs(configList)
-        .setBuildVersion(buildVersion).build();
+        .setBuildVersion(buildVersion)
+        .setNumVCpu(Runtime.getRuntime().availableProcessors())
+        .build();
+
     mLostStorageMap = lostStorage.entrySet().stream()
         .collect(Collectors.toMap(Map.Entry::getKey,
             e -> StorageList.newBuilder().addAllStorage(e.getValue()).build()));
