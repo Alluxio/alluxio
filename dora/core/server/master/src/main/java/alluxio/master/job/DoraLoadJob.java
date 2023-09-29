@@ -144,7 +144,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
    * @param verificationEnabled whether to verify the job after loaded
    * @param loadMetadataOnly    if set to true, only metadata will be loaded without loading
    *                            file data
-   * @param skipIfExists skip if exists
+   * @param skipIfExists        skip if exists
+   * @param replicas            number of replicas
    */
   public DoraLoadJob(
       String path,
@@ -152,7 +153,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       boolean usePartialListing,
       boolean verificationEnabled,
       boolean loadMetadataOnly,
-      boolean skipIfExists) {
+      boolean skipIfExists, int replicas) {
     super(user, jobId, new HashBasedWorkerAssignPolicy());
     mLoadRootAlluxioPath = requireNonNull(path, "path is null");
     mLoadRootAlluxioUri = new AlluxioURI(mLoadRootAlluxioPath);

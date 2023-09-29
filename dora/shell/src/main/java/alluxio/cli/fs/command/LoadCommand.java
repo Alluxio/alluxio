@@ -23,6 +23,7 @@ import alluxio.job.JobDescription;
 import alluxio.job.LoadJobRequest;
 import alluxio.util.FormatUtils;
 
+import com.google.common.base.Preconditions;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.apache.commons.cli.CommandLine;
@@ -116,6 +117,14 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       .desc("If specified, skip files if they exist and are fully cached in alluxio.")
       .build();
 
+    private static final Option REPLICAS_OPTION = Option.builder()
+      .longOpt("skip-if-exists")
+      .required(false)
+      .hasArg(true)
+      .desc("If specified, load number of replicas into Alluxio.")
+      .build();
+
+
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
@@ -142,7 +151,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         .addOption(PROGRESS_FORMAT)
         .addOption(PROGRESS_VERBOSE)
         .addOption(LOAD_METADATA_ONLY)
-        .addOption(SKIP_IF_EXISTS);
+        .addOption(SKIP_IF_EXISTS)
+        .addOption(REPLICAS_OPTION);
   }
 
   @Override
@@ -156,13 +166,18 @@ public final class LoadCommand extends AbstractFileSystemCommand {
 
     if (cl.hasOption(SUBMIT_OPTION.getLongOpt())) {
       OptionalLong bandwidth = OptionalLong.empty();
+      int replicas = 1;
       if (cl.hasOption(BANDWIDTH_OPTION.getLongOpt())) {
         bandwidth = OptionalLong.of(FormatUtils.parseSpaceSize(
             cl.getOptionValue(BANDWIDTH_OPTION.getLongOpt())));
       }
+      if (cl.hasOption(REPLICAS_OPTION.getLongOpt())) {
+        replicas = Integer.parseInt(cl.getOptionValue(REPLICAS_OPTION.getLongOpt()));
+        Preconditions.checkArgument(replicas > 0, "number of replicas must be positive");
+      }
       return submitLoad(
           path,
-          bandwidth,
+          bandwidth, replicas,
           cl.hasOption(PARTIAL_LISTING_OPTION.getLongOpt()),
           cl.hasOption(VERIFY_OPTION.getLongOpt()),
           cl.hasOption(LOAD_METADATA_ONLY.getLongOpt()),
@@ -215,12 +230,12 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     }
   }
 
-  private int submitLoad(AlluxioURI path, OptionalLong bandwidth,
-      boolean usePartialListing, boolean verify, boolean loadMetadataOnly, boolean skipIfExists) {
+  private int submitLoad(AlluxioURI path, OptionalLong bandwidth, int replicas, boolean usePartialListing, boolean verify, boolean loadMetadataOnly, boolean skipIfExists) {
     LoadJobPOptions.Builder options = alluxio.grpc.LoadJobPOptions
         .newBuilder().setPartialListing(usePartialListing).setVerify(verify)
         .setLoadMetadataOnly(loadMetadataOnly)
-        .setSkipIfExists(skipIfExists);
+        .setSkipIfExists(skipIfExists)
+        .setReplicas(replicas);
     if (bandwidth.isPresent()) {
       options.setBandwidth(bandwidth.getAsLong());
     }

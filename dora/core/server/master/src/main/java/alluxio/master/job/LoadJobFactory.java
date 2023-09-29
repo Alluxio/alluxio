@@ -53,8 +53,8 @@ public class LoadJobFactory implements JobFactory {
         partialListing,
         verificationEnabled,
         options.getLoadMetadataOnly(),
-        options.getSkipIfExists()
-    );
+        options.getSkipIfExists(),
+        options.hasReplicas() ? options.getReplicas() : 1);
   }
 }
 

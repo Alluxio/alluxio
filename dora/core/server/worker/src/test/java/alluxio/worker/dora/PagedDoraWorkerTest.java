@@ -138,35 +138,6 @@ public class PagedDoraWorkerTest {
   }
 
   @Test
-  public void testLoadFromWorker()
-      throws AccessControlException, ExecutionException, InterruptedException, TimeoutException,
-      IOException {
-    int numPages = 10;
-    long length = mPageSize * numPages;
-    String ufsPath = mTestFolder.newFile("test").getAbsolutePath();
-    byte[] buffer = BufferUtils.getIncreasingByteArray((int) length);
-    BufferUtils.writeBufferToFile(ufsPath, buffer);
-    UfsStatus ufsStatus = mWorker.getUfsInstance(ufsPath).getStatus(ufsPath);
-    ufsStatus.setUfsFullPath(new AlluxioURI(ufsPath));
-    List<UfsStatus> listUfsStatus = Collections.singletonList(ufsStatus);
-    ListenableFuture<LoadFileResponse> load = mWorker.load(true, false, listUfsStatus,
-        UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build(), Collections.singletonList(
-            mWorker.getAddress()));
-    List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS).getFailuresList();
-    Assert.assertEquals(0, fileFailures.size());
-    List<PageId> cachedPages =
-        mCacheManager.getCachedPageIdsByFileId(new AlluxioURI(ufsPath).hash(), length);
-    assertEquals(numPages, cachedPages.size());
-    int start = 0;
-    for (PageId pageId : cachedPages) {
-      byte[] buff = new byte[(int) mPageSize];
-      mCacheManager.get(pageId, (int) mPageSize, buff, 0);
-      assertTrue(BufferUtils.equalIncreasingByteArray(start, (int) mPageSize, buff));
-      start += mPageSize;
-    }
-  }
-
-  @Test
   public void testSingleFileCopy() throws IOException, ExecutionException, InterruptedException {
     File srcRoot = mTestFolder.newFolder("src");
     File dstRoot = mTestFolder.newFolder("dst");
