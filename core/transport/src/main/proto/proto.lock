@@ -112,6 +112,10 @@
               {
                 "name": "BUILD_VERSION",
                 "integer": 11
+              },
+              {
+                "name": "NUM_VCPU",
+                "integer": 12
               }
             ]
           }
@@ -287,6 +291,11 @@
                 "id": 10,
                 "name": "buildVersion",
                 "type": "BuildVersion"
+              },
+              {
+                "id": 11,
+                "name": "numVCpu",
+                "type": "int32"
               }
             ],
             "maps": [
@@ -733,6 +742,11 @@
                 "id": 2,
                 "name": "buildVersion",
                 "type": "BuildVersion"
+              },
+              {
+                "id": 3,
+                "name": "numVCpu",
+                "type": "int32"
               }
             ]
           },
@@ -6315,6 +6329,16 @@
                 "id": 4,
                 "name": "pathConfigHash",
                 "type": "string"
+              },
+              {
+                "id": 5,
+                "name": "clusterConfigLastUpdateTime",
+                "type": "int64"
+              },
+              {
+                "id": 6,
+                "name": "pathConfigLastUpdateTime",
+                "type": "int64"
               }
             ],
             "maps": [

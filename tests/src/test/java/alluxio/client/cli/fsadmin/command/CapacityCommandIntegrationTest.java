@@ -29,20 +29,21 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
     String output = mOutput.toString();
     String size = FormatUtils.getSizeFromBytes(SIZE_BYTES);
     String[] lines = output.split("\n");
-    Assert.assertEquals(11, lines.length);
+    Assert.assertEquals(12, lines.length);
     Assert.assertEquals("Capacity information for all workers: ", lines[0]);
-    Assert.assertEquals("    Total Capacity: " + size, lines[1]);
-    Assert.assertEquals("        Tier: MEM  Size: " + size, lines[2]);
-    Assert.assertEquals("    Used Capacity: 0B", lines[3]);
-    Assert.assertEquals("        Tier: MEM  Size: 0B", lines[4]);
-    Assert.assertEquals("    Used Percentage: 0%", lines[5]);
-    Assert.assertEquals("    Free Percentage: 100%", lines[6]);
-    Assert.assertEquals("", lines[7]);
-    Assert.assertTrue(lines[8].matches(
+    Assert.assertTrue(lines[1].startsWith("    Total vCPUs:")); // value depends on environment
+    Assert.assertEquals("    Total Capacity: " + size, lines[2]);
+    Assert.assertEquals("        Tier: MEM  Size: " + size, lines[3]);
+    Assert.assertEquals("    Used Capacity: 0B", lines[4]);
+    Assert.assertEquals("        Tier: MEM  Size: 0B", lines[5]);
+    Assert.assertEquals("    Used Percentage: 0%", lines[6]);
+    Assert.assertEquals("    Free Percentage: 100%", lines[7]);
+    Assert.assertEquals("", lines[8]);
+    Assert.assertTrue(lines[9].matches(
         "Worker Name {6,}State {11,}Last Heartbeat {3}Storage {7}MEM {14}Version {10}Revision *"));
-    Assert.assertTrue(lines[9].contains("ACTIVE"));
-    Assert.assertTrue(lines[9].contains("capacity      " + size));
-    Assert.assertTrue(lines[10].contains("used          0B (0%)"));
+    Assert.assertTrue(lines[10].contains("ACTIVE"));
+    Assert.assertTrue(lines[10].contains("capacity      " + size));
+    Assert.assertTrue(lines[11].contains("used          0B (0%)"));
   }
 
   @Test
@@ -59,20 +60,21 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
     String output = mOutput.toString();
     String size = FormatUtils.getSizeFromBytes(SIZE_BYTES);
     String[] lines = output.split("\n");
-    Assert.assertEquals(11, lines.length);
+    Assert.assertEquals(12, lines.length);
     Assert.assertEquals("Capacity information for live workers: ", lines[0]);
-    Assert.assertEquals("    Total Capacity: " + size, lines[1]);
-    Assert.assertEquals("        Tier: MEM  Size: " + size, lines[2]);
-    Assert.assertEquals("    Used Capacity: 0B", lines[3]);
-    Assert.assertEquals("        Tier: MEM  Size: 0B", lines[4]);
-    Assert.assertEquals("    Used Percentage: 0%", lines[5]);
-    Assert.assertEquals("    Free Percentage: 100%", lines[6]);
-    Assert.assertEquals("", lines[7]);
-    Assert.assertTrue(lines[8].matches(
+    Assert.assertTrue(lines[1].startsWith("    Total vCPUs:")); // value depends on environment
+    Assert.assertEquals("    Total Capacity: " + size, lines[2]);
+    Assert.assertEquals("        Tier: MEM  Size: " + size, lines[3]);
+    Assert.assertEquals("    Used Capacity: 0B", lines[4]);
+    Assert.assertEquals("        Tier: MEM  Size: 0B", lines[5]);
+    Assert.assertEquals("    Used Percentage: 0%", lines[6]);
+    Assert.assertEquals("    Free Percentage: 100%", lines[7]);
+    Assert.assertEquals("", lines[8]);
+    Assert.assertTrue(lines[9].matches(
         "Worker Name {6,}State {11,}Last Heartbeat {3}Storage {7}MEM {14}Version {10}Revision *"));
-    Assert.assertTrue(lines[9].contains("ACTIVE"));
-    Assert.assertTrue(lines[9].contains("capacity      " + size));
-    Assert.assertTrue(lines[10].contains("used          0B (0%)"));
+    Assert.assertTrue(lines[10].contains("ACTIVE"));
+    Assert.assertTrue(lines[10].contains("capacity      " + size));
+    Assert.assertTrue(lines[11].contains("used          0B (0%)"));
   }
 
   @Test

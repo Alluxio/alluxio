@@ -310,7 +310,9 @@ public class BlockMasterClient extends AbstractMasterClient {
 
     final RegisterWorkerPOptions options =
         RegisterWorkerPOptions.newBuilder().addAllConfigs(configList)
-            .setBuildVersion(buildVersion).build();
+            .setBuildVersion(buildVersion)
+            .setNumVCpu(Runtime.getRuntime().availableProcessors())
+            .build();
 
     final List<LocationBlockIdListEntry> currentBlocks
         = convertBlockListMapToProto(currentBlocksOnLocation);
@@ -324,7 +326,8 @@ public class BlockMasterClient extends AbstractMasterClient {
         .putAllUsedBytesOnTiers(usedBytesOnTiers)
         .addAllCurrentBlocks(currentBlocks)
         .putAllLostStorage(lostStorageMap)
-        .setOptions(options).build();
+        .setOptions(options)
+        .build();
 
     retryRPC(() -> {
       mClient.registerWorker(request);
