@@ -15,9 +15,9 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
-import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.slf4j.Logger;
@@ -34,19 +34,21 @@ import java.util.List;
 public class K8sMembershipManager implements MembershipManager {
   private static final Logger LOG = LoggerFactory.getLogger(K8sMembershipManager.class);
   private String mClusterName;
-  private final KubernetesClient k8sClient = new KubernetesClientBuilder().build();
+  private final KubernetesClient mK8sClient = new KubernetesClientBuilder().build();
 
   /**
    * Create a K8sMembershipManager instance.
    * @param conf
-   * @return
+   * @return k8s membership manager
    */
   public static K8sMembershipManager create(AlluxioConfiguration conf) {
     LOG.info("create k8s membership manager");
     return new K8sMembershipManager(conf);
   }
+
   /**
    * Constructor for K8sMembershipManager.
+   * @param conf
    */
   public K8sMembershipManager(AlluxioConfiguration conf) {
     mClusterName = conf.getString(PropertyKey.ALLUXIO_CLUSTER_NAME);
@@ -56,7 +58,8 @@ public class K8sMembershipManager implements MembershipManager {
   public void join(WorkerInfo worker) throws IOException {
     for (Pod workerPod: getAllWorkerPodsInCluster()) {
       if (workerPod.getStatus().getPodIP().equals(worker.getAddress().getHost())) {
-        k8sClient.pods().inNamespace(k8sClient.getNamespace()).withName(workerPod.getMetadata().getName())
+        mK8sClient.pods()
+            .inNamespace(mK8sClient.getNamespace()).withName(workerPod.getMetadata().getName())
             .edit(p -> new PodBuilder(p)
             .editMetadata()
             .addToAnnotations("worker-id", String.valueOf(worker.getId()))
@@ -79,8 +82,9 @@ public class K8sMembershipManager implements MembershipManager {
   public List<WorkerInfo> getLiveMembers() throws IOException {
     List<WorkerInfo> liveWorkerInfoList = new ArrayList<>();
     for (Pod workerPod: getAllWorkerPodsInCluster()) {
-      if (workerPod.getStatus().getContainerStatuses().get(0).getReady()){
-        liveWorkerInfoList.add(new WorkerInfo().setAddress(createWorkerNetAddressFromPod(workerPod)));
+      if (workerPod.getStatus().getContainerStatuses().get(0).getReady()) {
+        liveWorkerInfoList.add(
+            new WorkerInfo().setAddress(createWorkerNetAddressFromPod(workerPod)));
       }
     }
     return liveWorkerInfoList;
@@ -90,8 +94,9 @@ public class K8sMembershipManager implements MembershipManager {
   public List<WorkerInfo> getFailedMembers() throws IOException {
     List<WorkerInfo> failedWorkerInfoList = new ArrayList<>();
     for (Pod workerPod: getAllWorkerPodsInCluster()) {
-      if (!workerPod.getStatus().getContainerStatuses().get(0).getReady()){
-        failedWorkerInfoList.add(new WorkerInfo().setAddress(createWorkerNetAddressFromPod(workerPod)));
+      if (!workerPod.getStatus().getContainerStatuses().get(0).getReady()) {
+        failedWorkerInfoList.add(
+            new WorkerInfo().setAddress(createWorkerNetAddressFromPod(workerPod)));
       }
     }
     return failedWorkerInfoList;
@@ -117,9 +122,9 @@ public class K8sMembershipManager implements MembershipManager {
     // Nothing to close
   }
 
-  private List<Pod> getAllWorkerPodsInCluster(){
-    return k8sClient.pods()
-        .inNamespace(k8sClient.getNamespace())
+  private List<Pod> getAllWorkerPodsInCluster() {
+    return mK8sClient.pods()
+        .inNamespace(mK8sClient.getNamespace())
         .withLabel("release", mClusterName)
         .withLabel("role", "alluxio-worker")
         .list()
@@ -130,7 +135,8 @@ public class K8sMembershipManager implements MembershipManager {
     return new WorkerNetAddress()
       .setHost(workerPod.getStatus().getHostIP())
       .setDataPort(workerPod.getSpec().getContainers().get(0).getPorts().get(0).getContainerPort())
-      .setNettyDataPort(workerPod.getSpec().getContainers().get(0).getPorts().get(0).getContainerPort())
+      .setNettyDataPort(
+          workerPod.getSpec().getContainers().get(0).getPorts().get(0).getContainerPort())
       .setRpcPort(workerPod.getSpec().getContainers().get(0).getPorts().get(1).getContainerPort())
       .setWebPort(workerPod.getSpec().getContainers().get(0).getPorts().get(2).getContainerPort());
   }
