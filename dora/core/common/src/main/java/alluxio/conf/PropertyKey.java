@@ -6815,6 +6815,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "etcd cluster (e.g. http://localhost:2379,http://etcd1:2379)")
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey ETCD_USERNAME =
+      stringBuilder(Name.ETCD_USERNAME)
+          .setDescription("Username for communication with Etcd."
+              + "Make sure the given user has the full readwrite"
+              + " role permission on all keys with prefix '/'. "
+              + "Refer to etcd official site for Authentication section.")
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey ETCD_PASSWORD =
+      stringBuilder(Name.ETCD_PASSWORD)
+          .setDescription("User password for communication with Etcd.")
+          .setScope(Scope.ALL)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
 
   //
   // JVM Monitor related properties
@@ -8499,6 +8513,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     // Membership related properties
     public static final String ALLUXIO_CLUSTER_NAME = "alluxio.cluster.name";
     public static final String ETCD_ENDPOINTS = "alluxio.etcd.endpoints";
+    public static final String ETCD_USERNAME = "alluxio.etcd.username";
+    public static final String ETCD_PASSWORD = "alluxio.etcd.password";
 
     //
     // JVM Monitor related properties
