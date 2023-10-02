@@ -6807,6 +6807,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       stringBuilder(Name.ETCD_PASSWORD)
           .setDescription("User password for communication with Etcd.")
           .setScope(Scope.ALL)
+          .setDisplayType(DisplayType.CREDENTIALS)
           .build();
 
   //
