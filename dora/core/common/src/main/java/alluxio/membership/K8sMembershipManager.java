@@ -29,6 +29,7 @@ import java.util.List;
 
 /**
  * MembershipManager backed by K8s native etcd cluster.
+ * Only supports client and Alluxio are in the same k8s namespace.
  */
 public class K8sMembershipManager implements MembershipManager {
   private static final Logger LOG = LoggerFactory.getLogger(K8sMembershipManager.class);
@@ -55,7 +56,7 @@ public class K8sMembershipManager implements MembershipManager {
   public void join(WorkerInfo worker) throws IOException {
     for (Pod workerPod: getAllWorkerPodsInCluster()) {
       if (workerPod.getStatus().getPodIP().equals(worker.getAddress().getHost())) {
-        k8sClient.pods().inNamespace("default").withName(workerPod.getMetadata().getName())
+        k8sClient.pods().inNamespace(k8sClient.getNamespace()).withName(workerPod.getMetadata().getName())
             .edit(p -> new PodBuilder(p)
             .editMetadata()
             .addToAnnotations("worker-id", String.valueOf(worker.getId()))
@@ -98,8 +99,7 @@ public class K8sMembershipManager implements MembershipManager {
 
   @Override
   public String showAllMembers() {
-    return "Please run `kubectl get pods -o wide` on K8s control plane "
-        + "to see complete worker pod status.";
+    return "It is recommended to run `kubectl get pods -o wide` to get pods status";
   }
 
   @Override
