@@ -78,7 +78,9 @@ public class ConsistentHashPolicyTest {
     List<BlockWorkerInfo> assignedWorkers = policy.getPreferredWorkers(workers, "hdfs://a/b/c", 2);
     assertEquals(2, assignedWorkers.size());
     assertTrue(assignedWorkers.stream().allMatch(w -> contains(workers, w)));
-
+    // The order of the workers should be consistent
+    assertEquals(assignedWorkers.get(0).getNetAddress().getHost(), workerAddr2.getHost());
+    assertEquals(assignedWorkers.get(1).getNetAddress().getHost(), workerAddr1.getHost());
     assertThrows(ResourceExhaustedException.class, () -> {
       // Getting 2 out of 1 worker will result in an error
       policy.getPreferredWorkers(ImmutableList.of(new BlockWorkerInfo(workerAddr1, 1024, 0)),
