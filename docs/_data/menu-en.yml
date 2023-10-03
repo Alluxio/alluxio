@@ -154,7 +154,7 @@
     - title: Glossary
       url: /en/reference/Glossary.html
     - title: Membership Management
-      url: en/reference/Alluxio-Membership-Management.html
+      url: /en/operation/Alluxio-Membership-Management.html
     - title: List of Configuration Properties
       url: /en/reference/Properties-List.html
     - title: List of Environment Variables

@@ -82,7 +82,7 @@ imageTag: <tag>
 dataset:
   path: <ufs path>
   credentials: # s3 as example. Leave it empty if not needed. 
-    aws.accessKeyId:xxxxxxxxxx
+    aws.accessKeyId: xxxxxxxxxx
     aws.secretKey: xxxxxxxxxxxxxxx
   etcd:
     enabled: true
