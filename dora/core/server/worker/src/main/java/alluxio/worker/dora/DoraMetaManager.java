@@ -40,7 +40,9 @@ import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The Dora metadata manager that orchestrates the metadata operations.
@@ -240,8 +242,10 @@ public class DoraMetaManager implements Closeable {
       return listFromUfs(path, isRecursive);
     }
     try {
+      AtomicBoolean newCache = new AtomicBoolean(false);
       ListStatusResult cached = mListStatusCache.get(path, (k) -> {
         try {
+          newCache.set(true);
           Optional<UfsStatus[]> listResults = listFromUfs(path, false);
           return listResults.map(
                   ufsStatuses -> new ListStatusResult(
@@ -258,6 +262,17 @@ public class DoraMetaManager implements Closeable {
       if (cached == null) {
         return Optional.empty();
       } else {
+        AlluxioURI pathUri = new AlluxioURI(path);
+        if (newCache.get() && !path.endsWith(AlluxioURI.SEPARATOR)) {
+          String parent = getPathParent(path);
+          ListStatusResult cachedParent = mListStatusCache.getIfPresent(parent);
+          if ((cachedParent != null) && (Arrays.stream(cachedParent.mUfsStatuses).noneMatch(
+              ufsStatus -> ufsStatus.getName().equals(pathUri.getName())))) {
+            // The path is not in the cache of its parent, so invalidate the cache of its parent
+            LOG.debug("Invalidate the cache of '{}' because it does not have '{}'", parent, path);
+            mListStatusCache.invalidate(parent);
+          }
+        }
         return Optional.ofNullable(cached.mUfsStatuses);
       }
     } catch (RuntimeException e) {
