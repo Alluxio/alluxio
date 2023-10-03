@@ -100,12 +100,12 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
     final String[] argsArray = args.toArray(new String[0]);
     try {
-      if (SecurityUtils.canHandleShutdownHooks()) {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-          LOG.info("Unmounting Fuse through shutdown hook");
-          umount(true);
-        }));
-      }
+//      if (SecurityUtils.canHandleShutdownHooks()) {
+//        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+//          LOG.info("Unmounting Fuse through shutdown hook");
+//          umount(true);
+//        }));
+//      }
       int res;
       if (blocking) {
         res = execMount(argsArray);
@@ -158,13 +158,13 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     if (!mMounted.get()) {
       return;
     }
-    LOG.info("Umounting {}", mMountPoint);
-    try {
-      umountInternal();
-    } catch (FuseException e) {
-      LOG.error("Failed to umount {}", mMountPoint, e);
-      throw e;
-    }
+    LOG.info("Umounting {} [no umountInternal]", mMountPoint);
+//    try {
+//      umountInternal();
+//    } catch (FuseException e) {
+//      LOG.error("Failed to umount {}", mMountPoint, e);
+//      throw e;
+//    }
     mMounted.set(false);
   }
 

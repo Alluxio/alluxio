@@ -648,7 +648,7 @@ public final class AlluxioFuseUtils {
     int ret;
     try {
       String debugDesc = logger.isDebugEnabled() ? String.format(description, args) : null;
-      logger.debug("Enter: {}({})", methodName, debugDesc);
+      logger.info("Enter: {}({})", methodName, debugDesc);
       long startMs = System.currentTimeMillis();
       ret = callable.call();
       long durationMs = System.currentTimeMillis() - startMs;

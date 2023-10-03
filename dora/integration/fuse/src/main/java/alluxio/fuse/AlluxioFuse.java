@@ -107,8 +107,9 @@ public class AlluxioFuse {
           new FuseUpdateChecker(fuseOptions), () -> new FixedIntervalSupplier(Constants.DAY_MS),
           Configuration.global(), UserState.Factory.create(conf)));
     }
+    AlluxioJniFuseFileSystem fuseFileSystem = null;
     try (FileSystem fs = createBaseFileSystem(fsContext, fuseOptions)) {
-      AlluxioJniFuseFileSystem fuseFileSystem = createFuseFileSystem(fsContext, fs, fuseOptions);
+      fuseFileSystem = createFuseFileSystem(fsContext, fs, fuseOptions);
       setupFuseFileSystem(fuseFileSystem);
       launchFuse(fuseFileSystem, fsContext, fuseOptions, true); // This will block until umount
     } catch (Throwable t) {
@@ -116,6 +117,9 @@ public class AlluxioFuse {
       LOG.error("Failed to launch FUSE", t);
       System.exit(-1);
     } finally {
+      if (fuseFileSystem != null) {
+        fuseFileSystem.umount(true);
+      }
       if (executor != null) {
         executor.shutdown();
         try {
