@@ -22,12 +22,13 @@ import sun.misc.SignalHandler;
  *
  * Fuse will have its own signal handler installed as part of fuse_main_real
  * with fuse_set_signal_handlers for SIGHUP/SIGINT/SIGTERM, but it will not replace
- * any existing signal handlers installed up front, in this case, JVM.
- * But after disabling JVM's signal handlers by flag -Xrs, fuse acts differently
- * on receiving these signals on different platform(Linux/MacOs).
- * Therefore we would rely on user issuing 'umount' or 'fusermount' to instruct fuse
- * to stop serving, but when fuse refuses to respond, with this SignalHandler we
- * accept SIGINT/SIGTERM to clean up ourselves.
+ * any existing signal handlers installed up front. Since jvm always install
+ * signal handlers therefore libfuse is never able to do so.
+ * But disabling JVM's signal handlers by flag -Xrs, fuse acts differently
+ * on receiving these signals on different platform(MacOs can receive/Linux can't)
+ * Therefore we always let 'umount' or 'fusermount' to instruct libfuse
+ * to stop serving, only when it won't respond, we rely on this SignalHandler to
+ * act on these signals to shutdown ourselves.
  */
 public class FuseSignalHandler implements SignalHandler {
   private static final Logger LOG = LoggerFactory.getLogger(FuseSignalHandler.class);
@@ -50,9 +51,10 @@ public class FuseSignalHandler implements SignalHandler {
     LOG.info("Receive signal name {}, number {}, system exiting",
         signal.getName(), signal.getNumber());
     int number = signal.getNumber();
-    if (number == 15 || number == 2) {
+    // SIGTERM - 15 SIGINT - 2 SIGHUP - 1
+    if (number == 15 || number == 2 || number == 1) {
       try {
-        mFuseUmountable.umount(false);
+        mFuseUmountable.destroy();
       } catch (Throwable t) {
         LOG.error("Unable to umount fuse. exiting anyways...", t);
       }
