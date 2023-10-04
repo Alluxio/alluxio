@@ -45,7 +45,7 @@ SRC_DIR ?= ../../src/main/native/libjnifuse
 FUSE2_OBJS= $(addprefix $(OUTPUT_DIR)/, $(patsubst %.cc,%.fuse2.o,$(notdir $(wildcard $(SRC_DIR)/*.cc))))
 FUSE3_OBJS= $(addprefix $(OUTPUT_DIR)/, $(patsubst %.cc,%.fuse3.o,$(notdir $(wildcard $(SRC_DIR)/*.cc))))
 
-all: ${FUSE2_TARGET_LIB} #${FUSE3_TARGET_LIB}
+all: ${FUSE2_TARGET_LIB} ${FUSE3_TARGET_LIB}
 
 ${OUTPUT_DIR}/%.fuse2.o: ${SRC_DIR}/%.cc
 	${CXX} ${FUSE2_CXXFLAGS} -o $@ -c $<

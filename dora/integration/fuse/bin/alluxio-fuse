@@ -344,10 +344,10 @@ unmount_command() {
   fi
 
   case "$OSTYPE" in
-    darwin*)  umount -f ${mount_point} ;; 
-    linux*)   ;&
-    bsd*)     fusermount -u -z ${mount_point} ;;
-    msys*)    echo "Unable to umount FS in a windows system.";  ;;
+    darwin*)  umount -f "${mount_point}" ;;
+    linux*)   fusermount -u -z "${mount_point}" ;;
+    bsd*)     fusermount -u -z "${mount_point}" ;;
+    msys*)    echo "Unable to umount FS in a windows system."  ;;
     cygwin*)  echo "Unable to umount FS in a windows system." ;;
     *)        echo "Unknown: $OSTYPE" ;;
   esac 

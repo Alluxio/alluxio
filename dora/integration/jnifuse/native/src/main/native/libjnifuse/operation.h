@@ -170,6 +170,12 @@ class UtimensOperation : public Operation {
   int call(const char *path, const struct timespec ts[2]);
 };
 
+class DestroyOperation : public Operation {
+ public:
+  DestroyOperation(JniFuseFileSystem *fs);
+  void call();
+};
+
 }  // namespace jnifuse
 
 #endif  // FUSE_NATIVE_LIBJNIFUSE_OPERATION_H_

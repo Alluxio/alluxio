@@ -166,6 +166,13 @@ public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   }
 
   @Override
+  public void destroy() {
+    AlluxioFuseUtils.call(LOG,
+        () -> { umount(true); return 0; } ,
+        "Fuse.Destroy", "fuse_destroy file system");
+  }
+
+  @Override
   public int open(String path, FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG,
         () -> createOrOpenInternal(path, fi, AlluxioFuseUtils.MODE_NOT_SET_VALUE),

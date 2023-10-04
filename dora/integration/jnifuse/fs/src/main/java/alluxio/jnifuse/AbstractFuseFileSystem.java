@@ -211,6 +211,10 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
   }
 
+  public void destroyCallback() {
+    destroy();
+  }
+
   public int openCallback(String path, ByteBuffer buf) {
     try {
       return open(path, FuseFileInfo.of(buf));

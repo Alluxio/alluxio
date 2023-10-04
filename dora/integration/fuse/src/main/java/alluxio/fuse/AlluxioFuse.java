@@ -110,12 +110,10 @@ public class AlluxioFuse {
     try (FileSystem fs = createBaseFileSystem(fsContext, fuseOptions)) {
       AlluxioJniFuseFileSystem fuseFileSystem = createFuseFileSystem(fsContext, fs, fuseOptions);
       setupFuseFileSystem(fuseFileSystem);
-      launchFuse(fuseFileSystem, fsContext, fuseOptions, true); // This will block until umount
-      fuseFileSystem.umount(true);
+      // This will block on serving until fuse gets destroyed
+      launchFuse(fuseFileSystem, fsContext, fuseOptions, true);
     } catch (Throwable t) {
-      // TODO(lu) FUSE unmount gracefully
       LOG.error("Failed to launch FUSE", t);
-      System.exit(-1);
     } finally {
       if (executor != null) {
         executor.shutdown();
