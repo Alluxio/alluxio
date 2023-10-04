@@ -42,6 +42,7 @@ import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.namespace.MountTableManager;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.io.PathUtils;
@@ -78,9 +79,6 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public static final int DUMMY_MOUNT_ID = 0;
   private static final Counter UFS_FALLBACK_COUNTER = MetricsSystem.counter(
       MetricKey.CLIENT_UFS_FALLBACK_COUNT.getName());
-
-  public static DoraCacheFileSystemFactory sDoraCacheFileSystemFactory
-      = new DoraCacheFileSystemFactory();
   private final DoraCacheClient mDoraClient;
   protected final FileSystemContext mFsContext;
   private final boolean mMetadataCacheEnabled;
@@ -90,37 +88,17 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   private final boolean mClientWriteToUFSEnabled;
 
   /**
-   * DoraCacheFileSystem Factory.
-   */
-  public static class DoraCacheFileSystemFactory {
-    /**
-     * Constructor.
-     */
-    public DoraCacheFileSystemFactory() {
-    }
-
-    /**
-     * @param fs      the filesystem
-     * @param context the context
-     * @return a DoraCacheFileSystem instance
-     */
-    public DoraCacheFileSystem createAnInstance(FileSystem fs, FileSystemContext context) {
-      return new DoraCacheFileSystem(fs, context);
-    }
-  }
-
-  /**
    * Wraps a file system instance to forward messages.
    *
    * @param fs      the underlying file system
    * @param context
+   * @param doraCacheClient
+   * @param mountTableManager
    */
-  public DoraCacheFileSystem(FileSystem fs, FileSystemContext context) {
-    this(fs, context, new DoraCacheClient(context));
-  }
-
-  protected DoraCacheFileSystem(FileSystem fs, FileSystemContext context,
-                                DoraCacheClient doraCacheClient) {
+  public DoraCacheFileSystem(FileSystem fs,
+      FileSystemContext context,
+      DoraCacheClient doraCacheClient,
+      Optional<MountTableManager> mountTableManager) {
     super(fs);
     mDoraClient = doraCacheClient;
     mFsContext = context;
