@@ -343,10 +343,20 @@ unmount_command() {
     return $?
   fi
 
-  kill "${fuse_pid}"
+  case "$OSTYPE" in
+    darwin*)  umount -f ${mount_point} ;; 
+    linux*)   ;&
+    bsd*)     fusermount -u -z ${mount_point} ;;
+    msys*)    echo "Unable to umount FS in a windows system.";  ;;
+    cygwin*)  echo "Unable to umount FS in a windows system." ;;
+    *)        echo "Unknown: $OSTYPE" ;;
+  esac 
+  #kill "${fuse_pid}"
   wait_for_fuse_process_killed "${fuse_pid}"
   if fuse_mounted "${mount_point}"; then
-    err "Failed to umount fuse mount point ${mount_point}"
+    err "Failed to umount fuse mount point ${mount_point}, try sending SIGTERM..."
+    kill "${fuse_pid}"
+    wait_for_fuse_process_killed "${fuse_pid}"
     return 1
   else
     return 0

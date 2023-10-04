@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <signal.h>
 
 #include "debug.h"
 #include "jnifuse_fs.h"
@@ -27,11 +26,6 @@ extern "C" {
 #endif
 
 static struct fuse_operations jnifuse_oper;
-
-static void lucy_exit_handler(int sig)
-{
-        LOGI("LUCY EXIT HANDLER!!!");
-}
 
 JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
     JNIEnv *env, jobject libfuseobj, jobject obj, jint jargc,
@@ -76,31 +70,6 @@ JNIEXPORT jint JNICALL Java_alluxio_jnifuse_LibFuse_fuse_1main_1real(
  // libfuse3: conn_info_opts can no longer be passed into fuse_main directly
  // for details, search for "The treatment of low-level options has been made more consistent" in 
  // https://github.com/libfuse/libfuse/blob/master/ChangeLog.rst#libfuse-300-2016-12-08
-
- // lucy
- int sigs[4] = {SIGHUP, SIGINT, SIGTERM, SIGPIPE};
- for (int sig : sigs) {
-   LOGI("LUCY debugging starts...");
-   struct sigaction old_sa;
-   if (sigaction(sig, NULL, &old_sa) == -1) {
-     LOGI("LUCY:sig:%d, unable to get old sigaction", sig);
-   }
-   if (old_sa.sa_handler != SIG_DFL) {
-     LOGI("sig:%d old_sa.sa_handler found.", sig);
-   }
-   LOGI("sig:%d,LUCY Installing dummy sig handler...", sig);
-   struct sigaction sa;
-   memset(&sa, 0, sizeof(struct sigaction));
-//   sa.sa_handler = lucy_exit_handler;
-   LOGI("sig:%d,LUCY Installing SIG_DFL as sig handler...", sig);
-   sa.sa_handler = SIG_DFL;
-   sigemptyset(&(sa.sa_mask));
-   sa.sa_flags = 0;
-   if (sigaction(sig, &sa, NULL) == -1) {
-     LOGI("LUCY can't install dummy sig handler for sig:%d...", sig);
-   }
-  }
-   // lucy
 #if FUSE_USE_VERSION >= 30
   jnifuse_oper.init = init_wrapper;
   struct fuse_args args = FUSE_ARGS_INIT(argc, argv);

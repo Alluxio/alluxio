@@ -19,6 +19,15 @@ import sun.misc.SignalHandler;
 /**
  * Respond to the kill command when in mount fuse JVM.
  * If it does not respond, the subsequent shutdown hook will not be triggered.
+ *
+ * Fuse will have its own signal handler installed as part of fuse_main_real
+ * with fuse_set_signal_handlers for SIGHUP/SIGINT/SIGTERM, but it will not replace
+ * any existing signal handlers installed up front, in this case, JVM.
+ * But after disabling JVM's signal handlers by flag -Xrs, fuse acts differently
+ * on receiving these signals on different platform(Linux/MacOs).
+ * Therefore we would rely on user issuing 'umount' or 'fusermount' to instruct fuse
+ * to stop serving, but when fuse refuses to respond, with this SignalHandler we
+ * accept SIGINT/SIGTERM to clean up ourselves.
  */
 public class FuseSignalHandler implements SignalHandler {
   private static final Logger LOG = LoggerFactory.getLogger(FuseSignalHandler.class);
@@ -45,8 +54,7 @@ public class FuseSignalHandler implements SignalHandler {
       try {
         mFuseUmountable.umount(false);
       } catch (Throwable t) {
-        LOG.error("unable to umount fuse.", t);
-        return;
+        LOG.error("Unable to umount fuse. exiting anyways...", t);
       }
     }
     System.exit(0);

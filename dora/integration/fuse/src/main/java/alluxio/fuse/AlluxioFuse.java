@@ -107,19 +107,16 @@ public class AlluxioFuse {
           new FuseUpdateChecker(fuseOptions), () -> new FixedIntervalSupplier(Constants.DAY_MS),
           Configuration.global(), UserState.Factory.create(conf)));
     }
-    AlluxioJniFuseFileSystem fuseFileSystem = null;
     try (FileSystem fs = createBaseFileSystem(fsContext, fuseOptions)) {
-      fuseFileSystem = createFuseFileSystem(fsContext, fs, fuseOptions);
+      AlluxioJniFuseFileSystem fuseFileSystem = createFuseFileSystem(fsContext, fs, fuseOptions);
       setupFuseFileSystem(fuseFileSystem);
       launchFuse(fuseFileSystem, fsContext, fuseOptions, true); // This will block until umount
+      fuseFileSystem.umount(true);
     } catch (Throwable t) {
       // TODO(lu) FUSE unmount gracefully
       LOG.error("Failed to launch FUSE", t);
       System.exit(-1);
     } finally {
-      if (fuseFileSystem != null) {
-        fuseFileSystem.umount(true);
-      }
       if (executor != null) {
         executor.shutdown();
         try {
@@ -161,7 +158,6 @@ public class AlluxioFuse {
       }
 
       startCommon(conf, fuseOptions, fsContext); // This will be blocked until quitting
-
       stopCommon();
       // Explicitly exit() so non daemon threads will be terminated
       System.exit(0);
@@ -280,6 +276,8 @@ public class AlluxioFuse {
 
     String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
     final boolean debugEnabled = conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
+    LOG.info("Installing signal handler for SIGTERM and SIGINT to handle "
+        + "possible irresponsive umount/fusermount");
     FuseSignalHandler fuseSignalHandler = new FuseSignalHandler(fuseFs);
     Signal.handle(new Signal("TERM"), fuseSignalHandler);
     Signal.handle(new Signal("INT"), fuseSignalHandler);
