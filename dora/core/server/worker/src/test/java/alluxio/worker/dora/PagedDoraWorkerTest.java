@@ -36,7 +36,6 @@ import alluxio.grpc.FileInfo;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadFileFailure;
 import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
@@ -144,12 +143,11 @@ public class PagedDoraWorkerTest {
     Block block =
         Block.newBuilder().setOffsetInFile(mPageSize).setLength(mPageSize * numCachedPages)
              .setUfsPath(ufsPath).setUfsStatus(ufsStatus.toProto()).build();
-    ListenableFuture<List<LoadFileFailure>> load =
+    ListenableFuture<LoadFileResponse> load =
         mWorker.load(Collections.emptyList(), Collections.singletonList(block), false,
             UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false)
                           .build());
-    List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS);
-    Assert.assertEquals(0, fileFailures.size());
+    load.get(30, TimeUnit.SECONDS);
     List<PageId> cachedPages =
         mCacheManager.getCachedPageIdsByFileId(new AlluxioURI(ufsPath).hash(), length);
     assertEquals(numCachedPages, cachedPages.size());
@@ -172,12 +170,11 @@ public class PagedDoraWorkerTest {
     BufferUtils.writeBufferToFile(ufsPath, buffer);
     UfsStatus ufsStatus = mWorker.getUfsInstance(ufsPath).getStatus(ufsPath);
     ufsStatus.setUfsFullPath(new AlluxioURI(ufsPath));
-    ListenableFuture<List<LoadFileFailure>> load =
-        mWorker.load(Collections.singletonList(ufsStatus), Collections.emptyList(),
+    ListenableFuture<LoadFileResponse> load =
+        mWorker.load(Collections.singletonList(ufsStatus), Collections.emptyList(), false,
             UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false)
                           .build());
-    List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS);
-    Assert.assertEquals(0, fileFailures.size());
+    load.get(30, TimeUnit.SECONDS);
     List<PageId> cachedPages =
         mCacheManager.getCachedPageIdsByFileId(new AlluxioURI(ufsPath).hash(), length);
     assertEquals(0, cachedPages.size());
@@ -822,13 +819,12 @@ public class PagedDoraWorkerTest {
     Block block = Block.newBuilder().setLength(ufsStatus.asUfsFileStatus().getContentLength())
                        .setOffsetInFile(0).setUfsPath(ufsStatus.getUfsFullPath().toString())
                        .setUfsStatus(ufsStatus.toProto()).build();
-    ListenableFuture<List<LoadFileResponse>> load =
+    ListenableFuture<LoadFileResponse> load =
         mWorker.load(Collections.singletonList(ufsStatus), Collections.singletonList(block), false,
             UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false)
                           .build());
-    List<LoadFileResponse> fileFailures = load.get(30, TimeUnit.SECONDS);
-
-    assertEquals(0, fileFailures.size());
+    LoadFileResponse response = load.get(30, TimeUnit.SECONDS);
+    assertEquals(0, response.getFailuresCount());
   }
 
   private void createDummyFile(File testFile, int length) throws Exception {

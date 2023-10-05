@@ -512,8 +512,8 @@ public final class SchedulerTest {
       UnderFileSystem ufs = mock(UnderFileSystem.class);
       UfsStatusIterable files = new UfsStatusIterable(ufs, "path", user, Predicates.alwaysTrue());
       assertTrue(scheduler.submitJob(
-          new DoraLoadJob(path, Optional.of("user"), "1", OptionalLong.empty(), false, true, false, false,
-              files, ufs)));
+          new DoraLoadJob(path, Optional.of("user"), "1", OptionalLong.empty(), false, true, false,
+              false, files, ufs)));
     });
     assertEquals(5, scheduler.getJobs().size());
     scheduler.getJobs().get(JobDescription.newBuilder().setPath("/load/1").setType("load").build())

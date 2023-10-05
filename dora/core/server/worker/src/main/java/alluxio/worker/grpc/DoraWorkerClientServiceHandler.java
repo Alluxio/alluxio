@@ -133,9 +133,9 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       List<UfsStatus> ufsStatuses = request.getUfsStatusList().stream().map(UfsStatus::fromProto)
                                        .collect(Collectors.toList());
       List<Block> blocks = request.getBlocksList();
-      ListenableFuture<List<LoadFileResponse>> failures =
+      ListenableFuture<LoadFileResponse> response =
           mWorker.load(ufsStatuses, blocks, request.getSkipIfExists(), request.getOptions());
-      ListenableFuture<LoadFileResponse> future = Futures.transform(failures, fail -> {
+      ListenableFuture<LoadFileResponse> future = Futures.transform(response, resp -> {
         int numFiles = request.getUfsStatusCount();
         TaskStatus taskStatus = TaskStatus.SUCCESS;
         if (!resp.getFailuresList().isEmpty()) {

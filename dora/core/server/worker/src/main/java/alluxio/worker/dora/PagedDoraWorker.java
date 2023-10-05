@@ -22,6 +22,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheUsage;
+import alluxio.client.file.cache.PageId;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
@@ -108,6 +109,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
+import io.grpc.Status;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import org.slf4j.Logger;
@@ -535,24 +537,26 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return new PagedFileWriter(this, ufsPath, mCacheManager, fileId, mPageSize);
   }
 
-  private boolean isAllPageCached(UfsFileStatus status, Optional<DoraMeta.FileStatus> fileStatus) {
-    if (!fileStatus.isPresent()) {
-      return false;
+  private boolean isAllPageCached(Block block) {
+    alluxio.grpc.UfsStatus status = block.getUfsStatus();
+    String fileId = new AlluxioURI(status.getUfsFullPath()).hash();
+    List<PageId> cachedPages = mCacheManager.getCachedPageIdsByFileId(fileId,
+        status.getUfsFileStatus().getContentLength());
+    int numOfPagesInBlock = (int) (block.getLength() / mPageSize);
+    for (long pageIndex = block.getOffsetInFile() / mPageSize; pageIndex < numOfPagesInBlock;
+         pageIndex++) {
+      PageId pageId = new PageId(fileId, pageIndex);
+      if (!cachedPages.contains(pageId)) {
+        return false;
+      }
     }
-    alluxio.grpc.FileInfo fi = fileStatus.get().getFileInfo();
-    if (!fi.getContentHash().equals(status.getContentHash())) {
-      return false;
-    }
-    String cacheManagerFileId = status.getUfsFullPath().hash();
-    final long bytesInCache = mCacheManager.getUsage()
-        .flatMap(usage -> usage.partitionedBy(file(cacheManagerFileId)))
-        .map(CacheUsage::used).orElse(0L);
-    return bytesInCache == fi.getLength();
+    return true;
   }
 
   @Override
-  public ListenableFuture<List<LoadFileResponse>> load(List<UfsStatus> ufsStatuses,
-      List<Block> blocks, boolean skipIfExists, UfsReadOptions options) throws AccessControlException, IOException {
+  public ListenableFuture<LoadFileResponse> load(List<UfsStatus> ufsStatuses,
+      List<Block> blocks, boolean skipIfExists, UfsReadOptions options)
+      throws AccessControlException, IOException {
     List<ListenableFuture<Void>> futures = new ArrayList<>();
     List<LoadFileFailure> errors = Collections.synchronizedList(new ArrayList<>());
     AtomicInteger skippedFiles = new AtomicInteger();
@@ -566,7 +570,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       }
       DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath, xattrMap);
       Optional<DoraMeta.FileStatus> originalFs = mMetaManager.getFromMetaStore(ufsFullPath);
-      mMetaManager.put(ufsFullPath, fs);
       // We use the ufs status sent from master to construct the file metadata,
       // and that ufs status might be stale.
       // This is a known consistency issue and will remain as long as the get metadata and
@@ -590,6 +593,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
     for (Block block : blocks) {
       if (block.getLength() > 0) {
+        boolean countAsSkipped = skipIfExists && isAllPageCached(block);
+        if (countAsSkipped) {
+          skippedFiles.incrementAndGet();
+          skippedFileLength.addAndGet(block.getLength());
+          continue;
+        }
         try {
           ListenableFuture<Void> loadFuture = Futures.submit(() -> {
             try {
@@ -610,22 +619,19 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
           }, GrpcExecutors.READER_EXECUTOR);
           futures.add(loadFuture);
         } catch (RejectedExecutionException ex) {
-          LOG.warn("BlockDataReaderExecutor overloaded.");
-          AlluxioRuntimeException t = AlluxioRuntimeException.from(ex);
-          errors.add(
-              LoadFileFailure.newBuilder().setBlock(block).setCode(t.getStatus().getCode().value())
-                             .setRetryable(true).setMessage(t.getMessage()).build());
+          LOG.warn("Load task overloaded.");
+          errors.add(LoadFileFailure.newBuilder().setBlock(block)
+                                    .setCode(Status.RESOURCE_EXHAUSTED.getCode().value())
+                                    .setRetryable(true).setMessage(ex.getMessage()).build());
         }
-
       }
     }
-    return Futures.whenAllComplete(futures).call(() -> LoadFileResponse.newBuilder()
-            .addAllFailures(errors)
-            .setBytesSkipped(skippedFileLength.get())
-            .setFilesSkipped(skippedFiles.get())
-            // Status is a required field, put it as a placeholder
-            .setStatus(TaskStatus.SUCCESS)
-            .build(),
+    return Futures.whenAllComplete(futures).call(
+        () -> LoadFileResponse.newBuilder().addAllFailures(errors)
+                              .setBytesSkipped(skippedFileLength.get())
+                              .setFilesSkipped(skippedFiles.get())
+                              // Status is a required field, put it as a placeholder
+                              .setStatus(TaskStatus.SUCCESS).build(),
         GrpcExecutors.READER_EXECUTOR);
   }
 
