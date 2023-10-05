@@ -50,6 +50,7 @@ public abstract class AbstractDoraShellIntegrationTest extends BaseIntegrationTe
         .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, Constants.KB)
         .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, "1GB")
         .setProperty(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false)
+        .setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false)
         .setNumWorkers(numWorkers)
         .setStartCluster(false)
         .build();

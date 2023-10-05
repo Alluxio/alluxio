@@ -240,10 +240,15 @@ enum TaskStatus {
 }
 
 message LoadFileRequest {
-  repeated UfsStatus ufs_status = 1;
+  repeated LoadSubTask subtasks = 1;
   required UfsReadOptions options = 2;
   optional bool skip_if_exists = 3;
-  repeated Block blocks = 4;
+}
+
+// A subtask of a load file request. either a load data or load metadata.
+message LoadSubTask {
+  optional Block block = 1;
+  optional UfsStatus ufs_status = 2;
 }
 
 message File{
@@ -274,14 +279,14 @@ message BlockStatus {
   optional bool retryable = 4;
 }
 
+// load subtask failure, either metadata or load block we only need to input one of them
 message LoadFailure {
-  optional UfsStatus ufs_status = 1;
+  optional LoadSubTask subtask = 1;
   // The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
   optional int32 code = 2;
   // A developer-facing error message
   optional string message = 3;
   optional bool retryable = 4;
-  optional Block block = 5;
 }
 
 message FileFailure {

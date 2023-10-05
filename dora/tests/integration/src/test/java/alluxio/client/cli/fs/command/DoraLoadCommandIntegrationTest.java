@@ -28,7 +28,7 @@ import java.io.IOException;
 public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellTest {
 
   public DoraLoadCommandIntegrationTest() throws IOException {
-    super(3);
+    super(1);
   }
 
   @Override

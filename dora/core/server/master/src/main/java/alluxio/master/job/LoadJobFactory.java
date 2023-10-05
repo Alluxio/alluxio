@@ -66,8 +66,8 @@ public class LoadJobFactory implements JobFactory {
         Optional.ofNullable(AuthenticatedClientUser.getOrNull()).map(User::getName),
         Predicates.alwaysTrue());
     return new DoraLoadJob(path, user, UUID.randomUUID().toString(), bandwidth, partialListing,
-        verificationEnabled, options.getLoadMetadataOnly(), options.getSkipIfExists(), iterable,
-        ufs);
+        verificationEnabled, options.getLoadMetadataOnly(), options.getSkipIfExists(),
+        iterable.iterator(), ufs);
   }
 }
 

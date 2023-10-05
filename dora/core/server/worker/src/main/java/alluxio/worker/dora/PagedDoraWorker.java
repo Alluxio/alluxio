@@ -48,6 +48,7 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadFailure;
 import alluxio.grpc.LoadFileResponse;
+import alluxio.grpc.LoadSubTask;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
@@ -201,7 +202,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         UnderFileSystemConfiguration.defaults(mConf));
     mFsContext = mResourceCloser.register(fileSystemContext);
     mUfsStreamCache = new UfsInputStreamCache();
-
     mPageSize = mConf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
     mBlockMasterClientPool = blockMasterClientPool;
     mCacheManager = cacheManager;
@@ -209,10 +209,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         new DoraMetaManager(mConf, this, mCacheManager, mUfsManager));
     mMembershipManager = membershipManager;
     mOpenFileHandleContainer = new DoraOpenFileHandleContainer();
-
     mMkdirsRecursive = MkdirsOptions.defaults(mConf).setCreateParent(true);
     mMkdirsNonRecursive = MkdirsOptions.defaults(mConf).setCreateParent(false);
-
     mClientWriteToUFSEnabled = mConf
         .getBoolean(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED);
     mXAttrWriteToUFSEnabled = mConf.getBoolean(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED);
@@ -554,85 +552,101 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public ListenableFuture<LoadFileResponse> load(List<UfsStatus> ufsStatuses,
-      List<Block> blocks, boolean skipIfExists, UfsReadOptions options)
-      throws AccessControlException, IOException {
+  public ListenableFuture<LoadFileResponse> load(List<LoadSubTask> subTasks, boolean skipIfExists,
+      UfsReadOptions options) throws AccessControlException, IOException {
     List<ListenableFuture<Void>> futures = new ArrayList<>();
     List<LoadFailure> errors = Collections.synchronizedList(new ArrayList<>());
     AtomicInteger numSkipped = new AtomicInteger();
     AtomicLong skippedLength = new AtomicLong();
-    for (UfsStatus status : ufsStatuses) {
-      String ufsFullPath = status.getUfsFullPath().toString();
-      UnderFileSystem ufs = getUfsInstance(ufsFullPath);
-      Map<String, String> xattrMap = null;
-      if (mXAttrWriteToUFSEnabled) {
-        xattrMap = ufs.getAttributes(ufsFullPath);
+    for (LoadSubTask task : subTasks) {
+      if (task.hasUfsStatus()) {
+        UfsStatus status = UfsStatus.fromProto(task.getUfsStatus());
+        loadStatus(status, errors);
       }
-      DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath, xattrMap);
-      Optional<DoraMeta.FileStatus> originalFs = mMetaManager.getFromMetaStore(ufsFullPath);
-      // We use the ufs status sent from master to construct the file metadata,
-      // and that ufs status might be stale.
-      // This is a known consistency issue and will remain as long as the get metadata and
-      // load data operations are not atomic.
-      // Ideally, we can either:
-      // 1. Use a single API to load the file alongside with fetching the file metadata
-      // 2. Getting a last updated timestamp when loading data of a file and use it to
-      //  validate the freshness of the metadata and discard the metadata if it is stale.
-      // These two need UFS api support and cannot be achieved in a generic UFS interface.
-      // We may be able to solve this by providing specific implementations for certain UFSes
-      // in the future.
-      try {
-        mMetaManager.put(ufsFullPath, fs);
-      } catch (Exception e) {
-        LOG.error("Failed to put file status to meta manager", e);
-        AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
-        errors.add(LoadFailure.newBuilder().setUfsStatus(status.toProto())
-                                  .setCode(t.getStatus().getCode().value()).setRetryable(true)
-                                  .setMessage(t.getMessage()).build());
-      }
-    }
-    for (Block block : blocks) {
-      if (block.getLength() > 0) {
-        boolean countAsSkipped = skipIfExists && isAllPageCached(block);
-        if (countAsSkipped) {
-          numSkipped.incrementAndGet();
-          skippedLength.addAndGet(block.getLength());
-          continue;
-        }
-        try {
-          ListenableFuture<Void> loadFuture = Futures.submit(() -> {
-            try {
-              if (options.hasUser()) {
-                AuthenticatedClientUser.set(options.getUser());
+      if (task.hasBlock()) {
+        Block block = task.getBlock();
+
+        if (block.getLength() > 0) {
+          boolean countAsSkipped = skipIfExists && isAllPageCached(block);
+          if (countAsSkipped) {
+            numSkipped.incrementAndGet();
+            skippedLength.addAndGet(block.getLength());
+            continue;
+          }
+
+          try {
+            ListenableFuture<Void> loadFuture = Futures.submit(() -> {
+              try {
+                if (options.hasUser()) {
+                  AuthenticatedClientUser.set(options.getUser());
+                }
+                loadData(block.getUfsPath(), 0, block.getOffsetInFile(), block.getLength(),
+                    block.getUfsStatus().getUfsFileStatus().getContentLength());
+              } catch (Throwable e) {
+                LOG.error("Loading {} failed", block, e);
+                boolean permissionCheckSucceeded = !(e instanceof AccessControlException);
+                AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
+                errors.add(LoadFailure.newBuilder()
+                                      .setSubtask(LoadSubTask.newBuilder().setBlock(block).build())
+                                      .setCode(t.getStatus().getCode().value())
+                                      .setRetryable(permissionCheckSucceeded)
+                                      .setMessage(t.getMessage()).build());
               }
-              loadData(block.getUfsPath(), 0, block.getOffsetInFile(), block.getLength(),
-                  block.getUfsStatus().getUfsFileStatus().getContentLength());
-            } catch (Throwable e) {
-              LOG.error("Loading {} failed", block, e);
-              boolean permissionCheckSucceeded = !(e instanceof AccessControlException);
-              AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
-              errors.add(LoadFailure.newBuilder().setBlock(block)
-                                    .setCode(t.getStatus().getCode().value())
-                                    .setRetryable(permissionCheckSucceeded)
-                                    .setMessage(t.getMessage()).build());
-            }
-          }, GrpcExecutors.READER_EXECUTOR);
-          futures.add(loadFuture);
-        } catch (RejectedExecutionException ex) {
-          LOG.warn("Load task overloaded.");
-          errors.add(LoadFailure.newBuilder().setBlock(block)
-                                    .setCode(Status.RESOURCE_EXHAUSTED.getCode().value())
-                                    .setRetryable(true).setMessage(ex.getMessage()).build());
+            }, GrpcExecutors.READER_EXECUTOR);
+            futures.add(loadFuture);
+          } catch (RejectedExecutionException ex) {
+            LOG.warn("Load task overloaded.");
+            errors.add(LoadFailure.newBuilder()
+                                  .setSubtask(LoadSubTask.newBuilder().setBlock(block).build())
+                                  .setCode(Status.RESOURCE_EXHAUSTED.getCode().value())
+                                  .setRetryable(true).setMessage(ex.getMessage()).build());
+          }
         }
       }
     }
     return Futures.whenAllComplete(futures).call(
         () -> LoadFileResponse.newBuilder().addAllFailures(errors)
-                              .setBytesSkipped(skippedLength.get())
-                              .setNumSkipped(numSkipped.get())
+                              .setBytesSkipped(skippedLength.get()).setNumSkipped(numSkipped.get())
                               // Status is a required field, put it as a placeholder
                               .setStatus(TaskStatus.SUCCESS).build(),
         GrpcExecutors.READER_EXECUTOR);
+  }
+
+  /**
+   * We use the ufs status sent from master to construct the file metadata,
+   * and that ufs status might be stale.
+   * This is a known consistency issue and will remain as long as the get metadata and
+   * load data operations are not atomic.
+   * Ideally, we can either:
+   * 1. Use a single API to load the file alongside with fetching the file metadata
+   * 2. Getting a last updated timestamp when loading data of a file and use it to
+   * validate the freshness of the metadata and discard the metadata if it is stale.
+   * These two need UFS api support and cannot be achieved in a generic UFS interface.
+   * We may be able to solve this by providing specific implementations for certain UFSes
+   * in the future.
+   *
+   * @param status the ufs status
+   * @param errors the errors
+   */
+  private void loadStatus(UfsStatus status, List<LoadFailure> errors) {
+    String ufsFullPath = status.getUfsFullPath().toString();
+    Map<String, String> xattrMap = null;
+    UnderFileSystem ufs = getUfsInstance(ufsFullPath);
+    try {
+      if (mXAttrWriteToUFSEnabled) {
+        xattrMap = ufs.getAttributes(ufsFullPath);
+      }
+      DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath, xattrMap);
+      mMetaManager.put(ufsFullPath, fs);
+    } catch (Exception e) {
+      LOG.error("Failed to put file status to meta manager", e);
+      AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
+
+      errors.add(LoadFailure.newBuilder().setSubtask(
+                                LoadSubTask.newBuilder().setUfsStatus(status.toProto()).build())
+                            .setCode(t.getStatus().getCode().value()).setRetryable(true)
+                            .setMessage(t.getMessage()).build());
+    }
   }
 
   protected void loadData(String ufsPath, long mountId, long offset, long lengthToLoad,
@@ -642,9 +656,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                                     .setNoCache(false).setOffsetInFile(offset)
                                     .setBlockSize(fileLength).build();
     String fileId = new AlluxioURI(ufsPath).hash();
-    long bufferSize = 4 * mPageSize;
+    int bufferSize = (int) Math.min(4 * mPageSize, lengthToLoad);
     ByteBuf buf =
-        PooledByteBufAllocator.DEFAULT.directBuffer((int) Math.min(bufferSize, lengthToLoad));
+        PooledByteBufAllocator.DEFAULT.directBuffer(bufferSize);
     try (BlockReader fileReader = createFileReader(fileId, offset, false, options)) {
       //Transfers data from this reader to the buffer until we reach lengthToLoad.
       int bytesRead;

@@ -37,6 +37,7 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadFileResponse;
+import alluxio.grpc.LoadSubTask;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
@@ -66,6 +67,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -79,8 +81,7 @@ public class PagedDoraWorkerTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
   private CacheManager mCacheManager;
   private MembershipManager mMembershipManager;
-  private final long mPageSize =
-      Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
+  private long mPageSize;
   private static final GetStatusPOptions GET_STATUS_OPTIONS_MUST_SYNC =
       GetStatusPOptions.newBuilder().setCommonOptions(
           FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0)).build();
@@ -89,9 +90,10 @@ public class PagedDoraWorkerTest {
   public void before() throws Exception {
     Configuration.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR,
         mTestFolder.newFolder("rocks"));
+    Configuration.set(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, 10);
     CacheManagerOptions cacheManagerOptions =
         CacheManagerOptions.createForWorker(Configuration.global());
-
+    mPageSize = Configuration.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
     PageMetaStore pageMetaStore =
         PageMetaStore.create(CacheManagerOptions.createForWorker(Configuration.global()));
     mCacheManager =
@@ -144,14 +146,15 @@ public class PagedDoraWorkerTest {
         Block.newBuilder().setOffsetInFile(mPageSize).setLength(mPageSize * numCachedPages)
              .setUfsPath(ufsPath).setUfsStatus(ufsStatus.toProto()).build();
     ListenableFuture<LoadFileResponse> load =
-        mWorker.load(Collections.emptyList(), Collections.singletonList(block), false,
-            UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false)
-                          .build());
-    load.get(30, TimeUnit.SECONDS);
+        mWorker.load(Collections.singletonList(LoadSubTask.newBuilder().setBlock(block).build()),
+            false, UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false)
+                                 .build());
+    LoadFileResponse response = load.get(30, TimeUnit.SECONDS);
+    assertEquals(0, response.getFailuresCount());
     List<PageId> cachedPages =
         mCacheManager.getCachedPageIdsByFileId(new AlluxioURI(ufsPath).hash(), length);
     assertEquals(numCachedPages, cachedPages.size());
-    int start = 0;
+    int start = (int) mPageSize;
     for (PageId pageId : cachedPages) {
       byte[] buff = new byte[(int) mPageSize];
       mCacheManager.get(pageId, (int) mPageSize, buff, 0);
@@ -170,10 +173,9 @@ public class PagedDoraWorkerTest {
     BufferUtils.writeBufferToFile(ufsPath, buffer);
     UfsStatus ufsStatus = mWorker.getUfsInstance(ufsPath).getStatus(ufsPath);
     ufsStatus.setUfsFullPath(new AlluxioURI(ufsPath));
-    ListenableFuture<LoadFileResponse> load =
-        mWorker.load(Collections.singletonList(ufsStatus), Collections.emptyList(), false,
-            UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false)
-                          .build());
+    ListenableFuture<LoadFileResponse> load = mWorker.load(Collections.singletonList(
+            LoadSubTask.newBuilder().setUfsStatus(ufsStatus.toProto()).build()), false,
+        UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build());
     load.get(30, TimeUnit.SECONDS);
     List<PageId> cachedPages =
         mCacheManager.getCachedPageIdsByFileId(new AlluxioURI(ufsPath).hash(), length);
@@ -819,10 +821,10 @@ public class PagedDoraWorkerTest {
     Block block = Block.newBuilder().setLength(ufsStatus.asUfsFileStatus().getContentLength())
                        .setOffsetInFile(0).setUfsPath(ufsStatus.getUfsFullPath().toString())
                        .setUfsStatus(ufsStatus.toProto()).build();
-    ListenableFuture<LoadFileResponse> load =
-        mWorker.load(Collections.singletonList(ufsStatus), Collections.singletonList(block), false,
-            UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false)
-                          .build());
+    ListenableFuture<LoadFileResponse> load = mWorker.load(
+        Arrays.asList(LoadSubTask.newBuilder().setUfsStatus(ufsStatus.toProto()).build(),
+            LoadSubTask.newBuilder().setBlock(block).build()), false,
+        UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build());
     LoadFileResponse response = load.get(30, TimeUnit.SECONDS);
     assertEquals(0, response.getFailuresCount());
   }
