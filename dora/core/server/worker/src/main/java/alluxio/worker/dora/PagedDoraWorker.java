@@ -46,7 +46,7 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadFileFailure;
+import alluxio.grpc.LoadFailure;
 import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
@@ -558,9 +558,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       List<Block> blocks, boolean skipIfExists, UfsReadOptions options)
       throws AccessControlException, IOException {
     List<ListenableFuture<Void>> futures = new ArrayList<>();
-    List<LoadFileFailure> errors = Collections.synchronizedList(new ArrayList<>());
-    AtomicInteger skippedFiles = new AtomicInteger();
-    AtomicLong skippedFileLength = new AtomicLong();
+    List<LoadFailure> errors = Collections.synchronizedList(new ArrayList<>());
+    AtomicInteger numSkipped = new AtomicInteger();
+    AtomicLong skippedLength = new AtomicLong();
     for (UfsStatus status : ufsStatuses) {
       String ufsFullPath = status.getUfsFullPath().toString();
       UnderFileSystem ufs = getUfsInstance(ufsFullPath);
@@ -586,7 +586,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       } catch (Exception e) {
         LOG.error("Failed to put file status to meta manager", e);
         AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
-        errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
+        errors.add(LoadFailure.newBuilder().setUfsStatus(status.toProto())
                                   .setCode(t.getStatus().getCode().value()).setRetryable(true)
                                   .setMessage(t.getMessage()).build());
       }
@@ -595,8 +595,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       if (block.getLength() > 0) {
         boolean countAsSkipped = skipIfExists && isAllPageCached(block);
         if (countAsSkipped) {
-          skippedFiles.incrementAndGet();
-          skippedFileLength.addAndGet(block.getLength());
+          numSkipped.incrementAndGet();
+          skippedLength.addAndGet(block.getLength());
           continue;
         }
         try {
@@ -611,16 +611,16 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               LOG.error("Loading {} failed", block, e);
               boolean permissionCheckSucceeded = !(e instanceof AccessControlException);
               AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
-              errors.add(LoadFileFailure.newBuilder().setBlock(block)
-                                        .setCode(t.getStatus().getCode().value())
-                                        .setRetryable(t.isRetryable() && permissionCheckSucceeded)
-                                        .setMessage(t.getMessage()).build());
+              errors.add(LoadFailure.newBuilder().setBlock(block)
+                                    .setCode(t.getStatus().getCode().value())
+                                    .setRetryable(permissionCheckSucceeded)
+                                    .setMessage(t.getMessage()).build());
             }
           }, GrpcExecutors.READER_EXECUTOR);
           futures.add(loadFuture);
         } catch (RejectedExecutionException ex) {
           LOG.warn("Load task overloaded.");
-          errors.add(LoadFileFailure.newBuilder().setBlock(block)
+          errors.add(LoadFailure.newBuilder().setBlock(block)
                                     .setCode(Status.RESOURCE_EXHAUSTED.getCode().value())
                                     .setRetryable(true).setMessage(ex.getMessage()).build());
         }
@@ -628,8 +628,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
     return Futures.whenAllComplete(futures).call(
         () -> LoadFileResponse.newBuilder().addAllFailures(errors)
-                              .setBytesSkipped(skippedFileLength.get())
-                              .setFilesSkipped(skippedFiles.get())
+                              .setBytesSkipped(skippedLength.get())
+                              .setNumSkipped(numSkipped.get())
                               // Status is a required field, put it as a placeholder
                               .setStatus(TaskStatus.SUCCESS).build(),
         GrpcExecutors.READER_EXECUTOR);

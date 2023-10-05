@@ -11,6 +11,8 @@
 
 package alluxio.master.job;
 
+import static java.lang.String.format;
+
 import java.util.OptionalInt;
 
 /**
@@ -48,7 +50,9 @@ public final class HashKey {
   @Override
   public String toString() {
     if (mVirtualBlockIndex.isPresent() && mVirtualBlockIndex.getAsInt() != 0) {
-      return mUFSPath + ":" + mVirtualBlockIndex.getAsInt();
+      // use the same format as ConsistentHashProvider,
+      // we can't distinguish the two index, but it's fine
+      return format("%s%d", mUFSPath, mVirtualBlockIndex.getAsInt());
     }
     else {
       return mUFSPath;
