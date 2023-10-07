@@ -36,7 +36,7 @@ import java.util.Optional;
 /**
  * Tests for the {@link QuotaPageMetaStore} class.
  */
-public class QuotaPagePageMetaStoreTest extends DefaultPageMetaStoreTest {
+public class QuotaPageMetaStoreTest extends DefaultPageMetaStoreTest {
   private final AlluxioConfiguration mConf = Configuration.global();
   private final CacheScope mPartitionScope = CacheScope.create("schema.table.partition");
   private final CacheScope mTableScope = CacheScope.create("schema.table");
