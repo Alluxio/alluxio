@@ -20,6 +20,7 @@ import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
+import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.junit.Assert;
@@ -103,9 +104,10 @@ public class FileSystemBlockLocationIntegrationTest extends BaseIntegrationTest 
     Assert.assertEquals(3, sTFS.getFileBlockLocations(fStatus, start, len).length);
 
     // block0.offset = start < start+len = file.len
+    // BlockNum = (length/blocksize) + 1
     start = 0;
     len = FILE_LEN;
-    Assert.assertEquals(3, sTFS.getFileBlockLocations(fStatus, start, len).length);
+    Assert.assertEquals(4, sTFS.getFileBlockLocations(fStatus, start, len).length);
 
     // file.len < start < start+len
     start = FILE_LEN + 1;
