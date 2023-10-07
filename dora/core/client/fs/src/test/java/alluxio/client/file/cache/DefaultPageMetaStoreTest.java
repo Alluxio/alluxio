@@ -76,10 +76,13 @@ public class DefaultPageMetaStoreTest {
   @Test
   public void commitFile() throws PageNotFoundException {
     String newTempFile = "newTempFile";
-    PageId newTempPage = new PageId(newTempFile, 2L);
+    long pageIndex = 2L;
+    PageId newTempPage = new PageId(newTempFile, pageIndex);
     mMetaStore.addPage(mPage, mPageInfo);
     mMetaStore.commitFile(mPage.getFileId(), newTempFile);
+    assertEquals(mPageStoreDir, mMetaStore.getPageInfo(newTempPage).getLocalCacheDir());
     assertEquals(newTempFile, mMetaStore.getPageInfo(newTempPage).getPageId().getFileId());
+    assertEquals(pageIndex, mMetaStore.getPageInfo(newTempPage).getPageId().getPageIndex());
   }
 
   @Test
