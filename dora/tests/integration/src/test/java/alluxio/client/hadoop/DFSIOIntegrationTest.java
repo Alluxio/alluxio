@@ -660,7 +660,8 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
     public Long doIO(Reporter reporter, String name, long totalSize) throws IOException {
       PositionedReadable in = (PositionedReadable) this.mStream;
       long actualSize = 0;
-      for (long pos = nextOffset(-1); actualSize < totalSize && pos < totalSize; pos = nextOffset(pos)) {
+      for (long pos = nextOffset(-1); actualSize < totalSize
+          && pos < totalSize; pos = nextOffset(pos)) {
         int curSize = in.read(pos, mBuffer, 0, mBufferSize);
         if (curSize < 0) {
           break;
