@@ -186,9 +186,10 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     for (int i = 0; i < mNumWorkers; ++i) {
       // If dora is enabled, automatically setting the worker page store and rocksdb dirs.
       if (Configuration.getBoolean(PropertyKey.DORA_ENABLED)) {
-        String pageStoreDir = PathUtils.concatPath(mWorkDirectory, "worker" + i);
-        Configuration.set(PropertyKey.WORKER_PAGE_STORE_DIRS, pageStoreDir);
-        Configuration.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, pageStoreDir);
+        String workDir = PathUtils.concatPath(mWorkDirectory, "worker" + i);
+        Configuration.set(PropertyKey.WORKER_PAGE_STORE_DIRS, workDir);
+        Configuration.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, workDir);
+        LOG.info("Starting worker with PageStore and RocksDB under {}", workDir);
       }
       WorkerProcess worker = WorkerProcess.Factory.create();
       mWorkers.add(worker);
@@ -210,15 +211,15 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
       thread.start();
     }
 
-    waitForWorkerServing();
+    waitForWorkersServing();
   }
 
   @Override
-  protected void waitForWorkerServing() throws TimeoutException, InterruptedException {
+  protected void waitForWorkersServing() throws TimeoutException, InterruptedException {
     CommonUtils.waitFor("worker starts serving RPCs", () -> {
       try (FileSystemContext fsContext = FileSystemContext.create()) {
         List<BlockWorkerInfo> workerInfoList = fsContext.getCachedWorkers();
-        LOG.info(String.format("now worker number is %d", workerInfoList.size()));
+        LOG.info("Observing {} workers in the cluster", workerInfoList.size());
         return workerInfoList.size() == mNumWorkers;
       } catch (IOException ioe) {
         LOG.error(ioe.getMessage());

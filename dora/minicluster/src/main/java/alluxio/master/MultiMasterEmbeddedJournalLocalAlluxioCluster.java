@@ -289,7 +289,7 @@ public final class MultiMasterEmbeddedJournalLocalAlluxioCluster
   }
 
   @Override
-  protected void waitForWorkerServing() {
+  protected void waitForWorkersServing() {
     throw new UnsupportedOperationException();
   }
 

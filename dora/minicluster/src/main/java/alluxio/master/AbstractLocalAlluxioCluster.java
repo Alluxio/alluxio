@@ -103,7 +103,7 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   protected abstract void startMasters() throws Exception;
 
-  protected abstract void waitForWorkerServing() throws TimeoutException, InterruptedException;
+  protected abstract void waitForWorkersServing() throws TimeoutException, InterruptedException;
 
   protected void waitForMasterServing() throws TimeoutException, InterruptedException {
     CommonUtils.waitFor("master starts serving RPCs", () -> {

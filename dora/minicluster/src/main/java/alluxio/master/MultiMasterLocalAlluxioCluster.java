@@ -267,7 +267,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   @Override
-  protected void waitForWorkerServing() {
+  protected void waitForWorkersServing() {
     throw new UnsupportedOperationException();
   }
 
