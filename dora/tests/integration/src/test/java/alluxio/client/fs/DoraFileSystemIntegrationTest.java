@@ -99,21 +99,21 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
   private AmazonS3 mS3Client = null;
-  @Rule
-  public TemporaryFolder mFolder = new TemporaryFolder();
-
-  @Before
-  public void before() throws Exception {
-    File file = mFolder.newFile();
-    try (PrintStream ps = new PrintStream(file)) {
-      ps.println("worker1");
-      ps.println("worker2");
-    }
-    mLocalAlluxioClusterResourceBuilder
-        .setProperty(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.STATIC)
-        .setProperty(
-            PropertyKey.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE, file.getAbsolutePath());
-  }
+//  @Rule
+//  public TemporaryFolder mFolder = new TemporaryFolder();
+//
+//  @Before
+//  public void before() throws Exception {
+//    File file = mFolder.newFile();
+//    try (PrintStream ps = new PrintStream(file)) {
+//      ps.println("worker1");
+//      ps.println("worker2");
+//    }
+//    mLocalAlluxioClusterResourceBuilder
+//        .setProperty(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.STATIC)
+//        .setProperty(
+//            PropertyKey.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE, file.getAbsolutePath());
+//  }
 
   private void startCluster(LocalAlluxioClusterResource cluster) throws Exception {
     cluster.start();
