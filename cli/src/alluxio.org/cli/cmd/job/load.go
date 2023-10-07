@@ -47,7 +47,27 @@ func (c *LoadCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Load.CommandName,
 		Short: "Submit or manage load jobs",
-		Args:  cobra.NoArgs,
+		Long: `The load command moves data from the under storage system into Alluxio storage.
+For example, load can be used to prefetch data for analytics jobs.
+If load is run on a directory, files in the directory will be recursively loaded.`,
+		Example: `# Submit a load job
+$ ./bin/alluxio job load --path /path --submit
+
+# View the progress of a submitted job
+$ ./bin/alluxio job load --path /path --progress
+# Example output
+Progress for loading path '/path':
+        Settings:       bandwidth: unlimited    verify: false
+        Job State: SUCCEEDED
+        Files Processed: 1000
+        Bytes Loaded: 125.00MB
+        Throughput: 2509.80KB/s
+        Block load failure rate: 0.00%
+        Files Failed: 0
+
+# Stop a submitted job
+$ ./bin/alluxio job load --path /path --stop`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},

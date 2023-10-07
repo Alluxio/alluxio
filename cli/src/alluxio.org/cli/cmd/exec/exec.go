@@ -24,5 +24,6 @@ var Service = &env.Service{
 		TestRun,
 		TestUfs,
 		TestUfsIO,
+		TestRunCluster,
 	},
 }

@@ -44,7 +44,10 @@ func (c *FormatCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Format.CommandName,
 		Short: "Format the local Alluxio master journal",
-		Args:  cobra.NoArgs,
+		Long: `The format command formats the local Alluxio master's journal.
+
+> Warning: Formatting should only be called while the cluster is not running.`,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},

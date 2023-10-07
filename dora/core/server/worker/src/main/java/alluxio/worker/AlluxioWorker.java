@@ -13,9 +13,7 @@ package alluxio.worker;
 
 import alluxio.ProcessUtils;
 import alluxio.RuntimeConstants;
-import alluxio.conf.Configuration;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,11 +37,6 @@ public final class AlluxioWorker {
       LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
           AlluxioWorker.class.getCanonicalName());
       System.exit(-1);
-    }
-
-    if (!ConfigurationUtils.masterHostConfigured(Configuration.global())) {
-      ProcessUtils.fatalError(LOG,
-          ConfigurationUtils.getMasterHostNotConfiguredMessage("Alluxio worker"));
     }
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.WORKER);

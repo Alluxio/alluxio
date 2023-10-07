@@ -43,11 +43,11 @@ var SubCmdNames = []string{
 }
 
 const (
-	defaultAssemblyFilePath = "src/alluxio.org/build/assembly.yml"
-	defaultModulesFilePath  = "src/alluxio.org/build/modules.yml"
+	DefaultAssemblyFilePath = "src/alluxio.org/build/assembly.yml"
+	DefaultModulesFilePath  = "src/alluxio.org/build/modules.yml"
 	defaultProfilesFilePath = "src/alluxio.org/build/profiles.yml"
 
-	versionPlaceholder = `${VERSION}` // used as a placeholder string in tarball names and config files
+	VersionPlaceholder = `${VERSION}` // used as a placeholder string in tarball names and config files
 )
 
 type buildOpts struct {
@@ -73,10 +73,10 @@ func parseTarballFlags(cmd *flag.FlagSet, args []string) (*buildOpts, error) {
 
 	// common flags
 	cmd.StringVar(&opts.artifactOutput, "artifact", "", "If set, writes object representing the tarball to YAML output file")
-	cmd.StringVar(&opts.assemblyJarFile, "assemblyFile", defaultAssemblyFilePath, "Path to assembly.yml file")
+	cmd.StringVar(&opts.assemblyJarFile, "assemblyFile", DefaultAssemblyFilePath, "Path to assembly.yml file")
 	cmd.StringVar(&opts.outputDir, "outputDir", repo.FindRepoRoot(), "Set output dir for generated tarball")
 	cmd.BoolVar(&opts.dryRun, "dryRun", false, "If set, writes placeholder files instead of running maven commands to mock the final state of the build directory to be packaged as a tarball")
-	cmd.StringVar(&opts.modulesFile, "modulesFile", defaultModulesFilePath, "Path to modules.yml file")
+	cmd.StringVar(&opts.modulesFile, "modulesFile", DefaultModulesFilePath, "Path to modules.yml file")
 	cmd.StringVar(&opts.profilesFile, "profilesFile", defaultProfilesFilePath, "Path to profiles.yml file")
 	cmd.BoolVar(&opts.skipRepoCopy, "skipRepoCopy", false, "Set true to build tarball from local repository instead of making a copy and running git clean")
 	cmd.BoolVar(&opts.suppressMavenOutput, "suppressMavenOutput", false, "Set true to avoid printing maven command stdout to console")
@@ -120,7 +120,7 @@ func parseTarballFlags(cmd *flag.FlagSet, args []string) (*buildOpts, error) {
 		return nil, stacktrace.Propagate(err, "error processing profile values to update opts")
 	}
 	// parse assembly jars
-	assemblyJars, err := loadAssemblyJars(opts.assemblyJarFile)
+	assemblyJars, err := LoadAssemblyJars(opts.assemblyJarFile)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "error parsing assembly jars")
 	}
@@ -130,23 +130,23 @@ func parseTarballFlags(cmd *flag.FlagSet, args []string) (*buildOpts, error) {
 }
 
 func (opts *buildOpts) processProfileValues(prof *Profile) error {
-	alluxioVersion, err := alluxioVersionFromPom()
+	alluxioVersion, err := AlluxioVersionFromPom()
 	if err != nil {
 		return stacktrace.Propagate(err, "error parsing version string")
 	}
-	opts.targetName = strings.ReplaceAll(prof.TargetName, versionPlaceholder, alluxioVersion)
+	opts.targetName = strings.ReplaceAll(prof.TargetName, VersionPlaceholder, alluxioVersion)
 	opts.mavenArgs = strings.Split(prof.MvnArgs, ",")
 	opts.tarball = prof.Tarball
 
 	// determine modules
-	modules, err := loadModules(opts.modulesFile)
+	modules, err := LoadModules(opts.modulesFile)
 	if err != nil {
 		return stacktrace.Propagate(err, "error loading modules")
 	}
 
 	opts.libModules = map[string]*LibModule{}
 	// check if it is a bundle name
-	if names, ok := modules.libBundles[prof.LibModules]; ok {
+	if names, ok := modules.LibBundles[prof.LibModules]; ok {
 		log.Printf("Using lib modules defined for bundle %v", prof.LibModules)
 		for _, n := range names {
 			log.Printf("Including lib module %v", n)
@@ -165,7 +165,7 @@ func (opts *buildOpts) processProfileValues(prof *Profile) error {
 	}
 	opts.pluginModules = map[string]*PluginModule{}
 	// check if it is a bundle name
-	if names, ok := modules.pluginBundles[prof.PluginModules]; ok {
+	if names, ok := modules.PluginBundles[prof.PluginModules]; ok {
 		log.Printf("Using plugin modules defined for bundle %v", prof.PluginModules)
 		for _, n := range names {
 			log.Printf("Including plugin module %v", n)

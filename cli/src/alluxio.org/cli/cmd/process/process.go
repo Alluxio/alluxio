@@ -17,7 +17,7 @@ import (
 
 var Service = &env.Service{
 	Name:        "process",
-	Description: "Start, stop, and other operations related to the cluster processes",
+	Description: "Start or stop cluster processes",
 	Commands: []env.Command{
 		&env.StartProcessCommand{},
 		&env.StopProcessCommand{},

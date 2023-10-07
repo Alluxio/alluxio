@@ -317,7 +317,7 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   // Get next chunk of listing result
-  private ObjectListing getObjectListingChunk(ListObjectsRequest request) {
+  protected ObjectListing getObjectListingChunk(ListObjectsRequest request) {
     ObjectListing result;
     try {
       result = mClient.listObjects(request);

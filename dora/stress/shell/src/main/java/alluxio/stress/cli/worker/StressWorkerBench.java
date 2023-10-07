@@ -11,6 +11,8 @@
 
 package alluxio.stress.cli.worker;
 
+import static alluxio.Constants.MB;
+import static alluxio.Constants.SECOND_NANO;
 import static alluxio.stress.BaseParameters.DEFAULT_TASK_ID;
 
 import alluxio.Constants;
@@ -22,6 +24,7 @@ import alluxio.grpc.WritePType;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.common.FileSystemParameters;
+import alluxio.stress.worker.WorkerBenchCoarseDataPoint;
 import alluxio.stress.worker.WorkerBenchDataPoint;
 import alluxio.stress.worker.WorkerBenchParameters;
 import alluxio.stress.worker.WorkerBenchTaskResult;
@@ -46,9 +49,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -67,13 +70,17 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
   private FileSystem[] mCachedFs;
   private Path[] mFilePaths;
-  private Integer[] mOffsets;
-  private Integer[] mLengths;
   private FileSystemContext mFsContext;
 
-  /** generate random number in range [min, max] (include both min and max).*/
-  private Integer randomNumInRange(Random rand, int min, int max) {
-    return rand.nextInt(max - min + 1) + min;
+  /**
+   * generate random number in range [min, max] (include both min and max).
+   */
+  private long randomNumInRange(long min, long max) {
+    return ThreadLocalRandom.current().nextLong(min, max + 1) + min;
+  }
+
+  private long minLong(long a, long b) {
+    return a > b ? a : b;
   }
 
   /**
@@ -123,7 +130,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
             + "be prepared for each test thread."
             + "# The threads will keeping reading for 30s including a 10s warmup."
             + "# So the result captures I/O performance from the last 20s.",
-        "$ bin/alluxio runClass alluxio.stress.cli.worker.StressWorkerBench \\\n"
+        "$ bin/alluxio exec class alluxio.stress.cli.worker.StressWorkerBench -- \\\n"
             + "--threads 32 --base alluxio:///stress-worker-base --file-size 100m \\\n"
             + "--warmup 10s --duration 30s --cluster\n"
     ));
@@ -153,8 +160,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     // and offsets
     mFilePaths = new Path[numFiles];
     // set random offsets and lengths if enabled
-    mLengths = new Integer[numFiles];
-    mOffsets = new Integer[numFiles];
 
     generateTestFilePaths(basePath);
 
@@ -204,15 +209,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
    * @param basePath base dir where the files should be prepared
    */
   public void generateTestFilePaths(Path basePath) throws IOException {
-    int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
     int clusterSize = mBaseParameters.mClusterLimit;
     int threads = mParameters.mThreads;
     List<BlockWorkerInfo> workers = mFsContext.getCachedWorkers();
-
-    Random rand = new Random();
-    if (mParameters.mIsRandom) {
-      rand = new Random(mParameters.mRandomSeed);
-    }
 
     for (int i = 0; i < clusterSize; i++) {
       BlockWorkerInfo localWorker = workers.get(i);
@@ -222,19 +221,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
         int index = i * threads + j;
         mFilePaths[index] = filePath;
-
-        // Continue init other aspects of the file read operation
-        // TODO(jiacheng): do we want a new randomness for every read?
-        if (mParameters.mIsRandom) {
-          int randomMin = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
-          int randomMax = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
-          mOffsets[index] = randomNumInRange(rand, 0, fileSize - 1 - randomMin);
-          mLengths[index] = randomNumInRange(rand, randomMin,
-                  Integer.min(fileSize - mOffsets[i], randomMax));
-        } else {
-          mOffsets[index] = 0;
-          mLengths[index] = fileSize;
-        }
       }
     }
     LOG.info("{} file paths generated", mFilePaths.length);
@@ -356,6 +342,16 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       throw new IllegalStateException(String.format("%s cannot be %s when %s option provided",
           FileSystemParameters.WRITE_TYPE_OPTION_NAME, WritePType.MUST_CACHE, "--free"));
     }
+
+    if (FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength) > Integer.MAX_VALUE) {
+      throw new IllegalArgumentException("mRandomReadMaxLength cannot be larger than 2.1G");
+    }
+
+    if (FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength)
+        < FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength)) {
+      throw new IllegalArgumentException("mRandomReadMinLength must not larger"
+          + " than mRandomReadMaxLength");
+    }
   }
 
   private static final class BenchContext {
@@ -380,8 +376,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
     public synchronized void mergeThreadResult(WorkerBenchTaskResult threadResult) {
       if (mResult == null) {
-        mResult = threadResult;
-        return;
+        mResult = new WorkerBenchTaskResult();
       }
       try {
         mResult.merge(threadResult);
@@ -402,6 +397,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     private final byte[] mBuffer;
     private final WorkerBenchTaskResult mResult;
     private final boolean mIsRandomRead;
+    private final long mRandomMax;
+    private final long mRandomMin;
+    private final long mFileSize;
 
     private FSDataInputStream mInStream;
 
@@ -415,6 +413,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       mResult.setParameters(mParameters);
       mResult.setBaseParameters(mBaseParameters);
       mIsRandomRead = mParameters.mIsRandom;
+      mRandomMin =  FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
+      mRandomMax =  FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
+      mFileSize = FormatUtils.parseSpaceSize(mParameters.mFileSize);
     }
 
     @Override
@@ -455,22 +456,77 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       CommonUtils.sleepMs(waitMs);
       SAMPLING_LOG.info("Test started and recording will be started after the warm up at {}",
           CommonUtils.convertMsToDate(recordMs, dateFormat));
+
+      String workerID = mBaseParameters.mIndex;
+      int lastDashIndex = workerID.lastIndexOf("-");
+      if (lastDashIndex != -1) {
+        workerID = toString().substring(lastDashIndex + 1);
+      }
+      WorkerBenchCoarseDataPoint dp = new WorkerBenchCoarseDataPoint(
+          Long.parseLong(workerID),
+          Thread.currentThread().getId());
+      WorkerBenchDataPoint slice = new WorkerBenchDataPoint();
+      List<Long> throughputList = new ArrayList<>();
+      long lastSlice = 0;
+
       while (!Thread.currentThread().isInterrupted()
           && CommonUtils.getCurrentMs() < mContext.getEndMs()) {
         // Keep reading the same file
-        WorkerBenchDataPoint dataPoint = applyOperation();
-        long currentMs = CommonUtils.getCurrentMs();
-        // Start recording after the warmup
-        if (currentMs > recordMs) {
-          mResult.addDataPoint(dataPoint);
-          if (dataPoint.getIOBytes() > 0) {
-            mResult.incrementIOBytes(dataPoint.getIOBytes());
+        long startMs = CommonUtils.getCurrentMs() - recordMs;
+        ApplyOperationOutput output = applyOperation();
+        if (startMs > 0) {
+          if (output.mBytesRead > 0) {
+            mResult.setIOBytes(mResult.getIOBytes() + output.mBytesRead);
+            slice.mCount += 1;
+            slice.mIOBytes += output.mBytesRead;
+            if (output.mDuration > 0) {
+              // throughput unit: MB/s
+              // max file size allowed: 9223372036B (8.5GB)
+              throughputList.add(output.mBytesRead * SECOND_NANO / (MB * output.mDuration));
+            } else if (output.mDuration == 0) {
+              // if duration is 0ns, treat is as 1ns
+              throughputList.add(output.mBytesRead * SECOND_NANO / MB);
+              SAMPLING_LOG.warn("Thread for file {} read operation finished in 0ns",
+                      mFilePaths[mTargetFileIndex]);
+            } else {
+              // if duration is negative, throw an exception
+              throw new IllegalStateException(String.format(
+                  "Negative duration for file read: %d", output.mDuration));
+            }
+            int currentSlice = (int) (startMs
+                / FormatUtils.parseTimeSize(mParameters.mSliceSize));
+            while (currentSlice > lastSlice) {
+              dp.addDataPoint(slice);
+              slice = new WorkerBenchDataPoint();
+              lastSlice++;
+            }
           } else {
             LOG.warn("Thread for file {} read 0 bytes from I/O", mFilePaths[mTargetFileIndex]);
           }
         } else {
-          SAMPLING_LOG.info("Ignored data point during warmup: {}", dataPoint);
+          SAMPLING_LOG.info("Ignored record during warmup: {} bytes", output.mBytesRead);
         }
+      }
+
+      int finalSlice = (int) (FormatUtils.parseTimeSize(mParameters.mDuration)
+          / FormatUtils.parseTimeSize(mParameters.mSliceSize));
+      while (finalSlice > lastSlice) {
+        dp.addDataPoint(slice);
+        slice = new WorkerBenchDataPoint();
+        lastSlice++;
+      }
+
+      dp.setThroughput(throughputList);
+      mResult.addDataPoint(dp);
+    }
+
+    private class ApplyOperationOutput {
+      public final long mBytesRead;
+      public final long mDuration;
+
+      public ApplyOperationOutput(long bytesRead, long duration) {
+        mBytesRead = bytesRead;
+        mDuration = duration;
       }
     }
 
@@ -478,21 +534,22 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
      * Read the file by the offset and length based on the given index.
      * @return the actual red byte number
      */
-    private WorkerBenchDataPoint applyOperation() throws IOException {
+    private ApplyOperationOutput applyOperation() throws IOException {
       Path filePath = mFilePaths[mTargetFileIndex];
-      int offset = mOffsets[mTargetFileIndex];
-      int length = mLengths[mTargetFileIndex];
 
-      long startOperation = CommonUtils.getCurrentMs();
+      long startReadNs = System.nanoTime();
       if (mInStream == null) {
         mInStream = mFs.open(filePath);
       }
 
       int bytesRead = 0;
       if (mIsRandomRead) {
+        long offset = randomNumInRange(0, mFileSize - 1 - mRandomMin);
+        long lengthMax = Math.min(mFileSize - offset, mRandomMax);
+        long length = randomNumInRange(mRandomMin, lengthMax);
         while (length > 0) {
           int actualReadLength = mInStream
-              .read(offset, mBuffer, 0, mBuffer.length);
+              .read(offset, mBuffer, 0, (int) minLong(mBuffer.length, length));
           if (actualReadLength < 0) {
             closeInStream();
             break;
@@ -515,10 +572,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
           }
         }
       }
-      long endOperation = CommonUtils.getCurrentMs();
-      return new WorkerBenchDataPoint(
-              mBaseParameters.mIndex, Thread.currentThread().getId(),
-              startOperation, endOperation - startOperation, bytesRead);
+      // We use the nanoTime only to calculate elapsed time
+      long afterReadNs = System.nanoTime();
+      return new ApplyOperationOutput(bytesRead, afterReadNs - startReadNs);
     }
 
     private void closeInStream() {

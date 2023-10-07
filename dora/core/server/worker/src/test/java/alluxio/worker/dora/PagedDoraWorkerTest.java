@@ -49,13 +49,13 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.io.BufferUtils;
+import alluxio.wire.WorkerIdentity;
 
 import com.google.common.base.Strings;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -99,6 +99,7 @@ public class PagedDoraWorkerTest {
     mMembershipManager =
         MembershipManager.Factory.create(Configuration.global());
     mWorker = new PagedDoraWorker(new AtomicReference<>(1L),
+        WorkerIdentity.ParserV0.INSTANCE.fromLong(1L),
         Configuration.global(), mCacheManager, mMembershipManager);
   }
 
@@ -108,8 +109,6 @@ public class PagedDoraWorkerTest {
   }
 
   @Test
-  @Ignore
-  // TODO(elega) fix this broken test
   public void testLoad()
       throws AccessControlException, ExecutionException, InterruptedException, TimeoutException,
       IOException {
@@ -118,9 +117,10 @@ public class PagedDoraWorkerTest {
     String ufsPath = mTestFolder.newFile("test").getAbsolutePath();
     byte[] buffer = BufferUtils.getIncreasingByteArray((int) length);
     BufferUtils.writeBufferToFile(ufsPath, buffer);
-    alluxio.grpc.File file =
-        alluxio.grpc.File.newBuilder().setUfsPath(ufsPath).setLength(length).setMountId(1).build();
-    ListenableFuture<LoadFileResponse> load = mWorker.load(true, false, Collections.emptyList(),
+    UfsStatus ufsStatus = mWorker.getUfsInstance(ufsPath).getStatus(ufsPath);
+    ufsStatus.setUfsFullPath(new AlluxioURI(ufsPath));
+    List<UfsStatus> listUfsStatus = new ArrayList<>(Collections.singletonList(ufsStatus));
+    ListenableFuture<LoadFileResponse> load = mWorker.load(true, false, listUfsStatus,
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build());
     List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS).getFailuresList();
     Assert.assertEquals(0, fileFailures.size());

@@ -27,7 +27,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterVersion;
 import alluxio.grpc.NetAddress;
-import alluxio.util.CommonUtils;
 import alluxio.wire.BlockMasterInfo;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -183,13 +182,11 @@ public class SummaryCommandTest {
 
     // check cluster summary
     // Skip checking startTime which relies on system time zone
-    String startTime =  CommonUtils.convertMsToDate(1131242343122L, dateFormatPattern);
     assertEquals("1231", jsonNode.get("webPort").asText());
     assertEquals("8462", jsonNode.get("rpcPort").asText());
     assertEquals("testVersion", jsonNode.get("version").asText());
-    assertEquals(startTime, jsonNode.get("started").asText());
-    assertEquals("143 day(s), 15 hour(s), 53 minute(s), and 32 second(s)",
-        jsonNode.get("uptime").asText());
+    assertEquals("1131242343122", jsonNode.get("startTime").asText());
+    assertEquals("12412412312", jsonNode.get("uptimeDuration").asText());
     assertEquals("false", jsonNode.get("safeMode").asText());
 
     // check zookeeper and raft
@@ -218,12 +215,12 @@ public class SummaryCommandTest {
     // check worker
     assertEquals("12", jsonNode.get("liveWorkers").asText());
     assertEquals("4", jsonNode.get("lostWorkers").asText());
-    assertEquals("1248.94KB", jsonNode.get("freeCapacity").asText());
-    assertEquals("230.96KB", jsonNode.get("totalCapacityOnTiers").get("DOM").asText());
-    assertEquals("1309.92KB", jsonNode.get("totalCapacityOnTiers").get("MEM").asText());
-    assertEquals("22.57KB", jsonNode.get("totalCapacityOnTiers").get("RAM").asText());
-    assertEquals("72.50KB", jsonNode.get("usedCapacityOnTiers").get("DOM").asText());
-    assertEquals("60.97KB", jsonNode.get("usedCapacityOnTiers").get("MEM").asText());
-    assertEquals("6.10KB", jsonNode.get("usedCapacityOnTiers").get("RAM").asText());
+    assertEquals("1278919", jsonNode.get("freeCapacityBytes").asText());
+    assertEquals("236501", jsonNode.get("totalCapacityOnTiers").get("DOMBytes").asText());
+    assertEquals("1341353", jsonNode.get("totalCapacityOnTiers").get("MEMBytes").asText());
+    assertEquals("23112", jsonNode.get("totalCapacityOnTiers").get("RAMBytes").asText());
+    assertEquals("74235", jsonNode.get("usedCapacityOnTiers").get("DOMBytes").asText());
+    assertEquals("62434", jsonNode.get("usedCapacityOnTiers").get("MEMBytes").asText());
+    assertEquals("6243", jsonNode.get("usedCapacityOnTiers").get("RAMBytes").asText());
   }
 }

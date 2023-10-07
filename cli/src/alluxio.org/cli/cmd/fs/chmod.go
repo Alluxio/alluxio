@@ -39,15 +39,20 @@ func (c *ChmodCommand) Base() *env.BaseJavaCommand {
 
 func (c *ChmodCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%s <mode> <path>", c.CommandName),
-		Short: "Changes the permission of a file or directory specified by args",
-		Args:  cobra.ExactArgs(2),
+		Use:   fmt.Sprintf("%s [mode] [path]", c.CommandName),
+		Short: "Changes the permission of a file or directory",
+		Long: `The chmod command changes the permission of a file or directory in Alluxio.
+The permission mode is represented as an octal 3 digit value.
+Refer to https://en.wikipedia.org/wiki/Chmod#Numerical_permissions for a detailed description of the modes.`,
+		Example: `# Set mode 755 for /input/file
+$ ./bin/alluxio fs chmod 755 /input/file1`,
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
 	})
 	cmd.Flags().BoolVarP(&c.recursive, "recursive", "R", false,
-		"change the permission recursively")
+		"change the permission recursively for all files and directories under the given path")
 	return cmd
 }
 

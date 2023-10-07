@@ -66,6 +66,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -82,6 +83,8 @@ public class DoraCacheClient {
 
   private final int mPreferredWorkerCount;
 
+  private final boolean mEnableDynamicHashRing;
+
   /**
    * Constructor.
    *
@@ -94,6 +97,8 @@ public class DoraCacheClient {
         PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
     mNettyTransEnabled =
         context.getClusterConf().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
+    mEnableDynamicHashRing =
+        context.getClusterConf().getBoolean(PropertyKey.USER_DYNAMIC_CONSISTENT_HASH_RING_ENABLED);
     int minReplicaCount = context.getClusterConf().getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
     mPreferredWorkerCount = Math.max(1, minReplicaCount);
   }
@@ -150,7 +155,7 @@ public class DoraCacheClient {
    */
   public DoraCachePositionReader createNettyPositionReader(URIStatus status,
       Protocol.OpenUfsBlockOptions ufsOptions,
-      CloseableSupplier<PositionReader> externalPositionReader) {
+      Optional<CloseableSupplier<PositionReader>> externalPositionReader) {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.toString());
     // Construct the partial read request
     NettyDataReader reader = createNettyDataReader(workerNetAddress, ufsOptions);
@@ -262,7 +267,7 @@ public class DoraCacheClient {
   public Map<String, List<WorkerNetAddress>> checkFileLocation(String path,
       GetStatusPOptions options) throws IOException {
     Map<String, List<WorkerNetAddress>> pathDistributionMap = new HashMap<>();
-    List<BlockWorkerInfo> workers = mContext.getCachedWorkers();
+    List<BlockWorkerInfo> workers = mContext.getLiveWorkers();
     for (BlockWorkerInfo worker : workers) {
       try (CloseableResource<BlockWorkerClient> client =
                mContext.acquireBlockWorkerClient(worker.getNetAddress())) {
@@ -429,12 +434,18 @@ public class DoraCacheClient {
    */
   public WorkerNetAddress getWorkerNetAddress(String path) {
     try {
-      List<BlockWorkerInfo> workers = mContext.getCachedWorkers();
+      List<BlockWorkerInfo> workers = mEnableDynamicHashRing ? mContext.getCachedWorkers(
+          FileSystemContext.GetWorkerListType.LIVE) : mContext.getCachedWorkers(
+          FileSystemContext.GetWorkerListType.ALL);
       List<BlockWorkerInfo> preferredWorkers =
           mWorkerLocationPolicy.getPreferredWorkers(workers,
               path, mPreferredWorkerCount);
       checkState(preferredWorkers.size() > 0);
-      WorkerNetAddress workerNetAddress = choosePreferredWorker(preferredWorkers).getNetAddress();
+      BlockWorkerInfo worker = choosePreferredWorker(preferredWorkers);
+      if (!worker.isActive()) {
+        throw new RuntimeException("The preferred worker is not active.");
+      }
+      WorkerNetAddress workerNetAddress = worker.getNetAddress();
       return workerNetAddress;
     } catch (IOException e) {
       // If failed to find workers in the cluster or failed to find the specified number of
