@@ -156,6 +156,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
       for (URIStatus uriStatus : uriStatuses) {
         String type = uriStatus.isFolder() ? "directory" : "file";
         ResponseFileInfo responseFileInfo = new ResponseFileInfo(type, uriStatus.getName(),
+            uriStatus.getPath(), uriStatus.getUfsPath(), uriStatus.getLastModificationTimeMs(),
             uriStatus.getLength());
         responseFileInfoList.add(responseFileInfo);
       }
