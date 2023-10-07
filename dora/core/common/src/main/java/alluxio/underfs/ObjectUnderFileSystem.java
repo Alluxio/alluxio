@@ -23,9 +23,13 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.GetStatusOptions;
+import alluxio.underfs.options.ListMultiPartOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.MultipartUfsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.underfs.response.ListMultipartUploadResult;
+import alluxio.underfs.response.PartSummaryInfo;
 import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -1236,6 +1240,73 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     }
     String parentKey = getParentPath(path);
     return parentKey != null && isDirectory(parentKey);
+  }
+
+  /**
+   * Init a multipart upload task in the ufs.
+   * @param options
+   * @return uploadId
+   * @throws IOException
+   */
+  protected String initMultiPart(String key, MultipartUfsOptions options)
+      throws IOException {
+    throw new UnsupportedOperationException("not support by default");
+  }
+
+  /**
+   * Uploads the part with an existed stream.
+   * @param options
+   * @return etag of the uploaded part
+   * @throws IOException
+   */
+  protected String uploadPartWithStream(String key, String uploadId, int partNum, long fileSize,
+                                        InputStream stream, MultipartUfsOptions options)
+      throws IOException {
+    throw new UnsupportedOperationException("not support by default");
+  }
+
+  /**
+   * Complete a multipart upload task in UFS.
+   * @param options
+   * @return etag of the completed file
+   * @throws IOException
+   */
+  protected String completeMultiPart(String key, String uploadId, List<Pair<Integer, String>> etags,
+                                     MultipartUfsOptions options)
+      throws IOException {
+    throw new UnsupportedOperationException("not support by default");
+  }
+
+  /**
+   * Gets the uploaded part list of a multipart upload task in UFS.
+   * @param options
+   * @return list of part info
+   * @throws IOException
+   */
+  protected List<PartSummaryInfo> listParts(String key, String uploadId,
+                                            MultipartUfsOptions options)
+      throws IOException {
+    throw new UnsupportedOperationException("not support by default");
+  }
+
+  /**
+   * Gets the list of the multipart upload tasks in UFS.
+   * @param options
+   * @return list of multipartUpload task info
+   */
+  public ListMultipartUploadResult listMultipartUploads(ListMultiPartOptions options)
+      throws IOException {
+    throw new UnsupportedOperationException("not support by default");
+  }
+
+  /**
+   * abort a multipart upload task in UFS.
+   * @param options
+   */
+  protected void abortMultipartTask(String key, String uploadId,
+                                    alluxio.underfs.options.MultipartUfsOptions options)
+      throws IOException {
+    throw new UnsupportedOperationException("not support by default");
   }
 
   /**

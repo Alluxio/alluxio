@@ -14,12 +14,20 @@ package alluxio.underfs.cos;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.retry.RetryPolicy;
+import alluxio.underfs.ObjectLowLevelOutputStream;
+import alluxio.underfs.ObjectMultipartUploader;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.ListMultiPartOptions;
+import alluxio.underfs.options.MultipartUfsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.underfs.response.ListMultipartUploadResult;
+import alluxio.underfs.response.MultipartUploadInfo;
+import alluxio.underfs.response.PartSummaryInfo;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -34,13 +42,23 @@ import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
 import com.qcloud.cos.auth.COSCredentials;
 import com.qcloud.cos.exception.CosClientException;
+import com.qcloud.cos.model.AbortMultipartUploadRequest;
 import com.qcloud.cos.model.COSObjectSummary;
+import com.qcloud.cos.model.CompleteMultipartUploadRequest;
 import com.qcloud.cos.model.DeleteObjectsRequest;
 import com.qcloud.cos.model.DeleteObjectsResult;
+import com.qcloud.cos.model.InitiateMultipartUploadRequest;
+import com.qcloud.cos.model.ListMultipartUploadsRequest;
 import com.qcloud.cos.model.ListObjectsRequest;
+import com.qcloud.cos.model.ListPartsRequest;
+import com.qcloud.cos.model.MultipartUploadListing;
 import com.qcloud.cos.model.ObjectListing;
 import com.qcloud.cos.model.ObjectMetadata;
+import com.qcloud.cos.model.PartETag;
+import com.qcloud.cos.model.PartListing;
+import com.qcloud.cos.model.UploadPartRequest;
 import com.qcloud.cos.region.Region;
+import com.qcloud.cos.utils.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +66,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -171,6 +190,11 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
+    if (mUfsConf.getBoolean(PropertyKey.UNDERFS_COS_STREAMING_UPLOAD_ENABLED)) {
+      ObjectMultipartUploader multipartUploader =
+          new ObjectMultipartUploader(key, this, mMultipartUploadExecutor.get());
+      return new ObjectLowLevelOutputStream(mBucketName, key, multipartUploader, mUfsConf);
+    }
     if (mUfsConf.getBoolean(PropertyKey.UNDERFS_COS_MULTIPART_UPLOAD_ENABLED)) {
       return new COSMultipartUploadOutputStream(mBucketNameInternal, key, mClient,
           mMultipartUploadExecutor.get(), mUfsConf);
@@ -353,6 +377,122 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
     try {
       return new COSInputStream(mBucketNameInternal, key, mClient, options.getOffset(), retryPolicy,
           mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
+    } catch (CosClientException e) {
+      throw new IOException(e.getMessage());
+    }
+  }
+
+  @Override
+  protected String initMultiPart(String key, MultipartUfsOptions options) throws IOException {
+    try {
+      ObjectMetadata meta = new ObjectMetadata();
+      InitiateMultipartUploadRequest initRequest =
+          new InitiateMultipartUploadRequest(mBucketName, key, meta);
+      return mClient.initiateMultipartUpload(initRequest).getUploadId();
+    } catch (CosClientException e) {
+      throw new IOException(e.getMessage());
+    }
+  }
+
+  @Override
+  protected String uploadPartWithStream(String key, String uploadId, int partNum, long fileSize,
+                                        InputStream stream, MultipartUfsOptions options)
+      throws IOException {
+    try {
+      final UploadPartRequest uploadRequest =
+          new UploadPartRequest();
+      uploadRequest.setBucketName(mBucketName);
+      uploadRequest.setKey(key);
+      uploadRequest.setUploadId(uploadId);
+      uploadRequest.setPartNumber(partNum);
+      uploadRequest.setPartSize(fileSize);
+      uploadRequest.setInputStream(stream);
+
+      PartETag partETag = mClient.uploadPart(uploadRequest).getPartETag();
+      return partETag.getETag();
+    } catch (CosClientException e) {
+      throw new IOException(e.getMessage());
+    }
+  }
+
+  @Override
+  protected String completeMultiPart(String key, String uploadId, List<Pair<Integer, String>> etags,
+                                     MultipartUfsOptions options) throws IOException {
+    try {
+      List<PartETag> partETags = new ArrayList<>();
+      for (Pair pair : etags) {
+        partETags.add(new PartETag((Integer) pair.getFirst(), (String) pair.getSecond()));
+      }
+      CompleteMultipartUploadRequest completeRequest = new CompleteMultipartUploadRequest(
+          mBucketName, key, uploadId, partETags);
+      return mClient.completeMultipartUpload(completeRequest).getETag();
+    } catch (CosClientException e) {
+      throw new IOException(e.getMessage());
+    }
+  }
+
+  @Override
+  protected List<PartSummaryInfo> listParts(String key, String uploadId,
+                                            MultipartUfsOptions options) throws IOException {
+    try {
+      ListPartsRequest request = new ListPartsRequest(mBucketName, key, uploadId);
+      PartListing result = mClient.listParts(request);
+      List<PartSummaryInfo> partList = result.getParts().stream().map(
+          part -> new PartSummaryInfo(part.getPartNumber(),
+              DateUtils.formatISO8601Date(part.getLastModified()), part.getETag(),
+              part.getSize())).collect(Collectors.toList());
+      return partList;
+    } catch (CosClientException e) {
+      throw new IOException(e.getMessage());
+    }
+  }
+
+  @Override
+  public ListMultipartUploadResult listMultipartUploads(ListMultiPartOptions options)
+      throws IOException {
+    ListMultipartUploadsRequest request = new ListMultipartUploadsRequest(mBucketName);
+    if (options.getPrefix() != null) {
+      request.setPrefix(stripPrefixIfPresent(options.getPrefix()));
+    }
+    if (options.getDelimiter() != null) {
+      request.setDelimiter(options.getDelimiter());
+    }
+    if (options.getKeyMarker() != null) {
+      request.setKeyMarker(stripPrefixIfPresent(options.getKeyMarker()));
+    }
+    if (options.getUploadIdMarker() != null) {
+      request.setUploadIdMarker(options.getUploadIdMarker());
+    }
+    if (options.getMaxUploads() >= 0) {
+      request.setMaxUploads(options.getMaxUploads());
+    }
+    try {
+      MultipartUploadListing result = mClient.listMultipartUploads(request);
+      List<MultipartUploadInfo> uploadInfoList = result.getMultipartUploads().stream().map(
+              task -> new MultipartUploadInfo(Constants.HEADER_S3 + mBucketName + "/" + task.getKey(),
+                  task.getUploadId(), DateUtils.formatISO8601Date(task.getInitiated())))
+          .collect(Collectors.toList());
+      ListMultipartUploadResult listResult = new ListMultipartUploadResult(uploadInfoList);
+      listResult.setPrefix(result.getPrefix());
+      listResult.setDelimiter(result.getDelimiter());
+      listResult.setMaxUploads(result.getMaxUploads());
+      listResult.setTruncated(result.isTruncated());
+      listResult.setKeyMarker(Constants.HEADER_S3 + mBucketName + "/" + result.getKeyMarker());
+      listResult.setUploadIdMarker(result.getUploadIdMarker());
+      listResult.setNextKeyMarker(
+          Constants.HEADER_S3 + mBucketName + "/" + result.getNextKeyMarker());
+      listResult.setNextUploadIdMarker(result.getNextUploadIdMarker());
+      return listResult;
+    } catch (CosClientException e) {
+      throw new IOException(e.getMessage());
+    }
+  }
+
+  @Override
+  protected void abortMultipartTask(String key, String uploadId, MultipartUfsOptions options)
+      throws IOException {
+    try {
+      mClient.abortMultipartUpload(new AbortMultipartUploadRequest(mBucketName, key, uploadId));
     } catch (CosClientException e) {
       throw new IOException(e.getMessage());
     }

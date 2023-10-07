@@ -18,9 +18,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
+import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.underfs.ObjectLowLevelOutputStream;
+import alluxio.underfs.ObjectMultipartUploader;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.FormatUtils;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -33,6 +37,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.UploadPartRequest;
 import com.amazonaws.services.s3.model.UploadPartResult;
+import com.amazonaws.services.s3.transfer.TransferManager;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import org.junit.Before;
@@ -41,7 +46,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.BufferedOutputStream;
@@ -51,10 +55,10 @@ import java.security.DigestOutputStream;
 import java.util.concurrent.Callable;
 
 /**
- * Unit tests for the {@link S3ALowLevelOutputStream}.
+ * Unit tests for the {@link ObjectLowLevelOutputStream} with {@link S3AUnderFileSystem}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(S3ALowLevelOutputStream.class)
+//@PrepareForTest(ObjectLowLevelOutputStream.class)
 @SuppressWarnings("unchecked")
 public class S3ALowLevelOutputStreamTest {
   private static final String BUCKET_NAME = "testBucket";
@@ -63,12 +67,13 @@ public class S3ALowLevelOutputStreamTest {
   private static final String UPLOAD_ID = "testUploadId";
   private static InstancedConfiguration sConf = Configuration.modifiableGlobal();
 
+  private S3AUnderFileSystem mMockS3Ufs;
   private AmazonS3 mMockS3Client;
   private ListeningExecutorService mMockExecutor;
   private BufferedOutputStream mMockOutputStream;
   private ListenableFuture<PartETag> mMockTag;
 
-  private S3ALowLevelOutputStream mStream;
+  private ObjectLowLevelOutputStream mStream;
 
   /**
    * Sets the properties and configuration before each test runs.
@@ -79,7 +84,9 @@ public class S3ALowLevelOutputStreamTest {
     mockFileAndOutputStream();
 
     sConf.set(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE, PARTITION_SIZE);
-    mStream = new S3ALowLevelOutputStream(BUCKET_NAME, KEY, mMockS3Client, mMockExecutor, sConf);
+    ObjectMultipartUploader mpuUploader =
+        new ObjectMultipartUploader(KEY, mMockS3Ufs, mMockExecutor);
+    mStream = new ObjectLowLevelOutputStream(BUCKET_NAME, KEY, mpuUploader, sConf);
   }
 
   @Test
@@ -217,6 +224,12 @@ public class S3ALowLevelOutputStreamTest {
     when(mMockTag.get()).thenReturn(new PartETag(1, "someTag"));
     mMockExecutor = Mockito.mock(ListeningExecutorService.class);
     when(mMockExecutor.submit(any(Callable.class))).thenReturn(mMockTag);
+    TransferManager transferManager = PowerMockito.mock(TransferManager.class);
+    mMockS3Ufs =
+        new S3AUnderFileSystem(new AlluxioURI("s3://" + BUCKET_NAME), mMockS3Client,
+            null, BUCKET_NAME,
+            mMockExecutor, transferManager,
+            UnderFileSystemConfiguration.defaults(sConf), true, true);
   }
 
   /**

@@ -2062,6 +2062,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_COS_STREAMING_UPLOAD_ENABLED =
+      booleanBuilder(Name.UNDERFS_COS_STREAMING_UPLOAD_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If true, using streaming upload to write to COS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_COS_MULTIPART_UPLOAD_ENABLED =
       booleanBuilder(Name.UNDERFS_COS_MULTIPART_UPLOAD_ENABLED)
           .setDefaultValue(false)
@@ -7395,6 +7402,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.obs.multipart.upload.threads";
     public static final String UNDERFS_OBS_MULTIPART_UPLOAD_PARTITION_SIZE =
         "alluxio.underfs.obs.multipart.upload.part.size";
+    public static final String UNDERFS_COS_STREAMING_UPLOAD_ENABLED =
+        "alluxio.underfs.obs.streaming.upload.enabled";
     public static final String UNDERFS_COS_MULTIPART_UPLOAD_ENABLED =
         "alluxio.underfs.cos.multipart.upload.enabled";
     public static final String UNDERFS_COS_MULTIPART_UPLOAD_THREADS =

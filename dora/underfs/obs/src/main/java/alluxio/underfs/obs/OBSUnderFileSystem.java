@@ -14,14 +14,22 @@ package alluxio.underfs.obs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.retry.RetryPolicy;
+import alluxio.underfs.ObjectLowLevelOutputStream;
+import alluxio.underfs.ObjectMultipartUploader;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.ListMultiPartOptions;
+import alluxio.underfs.options.MultipartUfsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.underfs.response.ListMultipartUploadResult;
+import alluxio.underfs.response.MultipartUploadInfo;
+import alluxio.underfs.response.PartSummaryInfo;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -32,17 +40,25 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.obs.services.ObsClient;
 import com.obs.services.exception.ObsException;
+import com.obs.services.internal.utils.ServiceUtils;
 import com.obs.services.model.AbortMultipartUploadRequest;
+import com.obs.services.model.CompleteMultipartUploadRequest;
 import com.obs.services.model.DeleteObjectsRequest;
 import com.obs.services.model.DeleteObjectsResult;
+import com.obs.services.model.InitiateMultipartUploadRequest;
 import com.obs.services.model.KeyAndVersion;
 import com.obs.services.model.ListMultipartUploadsRequest;
 import com.obs.services.model.ListObjectsRequest;
+import com.obs.services.model.ListPartsRequest;
+import com.obs.services.model.ListPartsResult;
 import com.obs.services.model.MultipartUpload;
 import com.obs.services.model.MultipartUploadListing;
 import com.obs.services.model.ObjectListing;
 import com.obs.services.model.ObjectMetadata;
 import com.obs.services.model.ObsObject;
+import com.obs.services.model.PartEtag;
+import com.obs.services.model.UploadPartRequest;
+import com.obs.services.model.UploadPartResult;
 import com.obs.services.model.fs.RenameRequest;
 import com.obs.services.model.fs.RenameResult;
 import org.slf4j.Logger;
@@ -52,6 +68,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -222,8 +239,9 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected OutputStream createObject(String key) throws IOException {
     if (mUfsConf.getBoolean(PropertyKey.UNDERFS_OBS_STREAMING_UPLOAD_ENABLED)) {
-      return new OBSLowLevelOutputStream(mBucketName, key, mClient,
-          mStreamingUploadExecutor.get(), mUfsConf);
+      ObjectMultipartUploader multipartUploader =
+          new ObjectMultipartUploader(key, this, mStreamingUploadExecutor.get());
+      return new ObjectLowLevelOutputStream(mBucketName, key, multipartUploader, mUfsConf);
     }
     else if (mUfsConf.getBoolean(PropertyKey.UNDERFS_OBS_MULTIPART_UPLOAD_ENABLED)) {
       return new OBSMultipartUploadOutputStream(mBucketName, key, mClient,
@@ -476,5 +494,138 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
    */
   private boolean isSuccessResponse(int statusCode) {
     return statusCode == 200 || statusCode == 204 || statusCode == 201;
+  }
+
+  @Override
+  protected String initMultiPart(String key, MultipartUfsOptions options) throws IOException {
+    try {
+      ObjectMetadata meta = new ObjectMetadata();
+      InitiateMultipartUploadRequest request =
+          new InitiateMultipartUploadRequest(mBucketName, key);
+      request.setMetadata(meta);
+      return mClient.initiateMultipartUpload(request).getUploadId();
+    } catch (ObsException e) {
+      LOG.debug("failed to init multi part upload", e);
+      throw new IOException("failed to init multi part upload", e);
+    }
+  }
+
+  @Override
+  protected String uploadPartWithStream(String key, String uploadId, int partNum, long fileSize,
+                                        InputStream stream, MultipartUfsOptions options)
+      throws IOException {
+    try {
+      final UploadPartRequest uploadRequest = new UploadPartRequest();
+      uploadRequest.setBucketName(mBucketName);
+      uploadRequest.setObjectKey(key);
+      uploadRequest.setUploadId(uploadId);
+      uploadRequest.setPartNumber(partNum);
+      uploadRequest.setInput(stream);
+      uploadRequest.setPartSize(fileSize);
+      UploadPartResult result = mClient.uploadPart(uploadRequest);
+      return result.getEtag();
+    } catch (ObsException e) {
+      LOG.debug("failed to upload part.", e);
+      throw new IOException(String.format(
+          "failed to upload part. key: %s part number: %s uploadId: %s",
+          key, partNum, uploadId), e);
+    }
+  }
+
+  @Override
+  protected String completeMultiPart(String key, String uploadId, List<Pair<Integer, String>> etags,
+                                     MultipartUfsOptions options) throws IOException {
+    try {
+      LOG.info("complete part {}", uploadId);
+      List<PartEtag> partETags = new ArrayList<>();
+      for (Pair pair : etags) {
+        partETags.add(new PartEtag((String) pair.getSecond(), (Integer) pair.getFirst()));
+      }
+      CompleteMultipartUploadRequest completeRequest = new CompleteMultipartUploadRequest(
+          mBucketName, key, uploadId, partETags);
+      return mClient.completeMultipartUpload(completeRequest).getEtag();
+    } catch (ObsException e) {
+      LOG.debug("failed to complete multi part upload", e);
+      throw new IOException(
+          String.format("failed to complete multi part upload, key: %s, upload id: %s",
+              key, uploadId) + e);
+    }
+  }
+
+  @Override
+  protected List<PartSummaryInfo> listParts(String key, String uploadId,
+                                            MultipartUfsOptions options) throws IOException {
+    try {
+      ListPartsRequest request = new ListPartsRequest(mBucketName, key, uploadId);
+      ListPartsResult result = mClient.listParts(request);
+      List<PartSummaryInfo> partList = result.getMultipartList().stream().map(
+          part -> new PartSummaryInfo(part.getPartNumber(),
+              ServiceUtils.formatIso8601Date(part.getLastModified()), part.getEtag(),
+              part.getSize())).collect(Collectors.toList());
+      return partList;
+    } catch (ObsException e) {
+      LOG.debug("failed to list part.", e);
+      throw new IOException(
+          String.format("failed to list the part of multi part upload, key: %s, upload id: %s",
+              key, uploadId) + e);
+    }
+  }
+
+  @Override
+  public ListMultipartUploadResult listMultipartUploads(ListMultiPartOptions options)
+      throws IOException {
+    ListMultipartUploadsRequest request = new ListMultipartUploadsRequest(mBucketName);
+    if (options.getPrefix() != null) {
+      request.setPrefix(stripPrefixIfPresent(options.getPrefix()));
+    }
+    if (options.getDelimiter() != null) {
+      request.setDelimiter(options.getDelimiter());
+    }
+    if (options.getKeyMarker() != null) {
+      request.setKeyMarker(stripPrefixIfPresent(options.getKeyMarker()));
+    }
+    if (options.getUploadIdMarker() != null) {
+      request.setUploadIdMarker(options.getUploadIdMarker());
+    }
+    if (options.getMaxUploads() >= 0) {
+      request.setMaxUploads(options.getMaxUploads());
+    }
+    try {
+      MultipartUploadListing result = mClient.listMultipartUploads(request);
+      List<MultipartUploadInfo> uploadInfoList = result.getMultipartTaskList().stream().map(
+              task -> new MultipartUploadInfo(
+                  Constants.HEADER_S3 + mBucketName + "/" + task.getObjectKey(), task.getUploadId(),
+                  ServiceUtils.formatIso8601Date(task.getInitiatedDate())))
+          .collect(Collectors.toList());
+      ListMultipartUploadResult listResult = new ListMultipartUploadResult(uploadInfoList);
+      listResult.setPrefix(result.getPrefix());
+      listResult.setDelimiter(result.getDelimiter());
+      listResult.setMaxUploads(result.getMaxUploads());
+      listResult.setTruncated(result.isTruncated());
+      listResult.setKeyMarker(Constants.HEADER_S3 + mBucketName + "/" + result.getKeyMarker());
+      listResult.setUploadIdMarker(result.getUploadIdMarker());
+      listResult.setNextKeyMarker(
+          Constants.HEADER_S3 + mBucketName + "/" + result.getNextKeyMarker());
+      listResult.setNextUploadIdMarker(result.getNextUploadIdMarker());
+      return listResult;
+    } catch (ObsException e) {
+      LOG.debug("failed to list multi part upload", e);
+      throw new IOException("failed to list multi part upload task.");
+    }
+  }
+
+  @Override
+  protected void abortMultipartTask(String key, String uploadId, MultipartUfsOptions options)
+      throws IOException {
+    try {
+      AbortMultipartUploadRequest request =
+          new AbortMultipartUploadRequest(mBucketName, key, uploadId);
+      mClient.abortMultipartUpload(request);
+    } catch (ObsException e) {
+      LOG.debug("failed to abort multi part upload", e);
+      throw new IOException(
+          String.format("failed to complete multi part upload, key: %s, upload id: %s", key,
+              uploadId), e);
+    }
   }
 }

@@ -14,6 +14,7 @@ package alluxio.underfs;
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
@@ -22,28 +23,20 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.DigestOutputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
+import java.nio.file.Files;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
@@ -56,7 +49,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * We upload data in partitions. When write(), the data will be persisted to
  * a temporary file {@link #mFile} on the local disk. When the data {@link #mPartitionOffset}
  * in this temporary file reaches the {@link #mPartitionSize}, the file will be submitted
- * to the upload executor {@link #mExecutor} and we do not wait for uploads to finish.
+ * to the {@link MultipartUploader} and we do not wait for uploads to finish.
  * A new temp file will be created for the future write and the {@link #mPartitionOffset}
  * will be reset to zero. The process goes until all the data has been written to temp files.
  * <p>
@@ -76,7 +69,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * older than clean age will be cleaned.
  */
 @NotThreadSafe
-public abstract class ObjectLowLevelOutputStream extends OutputStream
+public class ObjectLowLevelOutputStream extends OutputStream
     implements ContentHashable {
   protected static final Logger LOG = LoggerFactory.getLogger(ObjectLowLevelOutputStream.class);
 
@@ -99,10 +92,6 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream
 
   /** Pre-allocated byte buffer for writing single characters. */
   protected final byte[] mSingleCharWrite = new byte[1];
-
-  /** The MD5 hash of the file. */
-  @Nullable
-  protected MessageDigest mHash;
 
   /** Flag to indicate this stream has been closed, to ensure close is only done once. */
   protected boolean mClosed = false;
@@ -128,48 +117,36 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream
    */
   private final AtomicInteger mPartNumber;
 
-  /** Executing the upload tasks. */
-  private final ListeningExecutorService mExecutor;
-
-  /** Store the future of tags. */
-  private final List<ListenableFuture<?>> mFutures = new ArrayList<>();
-
-  /** upload part timeout, null means no timeout. */
-  @Nullable
-  private Long mUploadPartTimeoutMills;
-
-  /** Whether the multi upload has been initialized. */
-  private boolean mMultiPartUploadInitialized = false;
+  private final ObjectMultipartUploader mMultipartUploader;
 
   /**
    * Constructs a new stream for writing a file.
    *
    * @param bucketName the name of the bucket
    * @param key the key of the file
-   * @param streamingUploadPartitionSize the size in bytes for partitions of streaming uploads
-   * @param executor executor
+   * @param multipartUploader the uploader to complete the multipart upload task
    * @param ufsConf the object store under file system configuration
    */
   public ObjectLowLevelOutputStream(
       String bucketName,
       String key,
-      ListeningExecutorService executor,
-      long streamingUploadPartitionSize,
+      ObjectMultipartUploader multipartUploader,
       AlluxioConfiguration ufsConf) {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(),
         "Bucket name must not be null or empty.");
     mBucketName = bucketName;
     mTmpDirs = ufsConf.getList(PropertyKey.TMP_DIRS);
     Preconditions.checkArgument(!mTmpDirs.isEmpty(), "No temporary directories available");
-    mExecutor = executor;
     mKey = key;
-    initHash();
+    long streamingUploadPartitionSize =
+        ufsConf.getBytes(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_PARTITION_SIZE);
     mPartitionSize = Math.max(UPLOAD_THRESHOLD, streamingUploadPartitionSize);
     mPartNumber = new AtomicInteger(1);
-    if (ufsConf.isSet(PropertyKey.UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT)) {
-      mUploadPartTimeoutMills =
-          ufsConf.getDuration(PropertyKey.UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT)
-              .toMillis();
+    mMultipartUploader = multipartUploader;
+    try {
+      mMultipartUploader.startUpload();
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
     }
   }
 
@@ -208,9 +185,6 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream
 
   @Override
   public void flush() throws IOException {
-    if (!mMultiPartUploadInitialized) {
-      return;
-    }
     // We try to minimize the time use to close()
     // because Fuse release() method which calls close() is async.
     // In flush(), we upload the current writing file if it is bigger than 5 MB,
@@ -233,37 +207,24 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream
     // Set the closed flag, we never retry close() even if exception occurs
     mClosed = true;
 
-    // Multi-part upload has not been initialized
-    if (!mMultiPartUploadInitialized) {
+    try {
+
       if (mFile == null) {
         LOG.debug("Streaming upload output stream closed without uploading any data.");
-        RetryUtils.retry("put empty object for key" + mKey, () -> createEmptyObject(mKey),
+        RetryUtils.retry("put empty object for key" + mKey, mMultipartUploader::complete,
             mRetryPolicy.get());
+        return;
       } else {
-        try {
-          mLocalOutputStream.close();
-          final String md5 = mHash != null ? Base64.encodeBase64String(mHash.digest()) : null;
-          RetryUtils.retry("put object for key" + mKey, () -> putObject(mKey, mFile, md5),
-              mRetryPolicy.get());
-        } finally {
-          if (!mFile.delete()) {
-            LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
-          }
-        }
-      }
-      return;
-    }
-
-    try {
-      if (mFile != null) {
         mLocalOutputStream.close();
         int partNumber = mPartNumber.getAndIncrement();
-        uploadPart(mFile, partNumber, true);
+        File partFile = new File(mFile.getPath());
+        InputStream in = new BufferedInputStream(Files.newInputStream(partFile.toPath()));
+        mMultipartUploader.putPart(in, partNumber, partFile.length());
       }
 
       waitForAllPartsUpload();
-      RetryUtils.retry("complete multipart upload",
-          this::completeMultiPartUploadInternal, mRetryPolicy.get());
+      RetryUtils.retry("complete multipart upload", mMultipartUploader::complete,
+          mRetryPolicy.get());
     } catch (Exception e) {
       LOG.error("Failed to upload {}", mKey, e);
       throw new IOException(e);
@@ -275,24 +236,9 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream
    */
   private void initNewFile() throws IOException {
     mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(mTmpDirs), UUID.randomUUID()));
-    initHash();
-    if (mHash != null) {
-      mLocalOutputStream =
-          new BufferedOutputStream(new DigestOutputStream(new FileOutputStream(mFile), mHash));
-    } else {
-      mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
-    }
+    mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
     mPartitionOffset = 0;
     LOG.debug("Init new temp file @ {}", mFile.getPath());
-  }
-
-  private void initHash() {
-    try {
-      mHash = MessageDigest.getInstance("MD5");
-    } catch (NoSuchAlgorithmException e) {
-      LOG.warn("Algorithm not available for MD5 hash.", e);
-      mHash = null;
-    }
   }
 
   /**
@@ -302,42 +248,18 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream
     if (mFile == null) {
       return;
     }
-    if (!mMultiPartUploadInitialized) {
-      RetryUtils.retry("init multipart upload", this::initMultiPartUploadInternal,
-          mRetryPolicy.get());
-      mMultiPartUploadInitialized = true;
-    }
     mLocalOutputStream.close();
     int partNumber = mPartNumber.getAndIncrement();
-    uploadPart(new File(mFile.getPath()), partNumber, false);
+    File partFile = new File(mFile.getPath());
+    InputStream in = new BufferedInputStream(Files.newInputStream(partFile.toPath()));
+    mMultipartUploader.putPart(in, partNumber, partFile.length());
     mFile = null;
     mLocalOutputStream = null;
   }
 
-  protected void uploadPart(File file, int partNumber, boolean lastPart) {
-    final String md5 = mHash != null ? Base64.encodeBase64String(mHash.digest()) : null;
-    Callable<?> callable = () -> {
-      try {
-        RetryUtils.retry("upload part for key " + mKey + " and part number " + partNumber,
-            () -> uploadPartInternal(file, partNumber, lastPart, md5), mRetryPolicy.get());
-        return null;
-      } finally {
-        // Delete the uploaded or failed to upload file
-        if (!file.delete()) {
-          LOG.error("Failed to delete temporary file @ {}", file.getPath());
-        }
-      }
-    };
-    ListenableFuture<?> futureTag = mExecutor.submit(callable);
-    mFutures.add(futureTag);
-    LOG.debug(
-        "Submit upload part request. key={}, partNum={}, file={}, fileSize={}, lastPart={}.",
-        mKey, partNumber, file.getPath(), file.length(), lastPart);
-  }
-
   protected void abortMultiPartUpload() {
     try {
-      RetryUtils.retry("abort multipart upload for key " + mKey, this::abortMultiPartUploadInternal,
+      RetryUtils.retry("abort multipart upload for key " + mKey, () -> mMultipartUploader.abort(),
           mRetryPolicy.get());
     } catch (IOException e) {
       LOG.warn("Unable to abort multipart upload for key '{}' and id '{}' to bucket {}. "
@@ -348,33 +270,7 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream
   }
 
   protected void waitForAllPartsUpload() throws IOException {
-    try {
-      for (ListenableFuture<?> future : mFutures) {
-        if (mUploadPartTimeoutMills == null) {
-          future.get();
-        } else {
-          future.get(mUploadPartTimeoutMills, TimeUnit.MILLISECONDS);
-        }
-      }
-    } catch (ExecutionException e) {
-      // No recover ways so that we need to cancel all the upload tasks
-      // and abort the multipart upload
-      Futures.allAsList(mFutures).cancel(true);
-      abortMultiPartUpload();
-      throw new IOException(
-          "Part upload failed in multipart upload with to " + mKey, e);
-    } catch (InterruptedException e) {
-      LOG.warn("Interrupted object upload.", e);
-      Futures.allAsList(mFutures).cancel(true);
-      abortMultiPartUpload();
-      Thread.currentThread().interrupt();
-    } catch (TimeoutException e) {
-      LOG.error("timeout when upload part");
-      Futures.allAsList(mFutures).cancel(true);
-      abortMultiPartUpload();
-      throw new IOException("timeout when upload part " + mKey, e);
-    }
-    mFutures.clear();
+    mMultipartUploader.flush();
   }
 
   /**
@@ -386,20 +282,8 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream
     return mPartNumber.get();
   }
 
-  protected abstract void uploadPartInternal(
-      File file,
-      int partNumber,
-      boolean isLastPart,
-      @Nullable String md5)
-      throws IOException;
-
-  protected abstract void initMultiPartUploadInternal() throws IOException;
-
-  protected abstract void completeMultiPartUploadInternal() throws IOException;
-
-  protected abstract void abortMultiPartUploadInternal() throws IOException;
-
-  protected abstract void createEmptyObject(String key) throws IOException;
-
-  protected abstract void putObject(String key, File file, @Nullable String md5) throws IOException;
+  @Override
+  public Optional<String> getContentHash() throws IOException {
+    return Optional.ofNullable(mMultipartUploader.getContentHash());
+  }
 }
