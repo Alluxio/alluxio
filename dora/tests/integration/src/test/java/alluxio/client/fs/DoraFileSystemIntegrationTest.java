@@ -262,8 +262,6 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
     writeThenUpdateFromUfs(false);
   }
 
-  // TODO(Weidong): fix it.
-  @Ignore
   @Test
   public void testRename() throws Exception {
     mLocalAlluxioClusterResourceBuilder.setProperty(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED, true);
