@@ -30,7 +30,6 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.journal.JournalType;
-import alluxio.membership.MembershipType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
@@ -42,15 +41,11 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.apache.commons.io.IOUtils;
 import org.gaul.s3proxy.junit.S3ProxyRule;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 
 /**
  * Integration tests for Alluxio Client (reuse the {@link LocalAlluxioCluster}).
@@ -99,21 +94,6 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
   private AmazonS3 mS3Client = null;
-//  @Rule
-//  public TemporaryFolder mFolder = new TemporaryFolder();
-//
-//  @Before
-//  public void before() throws Exception {
-//    File file = mFolder.newFile();
-//    try (PrintStream ps = new PrintStream(file)) {
-//      ps.println("worker1");
-//      ps.println("worker2");
-//    }
-//    mLocalAlluxioClusterResourceBuilder
-//        .setProperty(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.STATIC)
-//        .setProperty(
-//            PropertyKey.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE, file.getAbsolutePath());
-//  }
 
   private void startCluster(LocalAlluxioClusterResource cluster) throws Exception {
     cluster.start();
