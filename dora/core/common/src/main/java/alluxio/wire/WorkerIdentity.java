@@ -114,7 +114,7 @@ public final class WorkerIdentity implements Serializable {
 
   @Override
   public String toString() {
-    return String.format("Worker (%s)",
+    return String.format("worker-%s",
         Parsers.getParserOfVersion(mVersion).getVersionSpecificRepresentation(this));
   }
 
