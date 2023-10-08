@@ -82,7 +82,7 @@ public class PagedFileReaderTest {
 
   private PositionReaderTest mPositionReaderTest;
 
-  @Parameterized.Parameters(name = "{index}-{0}")
+  @Parameterized.Parameters(name = "{index}-fileLen_{0}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
         {0},
