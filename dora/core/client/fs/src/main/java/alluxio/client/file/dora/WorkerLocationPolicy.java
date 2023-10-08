@@ -16,6 +16,9 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.util.CommonUtils;
+import org.apache.logging.slf4j.Log4jLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -53,6 +56,7 @@ public interface WorkerLocationPolicy {
    * The factory for the {@link WorkerLocationPolicy}.
    */
   class Factory {
+    private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
     private Factory() {} // prevent instantiation
 
     /**
@@ -63,9 +67,12 @@ public interface WorkerLocationPolicy {
      */
     public static WorkerLocationPolicy create(AlluxioConfiguration conf) {
       try {
-        return CommonUtils.createNewClassInstance(
+        WorkerLocationPolicy workerLocationPolicy = CommonUtils.createNewClassInstance(
             conf.getClass(PropertyKey.USER_WORKER_SELECTION_POLICY),
             new Class[] {AlluxioConfiguration.class}, new Object[] {conf});
+        LOG.info(String.format("Using worker location policy: %s",
+            workerLocationPolicy.getClass().getSimpleName()));
+        return workerLocationPolicy;
       } catch (ClassCastException e) {
         throw new RuntimeException(e);
       }

@@ -97,6 +97,13 @@ public final class WorkerBenchParameters extends FileSystemParameters {
           + "This argument sets the size of that window.")
   public String mSliceSize = "1s";
 
+  @Parameter(names = {"--mode"},
+      description = "Decide which policy to use for file reads."
+          // + "Possible values are: [local-only, remote-only, hash]."
+          + "Possible values are: [local-only, hash]."
+          + "By default, the mode is 'hash'")
+  public String mMode = "hash";
+
   @DynamicParameter(names = "--conf", description = "HDFS client configuration. Can be repeated.")
   public Map<String, String> mConf = new HashMap<>();
 }
