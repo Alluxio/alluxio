@@ -30,7 +30,7 @@ var Master = &MasterProcess{
 	BaseProcess: &env.BaseProcess{
 		Name:                 "master",
 		JavaClassName:        "alluxio.master.AlluxioMaster",
-		JavaOptsEnvVarKey:    ConfAlluxioMasterJavaOpts.EnvVar,
+		JavaOpts:             ConfAlluxioMasterJavaOpts,
 		ProcessOutFile:       "master.out",
 		MonitorJavaClassName: "alluxio.master.AlluxioMasterMonitor",
 	},
@@ -71,9 +71,9 @@ func (p *MasterProcess) SetEnvVars(envVar *viper.Viper) {
 	masterJavaOpts += fmt.Sprintf(env.JavaOptFormat, confAlluxioMasterAuditLoggerType, envVar.Get(envAlluxioAuditMasterLogger))
 
 	masterJavaOpts += envVar.GetString(env.ConfAlluxioJavaOpts.EnvVar)
-	masterJavaOpts += envVar.GetString(p.JavaOptsEnvVarKey)
+	masterJavaOpts += envVar.GetString(p.JavaOpts.EnvVar)
 
-	envVar.Set(p.JavaOptsEnvVarKey, strings.TrimSpace(masterJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
+	envVar.Set(p.JavaOpts.EnvVar, strings.TrimSpace(masterJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
 }
 
 func (p *MasterProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
@@ -92,7 +92,7 @@ func (p *MasterProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 	cmdArgs = append(cmdArgs, "-cp", env.Env.EnvVar.GetString(env.EnvAlluxioServerClasspath))
 
-	masterJavaOpts := env.Env.EnvVar.GetString(p.JavaOptsEnvVarKey)
+	masterJavaOpts := env.Env.EnvVar.GetString(p.JavaOpts.EnvVar)
 	cmdArgs = append(cmdArgs, strings.Split(masterJavaOpts, " ")...)
 
 	// specify a default of -Xmx8g if no memory setting is specified

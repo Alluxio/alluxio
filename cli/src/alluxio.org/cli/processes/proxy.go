@@ -26,7 +26,7 @@ var Proxy = &ProxyProcess{
 	BaseProcess: &env.BaseProcess{
 		Name:                 "proxy",
 		JavaClassName:        "alluxio.proxy.AlluxioProxy",
-		JavaOptsEnvVarKey:    ConfAlluxioProxyJavaOpts.EnvVar,
+		JavaOpts:             ConfAlluxioProxyJavaOpts,
 		ProcessOutFile:       "proxy.out",
 		MonitorJavaClassName: "alluxio.proxy.AlluxioProxyMonitor",
 	},
@@ -65,9 +65,9 @@ func (p *ProxyProcess) SetEnvVars(envVar *viper.Viper) {
 	proxyJavaOpts += fmt.Sprintf(env.JavaOptFormat, confAlluxioProxyAuditLoggerType, envVar.Get(envAlluxioAuditProxyLogger))
 
 	proxyJavaOpts += envVar.GetString(env.ConfAlluxioJavaOpts.EnvVar)
-	proxyJavaOpts += envVar.GetString(p.JavaOptsEnvVarKey)
+	proxyJavaOpts += envVar.GetString(p.JavaOpts.EnvVar)
 
-	envVar.Set(p.JavaOptsEnvVarKey, strings.TrimSpace(proxyJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
+	envVar.Set(p.JavaOpts.EnvVar, strings.TrimSpace(proxyJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
 }
 
 func (p *ProxyProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
@@ -82,7 +82,7 @@ func (p *ProxyProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 	cmdArgs = append(cmdArgs, "-cp", env.Env.EnvVar.GetString(env.EnvAlluxioServerClasspath))
 
-	proxyJavaOpts := env.Env.EnvVar.GetString(p.JavaOptsEnvVarKey)
+	proxyJavaOpts := env.Env.EnvVar.GetString(p.JavaOpts.EnvVar)
 	cmdArgs = append(cmdArgs, strings.Split(proxyJavaOpts, " ")...)
 
 	cmdArgs = append(cmdArgs, p.JavaClassName)

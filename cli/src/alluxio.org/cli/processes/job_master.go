@@ -26,7 +26,7 @@ var JobMaster = &JobMasterProcess{
 	BaseProcess: &env.BaseProcess{
 		Name:                 "job_master",
 		JavaClassName:        "alluxio.master.AlluxioJobMaster",
-		JavaOptsEnvVarKey:    ConfAlluxioJobMasterJavaOpts.EnvVar,
+		JavaOpts:             ConfAlluxioJobMasterJavaOpts,
 		ProcessOutFile:       "job_master.out",
 		MonitorJavaClassName: "alluxio.master.job.AlluxioJobMasterMonitor",
 	},
@@ -65,9 +65,9 @@ func (p *JobMasterProcess) SetEnvVars(envVar *viper.Viper) {
 	jobMasterJavaOpts += fmt.Sprintf(env.JavaOptFormat, confAlluxioJobMasterAuditLoggerType, envVar.Get(envAlluxioAuditJobMasterLogger))
 
 	jobMasterJavaOpts += envVar.GetString(env.ConfAlluxioJavaOpts.EnvVar)
-	jobMasterJavaOpts += envVar.GetString(p.JavaOptsEnvVarKey)
+	jobMasterJavaOpts += envVar.GetString(p.JavaOpts.EnvVar)
 
-	envVar.Set(p.JavaOptsEnvVarKey, strings.TrimSpace(jobMasterJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
+	envVar.Set(p.JavaOpts.EnvVar, strings.TrimSpace(jobMasterJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
 }
 
 func (p *JobMasterProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
@@ -82,7 +82,7 @@ func (p *JobMasterProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 	cmdArgs = append(cmdArgs, "-cp", env.Env.EnvVar.GetString(env.EnvAlluxioServerClasspath))
 
-	jobMasterJavaOpts := env.Env.EnvVar.GetString(p.JavaOptsEnvVarKey)
+	jobMasterJavaOpts := env.Env.EnvVar.GetString(p.JavaOpts.EnvVar)
 	cmdArgs = append(cmdArgs, strings.Split(jobMasterJavaOpts, " ")...)
 
 	cmdArgs = append(cmdArgs, p.JavaClassName)
