@@ -45,7 +45,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
@@ -194,7 +198,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       // TODO(jiacheng): we may need a policy to only IO to remote worker
       LOG.warn("Remote-only policy is not available. Switching to consistent hash policy.");
       mParameters.mMode = "hash";
-    } else if (!Objects.equals(mParameters.mMode, "hash")){
+    } else if (!Objects.equals(mParameters.mMode, "hash")) {
       LOG.warn("Invalid mode. Switching to consistent hash policy.");
       mParameters.mMode = "hash";
     }

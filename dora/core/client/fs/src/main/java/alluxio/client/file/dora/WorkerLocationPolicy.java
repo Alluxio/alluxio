@@ -16,7 +16,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.util.CommonUtils;
-import org.apache.logging.slf4j.Log4jLogger;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +57,7 @@ public interface WorkerLocationPolicy {
    */
   class Factory {
     private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
+
     private Factory() {} // prevent instantiation
 
     /**
