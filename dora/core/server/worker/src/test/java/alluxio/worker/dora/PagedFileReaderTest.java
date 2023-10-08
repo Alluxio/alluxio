@@ -34,6 +34,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.network.protocol.databuffer.CompositeDataBuffer;
+import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.BufferUtils;
@@ -59,6 +60,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -198,5 +200,8 @@ public class PagedFileReaderTest {
     CompositeDataBuffer compositeDataBuffer =
         mPagedFileReader.getMultipleDataFileChannel(mEmbeddedChannel, mFileLen);
     Assert.assertEquals(mFileLen, compositeDataBuffer.getLength());
+
+    List<DataBuffer> listDataBuffer = (List<DataBuffer>)compositeDataBuffer.getNettyOutput();
+
   }
 }
