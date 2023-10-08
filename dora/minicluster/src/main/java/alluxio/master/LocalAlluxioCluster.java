@@ -21,7 +21,6 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
@@ -30,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -178,40 +176,6 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
         throw new RuntimeException(e);
       }
     }, WaitForOptions.defaults().setTimeoutMs(10_000));
-  }
-
-  @Override
-  public void startWorkers() throws Exception {
-    mWorkers = new ArrayList<>();
-    for (int i = 0; i < mNumWorkers; ++i) {
-      // If dora is enabled, automatically setting the worker page store and rocksdb dirs.
-      if (Configuration.getBoolean(PropertyKey.DORA_ENABLED)) {
-        String workDir = PathUtils.concatPath(mWorkDirectory, "worker" + i);
-        Configuration.set(PropertyKey.WORKER_PAGE_STORE_DIRS, workDir);
-        Configuration.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, workDir);
-        LOG.info("Starting worker with PageStore and RocksDB under {}", workDir);
-      }
-      WorkerProcess worker = WorkerProcess.Factory.create();
-      mWorkers.add(worker);
-      Runnable runWorker = () -> {
-        try {
-          worker.start();
-        } catch (InterruptedException e) {
-          // this is expected
-        } catch (Exception e) {
-          // Log the exception as the RuntimeException will be caught and handled silently by
-          // JUnit
-          LOG.error("Start worker error", e);
-          throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
-        }
-      };
-      Thread thread = new Thread(runWorker);
-      thread.setName("WorkerThread-" + System.identityHashCode(thread));
-      mWorkerThreads.add(thread);
-      thread.start();
-    }
-
-    waitForWorkersServing();
   }
 
   @Override
