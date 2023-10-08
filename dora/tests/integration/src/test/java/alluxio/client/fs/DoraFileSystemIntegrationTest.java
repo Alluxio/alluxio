@@ -81,6 +81,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_HTTP_SERVER_ENABLED, false)
           .setProperty(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey())
           .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
+          .setProperty(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED, false)
           .setNumWorkers(2)
           .setStartCluster(false);
 
