@@ -11,6 +11,8 @@
 
 package alluxio.worker.http;
 
+import alluxio.util.FormatUtils;
+
 /**
  * A POJO for providing File Information HTTP Response.
  */
@@ -20,18 +22,34 @@ public class ResponseFileInfo {
 
   private final String mName;
 
+  private final String mPath;
+
+  private final String mUfsPath;
+
+  private final long mLastModificationTimeMs;
+
   private final long mLength;
+
+  private final String mHumanReadableFileSize;
 
   /**
    * A POJO for providing File Information HTTP Response.
    * @param type the file type (file or directory)
    * @param name the file name
+   * @param path the Alluxio path of the file
+   * @param ufsPath the UFS path of the file
+   * @param lastModificationTimeMs the last modification timestamp (milliseconds) of the file
    * @param length the length of the file
    */
-  public ResponseFileInfo(String type, String name, long length) {
+  public ResponseFileInfo(String type, String name, String path, String ufsPath,
+                          long lastModificationTimeMs, long length) {
     mType = type;
     mName = name;
+    mPath = path;
+    mUfsPath = ufsPath;
+    mLastModificationTimeMs = lastModificationTimeMs;
     mLength = length;
+    mHumanReadableFileSize = FormatUtils.getSizeFromBytes(length);
   }
 
   /**
@@ -51,10 +69,42 @@ public class ResponseFileInfo {
   }
 
   /**
+   * Get the Alluxio path of the file.
+   * @return the Alluxio path of the file
+   */
+  public String getPath() {
+    return mPath;
+  }
+
+  /**
+   * Get the UFS path of the file.
+   * @return the UFS path of the file
+   */
+  public String getUfsPath() {
+    return mUfsPath;
+  }
+
+  /**
+   * Get the last modification timestamp (milliseconds) of the file.
+   * @return the last modification timestamp (milliseconds) of the file
+   */
+  public long getLastModificationTimeMs() {
+    return mLastModificationTimeMs;
+  }
+
+  /**
    * Get the length of the file.
    * @return the length of the file
    */
   public long getLength() {
     return mLength;
+  }
+
+  /**
+   * Get the formatted size.
+   * @return the formatted size
+   */
+  public String getHumanReadableFileSize() {
+    return mHumanReadableFileSize;
   }
 }
