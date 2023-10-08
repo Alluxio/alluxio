@@ -446,4 +446,23 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       is.close();
     }
   }
+
+  @Test
+  public void positionedRead() throws Exception {
+    List<CreateFilePOptions> optionSet = new ArrayList<>(2);
+    optionSet.add(mWriteBoth);
+    optionSet.add(mWriteUnderStore);
+    for (CreateFilePOptions op : optionSet) {
+      String filename = mTestPath + "/file_" + MIN_LEN + "_" + op.hashCode();
+      AlluxioURI uri = new AlluxioURI(filename);
+
+      try (FileInStream is = mFileSystem.openFile(uri, FileSystemTestUtils.toOpenFileOptions(op))) {
+        byte[] ret = new byte[DELTA - 1];
+        Assert.assertEquals(DELTA - 1,
+            is.positionedRead(MIN_LEN - DELTA + 1, ret, 0, DELTA - 1));
+        Assert.assertTrue(
+            BufferUtils.equalIncreasingByteArray(MIN_LEN - DELTA + 1, DELTA - 1, ret));
+      }
+    }
+  }
 }
