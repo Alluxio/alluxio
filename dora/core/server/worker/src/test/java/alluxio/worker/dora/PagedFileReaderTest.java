@@ -97,6 +97,12 @@ public class PagedFileReaderTest {
         {64 * Constants.KB - 1},
         {64 * Constants.KB},
         {64 * Constants.KB + 1},
+        {Constants.MB - 1},
+        {Constants.MB},
+        {Constants.MB + 1},
+        {64 * Constants.MB - 1},
+        {64 * Constants.MB},
+        {64 * Constants.MB + 1},
     });
   }
 
