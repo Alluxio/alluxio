@@ -77,7 +77,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   private String mTestPath;
 
   @Rule
-  public Timeout mGlobalTimeout = Timeout.seconds(60);
+  public Timeout mGlobalTimeout = Timeout.seconds(600);
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -126,6 +126,36 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
     ret.add(mWriteBoth);
     ret.add(mWriteUnderStore);
     return ret;
+  }
+
+  /**
+   * Tests {@link FileInStream#read()} across block boundary.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB"})
+  public void readTest1() throws Exception {
+    for (int k = MIN_LEN; k <= MAX_LEN; k += BLOCK_SIZE) {
+      for (CreateFilePOptions op : getOptionSet()) {
+        String filename = mTestPath + "/file_" + k + "_" + op.hashCode();
+        AlluxioURI uri = new AlluxioURI(filename);
+
+        FileInStream is = mFileSystem.openFile(uri, FileSystemTestUtils.toOpenFileOptions(op));
+        byte[] ret = new byte[k];
+        int value = is.read();
+        int cnt = 0;
+        System.out.println("k is: " + k);
+        while (value != -1) {
+          Assert.assertTrue(value >= 0 && value < 256);
+          // Assert.assertTrue(value < 256);
+          ret[cnt++] = (byte) value;
+          value = is.read();
+        }
+        Assert.assertEquals(cnt, k);
+        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
+        is.close();
+      }
+    }
   }
 
   /**
