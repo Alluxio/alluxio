@@ -167,6 +167,8 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     CommonUtils.waitFor("master starts serving RPCs", () -> {
       try (BlockMasterClient blockMasterClient = BlockMasterClient.Factory.create(
           // There is not a local config in this class, all Properties are set to global.
+          // Properties are only set in the initConfiguration() method,
+          // without any @Rule to set Properties in this class.
           MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build())) {
         List<WorkerInfo> workerInfoList = blockMasterClient.getWorkerInfoList();
         return true;
