@@ -105,6 +105,7 @@ public abstract class AbstractLocalAlluxioCluster {
 
   protected void waitForWorkersServing() throws TimeoutException, InterruptedException {
     for (WorkerProcess worker : mWorkers) {
+      LOG.info("Waiting on worker {}", worker.getAddress());
       TestUtils.waitForReady(worker);
     }
   }
