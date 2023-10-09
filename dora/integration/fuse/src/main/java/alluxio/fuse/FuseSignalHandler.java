@@ -25,7 +25,7 @@ import sun.misc.SignalHandler;
  * any existing signal handlers installed up front. Since jvm always install
  * signal handlers therefore libfuse is never able to do so.
  * But disabling JVM's signal handlers by flag -Xrs, fuse acts differently
- * on receiving these signals on different platform(MacOs can receive/Linux can't)
+ * on receiving these signals on different platform(MacOS can receive/Linux can't)
  * Therefore we always let 'umount' or 'fusermount' to instruct libfuse
  * to stop serving, only when it won't respond, we rely on this SignalHandler to
  * act on these signals to shutdown ourselves.
@@ -51,7 +51,9 @@ public class FuseSignalHandler implements SignalHandler {
     LOG.info("Receive signal name {}, number {}, system exiting",
         signal.getName(), signal.getNumber());
     int number = signal.getNumber();
-    // SIGTERM - 15 SIGINT - 2 SIGHUP - 1
+    // SIGTERM - 15
+    // SIGINT - 2
+    // SIGHUP - 1
     if (number == 15 || number == 2 || number == 1) {
       try {
         mFuseUmountable.destroy();

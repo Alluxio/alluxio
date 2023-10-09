@@ -114,6 +114,7 @@ public class AlluxioFuse {
       launchFuse(fuseFileSystem, fsContext, fuseOptions, true);
     } catch (Throwable t) {
       LOG.error("Failed to launch FUSE", t);
+      System.exit(-1);
     } finally {
       if (executor != null) {
         executor.shutdown();
@@ -274,7 +275,7 @@ public class AlluxioFuse {
 
     String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
     final boolean debugEnabled = conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
-    LOG.info("Installing signal handler for SIGTERM and SIGINT to handle "
+    LOG.info("Installing signal handler for SIGTERM/SIGINT/SIGHUP to handle "
         + "possible irresponsive umount/fusermount");
     FuseSignalHandler fuseSignalHandler = new FuseSignalHandler(fuseFs);
     Signal.handle(new Signal("TERM"), fuseSignalHandler);

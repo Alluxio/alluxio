@@ -168,9 +168,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
       throw new FuseException("Unable to umount FS in a windows system.");
     } else if (SystemUtils.IS_OS_MAC_OSX) {
       try {
-        Pair<Integer, String> output = Environment.runCommandAndCapture("umount", "-f", mountPath);
-        exitCode = output.getLeft();
-        outputStr = output.getRight();
+        exitCode = new ProcessBuilder("umount", "-f", mountPath).start().waitFor();
       } catch (InterruptedException ie) {
         Thread.currentThread().interrupt();
         throw new FuseException("Unable to umount FS", ie);
@@ -179,23 +177,16 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
       }
     } else {
       try {
-        Pair<Integer, String> output = Environment.runCommandAndCapture(
-            "fusermount", "-u", "-z", mountPath);
-        exitCode = output.getLeft();
-        outputStr = output.getRight();
+        exitCode = new ProcessBuilder("fusermount", "-u", "-z", mountPath).start().waitFor();
         if (exitCode != 0) {
-          throw new Exception(String.format("fusermount returns %d, cmd output:%s",
-              exitCode, outputStr));
+          throw new Exception(String.format("fusermount returns %d", exitCode));
         }
       } catch (Exception e) {
         if (e instanceof InterruptedException) {
           Thread.currentThread().interrupt();
         }
         try {
-          Pair<Integer, String> output = Environment.runCommandAndCapture(
-              "umount", mountPath);
-          exitCode = output.getLeft();
-          outputStr = output.getRight();
+          exitCode = new ProcessBuilder("umount", mountPath).start().waitFor();
         } catch (InterruptedException ie) {
           Thread.currentThread().interrupt();
           throw new FuseException("Unable to umount FS", e);
@@ -206,8 +197,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
       }
     }
     if (exitCode != 0) {
-      throw new FuseException("Unable to umount FS with exit code " + exitCode
-       + ", cmd output:" + outputStr);
+      throw new FuseException("Unable to umount FS with exit code " + exitCode);
     }
   }
 
