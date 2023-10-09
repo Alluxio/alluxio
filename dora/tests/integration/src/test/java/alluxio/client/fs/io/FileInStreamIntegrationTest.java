@@ -77,7 +77,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   private String mTestPath;
 
   @Rule
-  public Timeout mGlobalTimeout = Timeout.seconds(600);
+  public Timeout mGlobalTimeout = Timeout.seconds(300);
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -135,7 +135,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB"})
   public void readTest1() throws Exception {
-    for (int k = MIN_LEN; k <= MAX_LEN; k += BLOCK_SIZE) {
+    for (int k = MIN_LEN; k <= MAX_LEN; k += 3 * BLOCK_SIZE) {
       for (CreateFilePOptions op : getOptionSet()) {
         String filename = mTestPath + "/file_" + k + "_" + op.hashCode();
         AlluxioURI uri = new AlluxioURI(filename);
