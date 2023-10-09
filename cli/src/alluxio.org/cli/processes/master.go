@@ -68,12 +68,12 @@ func (p *MasterProcess) SetEnvVars(envVar *viper.Viper) {
 	envVar.SetDefault(envAlluxioMasterLogger, masterLoggerType)
 	masterJavaOpts := fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, envVar.Get(envAlluxioMasterLogger))
 	envVar.SetDefault(envAlluxioAuditMasterLogger, masterAuditLoggerType)
-	masterJavaOpts += fmt.Sprintf(env.JavaOptFormat, confAlluxioMasterAuditLoggerType, envVar.Get(envAlluxioAuditMasterLogger))
+	masterJavaOpts += " " + fmt.Sprintf(env.JavaOptFormat, confAlluxioMasterAuditLoggerType, envVar.Get(envAlluxioAuditMasterLogger))
 
 	masterJavaOpts += envVar.GetString(env.ConfAlluxioJavaOpts.EnvVar)
 	masterJavaOpts += envVar.GetString(p.JavaOpts.EnvVar)
 
-	envVar.Set(p.JavaOpts.EnvVar, strings.TrimSpace(masterJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
+	envVar.Set(p.JavaOpts.EnvVar, masterJavaOpts)
 }
 
 func (p *MasterProcess) StartCmd(cmd *cobra.Command) *cobra.Command {

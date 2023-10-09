@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	JavaOptFormat = " -D%v=%v"
+	JavaOptFormat = "-D%v=%v"
 )
 
 // alluxioEnvVarsTemplate lists the environment variables to include in conf/alluxio-env.sh.template
@@ -128,7 +128,7 @@ func (a *AlluxioConfigEnvVar) ToJavaOpt(env *viper.Viper, required bool) string 
 	}
 	ret := fmt.Sprintf(JavaOptFormat, a.configKey, v)
 	for k2, v2 := range a.additionalAlluxioJavaOpts {
-		ret += fmt.Sprintf(JavaOptFormat, k2, v2)
+		ret += " " + fmt.Sprintf(JavaOptFormat, k2, v2)
 	}
 	return ret
 }

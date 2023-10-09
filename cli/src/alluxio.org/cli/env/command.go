@@ -77,7 +77,7 @@ func (c *BaseJavaCommand) RunJavaClassCmd(args []string) *exec.Cmd {
 	if opts := Env.EnvVar.GetString(ConfAlluxioUserJavaOpts.EnvVar); opts != "" {
 		cmdArgs = append(cmdArgs, strings.Split(opts, " ")...)
 	}
-	if opts := strings.TrimSpace(c.ShellJavaOpts); opts != "" {
+	if opts := c.ShellJavaOpts; opts != "" {
 		cmdArgs = append(cmdArgs, strings.Split(opts, " ")...)
 	}
 	for _, o := range c.InlineJavaOpts {

@@ -153,7 +153,7 @@ func InitAlluxioEnv(rootPath string, jarEnvVars map[string]string, appendClasspa
 		ConfAlluxioLogsDir,
 		confAlluxioUserLogsDir,
 	} {
-		alluxioJavaOpts += c.ToJavaOpt(envVar, true) // mandatory java opts
+		alluxioJavaOpts += " " + c.ToJavaOpt(envVar, true) // mandatory java opts
 	}
 
 	for _, c := range []*AlluxioConfigEnvVar{
@@ -163,13 +163,14 @@ func InitAlluxioEnv(rootPath string, jarEnvVars map[string]string, appendClasspa
 		ConfAlluxioMasterJournalType,
 		confAlluxioWorkerRamdiskSize,
 	} {
-		alluxioJavaOpts += c.ToJavaOpt(envVar, false) // optional user provided java opts
+		alluxioJavaOpts += " " + c.ToJavaOpt(envVar, false) // optional user provided java opts
 	}
-
-	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "log4j.configuration", "file:"+filepath.Join(envVar.GetString(ConfAlluxioConfDir.EnvVar), "log4j.properties"))
-	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "org.apache.jasper.compiler.disablejsr199", true)
-	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "java.net.preferIPv4Stack", true)
-	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads", false)
+	alluxioJavaOpts += " " + strings.Join([]string{
+		fmt.Sprintf(JavaOptFormat, "log4j.configuration", "file:"+filepath.Join(envVar.GetString(ConfAlluxioConfDir.EnvVar), "log4j.properties")),
+		fmt.Sprintf(JavaOptFormat, "org.apache.jasper.compiler.disablejsr199", true),
+		fmt.Sprintf(JavaOptFormat, "java.net.preferIPv4Stack", true),
+		fmt.Sprintf(JavaOptFormat, "org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads", false),
+	}, " ")
 
 	envVar.Set(ConfAlluxioJavaOpts.EnvVar, alluxioJavaOpts)
 

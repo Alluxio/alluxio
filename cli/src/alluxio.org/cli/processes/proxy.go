@@ -62,12 +62,12 @@ func (p *ProxyProcess) SetEnvVars(envVar *viper.Viper) {
 	envVar.SetDefault(envAlluxioProxyLogger, proxyLoggerType)
 	proxyJavaOpts := fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, envVar.Get(envAlluxioProxyLogger))
 	envVar.SetDefault(envAlluxioAuditProxyLogger, proxyAuditLoggerType)
-	proxyJavaOpts += fmt.Sprintf(env.JavaOptFormat, confAlluxioProxyAuditLoggerType, envVar.Get(envAlluxioAuditProxyLogger))
+	proxyJavaOpts += " " + fmt.Sprintf(env.JavaOptFormat, confAlluxioProxyAuditLoggerType, envVar.Get(envAlluxioAuditProxyLogger))
 
 	proxyJavaOpts += envVar.GetString(env.ConfAlluxioJavaOpts.EnvVar)
 	proxyJavaOpts += envVar.GetString(p.JavaOpts.EnvVar)
 
-	envVar.Set(p.JavaOpts.EnvVar, strings.TrimSpace(proxyJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
+	envVar.Set(p.JavaOpts.EnvVar, proxyJavaOpts)
 }
 
 func (p *ProxyProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
