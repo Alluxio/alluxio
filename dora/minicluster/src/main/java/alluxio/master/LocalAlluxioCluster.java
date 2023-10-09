@@ -186,7 +186,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     CommonUtils.waitFor("worker starts serving RPCs", () -> {
       try (FileSystemContext fsContext = FileSystemContext.create()) {
         List<BlockWorkerInfo> workerInfoList = fsContext.getCachedWorkers();
-        LOG.info("Observing {} workers in the cluster", workerInfoList.size());
+        LOG.info("Observed {} workers in the cluster", workerInfoList.size());
         return workerInfoList.size() == mNumWorkers;
       } catch (IOException ioe) {
         LOG.error(ioe.getMessage());
