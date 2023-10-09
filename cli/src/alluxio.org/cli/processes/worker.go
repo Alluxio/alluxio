@@ -57,14 +57,14 @@ func (p *WorkerProcess) Base() *env.BaseProcess {
 }
 
 func (p *WorkerProcess) SetEnvVars(envVar *viper.Viper) {
-	// ALLUXIO_WORKER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_WORKER_JAVA_OPTS}
 	envVar.SetDefault(envAlluxioWorkerLogger, workerLoggerType)
-	workerJavaOpts := fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, envVar.Get(envAlluxioWorkerLogger))
-
-	workerJavaOpts += envVar.GetString(env.ConfAlluxioJavaOpts.EnvVar)
-	workerJavaOpts += envVar.GetString(p.JavaOpts.EnvVar)
-
-	envVar.Set(p.JavaOpts.EnvVar, strings.TrimSpace(workerJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
+	// ALLUXIO_WORKER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_WORKER_JAVA_OPTS}
+	javaOpts := []string{
+		fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, envVar.Get(envAlluxioWorkerLogger)),
+	}
+	javaOpts = append(javaOpts, env.ConfAlluxioJavaOpts.JavaOptsToArgs(envVar)...)
+	javaOpts = append(javaOpts, p.JavaOpts.JavaOptsToArgs(envVar)...)
+	envVar.Set(p.JavaOpts.EnvVar, strings.Join(javaOpts, " "))
 }
 
 func (p *WorkerProcess) StartCmd(cmd *cobra.Command) *cobra.Command {

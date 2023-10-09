@@ -13,6 +13,8 @@ package processes
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -58,16 +60,16 @@ func (p *ProxyProcess) Base() *env.BaseProcess {
 }
 
 func (p *ProxyProcess) SetEnvVars(envVar *viper.Viper) {
-	// ALLUXIO_PROXY_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_PROXY_JAVA_OPTS}
 	envVar.SetDefault(envAlluxioProxyLogger, proxyLoggerType)
-	proxyJavaOpts := fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, envVar.Get(envAlluxioProxyLogger))
 	envVar.SetDefault(envAlluxioAuditProxyLogger, proxyAuditLoggerType)
-	proxyJavaOpts += " " + fmt.Sprintf(env.JavaOptFormat, confAlluxioProxyAuditLoggerType, envVar.Get(envAlluxioAuditProxyLogger))
-
-	proxyJavaOpts += envVar.GetString(env.ConfAlluxioJavaOpts.EnvVar)
-	proxyJavaOpts += envVar.GetString(p.JavaOpts.EnvVar)
-
-	envVar.Set(p.JavaOpts.EnvVar, proxyJavaOpts)
+	// ALLUXIO_PROXY_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_PROXY_JAVA_OPTS}
+	javaOpts := []string{
+		fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, envVar.Get(envAlluxioProxyLogger)),
+		fmt.Sprintf(env.JavaOptFormat, confAlluxioProxyAuditLoggerType, envVar.Get(envAlluxioAuditProxyLogger)),
+	}
+	javaOpts = append(javaOpts, env.ConfAlluxioJavaOpts.JavaOptsToArgs(envVar)...)
+	javaOpts = append(javaOpts, p.JavaOpts.JavaOptsToArgs(envVar)...)
+	envVar.Set(p.JavaOpts.EnvVar, strings.Join(javaOpts, " "))
 }
 
 func (p *ProxyProcess) StartCmd(cmd *cobra.Command) *cobra.Command {

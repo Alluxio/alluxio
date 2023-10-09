@@ -13,10 +13,12 @@ package processes
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
 
 	"alluxio.org/cli/cmd/conf"
 	"alluxio.org/cli/cmd/journal"
@@ -64,16 +66,16 @@ func (p *MasterProcess) Base() *env.BaseProcess {
 }
 
 func (p *MasterProcess) SetEnvVars(envVar *viper.Viper) {
-	// ALLUXIO_MASTER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_MASTER_JAVA_OPTS}
 	envVar.SetDefault(envAlluxioMasterLogger, masterLoggerType)
-	masterJavaOpts := fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, envVar.Get(envAlluxioMasterLogger))
 	envVar.SetDefault(envAlluxioAuditMasterLogger, masterAuditLoggerType)
-	masterJavaOpts += " " + fmt.Sprintf(env.JavaOptFormat, confAlluxioMasterAuditLoggerType, envVar.Get(envAlluxioAuditMasterLogger))
-
-	masterJavaOpts += envVar.GetString(env.ConfAlluxioJavaOpts.EnvVar)
-	masterJavaOpts += envVar.GetString(p.JavaOpts.EnvVar)
-
-	envVar.Set(p.JavaOpts.EnvVar, masterJavaOpts)
+	// ALLUXIO_MASTER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_MASTER_JAVA_OPTS}
+	javaOpts := []string{
+		fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, envVar.Get(envAlluxioMasterLogger)),
+		fmt.Sprintf(env.JavaOptFormat, confAlluxioMasterAuditLoggerType, envVar.Get(envAlluxioAuditMasterLogger)),
+	}
+	javaOpts = append(javaOpts, env.ConfAlluxioJavaOpts.JavaOptsToArgs(envVar)...)
+	javaOpts = append(javaOpts, p.JavaOpts.JavaOptsToArgs(envVar)...)
+	envVar.Set(p.JavaOpts.EnvVar, strings.Join(javaOpts, " "))
 }
 
 func (p *MasterProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
