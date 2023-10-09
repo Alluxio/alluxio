@@ -1,0 +1,10 @@
+[toolchain]
+# pin rustc to a specific version
+channel = "${toolchain_version}"
+# additional targets for cross compilation. the host platform is always included
+targets = [ "x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu" ]
+# default profile includes rustc, cargo, rust-std, rust-docs, rustfmt, and clippy
+# see https://rust-lang.github.io/rustup/concepts/profiles.html
+profile = "default"
+# additionally add source code of the standard library for code navigation
+components = [ "rust-src" ]

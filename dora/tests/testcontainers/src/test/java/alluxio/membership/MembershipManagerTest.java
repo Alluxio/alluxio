@@ -19,6 +19,9 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import eu.rekawek.toxiproxy.model.ToxicDirection;
+import io.etcd.jetcd.Auth;
+import io.etcd.jetcd.ByteSequence;
+import io.etcd.jetcd.auth.AuthEnableResponse;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -40,6 +43,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -121,11 +125,69 @@ public class MembershipManagerTest {
     System.out.println("After, all kvs on etcd:" + strs);
   }
 
-  @Test
-  public void testEtcdMembership() throws Exception {
+  public AlluxioEtcdClient getHealthyAlluxioEtcdClient() {
     Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.ETCD);
     Configuration.set(PropertyKey.ETCD_ENDPOINTS, getClientEndpoints());
-    MembershipManager membershipManager = MembershipManager.Factory.create(Configuration.global());
+    return new AlluxioEtcdClient(Configuration.global());
+  }
+
+  public AlluxioEtcdClient getToxicAlluxioEtcdClient() {
+    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.ETCD);
+    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getProxiedClientEndpoints());
+    return new AlluxioEtcdClient(Configuration.global());
+  }
+
+  public MembershipManager getHealthyEtcdMemberMgr() {
+    return new EtcdMembershipManager(Configuration.global(), getHealthyAlluxioEtcdClient());
+  }
+
+  public void enableEtcdAuthentication() throws ExecutionException, InterruptedException {
+    // root has full permission and is first user to enable authentication
+    // so just use root user for test etcd user/password connection.
+    String user = "root";
+    String password = "root";
+
+    AlluxioEtcdClient alluxioEtcdClient = getHealthyAlluxioEtcdClient();
+    Auth authClient = alluxioEtcdClient.getEtcdClient().getAuthClient();
+    authClient.roleAdd(ByteSequence.from("root", StandardCharsets.UTF_8));
+    authClient.userAdd(
+        ByteSequence.from("root", StandardCharsets.UTF_8),
+        ByteSequence.from("root", StandardCharsets.UTF_8)).get();
+    authClient.userGrantRole(
+        ByteSequence.from("root", StandardCharsets.UTF_8),
+        ByteSequence.from("root", StandardCharsets.UTF_8)).get();
+    AuthEnableResponse enableResponse = authClient.authEnable().get();
+  }
+
+  public void disableEtcdAuthentication() throws ExecutionException, InterruptedException {
+    // this method assumes enableEtcdAuthentication() has already been called.
+    String user = "root";
+    String password = "root";
+
+    AlluxioEtcdClient alluxioEtcdClient = getHealthyAlluxioEtcdClient();
+    Auth authClient = alluxioEtcdClient.getEtcdClient().getAuthClient();
+    authClient.authDisable();
+  }
+
+  @Test
+  public void testEtcdMembershipWithAuth() throws Exception {
+    enableEtcdAuthentication();
+    Configuration.set(PropertyKey.ETCD_USERNAME, "root");
+    Configuration.set(PropertyKey.ETCD_PASSWORD, "root");
+    testEtcdMembership(getHealthyEtcdMemberMgr());
+    disableEtcdAuthentication();
+    Configuration.unset(PropertyKey.ETCD_USERNAME);
+    Configuration.unset(PropertyKey.ETCD_PASSWORD);
+  }
+
+  @Test
+  public void testEtcdMembershipWithoutAuth() throws Exception {
+    testEtcdMembership(getHealthyEtcdMemberMgr());
+  }
+
+  public void testEtcdMembership(MembershipManager membershipManager) throws Exception {
+    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.ETCD);
+    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getClientEndpoints());
     Assert.assertTrue(membershipManager instanceof EtcdMembershipManager);
     WorkerInfo wkr1 = new WorkerInfo().setAddress(new WorkerNetAddress()
         .setHost("worker1").setContainerHost("containerhostname1")
@@ -172,22 +234,6 @@ public class MembershipManagerTest {
     expectedLiveMembers.add(wkr1);
     expectedLiveMembers.add(wkr3);
     Assert.assertEquals(expectedLiveMembers, actualLiveMembers);
-  }
-
-  public AlluxioEtcdClient getHealthyAlluxioEtcdClient() {
-    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.ETCD);
-    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getClientEndpoints());
-    return new AlluxioEtcdClient(Configuration.global());
-  }
-
-  public AlluxioEtcdClient getToxicAlluxioEtcdClient() {
-    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.ETCD);
-    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getProxiedClientEndpoints());
-    return new AlluxioEtcdClient(Configuration.global());
-  }
-
-  public MembershipManager getHealthyEtcdMemberMgr() throws IOException {
-    return new EtcdMembershipManager(Configuration.global(), getHealthyAlluxioEtcdClient());
   }
 
   @Test

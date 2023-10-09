@@ -297,14 +297,16 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
       it.remove();
       return Collections.unmodifiableList(tasks);
     }
-    List<Route> routes = getNextRoutes(BATCH_SIZE);
-    if (routes.isEmpty()) {
-      return Collections.unmodifiableList(tasks);
+    for (WorkerInfo ignored : workers) {
+      List<Route> routes = getNextRoutes(BATCH_SIZE);
+      if (routes.isEmpty()) {
+        return Collections.unmodifiableList(tasks);
+      }
+      WorkerInfo workerInfo = mWorkerAssignPolicy.pickAWorker(StringUtil.EMPTY_STRING, workers);
+      CopyTask copyTask = new CopyTask(routes);
+      copyTask.setMyRunningWorker(workerInfo);
+      tasks.add(copyTask);
     }
-    WorkerInfo workerInfo = mWorkerAssignPolicy.pickAWorker(StringUtil.EMPTY_STRING, workers);
-    CopyTask copyTask = new CopyTask(routes);
-    copyTask.setMyRunningWorker(workerInfo);
-    tasks.add(copyTask);
     return Collections.unmodifiableList(tasks);
   }
 
@@ -324,7 +326,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     }
     ImmutableList.Builder<Route> batchBuilder = ImmutableList.builder();
     int i = 0;
-    // retry failed blocks if there's too many failed blocks otherwise wait until no more new block
+    // retry failed files if there's too many failed files otherwise wait until no more new block
     if (mRetryRoutes.size() > RETRY_THRESHOLD
         || (!mFileIterator.get().hasNext())) {
       while (i < count && !mRetryRoutes.isEmpty()) {

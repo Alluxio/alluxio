@@ -55,7 +55,7 @@ func (c *CheckCachedCommand) ToCommand() *cobra.Command {
 }
 
 func (c *CheckCachedCommand) Run(args []string) error {
-    javaArgs := []string{"check-cached"}
+    var javaArgs []string
     if c.sample != 0 {
         javaArgs = append(javaArgs, "--sample", strconv.Itoa(c.sample))
     }

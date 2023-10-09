@@ -4148,6 +4148,11 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
+  public List<WorkerInfo> getLostWorkerList() throws UnavailableException {
+    return mBlockMaster.getLostWorkersInfoList();
+  }
+
+  @Override
   public long getInodeCount() {
     return mInodeTree.getInodeCount();
   }

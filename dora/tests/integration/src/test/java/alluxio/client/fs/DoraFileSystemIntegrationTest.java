@@ -41,7 +41,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.apache.commons.io.IOUtils;
 import org.gaul.s3proxy.junit.S3ProxyRule;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -81,6 +80,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_HTTP_SERVER_ENABLED, false)
           .setProperty(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey())
           .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
+          .setProperty(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED, false)
           .setNumWorkers(2)
           .setStartCluster(false);
 
@@ -94,10 +94,6 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
   private AmazonS3 mS3Client = null;
-
-  @Before
-  public void before() throws Exception {
-  }
 
   private void startCluster(LocalAlluxioClusterResource cluster) throws Exception {
     cluster.start();
@@ -220,8 +216,17 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
    * Read the file with sync interval setting to 0 should return error.
    */
   @Test
-  public void testWriteThenDeleteFromUfs() throws Exception {
+  public void testWriteThenDeleteFromUfsThrough() throws Exception {
     writeThenDeleteFromUfs(true);
+  }
+
+  /**
+   * Writes a file through alluxio into UFS. Deletes the file from UFS.
+   * Read the file with sync interval setting to -1 should give the cached file.
+   * Read the file with sync interval setting to 0 should return error.
+   */
+  @Test
+  public void testWriteThenDeleteFromUfsNotThrough() throws Exception {
     writeThenDeleteFromUfs(false);
   }
 

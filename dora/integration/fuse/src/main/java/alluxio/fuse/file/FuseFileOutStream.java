@@ -69,7 +69,6 @@ public class FuseFileOutStream implements FuseFileStream {
    */
   public static FuseFileOutStream create(FileSystem fileSystem, AuthPolicy authPolicy,
       FuseReadWriteLockManager lockManager, AlluxioURI uri, int flags, long mode) {
-    System.out.println("Creating file system for " + uri.toString());
     Preconditions.checkNotNull(fileSystem);
     Preconditions.checkNotNull(authPolicy);
     Preconditions.checkNotNull(lockManager);
