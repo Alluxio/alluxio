@@ -40,7 +40,7 @@ type BaseJavaCommand struct {
 
 	UseServerClasspath bool     // defaults to ALLUXIO_CLIENT_CLASSPATH, use ALLUXIO_SERVER_CLASSPATH if true
 	InlineJavaOpts     []string // java opts provided by the user as part of the inline command
-	ShellJavaOpts      string   // default java opts encoded as part of the specific command
+	ShellJavaOpts      []string // default java opts encoded as part of the specific command
 }
 
 const (
@@ -77,8 +77,8 @@ func (c *BaseJavaCommand) RunJavaClassCmd(args []string) *exec.Cmd {
 	if opts := Env.EnvVar.GetString(ConfAlluxioUserJavaOpts.EnvVar); opts != "" {
 		cmdArgs = append(cmdArgs, strings.Split(opts, " ")...)
 	}
-	if opts := c.ShellJavaOpts; opts != "" {
-		cmdArgs = append(cmdArgs, strings.Split(opts, " ")...)
+	if len(c.ShellJavaOpts) > 0 {
+		cmdArgs = append(cmdArgs, c.ShellJavaOpts...)
 	}
 	for _, o := range c.InlineJavaOpts {
 		if opts := strings.TrimSpace(o); opts != "" {

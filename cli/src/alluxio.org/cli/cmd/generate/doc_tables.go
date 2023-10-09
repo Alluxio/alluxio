@@ -23,7 +23,7 @@ var DocTables = &DocTablesCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "doc-tables",
 		JavaClassName: "alluxio.cli.DocGenerator",
-		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
+		ShellJavaOpts: []string{fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console")},
 	},
 }
 

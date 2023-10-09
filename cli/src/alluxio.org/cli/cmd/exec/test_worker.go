@@ -9,46 +9,45 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
- package exec
+package exec
 
- import (
-	 "fmt"
- 
-	 "github.com/spf13/cobra"
- 
-	 "alluxio.org/cli/env"
- )
- 
- var TestRunCluster = &TestClusterCommand{
-	 BaseJavaCommand: &env.BaseJavaCommand{
-		 CommandName:   "checkCluster",
-		 JavaClassName: "alluxio.cli.CheckCluster",
-		 ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
-	 },
- }
- 
- type TestClusterCommand struct {
-	 *env.BaseJavaCommand
- }
- 
- func (c *TestClusterCommand) Base() *env.BaseJavaCommand {
-	 return c.BaseJavaCommand
- }
- 
- func (c *TestClusterCommand) ToCommand() *cobra.Command {
-	 cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		 Use:   "checkCluster",
-		 Args:  cobra.NoArgs,
-		 Short: "Test whether the workers have already run successfully.",
-		 RunE: func(cmd *cobra.Command, args []string) error {
-			 return c.Run(args)
-		 },
-	 })
-	 return cmd
- }
- 
- func (c *TestClusterCommand) Run(args []string) error {
-	 var javaArgs []string
-	 return c.Base().Run(javaArgs)
- }
- 
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+
+	"alluxio.org/cli/env"
+)
+
+var TestRunCluster = &TestClusterCommand{
+	BaseJavaCommand: &env.BaseJavaCommand{
+		CommandName:   "checkCluster",
+		JavaClassName: "alluxio.cli.CheckCluster",
+		ShellJavaOpts: []string{fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console")},
+	},
+}
+
+type TestClusterCommand struct {
+	*env.BaseJavaCommand
+}
+
+func (c *TestClusterCommand) Base() *env.BaseJavaCommand {
+	return c.BaseJavaCommand
+}
+
+func (c *TestClusterCommand) ToCommand() *cobra.Command {
+	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
+		Use:   "checkCluster",
+		Args:  cobra.NoArgs,
+		Short: "Test whether the workers have already run successfully.",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return c.Run(args)
+		},
+	})
+	return cmd
+}
+
+func (c *TestClusterCommand) Run(args []string) error {
+	var javaArgs []string
+	return c.Base().Run(javaArgs)
+}

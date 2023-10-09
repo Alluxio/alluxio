@@ -23,7 +23,7 @@ var TestHdfsMount = &TestHdfsMountCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "hdfsMountTest",
 		JavaClassName: "alluxio.cli.ValidateHdfsMount",
-		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
+		ShellJavaOpts: []string{fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console")},
 	},
 }
 
