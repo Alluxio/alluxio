@@ -133,8 +133,8 @@ func InitAlluxioEnv(rootPath string, jarEnvVars map[string]string, appendClasspa
 	}
 
 	// append default opts to ALLUXIO_JAVA_OPTS
-	var javaOpts []string
-	if opts := envVar.GetString(ConfAlluxioJavaOpts.EnvVar); opts != "" {
+	alluxioJavaOpts := ConfAlluxioJavaOpts.JavaOptsToArgs(envVar)
+	if opts := strings.Join(alluxioJavaOpts, " "); opts != "" {
 		// warn about setting configuration through java opts that should be set through environment variables instead
 		for _, c := range []*AlluxioConfigEnvVar{
 			ConfAlluxioConfDir,
@@ -145,7 +145,6 @@ func InitAlluxioEnv(rootPath string, jarEnvVars map[string]string, appendClasspa
 				log.Logger.Warnf("Setting %v through %v will be ignored. Use environment variable %v instead.", c.configKey, ConfAlluxioJavaOpts.EnvVar, c.EnvVar)
 			}
 		}
-		javaOpts = append(javaOpts, opts)
 	}
 
 	for _, c := range []*AlluxioConfigEnvVar{
@@ -154,7 +153,7 @@ func InitAlluxioEnv(rootPath string, jarEnvVars map[string]string, appendClasspa
 		ConfAlluxioLogsDir,
 		confAlluxioUserLogsDir,
 	} {
-		javaOpts = append(javaOpts, c.ConfigToJavaOpts(envVar, true)...) // mandatory java opts
+		alluxioJavaOpts = append(alluxioJavaOpts, c.ConfigToJavaOpts(envVar, true)...) // mandatory java opts
 	}
 
 	for _, c := range []*AlluxioConfigEnvVar{
@@ -164,16 +163,16 @@ func InitAlluxioEnv(rootPath string, jarEnvVars map[string]string, appendClasspa
 		ConfAlluxioMasterJournalType,
 		confAlluxioWorkerRamdiskSize,
 	} {
-		javaOpts = append(javaOpts, c.ConfigToJavaOpts(envVar, false)...) // optional user provided java opts
+		alluxioJavaOpts = append(alluxioJavaOpts, c.ConfigToJavaOpts(envVar, false)...) // optional user provided java opts
 	}
-	javaOpts = append(javaOpts,
+	alluxioJavaOpts = append(alluxioJavaOpts,
 		fmt.Sprintf(JavaOptFormat, "log4j.configuration", "file:"+filepath.Join(envVar.GetString(ConfAlluxioConfDir.EnvVar), "log4j.properties")),
 		fmt.Sprintf(JavaOptFormat, "org.apache.jasper.compiler.disablejsr199", true),
 		fmt.Sprintf(JavaOptFormat, "java.net.preferIPv4Stack", true),
 		fmt.Sprintf(JavaOptFormat, "org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads", false),
 	)
 
-	envVar.Set(ConfAlluxioJavaOpts.EnvVar, strings.Join(javaOpts, " "))
+	envVar.Set(ConfAlluxioJavaOpts.EnvVar, strings.Join(alluxioJavaOpts, " "))
 
 	for _, p := range ProcessRegistry {
 		p.SetEnvVars(envVar)
@@ -181,10 +180,10 @@ func InitAlluxioEnv(rootPath string, jarEnvVars map[string]string, appendClasspa
 
 	// also set user environment variables, as they are not associated with a particular process
 	// ALLUXIO_USER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} {user provided opts}
-	userJavaOpts := fmt.Sprintf(JavaOptFormat, ConfAlluxioLoggerType, userLoggerType)
-	userJavaOpts += envVar.GetString(ConfAlluxioJavaOpts.EnvVar)
-	userJavaOpts += envVar.GetString(ConfAlluxioUserJavaOpts.EnvVar)
-	envVar.Set(ConfAlluxioUserJavaOpts.EnvVar, strings.TrimSpace(userJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
+	userJavaOpts := []string{fmt.Sprintf(JavaOptFormat, ConfAlluxioLoggerType, userLoggerType)}
+	userJavaOpts = append(userJavaOpts, ConfAlluxioJavaOpts.JavaOptsToArgs(envVar)...)
+	userJavaOpts = append(userJavaOpts, ConfAlluxioUserJavaOpts.JavaOptsToArgs(envVar)...)
+	envVar.Set(ConfAlluxioUserJavaOpts.EnvVar, strings.Join(userJavaOpts, " "))
 
 	if log.Logger.IsLevelEnabled(logrus.DebugLevel) {
 		keys := envVar.AllKeys()
