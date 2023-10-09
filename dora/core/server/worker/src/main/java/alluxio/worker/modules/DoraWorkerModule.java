@@ -12,6 +12,7 @@
 package alluxio.worker.modules;
 
 import alluxio.ClientContext;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.PageMetaStore;
@@ -84,6 +85,7 @@ public class DoraWorkerModule extends AbstractModule {
     }
 
     // HTTP Server
+    bind(FileSystemContext.FileSystemContextFactory.class).in(Scopes.SINGLETON);
     bind(PagedService.class).in(Scopes.SINGLETON);
     bind(HttpServerInitializer.class).in(Scopes.SINGLETON);
     bind(HttpServer.class).in(Scopes.SINGLETON);
