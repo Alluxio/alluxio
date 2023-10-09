@@ -139,7 +139,7 @@ func (a *AlluxioConfigEnvVar) ConfigToJavaOpts(env *viper.Viper, required bool) 
 }
 
 func (a *AlluxioConfigEnvVar) JavaOptsToArgs(env *viper.Viper) []string {
-	v := env.GetString(a.EnvVar)
+	v := strings.TrimSpace(env.GetString(a.EnvVar))
 	if v == "" {
 		return nil
 	}
