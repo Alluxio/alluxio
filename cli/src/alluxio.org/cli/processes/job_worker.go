@@ -74,14 +74,9 @@ func (p *JobWorkerProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
 
 func (p *JobWorkerProcess) Start(cmd *env.StartProcessCommand) error {
 	cmdArgs := []string{env.Env.EnvVar.GetString(env.ConfJava.EnvVar)}
-	if attachOpts := env.Env.EnvVar.GetString(confAlluxioJobWorkerAttachOpts.EnvVar); attachOpts != "" {
-		cmdArgs = append(cmdArgs, strings.Split(attachOpts, " ")...)
-	}
+	cmdArgs = append(cmdArgs, confAlluxioJobWorkerAttachOpts.JavaOptsToArgs(env.Env.EnvVar)...)
 	cmdArgs = append(cmdArgs, "-cp", env.Env.EnvVar.GetString(env.EnvAlluxioServerClasspath))
-
-	jobWorkerJavaOpts := env.Env.EnvVar.GetString(p.JavaOpts.EnvVar)
-	cmdArgs = append(cmdArgs, strings.Split(jobWorkerJavaOpts, " ")...)
-
+	cmdArgs = append(cmdArgs, p.JavaOpts.JavaOptsToArgs(env.Env.EnvVar)...)
 	cmdArgs = append(cmdArgs, p.JavaClassName)
 
 	if err := p.Launch(cmd, cmdArgs); err != nil {

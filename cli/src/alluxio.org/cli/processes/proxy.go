@@ -13,8 +13,6 @@ package processes
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -79,14 +77,9 @@ func (p *ProxyProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
 
 func (p *ProxyProcess) Start(cmd *env.StartProcessCommand) error {
 	cmdArgs := []string{env.Env.EnvVar.GetString(env.ConfJava.EnvVar)}
-	if attachOpts := env.Env.EnvVar.GetString(confAlluxioProxyAttachOpts.EnvVar); attachOpts != "" {
-		cmdArgs = append(cmdArgs, strings.Split(attachOpts, " ")...)
-	}
+	cmdArgs = append(cmdArgs, confAlluxioProxyAttachOpts.JavaOptsToArgs(env.Env.EnvVar)...)
 	cmdArgs = append(cmdArgs, "-cp", env.Env.EnvVar.GetString(env.EnvAlluxioServerClasspath))
-
-	proxyJavaOpts := env.Env.EnvVar.GetString(p.JavaOpts.EnvVar)
-	cmdArgs = append(cmdArgs, strings.Split(proxyJavaOpts, " ")...)
-
+	cmdArgs = append(cmdArgs, p.JavaOpts.JavaOptsToArgs(env.Env.EnvVar)...)
 	cmdArgs = append(cmdArgs, p.JavaClassName)
 
 	if err := p.Launch(cmd, cmdArgs); err != nil {

@@ -13,12 +13,10 @@ package processes
 
 import (
 	"fmt"
-	"os"
-	"strings"
-
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
 
 	"alluxio.org/cli/cmd/conf"
 	"alluxio.org/cli/cmd/journal"
@@ -89,22 +87,18 @@ func (p *MasterProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 
 	cmdArgs := []string{env.Env.EnvVar.GetString(env.ConfJava.EnvVar)}
-	if attachOpts := env.Env.EnvVar.GetString(confAlluxioMasterAttachOpts.EnvVar); attachOpts != "" {
-		cmdArgs = append(cmdArgs, strings.Split(attachOpts, " ")...)
-	}
+	cmdArgs = append(cmdArgs, confAlluxioMasterAttachOpts.JavaOptsToArgs(env.Env.EnvVar)...)
 	cmdArgs = append(cmdArgs, "-cp", env.Env.EnvVar.GetString(env.EnvAlluxioServerClasspath))
-
-	masterJavaOpts := env.Env.EnvVar.GetString(p.JavaOpts.EnvVar)
-	cmdArgs = append(cmdArgs, strings.Split(masterJavaOpts, " ")...)
+	cmdArgs = append(cmdArgs, p.JavaOpts.JavaOptsToArgs(env.Env.EnvVar)...)
 
 	// specify a default of -Xmx8g if no memory setting is specified
 	const xmxOpt = "-Xmx"
-	if !strings.Contains(masterJavaOpts, xmxOpt) && !strings.Contains(masterJavaOpts, "MaxRAMPercentage") {
+	if !argsContainsOpt(cmdArgs, xmxOpt, "MaxRAMPercentage") {
 		cmdArgs = append(cmdArgs, fmt.Sprintf("%v8g", xmxOpt))
 	}
 	// specify a default of -XX:MetaspaceSize=256M if not set
 	const metaspaceSizeOpt = "-XX:MetaspaceSize"
-	if !strings.Contains(masterJavaOpts, metaspaceSizeOpt) {
+	if !argsContainsOpt(cmdArgs, metaspaceSizeOpt) {
 		cmdArgs = append(cmdArgs, fmt.Sprintf("%v=256M", metaspaceSizeOpt))
 	}
 

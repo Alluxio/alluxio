@@ -13,6 +13,7 @@ package env
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -135,4 +136,12 @@ func (a *AlluxioConfigEnvVar) ConfigToJavaOpts(env *viper.Viper, required bool) 
 		ret = append(ret, fmt.Sprintf(JavaOptFormat, k2, v2))
 	}
 	return ret
+}
+
+func (a *AlluxioConfigEnvVar) JavaOptsToArgs(env *viper.Viper) []string {
+	v := env.GetString(a.EnvVar)
+	if v == "" {
+		return nil
+	}
+	return strings.Split(v, " ")
 }

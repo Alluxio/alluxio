@@ -74,22 +74,18 @@ func (p *WorkerProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
 
 func (p *WorkerProcess) Start(cmd *env.StartProcessCommand) error {
 	cmdArgs := []string{env.Env.EnvVar.GetString(env.ConfJava.EnvVar)}
-	if attachOpts := env.Env.EnvVar.GetString(confAlluxioWorkerAttachOpts.EnvVar); attachOpts != "" {
-		cmdArgs = append(cmdArgs, strings.Split(attachOpts, " ")...)
-	}
+	cmdArgs = append(cmdArgs, confAlluxioWorkerAttachOpts.JavaOptsToArgs(env.Env.EnvVar)...)
 	cmdArgs = append(cmdArgs, "-cp", env.Env.EnvVar.GetString(env.EnvAlluxioServerClasspath))
-
-	workerJavaOpts := env.Env.EnvVar.GetString(p.JavaOpts.EnvVar)
-	cmdArgs = append(cmdArgs, strings.Split(workerJavaOpts, " ")...)
+	cmdArgs = append(cmdArgs, p.JavaOpts.JavaOptsToArgs(env.Env.EnvVar)...)
 
 	// specify a default of -Xmx4g if no memory setting is specified
 	const xmxOpt = "-Xmx"
-	if !strings.Contains(workerJavaOpts, xmxOpt) && !strings.Contains(workerJavaOpts, "MaxRAMPercentage") {
+	if !argsContainsOpt(cmdArgs, xmxOpt, "MaxRAMPercentage") {
 		cmdArgs = append(cmdArgs, fmt.Sprintf("%v4g", xmxOpt))
 	}
 	// specify a default of -XX:MaxDirectMemorySize=4g if not set
 	const maxDirectMemorySize = "-XX:MaxDirectMemorySize"
-	if !strings.Contains(workerJavaOpts, maxDirectMemorySize) {
+	if !argsContainsOpt(cmdArgs, maxDirectMemorySize) {
 		cmdArgs = append(cmdArgs, fmt.Sprintf("%v=4g", maxDirectMemorySize))
 	}
 
