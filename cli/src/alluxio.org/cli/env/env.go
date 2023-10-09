@@ -133,18 +133,19 @@ func InitAlluxioEnv(rootPath string, jarEnvVars map[string]string, appendClasspa
 	}
 
 	// append default opts to ALLUXIO_JAVA_OPTS
-	alluxioJavaOpts := envVar.GetString(ConfAlluxioJavaOpts.EnvVar)
-	if alluxioJavaOpts != "" {
+	var javaOpts []string
+	if opts := envVar.GetString(ConfAlluxioJavaOpts.EnvVar); opts != "" {
 		// warn about setting configuration through java opts that should be set through environment variables instead
 		for _, c := range []*AlluxioConfigEnvVar{
 			ConfAlluxioConfDir,
 			ConfAlluxioLogsDir,
 			confAlluxioUserLogsDir,
 		} {
-			if strings.Contains(alluxioJavaOpts, c.configKey) {
+			if strings.Contains(opts, c.configKey) {
 				log.Logger.Warnf("Setting %v through %v will be ignored. Use environment variable %v instead.", c.configKey, ConfAlluxioJavaOpts.EnvVar, c.EnvVar)
 			}
 		}
+		javaOpts = append(javaOpts, opts)
 	}
 
 	for _, c := range []*AlluxioConfigEnvVar{
@@ -153,7 +154,7 @@ func InitAlluxioEnv(rootPath string, jarEnvVars map[string]string, appendClasspa
 		ConfAlluxioLogsDir,
 		confAlluxioUserLogsDir,
 	} {
-		alluxioJavaOpts += " " + c.ToJavaOpt(envVar, true) // mandatory java opts
+		javaOpts = append(javaOpts, c.ConfigToJavaOpts(envVar, true)...) // mandatory java opts
 	}
 
 	for _, c := range []*AlluxioConfigEnvVar{
@@ -163,16 +164,16 @@ func InitAlluxioEnv(rootPath string, jarEnvVars map[string]string, appendClasspa
 		ConfAlluxioMasterJournalType,
 		confAlluxioWorkerRamdiskSize,
 	} {
-		alluxioJavaOpts += " " + c.ToJavaOpt(envVar, false) // optional user provided java opts
+		javaOpts = append(javaOpts, c.ConfigToJavaOpts(envVar, false)...) // optional user provided java opts
 	}
-	alluxioJavaOpts += " " + strings.Join([]string{
+	javaOpts = append(javaOpts,
 		fmt.Sprintf(JavaOptFormat, "log4j.configuration", "file:"+filepath.Join(envVar.GetString(ConfAlluxioConfDir.EnvVar), "log4j.properties")),
 		fmt.Sprintf(JavaOptFormat, "org.apache.jasper.compiler.disablejsr199", true),
 		fmt.Sprintf(JavaOptFormat, "java.net.preferIPv4Stack", true),
 		fmt.Sprintf(JavaOptFormat, "org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads", false),
-	}, " ")
+	)
 
-	envVar.Set(ConfAlluxioJavaOpts.EnvVar, alluxioJavaOpts)
+	envVar.Set(ConfAlluxioJavaOpts.EnvVar, strings.Join(javaOpts, " "))
 
 	for _, p := range ProcessRegistry {
 		p.SetEnvVars(envVar)

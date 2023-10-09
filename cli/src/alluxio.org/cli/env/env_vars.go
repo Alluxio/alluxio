@@ -122,17 +122,17 @@ var (
 	}
 )
 
-func (a *AlluxioConfigEnvVar) ToJavaOpt(env *viper.Viper, required bool) string {
+func (a *AlluxioConfigEnvVar) ConfigToJavaOpts(env *viper.Viper, required bool) []string {
 	v := env.Get(a.EnvVar)
 	if v == nil {
 		if required {
 			panic("No value set for required environment variable: " + a.EnvVar)
 		}
-		return ""
+		return nil
 	}
-	ret := fmt.Sprintf(JavaOptFormat, a.configKey, v)
+	ret := []string{fmt.Sprintf(JavaOptFormat, a.configKey, v)}
 	for k2, v2 := range a.additionalAlluxioJavaOpts {
-		ret += " " + fmt.Sprintf(JavaOptFormat, k2, v2)
+		ret = append(ret, fmt.Sprintf(JavaOptFormat, k2, v2))
 	}
 	return ret
 }
