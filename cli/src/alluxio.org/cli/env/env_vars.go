@@ -29,6 +29,7 @@ type AlluxioConfigEnvVar struct {
 	description string // describes the environment variable in conf/alluxio-env.sh.template file
 
 	// optional
+	IsJavaOpts                bool              // true if environment variable's value is a java opts string
 	configKey                 string            // corresponding property key as defined in java
 	additionalAlluxioJavaOpts map[string]string // additional java opts to append if non-empty java opt is added
 }
@@ -78,16 +79,19 @@ var (
 		EnvVar:    "ALLUXIO_USER_LOGS_DIR",
 	})
 	ConfAlluxioJavaOpts = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_JAVA_OPTS",
+		EnvVar:     "ALLUXIO_JAVA_OPTS",
+		IsJavaOpts: true,
 	})
 	confAlluxioClasspath = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
 		EnvVar: "ALLUXIO_CLASSPATH",
 	})
 	ConfAlluxioUserJavaOpts = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_USER_JAVA_OPTS",
+		EnvVar:     "ALLUXIO_USER_JAVA_OPTS",
+		IsJavaOpts: true,
 	})
 	ConfAlluxioUserAttachOpts = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_USER_ATTACH_OPTS",
+		EnvVar:     "ALLUXIO_USER_ATTACH_OPTS",
+		IsJavaOpts: true,
 	})
 )
 

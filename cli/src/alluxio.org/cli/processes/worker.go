@@ -39,10 +39,12 @@ const (
 
 var (
 	ConfAlluxioWorkerJavaOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_WORKER_JAVA_OPTS",
+		EnvVar:     "ALLUXIO_WORKER_JAVA_OPTS",
+		IsJavaOpts: true,
 	})
 	confAlluxioWorkerAttachOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_WORKER_ATTACH_OPTS",
+		EnvVar:     "ALLUXIO_WORKER_ATTACH_OPTS",
+		IsJavaOpts: true,
 	})
 )
 

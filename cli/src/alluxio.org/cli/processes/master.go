@@ -48,10 +48,12 @@ const (
 
 var (
 	ConfAlluxioMasterJavaOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_MASTER_JAVA_OPTS",
+		EnvVar:     "ALLUXIO_MASTER_JAVA_OPTS",
+		IsJavaOpts: true,
 	})
 	confAlluxioMasterAttachOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_MASTER_ATTACH_OPTS",
+		EnvVar:     "ALLUXIO_MASTER_ATTACH_OPTS",
+		IsJavaOpts: true,
 	})
 )
 

@@ -42,10 +42,12 @@ const (
 
 var (
 	ConfAlluxioProxyJavaOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_PROXY_JAVA_OPTS",
+		EnvVar:     "ALLUXIO_PROXY_JAVA_OPTS",
+		IsJavaOpts: true,
 	})
 	confAlluxioProxyAttachOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_PROXY_ATTACH_OPTS",
+		EnvVar:     "ALLUXIO_PROXY_ATTACH_OPTS",
+		IsJavaOpts: true,
 	})
 )
 
