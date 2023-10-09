@@ -191,16 +191,18 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         "true");
 
     // default mode value: hash, using consistent hash
-    if (Objects.equals(mParameters.mMode, "local-only")) {
+    // TODO(jiacheng): we may need a policy to only IO to remote worker
+    if (Objects.equals(mParameters.mMode, "LOCAL_ONLY")) {
       hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
           "alluxio.client.file.dora.LocalWorkerPolicy");
-    } else if (Objects.equals(mParameters.mMode, "remote-only")) {
-      // TODO(jiacheng): we may need a policy to only IO to remote worker
-      LOG.warn("Remote-only policy is not available. Switching to consistent hash policy.");
-      mParameters.mMode = "hash";
-    } else if (!Objects.equals(mParameters.mMode, "hash")) {
+    } else if (Objects.equals(mParameters.mMode, "HASH")) {
+      hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
+          "alluxio.client.file.dora.ConsistentHashPolicy");
+    } else {
       LOG.warn("Invalid mode. Switching to consistent hash policy.");
-      mParameters.mMode = "hash";
+      hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
+          "alluxio.client.file.dora.ConsistentHashPolicy");
+      mParameters.mMode = "HASH";
     }
     LOG.info("User worker selection policy: {}", mParameters.mMode);
 

@@ -98,11 +98,12 @@ public final class WorkerBenchParameters extends FileSystemParameters {
   public String mSliceSize = "1s";
 
   @Parameter(names = {"--mode"},
-      description = "Decide which policy to use for file reads."
-          // + "Possible values are: [local-only, remote-only, hash]."
-          + "Possible values are: [local-only, hash]."
-          + "By default, the mode is 'hash'")
-  public String mMode = "hash";
+      description = "Specifies which worker the test process reads from."
+          + "Possible values are: [HASH, LOCAL_ONLY]"
+          + "HASH - alluxio.client.file.dora.ConsistentHashPolicy"
+          + "LOCAL_ONLY - alluxio.client.file.dora.LocalWorkerPolicy"
+          + "The default is HASH.")
+  public String mMode = "HASH";
 
   @DynamicParameter(names = "--conf", description = "HDFS client configuration. Can be repeated.")
   public Map<String, String> mConf = new HashMap<>();

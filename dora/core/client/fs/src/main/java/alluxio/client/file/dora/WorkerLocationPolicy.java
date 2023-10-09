@@ -71,7 +71,7 @@ public interface WorkerLocationPolicy {
         WorkerLocationPolicy workerLocationPolicy = CommonUtils.createNewClassInstance(
             conf.getClass(PropertyKey.USER_WORKER_SELECTION_POLICY),
             new Class[] {AlluxioConfiguration.class}, new Object[] {conf});
-        LOG.info(String.format("Using worker location policy: %s",
+        LOG.debug(String.format("Using worker location policy: %s",
             workerLocationPolicy.getClass().getSimpleName()));
         return workerLocationPolicy;
       } catch (ClassCastException e) {
