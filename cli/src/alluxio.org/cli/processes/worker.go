@@ -72,7 +72,7 @@ func (p *WorkerProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
 	return cmd
 }
 
-func (p *WorkerProcess) Start(cmd *env.StartProcessCommand) error {
+func (p *WorkerProcess) startCmdArgs() []string {
 	cmdArgs := []string{env.Env.EnvVar.GetString(env.ConfJava.EnvVar)}
 	cmdArgs = append(cmdArgs, confAlluxioWorkerAttachOpts.JavaOptsToArgs(env.Env.EnvVar)...)
 	cmdArgs = append(cmdArgs, "-cp", env.Env.EnvVar.GetString(env.EnvAlluxioServerClasspath))
@@ -88,10 +88,11 @@ func (p *WorkerProcess) Start(cmd *env.StartProcessCommand) error {
 	if !argsContainsOpt(cmdArgs, maxDirectMemorySize) {
 		cmdArgs = append(cmdArgs, fmt.Sprintf("%v=4g", maxDirectMemorySize))
 	}
+	return append(cmdArgs, p.JavaClassName)
+}
 
-	cmdArgs = append(cmdArgs, p.JavaClassName)
-
-	if err := p.Launch(cmd, cmdArgs); err != nil {
+func (p *WorkerProcess) Start(cmd *env.StartProcessCommand) error {
+	if err := p.Launch(cmd, p.startCmdArgs()); err != nil {
 		return stacktrace.Propagate(err, "error launching process")
 	}
 	return nil
