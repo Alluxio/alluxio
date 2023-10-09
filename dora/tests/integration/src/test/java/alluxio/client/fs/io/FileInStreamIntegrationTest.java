@@ -144,7 +144,6 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
         byte[] ret = new byte[k];
         int value = is.read();
         int cnt = 0;
-        System.out.println("k is: " + k);
         while (value != -1) {
           Assert.assertTrue(value >= 0 && value < 256);
           // Assert.assertTrue(value < 256);
