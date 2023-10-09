@@ -28,7 +28,6 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,10 +60,14 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   public static final Pair<AccessControlList, DefaultAccessControlList> EMPTY_ACL =
       new Pair<>(null, null);
 
-  /** The UFS {@link AlluxioURI} used to create this {@link BaseUnderFileSystem}. */
+  /**
+   * The UFS {@link AlluxioURI} used to create this {@link BaseUnderFileSystem}.
+   */
   protected final AlluxioURI mUri;
 
-  /** UFS Configuration options. */
+  /**
+   * UFS Configuration options.
+   */
   protected final UnderFileSystemConfiguration mUfsConf;
 
   private final ExecutorService mAsyncIOExecutor;
@@ -72,7 +75,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   /**
    * Constructs an {@link BaseUnderFileSystem}.
    *
-   * @param uri the {@link AlluxioURI} used to create this ufs
+   * @param uri     the {@link AlluxioURI} used to create this ufs
    * @param ufsConf UFS configuration
    */
   protected BaseUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
@@ -191,15 +194,20 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   @Nullable
   @Override
   public Iterator<UfsStatus> listStatusIterable(
+      // Calling this method on non s3 UFS might result in OOM because batch based fetching
+      // is not supported and this method essentially fetches all ufs status and converts it to
+      // an iterator.
       String path, ListOptions options, String startAfter, int batchSize) throws IOException {
-    // Calling this method on non s3 UFS might result in OOM because batch based fetching
-    // is not supported and this method essentially fetches all ufs status and converts it to
-    // an iterator.
-    UfsStatus[] result = listStatus(path, options);
-    if (result == null) {
+    try {
+      UfsStatus ufsStatus = getStatus(path);
+      if (!ufsStatus.isDirectory()) {
+        return null;
+      }
+    } catch (FileNotFoundException e) {
+      LOG.error("file {} doest not exist", path, e);
       return null;
     }
-    return Iterators.forArray(result);
+    return new UfsFileStatusIterator(this, path);
   }
 
   @Override
@@ -247,7 +255,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
                     permissions.getMode())};
           }
           Arrays.sort(items, Comparator.comparing(UfsStatus::getName));
-          for (UfsStatus item: items) {
+          for (UfsStatus item : items) {
             // performListingAsync is used by metadata sync v2
             // which expects the name of an item to be a full path
             item.setName(PathUtils.concatPath(path, item.getName()));
