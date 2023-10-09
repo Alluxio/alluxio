@@ -102,6 +102,7 @@ public class PagedFileReaderTest {
         {Constants.MB - 1},
         {Constants.MB},
         {Constants.MB + 1},
+        {Constants.MB + 32478345},
         {64 * Constants.MB - 1},
         {64 * Constants.MB},
         {64 * Constants.MB + 1},
@@ -201,7 +202,14 @@ public class PagedFileReaderTest {
         mPagedFileReader.getMultipleDataFileChannel(mEmbeddedChannel, mFileLen);
     Assert.assertEquals(mFileLen, compositeDataBuffer.getLength());
 
-    List<DataBuffer> listDataBuffer = (List<DataBuffer>)compositeDataBuffer.getNettyOutput();
-
+    byte[] bArray = new byte[mFileLen];
+    int readPosition = 0;
+    List<DataBuffer> listDataBuffer = (List<DataBuffer>) compositeDataBuffer.getNettyOutput();
+    for (DataBuffer dataBuffer : listDataBuffer) {
+      int byteToBeRead = dataBuffer.readableBytes();
+      dataBuffer.readBytes(bArray, readPosition, byteToBeRead);
+      readPosition += byteToBeRead;
+    }
+    Assert.assertArrayEquals(mTestData, bArray);
   }
 }
