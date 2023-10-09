@@ -26,6 +26,7 @@ import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.common.FileSystemParameters;
 import alluxio.stress.worker.WorkerBenchCoarseDataPoint;
 import alluxio.stress.worker.WorkerBenchDataPoint;
+import alluxio.stress.worker.WorkerBenchMode;
 import alluxio.stress.worker.WorkerBenchParameters;
 import alluxio.stress.worker.WorkerBenchTaskResult;
 import alluxio.util.CommonUtils;
@@ -49,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
@@ -192,17 +192,20 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
     // default mode value: hash, using consistent hash
     // TODO(jiacheng): we may need a policy to only IO to remote worker
-    if (Objects.equals(mParameters.mMode, "LOCAL_ONLY")) {
-      hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
-          "alluxio.client.file.dora.LocalWorkerPolicy");
-    } else if (Objects.equals(mParameters.mMode, "HASH")) {
-      hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
-          "alluxio.client.file.dora.ConsistentHashPolicy");
-    } else {
-      LOG.warn("Invalid mode. Switching to consistent hash policy.");
-      hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
-          "alluxio.client.file.dora.ConsistentHashPolicy");
-      mParameters.mMode = "HASH";
+    switch (mParameters.mMode) {
+      case HASH:
+        hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
+            "alluxio.client.file.dora.ConsistentHashPolicy");
+        break;
+      case LOCAL_ONLY:
+        hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
+            "alluxio.client.file.dora.LocalWorkerPolicy");
+        break;
+      default:
+        LOG.warn("Invalid mode. Switching to consistent hash policy.");
+        hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
+            "alluxio.client.file.dora.ConsistentHashPolicy");
+        mParameters.mMode = WorkerBenchMode.HASH;
     }
     LOG.info("User worker selection policy: {}", mParameters.mMode);
 
