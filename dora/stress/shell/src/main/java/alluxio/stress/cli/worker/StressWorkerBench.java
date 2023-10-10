@@ -26,7 +26,6 @@ import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.common.FileSystemParameters;
 import alluxio.stress.worker.WorkerBenchCoarseDataPoint;
 import alluxio.stress.worker.WorkerBenchDataPoint;
-import alluxio.stress.worker.WorkerBenchMode;
 import alluxio.stress.worker.WorkerBenchParameters;
 import alluxio.stress.worker.WorkerBenchTaskResult;
 import alluxio.util.CommonUtils;
