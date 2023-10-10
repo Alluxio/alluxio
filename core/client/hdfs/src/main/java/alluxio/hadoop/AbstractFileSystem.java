@@ -168,10 +168,9 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   public FSDataOutputStream create(Path path, boolean overwrite, int bufferSize, short replication,
                                    long blockSize, Progressable progress) throws IOException {
     String confUmask = mAlluxioConf.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
-    Mode mode = ModeUtils.applyDirectoryUMask(Mode.defaults(), confUmask);
-    return this.create(path, FsCreateModes.applyUMask(
-            FsPermission.getFileDefault(), new FsPermission(mode.toShort())),
-        overwrite, bufferSize, replication, blockSize, progress);
+    Mode mode = ModeUtils.applyFileUMask(Mode.defaults(), confUmask);
+    return this.create(path, new FsPermission(mode.toShort()), overwrite, bufferSize, replication,
+        blockSize, progress);
   }
 
   /**
