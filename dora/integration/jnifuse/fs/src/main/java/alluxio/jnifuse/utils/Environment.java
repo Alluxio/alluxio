@@ -11,14 +11,6 @@
 
 package alluxio.jnifuse.utils;
 
-import org.apache.commons.lang3.tuple.Pair;
-
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
 /**
  * This file mostly derived from rocksdb lib.
  */
