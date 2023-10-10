@@ -157,6 +157,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final DoraOpenFileHandleContainer mOpenFileHandleContainer;
 
   private final boolean mClientWriteToUFSEnabled;
+  private final boolean mXAttrWriteToUFSEnabled;
 
   /**
    * Constructor.
@@ -211,6 +212,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
     mClientWriteToUFSEnabled = mConf
         .getBoolean(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED);
+    mXAttrWriteToUFSEnabled = mConf.getBoolean(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED);
   }
 
   @VisibleForTesting
@@ -558,7 +560,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     for (UfsStatus status : ufsStatuses) {
       String ufsFullPath = status.getUfsFullPath().toString();
       UnderFileSystem ufs = getUfsInstance(ufsFullPath);
-      Map<String, String> xattrMap = ufs.getAttributes(ufsFullPath);
+      Map<String, String> xattrMap = null;
+      if (mXAttrWriteToUFSEnabled) {
+        xattrMap = ufs.getAttributes(ufsFullPath);
+      }
       DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath, xattrMap);
       Optional<DoraMeta.FileStatus> originalFs = mMetaManager.getFromMetaStore(ufsFullPath);
       mMetaManager.put(ufsFullPath, fs);
@@ -981,9 +986,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       ufs.setOwner(path, null, options.getGroup());
     }
     if (options.getXattrCount() > 0) {
-      Map<String, ByteString> xattr = options.getXattrMap();
-      for (Map.Entry<String, ByteString> attr : xattr.entrySet()) {
-        ufs.setAttribute(path, attr.getKey(), attr.getValue().toByteArray());
+      if (mXAttrWriteToUFSEnabled) {
+        Map<String, ByteString> xattr = options.getXattrMap();
+        for (Map.Entry<String, ByteString> attr : xattr.entrySet()) {
+          ufs.setAttribute(path, attr.getKey(), attr.getValue().toByteArray());
+        }
       }
     }
     mMetaManager.loadFromUfs(path);

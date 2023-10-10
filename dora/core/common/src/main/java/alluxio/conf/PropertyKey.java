@@ -1051,6 +1051,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * UFS related properties.
    */
+  public static final PropertyKey UNDERFS_XATTR_CHANGE_ENABLED =
+      Builder.booleanBuilder(Name.UNDERFS_XATTR_CHANGE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("When enabled, Alluxio allows user to set/get xAttr from/to UFS. "
+              + "There will be different implementation methods in different UFS, "
+              + "implemented like HdfsUFS.setXattr, ObjectUFS.setTagging, or other ways.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_STRICT_VERSION_MATCH_ENABLED =
       Builder.booleanBuilder(Name.UNDERFS_STRICT_VERSION_MATCH_ENABLED)
           .setDefaultValue(false)
@@ -7217,6 +7226,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // UFS related properties
     //
+    public static final String UNDERFS_XATTR_CHANGE_ENABLED =
+        "alluxio.underfs.xattr.change.enabled";
     public static final String UNDERFS_STRICT_VERSION_MATCH_ENABLED =
         "alluxio.underfs.strict.version.match.enabled";
     public static final String UNDERFS_ALLOW_SET_OWNER_FAILURE =
