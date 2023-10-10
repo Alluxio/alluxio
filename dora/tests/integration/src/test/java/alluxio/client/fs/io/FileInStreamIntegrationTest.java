@@ -136,7 +136,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB"})
   public void readTest1() throws Exception {
-    // according to MAX_LEN, code inside this loop will be executed twice, the first loop will cost about 40s,
+    // according to MAX_LEN, code inside this loop will be executed twice,
+    // the first loop will cost about 40s,
     // the second time will cost about 200s
     for (int k = MIN_LEN; k <= MAX_LEN; k += 3 * BLOCK_SIZE) {
       for (CreateFilePOptions op : getOptionSet()) {
