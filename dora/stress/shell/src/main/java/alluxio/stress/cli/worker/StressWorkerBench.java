@@ -202,10 +202,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
             "alluxio.client.file.dora.LocalWorkerPolicy");
         break;
       default:
-        LOG.warn("Invalid mode. Switching to consistent hash policy.");
-        hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
-            "alluxio.client.file.dora.ConsistentHashPolicy");
-        mParameters.mMode = WorkerBenchMode.HASH;
+        throw new IllegalArgumentException("Unrecognized mode" + mParameters.mMode);
     }
     LOG.info("User worker selection policy: {}", mParameters.mMode);
 
