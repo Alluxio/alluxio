@@ -63,6 +63,8 @@ public class DoraMetaManager implements Closeable {
       = Configuration.getInt(PropertyKey.DORA_UFS_LIST_STATUS_CACHE_NR_FILES);
   private final boolean mGetRealContentHash
       = Configuration.getBoolean(PropertyKey.USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH);
+  private final boolean mXAttrWriteToUFSEnabled =
+      Configuration.getBoolean(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED);
   private final Cache<String, ListStatusResult> mListStatusCache = mListingCacheCapacity == 0
       ? null
       : Caffeine.newBuilder()
@@ -116,7 +118,10 @@ public class DoraMetaManager implements Closeable {
       UnderFileSystem ufs = getUfsInstance(path);
       UfsStatus status = ufs.getStatus(path,
           GetStatusOptions.defaults().setIncludeRealContentHash(mGetRealContentHash));
-      Map<String, String> xattrMap = ufs.getAttributes(path);
+      Map<String, String> xattrMap = null;
+      if (mXAttrWriteToUFSEnabled) {
+        xattrMap = ufs.getAttributes(path);
+      }
       DoraMeta.FileStatus fs = mDoraWorker.buildFileStatusFromUfsStatus(status, path, xattrMap);
       return Optional.ofNullable(fs);
     } catch (FileNotFoundException e) {
