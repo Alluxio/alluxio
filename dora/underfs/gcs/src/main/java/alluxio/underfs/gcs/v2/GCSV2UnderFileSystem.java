@@ -49,6 +49,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -136,6 +137,16 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
   // Setting GCS owner via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setOwner(String path, String user, String group) {}
+
+  @Override
+  public void setObjectTagging(String path, String name, String value) throws IOException {
+    throw new UnimplementedRuntimeException("setObjectTagging is not implemented");
+  }
+
+  @Override
+  public Map<String, String> getObjectTags(String path) throws IOException {
+    throw new UnimplementedRuntimeException("getObjectTags is not implemented");
+  }
 
   // Setting GCS mode via Alluxio is not supported yet. This is a no-op.
   @Override

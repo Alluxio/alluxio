@@ -107,6 +107,7 @@ import com.google.common.io.Closer;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
+import com.google.protobuf.ByteString;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -445,9 +446,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    *
    * @param status
    * @param ufsFullPath
+   * @param xattrMap
    * @return a FileInfo
    */
-  public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath) {
+  public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath,
+                                                          @Nullable Map<String, String> xattrMap)
+      throws IOException {
     UnderFileSystem ufs = getUfsInstance(ufsFullPath);
     String filename = new AlluxioURI(ufsFullPath).getName();
 
@@ -463,6 +467,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         .setGroup(status.getGroup())
         .setCompleted(true)
         .setPersisted(true);
+    if (xattrMap != null) {
+      for (Map.Entry<String, String> entry : xattrMap.entrySet()) {
+        infoBuilder.putXattr(entry.getKey(), ByteString.copyFromUtf8(entry.getValue()));
+      }
+    }
     if (status instanceof UfsFileStatus) {
       UfsFileStatus fileStatus = (UfsFileStatus) status;
       infoBuilder.setLength(fileStatus.getContentLength())
@@ -497,11 +506,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    *
    * @param status the ufs status
    * @param ufsFullPath the full ufs path
+   * @param xattrMap the map of file xAttrs
    * @return the file status
    */
-  public DoraMeta.FileStatus buildFileStatusFromUfsStatus(UfsStatus status, String ufsFullPath) {
+  public DoraMeta.FileStatus buildFileStatusFromUfsStatus(UfsStatus status, String ufsFullPath,
+                                                          @Nullable Map<String, String> xattrMap)
+      throws IOException {
     return DoraMeta.FileStatus.newBuilder()
-        .setFileInfo(buildFileInfoFromUfsStatus(status, ufsFullPath))
+        .setFileInfo(buildFileInfoFromUfsStatus(status, ufsFullPath, xattrMap))
         .setTs(System.nanoTime())
         .build();
   }
@@ -545,7 +557,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     AtomicLong skippedFileLength = new AtomicLong();
     for (UfsStatus status : ufsStatuses) {
       String ufsFullPath = status.getUfsFullPath().toString();
-      DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath);
+      UnderFileSystem ufs = getUfsInstance(ufsFullPath);
+      Map<String, String> xattrMap = ufs.getAttributes(ufsFullPath);
+      DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath, xattrMap);
       Optional<DoraMeta.FileStatus> originalFs = mMetaManager.getFromMetaStore(ufsFullPath);
       mMetaManager.put(ufsFullPath, fs);
       // We use the ufs status sent from master to construct the file metadata,
@@ -809,7 +823,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                                 group,
                                 createOption.getMode().toShort(),
                                 DUMMY_BLOCK_SIZE);
-      info = buildFileInfoFromUfsStatus(status, path);
+      info = buildFileInfoFromUfsStatus(status, path, null);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -965,6 +979,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       ufs.setOwner(path, options.getOwner(), null);
     } else if (options.hasGroup()) {
       ufs.setOwner(path, null, options.getGroup());
+    }
+    if (options.getXattrCount() > 0) {
+      Map<String, ByteString> xattr = options.getXattrMap();
+      for (Map.Entry<String, ByteString> attr : xattr.entrySet()) {
+        ufs.setAttribute(path, attr.getKey(), attr.getValue().toByteArray());
+      }
     }
     mMetaManager.loadFromUfs(path);
     mMetaManager.invalidateListingCacheOfParent(path);

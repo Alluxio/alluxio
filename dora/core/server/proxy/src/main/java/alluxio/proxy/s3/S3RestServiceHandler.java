@@ -1124,6 +1124,7 @@ public final class S3RestServiceHandler {
           ).close();
           SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
               .setOwner(user)
+              .putAllXattr(xattrMap)
               .build();
           mMetaFS.setAttribute(new AlluxioURI(
               S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)), attrPOptions);

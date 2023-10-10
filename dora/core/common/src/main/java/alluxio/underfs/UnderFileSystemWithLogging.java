@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -1152,6 +1153,47 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String toString() {
         return String.format("path=%s, owner=%s, group=%s", path, owner, group);
+      }
+    });
+  }
+
+  @Override
+  public void setAttribute(String path, String name, byte[] value) throws IOException {
+    call(new UfsCallable<Void>() {
+      @Override
+      public Void call() throws IOException {
+        mUnderFileSystem.setAttribute(path, name, value);
+        return null;
+      }
+
+      @Override
+      public String methodName() {
+        return "SetAttribute";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s, name=%s, value=%s", path, name, Arrays.toString(value));
+      }
+    });
+  }
+
+  @Override
+  public Map<String, String> getAttributes(String path) throws IOException {
+    return call(new UfsCallable<Map<String, String>>() {
+      @Override
+      public Map<String, String> call() throws IOException {
+        return mUnderFileSystem.getAttributes(path);
+      }
+
+      @Override
+      public String methodName() {
+        return "GetAttribute";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s", path);
       }
     });
   }
