@@ -36,6 +36,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.CurrentUser;
 import alluxio.security.authorization.Mode;
+import alluxio.util.ModeUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -49,6 +50,7 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsAction;
+import org.apache.hadoop.fs.permission.FsCreateModes;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.Progressable;
@@ -148,6 +150,28 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     // closing
     super.close();
     mFileSystem.close();
+  }
+
+  /**
+   * Attempts to create a file with default permission.
+   * Overwrite will not succeed if the path exists and is a folder.
+   *
+   * @param path path to create
+   * @param overwrite overwrite if file exists
+   * @param bufferSize the size in bytes of the buffer to be used
+   * @param replication under filesystem replication factor, this is ignored
+   * @param blockSize block size in bytes
+   * @param progress queryable progress
+   * @return an {@link FSDataOutputStream} created at the indicated path of a file
+   */
+  @Override
+  public FSDataOutputStream create(Path path, boolean overwrite, int bufferSize, short replication,
+                                   long blockSize, Progressable progress) throws IOException {
+    String confUmask = mAlluxioConf.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
+    Mode mode = ModeUtils.applyDirectoryUMask(Mode.defaults(), confUmask);
+    return this.create(path, FsCreateModes.applyUMask(
+            FsPermission.getFileDefault(), new FsPermission(mode.toShort())),
+        overwrite, bufferSize, replication, blockSize, progress);
   }
 
   /**
@@ -599,6 +623,20 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       ret[k] = new AlluxioFileStatus(status, getFsPath(mAlluxioHeader, status));
     }
     return ret;
+  }
+
+  /**
+   * Attempts to create a folder with the specified path with default permission.
+   * Parent directories will be created.
+   *
+   * @param path path to create
+   * @return true if the indicated folder is created successfully or already exists
+   */
+  @Override
+  public boolean mkdirs(Path path) throws IOException {
+    String confUmask = mAlluxioConf.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
+    Mode mode = ModeUtils.applyDirectoryUMask(Mode.defaults(), confUmask);
+    return mkdirs(path, new FsPermission(mode.toShort()));
   }
 
   /**
