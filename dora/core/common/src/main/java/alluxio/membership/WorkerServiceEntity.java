@@ -105,14 +105,15 @@ public class WorkerServiceEntity extends DefaultServiceEntity {
       return false;
     }
     WorkerServiceEntity anotherO = (WorkerServiceEntity) o;
+    // only the service name and the identity are the factors that define
+    // what a WorkerServiceEntity is. Any other is either ephemeral or supplementary data.
     return mIdentity.equals(anotherO.mIdentity)
-        && mAddress.equals(anotherO.mAddress)
         && getServiceEntityName().equals(anotherO.getServiceEntityName());
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mAddress, mServiceEntityName);
+    return Objects.hashCode(mIdentity, mServiceEntityName);
   }
 
   @Override
