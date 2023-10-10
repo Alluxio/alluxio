@@ -348,6 +348,7 @@ unmount_command() {
   if fuse_mounted "${mount_point}"; then
     err "Failed to umount fuse mount point ${mount_point}, try sending SIGTERM..."
     kill "${fuse_pid}"
+    echo "AlluxioFuse Java process exit with:$?"
     wait_for_fuse_process_killed "${fuse_pid}"
     return 1
   else
