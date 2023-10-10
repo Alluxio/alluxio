@@ -153,6 +153,8 @@
               url: /en/api/S3-API.html
     - title: Glossary
       url: /en/reference/Glossary.html
+    - title: Membership Management
+      url: /en/operation/Alluxio-Membership-Management.html
     - title: List of Configuration Properties
       url: /en/reference/Properties-List.html
     - title: List of Environment Variables

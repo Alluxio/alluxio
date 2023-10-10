@@ -41,6 +41,8 @@ import com.aliyun.oss.model.MultipartUploadListing;
 import com.aliyun.oss.model.OSSObjectSummary;
 import com.aliyun.oss.model.ObjectListing;
 import com.aliyun.oss.model.ObjectMetadata;
+import com.aliyun.oss.model.SetObjectTaggingRequest;
+import com.aliyun.oss.model.TagSet;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -52,8 +54,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
@@ -190,6 +194,24 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   // No ACL integration currently, no-op
   @Override
   public void setOwner(String path, String user, String group) {}
+
+  @Override
+  public void setObjectTagging(String path, String name, String value) throws IOException {
+    // It's a read-and-update race condition. When there is a competitive conflict scenario,
+    // it may lead to inconsistent final results. The final conflict occurs in UFS,
+    // UFS will determine the final result.
+    TagSet taggingResult = mClient.getObjectTagging(mBucketName, path);
+    taggingResult.setTag(name, value);
+    SetObjectTaggingRequest request =
+        new SetObjectTaggingRequest(mBucketName, path).withTagSet(taggingResult);
+    mClient.setObjectTagging(request);
+  }
+
+  @Override
+  public Map<String, String> getObjectTags(String path) throws IOException {
+    TagSet taggingResult = mClient.getObjectTagging(mBucketName, path);
+    return Collections.unmodifiableMap(taggingResult.getAllTags());
+  }
 
   // No ACL integration currently, no-op
   @Override

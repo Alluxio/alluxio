@@ -40,6 +40,7 @@ import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -115,7 +116,8 @@ public class DoraMetaManager implements Closeable {
       UnderFileSystem ufs = getUfsInstance(path);
       UfsStatus status = ufs.getStatus(path,
           GetStatusOptions.defaults().setIncludeRealContentHash(mGetRealContentHash));
-      DoraMeta.FileStatus fs = mDoraWorker.buildFileStatusFromUfsStatus(status, path);
+      Map<String, String> xattrMap = ufs.getAttributes(path);
+      DoraMeta.FileStatus fs = mDoraWorker.buildFileStatusFromUfsStatus(status, path, xattrMap);
       return Optional.ofNullable(fs);
     } catch (FileNotFoundException e) {
       return Optional.empty();

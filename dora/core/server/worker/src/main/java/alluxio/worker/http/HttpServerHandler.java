@@ -61,12 +61,20 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
   private final PagedService mPagedService;
 
+  private final FileSystemContext mFileSystemContext;
+
+  private final FileSystem mFileSystem;
+
   /**
    * {@link HttpServerHandler} deals with HTTP requests received from Netty Channel.
    * @param pagedService the {@link PagedService} object provides page related RESTful API
+   * @param fsContextFactory the factory for creating file system context
    */
-  public HttpServerHandler(PagedService pagedService) {
+  public HttpServerHandler(PagedService pagedService,
+                           FileSystemContext.FileSystemContextFactory fsContextFactory) {
     mPagedService = pagedService;
+    mFileSystemContext = fsContextFactory.create(Configuration.global());
+    mFileSystem = FileSystem.Factory.create(mFileSystemContext);
   }
 
   @Override
@@ -146,16 +154,12 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
     ListStatusPOptions options = FileSystemOptionsUtils.listStatusDefaults(
         Configuration.global()).toBuilder().build();
     try {
-      FileSystemContext.FileSystemContextFactory factory =
-          new FileSystemContext.FileSystemContextFactory();
-      FileSystemContext fileSystemContext = factory.create(Configuration.global());
-      FileSystem fileSystem = FileSystem.Factory.create(fileSystemContext);
-
-      List<URIStatus> uriStatuses = fileSystem.listStatus(new AlluxioURI(path), options);
+      List<URIStatus> uriStatuses = mFileSystem.listStatus(new AlluxioURI(path), options);
       List<ResponseFileInfo> responseFileInfoList = new ArrayList<>();
       for (URIStatus uriStatus : uriStatuses) {
         String type = uriStatus.isFolder() ? "directory" : "file";
         ResponseFileInfo responseFileInfo = new ResponseFileInfo(type, uriStatus.getName(),
+            uriStatus.getPath(), uriStatus.getUfsPath(), uriStatus.getLastModificationTimeMs(),
             uriStatus.getLength());
         responseFileInfoList.add(responseFileInfo);
       }
@@ -184,5 +188,12 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     cause.printStackTrace();
     ctx.close();
+  }
+
+  @Override
+  public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+    super.handlerRemoved(ctx);
+    mFileSystem.close();
+    mFileSystemContext.close();
   }
 }

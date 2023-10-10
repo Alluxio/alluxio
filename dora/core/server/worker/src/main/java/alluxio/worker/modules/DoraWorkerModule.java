@@ -12,6 +12,7 @@
 package alluxio.worker.modules;
 
 import alluxio.ClientContext;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.PageMetaStore;
@@ -21,6 +22,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
 import alluxio.membership.MembershipManager;
 import alluxio.underfs.UfsManager;
+import alluxio.wire.WorkerIdentity;
 import alluxio.worker.Worker;
 import alluxio.worker.dora.DoraUfsManager;
 import alluxio.worker.dora.DoraWorker;
@@ -47,6 +49,8 @@ public class DoraWorkerModule extends AbstractModule {
     bind(new TypeLiteral<AtomicReference<Long>>() {
     }).annotatedWith(Names.named("workerId"))
         .toInstance(new AtomicReference<>(-1L));
+    bind(WorkerIdentity.class).toProvider(WorkerIdentityProvider.class).in(Scopes.SINGLETON);
+
     bind(FileSystemMasterClient.class).toProvider(() -> new FileSystemMasterClient(
         MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build()));
     bind(UfsManager.class).to(DoraUfsManager.class).in(Scopes.SINGLETON);
@@ -81,6 +85,7 @@ public class DoraWorkerModule extends AbstractModule {
     }
 
     // HTTP Server
+    bind(FileSystemContext.FileSystemContextFactory.class).in(Scopes.SINGLETON);
     bind(PagedService.class).in(Scopes.SINGLETON);
     bind(HttpServerInitializer.class).in(Scopes.SINGLETON);
     bind(HttpServer.class).in(Scopes.SINGLETON);

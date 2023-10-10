@@ -34,8 +34,8 @@ type LibModule struct {
 func (m *LibModule) copyFileForTarball(repoBuildDir, dstDir, alluxioVersion string) error {
 	// GeneratedJarPath is where the jar will be built after the maven command completes
 	// Copy the generated jar to the tarball along the same relative path
-	src := filepath.Join(repoBuildDir, strings.ReplaceAll(m.GeneratedJarPath, versionPlaceholder, alluxioVersion))
-	dst := filepath.Join(dstDir, strings.ReplaceAll(m.GeneratedJarPath, versionPlaceholder, alluxioVersion))
+	src := filepath.Join(repoBuildDir, strings.ReplaceAll(m.GeneratedJarPath, VersionPlaceholder, alluxioVersion))
+	dst := filepath.Join(dstDir, strings.ReplaceAll(m.GeneratedJarPath, VersionPlaceholder, alluxioVersion))
 	if err := copyFileForTarball(src, dst); err != nil {
 		return stacktrace.Propagate(err, "error copying module")
 	}
@@ -56,8 +56,8 @@ func (m *PluginModule) copyFileForTarball(repoBuildDir, dstDir, alluxioVersion s
 	// GeneratedJarPath is where the jar will be built after the maven command completes.
 	// The generated jar is expected be renamed to this path after being built in the build directory
 	//   and should be copied to the tarball along the same updated relative path
-	src := filepath.Join(repoBuildDir, strings.ReplaceAll(m.TarballJarPath, versionPlaceholder, alluxioVersion))
-	dst := filepath.Join(dstDir, strings.ReplaceAll(m.TarballJarPath, versionPlaceholder, alluxioVersion))
+	src := filepath.Join(repoBuildDir, strings.ReplaceAll(m.TarballJarPath, VersionPlaceholder, alluxioVersion))
+	dst := filepath.Join(dstDir, strings.ReplaceAll(m.TarballJarPath, VersionPlaceholder, alluxioVersion))
 	if err := copyFileForTarball(src, dst); err != nil {
 		return stacktrace.Propagate(err, "error copying module")
 	}
@@ -72,11 +72,11 @@ type ModulesFile struct {
 type modulesInfo struct {
 	ModulesFile
 
-	libBundles    map[string][]string // bundle name -> lib names
-	pluginBundles map[string][]string // bundle name -> plugin names
+	LibBundles    map[string][]string // bundle name -> lib names
+	PluginBundles map[string][]string // bundle name -> plugin names
 }
 
-func loadModules(modulesYml string) (*modulesInfo, error) {
+func LoadModules(modulesYml string) (*modulesInfo, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "error getting current working directory")
@@ -106,27 +106,27 @@ func loadModules(modulesYml string) (*modulesInfo, error) {
 	}
 	return &modulesInfo{
 		ModulesFile:   modules,
-		libBundles:    libBundles,
-		pluginBundles: pluginBundles,
+		LibBundles:    libBundles,
+		PluginBundles: pluginBundles,
 	}, nil
 }
 
 func PluginsF(args []string) error {
 	ret := &buildOpts{}
 	cmd := flag.NewFlagSet(Modules, flag.ExitOnError)
-	cmd.StringVar(&ret.modulesFile, "modulesFile", defaultModulesFilePath, `path to modules.yml file`)
+	cmd.StringVar(&ret.modulesFile, "modulesFile", DefaultModulesFilePath, `path to modules.yml file`)
 	if err := cmd.Parse(args); err != nil {
 		return stacktrace.Propagate(err, "error parsing flags")
 	}
-	modules, err := loadModules(ret.modulesFile)
+	modules, err := LoadModules(ret.modulesFile)
 	if err != nil {
 		return stacktrace.Propagate(err, "error loading plugin modules from file at %v", ret.modulesFile)
 	}
 	fmt.Println()
 	{
-		bundlesContent, err := yaml.Marshal(modules.libBundles)
+		bundlesContent, err := yaml.Marshal(modules.LibBundles)
 		if err != nil {
-			return stacktrace.Propagate(err, "error serializing %v", modules.libBundles)
+			return stacktrace.Propagate(err, "error serializing %v", modules.LibBundles)
 		}
 		var names []string
 		for n := range modules.LibModules {
@@ -144,9 +144,9 @@ func PluginsF(args []string) error {
 		fmt.Println(string(bundlesContent))
 	}
 	{
-		bundlesContent, err := yaml.Marshal(modules.pluginBundles)
+		bundlesContent, err := yaml.Marshal(modules.PluginBundles)
 		if err != nil {
-			return stacktrace.Propagate(err, "error serializing %v", modules.pluginBundles)
+			return stacktrace.Propagate(err, "error serializing %v", modules.PluginBundles)
 		}
 		var names []string
 		for n := range modules.PluginModules {

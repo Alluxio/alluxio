@@ -29,6 +29,8 @@ public final class BlockWorkerInfo {
   private final long mCapacityBytes;
   private final long mUsedBytes;
 
+  private final boolean mActive;
+
   /**
    * Constructs the block worker information.
    *
@@ -37,9 +39,23 @@ public final class BlockWorkerInfo {
    * @param usedBytes the used bytes of the worker
    */
   public BlockWorkerInfo(WorkerNetAddress netAddress, long capacityBytes, long usedBytes) {
+    this(netAddress, capacityBytes, usedBytes, true);
+  }
+
+  /**
+   * Constructs the block worker information.
+   *
+   * @param netAddress the address of the worker
+   * @param capacityBytes the capacity of the worker in bytes
+   * @param usedBytes the used bytes of the worker
+   * @param active whether this worker is active or not
+   */
+  public BlockWorkerInfo(WorkerNetAddress netAddress, long capacityBytes, long usedBytes,
+                         boolean active) {
     mNetAddress = Preconditions.checkNotNull(netAddress, "netAddress");
     mCapacityBytes = capacityBytes;
     mUsedBytes = usedBytes;
+    mActive = active;
   }
 
   /**
@@ -63,12 +79,21 @@ public final class BlockWorkerInfo {
     return mUsedBytes;
   }
 
+  /**
+   * Whether this worker is active or not.
+   * @return whether this worker is active or not
+   */
+  public boolean isActive() {
+    return mActive;
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("netAddress", mNetAddress)
         .add("capacityBytes", mCapacityBytes)
         .add("usedBytes", mUsedBytes)
+        .add("active", mActive)
         .toString();
   }
 }

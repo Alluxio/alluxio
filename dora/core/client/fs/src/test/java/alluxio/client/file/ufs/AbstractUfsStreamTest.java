@@ -14,7 +14,6 @@ package alluxio.client.file.ufs;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -22,8 +21,6 @@ import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
@@ -31,42 +28,24 @@ import alluxio.underfs.local.LocalUnderFileSystemFactory;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.UUID;
 
 /**
  * Add unit tests for streams of {@link UfsBaseFileSystem}.
  */
-@RunWith(Parameterized.class)
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
-    comment = "fix the tests here because those APIs are still relevant")
-@Ignore
 public abstract class AbstractUfsStreamTest {
   protected static final int CHUNK_SIZE = 100;
   protected InstancedConfiguration mConf;
   protected AlluxioURI mRootUfs;
   protected FileSystem mFileSystem;
 
-  @Parameterized.Parameters
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {{false}, {true}});
-  }
-
   /**
    * Runs {@link AbstractUfsStreamTest} with different configuration combinations.
-   *
-   * @param localDataCacheEnabled whether local data cache is enabled
    */
-  public AbstractUfsStreamTest(boolean localDataCacheEnabled) {
+  public AbstractUfsStreamTest() {
     mConf = Configuration.copyGlobal();
-    mConf.set(PropertyKey.USER_CLIENT_CACHE_ENABLED,
-        PropertyKey.USER_CLIENT_CACHE_ENABLED.formatValue(localDataCacheEnabled), Source.RUNTIME);
   }
 
   /**
@@ -78,9 +57,10 @@ public abstract class AbstractUfsStreamTest {
     mRootUfs = new AlluxioURI(ufs);
     UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
     final FileSystemOptions fileSystemOptions =
-        FileSystemOptions.Builder
-            .fromConf(mConf)
+        new FileSystemOptions.Builder()
             .setUfsFileSystemOptions(new UfsFileSystemOptions(ufs))
+            .setDoraCacheEnabled(false)
+            .setDataCacheEnabled(false)
             .build();
     mFileSystem = FileSystem.Factory.create(FileSystemContext.create(
         ClientContext.create(mConf)), fileSystemOptions);

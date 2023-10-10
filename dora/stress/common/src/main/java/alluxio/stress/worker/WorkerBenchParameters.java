@@ -71,11 +71,14 @@ public final class WorkerBenchParameters extends FileSystemParameters {
   public Integer mRandomSeed = 1;
 
   @Parameter(names = {"--random-max-length"},
-      description = "The random max length upper bound")
+      description = "The random max length upper bound."
+          + "As this InputStream.read() only accept read offset and"
+          + " length as Integer, so this max length must smaller than 2.1GB.")
   public String mRandomMaxReadLength = "4m";
 
   @Parameter(names = {"--random-min-length"},
-      description = "The random max length upper bound")
+      description = "The random max length lower bound."
+         + "this random min length must not larger than random max length.")
   public String mRandomMinReadLength = "1m";
 
   @Parameter(names = {"--free"},
@@ -93,6 +96,14 @@ public final class WorkerBenchParameters extends FileSystemParameters {
           + "the I/O performed in a small window will be tracked in one result. "
           + "This argument sets the size of that window.")
   public String mSliceSize = "1s";
+
+  @Parameter(names = {"--mode"},
+      description = "Specifies which worker the test process reads from."
+          + "Possible values are: [HASH, LOCAL_ONLY]"
+          + "HASH -> alluxio.client.file.dora.ConsistentHashPolicy"
+          + "LOCAL_ONLY -> alluxio.client.file.dora.LocalWorkerPolicy"
+          + "The default is HASH.")
+  public WorkerBenchMode mMode = WorkerBenchMode.HASH;
 
   @DynamicParameter(names = "--conf", description = "HDFS client configuration. Can be repeated.")
   public Map<String, String> mConf = new HashMap<>();

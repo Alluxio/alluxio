@@ -47,6 +47,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -69,7 +70,7 @@ public abstract class AbstractLocalAlluxioCluster {
   protected String mWorkDirectory;
   protected String mHostname;
 
-  private int mNumWorkers;
+  protected int mNumWorkers;
 
   /**
    * @param numWorkers the number of workers to run
@@ -102,6 +103,13 @@ public abstract class AbstractLocalAlluxioCluster {
    * Configures and starts the master(s).
    */
   protected abstract void startMasters() throws Exception;
+
+  protected void waitForWorkersServing() throws TimeoutException, InterruptedException {
+    for (WorkerProcess worker : mWorkers) {
+      LOG.info("Waiting on worker {}", worker.getAddress());
+      TestUtils.waitForReady(worker);
+    }
+  }
 
   protected void waitForMasterServing() throws TimeoutException, InterruptedException {
     CommonUtils.waitFor("master starts serving RPCs", () -> {
@@ -160,6 +168,8 @@ public abstract class AbstractLocalAlluxioCluster {
         Configuration.set(PropertyKey.WORKER_PAGE_STORE_DIRS, pageStoreDir);
         Configuration.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, pageStoreDir);
       }
+      // each worker needs distinct identity
+      Configuration.set(PropertyKey.WORKER_IDENTITY_UUID, UUID.randomUUID().toString());
       WorkerProcess worker = WorkerProcess.Factory.create();
       mWorkers.add(worker);
       Runnable runWorker = () -> {
@@ -180,9 +190,7 @@ public abstract class AbstractLocalAlluxioCluster {
       thread.start();
     }
 
-    for (WorkerProcess worker : mWorkers) {
-      TestUtils.waitForReady(worker);
-    }
+    waitForWorkersServing();
   }
 
   /**

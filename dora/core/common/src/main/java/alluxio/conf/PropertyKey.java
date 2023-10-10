@@ -4031,6 +4031,26 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setDescription("The hostname of Alluxio worker.")
       .setScope(Scope.WORKER)
       .build();
+  public static final PropertyKey WORKER_IDENTITY_UUID =
+      stringBuilder(Name.WORKER_IDENTITY_UUID)
+          .setDescription("The identity of the worker specified as a UUID. Worker instances in a "
+              + "Alluxio cluster must have different identities. "
+              + "This overrides " + Name.WORKER_IDENTITY_UUID_FILE_PATH
+              + " and should be used with discretion")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.WORKER)
+          .setIsHidden(true)
+          .build();
+  public static final PropertyKey WORKER_IDENTITY_UUID_FILE_PATH =
+      stringBuilder(Name.WORKER_IDENTITY_UUID_FILE_PATH)
+          .setDescription("The path to the file containing the identity of the "
+              + "worker specified as a UUID. This path should be readable and writable "
+              + "to the worker process. Worker instances in a "
+              + "Alluxio cluster must have different identities.")
+          .setDefaultValue("${alluxio.conf.dir}/worker_identity")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_KEYTAB_FILE = stringBuilder(Name.WORKER_KEYTAB_FILE)
       .setDescription("Kerberos keytab file for Alluxio worker.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -6795,6 +6815,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "etcd cluster (e.g. http://localhost:2379,http://etcd1:2379)")
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey ETCD_USERNAME =
+      stringBuilder(Name.ETCD_USERNAME)
+          .setDescription("Username for communication with Etcd."
+              + "Make sure the given user has the full readwrite"
+              + " role permission on all keys with prefix '/'. "
+              + "Refer to etcd official site for Authentication section.")
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey ETCD_PASSWORD =
+      stringBuilder(Name.ETCD_PASSWORD)
+          .setDescription("User password for communication with Etcd.")
+          .setScope(Scope.ALL)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
 
   //
   // JVM Monitor related properties
@@ -6874,6 +6908,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether to enable Netty data transmission.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
+          .build();
+
+  public static final PropertyKey USER_DYNAMIC_CONSISTENT_HASH_RING_ENABLED =
+      booleanBuilder(Name.USER_DYNAMIC_CONSISTENT_HASH_RING_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("If true, use live worker list to build consistent hash ring. Otherwise, "
+              + "use all worker list that includes lost workers to build consistent hash ring.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.CLIENT)
           .build();
 
   public static final PropertyKey WORKER_HTTP_SERVER_ENABLED =
@@ -7824,6 +7867,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
     public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
+    public static final String WORKER_IDENTITY_UUID = "alluxio.worker.identity.uuid";
+    public static final String WORKER_IDENTITY_UUID_FILE_PATH =
+        "alluxio.worker.identity.uuid.file.path";
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
     public static final String WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
         "alluxio.worker.master.connect.retry.timeout";
@@ -8467,6 +8513,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     // Membership related properties
     public static final String ALLUXIO_CLUSTER_NAME = "alluxio.cluster.name";
     public static final String ETCD_ENDPOINTS = "alluxio.etcd.endpoints";
+    public static final String ETCD_USERNAME = "alluxio.etcd.username";
+    public static final String ETCD_PASSWORD = "alluxio.etcd.password";
 
     //
     // JVM Monitor related properties
@@ -8494,6 +8542,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_NETTY_DATA_TRANSMISSION_ENABLED =
         "alluxio.user.netty.data.transmission.enabled";
 
+    public static final String USER_DYNAMIC_CONSISTENT_HASH_RING_ENABLED =
+        "alluxio.user.dynamic.consistent.hash.ring.enabled";
     public static final String WORKER_HTTP_SERVER_ENABLED =
         "alluxio.worker.http.server.enabled";
 

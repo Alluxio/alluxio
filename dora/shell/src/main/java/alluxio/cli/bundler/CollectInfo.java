@@ -199,6 +199,21 @@ public class CollectInfo extends AbstractShell {
    * @param argv array of arguments given by the user's input from the terminal
    */
   public static void main(String[] argv) throws IOException {
+    // Create the shell instance
+    InstancedConfiguration conf = Configuration.modifiableGlobal();
+    // Reduce the RPC retry max duration to fail earlier for CLIs
+    conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);
+    CollectInfo shell = new CollectInfo(conf);
+    shell.collect(argv);
+  }
+
+  /**
+   * Execute the shell and generate a tarball. Called in main function.
+   *
+   * @param argv array of arguments given by the user's input from the terminal
+   * @throws IOException
+   */
+  public void collect(String[] argv) throws IOException {
     // Parse cmdline args
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd;
@@ -215,13 +230,6 @@ public class CollectInfo extends AbstractShell {
       System.exit(0);
     }
 
-    // Create the shell instance
-    InstancedConfiguration conf = Configuration.modifiableGlobal();
-
-    // Reduce the RPC retry max duration to fail earlier for CLIs
-    conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);
-    CollectInfo shell = new CollectInfo(conf);
-
     // Validate command args
     if (args.length < 1) {
       printHelp(String.format("Command requires at least %s arguments (%s provided)%n",
@@ -233,14 +241,14 @@ public class CollectInfo extends AbstractShell {
     int ret;
     if (cmd.hasOption(LOCAL_OPTION_NAME)) {
       System.out.println("Executing collectInfo locally");
-      ret = shell.collectInfoLocal(cmd);
+      ret = collectInfoLocal(cmd);
     } else {
       System.out.println("Executing collectInfo on all nodes in the cluster");
-      ret = shell.collectInfoRemote(cmd);
+      ret = collectInfoRemote(cmd);
     }
 
     // Clean up before exiting
-    shell.close();
+    close();
     System.exit(ret);
   }
 

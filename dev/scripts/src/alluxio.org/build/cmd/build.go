@@ -43,26 +43,37 @@ func TarballF(args []string) error {
 	if err != nil {
 		return stacktrace.Propagate(err, "error parsing build flags")
 	}
-	alluxioVersion, err := alluxioVersionFromPom()
-	if err != nil {
-		return stacktrace.Propagate(err, "error parsing version string")
-	}
 	if opts.artifactOutput != "" {
-		a, err := artifact.NewArtifactGroup(alluxioVersion)
-		if err != nil {
-			return stacktrace.Propagate(err, "error creating artifact group")
-		}
-		a.Add(artifact.TarballArtifact,
-			opts.outputDir,
-			strings.ReplaceAll(opts.targetName, versionPlaceholder, alluxioVersion),
-			nil,
-		)
-		return a.WriteToFile(opts.artifactOutput)
+		return outputArtifact(opts)
 	}
 	if err := buildTarball(opts); err != nil {
 		return stacktrace.Propagate(err, "error building tarball")
 	}
 	return nil
+}
+
+func outputArtifact(opts *buildOpts) error {
+	alluxioVersion, err := AlluxioVersionFromPom()
+	if err != nil {
+		return stacktrace.Propagate(err, "error parsing version string")
+	}
+	a, err := artifact.NewArtifactGroup(alluxioVersion)
+	if err != nil {
+		return stacktrace.Propagate(err, "error creating artifact group")
+	}
+	metadata := map[string]string{}
+	for n, l := range opts.libModules {
+		metadata[n] = l.GeneratedJarPath
+	}
+	for n, p := range opts.pluginModules {
+		metadata[n] = p.TarballJarPath
+	}
+	a.Add(artifact.TarballArtifact,
+		opts.outputDir,
+		strings.ReplaceAll(opts.targetName, VersionPlaceholder, alluxioVersion),
+		metadata,
+	)
+	return a.WriteToFile(opts.artifactOutput)
 }
 
 func buildTarball(opts *buildOpts) error {
@@ -81,13 +92,13 @@ func buildTarball(opts *buildOpts) error {
 		}
 		repoBuildDir = tempDir
 	}
-	alluxioVersion, err := alluxioVersionFromPom()
+	alluxioVersion, err := AlluxioVersionFromPom()
 	if err != nil {
 		return stacktrace.Propagate(err, "error parsing version string")
 	}
 
 	// build base project via maven
-	baseMvnCmd := constructMavenCmd(opts.mavenArgs)
+	baseMvnCmd := ConstructMavenCmd(opts.mavenArgs)
 	if opts.dryRun {
 		log.Printf("Skip running maven command:\n%v", baseMvnCmd)
 		// need to create libexec/version.sh
@@ -106,10 +117,10 @@ func buildTarball(opts *buildOpts) error {
 			mockFiles = append(mockFiles, opts.tarball.clientJarPath(alluxioVersion))
 		}
 		for _, info := range opts.assemblyJars {
-			mockFiles = append(mockFiles, strings.ReplaceAll(info.GeneratedJarPath, versionPlaceholder, alluxioVersion))
+			mockFiles = append(mockFiles, strings.ReplaceAll(info.GeneratedJarPath, VersionPlaceholder, alluxioVersion))
 		}
 		for _, l := range opts.libModules {
-			mockFiles = append(mockFiles, strings.ReplaceAll(l.GeneratedJarPath, versionPlaceholder, alluxioVersion))
+			mockFiles = append(mockFiles, strings.ReplaceAll(l.GeneratedJarPath, VersionPlaceholder, alluxioVersion))
 		}
 		for _, f := range mockFiles {
 			p := filepath.Join(repoBuildDir, f)
@@ -142,7 +153,7 @@ func buildTarball(opts *buildOpts) error {
 		moduleMvnCmd := baseMvnCmd + " " + m.MavenArgs
 		if opts.dryRun {
 			log.Printf("Skip running maven command:\n%v", moduleMvnCmd)
-			p := filepath.Join(repoBuildDir, strings.ReplaceAll(m.TarballJarPath, versionPlaceholder, alluxioVersion))
+			p := filepath.Join(repoBuildDir, strings.ReplaceAll(m.TarballJarPath, VersionPlaceholder, alluxioVersion))
 			if err := createPlaceholderFile(p); err != nil {
 				return stacktrace.Propagate(err, "error creating placeholder file for %v", p)
 			}
@@ -157,8 +168,8 @@ func buildTarball(opts *buildOpts) error {
 				return stacktrace.Propagate(err, "error building module with command %v", moduleMvnCmd)
 			}
 			// the generated jar needs to be renamed in case the same module with different args is built later
-			src := filepath.Join(repoBuildDir, strings.ReplaceAll(m.GeneratedJarPath, versionPlaceholder, alluxioVersion))
-			dst := filepath.Join(repoBuildDir, strings.ReplaceAll(m.TarballJarPath, versionPlaceholder, alluxioVersion))
+			src := filepath.Join(repoBuildDir, strings.ReplaceAll(m.GeneratedJarPath, VersionPlaceholder, alluxioVersion))
+			dst := filepath.Join(repoBuildDir, strings.ReplaceAll(m.TarballJarPath, VersionPlaceholder, alluxioVersion))
 			if err := command.RunF("mv %v %v", src, dst); err != nil {
 				return stacktrace.Propagate(err, "error moving file from %v to %v", src, dst)
 			}
@@ -166,7 +177,7 @@ func buildTarball(opts *buildOpts) error {
 	}
 
 	// prepare tarball contents in a destination directory
-	tarballPath := filepath.Join(opts.outputDir, strings.ReplaceAll(opts.targetName, versionPlaceholder, alluxioVersion))
+	tarballPath := filepath.Join(opts.outputDir, strings.ReplaceAll(opts.targetName, VersionPlaceholder, alluxioVersion))
 	if err := os.RemoveAll(tarballPath); err != nil {
 		return stacktrace.Propagate(err, "error deleting %v", tarballPath)
 	}
@@ -200,7 +211,7 @@ func buildTarball(opts *buildOpts) error {
 	return nil
 }
 
-func constructMavenCmd(mvnArgs []string) string {
+func ConstructMavenCmd(mvnArgs []string) string {
 	cmd := []string{
 		"mvn",
 		"-am",                    // "also make": build dependent projects if a project list via `-pl` is specified
@@ -210,6 +221,7 @@ func constructMavenCmd(mvnArgs []string) string {
 		"-Dfindbugs.skip",        // skip findbugs static analysis check
 		"-Dmaven.javadoc.skip",   // skip javadoc generation
 		"-Dcheckstyle.skip",      // skip checkstyle static check
+		"-Dlicense.skip",         // skip license header static check
 		"-Prelease",              // release profile specified in root pom.xml, to build dependency-reduced-pom.xml generated by shading plugin
 		"-Dhttp.keepAlive=false", // disable keep-alive for HTTP requests to deal with connection resets when fetching maven dependencies
 	}

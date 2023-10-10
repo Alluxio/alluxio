@@ -12,13 +12,16 @@
 package info
 
 import (
+	"bytes"
 	"fmt"
-	"strings"
-
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
+	"io"
+	"os"
+	"strings"
 
 	"alluxio.org/cli/cmd/names"
+	"alluxio.org/cli/cmd/util"
 	"alluxio.org/cli/env"
 )
 
@@ -32,7 +35,7 @@ var Report = &ReportCommand{
 
 type ReportCommand struct {
 	*env.BaseJavaCommand
-	format string
+	raw bool
 }
 
 func (c *ReportCommand) Base() *env.BaseJavaCommand {
@@ -57,8 +60,8 @@ Defaults to summary if no arg is provided
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().StringVar(&c.format, "format", "json",
-		"Set output format, any of [json, yaml]")
+	cmd.Flags().BoolVar(&c.raw, "raw", false,
+		"Output raw JSON data instead of human-readable format for bytes, datetime, and duration.")
 	return cmd
 }
 
@@ -80,9 +83,15 @@ func (c *ReportCommand) Run(args []string) error {
 		}
 		reportArg = args[0]
 	}
-	// TODO: output all in a serializable format and filter/trim as specified by flags
-	if c.format != "json" && c.format != "yaml" {
-		return stacktrace.NewError("Invalid format %v, must be one of [json, yaml]", c.format)
+
+	buf := &bytes.Buffer{}
+	if err := c.RunWithIO([]string{reportArg}, nil, buf, os.Stderr); err != nil {
+		io.Copy(os.Stdout, buf)
+		return err
 	}
-	return c.Base().RunAndFormat(c.format, nil, []string{reportArg})
+
+	if err := util.PrintProcessedJsonBytes(buf.Bytes(), c.raw); err != nil {
+		return stacktrace.Propagate(err, "error formatting output to print")
+	}
+	return nil
 }

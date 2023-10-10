@@ -55,7 +55,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
-import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.RateLimiter;
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
@@ -282,7 +281,9 @@ public class S3ObjectTask extends S3BaseTask {
           Map<String, ByteString> xattrMap = new HashMap<>();
           if (tagData != null) {
             try {
-              xattrMap.put(S3Constants.TAGGING_XATTR_KEY, TaggingData.serialize(tagData));
+              for (Map.Entry<String, String> tag : tagData.getTagMap().entrySet()) {
+                xattrMap.put(tag.getKey(), ByteString.copyFromUtf8(tag.getValue()));
+              }
             } catch (Exception e) {
               throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
             }
@@ -921,8 +922,8 @@ public class S3ObjectTask extends S3BaseTask {
                 ByteString.copyFrom(mHandler.getBucket(), S3Constants.XATTR_STR_CHARSET));
             xattrMap.put(S3Constants.UPLOADS_OBJECT_XATTR_KEY,
                 ByteString.copyFrom(mHandler.getObject(), S3Constants.XATTR_STR_CHARSET));
-            xattrMap.put(S3Constants.UPLOADS_FILE_ID_XATTR_KEY, ByteString.copyFrom(
-                Longs.toByteArray(userFs.getStatus(multipartTemporaryDir).getFileId())));
+            xattrMap.put(S3Constants.UPLOADS_FILE_ID_XATTR_KEY, ByteString.copyFromUtf8(
+                Long.toString(userFs.getStatus(multipartTemporaryDir).getFileId())));
             try (FileOutStream fos = mHandler.getMetaFS().createFile(
                 new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
                 CreateFilePOptions.newBuilder()
@@ -940,6 +941,7 @@ public class S3ObjectTask extends S3BaseTask {
             }
             SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
                 .setOwner(user)
+                .putAllXattr(xattrMap)
                 .build();
             mHandler.getMetaFS().setAttribute(new AlluxioURI(
                 S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)), attrPOptions);

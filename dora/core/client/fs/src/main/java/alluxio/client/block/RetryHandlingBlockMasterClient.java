@@ -121,6 +121,19 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
+  public List<WorkerInfo> getLostWorkerInfoList() throws IOException {
+    return retryRPC(() -> {
+      List<WorkerInfo> result = new ArrayList<>();
+      for (alluxio.grpc.WorkerInfo workerInfo : mClient
+          .getLostWorkerList(GetWorkerInfoListPOptions.getDefaultInstance())
+          .getWorkerInfosList()) {
+        result.add(GrpcUtils.fromProto(workerInfo));
+      }
+      return result;
+    }, RPC_LOG, "GetLostWorkerInfoList", "");
+  }
+
+  @Override
   public void removeDisabledWorker(RemoveDisabledWorkerPOptions options) throws IOException {
     retryRPC(() -> mClient.removeDisabledWorker(options),
             RPC_LOG, "RemoveDisabledWorker", "");
