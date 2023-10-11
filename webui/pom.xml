@@ -16,10 +16,10 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-parent</artifactId>
-    <version>AI-3.0-1.0.0-RC1</version>
+    <version>AI-3.0-1.0.0-RC2</version>
   </parent>
   <artifactId>alluxio-webui</artifactId>
-  <version>AI-3.0-1.0.0-RC1</version>
+  <version>AI-3.0-1.0.0-RC2</version>
   <packaging>pom</packaging>
   <name>Alluxio UI</name>
   <description>Alluxio web UI pom</description>
