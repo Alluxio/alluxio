@@ -22,6 +22,8 @@ import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.CommonUtils;
+import alluxio.util.ModeUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -33,6 +35,7 @@ import com.aliyun.oss.OSSException;
 import com.aliyun.oss.ServiceException;
 import com.aliyun.oss.common.comm.Protocol;
 import com.aliyun.oss.model.AbortMultipartUploadRequest;
+import com.aliyun.oss.model.BucketInfo;
 import com.aliyun.oss.model.DeleteObjectsRequest;
 import com.aliyun.oss.model.DeleteObjectsResult;
 import com.aliyun.oss.model.ListMultipartUploadsRequest;
@@ -42,8 +45,13 @@ import com.aliyun.oss.model.MultipartUploadListing;
 import com.aliyun.oss.model.OSSObjectSummary;
 import com.aliyun.oss.model.ObjectListing;
 import com.aliyun.oss.model.ObjectMetadata;
+<<<<<<< HEAD:dora/underfs/oss/src/main/java/alluxio/underfs/oss/OSSUnderFileSystem.java
 import com.aliyun.oss.model.SetObjectTaggingRequest;
 import com.aliyun.oss.model.TagSet;
+||||||| parent of 15a333a5e8 (Get User/Group/Permission of existed objects in OSS ufs):underfs/oss/src/main/java/alluxio/underfs/oss/OSSUnderFileSystem.java
+=======
+import com.aliyun.oss.model.Owner;
+>>>>>>> 15a333a5e8 (Get User/Group/Permission of existed objects in OSS ufs):underfs/oss/src/main/java/alluxio/underfs/oss/OSSUnderFileSystem.java
 import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -74,8 +82,15 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = "_$folder$";
 
+<<<<<<< HEAD:dora/underfs/oss/src/main/java/alluxio/underfs/oss/OSSUnderFileSystem.java
   private static final String NO_SUCH_KEY = "NoSuchKey";
 
+||||||| parent of 15a333a5e8 (Get User/Group/Permission of existed objects in OSS ufs):underfs/oss/src/main/java/alluxio/underfs/oss/OSSUnderFileSystem.java
+=======
+  /** Default owner of objects if owner cannot be determined. */
+  private static final String DEFAULT_OWNER = "";
+
+>>>>>>> 15a333a5e8 (Get User/Group/Permission of existed objects in OSS ufs):underfs/oss/src/main/java/alluxio/underfs/oss/OSSUnderFileSystem.java
   /** Aliyun OSS client. */
   private final OSS mClient;
 
@@ -89,6 +104,10 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   private final Supplier<ListeningExecutorService> mMultipartUploadExecutor;
 
   private StsOssClientProvider mClientProvider;
+
+  /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */
+  private final Supplier<ObjectPermissions> mPermissions
+      = CommonUtils.memoize(this::getPermissionsInternal);
 
   /**
    * Constructs a new instance of {@link OSSUnderFileSystem}.
@@ -400,7 +419,38 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   // No ACL integration currently, returns default empty value
   @Override
   protected ObjectPermissions getPermissions() {
-    return new ObjectPermissions("", "", Constants.DEFAULT_FILE_SYSTEM_MODE);
+    return mPermissions.get();
+  }
+
+  /**
+   * Since there is no group in OSS, the owner is reused as the group. This method calls the
+   * OSS API and requires additional permissions aside from just read only. This method is best
+   * effort and will continue with default permissions (no owner, no group, 0700).
+   *
+   * @return the permissions associated with this under storage system
+   */
+  private ObjectPermissions getPermissionsInternal() {
+    short bucketMode =
+        ModeUtils.getUMask(mUfsConf.getString(PropertyKey.UNDERFS_OSS_DEFAULT_MODE)).toShort();
+    String accountOwner = DEFAULT_OWNER;
+
+    try {
+      BucketInfo bucketInfo = mClient.getBucketInfo(mBucketName);
+      Owner owner = bucketInfo.getBucket().getOwner();
+      if (mUfsConf.isSet(PropertyKey.UNDERFS_OSS_OWNER_ID_TO_USERNAME_MAPPING)) {
+        // Here accountOwner can be null if there is no mapping set for this owner id
+        accountOwner = CommonUtils.getValueFromStaticMapping(
+            mUfsConf.getString(PropertyKey.UNDERFS_OSS_OWNER_ID_TO_USERNAME_MAPPING),
+            owner.getId());
+      }
+      if (accountOwner == null || accountOwner.equals(DEFAULT_OWNER)) {
+        // If there is no user-defined mapping, use display name or id.
+        accountOwner = owner.getDisplayName() != null ? owner.getDisplayName() : owner.getId();
+      }
+    } catch (ServiceException e) {
+      LOG.warn("Failed to get bucket owner, proceeding with defaults. {}", e.toString());
+    }
+    return new ObjectPermissions(accountOwner, accountOwner, bucketMode);
   }
 
   @Override
