@@ -16,7 +16,8 @@ package alluxio.stress.worker;
  */
 public enum WorkerBenchMode {
   HASH("HASH"),
-  LOCAL_ONLY("LOCAL_ONLY");
+  LOCAL_ONLY("LOCAL_ONLY"),
+  REMOTE_ONLY("REMOTE_ONLY");
 
   private final String mName;
 

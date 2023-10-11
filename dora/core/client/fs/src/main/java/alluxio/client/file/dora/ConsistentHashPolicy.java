@@ -20,7 +20,7 @@ import alluxio.exception.status.ResourceExhaustedException;
 import java.util.List;
 
 /**
- * An impl of WorkerLocationPolicy.
+ * An implementation of WorkerLocationPolicy.
  *
  * A policy where a file path is matched to worker(s) by a consistenct hashing algorithm.
  * The hash algorithm makes sure the same path maps to the same worker sequence.
