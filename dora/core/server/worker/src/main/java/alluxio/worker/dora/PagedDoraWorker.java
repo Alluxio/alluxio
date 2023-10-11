@@ -808,13 +808,15 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       // Check if the target file already exists. If yes, return by throwing error.
       boolean overWrite = options.hasOverwrite() ? options.getOverwrite() : false;
       boolean exists = ufs.exists(path);
-      if (!overWrite && exists) {
-        throw new RuntimeException(
-            new FileAlreadyExistsException(
-                String.format("File %s already exists but no overwrite flag", path)));
-      } else if (overWrite) {
-        // client is going to overwrite this file. We need to invalidate the cached meta and data.
-        mMetaManager.removeFromMetaStore(path);
+      if (exists) {
+        if (overWrite) {
+          // client is going to overwrite this file. We need to invalidate the cached meta and data.
+          mMetaManager.removeFromMetaStore(path);
+        } else {
+          throw new RuntimeException(
+              new FileAlreadyExistsException(
+                  String.format("File %s already exists but no overwrite flag", path)));
+        }
       }
 
       // Prepare a "fake" UfsStatus here. Please prepare more fields here.
