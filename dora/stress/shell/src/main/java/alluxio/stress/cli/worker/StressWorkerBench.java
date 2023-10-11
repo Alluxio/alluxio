@@ -188,9 +188,23 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     hdfsConf.set(
         String.format("fs.%s.impl.disable.cache", (new URI(mParameters.mBasePath)).getScheme()),
         "true");
+
+    // default mode value: hash, using consistent hash
     // TODO(jiacheng): we may need a policy to only IO to remote worker
-    hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
-        "alluxio.client.file.dora.LocalWorkerPolicy");
+    switch (mParameters.mMode) {
+      case HASH:
+        hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
+            "alluxio.client.file.dora.ConsistentHashPolicy");
+        break;
+      case LOCAL_ONLY:
+        hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
+            "alluxio.client.file.dora.LocalWorkerPolicy");
+        break;
+      default:
+        throw new IllegalArgumentException("Unrecognized mode" + mParameters.mMode);
+    }
+    LOG.info("User worker selection policy: {}", mParameters.mMode);
+
     for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }

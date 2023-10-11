@@ -24,7 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -110,7 +110,7 @@ public class ConsistentHashProvider {
    * @return a list of workers following the hash ring
    */
   public List<BlockWorkerInfo> getMultiple(String key, int count) {
-    Set<BlockWorkerInfo> workers = new HashSet<>();
+    Set<BlockWorkerInfo> workers = new LinkedHashSet<>(); // preserve insertion order
     int attempts = 0;
     while (workers.size() < count && attempts < mMaxAttempts) {
       attempts++;

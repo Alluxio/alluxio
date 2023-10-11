@@ -611,12 +611,12 @@ Generate files used in documentation
 ### generate doc-tables
 Usage: `bin/alluxio generate doc-tables`
 
-Generate all documentation files
-
-### generate doc-tables
-Usage: `bin/alluxio generate doc-tables`
-
 Generate configuration and metric tables used in documentation
+
+### generate docs
+Usage: `bin/alluxio generate docs`
+
+Generate all documentation files
 
 ### generate user-cli
 Usage: `bin/alluxio generate user-cli [flags]`
@@ -732,7 +732,9 @@ It should only be called while the cluster is not running.
 
 
 Flags:
-- `--localFileSystem`,`-s`: If specified, only format if underfs is local and doesn't already exist (Default: false)
+- `--localFileSystem`,`-s`: Only format if underfs is local and doesn't already exist (Default: false)
+- `--skip-master`: Skip formatting journal on all masters (Default: false)
+- `--skip-worker`: Skip formatting cache on all workers (Default: false)
 
 ### init validate
 Usage: `bin/alluxio init validate [flags]`
@@ -809,7 +811,7 @@ Journal related operations
 ### journal checkpoint
 Usage: `bin/alluxio journal checkpoint`
 
-The checkpoint command creates a checkpoint the local Alluxio master's journal.
+The checkpoint command creates a checkpoint the leading Alluxio master's journal.
 This command is mainly used for debugging and to avoid master journal logs from growing unbounded.
 Checkpointing requires a pause in master metadata changes, so use this command sparingly to avoid interfering with other users of the system.
 

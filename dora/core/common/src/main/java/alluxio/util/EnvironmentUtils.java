@@ -208,7 +208,7 @@ public final class EnvironmentUtils {
    */
   private static boolean isGCEWithBiosVendor() {
     try {
-      Process process = Runtime.getRuntime().exec("sudo dmidecode -s bios-vendor");
+      Process process = Runtime.getRuntime().exec("sudo -n dmidecode -s bios-vendor");
       try (Reader reader = new InputStreamReader(process.getInputStream())) {
         String output = CharStreams.toString(reader);
         return output.contains("Google");

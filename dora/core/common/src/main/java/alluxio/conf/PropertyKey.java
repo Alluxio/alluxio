@@ -1051,6 +1051,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * UFS related properties.
    */
+  public static final PropertyKey UNDERFS_XATTR_CHANGE_ENABLED =
+      Builder.booleanBuilder(Name.UNDERFS_XATTR_CHANGE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("When enabled, Alluxio allows user to set/get xAttr from/to UFS. "
+              + "There will be different implementation methods in different UFS, "
+              + "implemented like HdfsUFS.setXattr, ObjectUFS.setTagging, or other ways.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_STRICT_VERSION_MATCH_ENABLED =
       Builder.booleanBuilder(Name.UNDERFS_STRICT_VERSION_MATCH_ENABLED)
           .setDefaultValue(false)
@@ -6815,6 +6824,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "etcd cluster (e.g. http://localhost:2379,http://etcd1:2379)")
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey ETCD_USERNAME =
+      stringBuilder(Name.ETCD_USERNAME)
+          .setDescription("Username for communication with Etcd."
+              + "Make sure the given user has the full readwrite"
+              + " role permission on all keys with prefix '/'. "
+              + "Refer to etcd official site for Authentication section.")
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey ETCD_PASSWORD =
+      stringBuilder(Name.ETCD_PASSWORD)
+          .setDescription("User password for communication with Etcd.")
+          .setScope(Scope.ALL)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
 
   //
   // JVM Monitor related properties
@@ -7203,6 +7226,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // UFS related properties
     //
+    public static final String UNDERFS_XATTR_CHANGE_ENABLED =
+        "alluxio.underfs.xattr.change.enabled";
     public static final String UNDERFS_STRICT_VERSION_MATCH_ENABLED =
         "alluxio.underfs.strict.version.match.enabled";
     public static final String UNDERFS_ALLOW_SET_OWNER_FAILURE =
@@ -8499,6 +8524,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     // Membership related properties
     public static final String ALLUXIO_CLUSTER_NAME = "alluxio.cluster.name";
     public static final String ETCD_ENDPOINTS = "alluxio.etcd.endpoints";
+    public static final String ETCD_USERNAME = "alluxio.etcd.username";
+    public static final String ETCD_PASSWORD = "alluxio.etcd.password";
 
     //
     // JVM Monitor related properties
