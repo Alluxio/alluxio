@@ -553,6 +553,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
   }
 
+  // For testing only
+  public static final PropertyKey YIMIN_SEQUENTIAL_READ_TEST =
+      booleanBuilder("yimin.sequential.read.test")
+          .setDefaultValue(false)
+          .setDescription("")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey YIMIN_POSITION_READER_LOG_ENABLED =
+      booleanBuilder("yimin.position.reader.log.enabled")
+          .setDefaultValue(false)
+          .setDescription("")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+
   public static final PropertyKey CONF_DIR =
       stringBuilder(Name.CONF_DIR)
           .setDefaultValue(format("${%s}/conf", Name.HOME))

@@ -16,6 +16,8 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.concurrent.LockMode;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.runtime.AlluxioRuntimeException;
@@ -45,6 +47,8 @@ public class FuseFileInStream implements FuseFileStream {
   private final AlluxioURI mURI;
   private final CloseableResource<Lock> mLockResource;
   private volatile boolean mClosed = false;
+  private boolean mSequentialReadTest = Configuration.getBoolean(
+      PropertyKey.YIMIN_SEQUENTIAL_READ_TEST);
 
   /**
    * Creates a {@link FuseFileInStream}.
@@ -114,7 +118,9 @@ public class FuseFileInStream implements FuseFileStream {
     int totalRead = 0;
     int currentRead;
     try {
-      mInStream.seek(offset);
+      if (!mSequentialReadTest) {
+        mInStream.seek(offset);
+      }
       do {
         currentRead = mInStream.read(buf, totalRead, sz - totalRead);
         if (currentRead > 0) {

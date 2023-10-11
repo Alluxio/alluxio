@@ -23,6 +23,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.EvictingQueue;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -38,6 +40,9 @@ public class PositionReadFileInStream extends FileInStream {
   private boolean mClosed;
   private final PositionReader mPositionReader;
   private final PrefetchCache mCache;
+  private final boolean mDebugLog =
+      Configuration.getBoolean(PropertyKey.YIMIN_POSITION_READER_LOG_ENABLED);
+  private static final Logger LOG = LoggerFactory.getLogger(PositionReadFileInStream.class);
 
   private static class PrefetchCache implements AutoCloseable {
     private final long mFileLength;
@@ -192,6 +197,10 @@ public class PositionReadFileInStream extends FileInStream {
 
   @Override
   public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
+    if (mDebugLog) {
+      LOG.info("pos: {}, prefetch_size: {}, len: {}",
+          mPos / len, getPrefetchSize(), len);
+    }
     byteBuffer.position(off).limit(off + len);
     mCache.addTrace(mPos, len);
     int totalBytesRead = 0;
