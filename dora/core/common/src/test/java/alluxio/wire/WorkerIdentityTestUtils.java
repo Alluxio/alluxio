@@ -25,6 +25,14 @@ public class WorkerIdentityTestUtils {
   }
 
   /**
+   * @param id id
+   * @return the identity that is based on the specified numeric id
+   */
+  public static WorkerIdentity ofLegacyId(long id) {
+    return WorkerIdentity.ParserV0.INSTANCE.fromLong(id);
+  }
+
+  /**
    * @return a worker identity with a random UUID
    */
   public static WorkerIdentity randomUuidBasedId() {
