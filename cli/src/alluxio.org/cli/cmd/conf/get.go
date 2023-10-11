@@ -26,7 +26,7 @@ var Get = &GetCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "get",
 		JavaClassName: "alluxio.cli.GetConf",
-		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioConfValidationEnabled, false),
+		ShellJavaOpts: []string{fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioConfValidationEnabled, false)},
 	},
 }
 
