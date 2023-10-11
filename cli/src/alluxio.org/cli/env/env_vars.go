@@ -139,6 +139,9 @@ func (a *AlluxioConfigEnvVar) ConfigToJavaOpts(env *viper.Viper, required bool) 
 }
 
 func (a *AlluxioConfigEnvVar) JavaOptsToArgs(env *viper.Viper) []string {
+	if !a.IsJavaOpts {
+		panic(fmt.Sprintf("cannot convert to args because %v is not declared to be a JAVA_OPT environment variable", a.EnvVar))
+	}
 	v := strings.TrimSpace(env.GetString(a.EnvVar))
 	if v == "" {
 		return nil
