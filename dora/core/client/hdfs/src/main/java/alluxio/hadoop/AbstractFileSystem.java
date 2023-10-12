@@ -710,7 +710,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw toHdfsIOException(e);
+      LOG.error("Failed to rename {} to {}", src, dst, toHdfsIOException(e));
+      return false;
     } catch (AlluxioException e) {
       ensureExists(srcPath);
       URIStatus dstStatus;
