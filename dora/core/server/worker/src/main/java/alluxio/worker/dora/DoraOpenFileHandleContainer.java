@@ -41,13 +41,18 @@ public class DoraOpenFileHandleContainer extends Thread {
     while (!mStop) {
       try {
         sleep(Constants.MINUTE_MS);
+        if (mStop) {
+          LOG.debug("Thread exited");
+          return;
+        }
+        LOG.debug("Checking all handles ...");
         // Iterate the mOpenFileHandles if some handles are stale (not active for a long time).
         for (Map.Entry<String, OpenFileHandle> entry : mOpenFileHandles.entrySet()) {
           String key = entry.getKey();
           OpenFileHandle handle = entry.getValue();
-          if (System.currentTimeMillis() - handle.getLastAccessTimeMs() >= Constants.HOUR) {
-            mOpenFileHandles.remove(key);
-            handle.close();
+          LOG.debug("Checking handle for {}", handle.getPath());
+          if (System.currentTimeMillis() - handle.getLastAccessTimeMs() >= Constants.HOUR * 24) {
+            LOG.warn("File {} has been inactive for more than 24 hours.", handle.getPath());
           }
         }
       } catch (InterruptedException e) {
@@ -56,8 +61,7 @@ public class DoraOpenFileHandleContainer extends Thread {
         // Ignored. The thread will continue.
       }
     }
-    // Now, it is stopped. Let's remove all handles.
-    // Add code here to close all handles.
+    LOG.debug("Thread exited");
   }
 
   /**
@@ -68,6 +72,7 @@ public class DoraOpenFileHandleContainer extends Thread {
    */
   public boolean add(String key, OpenFileHandle handle) {
     OpenFileHandle old = mOpenFileHandles.putIfAbsent(key, handle);
+    LOG.debug("added {}", handle.getPath());
     return old == null;
   }
 
@@ -79,6 +84,10 @@ public class DoraOpenFileHandleContainer extends Thread {
   @Nullable
   public OpenFileHandle find(String key) {
     OpenFileHandle handle = mOpenFileHandles.get(key);
+    if (handle != null) {
+      handle.updateLastAccessTimeMs();
+      LOG.debug("found {}", handle.getPath());
+    }
     return handle;
   }
 
@@ -96,7 +105,10 @@ public class DoraOpenFileHandleContainer extends Thread {
     if (handle != null && uuid.equals(handle.getUUID().toString())) {
       LOG.debug("Handle found but uuid verification failed: request uuid: {}, handle uuid ",
           uuid, handle.getUUID());
-      return handle;
+    }
+    if (handle != null) {
+      handle.updateLastAccessTimeMs();
+      LOG.debug("found {}", handle.getPath());
     }
     return handle;
   }
@@ -107,6 +119,7 @@ public class DoraOpenFileHandleContainer extends Thread {
    */
   public void remove(String key) {
     mOpenFileHandles.remove(key);
+    LOG.debug("removed {}", key);
   }
 
   /**

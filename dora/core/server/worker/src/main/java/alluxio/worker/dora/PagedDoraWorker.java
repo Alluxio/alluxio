@@ -788,7 +788,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
           path, existingHandle);
       // If want to enable this checking and throw exception, we need to handle such abnormal cases:
       // 1. If client disconnects without sending CompleteFile request, we must have a way to
-      //    clean up the stale handle.
+      //    clean up the stale handle. Please see DoraOpenFileHandleContainer::run().
       // 2. some other abnormal case ...
       //throw new RuntimeException(new FileAlreadyExistsException("File is already opened"));
       mOpenFileHandleContainer.remove(path);
