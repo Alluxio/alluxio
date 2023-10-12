@@ -47,7 +47,6 @@ public class WorkerMetadataSyncIntegrationTest {
 
   /* Not applied as registration is not going thru master any more */
   @Test
-  @Ignore
   public void reRegisterWorker() throws Exception {
     mLocalAlluxioClusterResource.start();
 
@@ -66,7 +65,6 @@ public class WorkerMetadataSyncIntegrationTest {
 
   /* Not applied as registration is not going thru master any more */
   @Test
-  @Ignore
   public void acquireLeaseNoStreaming() throws Exception {
     // test that registration works when lease is enabled and streaming is disabled
     mConfigurationRule.set(PropertyKey.WORKER_REGISTER_LEASE_ENABLED, true);

@@ -153,7 +153,6 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   @Test
-  @Ignore
   public void cat() throws Exception {
     String testFile = "/catTestFile";
     String content = "Alluxio Cat Test File Content";
