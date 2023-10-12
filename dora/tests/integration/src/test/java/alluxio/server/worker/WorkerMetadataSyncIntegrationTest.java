@@ -23,7 +23,6 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
