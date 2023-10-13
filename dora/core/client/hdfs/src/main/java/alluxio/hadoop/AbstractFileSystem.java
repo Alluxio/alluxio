@@ -48,6 +48,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.net.HostAndPort;
+import io.etcd.jetcd.Auth;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -710,31 +711,50 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      LOG.error("Failed to rename {} to {}", src, dst, toHdfsIOException(e));
-      return false;
-    } catch (AlluxioException e) {
-      ensureExists(srcPath);
-      URIStatus dstStatus;
       try {
-        dstStatus = mFileSystem.getStatus(dstPath);
-      } catch (IOException | AlluxioException e2) {
-        LOG.warn("rename failed: {}", e.toString());
+        throw toHdfsIOException(e);
+      } catch (FileNotFoundException | UnsupportedFileSystemException e2) {
+        return renameInternal(src, dst, srcPath, dstPath);
+      } catch (AccessControlException e2) {
+        LOG.error("Failed to rename {} to {}", src, dst, e2);
         return false;
-      }
-      // If the destination is an existing folder, try to move the src into the folder
-      if (dstStatus != null && dstStatus.isFolder()) {
-        dstPath = dstPath.joinUnsafe(srcPath.getName());
-      } else {
-        LOG.warn("rename failed: {}", e.toString());
-        return false;
-      }
-      try {
-        mFileSystem.rename(srcPath, dstPath);
-      } catch (IOException | AlluxioException e2) {
+      } catch (IOException e2) {
         LOG.error("Failed to rename {} to {}", src, dst, e2);
         return false;
       }
+    } catch (AlluxioException e) {
+      return renameInternal(src, dst, srcPath, dstPath);
     } catch (IOException e) {
+      LOG.error("Failed to rename {} to {}", src, dst, e);
+      return false;
+    }
+    return true;
+  }
+
+  public boolean renameInternal(Path src, Path dst, AlluxioURI srcPath, AlluxioURI dstPath) {
+    try {
+      ensureExists(srcPath);
+    } catch (IOException e) {
+      LOG.warn("rename failed: {}", e.toString());
+      return false;
+    }
+    URIStatus dstStatus;
+    try {
+      dstStatus = mFileSystem.getStatus(dstPath);
+    } catch (IOException | AlluxioException e) {
+      LOG.warn("rename failed: {}", e.toString());
+      return false;
+    }
+    // If the destination is an existing folder, try to move the src into the folder
+    if (dstStatus != null && dstStatus.isFolder()) {
+      dstPath = dstPath.joinUnsafe(srcPath.getName());
+    } else {
+      LOG.error("Failed to rename {} to {}", src, dst);
+      return false;
+    }
+    try {
+      mFileSystem.rename(srcPath, dstPath);
+    } catch (IOException | AlluxioException e) {
       LOG.error("Failed to rename {} to {}", src, dst, e);
       return false;
     }
