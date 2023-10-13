@@ -429,12 +429,8 @@ public interface FileSystemMaster extends Master {
 
   /**
    * @return the lost files with blocks
-   * @throws FileDoesNotExistException
-   * @throws UnavailableException
-   * @throws AccessControlException
    */
-  Map<Long, List<Long>> getLostFilesWithBlocks()
-      throws FileDoesNotExistException, UnavailableException, AccessControlException;
+  Map<Long, List<Long>> getLostFilesWithBlocks();
 
   /**
    * Mounts a UFS path onto an Alluxio path.

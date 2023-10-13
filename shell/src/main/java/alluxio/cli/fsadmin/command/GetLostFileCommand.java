@@ -13,7 +13,6 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.annotation.PublicApi;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
-import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.LostBlockList;
@@ -68,7 +67,7 @@ public class GetLostFileCommand extends AbstractFsAdminCommand {
     if (lostFiles != null) {
       lostFiles.entrySet().stream().map((entry) -> {
         try {
-          return new Pair(mFsClient.getFilePath(entry.getKey()), entry.getValue());
+          return mFsClient.getFilePath(entry.getKey()) + ":" + entry.getValue();
         } catch (AlluxioStatusException e) {
           return e.getMessage() + " for lost fileId " + entry.getKey();
         }

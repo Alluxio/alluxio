@@ -3463,12 +3463,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       long containerId = BlockId.getContainerId(blockId);
       long fileId = IdUtils.createFileId(containerId);
       List<Long> lostBlockList;
-      if (!lostResults.containsKey(fileId)) {
-        lostBlockList = new ArrayList<>();
-        lostResults.put(fileId, lostBlockList);
-      } else {
-        lostBlockList = lostResults.get(fileId);
-      }
+      lostResults.computeIfAbsent(fileId, k -> new ArrayList<>());
+      lostBlockList = lostResults.get(fileId);
       lostBlockList.add(blockId);
     }
     return lostResults;
