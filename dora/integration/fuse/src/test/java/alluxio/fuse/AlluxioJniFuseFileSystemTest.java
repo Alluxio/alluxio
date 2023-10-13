@@ -63,7 +63,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -608,7 +607,6 @@ public class AlluxioJniFuseFileSystemTest {
   @Test
   @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
       comment = "aggregated capacity and usage info is not available yet in dora")
-  @Ignore
   public void statfs() throws Exception {
     ByteBuffer buffer = ByteBuffer.allocateDirect(4 * Constants.KB);
     buffer.clear();
@@ -631,6 +629,8 @@ public class AlluxioJniFuseFileSystemTest {
           @Override
           public void closeResource() {}
         });
+
+    mFuseFs.disableUfsForTest();
 
     assertEquals(0, mFuseFs.statfs("/", stbuf));
 

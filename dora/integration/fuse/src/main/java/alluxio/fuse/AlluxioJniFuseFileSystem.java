@@ -117,6 +117,9 @@ public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @VisibleForTesting
   public static final int UNKNOWN_INODES = -1;
 
+  @VisibleForTesting
+  private boolean mUfsEnableForTest = true;
+
   /**
    * Creates a new instance of {@link AlluxioJniFuseFileSystem}.
    *
@@ -643,7 +646,7 @@ public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   }
 
   private int statfsInternal(String path, Statvfs stbuf) {
-    if (mUfsEnabled) {
+    if (mUfsEnabled && mUfsEnableForTest) {
       return 0;
     }
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
@@ -734,6 +737,11 @@ public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   @VisibleForTesting
   LoadingCache<String, AlluxioURI> getPathResolverCache() {
     return mPathResolverCache;
+  }
+
+  @VisibleForTesting
+  void disableUfsForTest() {
+    mUfsEnableForTest = false;
   }
 
   /**
