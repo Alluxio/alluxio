@@ -30,6 +30,7 @@ public final class WorkerInfo implements Serializable {
   private static final long serialVersionUID = -454711814438216780L;
 
   private long mId;
+  private WorkerIdentity mIdentity;
   private WorkerNetAddress mAddress = new WorkerNetAddress();
   private int mLastContactSec;
   private String mState = "";
@@ -48,6 +49,18 @@ public final class WorkerInfo implements Serializable {
   @ApiModelProperty(value = "Worker id, used to identify the worker internally")
   public long getId() {
     return mId;
+  }
+
+  /**
+   * @return the worker identity
+   */
+  public WorkerIdentity getIdentity() {
+    // compatibility with legacy code where identity is not set explicitly
+    // FIXME: remove this when the legacy id is removed
+    if (mIdentity == null) {
+      return WorkerIdentity.ParserV0.INSTANCE.fromLong(mId);
+    }
+    return mIdentity;
   }
 
   /**
@@ -136,6 +149,15 @@ public final class WorkerInfo implements Serializable {
    */
   public WorkerInfo setId(long id) {
     mId = id;
+    return this;
+  }
+
+  /**
+   * @param identity the worker identity
+   * @return this worker info
+   */
+  public WorkerInfo setIdentity(WorkerIdentity identity) {
+    mIdentity = identity;
     return this;
   }
 
@@ -240,7 +262,9 @@ public final class WorkerInfo implements Serializable {
       return false;
     }
     WorkerInfo that = (WorkerInfo) o;
-    return mId == that.mId && Objects.equal(mAddress, that.mAddress)
+    return mId == that.mId
+        && Objects.equal(mIdentity, that.mIdentity)
+        && Objects.equal(mAddress, that.mAddress)
         && mLastContactSec == that.mLastContactSec && Objects.equal(mState, that.mState)
         && mCapacityBytes == that.mCapacityBytes && mUsedBytes == that.mUsedBytes
         && mStartTimeMs == that.mStartTimeMs
@@ -286,13 +310,15 @@ public final class WorkerInfo implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mId, mAddress, mLastContactSec, mState, mCapacityBytes, mUsedBytes,
-        mStartTimeMs, mCapacityBytesOnTiers, mUsedBytesOnTiers, mVersion, mRevision);
+    return Objects.hashCode(mId, mIdentity, mAddress, mLastContactSec, mState, mCapacityBytes,
+        mUsedBytes, mStartTimeMs, mCapacityBytesOnTiers, mUsedBytesOnTiers, mVersion, mRevision);
   }
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
+    return MoreObjects.toStringHelper(this).add("id", mId)
+        .add("identity", mIdentity)
+        .add("address", mAddress)
         .add("lastContactSec", mLastContactSec).add("state", mState)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("startTimeMs", mStartTimeMs).add("capacityBytesOnTiers", mCapacityBytesOnTiers)

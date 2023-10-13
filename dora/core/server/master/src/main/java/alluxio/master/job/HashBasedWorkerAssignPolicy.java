@@ -34,13 +34,14 @@ public class HashBasedWorkerAssignPolicy extends WorkerAssignPolicy {
       return null;
     }
     List<BlockWorkerInfo> candidates = workerInfos.stream()
-        .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
+        .map(w -> new BlockWorkerInfo(w.getIdentity(),
+            w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
         .collect(Collectors.toList());
     try {
       List<BlockWorkerInfo> blockWorkerInfo = mWorkerLocationPolicy
               .getPreferredWorkers(candidates, object, 1);
       WorkerInfo returnWorker = workerInfos.stream().filter(workerInfo ->
-                      workerInfo.getAddress().equals(blockWorkerInfo.get(0).getNetAddress()))
+              workerInfo.getIdentity().equals(blockWorkerInfo.get(0).getIdentity()))
               .findFirst().get();
       return returnWorker;
     } catch (ResourceExhaustedException e) {

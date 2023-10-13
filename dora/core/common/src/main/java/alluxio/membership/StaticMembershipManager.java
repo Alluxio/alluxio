@@ -19,17 +19,19 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.util.HashUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 /**
  * MembershipManager configured by a static file.
@@ -73,7 +75,7 @@ public class StaticMembershipManager implements MembershipManager {
    */
   private static List<WorkerInfo> parseWorkerAddresses(
       String configFile, AlluxioConfiguration conf) {
-    List<WorkerNetAddress> workerAddrs = new ArrayList<>();
+    List<WorkerInfo> workerInfos = new ArrayList<>();
     File file = new File(configFile);
     if (!file.exists()) {
       throw new NotFoundRuntimeException("Not found for static worker config file:" + configFile);
@@ -100,10 +102,17 @@ public class StaticMembershipManager implements MembershipManager {
             Configuration.global());
       }
       workerNetAddress.setDataPort(inetAddr.getPort());
-      workerAddrs.add(workerNetAddress);
+      // generate identities from hostnames
+      // todo(bowen): consider change the configuration file to allow specify both the
+      //  identity and the net address
+      WorkerIdentity identity = WorkerIdentity.ParserV1.INSTANCE.fromUUID(
+          UUID.nameUUIDFromBytes(workerHostname.getBytes(StandardCharsets.UTF_8)));
+      WorkerInfo workerInfo = new WorkerInfo()
+          .setIdentity(identity)
+          .setAddress(workerNetAddress);
+      workerInfos.add(workerInfo);
     }
-    return workerAddrs.stream()
-        .map(w -> new WorkerInfo().setAddress(w)).collect(Collectors.toList());
+    return workerInfos;
   }
 
   @Override
