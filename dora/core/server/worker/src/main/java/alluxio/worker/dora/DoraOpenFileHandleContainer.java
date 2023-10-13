@@ -40,7 +40,7 @@ public class DoraOpenFileHandleContainer extends Thread {
   public void run() {
     while (!mStop) {
       try {
-        sleep(Constants.MINUTE_MS);
+        sleep(Constants.MINUTE_MS * 10);
         if (mStop) {
           LOG.debug("Thread exited");
           return;
