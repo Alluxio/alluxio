@@ -15,28 +15,28 @@ import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSO
 import static com.google.common.base.Preconditions.checkState;
 
 import alluxio.RpcUtils;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
-import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.IdUtils;
 import alluxio.util.LogUtils;
 import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockLock;
+import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.DefaultBlockWorker;
-import alluxio.worker.block.LocalBlockStore;
+import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.meta.BlockMeta;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import java.text.MessageFormat;
 import java.util.Optional;
-import java.util.OptionalLong;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * gRPC handler that handles short circuit read requests.
@@ -46,26 +46,23 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
   private static final Logger LOG =
       LoggerFactory.getLogger(ShortCircuitBlockReadHandler.class);
 
-  private final LocalBlockStore mLocalBlockStore;
+  private final BlockStore mLocalBlockStore;
   private final StreamObserver<OpenLocalBlockResponse> mResponseObserver;
-  private final AuthenticatedUserInfo mUserInfo;
   private OpenLocalBlockRequest mRequest;
-  /** The lock Id of the block being read. */
-  private OptionalLong mLockId;
+  /** The lock id of the block being read. */
+  private Optional<BlockLock> mBlockLock;
   private long mSessionId;
 
   /**
    * Creates an instance of {@link ShortCircuitBlockReadHandler}.
    *
    * @param localBlockStore the local block store
-   * @param userInfo the authenticated user info
    */
-  ShortCircuitBlockReadHandler(LocalBlockStore localBlockStore,
-      StreamObserver<OpenLocalBlockResponse> responseObserver, AuthenticatedUserInfo userInfo) {
+  ShortCircuitBlockReadHandler(BlockStore localBlockStore,
+                               StreamObserver<OpenLocalBlockResponse> responseObserver) {
     mLocalBlockStore = localBlockStore;
-    mLockId = OptionalLong.empty();
+    mBlockLock = Optional.empty();
     mResponseObserver = responseObserver;
-    mUserInfo = userInfo;
   }
 
   /**
@@ -78,18 +75,24 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
       public OpenLocalBlockResponse call() throws Exception {
         checkState(mRequest == null);
         mRequest = request;
-        if (mLockId.isPresent()) {
+        if (mBlockLock.isPresent()) {
           LOG.warn("Lock block {} without releasing previous block lock {}.",
-              mRequest.getBlockId(), mLockId);
+              mRequest.getBlockId(), mBlockLock);
           throw new InvalidWorkerStateException(
-              ExceptionMessage.LOCK_NOT_RELEASED.getMessage(mLockId));
+              MessageFormat.format("session {0,number,#} is not closed.", mBlockLock));
         }
         mSessionId = IdUtils.createSessionId();
         // TODO(calvin): Update the locking logic so this can be done better
         Optional<BlockMeta> meta = mLocalBlockStore.getVolatileBlockMeta(mRequest.getBlockId());
         if (!meta.isPresent()) {
-          throw new BlockDoesNotExistException(
-              ExceptionMessage.BLOCK_META_NOT_FOUND, mRequest.getBlockId());
+          throw new BlockDoesNotExistRuntimeException(mRequest.getBlockId());
+        }
+        try {
+          // assuming the underlying BlockStore is TieredBlockStore, as it's the only impl
+          // that allows short-circuit read
+          TieredBlockStore.validateBlockIntegrityForRead(meta.get());
+        } catch (IllegalStateException validationError) {
+          throw new BlockDoesNotExistRuntimeException(mRequest.getBlockId(), validationError);
         }
         if (mRequest.getPromote()) {
           // TODO(calvin): Move this logic into BlockStore#moveBlockInternal if possible
@@ -100,9 +103,13 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
             // Execute the block move if necessary
             mLocalBlockStore.moveBlock(mSessionId, mRequest.getBlockId(),
                 AllocateOptions.forMove(dst));
+
+            // block is moved, get the latest metadata for the block's
+            // new path
+            meta = mLocalBlockStore.getVolatileBlockMeta(mRequest.getBlockId());
           }
         }
-        mLockId = mLocalBlockStore.pinBlock(mSessionId, mRequest.getBlockId());
+        mBlockLock = mLocalBlockStore.pinBlock(mSessionId, mRequest.getBlockId());
         mLocalBlockStore.accessBlock(mSessionId, mRequest.getBlockId());
         DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.inc();
         return OpenLocalBlockResponse.newBuilder()
@@ -112,10 +119,10 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
 
       @Override
       public void exceptionCaught(Throwable e) {
-        if (mLockId.isPresent()) {
+        if (mBlockLock.isPresent()) {
           DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.dec();
-          mLocalBlockStore.unpinBlock(mLockId.getAsLong());
-          mLockId = OptionalLong.empty();
+          mLocalBlockStore.unpinBlock(mBlockLock.get());
+          mBlockLock = Optional.empty();
         }
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
       }
@@ -127,9 +134,9 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
   @Override
   public void onError(Throwable t) {
     LogUtils.warnWithException(LOG, "Exception occurred processing read request {}.", mRequest, t);
-    if (mLockId.isPresent()) {
+    if (mBlockLock.isPresent()) {
       DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.dec();
-      mLocalBlockStore.unpinBlock(mLockId.getAsLong());
+      mLocalBlockStore.unpinBlock(mBlockLock.get());
       mLocalBlockStore.cleanupSession(mSessionId);
     }
     mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(t));
@@ -142,11 +149,11 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
   public void onCompleted() {
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<OpenLocalBlockResponse>() {
       @Override
-      public OpenLocalBlockResponse call() throws Exception {
-        if (mLockId.isPresent()) {
+      public OpenLocalBlockResponse call() {
+        if (mBlockLock.isPresent()) {
           DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.dec();
-          mLocalBlockStore.unpinBlock(mLockId.getAsLong());
-          mLockId = OptionalLong.empty();
+          mLocalBlockStore.unpinBlock(mBlockLock.get());
+          mBlockLock = Optional.empty();
         } else if (mRequest != null) {
           LOG.warn("Close a closed block {}.", mRequest.getBlockId());
         }
@@ -156,7 +163,7 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
       @Override
       public void exceptionCaught(Throwable e) {
         mResponseObserver.onError(GrpcExceptionUtils.fromThrowable(e));
-        mLockId = OptionalLong.empty();
+        mBlockLock = Optional.empty();
       }
     }, "CloseBlock", false, true, mResponseObserver, "Session=%d, Request=%s",
         mSessionId, mRequest);

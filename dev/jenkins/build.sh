@@ -101,3 +101,7 @@ if [ "${RUN_DOC_CHECK}" == "true" ]; then
 else
   echo "RUN_DOC_CHECK was not set to true, skipping doc check"
 fi
+
+# Check UFS version consistency
+./dev/scripts/generate-tarballs checkUfsVersions
+

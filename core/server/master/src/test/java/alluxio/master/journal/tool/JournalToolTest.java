@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.tool;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.journal.JournalType;
 
 import org.junit.Assert;
@@ -35,7 +35,7 @@ public class JournalToolTest {
 
   @Before
   public void before() throws Exception {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
     PowerMockito.spy(JournalTool.class);
     PowerMockito.doNothing().when(JournalTool.class, "dumpJournal");
   }
@@ -44,14 +44,14 @@ public class JournalToolTest {
   public void defaultJournalDir() throws Throwable {
     JournalTool.main(new String[0]);
     String inputUri = Whitebox.getInternalState(JournalTool.class, "sInputDir");
-    Assert.assertEquals(ServerConfiguration.get(PropertyKey.MASTER_JOURNAL_FOLDER), inputUri);
+    Assert.assertEquals(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER), inputUri);
   }
 
   @Test
   public void hdfsJournalDir() throws Throwable {
     String journalPath = "hdfs://namenode:port/alluxio/journal";
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalPath);
 
     JournalTool.main(new String[0]);
     String inputUri = Whitebox.getInternalState(JournalTool.class, "sInputDir");
@@ -60,8 +60,8 @@ public class JournalToolTest {
 
   @Test
   public void absoluteLocalJournalInput() throws Throwable {
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FOLDER,
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER,
         "hdfs://namenode:port/alluxio/journal");
 
     String journalPath = "/path/to/local/file";

@@ -11,8 +11,8 @@
 
 package alluxio.underfs.abfs;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
@@ -30,7 +30,7 @@ public class AbfsUnderFileSystemFactoryTest {
    */
   @Test
   public void factory() {
-    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
+    AlluxioConfiguration conf = Configuration.global();
     UnderFileSystemFactory factory =
         UnderFileSystemFactoryRegistry.find("abfs://localhost/test/path", conf);
     Assert.assertNotNull(

@@ -39,9 +39,11 @@ public class PortCoordination {
   ));
   // for EmbeddedJournalIntegrationTestFaultTolerance
   public static final List<ReservedPort> EMBEDDED_JOURNAL_FAILOVER = allocate(3, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_FAILOVER_METADATA_SYNC = allocate(3, 1);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_MASTER = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_FOLLOWER = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_TRANSFER_LOAD = allocate(3, 0);
+  public static final List<ReservedPort> EMBEDDED_JOURNAL_SNAPSHOT_SINGLE_MASTER = allocate(1, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART = allocate(3, 0);
   public static final List<ReservedPort> EMBEDDED_JOURNAL_RESTART_STRESS = allocate(3, 0);
   // for EmbeddedJournalIntegrationTestResizing
@@ -59,6 +61,8 @@ public class PortCoordination {
   public static final List<ReservedPort> JOURNAL_MIGRATION = allocate(3, 1);
 
   public static final List<ReservedPort> BACKUP_RESTORE_EMBEDDED = allocate(3, 1);
+  public static final List<ReservedPort> BACKUP_SYNC_ON_RESTORE = allocate(1, 1);
+  public static final List<ReservedPort> BACKUP_CONTENT_ON_RESTORE = allocate(1, 1);
 
   public static final List<ReservedPort> CONFIG_CHECKER_MULTI_WORKERS = allocate(1, 2);
   public static final List<ReservedPort> CONFIG_CHECKER_MULTI_NODES = allocate(2, 2);
@@ -80,6 +84,10 @@ public class PortCoordination {
   public static final List<ReservedPort> BACKUP_DELEGATION_EMBEDDED = allocate(2, 1);
   public static final List<ReservedPort> BACKUP_RESTORE_METASSTORE_HEAP = allocate(1, 1);
   public static final List<ReservedPort> BACKUP_RESTORE_METASSTORE_ROCKS = allocate(1, 1);
+  public static final List<ReservedPort> BACKUP_EMERGENCY_1 = allocate(1, 0);
+  public static final List<ReservedPort> BACKUP_EMERGENCY_2 = allocate(1, 0);
+  public static final List<ReservedPort> BACKUP_EMERGENCY_HA_1 = allocate(3, 0);
+  public static final List<ReservedPort> BACKUP_EMERGENCY_HA_2 = allocate(3, 0);
 
   public static final List<ReservedPort> ZOOKEEPER_FAILURE = allocate(2, 1);
   public static final List<ReservedPort> ZOOKEEPER_CONNECTION_POLICY_STANDARD = allocate(2, 0);
@@ -98,6 +106,8 @@ public class PortCoordination {
   public static final List<ReservedPort> QUORUM_SHELL = allocate(3, 0);
   public static final List<ReservedPort> QUORUM_SHELL_INFO = allocate(3, 0);
   public static final List<ReservedPort> QUORUM_SHELL_REMOVE = allocate(5, 0);
+
+  public static final List<ReservedPort> WORKER_ALL_MASTER_REGISTRATION = allocate(3, 1);
 
   private static synchronized List<ReservedPort> allocate(int numMasters, int numWorkers) {
     int needed = numMasters * MultiProcessCluster.PORTS_PER_MASTER

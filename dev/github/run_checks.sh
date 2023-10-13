@@ -37,3 +37,5 @@ mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -DskipTests -Dmave
 -Dsurefire.forkCount=2 ${mvn_args}
 
 ./dev/scripts/check-docs.sh
+./dev/scripts/generate-tarballs checkUfsVersions
+

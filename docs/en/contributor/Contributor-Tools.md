@@ -38,7 +38,6 @@ Some source files in Alluxio are generated from templates or compiled from other
 
 1. gRPC and ProtoBuf definitions are compiled into Java source files. Alluxio 2.2 moved generated 
    gRPC proto source files into `core/transport/target/generated-sources/protobuf/`.
-   Alluxio 2.7 added more gRPC generated proto source files in `hub/transport/target/generated-sources/protobuf/`.
 2. Compile time project constants are defined in 
    `core/common/src/main/java-templates/` and compiled to
    `core/common/target/generated-sources/java-templates/`.
@@ -159,7 +158,7 @@ action from the `Navigate > Search Everywhere` dialog.
     $ ls /tmp/alluxio-fuse
     $ bin/alluxio fs ls /
     ```
-   You should be able see the file is created and listed by both `ls` commands.
+   You should be able to see the file is created and listed by both `ls` commands.
 
 ##### Starting multiple processes in IntelliJ at once
 IntelliJ is capable of creating groups of processes that all be launched simultaneously. To do so go to 

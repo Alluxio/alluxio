@@ -16,8 +16,8 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.MasterContext;
@@ -54,7 +54,7 @@ public final class BackupCommandStateLockingIntegrationTest extends AbstractFsAd
     // Lock the state-change lock on the master before initiating the backup.
     try (LockResource lr = stateLockManager.lockExclusive(StateLockOptions.defaults())) {
       // Prepare for a backup.
-      Path dir = Paths.get(ServerConfiguration.getString(PropertyKey.MASTER_BACKUP_DIRECTORY));
+      Path dir = Paths.get(Configuration.getString(PropertyKey.MASTER_BACKUP_DIRECTORY));
       Files.createDirectories(dir);
       assertEquals(0, Files.list(dir).count());
       // Initiate backup. It should fail.
@@ -84,7 +84,7 @@ public final class BackupCommandStateLockingIntegrationTest extends AbstractFsAd
       mException.expect(AlluxioException.class);
       mLocalAlluxioCluster.getClient().getStatus(new AlluxioURI("/"));
       // Prepare for a backup.
-      Path dir = Paths.get(ServerConfiguration.getString(PropertyKey.MASTER_BACKUP_DIRECTORY));
+      Path dir = Paths.get(Configuration.getString(PropertyKey.MASTER_BACKUP_DIRECTORY));
       Files.createDirectories(dir);
       assertEquals(0, Files.list(dir).count());
       // Take the backup. It should be allowed.

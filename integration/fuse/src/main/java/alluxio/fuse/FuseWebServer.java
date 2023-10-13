@@ -11,7 +11,14 @@
 
 package alluxio.fuse;
 
+import alluxio.Constants;
+import alluxio.util.io.PathUtils;
+import alluxio.web.JacksonProtobufObjectMapperProvider;
 import alluxio.web.WebServer;
+
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 
 import java.net.InetSocketAddress;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -29,5 +36,13 @@ public final class FuseWebServer extends WebServer {
    */
   public FuseWebServer(String serviceName, InetSocketAddress address) {
     super(serviceName, address);
+    // REST configuration
+    ResourceConfig config = new ResourceConfig()
+        .packages("alluxio.fuse")
+        .register(JacksonProtobufObjectMapperProvider.class);
+    ServletContainer servlet = new ServletContainer(config);
+    ServletHolder servletHolder = new ServletHolder("Alluxio FUSE Web Service", servlet);
+    mServletContextHandler
+        .addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
   }
 }

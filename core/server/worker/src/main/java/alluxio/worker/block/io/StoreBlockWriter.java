@@ -29,7 +29,7 @@ public class StoreBlockWriter extends LocalFileBlockWriter {
    * @param blockMeta temp block meta
    * @throws IOException
    */
-  public StoreBlockWriter(TempBlockMeta blockMeta) throws IOException {
+  public StoreBlockWriter(TempBlockMeta blockMeta) {
     super(blockMeta.getPath());
     mBlockMeta = blockMeta;
     if (mBlockMeta.getSessionId() > 0) {

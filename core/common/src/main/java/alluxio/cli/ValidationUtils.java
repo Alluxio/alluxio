@@ -13,9 +13,6 @@ package alluxio.cli;
 
 import alluxio.AlluxioURI;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 /**
  * Utilities to run the validation tests.
  */
@@ -31,18 +28,6 @@ public final class ValidationUtils {
     WARNING,
     FAILED,
     SKIPPED
-  }
-
-  /**
-   * Convert a throwable into stacktrace, so it can be put in the TaskResult.
-   *
-   * @param t the throwable
-   * @return the formatted trace for the throwable
-   * */
-  public static String getErrorInfo(Throwable t) {
-    StringWriter errors = new StringWriter();
-    t.printStackTrace(new PrintWriter(errors));
-    return errors.toString();
   }
 
   /**

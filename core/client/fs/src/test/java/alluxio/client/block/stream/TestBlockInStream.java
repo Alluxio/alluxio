@@ -11,9 +11,10 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.conf.InstancedConfiguration;
-import alluxio.util.ConfigurationUtils;
+import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -27,10 +28,9 @@ public class TestBlockInStream extends BlockInStream {
   private int mBytesRead;
   private boolean mClosed;
 
-  public TestBlockInStream(byte[] data, long id, long length, boolean shortCircuit,
+  public TestBlockInStream(byte[] data, long id, long length,
       BlockInStreamSource source) {
-    super(new Factory(data, shortCircuit),
-        new InstancedConfiguration(ConfigurationUtils.defaults()),
+    super(new Factory(data),
         new WorkerNetAddress(), source, id, length);
     mBytesRead = 0;
   }
@@ -59,6 +59,16 @@ public class TestBlockInStream extends BlockInStream {
     return mClosed;
   }
 
+  @VisibleForTesting
+  public DataReader getDataReader() {
+    return mDataReader;
+  }
+
+  @VisibleForTesting
+  public DataBuffer getCurrentChunk() {
+    return mCurrentChunk;
+  }
+
   @Override
   public void close() throws IOException {
     mClosed = true;
@@ -77,16 +87,14 @@ public class TestBlockInStream extends BlockInStream {
    */
   public static class Factory implements DataReader.Factory {
     private final byte[] mData;
-    private final boolean mShortCircuit;
 
     /**
      * Creates an instance of {@link LocalFileDataReader.Factory}.
      *
      * @param data the data to serve
      */
-    public Factory(byte[] data, boolean shortCircuit) {
+    public Factory(byte[] data) {
       mData = data;
-      mShortCircuit = shortCircuit;
     }
 
     @Override

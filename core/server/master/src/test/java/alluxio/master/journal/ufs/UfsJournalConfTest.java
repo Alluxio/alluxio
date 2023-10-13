@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.underfs.UnderFileSystemConfiguration;
 
 import org.junit.After;
@@ -25,7 +25,7 @@ import org.junit.Test;
 public class UfsJournalConfTest {
   @After
   public void after() {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   @Test
@@ -40,7 +40,7 @@ public class UfsJournalConfTest {
         PropertyKey.Template.MASTER_JOURNAL_UFS_OPTION_PROPERTY
             .format(PropertyKey.UNDERFS_LISTING_LENGTH.toString());
     int value = 10000;
-    ServerConfiguration.set(key, value);
+    Configuration.set(key, value);
     UnderFileSystemConfiguration conf = UfsJournal.getJournalUfsConf();
     Assert.assertEquals(value, conf.getInt(PropertyKey.UNDERFS_LISTING_LENGTH));
     Assert.assertEquals(1, conf.getMountSpecificConf().size());

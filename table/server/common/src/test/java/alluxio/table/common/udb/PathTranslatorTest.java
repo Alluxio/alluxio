@@ -14,8 +14,8 @@ package alluxio.table.common.udb;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -41,7 +41,7 @@ public class PathTranslatorTest {
       new ConfigurationRule(
           ImmutableMap.of(PropertyKey.MASTER_HOSTNAME, MASTER_HOSTNAME,
             PropertyKey.MASTER_RPC_PORT, MASTER_RPC_PORT),
-          ServerConfiguration.global());
+          Configuration.modifiableGlobal());
 
   private PathTranslator mTranslator;
 

@@ -41,7 +41,7 @@ public interface FuseFileSystem {
     throw new UnsupportedOperationException("symlink");
   }
 
-  default int rename(String oldpath, String newpath) {
+  default int rename(String oldpath, String newpath, int flags) {
     throw new UnsupportedOperationException("rename");
   }
 

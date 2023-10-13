@@ -45,7 +45,7 @@ public final class FileSystemCommandUtils {
    */
   public static void setTtl(FileSystem fs, AlluxioURI path, long ttlMs,
       TtlAction ttlAction) throws AlluxioException, IOException {
-    SetAttributePOptions options = SetAttributePOptions.newBuilder().setRecursive(true)
+    SetAttributePOptions options = SetAttributePOptions.newBuilder().setRecursive(false)
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
             .setTtl(ttlMs).setTtlAction(ttlAction).build())
         .build();
@@ -65,6 +65,23 @@ public final class FileSystemCommandUtils {
       throws AlluxioException, IOException {
     SetAttributePOptions options = SetAttributePOptions.newBuilder().setPinned(pinned)
         .addAllPinnedMedia(mediumTypes)
+        .build();
+    fs.setAttribute(path, options);
+  }
+
+  /**
+   * Sets direct children loaded.
+   *
+   * @param fs The {@link FileSystem} client
+   * @param path The {@link AlluxioURI} path as the input of the command
+   * @param directChildrenLoaded true or false
+   */
+  public static void setDirectChildrenLoaded(FileSystem fs, AlluxioURI path,
+      boolean directChildrenLoaded)
+      throws AlluxioException, IOException {
+    SetAttributePOptions options = SetAttributePOptions.newBuilder()
+        .setRecursive(false)
+        .setDirectChildrenLoaded(directChildrenLoaded)
         .build();
     fs.setAttribute(path, options);
   }

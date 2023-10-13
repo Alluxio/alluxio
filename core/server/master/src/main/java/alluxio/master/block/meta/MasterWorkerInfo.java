@@ -13,8 +13,11 @@ package alluxio.master.block.meta;
 
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
+import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.StorageList;
+import alluxio.master.WorkerState;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
@@ -25,19 +28,20 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.StampedLock;
@@ -53,7 +57,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The metadata fields are separated into a few different groups.
  * Each group has its corresponding locking mechanism.
  * The {@link MasterWorkerInfo} has the following groups of metadata:
- *  1. Metadata like ID, address etc, represented by a {@link StaticWorkerMeta} object.
+ *  1. Metadata like ID, address etc., represented by a {@link StaticWorkerMeta} object.
  *     This group is thread safe, meaning no locking is required.
  *  2. Worker last updated timestamp. This is thread safe, meaning no locking is required.
  *  3. Worker register status. This is guarded by a {@link StampedLock#asReadWriteLock()}.
@@ -108,17 +112,26 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 1. In {@link DefaultBlockMaster}, the methods related to worker register/heartbeat,
  *    and block removal/commit.
  * 2. In {@link alluxio.master.block.WorkerRegisterContext},
- *    the write locks are held throughout the lifecycle.
- * 3. In {@link DefaultBlockMaster.LostWorkerDetectionHeartbeatExecutor#heartbeat()}
+ *    to write locks are held throughout the lifecycle.
+ * 3. In {@link DefaultBlockMaster.LostWorkerDetectionHeartbeatExecutor#heartbeat(long)}
  */
 @NotThreadSafe
 public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(MasterWorkerInfo.class);
-  private static final String LIVE_WORKER_STATE = "In Service";
-  private static final String LOST_WORKER_STATE = "Out of Service";
+
+  private static final EnumSet<WorkerInfoField> USAGE_INFO_FIELDS =
+      EnumSet.of(WorkerInfoField.WORKER_CAPACITY_BYTES,
+        WorkerInfoField.WORKER_CAPACITY_BYTES_ON_TIERS,
+        WorkerInfoField.WORKER_USED_BYTES,
+        WorkerInfoField.WORKER_USED_BYTES_ON_TIERS,
+        WorkerInfoField.NUM_VCPU);
 
   /** Worker's last updated time in ms. */
   private final AtomicLong mLastUpdatedTimeMs;
+  /** Worker's build version (including version and revision). */
+  private final AtomicReference<BuildVersion> mBuildVersion;
+  /** Worker's number of available processors. */
+  private final AtomicInteger mNumVCpu;
   /** Worker metadata, this field is thread safe. */
   private final StaticWorkerMeta mMeta;
 
@@ -155,9 +168,11 @@ public final class MasterWorkerInfo {
   public MasterWorkerInfo(long id, WorkerNetAddress address) {
     mMeta = new StaticWorkerMeta(id, address);
     mUsage = new WorkerUsageMeta();
-    mBlocks = new HashSet<>();
-    mToRemoveBlocks = new HashSet<>();
+    mBlocks = new LongOpenHashSet();
+    mToRemoveBlocks = new LongOpenHashSet();
     mLastUpdatedTimeMs = new AtomicLong(CommonUtils.getCurrentMs());
+    mBuildVersion = new AtomicReference<>(BuildVersion.getDefaultInstance());
+    mNumVCpu = new AtomicInteger();
 
     // Init all locks
     mStatusLock = new StampedLock().asReadWriteLock();
@@ -267,22 +282,6 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * Adds a new worker lost storage path.
-   *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
-   * with {@link WorkerMetaLockSection#USAGE} specified.
-   * An exclusive lock is required.
-   *
-   * @param tierAlias the tier alias
-   * @param dirPath the lost storage path
-   */
-  public void addLostStorage(String tierAlias, String dirPath) {
-    List<String> paths = mUsage.mLostStorage.getOrDefault(tierAlias, new ArrayList<>());
-    paths.add(dirPath);
-    mUsage.mLostStorage.put(tierAlias, paths);
-  }
-
-  /**
    * Adds new worker lost storage paths.
    *
    * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
@@ -302,19 +301,16 @@ public final class MasterWorkerInfo {
   /**
    * Gets the selected field information for this worker.
    *
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
-   * with {@link WorkerMetaLockSection#USAGE} specified.
-   * A shared lock is required.
+   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMetaForInfo(Set)}.
+   * The required locks will be determined internally based on the fields.
    *
    * @param fieldRange the client selected fields
-   * @param isLiveWorker the worker is live or not
+   * @param workerState the worker state
    * @return generated worker information
    */
-  public WorkerInfo generateWorkerInfo(Set<WorkerInfoField> fieldRange, boolean isLiveWorker) {
+  public WorkerInfo generateWorkerInfo(Set<WorkerInfoField> fieldRange, WorkerState workerState) {
     WorkerInfo info = new WorkerInfo();
-    Set<WorkerInfoField> checkedFieldRange = fieldRange != null ? fieldRange :
-        new HashSet<>(Arrays.asList(WorkerInfoField.values()));
-    for (WorkerInfoField field : checkedFieldRange) {
+    for (WorkerInfoField field : fieldRange) {
       switch (field) {
         case ADDRESS:
           info.setAddress(mMeta.mWorkerAddress);
@@ -339,17 +335,21 @@ public final class MasterWorkerInfo {
           info.setStartTimeMs(mMeta.mStartTimeMs);
           break;
         case STATE:
-          if (isLiveWorker) {
-            info.setState(LIVE_WORKER_STATE);
-          } else {
-            info.setState(LOST_WORKER_STATE);
-          }
+          info.setState(workerState.toString());
           break;
         case WORKER_USED_BYTES:
           info.setUsedBytes(mUsage.mUsedBytes);
           break;
         case WORKER_USED_BYTES_ON_TIERS:
           info.setUsedBytesOnTiers(mUsage.mUsedBytesOnTiers);
+          break;
+        case BUILD_VERSION:
+          BuildVersion v = mBuildVersion.get();
+          info.setVersion(v.getVersion());
+          info.setRevision(v.getRevision());
+          break;
+        case NUM_VCPU:
+          info.setNumVCpu(mNumVCpu.get());
           break;
         default:
           LOG.warn("Unrecognized worker info field: " + field);
@@ -388,7 +388,7 @@ public final class MasterWorkerInfo {
    * @return ids of all blocks the worker contains
    */
   public Set<Long> getBlocks() {
-    return new HashSet<>(mBlocks);
+    return new LongOpenHashSet(mBlocks);
   }
 
   /**
@@ -439,7 +439,7 @@ public final class MasterWorkerInfo {
    * @return ids of blocks the worker should remove
    */
   public Set<Long> getToRemoveBlocks() {
-    return new HashSet<>(mToRemoveBlocks);
+    return new LongOpenHashSet(mToRemoveBlocks);
   }
 
   /**
@@ -447,17 +447,6 @@ public final class MasterWorkerInfo {
    */
   public long getUsedBytes() {
     return mUsage.mUsedBytes;
-  }
-
-  /**
-   * You should lock externally with {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
-   * with {@link WorkerMetaLockSection#USAGE} specified.
-   * A shared lock is required.
-   *
-   * @return the storage tier mapping for the worker
-   */
-  public StorageTierAssoc getStorageTierAssoc() {
-    return mUsage.mStorageTierAssoc;
   }
 
   /**
@@ -545,6 +534,7 @@ public final class MasterWorkerInfo {
   @Override
   // TODO(jiacheng): Read lock on the conversion
   public String toString() {
+    BuildVersion buildVersion = mBuildVersion.get();
     return MoreObjects.toStringHelper(this)
         .add("id", mMeta.mId)
         .add("workerAddress", mMeta.mWorkerAddress)
@@ -553,7 +543,11 @@ public final class MasterWorkerInfo {
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs.get())
         // We only show the number of blocks unless it is for DEBUG logs
         .add("blocks", LOG.isDebugEnabled() ? mBlocks : CommonUtils.summarizeCollection(mBlocks))
-        .add("lostStorage", mUsage.mLostStorage).toString();
+        .add("lostStorage", mUsage.mLostStorage)
+        .add("version", buildVersion.getVersion())
+        .add("revision", buildVersion.getRevision())
+        .add("numVCpu", mNumVCpu)
+        .toString();
   }
 
   /**
@@ -655,8 +649,7 @@ public final class MasterWorkerInfo {
    * @return a {@link LockResource} of the {@link WorkerMetaLock}
    */
   public LockResource lockWorkerMeta(EnumSet<WorkerMetaLockSection> lockTypes, boolean isShared) {
-    LockResource lr = new LockResource(new WorkerMetaLock(lockTypes, isShared, this));
-    return lr;
+    return new LockResource(new WorkerMetaLock(lockTypes, isShared, this));
   }
 
   /**
@@ -701,5 +694,63 @@ public final class MasterWorkerInfo {
    */
   public void markAllBlocksToRemove() {
     mToRemoveBlocks.addAll(mBlocks);
+  }
+
+  /**
+   * Finds the read locks necessary for required worker information.
+   * Locks the corresponding read locks for the specified worker information fields.
+   * This is a wrapper of {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
+   *
+   * @param fieldRange a set of {@link WorkerInfoField}
+   * @return a {@link LockResource} of the {@link WorkerMetaLock}
+   */
+  public LockResource lockWorkerMetaForInfo(
+      Set<GetWorkerReportOptions.WorkerInfoField> fieldRange) {
+    EnumSet<WorkerMetaLockSection> lockTypes = EnumSet.noneOf(WorkerMetaLockSection.class);
+    if (fieldRange.contains(GetWorkerReportOptions.WorkerInfoField.BLOCK_COUNT)) {
+      lockTypes.add(WorkerMetaLockSection.BLOCKS);
+    }
+    if (fieldRange.stream().anyMatch(USAGE_INFO_FIELDS::contains)) {
+      lockTypes.add(WorkerMetaLockSection.USAGE);
+    }
+    return lockWorkerMeta(lockTypes, true);
+  }
+
+  /**
+   * Sets the build version of the worker.
+   * BuildVersion is reported by the worker in the register request.
+   *
+   * @param buildVersion the {@link BuildVersion} of the worker
+   */
+  public void setBuildVersion(BuildVersion buildVersion) {
+    mBuildVersion.set(buildVersion);
+  }
+
+  /**
+   * Get the build version of the worker.
+   * This is used to monitor cluster status when performing rolling upgrades.
+   *
+   * @return the {@link BuildVersion} of the worker
+   */
+  public BuildVersion getBuildVersion() {
+    return mBuildVersion.get();
+  }
+
+  /**
+   * Sets the number of available processors of the worker.
+   *
+   * @param numVCpu the number of available processors
+   */
+  public void setNumVCpu(int numVCpu) {
+    mNumVCpu.set(numVCpu);
+  }
+
+  /**
+   * Get the number of available processors on the worker.
+   *
+   * @return the number of available processors
+   */
+  public int getNumVCpu() {
+    return mNumVCpu.get();
   }
 }

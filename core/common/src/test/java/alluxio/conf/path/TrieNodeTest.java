@@ -11,10 +11,17 @@
 
 package alluxio.conf.path;
 
+import static org.junit.Assert.assertEquals;
+
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,7 +31,7 @@ import java.util.stream.Collectors;
 public class TrieNodeTest {
   @Test
   public void hasTerminalIncludeChildren() {
-    TrieNode node = new TrieNode();
+    TrieNode<Object> node = new TrieNode<>();
     node.insert("/a/b");
     Assert.assertTrue(node.hasTerminal("/", true));
     Assert.assertFalse(node.hasTerminal("/c", true));
@@ -35,7 +42,7 @@ public class TrieNodeTest {
 
   @Test
   public void hasTerminal() {
-    TrieNode node = new TrieNode();
+    TrieNode<Object> node = new TrieNode<>();
     node.insert("/a/b");
     Assert.assertFalse(node.hasTerminal("/", false));
     Assert.assertFalse(node.hasTerminal("/c", false));
@@ -46,13 +53,13 @@ public class TrieNodeTest {
 
   @Test
   public void getCommonRoots() {
-    TrieNode node = new TrieNode();
-    TrieNode a = node.insert("/a");
-    TrieNode b = node.insert("/a/b");
-    TrieNode f = node.insert("/a/e/f");
-    TrieNode d = node.insert("/c/d");
-    TrieNode g = node.insert("/c/g");
-    Set<TrieNode> roots = Streams.stream(node.getCommonRoots()).collect(Collectors.toSet());
+    TrieNode<Object> node = new TrieNode<>();
+    TrieNode<Object> a = node.insert("/a");
+    TrieNode<Object> b = node.insert("/a/b");
+    TrieNode<Object> f = node.insert("/a/e/f");
+    TrieNode<Object> d = node.insert("/c/d");
+    TrieNode<Object> g = node.insert("/c/g");
+    Set<TrieNode<Object>> roots = Streams.stream(node.getCommonRoots()).collect(Collectors.toSet());
     Assert.assertTrue(roots.contains(a));
     Assert.assertFalse(roots.contains(b));
     Assert.assertTrue(roots.contains(d));
@@ -61,39 +68,60 @@ public class TrieNodeTest {
   }
 
   @Test
+  public void searchExact() {
+    TrieNode<Object> node = new TrieNode<>();
+    TrieNode<Object> a = node.insert("/a");
+    TrieNode<Object> b = node.insert("/a/b");
+    TrieNode<Object> f = node.insert("/a/e/f");
+    TrieNode<Object> d = node.insert("/c/d");
+    TrieNode<Object> g = node.insert("/c/g");
+    TrieNode<Object> h = node.insert("/u/h");
+    assertEquals(a, node.searchExact("/a").get());
+    assertEquals(b, node.searchExact("/a/b").get());
+    assertEquals(f, node.searchExact("/a/e/f").get());
+    assertEquals(d, node.searchExact("/c/d").get());
+    assertEquals(g, node.searchExact("/c/g").get());
+    assertEquals(h, node.searchExact("/u/h").get());
+    assertEquals(Optional.empty(), node.searchExact("/"));
+    assertEquals(Optional.empty(), node.searchExact("/ab"));
+    assertEquals(Optional.empty(), node.searchExact("/a/b/c"));
+    assertEquals(Optional.empty(), node.searchExact("/a/d"));
+  }
+
+  @Test
   public void deleteIfTrue() {
-    TrieNode node = new TrieNode();
-    TrieNode a = node.insert("/a");
-    TrieNode b = node.insert("/a/b");
-    TrieNode f = node.insert("/a/e/f");
-    TrieNode d = node.insert("/c/d");
-    TrieNode g = node.insert("/c/g");
-    TrieNode h = node.insert("/u/h");
+    TrieNode<Object> node = new TrieNode<>();
+    TrieNode<Object> a = node.insert("/a");
+    TrieNode<Object> b = node.insert("/a/b");
+    TrieNode<Object> f = node.insert("/a/e/f");
+    TrieNode<Object> d = node.insert("/c/d");
+    TrieNode<Object> g = node.insert("/c/g");
+    TrieNode<Object> h = node.insert("/u/h");
     Assert.assertTrue(node.search("/a/b").contains(b));
-    TrieNode b2 = node.deleteIf("/a/b", n -> {
-      Assert.assertEquals(b, n);
+    TrieNode<Object> b2 = node.deleteIf("/a/b", n -> {
+      assertEquals(b, n);
       return true;
     });
-    Assert.assertEquals(b, b2);
+    assertEquals(b, b2);
     Assert.assertFalse(node.search("/a/b").contains(b));
     Assert.assertTrue(node.search("/a").contains(a));
-    TrieNode a2 = node.deleteIf("/a", n -> {
-      Assert.assertEquals(a, n);
+    TrieNode<Object> a2 = node.deleteIf("/a", n -> {
+      assertEquals(a, n);
       return true;
     });
-    Assert.assertEquals(a, a2);
+    assertEquals(a, a2);
     Assert.assertFalse(node.search("/a").contains(a));
     Assert.assertTrue(node.search("/a/e/f").contains(f));
-    TrieNode c2 = node.deleteIf("/c", n -> true);
+    TrieNode<Object> c2 = node.deleteIf("/c", n -> true);
     Assert.assertNull(c2);
     Assert.assertTrue(node.search("/c/d").contains(d));
     Assert.assertTrue(node.search("/c/g").contains(g));
-    TrieNode h2 = node.deleteIf("/u/h", n -> {
-      Assert.assertEquals(h, n);
+    TrieNode<Object> h2 = node.deleteIf("/u/h", n -> {
+      assertEquals(h, n);
       return true;
     });
-    Assert.assertEquals(h, h2);
-    TrieNode nil = node.deleteIf("/n", n -> {
+    assertEquals(h, h2);
+    TrieNode<Object> nil = node.deleteIf("/n", n -> {
       Assert.fail();
       return true;
     });
@@ -102,46 +130,97 @@ public class TrieNodeTest {
 
   @Test
   public void deleteIfFalse() {
-    TrieNode node = new TrieNode();
-    TrieNode a = node.insert("/a");
-    TrieNode b = node.insert("/a/b");
+    TrieNode<Object> node = new TrieNode<>();
+    TrieNode<Object> a = node.insert("/a");
+    TrieNode<Object> b = node.insert("/a/b");
     Assert.assertTrue(node.search("/a/b").contains(b));
-    TrieNode b2 = node.deleteIf("/a/b", n -> false);
+    TrieNode<Object> b2 = node.deleteIf("/a/b", n -> false);
     Assert.assertNull(b2);
     Assert.assertTrue(node.search("/a").contains(a));
-    TrieNode a2 = node.deleteIf("/a", n -> false);
+    TrieNode<Object> a2 = node.deleteIf("/a", n -> false);
     Assert.assertNull(a2);
   }
 
   @Test
   public void deleteAndInsert() {
-    TrieNode node = new TrieNode();
-    TrieNode a = node.insert("/a");
-    TrieNode b = node.insert("/a/b");
+    TrieNode<Object> node = new TrieNode<>();
+    TrieNode<Object> a = node.insert("/a");
+    TrieNode<Object> b = node.insert("/a/b");
 
     Assert.assertTrue(node.search("/a/b").contains(b));
-    TrieNode b2 = node.deleteIf("/a/b", n -> {
-      Assert.assertEquals(b, n);
+    TrieNode<Object> b2 = node.deleteIf("/a/b", n -> {
+      assertEquals(b, n);
       return true;
     });
-    Assert.assertEquals(b, b2);
+    assertEquals(b, b2);
     Assert.assertFalse(node.search("/a/b").contains(b));
-    TrieNode b3 = node.insert("/a/b");
+    TrieNode<Object> b3 = node.insert("/a/b");
     Assert.assertTrue(node.search("/a/b").contains(b3));
 
     Assert.assertTrue(node.search("/a").contains(a));
     Assert.assertTrue(node.search("/a/b").contains(a));
-    TrieNode a2 = node.deleteIf("/a", n -> {
-      Assert.assertEquals(a, n);
+    TrieNode<Object> a2 = node.deleteIf("/a", n -> {
+      assertEquals(a, n);
       return true;
     });
-    Assert.assertEquals(a, a2);
+    assertEquals(a, a2);
     Assert.assertFalse(node.search("/a/b").contains(a));
     Assert.assertFalse(node.search("/a").contains(a));
     Assert.assertTrue(node.search("/a/b").contains(b3));
-    TrieNode a3 = node.insert("/a");
+    TrieNode<Object> a3 = node.insert("/a");
     Assert.assertTrue(node.search("/a/b").contains(b3));
     Assert.assertTrue(node.search("/a").contains(a3));
     Assert.assertTrue(node.search("/a/b").contains(a3));
+  }
+
+  @Test
+  public void getChildren() {
+    TrieNode<Object> node = new TrieNode<>();
+    TrieNode<Object> a = node.insert("/a");
+    TrieNode<Object> b = node.insert("/a/b");
+    TrieNode<Object> f = node.insert("/a/e/f");
+    TrieNode<Object> d = node.insert("/c/d");
+    TrieNode<Object> g = node.insert("/c/g");
+    TrieNode<Object> h = node.insert("/u/h");
+    Assert.assertArrayEquals(new TrieNode[] {a, b, f},
+        node.getLeafChildren("/a").toArray(TrieNode[]::new));
+    Assert.assertArrayEquals(new TrieNode[] {b},
+        node.getLeafChildren("/a/b").toArray(TrieNode[]::new));
+    Assert.assertArrayEquals(new TrieNode[] {f},
+        node.getLeafChildren("/a/e/f").toArray(TrieNode[]::new));
+    Assert.assertArrayEquals(new TrieNode[] {d},
+        node.getLeafChildren("/c/d").toArray(TrieNode[]::new));
+    assertEquals(new HashSet(Arrays.asList(a, b, f, d, g, h)),
+        node.getLeafChildren("/").collect(Collectors.toSet()));
+  }
+
+  @Test
+  public void clearTrie() {
+    TrieNode<Object> node = new TrieNode<>();
+    TrieNode<Object> a = node.insert("/a");
+    TrieNode<Object> b = node.insert("/a/b");
+    TrieNode<Object> f = node.insert("/a/e/f");
+    TrieNode<Object> d = node.insert("/c/d");
+    TrieNode<Object> g = node.insert("/c/g");
+    TrieNode<Object> h = node.insert("/u/h");
+
+    node.clear();
+    // after clearing, each node should only contain itself
+    for (TrieNode<Object> nxt : ImmutableList.of(a, b, f, d, g, h)) {
+      assertEquals(Collections.singletonList(nxt),
+          nxt.getLeafChildren("/").collect(Collectors.toList()));
+    }
+  }
+
+  @Test
+  public void getLeafChildrenOnRoot() {
+    TrieNode<Object> node = new TrieNode<>();
+    TrieNode<Object> a = node.insert("/a");
+    TrieNode<Object> b = node.insert("/a/b");
+    TrieNode<Object> f = node.insert("/a/e/f");
+    TrieNode<Object> d = node.insert("/c/d");
+    TrieNode<Object> g = node.insert("/c/g");
+    TrieNode<Object> h = node.insert("/u/h");
+    assertEquals(6, node.getLeafChildren("/").toArray().length);
   }
 }

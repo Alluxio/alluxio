@@ -33,7 +33,7 @@ public final class PinListSync implements HeartbeatExecutor {
   private final BlockWorker mBlockWorker;
 
   /** Client for all master communication. */
-  private FileSystemMasterClient mMasterClient;
+  private final FileSystemMasterClient mMasterClient;
 
   /**
    * Creates a new instance of {@link PinListSync}.
@@ -47,7 +47,7 @@ public final class PinListSync implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() {
+  public void heartbeat(long timeLimitMs) {
     // Send the sync
     try {
       Set<Long> pinList = mMasterClient.getPinList();

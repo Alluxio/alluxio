@@ -12,8 +12,8 @@
 package alluxio.master;
 
 import alluxio.clock.ElapsedTimeClock;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +60,7 @@ public class DefaultSafeModeManager implements SafeModeManager {
   @Override
   public void notifyRpcServerStarted() {
     // updates start time when Alluxio master waits for workers to register
-    long waitTime = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME);
+    long waitTime = Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME);
     LOG.info(String.format("Rpc server started, waiting %dms for workers to register", waitTime));
     mWorkerConnectWaitStartTimeMs.set(mClock.millis(), true);
   }
@@ -79,7 +79,7 @@ public class DefaultSafeModeManager implements SafeModeManager {
     }
 
     // lazily updates safe mode state upon inquiry
-    long waitTime = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME);
+    long waitTime = Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME);
     if (mClock.millis() - startTime < waitTime) {
       return true;
     }

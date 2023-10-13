@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
 
 import com.google.common.base.MoreObjects;
@@ -26,24 +27,43 @@ public class PageInfo {
   private final PageId mPageId;
   private final long mPageSize;
   private final CacheScope mCacheScope;
+  private final PageStoreDir mLocalCacheDir;
+  private final long mCreatedTimestamp;
 
   /**
    * @param pageId page id
    * @param pageSize page size in bytes
+   * @param pageStoreDir directory of this page
    */
-  public PageInfo(PageId pageId, long pageSize) {
-    this(pageId, pageSize, CacheScope.GLOBAL);
+  public PageInfo(PageId pageId, long pageSize, PageStoreDir pageStoreDir) {
+    this(pageId, pageSize, CacheScope.GLOBAL, pageStoreDir);
   }
 
   /**
    * @param pageId page id
    * @param pageSize page size in bytes
    * @param cacheScope scope of this page
+   * @param pageStoreDir directory of this page
    */
-  public PageInfo(PageId pageId, long pageSize, CacheScope cacheScope) {
+  public PageInfo(PageId pageId, long pageSize, CacheScope cacheScope,
+                  PageStoreDir pageStoreDir) {
+    this(pageId, pageSize, cacheScope, pageStoreDir, System.currentTimeMillis());
+  }
+
+  /**
+   * @param pageId page id
+   * @param pageSize page size in bytes
+   * @param cacheScope scope of this page
+   * @param pageStoreDir directory of this page
+   * @param createdTimestamp created time
+   */
+  public PageInfo(PageId pageId, long pageSize, CacheScope cacheScope,
+      PageStoreDir pageStoreDir, long createdTimestamp) {
     mPageId = pageId;
     mPageSize = pageSize;
     mCacheScope = cacheScope;
+    mLocalCacheDir = pageStoreDir;
+    mCreatedTimestamp = createdTimestamp;
   }
 
   /**
@@ -65,6 +85,20 @@ public class PageInfo {
    */
   public CacheScope getScope() {
     return mCacheScope;
+  }
+
+  /**
+   * @return directory of this page
+   */
+  public PageStoreDir getLocalCacheDir() {
+    return mLocalCacheDir;
+  }
+
+  /**
+   * @return the created time
+   */
+  public long getCreatedTimestamp() {
+    return mCreatedTimestamp;
   }
 
   @Override

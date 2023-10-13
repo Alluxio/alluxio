@@ -13,7 +13,7 @@
 # Map<string, string[]>
 component-owner-mapping:
   default_component: # handles components that were not added to this mapping yet
-    - ggezer
+    - yuzhu
   assembly:
     - yuzhu
   bin:
@@ -21,11 +21,11 @@ component-owner-mapping:
   build:
     - yuzhu
   conf:
-    - ggezer
+    - rongrong
   core/client/fs/src/main/java/alluxio/client/file/cache/:
     - beinan
   core:
-    - ggezer
+    - tcrain
   dev:
     - Xenorith
   docs:
@@ -35,24 +35,24 @@ component-owner-mapping:
   integration/csi:
     - ssz1997
   integration/jnifuse:
-    - maobaolong
-  integration:
     - LuQQiu
+  integration:
+    - ssz1997
   job:
-    - yuzhu
+    - rongrong
   libexec:
-    - ggezer
+    - yuzhu
   minicluster:
-    - ggezer
+    - tcrain
   shell:
     - LuQQiu
   stress:
-    - yuzhu
+    - dbw9580
   table:
     - HelloHorizon
   tests:
-    - ggezer
+    - tcrain
   underfs:
-    - ggezer
+    - fuzhengjia
   webui:
     - tieujason330

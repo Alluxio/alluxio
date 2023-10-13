@@ -18,9 +18,8 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
@@ -130,7 +129,7 @@ public final class MiniBenchmark {
     }
 
     CommonUtils.warmUpLoop();
-    AlluxioConfiguration alluxioConf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    AlluxioConfiguration alluxioConf = Configuration.global();
 
     for (int i = 0; i < sIterations; ++i) {
       final AtomicInteger count = new AtomicInteger(0);

@@ -16,8 +16,8 @@ import static junit.framework.TestCase.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.master.journal.JournalType;
@@ -54,8 +54,8 @@ public class ConcurrentRecursiveCreateIntegrationTest extends BaseIntegrationTes
   public void createDuringUfsRename() throws Exception {
     FileSystem fs = mClusterResource.get().getClient();
     ExecutorService executor = Executors.newCachedThreadPool();
-    UnderFileSystem ufs = Factory.createForRoot(ServerConfiguration.global());
-    String ufsRoot = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    UnderFileSystem ufs = Factory.createForRoot(Configuration.global());
+    String ufsRoot = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     List<String> paths = new ArrayList<>();
     for (int i = 0; i < NUM_TOP_LEVEL_DIRS / 2; i++) {
       String alluxioPath = PathUtils.concatPath("/dir" + i, "a", "b", "c");

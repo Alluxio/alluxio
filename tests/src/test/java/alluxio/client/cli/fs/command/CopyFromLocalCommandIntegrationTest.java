@@ -21,9 +21,10 @@ import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -196,7 +197,8 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
     String[] cmd2 = {"copyFromLocal", testFile2.getPath(), alluxioFilePath.getPath()};
     Assert.assertEquals(-1, sFsShell.run(cmd2));
     Assert.assertThat(mOutput.toString(), containsString(
-        "Not allowed to create file because path already exists: " + alluxioFilePath.getPath()));
+        ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage(
+            alluxioFilePath.getPath())));
     // Make sure the original file is intact
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));
@@ -234,16 +236,17 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
   public void copyFromLocalMustCacheThenCacheThrough() throws Exception {
     File file = mTestFolder.newFile();
     try (Closeable c = new ConfigurationRule(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT,
-        WriteType.MUST_CACHE.toString(), ServerConfiguration.global()).toResource()) {
-      Assert.assertEquals(0, sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/"));
+        WriteType.MUST_CACHE.toString(), Configuration.modifiableGlobal()).toResource()) {
+      Assert.assertEquals(0, sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/test"));
     }
     try (Closeable c = new ConfigurationRule(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT,
-        WriteType.CACHE_THROUGH.toString(), ServerConfiguration.global()).toResource()) {
+        WriteType.CACHE_THROUGH.toString(), Configuration.modifiableGlobal()).toResource()) {
       mOutput.reset();
-      sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/");
+      sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/test");
     }
     Assert.assertThat(mOutput.toString(),
-        containsString("Not allowed to create file because path already exists"));
+        containsString(
+            ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage("/test")));
   }
 
   @Test

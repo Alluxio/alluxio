@@ -21,8 +21,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -40,7 +38,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class SharedGrpcDataReader implements DataReader {
-  private static final Logger LOG = LoggerFactory.getLogger(SharedGrpcDataReader.class);
   private static final int BLOCK_LOCK_NUM = 32;
   //
   // BLOCK_LOCKS is used to ensure thread-safety when referencing or updating the shared data
@@ -55,7 +52,7 @@ public class SharedGrpcDataReader implements DataReader {
   private static final ConcurrentHashMap<Long, BufferCachingGrpcDataReader> BLOCK_READERS =
       new ConcurrentHashMap<>();
   /** A hashing function to map block id to one of the locks. */
-  private static final HashFunction HASH_FUNC = Hashing.murmur3_32();
+  private static final HashFunction HASH_FUNC = Hashing.murmur3_32_fixed();
 
   static {
     for (int i = 0; i < BLOCK_LOCK_NUM; i++) {
@@ -111,7 +108,7 @@ public class SharedGrpcDataReader implements DataReader {
       return null;
     }
     ByteBuffer bb = chunk.getReadOnlyByteBuffer();
-    // Force to align to chunk size
+    // Force the buffer to align to chunk size
     bb.position((int) (mPosToRead % mChunkSize));
     mPosToRead += mChunkSize - mPosToRead % mChunkSize;
 
@@ -123,7 +120,7 @@ public class SharedGrpcDataReader implements DataReader {
     if (mCachedDataReader.deRef() > 0) {
       return;
     }
-    try (LockResource lockResource = new LockResource(getLock(mBlockId).writeLock())) {
+    try (LockResource ignored = new LockResource(getLock(mBlockId).writeLock())) {
       if (mCachedDataReader.getRefCount() == 0) {
         BLOCK_READERS.remove(mBlockId);
         mCachedDataReader.close();
@@ -158,12 +155,12 @@ public class SharedGrpcDataReader implements DataReader {
 
     @alluxio.annotation.SuppressFBWarnings(
         value = "AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION",
-        justification = "operation is still atomic guarded by block Ølock")
+        justification = "operation is still atomic guarded by block lock")
     @Override
     public DataReader create(long offset, long len) throws IOException {
       long blockId = mReadRequestBuilder.getBlockId();
       BufferCachingGrpcDataReader reader;
-      try (LockResource lockResource = new LockResource(getLock(blockId).writeLock())) {
+      try (LockResource ignored = new LockResource(getLock(blockId).writeLock())) {
         reader = BLOCK_READERS.get(blockId);
         if (reader == null) {
           // Even we may only need a portion, create a reader to read the whole block

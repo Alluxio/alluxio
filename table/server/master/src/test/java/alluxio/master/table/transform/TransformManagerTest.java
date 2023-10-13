@@ -16,8 +16,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
 import alluxio.client.job.JobMasterClient;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -101,10 +101,10 @@ public class TransformManagerTest {
 
   @Before
   public void before() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
-    ServerConfiguration.set(PropertyKey.MASTER_RPC_PORT, PortRegistry.getFreePort());
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
-    ServerConfiguration.set(PropertyKey.TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME, "1h");
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "localhost");
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, PortRegistry.getFreePort());
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    Configuration.set(PropertyKey.TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME, "1h");
 
     mJournalSystem = JournalTestUtils.createJournalSystem(mTemporaryFolder);
     mJournalSystem.format();

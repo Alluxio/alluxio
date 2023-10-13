@@ -16,6 +16,8 @@
 #include "debug.h"
 #include "jnifuse_fs.h"
 
+static int RENAME_NO_FLAGS = 0;
+
 #if FUSE_USE_VERSION >= 30
 
 struct fuse_conn_info_opts *conn_info_opts;
@@ -116,7 +118,7 @@ int removexattr_wrapper(const char *path, const char *list) {
 }
 
 int rename_wrapper(const char *oldPath, const char *newPath, unsigned int flags) {
-  return jnifuse::JniFuseFileSystem::getInstance()->renameOper->call(oldPath, newPath);
+  return jnifuse::JniFuseFileSystem::getInstance()->renameOper->call(oldPath, newPath, flags);
 }
 
 int rmdir_wrapper(const char *path) {
@@ -253,7 +255,7 @@ int removexattr_wrapper(const char *path, const char *list) {
 }
 
 int rename_wrapper(const char *oldPath, const char *newPath) {
-  return jnifuse::JniFuseFileSystem::getInstance()->renameOper->call(oldPath, newPath);
+  return jnifuse::JniFuseFileSystem::getInstance()->renameOper->call(oldPath, newPath, RENAME_NO_FLAGS);
 }
 
 int rmdir_wrapper(const char *path) {

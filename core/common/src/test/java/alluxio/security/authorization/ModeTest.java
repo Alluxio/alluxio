@@ -16,10 +16,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.ModeUtils;
 
 import org.junit.Before;
@@ -42,7 +42,7 @@ public final class ModeTest {
 
   @Before
   public void before() {
-    mConfiguration = new InstancedConfiguration(ConfigurationUtils.defaults());
+    mConfiguration = Configuration.copyGlobal();
   }
 
   @Test

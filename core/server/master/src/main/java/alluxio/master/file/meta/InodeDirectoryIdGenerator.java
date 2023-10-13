@@ -69,6 +69,16 @@ public class InodeDirectoryIdGenerator implements Journaled {
     return directoryId;
   }
 
+  /**
+   * @return the next directory id
+   */
+  public long peekDirectoryId() {
+    DirectoryId directoryId = mNextDirectoryId;
+    long containerId = directoryId.getContainerId();
+    long sequenceNumber = directoryId.getSequenceNumber();
+    return BlockId.createBlockId(containerId, sequenceNumber);
+  }
+
   private void initialize(JournalContext context) throws UnavailableException {
     if (!mInitialized) {
       applyAndJournal(context, toEntry(mContainerIdGenerator.getNewContainerId(), 0));

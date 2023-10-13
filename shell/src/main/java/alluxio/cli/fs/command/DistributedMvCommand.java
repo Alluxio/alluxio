@@ -26,7 +26,7 @@ import java.io.IOException;
  */
 public class DistributedMvCommand extends AbstractDistributedJobCommand {
 
-  private DistributedCpCommand mCpCommand;
+  private final DistributedCpCommand mCpCommand;
 
   /**
    * @param fsContext the filesystem context of Alluxio

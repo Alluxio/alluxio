@@ -91,6 +91,11 @@ spec:
             {{- include "alluxio.logserver.secretVolumeMounts" . }}
               {{- end }}
             {{- end }}
+            {{- if .Values.configmaps }}
+              {{- if .Values.configmaps.logserver }}
+            {{- include "alluxio.logserver.configmapVolumeMounts" . }}
+              {{- end }}
+            {{- end }}
             {{- if .Values.mounts }}
               {{- range .Values.mounts }}
           - name: "{{ .name }}"

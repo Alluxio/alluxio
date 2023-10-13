@@ -101,7 +101,7 @@ this has been the norm [as of the 1950s](https://en.wikipedia.org/wiki/Sentence_
 | Containerized | Dockerized |
 | Superuser | Super-user, super user |
 | I/O | i/o, IO |
-| High availability mode | Fault tolerance mode (Use of "fault tolerance" is fine, but not when interchangeable with “high availability”) |
+| High availability mode | Fault tolerance mode (Use of "fault tolerance" is fine, but not when interchangeable with "high availability") |
 | Hostname | Host name |
 
 ## Line breaks

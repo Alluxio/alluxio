@@ -17,18 +17,11 @@ package alluxio.heartbeat;
 public interface HeartbeatTimer {
 
   /**
-   * Sets the heartbeat interval.
-   *
-   * @param intervalMs the heartbeat interval in ms
-   */
-  default void setIntervalMs(long intervalMs) {
-    throw new UnsupportedOperationException("Setting interval is not supported");
-  }
-
-  /**
    * Waits until next heartbeat should be executed.
    *
+   * @return time limit in milliseconds for this heartbeat action to run for before
+   * the next heartbeat is due.
    * @throws InterruptedException if the thread is interrupted while waiting
    */
-  void tick() throws InterruptedException;
+  long tick() throws InterruptedException;
 }

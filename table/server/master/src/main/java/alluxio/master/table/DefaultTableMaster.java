@@ -24,9 +24,8 @@ import alluxio.grpc.table.Constraint;
 import alluxio.grpc.table.Database;
 import alluxio.grpc.table.Partition;
 import alluxio.grpc.table.SyncStatus;
-import alluxio.master.CoreMaster;
-import alluxio.master.CoreMasterContext;
-import alluxio.master.file.FileSystemMaster;
+import alluxio.master.AbstractMaster;
+import alluxio.master.MasterContext;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
@@ -34,11 +33,13 @@ import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.table.transform.TransformJobInfo;
 import alluxio.master.table.transform.TransformManager;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import io.grpc.ServerInterceptors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,10 +53,10 @@ import java.util.Set;
 /**
  * This table master manages catalogs metadata information.
  */
-public class DefaultTableMaster extends CoreMaster
+public class DefaultTableMaster extends AbstractMaster
     implements TableMaster, DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultTableMaster.class);
-  private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(FileSystemMaster.class);
+  private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of();
   public static final String DEFAULT_TRANSFORMATION = "file.count.max=100";
 
   private final AlluxioCatalog mCatalog;
@@ -68,7 +69,7 @@ public class DefaultTableMaster extends CoreMaster
    * @param context core master context
    * @param jobMasterClient the job master client for transformation
    */
-  public DefaultTableMaster(CoreMasterContext context, JobMasterClient jobMasterClient) {
+  public DefaultTableMaster(MasterContext context, JobMasterClient jobMasterClient) {
     super(context, new SystemClock(),
         ExecutorServiceFactories.cachedThreadPool(Constants.TABLE_MASTER_NAME));
     mCatalog = new AlluxioCatalog();
@@ -178,7 +179,9 @@ public class DefaultTableMaster extends CoreMaster
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(ServiceType.TABLE_MASTER_CLIENT_SERVICE,
-        new GrpcService(new TableMasterClientServiceHandler(this)));
+        new GrpcService(ServerInterceptors.intercept(
+            new TableMasterClientServiceHandler(this),
+            new ClientContextServerInjector())));
     return services;
   }
 

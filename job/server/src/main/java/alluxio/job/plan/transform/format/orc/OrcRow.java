@@ -98,9 +98,8 @@ public class OrcRow implements TableRow {
     } else if (col instanceof VoidColumnVector) {
       return null;
     } else if (col instanceof DecimalColumnVector) {
-      final HiveDecimal hiveDecimal = ((DecimalColumnVector) col).vector[mPosition]
+      return ((DecimalColumnVector) col).vector[mPosition]
           .getHiveDecimal();
-      return hiveDecimal;
     } else if (col instanceof LongColumnVector) {
       return ((LongColumnVector) col).vector[mPosition];
     } else if (col instanceof BytesColumnVector) {
@@ -115,7 +114,7 @@ public class OrcRow implements TableRow {
         + col.getClass().getName());
   }
 
-  private Object convert(Object value, String name, String type) throws IOException {
+  private Object convert(Object value, String name, String type) {
     if (value == null) {
       return null;
     }

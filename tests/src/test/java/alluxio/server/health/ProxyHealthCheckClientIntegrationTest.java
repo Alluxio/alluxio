@@ -12,7 +12,7 @@
 package alluxio.server.health;
 
 import alluxio.HealthCheckClient;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.proxy.ProxyHealthCheckClient;
 import alluxio.retry.CountingRetry;
@@ -39,7 +39,7 @@ public class ProxyHealthCheckClientIntegrationTest extends BaseIntegrationTest {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mHealthCheckClient = new ProxyHealthCheckClient(
         NetworkAddressUtils.getBindAddress(NetworkAddressUtils.ServiceType.PROXY_WEB,
-            ServerConfiguration.global()),
+            Configuration.global()),
         () -> new CountingRetry(1));
   }
 

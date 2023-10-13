@@ -16,6 +16,7 @@ import alluxio.cli.fs.command.job.JobAttempt;
 import alluxio.cli.util.DistributedCommandUtil;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.job.CmdConfig;
 import alluxio.job.wire.Status;
 import alluxio.util.CommonUtils;
@@ -28,8 +29,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -83,14 +84,12 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
     }
   }
 
-  protected Long submit(CmdConfig cmdConfig) {
-    Long jobControlId = null;
+  protected long submit(CmdConfig cmdConfig) {
     try {
-      jobControlId = mClient.submit(cmdConfig);
+      return mClient.submit(cmdConfig);
     } catch (IOException e) {
-      e.printStackTrace();
+      throw AlluxioRuntimeException.from(e);
     }
-    return jobControlId;
   }
 
   /**
@@ -149,10 +148,7 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
         }
       } catch (IOException e) {
         System.out.println(String.format("Unable to get running status for command %s."
-                + " For distributedLoad, the files may already be loaded in Alluxio."
-                + " For distributedCp, please check file source contains files or not."
-                + " Please retry using `getCmdStatus` to check command detailed status,"
-                + " or using `fs ls` command to check if the files are already loaded.",
+                + " Please retry using `getCmdStatus` to check command detailed status,",
                 jobControlId));
         break;
       }
@@ -176,7 +172,6 @@ public abstract class AbstractDistributedJobCommand extends AbstractFileSystemCo
               jobControlId);
     } catch (IOException e) {
       System.out.println(String.format("Unable to get detailed command information for command %s,"
-              + " the files may already be loaded in Alluxio or file souce may not contain files"
               + "%n", jobControlId));
     }
   }

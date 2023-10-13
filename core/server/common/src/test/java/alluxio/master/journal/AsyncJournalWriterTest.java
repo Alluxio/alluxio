@@ -20,8 +20,8 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import org.junit.After;
@@ -40,14 +40,14 @@ public class AsyncJournalWriterTest {
 
   @After
   public void after() throws Exception {
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   private void setupAsyncJournalWriter(boolean batchingEnabled) throws Exception {
     if (batchingEnabled) {
-      ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "500ms");
+      Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "500ms");
     } else {
-      ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "0ms");
+      Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, "0ms");
     }
 
     mMockJournalWriter = mock(JournalWriter.class);

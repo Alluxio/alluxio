@@ -29,6 +29,10 @@ public class MasterBenchBaseParameters extends FileSystemParameters {
 
   /** The stop count value that is invalid. */
   public static final int STOP_COUNT_INVALID = -1;
+  public static final String TREE_THREADS = "--tree-threads";
+  public static final String TREE_DEPTH = "--tree-depth";
+  public static final String TREE_WIDTH = "--tree-width";
+  public static final String TREE_FILES = "--tree-files";
 
   @Parameter(names = {CLIENT_NUM_OPTION_NAME},
       description = "the number of fs client instances to use")
@@ -43,7 +47,10 @@ public class MasterBenchBaseParameters extends FileSystemParameters {
   public String mWarmup = "30s";
 
   @Parameter(names = {BASE_OPTION_NAME},
-      description = "The base directory path URI to perform operations in")
+      description = "The base directory path URI to perform operations in. "
+          + "Set to local Fuse mount point path if client type is set to AlluxioPOSIX. "
+          + "For example, use `alluxio:///stress-master-base` for native or HDFS client testing "
+          + "and use `/mnt/alluxio-fuse/stress-master-base` for Alluxio Posix client testing")
   @Parameters.PathDescription(aliasFieldName = "mBaseAlias")
   public String mBasePath = "alluxio:///stress-master-base";
 
@@ -58,4 +65,16 @@ public class MasterBenchBaseParameters extends FileSystemParameters {
   @Parameter(names = {CREATE_FILE_SIZE_OPTION_NAME},
       description = "The size of a file for the Create op, allowed to be 0. (0, 1m, 2k, 8k, etc.)")
   public String mCreateFileSize = "0";
+
+  @Parameter(names = {TREE_THREADS}, description = "The Tree Threads number")
+  public int mTreeThreads = 100;
+
+  @Parameter(names = {TREE_DEPTH}, description = "The Tree Depth number")
+  public int mTreeDepth = 100;
+
+  @Parameter(names = {TREE_WIDTH}, description = "The Tree Width number")
+  public int mTreeWidth = 100;
+
+  @Parameter(names = {TREE_FILES}, description = "The Tree Files number")
+  public int mTreeFiles = 100;
 }

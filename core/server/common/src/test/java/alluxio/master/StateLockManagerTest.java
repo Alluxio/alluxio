@@ -14,11 +14,10 @@ package alluxio.master;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
-import alluxio.util.ThreadUtils;
 
 import com.google.common.util.concurrent.SettableFuture;
 import org.junit.Assert;
@@ -26,7 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
@@ -45,8 +44,8 @@ public class StateLockManagerTest {
   }
 
   private void configureInterruptCycle(boolean enabled, long intervalMs) {
-    ServerConfiguration.set(PropertyKey.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED, enabled);
-    ServerConfiguration.set(PropertyKey.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL,
+    Configuration.set(PropertyKey.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_ENABLED, enabled);
+    Configuration.set(PropertyKey.MASTER_BACKUP_STATE_LOCK_INTERRUPT_CYCLE_INTERVAL,
         intervalMs);
   }
 
@@ -113,7 +112,7 @@ public class StateLockManagerTest {
   public void testExclusiveOnlyMode() throws Throwable {
     // Configure exclusive-only duration to cover the entire test execution.
     final long exclusiveOnlyDurationMs = 30 * 1000;
-    ServerConfiguration.set(PropertyKey.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION,
+    Configuration.set(PropertyKey.MASTER_BACKUP_STATE_LOCK_EXCLUSIVE_DURATION,
         exclusiveOnlyDurationMs);
 
     // The state-lock instance.
@@ -140,6 +139,7 @@ public class StateLockManagerTest {
   }
 
   @Test
+  // TODO(jiacheng): run this test before committing
   public void testGetStateLockSharedWaitersAndHolders() throws Throwable {
     final StateLockManager stateLockManager = new StateLockManager();
 
@@ -149,10 +149,11 @@ public class StateLockManagerTest {
       StateLockingThread sharedHolderThread = new StateLockingThread(stateLockManager, false);
       sharedHolderThread.start();
       sharedHolderThread.waitUntilStateLockAcquired();
-      final List<String> sharedWaitersAndHolders = stateLockManager.getSharedWaitersAndHolders();
+      final Collection<String> sharedWaitersAndHolders =
+          stateLockManager.getSharedWaitersAndHolders();
       assertEquals(i, sharedWaitersAndHolders.size());
       assertTrue(sharedWaitersAndHolders.contains(
-          ThreadUtils.getThreadIdentifier(sharedHolderThread)));
+          sharedHolderThread.getName()));
     }
   }
 

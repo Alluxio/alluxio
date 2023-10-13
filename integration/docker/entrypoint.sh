@@ -52,6 +52,8 @@ function printUsage {
   echo -e " proxy                     \t Start Alluxio proxy"
   echo -e " fuse [--fuse-opts=opt1,...] [mount_point] [alluxio_path]"
   echo -e "                           \t Start Alluxio FUSE file system, option --fuse-opts expects a list of fuse options separated by commas"
+  echo -e " mount ufs_address mount_point [options]"
+  echo -e "                           \t Mounts an UFS address to a local mount point, example options include -o attr_timeout=700 -o s3a.accessKeyId=<S3 ACCESS KEY> -o s3a.secretKey=<S3 SECRET KEY>"
   echo -e " logserver                 \t Start Alluxio log server"
   echo -e " csiserver                 \t Start Alluxio CSI server, need option --nodeid={NODE_ID} --endpoint={CSI_ENDPOINT}"
 }
@@ -113,6 +115,10 @@ function mountAlluxioFSWithFuseOption {
   else
     exec integration/fuse/bin/alluxio-fuse mount -n "${@:1}"
   fi
+}
+
+function mountFuseWithUFS {
+  exec bin/alluxio-fuse mount "${@}" -f
 }
 
 function startCsiServer {
@@ -227,8 +233,6 @@ function main {
   local service="$1"
   OPTIONS="$2"
 
-  set_ram_folder_if_needed
-
   setup_for_dynamic_non_root "$@"
 
   cd ${ALLUXIO_HOME}
@@ -251,11 +255,13 @@ function main {
       processes+=("job_master")
       ;;
     worker)
+      set_ram_folder_if_needed
       formatWorkerIfSpecified
       processes+=("job_worker")
       processes+=("worker")
       ;;
     worker-only)
+      set_ram_folder_if_needed
       formatWorkerIfSpecified
       processes+=("worker")
       ;;
@@ -267,6 +273,9 @@ function main {
       ;;
     fuse)
       mountAlluxioFSWithFuseOption "${@:2}"
+      ;;
+    mount)
+      mountFuseWithUFS "${@:2}"
       ;;
     logserver)
       processes+=("logserver")

@@ -14,13 +14,12 @@ package alluxio.security.user;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,12 +27,7 @@ import org.junit.Test;
  * Unit test for {@link UserState}.
  */
 public final class UserStateTest {
-  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
-
-  @After
-  public void after() {
-    mConfiguration = ConfigurationTestUtils.defaults();
-  }
+  private final InstancedConfiguration mConfiguration = Configuration.copyGlobal();
 
   /**
    * Tests whether we can get login user with conf in SIMPLE mode.

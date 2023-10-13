@@ -16,6 +16,8 @@ import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.grpc.BlockMasterClientServiceGrpc;
 import alluxio.grpc.BlockMasterInfo;
 import alluxio.grpc.BlockMasterInfoField;
+import alluxio.grpc.DecommissionWorkerPOptions;
+import alluxio.grpc.DecommissionWorkerPResponse;
 import alluxio.grpc.GetBlockInfoPOptions;
 import alluxio.grpc.GetBlockInfoPRequest;
 import alluxio.grpc.GetBlockInfoPResponse;
@@ -31,6 +33,8 @@ import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GetWorkerLostStoragePResponse;
 import alluxio.grpc.GetWorkerReportPOptions;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.RemoveDisabledWorkerPOptions;
+import alluxio.grpc.RemoveDisabledWorkerPResponse;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -94,6 +98,9 @@ public final class BlockMasterClientServiceHandler
           case LOST_WORKER_NUM:
             infoBuilder.setLostWorkerNum(mBlockMaster.getLostWorkerCount());
             break;
+          case DECOMMISSIONED_WORKER_NUM:
+            infoBuilder.setDecommissionedWorkerNum(mBlockMaster.getDecommissionedWorkerCount());
+            break;
           case USED_BYTES:
             infoBuilder.setUsedBytes(mBlockMaster.getUsedBytes());
             break;
@@ -136,6 +143,16 @@ public final class BlockMasterClientServiceHandler
   }
 
   @Override
+  public void removeDisabledWorker(RemoveDisabledWorkerPOptions options,
+       StreamObserver<RemoveDisabledWorkerPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      // This command is idempotent and is no-op if the address is not recognized
+      mBlockMaster.removeDisabledWorker(options);
+      return RemoveDisabledWorkerPResponse.getDefaultInstance();
+    }, "RemoveDisabledWorker", "options=%s", responseObserver, options);
+  }
+
+  @Override
   public void getWorkerReport(GetWorkerReportPOptions options,
       StreamObserver<GetWorkerInfoListPResponse> responseObserver) {
     RpcUtils.call(LOG,
@@ -152,5 +169,14 @@ public final class BlockMasterClientServiceHandler
         () -> GetWorkerLostStoragePResponse.newBuilder()
             .addAllWorkerLostStorageInfo(mBlockMaster.getWorkerLostStorage()).build(),
         "GetWorkerLostStorage", "options=%s", responseObserver, options);
+  }
+
+  @Override
+  public void decommissionWorker(DecommissionWorkerPOptions options,
+      StreamObserver<DecommissionWorkerPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mBlockMaster.decommissionWorker(options);
+      return DecommissionWorkerPResponse.getDefaultInstance();
+    }, "DecommissionWorker", "request=%s", responseObserver, options);
   }
 }

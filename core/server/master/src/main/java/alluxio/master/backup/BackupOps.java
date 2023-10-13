@@ -17,8 +17,6 @@ import alluxio.grpc.BackupStatusPRequest;
 import alluxio.master.StateLockOptions;
 import alluxio.wire.BackupStatus;
 
-import java.io.IOException;
-
 /**
  * Interface for backup operations.
  */
@@ -36,7 +34,7 @@ public interface BackupOps {
    * @param request the backup request
    * @param stateLockOptions the state lock options during the backup
    * @return the backup status response
-   * @throws IOException if backup fails
+   * @throws AlluxioException if backup fails
    */
   BackupStatus backup(BackupPRequest request, StateLockOptions stateLockOptions)
       throws AlluxioException;
@@ -46,7 +44,7 @@ public interface BackupOps {
    *
    * @param statusPRequest status request
    * @return the status of the latest backup
-   * @throws IOException
+   * @throws AlluxioException if request fails
    */
   BackupStatus getBackupStatus(BackupStatusPRequest statusPRequest) throws AlluxioException;
 }

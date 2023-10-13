@@ -32,7 +32,7 @@ public final class JobWorkerIdRegistry {
    * never be the same as this value.
    */
   public static final long INVALID_WORKER_ID = 0;
-  private static AtomicLong sWorkerId = new AtomicLong(INVALID_WORKER_ID);
+  private static final AtomicLong WORKER_ID = new AtomicLong(INVALID_WORKER_ID);
 
   private JobWorkerIdRegistry() {}
 
@@ -46,7 +46,7 @@ public final class JobWorkerIdRegistry {
    */
   public static void registerWorker(JobMasterClient jobMasterClient, WorkerNetAddress workerAddress)
       throws IOException, ConnectionFailedException {
-    sWorkerId.set(jobMasterClient.registerWorker(workerAddress));
+    WORKER_ID.set(jobMasterClient.registerWorker(workerAddress));
   }
 
   /**
@@ -54,6 +54,6 @@ public final class JobWorkerIdRegistry {
    *         been registered with job master
    */
   public static Long getWorkerId() {
-    return sWorkerId.get();
+    return WORKER_ID.get();
   }
 }

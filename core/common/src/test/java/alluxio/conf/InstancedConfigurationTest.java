@@ -23,7 +23,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.DefaultSupplier;
 import alluxio.SystemPropertyRule;
@@ -31,7 +30,6 @@ import alluxio.TestLoggerRule;
 import alluxio.client.ReadType;
 import alluxio.conf.PropertyKey.Template;
 import alluxio.test.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 
 import com.google.common.base.Joiner;
@@ -66,7 +64,7 @@ import java.util.stream.IntStream;
  */
 public class InstancedConfigurationTest {
 
-  private  InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
+  private  InstancedConfiguration mConfiguration = Configuration.copyGlobal();
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
@@ -82,13 +80,13 @@ public class InstancedConfigurationTest {
   }
 
   public void resetConf() {
-    ConfigurationUtils.reloadProperties();
-    mConfiguration = ConfigurationTestUtils.defaults();
+    Configuration.reloadProperties();
+    mConfiguration = Configuration.copyGlobal();
   }
 
   @AfterClass
   public static void after() {
-    ConfigurationUtils.reloadProperties();
+    Configuration.reloadProperties();
   }
 
   @Test
@@ -108,12 +106,28 @@ public class InstancedConfigurationTest {
           mConfiguration.set(key, intValue);
           assertEquals(intValue, mConfiguration.get(key));
           assertEquals(intValue, mConfiguration.getInt(key));
+          // Low-precision types int can be implicitly converted to high-precision types long
+          // So getLong can be compatible with Value of type int
+          assertEquals(intValue, mConfiguration.getLong(key));
           assertThrows(IllegalArgumentException.class, () -> mConfiguration.getMs(key));
           assertThrows(IllegalArgumentException.class, () -> mConfiguration.getDuration(key));
           assertThrows(IllegalArgumentException.class, () -> mConfiguration.getDouble(key));
           intValue = random.nextInt(Integer.MAX_VALUE);
           mConfiguration.set(key, String.valueOf(intValue));
           assertEquals(intValue, mConfiguration.getInt(key));
+          break;
+        case LONG:
+          long longValue = random.nextLong();
+          mConfiguration.set(key, longValue);
+          assertEquals(longValue, mConfiguration.get(key));
+          assertEquals(longValue, mConfiguration.getLong(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getMs(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getInt(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getDuration(key));
+          assertThrows(IllegalArgumentException.class, () -> mConfiguration.getDouble(key));
+          longValue = random.nextLong();
+          mConfiguration.set(key, String.valueOf(longValue));
+          assertEquals(longValue, mConfiguration.getLong(key));
           break;
         case DOUBLE:
           double doubleValue = random.nextDouble();
@@ -219,6 +233,29 @@ public class InstancedConfigurationTest {
   public void setValidation() {
     assertThrows(IllegalArgumentException.class,
         () -> mConfiguration.set(PropertyKey.MASTER_KEYTAB_KEY_FILE, "/file/not/exist"));
+  }
+
+  @Test
+  public void getLong() {
+    // bigger than MAX_INT
+    mConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, 12345678910L);
+    assertEquals(12345678910L,
+        mConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY));
+  }
+
+  @Test
+  public void getLongFromInt() {
+    mConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY, 1);
+    assertEquals(1L,
+        mConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY));
+  }
+
+  @Test
+  public void getMalformedLongThrowsException() {
+    mConfiguration.set(PropertyKey.JOB_MASTER_JOB_CAPACITY,
+        "999999999999999999999999999999999999"); // bigger than MAX_LONG
+    mThrown.expect(RuntimeException.class);
+    mConfiguration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY);
   }
 
   @Test
@@ -697,7 +734,7 @@ public class InstancedConfigurationTest {
     sysProps.put(PropertyKey.LOGGER_TYPE.toString(), null);
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getCanonicalPath());
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      mConfiguration = ConfigurationTestUtils.defaults();
+      mConfiguration = Configuration.copyGlobal();
       assertEquals(PropertyKey.LOGGER_TYPE.getDefaultValue(),
           mConfiguration.get(PropertyKey.LOGGER_TYPE));
     }
@@ -1031,7 +1068,7 @@ public class InstancedConfigurationTest {
           format("%s is no longer a valid property",
               RemovedKey.Name.TEST_REMOVED_KEY)));
     }
-    mConfiguration = ConfigurationTestUtils.defaults();
+    mConfiguration = Configuration.copyGlobal();
     try {
       mConfiguration.set(PropertyKey.fromString(RemovedKey.Name.TEST_REMOVED_KEY), true);
       mConfiguration.validate();

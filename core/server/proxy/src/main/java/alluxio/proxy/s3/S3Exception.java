@@ -56,6 +56,19 @@ public class S3Exception extends Exception {
   }
 
   /**
+   * Derives a new {@link S3Exception} from an existing exception.
+   *
+   * @param message the exception message
+   * @param resource the resource name (bucket or object key)
+   * @param errorCode the error code
+   */
+  public S3Exception(String message, String resource, S3ErrorCode errorCode) {
+    mResource = resource;
+    mErrorCode = new S3ErrorCode(errorCode.getCode(), message,
+            errorCode.getStatus());
+  }
+
+  /**
    * @return the error code
    */
   public S3ErrorCode getErrorCode() {

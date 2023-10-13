@@ -1,11 +1,6 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Checkstyle, Findbugs, Doc Check, etc.
 
-on:
-  pull_request:
-  schedule:
-    - cron: 0 0 * * *
+on: [pull_request]
 
 jobs:
   build:
@@ -13,7 +8,7 @@ jobs:
 
     steps:
       - name: checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -21,12 +16,18 @@ jobs:
           node-version: '10.11.0'
 
       - name: Cache local Maven repository
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+
+      - name: Cache local Go modules
+        uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.mod') }}
 
       - name: Execute license check, checkstyle, findbugs
         run: |
@@ -40,7 +41,7 @@ jobs:
 
       - name: Archive artifacts
         continue-on-error: true
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: artifact

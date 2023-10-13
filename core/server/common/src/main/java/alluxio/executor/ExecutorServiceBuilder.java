@@ -12,11 +12,12 @@
 package alluxio.executor;
 
 import alluxio.concurrent.jsr.ForkJoinPool;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.AlluxioExecutorService;
 import alluxio.util.ThreadFactoryUtils;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -26,6 +27,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 
 /**
  * Used to create {@link ExecutorService} instances dynamically by configuration.
@@ -38,19 +40,31 @@ public class ExecutorServiceBuilder {
    * @return instance of {@link ExecutorService}
    */
   public static AlluxioExecutorService buildExecutorService(RpcExecutorHost executorHost) {
+    return buildExecutorService(executorHost, null);
+  }
+
+  /**
+   * Creates an {@link ExecutorService} for given Alluxio process dynamically by configuration.
+   *
+   * @param executorHost Where the executor is needed
+   * @param rpcCounter the counter to track ongoing RPC
+   * @return instance of {@link ExecutorService}
+   */
+  public static AlluxioExecutorService buildExecutorService(
+      RpcExecutorHost executorHost, @Nullable Counter rpcCounter) {
     // Get executor type for given host.
-    RpcExecutorType executorType = ServerConfiguration.getEnum(
+    RpcExecutorType executorType = Configuration.getEnum(
         PropertyKey.Template.RPC_EXECUTOR_TYPE.format(executorHost.toString()),
         RpcExecutorType.class);
     // Build thread name format.
     String threadNameFormat =
         String.format("%s-rpc-executor-%s-thread", executorHost, executorType) + "-%d";
     // Read shared configuration for all supported executors.
-    int corePoolSize = ServerConfiguration
+    int corePoolSize = Configuration
         .getInt(PropertyKey.Template.RPC_EXECUTOR_CORE_POOL_SIZE.format(executorHost.toString()));
-    int maxPoolSize = ServerConfiguration
+    int maxPoolSize = Configuration
         .getInt(PropertyKey.Template.RPC_EXECUTOR_MAX_POOL_SIZE.format(executorHost.toString()));
-    long keepAliveMs = ServerConfiguration
+    long keepAliveMs = Configuration
         .getMs(PropertyKey.Template.RPC_EXECUTOR_KEEPALIVE.format(executorHost.toString()));
     // Property validation.
     Preconditions.checkArgument(keepAliveMs > 0L,
@@ -65,11 +79,11 @@ public class ExecutorServiceBuilder {
     ExecutorService executorService = null;
     if (executorType == RpcExecutorType.FJP) {
       // Read FJP specific configurations.
-      int parallelism = ServerConfiguration.getInt(
+      int parallelism = Configuration.getInt(
           PropertyKey.Template.RPC_EXECUTOR_FJP_PARALLELISM.format(executorHost.toString()));
-      int minRunnable = ServerConfiguration.getInt(
+      int minRunnable = Configuration.getInt(
           PropertyKey.Template.RPC_EXECUTOR_FJP_MIN_RUNNABLE.format(executorHost.toString()));
-      boolean isAsync = ServerConfiguration
+      boolean isAsync = Configuration
           .getBoolean(PropertyKey.Template.RPC_EXECUTOR_FJP_ASYNC.format(executorHost.toString()));
       // Property validation.
       Preconditions.checkArgument(parallelism > 0,
@@ -91,11 +105,11 @@ public class ExecutorServiceBuilder {
           maxPoolSize, minRunnable, null, keepAliveMs, TimeUnit.MILLISECONDS);
     } else { // TPE
       // Read TPE specific configuration.
-      boolean allowCoreThreadsTimeout = ServerConfiguration
+      boolean allowCoreThreadsTimeout = Configuration
           .getBoolean(PropertyKey.Template.RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT
               .format(executorHost.toString()));
       // Read TPE queue type.
-      ThreadPoolExecutorQueueType queueType = ServerConfiguration.getEnum(
+      ThreadPoolExecutorQueueType queueType = Configuration.getEnum(
           PropertyKey.Template.RPC_EXECUTOR_TPE_QUEUE_TYPE.format(executorHost.toString()),
           ThreadPoolExecutorQueueType.class);
       // Create internal queue.
@@ -123,7 +137,7 @@ public class ExecutorServiceBuilder {
       // Post settings.
       ((ThreadPoolExecutor) executorService).allowCoreThreadTimeOut(allowCoreThreadsTimeout);
     }
-    return new AlluxioExecutorService(executorService);
+    return new AlluxioExecutorService(executorService, rpcCounter);
   }
 
   /**

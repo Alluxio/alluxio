@@ -44,7 +44,9 @@ public final class JournalEntryAssociation {
         || entry.hasUpdateUfsMode()
         || entry.hasUpdateInode()
         || entry.hasUpdateInodeDirectory()
-        || entry.hasUpdateInodeFile()) {
+        || entry.hasUpdateInodeFile()
+        || entry.hasLoadJob()
+        || entry.hasCopyJob()) {
       return Constants.FILE_SYSTEM_MASTER_NAME;
     }
     if (entry.hasBlockContainerIdGenerator()

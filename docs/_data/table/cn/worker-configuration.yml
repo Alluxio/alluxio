@@ -83,8 +83,6 @@ alluxio.worker.tieredstore.level0.watermark.low.ratio:
   在顶层存储层中的低水位比例 （取值为0到1之间）。
 alluxio.worker.tieredstore.reserver.interval:
   空间预留服务运行的时间间隔，该服务为每个存储层预留一定比例的空间。
-alluxio.worker.ufs.block.open.timeout:
-  从UFS打开一个块的时限。
 alluxio.worker.ufs.instream.cache.enabled:
   在存储输入流下启用缓存，以便以后在同一个文件上查找操作可重用缓存的输入流。这将提高位置读取性能，因为一些文件系统的打开操作是昂贵的。当UFS文件被修改时，缓存的输入流将过时，而不通知Alluxio。
 alluxio.worker.ufs.instream.cache.expiration.time:

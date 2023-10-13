@@ -138,15 +138,15 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     int batchSize = FileSystemShellUtils.getIntArg(cl, BATCH_SIZE_OPTION, defaultBatchSize);
     System.out.println("Please wait for command submission to finish..");
 
-    Long jobControlId = distributedCp(srcPath, dstPath, overwrite, batchSize);
+    long jobControlId = distributedCp(srcPath, dstPath, overwrite, batchSize);
     if (!async) {
       System.out.format("Submitted successfully, jobControlId = %s%n"
-              + "Waiting for the command to finish ...%n", jobControlId.toString());
+              + "Waiting for the command to finish ...%n", jobControlId);
       waitForCmd(jobControlId);
       postProcessing(jobControlId);
     } else {
       System.out.format("Submitted migrate job successfully, jobControlId = %s%n",
-              jobControlId.toString());
+              jobControlId);
     }
 
     Set<String> failures = getFailedFiles();
@@ -157,7 +157,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     return 0;
   }
 
-  private Long distributedCp(AlluxioURI srcPath, AlluxioURI dstPath,
+  private long distributedCp(AlluxioURI srcPath, AlluxioURI dstPath,
         boolean overwrite, int batchSize) {
     CmdConfig cmdConfig = new MigrateCliConfig(srcPath.getPath(),
             dstPath.getPath(), mWriteType, overwrite, batchSize);

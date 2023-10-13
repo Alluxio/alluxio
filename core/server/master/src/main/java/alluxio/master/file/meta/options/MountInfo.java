@@ -12,10 +12,9 @@
 package alluxio.master.file.meta.options;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.AlluxioProperties;
 import alluxio.conf.ConfigurationValueOptions;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.MountPOptions;
+import alluxio.grpc.UfsInfo;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.wire.MountPointInfo;
 
@@ -73,6 +72,13 @@ public class MountInfo {
   }
 
   /**
+   * @return the {@link UfsInfo} for the mount point
+   */
+  public UfsInfo toUfsInfo() {
+    return UfsInfo.newBuilder().setUri(mUfsUri.toString()).setProperties(getOptions()).build();
+  }
+
+  /**
    * @return the id of the mount
    */
   public long getMountId() {
@@ -99,8 +105,7 @@ public class MountInfo {
   public MountPointInfo toDisplayMountPointInfo() {
     MountPointInfo info = toMountPointInfo();
     UnderFileSystemConfiguration conf =
-        UnderFileSystemConfiguration.defaults(new InstancedConfiguration(
-            new AlluxioProperties())).createMountSpecificConf(info.getProperties());
+        UnderFileSystemConfiguration.emptyConfig().createMountSpecificConf(info.getProperties());
     Map<String, String> displayConf = conf.toUserPropertyMap(
         ConfigurationValueOptions.defaults().useDisplayValue(true));
     info.setProperties(displayConf);

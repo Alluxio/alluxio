@@ -17,9 +17,12 @@ import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -29,6 +32,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -36,7 +40,10 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.GetSyncProgressPResponse;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -44,11 +51,15 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
+import alluxio.grpc.SyncMetadataPOptions;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.job.JobDescription;
+import alluxio.job.JobRequest;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.AclEntry;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
@@ -78,6 +89,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiConsumer;
@@ -91,13 +103,12 @@ import java.util.stream.IntStream;
  */
 @RunWith(Parameterized.class)
 public class LocalCacheFileInStreamTest {
-  private static InstancedConfiguration sConf = new InstancedConfiguration(
-      ConfigurationUtils.defaults());
+  private static InstancedConfiguration sConf = Configuration.modifiableGlobal();
 
   @Parameters(name = "{index}: page_size({0}), in_stream_buffer_size({1})")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
-        { Constants.MB, 0 }, { Constants.MB, 8 * Constants.KB }
+        {Constants.MB, 0}, {Constants.MB, 8 * Constants.KB}
     });
   }
 
@@ -520,6 +531,38 @@ public class LocalCacheFileInStreamTest {
     Assert.assertEquals(timeSource.get(StepTicker.Type.CACHE_MISS), timeReadExternal);
   }
 
+  @Test
+  public void testUnbuffer() throws Exception {
+    int fileSize = mPageSize;
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+
+    int partialReadSize = fileSize / 5;
+    int offset = fileSize / 5;
+
+    byte[] cacheMiss = new byte[partialReadSize];
+    stream.unbuffer();
+    stream.seek(offset);
+    stream.unbuffer();
+    Assert.assertEquals(partialReadSize, stream.read(cacheMiss));
+    stream.unbuffer();
+    Assert.assertArrayEquals(
+        Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheMiss);
+    Assert.assertEquals(0, manager.mPagesServed);
+    Assert.assertEquals(1, manager.mPagesCached);
+
+    byte[] cacheHit = new byte[partialReadSize];
+    stream.unbuffer();
+    stream.seek(offset);
+    stream.unbuffer();
+    Assert.assertEquals(partialReadSize, stream.read(cacheHit));
+    stream.unbuffer();
+    Assert.assertArrayEquals(
+        Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheHit);
+    Assert.assertEquals(1, manager.mPagesServed);
+  }
+
   private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager)
       throws Exception {
     Map<AlluxioURI, byte[]> files = new HashMap<>();
@@ -618,20 +661,20 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
-      mPages.put(pageId, page);
+    public boolean put(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
+      mPages.put(pageId, page.array());
       mPagesCached++;
       return true;
     }
 
     @Override
-    public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
-        int offsetInBuffer, CacheContext cacheContext) {
+    public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+        CacheContext cacheContext) {
       if (!mPages.containsKey(pageId)) {
         return 0;
       }
       mPagesServed++;
-      System.arraycopy(mPages.get(pageId), pageOffset, buffer, offsetInBuffer, bytesToRead);
+      target.writeBytes(mPages.get(pageId), pageOffset, bytesToRead);
       return bytesToRead;
     }
 
@@ -643,6 +686,11 @@ public class LocalCacheFileInStreamTest {
     @Override
     public State state() {
       return State.READ_WRITE;
+    }
+
+    @Override
+    public boolean append(PageId pageId, int appendAt, byte[] page, CacheContext cacheContext) {
+      return false;
     }
 
     @Override
@@ -711,6 +759,12 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public List<BlockLocationInfo> getBlockLocations(URIStatus status)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public AlluxioConfiguration getConf() {
       return sConf;
     }
@@ -739,6 +793,12 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public ListStatusPartialResult listStatusPartial(
+        AlluxioURI path, ListStatusPartialPOptions options) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void loadMetadata(AlluxioURI path, ListStatusPOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
@@ -757,7 +817,7 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public Map<String, MountPointInfo> getMountTable()
+    public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
@@ -839,6 +899,52 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public void needsSync(AlluxioURI path) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<String> submitJob(JobRequest jobRequest) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean stopJob(JobDescription jobDescription) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getJobProgress(JobDescription jobDescription,
+        JobProgressReportFormat format, boolean verbose) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      return null;
+    }
+
+    @Override
+    public SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path,
+                                                        SyncMetadataPOptions options)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      return null;
+    }
+
+    @Override
+    public GetSyncProgressPResponse getSyncProgress(long taskGroupId)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      return null;
+    }
+
+    @Override
+    public CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId)
+        throws IOException, AlluxioException {
+      return null;
+    }
+
+    @Override
     public void close() throws IOException {
       throw new UnsupportedOperationException();
     }
@@ -880,7 +986,7 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public void incrementCounter(String name, long value) {
+    public void incrementCounter(String name, StatsUnit unit, long value) {
       mCounter.accept(name, value);
     }
   }
@@ -890,7 +996,7 @@ public class LocalCacheFileInStreamTest {
     private final BiConsumer<String, Long> mCounter;
 
     TimedByteArrayFileSystem(Map<AlluxioURI, byte[]> files,
-                             BiConsumer<String, Long> counter, StepTicker ticker) {
+        BiConsumer<String, Long> counter, StepTicker ticker) {
       super(files);
       mTicker = ticker;
       mCounter = counter;
@@ -930,9 +1036,9 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
-                   int offsetInBuffer, CacheContext cacheContext) {
-      int read = super.get(pageId, pageOffset, bytesToRead, buffer, offsetInBuffer, cacheContext);
+    public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+        CacheContext cacheContext) {
+      int read = super.get(pageId, pageOffset, bytesToRead, target, cacheContext);
       if (read > 0) {
         mTicker.advance(StepTicker.Type.CACHE_HIT);
       }

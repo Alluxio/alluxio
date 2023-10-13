@@ -19,13 +19,11 @@ import static org.mockito.Mockito.when;
 
 import alluxio.cli.bundler.InfoCollectorTestUtils;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.CommandReturn;
 import alluxio.shell.ShellCommand;
 
 import org.apache.commons.cli.CommandLine;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
@@ -37,17 +35,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CollectEnvCommandTest {
-  private static InstancedConfiguration sConf;
-
-  @BeforeClass
-  public static void initConf() {
-    sConf = InstancedConfiguration.defaults();
-  }
-
   @Test
   public void linuxCmdExecuted()
           throws IOException, AlluxioException, NoSuchFieldException, IllegalAccessException {
-    CollectEnvCommand cmd = new CollectEnvCommand(FileSystemContext.create(sConf));
+    CollectEnvCommand cmd = new CollectEnvCommand(FileSystemContext.create());
 
     // Write to temp dir
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
@@ -83,7 +74,7 @@ public class CollectEnvCommandTest {
   @Test
   public void backupCmdExecuted()
           throws IOException, AlluxioException, NoSuchFieldException, IllegalAccessException {
-    CollectEnvCommand cmd = new CollectEnvCommand(FileSystemContext.create(sConf));
+    CollectEnvCommand cmd = new CollectEnvCommand(FileSystemContext.create());
 
     // Write to temp dir
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();

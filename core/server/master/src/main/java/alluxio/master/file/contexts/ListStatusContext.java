@@ -11,17 +11,60 @@
 
 package alluxio.master.file.contexts;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.util.FileSystemOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.grpc.LoadMetadataPType;
+import alluxio.util.FileSystemOptionsUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
+
+import java.util.Optional;
 
 /**
  * Used to merge and wrap {@link ListStatusPOptions}.
  */
 public class ListStatusContext
     extends OperationContext<ListStatusPOptions.Builder, ListStatusContext> {
+
+  private int mListedCount = 0;
+  private int mProcessedCount = 0;
+  private boolean mTruncated = false;
+  private boolean mDoneListing = false;
+  private long mTotalListings;
+  private final ListStatusPartialPOptions.Builder mPartialPOptions;
+  private boolean mDisableMetadataSync = false;
+
+  /**
+   *
+   * @return the partial listing options
+   */
+  public Optional<ListStatusPartialPOptions.Builder> getPartialOptions() {
+    return Optional.ofNullable(mPartialPOptions);
+  }
+
+  /**
+   * Set to true to disable metadata sync.
+   * @return the context
+   */
+  @VisibleForTesting
+  public ListStatusContext disableMetadataSync() {
+    mDisableMetadataSync = true;
+    getOptions().setLoadMetadataType(LoadMetadataPType.NEVER)
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+            .setSyncIntervalMs(-1).mergeFrom(
+                getOptions().getCommonOptions()).buildPartial());
+    return this;
+  }
+
+  /**
+   * @return true if metadata sync has been disabled for this operation
+   */
+  public boolean isDisableMetadataSync() {
+    return mDisableMetadataSync;
+  }
 
   /**
    * Creates context with given option data.
@@ -30,6 +73,34 @@ public class ListStatusContext
    */
   private ListStatusContext(ListStatusPOptions.Builder optionsBuilder) {
     super(optionsBuilder);
+    mPartialPOptions = null;
+  }
+
+  /**
+   * Creates context with given option data.
+   *
+   * @param partialOptionsBuilder options builder
+   */
+  private ListStatusContext(ListStatusPartialPOptions.Builder partialOptionsBuilder) {
+    super(partialOptionsBuilder.getOptions().toBuilder());
+    mPartialPOptions = partialOptionsBuilder;
+  }
+
+  /**
+   * Set the total number of listings in this call,
+   * this should be -1 if a recursive listing.
+   * @param count the number of listings
+   */
+  public void setTotalListings(long count) {
+    mTotalListings = count;
+  }
+
+  /**
+   * Get the value set by setTotalListing.
+   * @return the number of listings
+   */
+  public long getTotalListings() {
+    return mTotalListings;
   }
 
   /**
@@ -41,6 +112,14 @@ public class ListStatusContext
   }
 
   /**
+   * @param optionsBuilder Builder for proto {@link ListStatusPOptions}
+   * @return the instance of {@link ListStatusContext} with the given options
+   */
+  public static ListStatusContext create(ListStatusPartialPOptions.Builder optionsBuilder) {
+    return new ListStatusContext(optionsBuilder);
+  }
+
+  /**
    * Merges and embeds the given {@link ListStatusPOptions} with the corresponding master options.
    *
    * @param optionsBuilder Builder for proto {@link ListStatusPOptions} to merge with defaults
@@ -48,17 +127,83 @@ public class ListStatusContext
    */
   public static ListStatusContext mergeFrom(ListStatusPOptions.Builder optionsBuilder) {
     ListStatusPOptions masterOptions =
-        FileSystemOptions.listStatusDefaults(ServerConfiguration.global());
+        FileSystemOptionsUtils.listStatusDefaults(Configuration.global());
     ListStatusPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
   }
 
   /**
+   * Merges and embeds the given {@link ListStatusPartialPOptions} with the corresponding
+   * master options.
+   *
+   * @param optionsBuilder Builder for proto {@link ListStatusPartialPOptions} to merge with
+   *                       defaults
+   * @return the instance of {@link ListStatusContext} with default values for master
+   */
+  public static ListStatusContext mergeFrom(ListStatusPartialPOptions.Builder optionsBuilder) {
+    return create(
+        FileSystemOptionsUtils.listStatusPartialDefaults(
+            Configuration.global()).toBuilder().mergeFrom(optionsBuilder.build()));
+  }
+
+  /**
    * @return the instance of {@link ListStatusContext} with default values for master
    */
   public static ListStatusContext defaults() {
-    return create(FileSystemOptions.listStatusDefaults(ServerConfiguration.global()).toBuilder());
+    return create(FileSystemOptionsUtils.listStatusDefaults(Configuration.global()).toBuilder());
+  }
+
+  /**
+   * Called each time an item is listed.
+   * @return true if the item should be listed, false otherwise
+   */
+  public boolean listedItem() {
+    if (mPartialPOptions != null) {
+      mProcessedCount++;
+      if (mPartialPOptions.getOffsetCount() >= mProcessedCount) {
+        return false;
+      }
+      mListedCount++;
+      if (mPartialPOptions.hasBatchSize()
+          && mPartialPOptions.getBatchSize() < mListedCount) {
+        mTruncated = true;
+        mDoneListing = true;
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * @return true if the listing has completed and no new items need to be processed
+   */
+  public boolean isDoneListing() {
+    return mDoneListing;
+  }
+
+  /**
+   * @return true if this call is a partial listing of files (either has StartAfter
+   * set, has an offset set, or has a batch size set).
+   */
+  public boolean isPartialListing() {
+    return mPartialPOptions != null;
+  }
+
+  /**
+   *
+   * @return true if this is a partial listing and at least the batch size elements have
+   * been listed, false otherwise
+   */
+  public boolean donePartialListing() {
+    return mTruncated;
+  }
+
+  /**
+   * @return true if a partial listing and the result was truncated
+   */
+  public boolean isTruncated() {
+    return mTruncated;
   }
 
   @Override

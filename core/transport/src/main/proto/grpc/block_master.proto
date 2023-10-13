@@ -16,6 +16,7 @@ enum BlockMasterInfoField {
   LOST_WORKER_NUM = 5;
   USED_BYTES = 6;
   USED_BYTES_ON_TIERS = 7;
+  DECOMMISSIONED_WORKER_NUM = 8;
 }
 
 message BlockMasterInfo {
@@ -26,6 +27,7 @@ message BlockMasterInfo {
   optional int32 lostWorkerNum = 5;
   optional int64 usedBytes = 6;
   map<string, int64> usedBytesOnTiers = 7;
+  optional int32 decommissionedWorkerNum = 8;
 }
 
 message GetBlockInfoPOptions {}
@@ -66,6 +68,8 @@ message WorkerInfo {
   optional int64 startTimeMs = 7;
   map<string, int64> capacityBytesOnTiers = 8;
   map<string, int64> usedBytesOnTiers = 9;
+  optional BuildVersion buildVersion = 10;
+  optional int32 numVCpu = 11;
 }
 
 enum WorkerRange {
@@ -73,6 +77,7 @@ enum WorkerRange {
   LIVE = 2;
   LOST = 3;
   SPECIFIED = 4;
+  DECOMMISSIONED = 5;
 }
 
 enum WorkerInfoField {
@@ -85,6 +90,9 @@ enum WorkerInfoField {
   STATE = 7;
   WORKER_USED_BYTES = 8;
   WORKER_USED_BYTES_ON_TIERS = 9;
+  BLOCK_COUNT = 10;
+  BUILD_VERSION = 11;
+  NUM_VCPU = 12;
 }
 
 message GetWorkerReportPOptions {
@@ -103,10 +111,22 @@ message WorkerLostStorageInfo {
   /** a map from tier alias to the lost storage paths */
   map<string, StorageList> lostStorage = 2;
 }
+message RemoveDisabledWorkerPOptions {
+  required string workerHostname = 1;
+  optional int64 workerWebPort = 2;
+}
+message RemoveDisabledWorkerPResponse {}
 
 message GetWorkerLostStoragePOptions {}
 message GetWorkerLostStoragePResponse {
   repeated WorkerLostStorageInfo workerLostStorageInfo = 1;
+}
+
+message DecommissionWorkerPResponse {}
+message DecommissionWorkerPOptions {
+  required string workerHostname = 1;
+  optional int64 workerWebPort = 2;
+  optional bool canRegisterAgain = 3;
 }
 
 /**
@@ -140,6 +160,13 @@ service BlockMasterClientService {
   rpc GetWorkerInfoList(GetWorkerInfoListPOptions) returns (GetWorkerInfoListPResponse);
 
   /**
+   * If target worker is in the decommissioned worker set,
+   * return true, remove target worker from decommissioned worker set; else, return false.
+   */
+  rpc RemoveDisabledWorker(RemoveDisabledWorkerPOptions)
+      returns (RemoveDisabledWorkerPResponse);
+
+  /**
    * Returns a list of workers information for report CLI.
    */
   rpc GetWorkerReport(GetWorkerReportPOptions) returns (GetWorkerInfoListPResponse);
@@ -148,6 +175,11 @@ service BlockMasterClientService {
    * Returns a list of worker lost storage information
    */
   rpc GetWorkerLostStorage(GetWorkerLostStoragePOptions) returns (GetWorkerLostStoragePResponse);
+
+  /**
+  *  Decommission the specific worker from Alluxio.
+  */
+  rpc DecommissionWorker(DecommissionWorkerPOptions) returns (DecommissionWorkerPResponse);
 }
 
 message TierList {
@@ -223,6 +255,16 @@ message CommitBlockInUfsPRequest {
 message CommitBlockInUfsPOptions {}
 message CommitBlockInUfsPResponse {}
 
+message NotifyWorkerIdPOptions {}
+message NotifyWorkerIdPRequest {
+  optional int64 workerId = 1;
+  /** the worker network address */
+  optional grpc.WorkerNetAddress workerNetAddress = 2;
+  optional NotifyWorkerIdPOptions options = 3;
+}
+message NotifyWorkerIdPResponse {
+}
+
 message GetWorkerIdPOptions {}
 message GetWorkerIdPRequest {
   /** the worker network address */
@@ -248,6 +290,9 @@ message GetRegisterLeasePResponse {
 
 message RegisterWorkerPOptions {
   repeated grpc.ConfigProperty configs = 1;
+  /** the worker version to display in info pages (useful for rolling upgrades) */
+  optional BuildVersion buildVersion = 2;
+  optional int32 numVCpu = 3;
 }
 message RegisterWorkerPRequest {
   /** the id of the worker */
@@ -292,6 +337,11 @@ service BlockMasterWorkerService {
    * Returns a worker id for the given network address.
    */
   rpc GetWorkerId(GetWorkerIdPRequest) returns (GetWorkerIdPResponse);
+
+  /**
+  * Notify all masters about the worker ID.
+  */
+  rpc NotifyWorkerId(NotifyWorkerIdPRequest) returns (NotifyWorkerIdPResponse);
 
   /**
    * Registers a worker.

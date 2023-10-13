@@ -88,7 +88,7 @@ public class DistLoadCliRunner extends AbstractCmdRunner {
       load(filePath, batchSize, replication, workerSet, excludedWorkerSet, localityIds,
               excludedLocalityIds, directCache, filePool, cmdInfo);
     } catch (IOException | AlluxioException e) {
-      LOG.warn("failing in distcp!");
+      LOG.warn(String.format("DistributedLoad job is failing for path = %s!", filePath.getPath()));
       LOG.error(e.getMessage());
       throw new IOException(e.getMessage());
     }
@@ -156,7 +156,7 @@ public class DistLoadCliRunner extends AbstractCmdRunner {
                               Set<String> workerSet, Set<String> excludedWorkerSet,
                               Set<String> localityIds, Set<String> excludedLocalityIds,
                               boolean directCache, CmdInfo cmdInfo) {
-    if (mSubmitted.size() >= DEFAULT_ACTIVE_JOBS) {
+    if (mSubmitted.size() >= mActiveJobs) {
       waitForCmdJob();
     }
 

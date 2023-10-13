@@ -38,10 +38,10 @@ public final class RoundRobinAllocator implements Allocator {
   private static final Logger LOG = LoggerFactory.getLogger(RoundRobinAllocator.class);
 
   private BlockMetadataView mMetadataView;
-  private Reviewer mReviewer;
+  private final Reviewer mReviewer;
 
   // We need to remember the last dir index for every storage tier
-  private Map<String, Iterator<StorageDirView>> mTierAliasToDirIteratorMap = new HashMap<>();
+  private final Map<String, Iterator<StorageDirView>> mTierAliasToDirIteratorMap = new HashMap<>();
 
   /**
    * Creates a new instance of {@link RoundRobinAllocator}.

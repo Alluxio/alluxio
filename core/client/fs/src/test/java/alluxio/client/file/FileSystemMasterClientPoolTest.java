@@ -14,8 +14,8 @@ package alluxio.client.file;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.ClientContext;
-import alluxio.ConfigurationTestUtils;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 
@@ -31,7 +31,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 public class FileSystemMasterClientPoolTest {
   @Test
   public void create() throws Exception {
-    AlluxioConfiguration conf = ConfigurationTestUtils.defaults();
+    AlluxioConfiguration conf = Configuration.global();
     FileSystemMasterClient expectedClient = Mockito.mock(FileSystemMasterClient.class);
     PowerMockito.mockStatic(FileSystemMasterClient.Factory.class);
     Mockito.when(FileSystemMasterClient.Factory

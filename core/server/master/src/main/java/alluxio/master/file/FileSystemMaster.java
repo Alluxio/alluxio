@@ -24,16 +24,21 @@ import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.CancelSyncMetadataPResponse;
+import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.SetAclAction;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.master.Master;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
-import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.FreeContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
@@ -42,6 +47,7 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.file.contexts.SyncMetadataContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
@@ -148,7 +154,7 @@ public interface FileSystemMaster extends Master {
    */
   List<FileInfo> listStatus(AlluxioURI path, ListStatusContext context)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException,
-      UnavailableException, IOException;
+      IOException;
 
   /**
    * Enumerates given path to given batch tracker.
@@ -265,15 +271,18 @@ public interface FileSystemMaster extends Master {
       AccessControlException, UnavailableException;
 
   /**
+   * This is the same as calling {@link #getMountPointInfoSummary(boolean)} with true argument.
    * @return a snapshot of the mount table as a mapping of Alluxio path to {@link MountPointInfo}
    */
-  Map<String, MountPointInfo> getMountPointInfoSummary();
+  default Map<String, MountPointInfo> getMountPointInfoSummary() {
+    return getMountPointInfoSummary(true);
+  }
 
   /**
-   * @param invokeUfs if true, invoke ufs to set ufs properties
+   * @param checkUfs if true, invoke ufs to set ufs properties
    * @return a snapshot of the mount table as a mapping of Alluxio path to {@link MountPointInfo}
    */
-  Map<String, MountPointInfo> getMountPointInfoSummary(boolean invokeUfs);
+  Map<String, MountPointInfo> getMountPointInfoSummary(boolean checkUfs);
 
   /**
    * Gets the mount point information of an Alluxio path for display purpose.
@@ -416,7 +425,7 @@ public interface FileSystemMaster extends Master {
   /**
    * @return all the files lost on the workers
    */
-  List<Long> getLostFiles();
+  Set<Long> getLostFiles();
 
   /**
    * @return the lost files with blocks
@@ -633,5 +642,45 @@ public interface FileSystemMaster extends Master {
   /**
    * @return the list of thread identifiers that are waiting and holding the state lock
    */
-  List<String> getStateLockSharedWaitersAndHolders();
+  Collection<String> getStateLockSharedWaitersAndHolders();
+
+  /**
+   * Mark a path as needed synchronization with the UFS, when this path or any
+   * of its children are accessed, a sync with the UFS will be performed.
+   * @param path the path to invalidate
+   */
+  void needsSync(AlluxioURI path) throws InvalidPathException;
+
+  /**
+   * Syncs the metadata of a given path.
+   *
+   * @param path the path to sync
+   * @param context the method context
+   * @return the sync metadata response
+   */
+  SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataContext context)
+      throws InvalidPathException, IOException;
+
+  /**
+   * Submits a metadata sync task and runs it async.
+   * @param path the path to sync
+   * @param context the method context
+   * @return the sync metadata async response
+   */
+  SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path, SyncMetadataContext context)
+      throws InvalidPathException, IOException;
+
+  /**
+   * Gets a metadata sync task progress.
+   * @param taskGroupId the task group id
+   * @return the sync progress
+   */
+  GetSyncProgressPResponse getSyncProgress(long taskGroupId);
+
+  /**
+   * Cancels an ongoing metadata sync.
+   * @param taskGroupId the task group id
+   * @return the cancel sync metadata response
+   */
+  CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId) throws NotFoundException;
 }

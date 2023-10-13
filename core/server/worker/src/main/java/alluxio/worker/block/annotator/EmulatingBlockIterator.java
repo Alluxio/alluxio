@@ -14,8 +14,8 @@ package alluxio.worker.block.annotator;
 import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
 
 import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.BlockMetadataEvictorView;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockStoreEventListener;
@@ -78,7 +78,7 @@ public class EmulatingBlockIterator implements BlockIterator {
       // It's only validated in this emulator, it doesn't trigger any background task.
       PropertyKey tierHighWatermarkProp =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(ordinal);
-      double tierHighWatermarkConf = ServerConfiguration.getDouble(tierHighWatermarkProp);
+      double tierHighWatermarkConf = Configuration.getDouble(tierHighWatermarkProp);
       Preconditions.checkArgument(tierHighWatermarkConf > 0,
           "The high watermark of tier %s should be positive, but is %s", Integer.toString(ordinal),
           tierHighWatermarkConf);
@@ -89,7 +89,7 @@ public class EmulatingBlockIterator implements BlockIterator {
       // Low watermark defines when to stop the space reserving process if started
       PropertyKey tierLowWatermarkProp =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(ordinal);
-      double tierLowWatermarkConf = ServerConfiguration.getDouble(tierLowWatermarkProp);
+      double tierLowWatermarkConf = Configuration.getDouble(tierLowWatermarkProp);
       Preconditions.checkArgument(tierLowWatermarkConf >= 0,
           "The low watermark of tier %s should not be negative, but is %s",
           Integer.toString(ordinal), tierLowWatermarkConf);

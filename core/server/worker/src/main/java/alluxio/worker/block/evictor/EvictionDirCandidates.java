@@ -36,7 +36,7 @@ class EvictionDirCandidates {
    * Map from {@link StorageDirEvictorView} to pair of list of candidate blockIds
    * and their total size in bytes.
    */
-  private Map<StorageDirEvictorView, Pair<List<Long>, Long>> mDirCandidates = new HashMap<>();
+  private final Map<StorageDirEvictorView, Pair<List<Long>, Long>> mDirCandidates = new HashMap<>();
   /** Maximum sum of available bytes in a StorageDir and all its added blocks. */
   private long mMaxBytes = 0;
   private StorageDirEvictorView mDirWithMaxBytes = null;
@@ -58,7 +58,7 @@ class EvictionDirCandidates {
     if (mDirCandidates.containsKey(dir)) {
       candidate = mDirCandidates.get(dir);
     } else {
-      candidate = new Pair<List<Long>, Long>(new ArrayList<Long>(), 0L);
+      candidate = new Pair<>(new ArrayList<>(), 0L);
       mDirCandidates.put(dir, candidate);
     }
 

@@ -11,6 +11,7 @@
 
 package alluxio.stress.master;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.collections.Pair;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
@@ -55,6 +56,7 @@ public final class MasterBenchSummary extends GeneralBenchSummary<MasterBenchTas
    * @param mergedTaskResults the merged task result
    * @param nodes the map storing the nodes' result
    */
+  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public MasterBenchSummary(MasterBenchTaskResult mergedTaskResults,
        Map<String, MasterBenchTaskResult> nodes) throws DataFormatException {
     mStatistics = mergedTaskResults.getStatistics().toBenchSummaryStatistics();
@@ -70,7 +72,7 @@ public final class MasterBenchSummary extends GeneralBenchSummary<MasterBenchTas
 
     mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
-    mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
+    mThroughput = ((float) mStatistics.mNumSuccesses / mDurationMs) * 1000.0f;
     mParameters = mergedTaskResults.getParameters();
     mNodeResults = nodes;
   }
@@ -219,7 +221,7 @@ public final class MasterBenchSummary extends GeneralBenchSummary<MasterBenchTas
 
             // collect max success for each method
             methodCounts.put(method,
-                Math.max(methodCounts.getOrDefault(method, 0L), entry.getValue().mNumSuccess));
+                Math.max(methodCounts.getOrDefault(method, 0L), entry.getValue().mNumSuccesses));
           }
         }
 
@@ -231,10 +233,7 @@ public final class MasterBenchSummary extends GeneralBenchSummary<MasterBenchTas
           maxGraph.addDataSeries(entry.getKey(), data);
         }
         graphs.add(maxGraph);
-
-        for (LineGraph graph : responseTimeGraphPerMethod.values()) {
-          graphs.add(graph);
-        }
+        graphs.addAll(responseTimeGraphPerMethod.values());
       }
 
       return graphs;

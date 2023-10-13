@@ -13,14 +13,60 @@ package alluxio.fuse.auth;
 
 import alluxio.AlluxioURI;
 
+import java.util.Optional;
+
 /**
  * Fuse Auth Policy Interface.
  */
 public interface AuthPolicy {
   /**
-   * Sets user and group if needed.
+   * Initialize the authentication policy.
+   */
+  void init();
+
+  /**
+   * Sets user and group based on authentication policy.
    *
    * @param uri the path uri
    */
-  void setUserGroupIfNeeded(AlluxioURI uri) throws Exception;
+  void setUserGroupIfNeeded(AlluxioURI uri);
+
+  /**
+   * Sets user and group based on user group input.
+   *
+   * @param uri the path uri
+   * @param uid the user id to set
+   * @param gid the gid to set
+   */
+  void setUserGroup(AlluxioURI uri, long uid, long gid);
+
+  /**
+   * @return uid based on authentication policy
+   */
+  Optional<Long> getUid();
+
+  /**
+   * Gets the uid based on the auth policy and file owner.
+   *
+   * @param owner the owner of the file
+   * @return the uid
+   */
+  default Optional<Long> getUid(String owner) {
+    return getUid();
+  }
+
+  /**
+   * @return gid based on authentication policy
+   */
+  Optional<Long> getGid();
+
+  /**
+   * Gets the gid based on the auth policy and file group.
+   *
+   * @param group the file group
+   * @return the gid
+   */
+  default Optional<Long> getGid(String group) {
+    return getGid();
+  }
 }

@@ -270,7 +270,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
           mFileSystem.delete(mPath);
         }
       } catch (Exception e) {
-        mExceptions.add(new IOException("Failed to delete path " + mPath.toString(), e));
+        mExceptions.add(new IOException("Failed to delete path " + mPath, e));
       }
 
       if (!mExceptions.isEmpty()) {
@@ -336,11 +336,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
             + " into an integer", e);
       }
     }
-    if (cl.hasOption(PRESERVE_OPTION.getLongOpt())) {
-      mPreservePermissions = true;
-    } else {
-      mPreservePermissions = false;
-    }
+    mPreservePermissions = cl.hasOption(PRESERVE_OPTION.getLongOpt());
   }
 
   @Override

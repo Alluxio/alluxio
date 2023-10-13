@@ -1,0 +1,171 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Masters Shallow component Matches snapshot 1`] = `
+<div
+  className="masters-page"
+>
+  <div
+    className="container-fluid"
+  >
+    <div
+      className="row"
+    >
+      <div
+        className="col-12"
+      >
+        <h5>
+          Primary Master
+        </h5>
+        <Table
+          hover={true}
+          responsiveTag="div"
+          tag="table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Host
+              </th>
+              <th>
+                Port
+              </th>
+              <th>
+                Elected
+              </th>
+              <th>
+                Started
+              </th>
+              <th>
+                Last Checkpoint
+              </th>
+              <th>
+                Journal Entries
+              </th>
+              <th>
+                Version
+              </th>
+              <th>
+                Revision
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td />
+              <td>
+                0
+              </td>
+              <td />
+              <td />
+              <td />
+              <td>
+                0
+              </td>
+              <td />
+              <td />
+            </tr>
+          </tbody>
+        </Table>
+      </div>
+    </div>
+    <div
+      className="row"
+    >
+      <div
+        className="col-12"
+      >
+        <h5>
+          Standby Masters
+        </h5>
+        <Table
+          hover={true}
+          responsiveTag="div"
+          tag="table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Host
+              </th>
+              <th>
+                Port
+              </th>
+              <th>
+                Last Heartbeat
+              </th>
+              <th>
+                Started
+              </th>
+              <th>
+                Step-down Time
+              </th>
+              <th>
+                Last Checkpoint
+              </th>
+              <th>
+                Journal Entries
+              </th>
+              <th>
+                Version
+              </th>
+              <th>
+                Revision
+              </th>
+            </tr>
+          </thead>
+          <tbody />
+        </Table>
+      </div>
+    </div>
+    <div
+      className="row"
+    >
+      <div
+        className="col-12"
+      >
+        <h5>
+          Lost Masters
+        </h5>
+        <Table
+          hover={true}
+          responsiveTag="div"
+          tag="table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Host
+              </th>
+              <th>
+                Port
+              </th>
+              <th>
+                Last Heartbeat
+              </th>
+              <th>
+                Started
+              </th>
+              <th>
+                Step-down Time
+              </th>
+              <th>
+                Last Checkpoint
+              </th>
+              <th>
+                Journal Entries
+              </th>
+              <th>
+                Version
+              </th>
+              <th>
+                Revision
+              </th>
+            </tr>
+          </thead>
+          <tbody />
+        </Table>
+      </div>
+    </div>
+  </div>
+</div>
+`;

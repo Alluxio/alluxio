@@ -19,17 +19,20 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
+import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.CoreMasterContext;
@@ -38,7 +41,9 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
+import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
@@ -54,6 +59,7 @@ import alluxio.security.user.UserState;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.IdUtils;
@@ -75,14 +81,15 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.time.Clock;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import javax.annotation.Nullable;
 
 /**
  * Unit tests for {@link FileSystemMaster}.
@@ -103,16 +110,16 @@ public final class FileSystemMasterSyncMetadataTest {
 
   @Before
   public void before() throws Exception {
-    UserState s = UserState.Factory.create(ServerConfiguration.global());
+    UserState s = UserState.Factory.create(Configuration.global());
     AuthenticatedClientUser.set(s.getUser().getName());
     TemporaryFolder tmpFolder = new TemporaryFolder();
     tmpFolder.create();
     File ufsRoot = tmpFolder.newFolder();
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
-    ServerConfiguration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsRoot.getAbsolutePath());
-    ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, 0);
-    ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS, 1000);
-    ServerConfiguration.set(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS, 1000);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufsRoot.getAbsolutePath());
+    Configuration.set(PropertyKey.MASTER_PERSISTENCE_INITIAL_INTERVAL_MS, 0);
+    Configuration.set(PropertyKey.MASTER_PERSISTENCE_MAX_INTERVAL_MS, 1000);
+    Configuration.set(PropertyKey.MASTER_PERSISTENCE_MAX_TOTAL_WAIT_TIME_MS, 1000);
     mJournalFolder = tmpFolder.newFolder();
     startServices();
   }
@@ -123,6 +130,58 @@ public final class FileSystemMasterSyncMetadataTest {
   @After
   public void after() throws Exception {
     stopServices();
+  }
+
+  @Test
+  public void completeFileWithOutOfDateHash() throws Exception {
+    // In this test we want to simulate a concurrent write to the UFS
+    // while the file is being created in Alluxio.
+    // When creating the file in Alluxio, we will use the fingerprint
+    // of the created file, and not the one on the UFS.
+    // Thus, when performing a metadata sync there should be a fingerprint
+    // mismatch.
+    AlluxioURI ufsMount = setupMockUfsS3Mount();
+    String fname = "file";
+    AlluxioURI uri = new AlluxioURI("/mnt/local/" + fname);
+
+    // The fingerprint of the file created in Alluxio
+    String alluxioContentHash = "hashOnComplete";
+    // The fingerprint of the file in the UFS
+    String ufsContentHash = "ufsHash";
+
+    AlluxioURI filePath = ufsMount.join("file");
+    UfsFileStatus fileStatus = new UfsFileStatus(
+        "file", ufsContentHash, 0L, System.currentTimeMillis(),
+        "owner1", "owner1", (short) 777, null, 100L);
+    Mockito.doAnswer(invocation ->
+        Fingerprint.create("s3", fileStatus,
+            invocation.getArgument(1))).when(mUfs).getParsedFingerprint(
+                eq(filePath.toString()), anyString());
+    Mockito.doAnswer(invocation ->
+        Fingerprint.create("s3", fileStatus))
+        .when(mUfs).getParsedFingerprint(
+        eq(filePath.toString()));
+    Mockito.when(mUfs.exists(filePath.toString())).thenReturn(true);
+    Mockito.when(mUfs.isDirectory(filePath.toString())).thenReturn(false);
+    Mockito.when(mUfs.isFile(filePath.toString())).thenReturn(true);
+    Mockito.when(mUfs.getStatus(filePath.toString())).thenReturn(fileStatus);
+    Mockito.when(mUfs.getOperationMode(any())).thenReturn(UfsMode.READ_WRITE);
+
+    mFileSystemMaster.createFile(uri, CreateFileContext.mergeFrom(CreateFilePOptions
+        .newBuilder().setWriteType(WritePType.THROUGH)));
+    mFileSystemMaster.completeFile(uri, CompleteFileContext.mergeFrom(
+        CompleteFilePOptions.newBuilder().setContentHash(alluxioContentHash)));
+
+    FileInfo info = mFileSystemMaster.getFileInfo(uri, GetStatusContext.defaults());
+    assertEquals(alluxioContentHash, Fingerprint.parse(info.getUfsFingerprint())
+        .getTag(Fingerprint.Tag.CONTENT_HASH));
+
+    // After syncing we should have the new version of the file with the new fingerprint
+    info = mFileSystemMaster.getFileInfo(uri,
+        GetStatusContext.mergeFrom(GetStatusPOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())));
+    assertEquals(ufsContentHash, Fingerprint.parse(info.getUfsFingerprint())
+        .getTag(Fingerprint.Tag.CONTENT_HASH));
   }
 
   @Test
@@ -266,24 +325,90 @@ public final class FileSystemMasterSyncMetadataTest {
     assertFalse(delegateMaster.mSynced.get());
   }
 
+  /**
+   * Tests the getStatus operation does not trigger a metadata sync that loads its children.
+   */
+  @Test
+  public void getStatusOnDirectory() throws Exception {
+    AlluxioURI ufsMount = setupMockUfsS3Mount();
+    short mode = ModeUtils.getUMask("0700").toShort();
+
+    // Mock dir1 ufs path
+    AlluxioURI dir1Path = ufsMount.join("dir1");
+    UfsDirectoryStatus dir1Status = new UfsDirectoryStatus(dir1Path.getPath(), "", "", mode);
+    Mockito.when(mUfs.getParsedFingerprint(dir1Path.toString()))
+        .thenReturn(Fingerprint.create("s3", dir1Status));
+    Mockito.when(mUfs.exists(dir1Path.toString())).thenReturn(true);
+    Mockito.when(mUfs.isDirectory(dir1Path.toString())).thenReturn(true);
+    Mockito.when(mUfs.isFile(dir1Path.toString())).thenReturn(false);
+    Mockito.when(mUfs.getStatus(dir1Path.toString())).thenReturn(dir1Status);
+    Mockito.when(mUfs.getDirectoryStatus(dir1Path.toString())).thenReturn(dir1Status);
+
+    // Mock nested ufs path /dir1/dir2
+    AlluxioURI nestedDirectoryPath = ufsMount.join("dir1").join("dir2");
+    UfsDirectoryStatus nestedDirStatus =
+        new UfsDirectoryStatus(dir1Path.getPath(), "", "", mode);
+
+    Mockito.when(mUfs.getParsedFingerprint(nestedDirectoryPath.toString()))
+        .thenReturn(Fingerprint.create("s3", nestedDirStatus));
+    Mockito.when(mUfs.exists(nestedDirectoryPath.toString())).thenReturn(true);
+    Mockito.when(mUfs.isDirectory(nestedDirectoryPath.toString())).thenReturn(true);
+    Mockito.when(mUfs.isFile(nestedDirectoryPath.toString())).thenReturn(false);
+    Mockito.when(mUfs.getStatus(nestedDirectoryPath.toString())).thenReturn(nestedDirStatus);
+    Mockito.when(mUfs.getDirectoryStatus(nestedDirectoryPath.toString()))
+        .thenReturn(nestedDirStatus);
+
+    // Mock creating the same directory and nested file in UFS out of band
+    AlluxioURI dir1 = new AlluxioURI("/mnt/local/dir1");
+    AlluxioURI dir2 = new AlluxioURI("/mnt/local/dir1/dir2");
+    Mockito.when(mUfs.listStatus(eq(dir1Path.toString())))
+        .thenReturn(new UfsStatus[]{new UfsDirectoryStatus("dir2", "", "", mode)});
+    Mockito.when(mUfs.listStatus(eq(nestedDirectoryPath.toString())))
+        .thenReturn(new UfsStatus[]{});
+
+    // List the nested directory
+    // listStatus is called on UFS /dir1/dir2
+    mFileSystemMaster.listStatus(dir2, ListStatusContext.mergeFrom(
+            ListStatusPOptions.newBuilder().setCommonOptions(
+                FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())));
+    Mockito.verify(mUfs, Mockito.times(0))
+        .listStatus(eq(dir1Path.toString()));
+    Mockito.verify(mUfs, Mockito.times(1))
+        .listStatus(eq(nestedDirectoryPath.toString()));
+    Mockito.verify(mUfs, Mockito.times(1))
+        .getStatus(eq(nestedDirectoryPath.toString()));
+
+    // Get the file info of the directory /dir1
+    // listStatus is called on UFS /dir1/dir2
+    // Make sure there is neither list nor get on UFS /dir1/dir2
+    mFileSystemMaster.getFileInfo(dir1, GetStatusContext.mergeFrom(
+        GetStatusPOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())));
+    Mockito.verify(mUfs, Mockito.times(0))
+        .listStatus(eq(dir1Path.toString()));
+    Mockito.verify(mUfs, Mockito.times(1))
+        .listStatus(eq(nestedDirectoryPath.toString()));
+    Mockito.verify(mUfs, Mockito.times(1))
+        .getStatus(eq(nestedDirectoryPath.toString()));
+  }
+
   private static class SyncAwareFileSystemMaster extends DefaultFileSystemMaster {
     AtomicBoolean mSynced = new AtomicBoolean(false);
 
     public SyncAwareFileSystemMaster(BlockMaster blockMaster, CoreMasterContext masterContext,
                                      ExecutorServiceFactory executorServiceFactory) {
-      super(blockMaster, masterContext, executorServiceFactory);
+      super(blockMaster, masterContext, executorServiceFactory, Clock.systemUTC());
     }
 
     @Override
     InodeSyncStream.SyncStatus syncMetadata(RpcContext rpcContext, AlluxioURI path,
         FileSystemMasterCommonPOptions options, DescendantType syncDescendantType,
         @Nullable FileSystemMasterAuditContext auditContext,
-        @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc,
-        @Nullable PermissionCheckFunction permissionCheckOperation,
-        boolean isGetFileInfo) throws AccessControlException, InvalidPathException {
+        @Nullable Function<LockedInodePath, Inode> auditContextSrcInodeFunc)
+        throws AccessControlException, InvalidPathException {
       mSynced.set(true);
       return super.syncMetadata(rpcContext, path, options, syncDescendantType, auditContext,
-              auditContextSrcInodeFunc, permissionCheckOperation, isGetFileInfo);
+              auditContextSrcInodeFunc);
     }
 
     void setSynced(boolean synced) {
@@ -328,7 +453,8 @@ public final class FileSystemMasterSyncMetadataTest {
 
     mUfs = Mockito.mock(UnderFileSystem.class);
     PowerMockito.mockStatic(UnderFileSystem.Factory.class);
-    Mockito.when(UnderFileSystem.Factory.create(anyString(), any())).thenReturn(mUfs);
+    Mockito.when(UnderFileSystem.Factory.createWithRecorder(anyString(), any(), any()))
+        .thenReturn(mUfs);
   }
 
   private void stopServices() throws Exception {

@@ -20,11 +20,10 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
-import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
@@ -42,7 +41,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -62,12 +60,12 @@ import java.util.concurrent.TimeoutException;
  */
 public class BlockReadHandlerTest {
   private static final long CHUNK_SIZE =
-      ServerConfiguration.getBytes(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
+      Configuration.getBytes(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
   private final Random mRandom = new Random();
 
   private BlockReadHandler mReadHandler;
   private ServerCallStreamObserver<ReadResponse> mResponseObserver;
-  private List<ReadResponse> mResponses = new ArrayList<>();
+  private final List<ReadResponse> mResponses = new ArrayList<>();
   private boolean mResponseCompleted;
   private Throwable mError;
   private BlockReader mBlockReader;
@@ -75,9 +73,6 @@ public class BlockReadHandlerTest {
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
-
-  @Rule
-  public ExpectedException mExpectedException = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
@@ -111,7 +106,7 @@ public class BlockReadHandlerTest {
           return mBlockReader;
         });
     mReadHandler = new BlockReadHandler(GrpcExecutors.BLOCK_READER_EXECUTOR, blockWorker,
-        mResponseObserver, new AuthenticatedUserInfo(), false);
+        mResponseObserver, false);
   }
 
   /**
@@ -198,9 +193,9 @@ public class BlockReadHandlerTest {
         while (length > 0) {
           byte[] buffer = new byte[(int) Math.min(length, Constants.MB)];
           mRandom.nextBytes(buffer);
-          for (int i = 0; i < buffer.length; i++) {
+          for (byte b : buffer) {
             if (pos >= start && pos <= end) {
-              checksum += BufferUtils.byteToInt(buffer[i]);
+              checksum += BufferUtils.byteToInt(b);
             }
             pos++;
           }
@@ -255,9 +250,7 @@ public class BlockReadHandlerTest {
   }
 
   private ReadRequest buildReadRequest(long offset, long len) {
-    ReadRequest readRequest =
-        ReadRequest.newBuilder().setBlockId(1L).setOffset(offset).setLength(len)
-            .setChunkSize(CHUNK_SIZE).build();
-    return readRequest;
+    return ReadRequest.newBuilder().setBlockId(1L).setOffset(offset).setLength(len)
+        .setChunkSize(CHUNK_SIZE).build();
   }
 }

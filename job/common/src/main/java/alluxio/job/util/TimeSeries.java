@@ -208,7 +208,7 @@ public final class TimeSeries implements Serializable {
     }
   }
 
-  /**
+  /*
    * @param timeNano the time in nano seconds
    * @return the bucketed timestamp in nano seconds
    */

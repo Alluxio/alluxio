@@ -11,13 +11,15 @@
 
 package alluxio.server.ft;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
+import alluxio.client.file.FileSystem;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -25,6 +27,7 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.master.file.FileSystemMaster;
@@ -35,18 +38,31 @@ import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.RenameContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.OperationId;
 
+import com.google.common.collect.ImmutableMap;
+import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+import java.io.FileWriter;
+import java.nio.charset.Charset;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
+@RunWith(Parameterized.class)
 public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   private static final int CLUSTER_WAIT_TIMEOUT_MS = 120 * Constants.SECOND_MS;
   private static final String TEST_USER = "test";
@@ -54,28 +70,88 @@ public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseInt
   private MultiMasterLocalAlluxioCluster mMultiMasterLocalAlluxioCluster;
 
   @Rule
+  public TemporaryFolder mFolder = new TemporaryFolder();
+
+  @Rule
   public TestName mTestName = new TestName();
 
   @Rule
   public AuthenticatedUserRule mAuthenticatedUser =
-      new AuthenticatedUserRule(TEST_USER, ServerConfiguration.global());
+      new AuthenticatedUserRule(TEST_USER, Configuration.global());
+
+  @Parameterized.Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] {
+        {new ImmutableMap.Builder<PropertyKey, Object>()
+            .put(PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS, false)
+            .build()},
+        {new ImmutableMap.Builder<PropertyKey, Object>()
+            .put(PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS, true)
+            .build()},
+    });
+  }
+
+  @Parameterized.Parameter
+  public ImmutableMap<PropertyKey, Object> mParameterizedConfigMap;
 
   @Before
   public final void before() throws Exception {
-    mMultiMasterLocalAlluxioCluster = new MultiMasterLocalAlluxioCluster(2, 0);
+    mMultiMasterLocalAlluxioCluster = new MultiMasterLocalAlluxioCluster(2, 1);
     mMultiMasterLocalAlluxioCluster.initConfiguration(
         IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
-    ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "60sec");
-    ServerConfiguration.set(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec");
-    ServerConfiguration.set(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT, "30sec");
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0sec");
-    ServerConfiguration.set(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER);
+    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "60sec");
+    Configuration.set(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec");
+    Configuration.set(PropertyKey.NETWORK_CONNECTION_SERVER_SHUTDOWN_TIMEOUT, "30sec");
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "0sec");
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, TEST_USER);
+    Configuration.set(PropertyKey.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS, false);
+    for (Map.Entry<PropertyKey, Object> entry : mParameterizedConfigMap.entrySet()) {
+      Configuration.set(entry.getKey(), entry.getValue());
+    }
     mMultiMasterLocalAlluxioCluster.start();
   }
 
   @After
   public final void after() throws Exception {
     mMultiMasterLocalAlluxioCluster.stop();
+    Configuration.reloadProperties();
+  }
+
+  @Test
+  public void syncMetadataUFSFailOver() throws Exception {
+    String ufsPath = mFolder.newFolder().getAbsoluteFile().toString();
+    String ufsUri = "file://" + ufsPath;
+    MountPOptions options = MountPOptions.newBuilder().build();
+    FileSystem client = mMultiMasterLocalAlluxioCluster.getClient();
+    AlluxioURI mountPath = new AlluxioURI("/mnt1");
+    client.mount(mountPath, new AlluxioURI(ufsUri), options);
+
+    // create files outside alluxio
+    String fileName = "someFile";
+    String contents = "contents";
+    for (int i = 0; i < 100; i++) {
+      try (FileWriter fw = new FileWriter(Paths.get(PathUtils.concatPath(
+          ufsPath, fileName + i)).toString())) {
+        fw.write(contents + i);
+      }
+    }
+    for (int i = 0; i < 100; i++) {
+      // sync it with metadata sync
+      assertEquals(contents + i, IOUtils.toString(client.openFile(
+          mountPath.join(fileName + i)), Charset.defaultCharset()));
+    }
+
+    // Promote standby to be a leader and reset test state.
+    mMultiMasterLocalAlluxioCluster.stopLeader();
+    mMultiMasterLocalAlluxioCluster.waitForNewMaster(CLUSTER_WAIT_TIMEOUT_MS);
+    mMultiMasterLocalAlluxioCluster.waitForWorkersRegistered(CLUSTER_WAIT_TIMEOUT_MS);
+
+    // read the files again
+    client = mMultiMasterLocalAlluxioCluster.getClient();
+    for (int i = 0; i < 100; i++) {
+      assertEquals(contents + i, IOUtils.toString(client.openFile(
+          mountPath.join(fileName + i)), Charset.defaultCharset()));
+    }
   }
 
   @Test

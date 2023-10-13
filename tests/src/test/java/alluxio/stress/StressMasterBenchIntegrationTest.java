@@ -11,9 +11,9 @@
 
 package alluxio.stress;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.stress.cli.StressMasterBench;
 import alluxio.stress.master.MasterBenchSummary;
@@ -285,7 +285,7 @@ public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegra
     assertTrue(summary.getNodeResults().size() >= 1);
     assertTrue(summary.getDurationMs() > 0);
     assertTrue(summary.getThroughput() > 0);
-    assertEquals(summary.getStatistics().mNumSuccess, 100);
+    assertEquals(summary.getStatistics().mNumSuccesses, 100);
     assertTrue(summary.collectErrorsFromAllNodes().isEmpty());
   }
 }

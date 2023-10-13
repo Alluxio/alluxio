@@ -203,8 +203,7 @@ public final class CommonUtils {
    * @return an array of strings
    */
   public static String[] toStringArray(ArrayList<String> src) {
-    String[] ret = new String[src.size()];
-    return src.toArray(ret);
+    return src.toArray(new String[0]);
   }
 
   /**
@@ -377,7 +376,7 @@ public final class CommonUtils {
     T value;
     long start = getCurrentMs();
     int interval = options.getInterval();
-    int timeout = options.getTimeoutMs();
+    long timeout = options.getTimeoutMs();
     while (condition.apply(value = objectSupplier.get()) != true) {
       if (timeout != WaitForOptions.NEVER && getCurrentMs() - start > timeout) {
         throw new TimeoutException("Timed out waiting for " + description + " options: " + options
@@ -791,6 +790,7 @@ public final class CommonUtils {
     return new Supplier<T>() {
       Supplier<T> mDelegate = this::firstTime;
       boolean mInitialized;
+      @Override
       public T get() {
         return mDelegate.get();
       }
@@ -905,6 +905,19 @@ public final class CommonUtils {
       return String.format("Map{%d entries}", ((Map<?, ?>) obj).size());
     }
     return Objects.toString(obj);
+  }
+
+  /**
+   * @param e error
+   * @return whether it's fatal error
+   */
+  public static boolean isFatalError(Throwable e) {
+    // StackOverflowError ok even though it is a VirtualMachineError
+    if (e instanceof StackOverflowError) {
+      return false;
+    }
+    // VirtualMachineError includes OutOfMemoryError and other fatal errors
+    return e instanceof VirtualMachineError || e instanceof LinkageError;
   }
 
   private CommonUtils() {} // prevent instantiation

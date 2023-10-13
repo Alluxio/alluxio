@@ -16,7 +16,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ConfigurationValueOptions;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
@@ -81,7 +80,7 @@ public final class GetConf {
     PB(1L << 50);
 
     /** value associated with each unit. */
-    private long mValue;
+    private final long mValue;
 
     /**
      * @return the value of this unit
@@ -111,7 +110,7 @@ public final class GetConf {
     DAY(86400000L);
 
     /** value associated with each unit. */
-    private long mValue;
+    private final long mValue;
 
     /**
      * @return the value of this unit
@@ -210,7 +209,7 @@ public final class GetConf {
           }
           output.append("\n");
         }
-        System.out.print(output.toString());
+        System.out.print(output);
         break;
       case 1:
         if (!PropertyKey.isValid(args[0])) {
@@ -224,38 +223,32 @@ public final class GetConf {
           printHelp(String.format("%s is not found", key));
           return 1;
         }
-
-        if (property.getValue() == null) {
-          // value not set
-          System.out.println("");
-        } else {
-          if (cmd.hasOption(SOURCE_OPTION_NAME)) {
-            System.out.println(property.getSource());
-          } else if (cmd.hasOption(UNIT_OPTION_NAME)) {
-            String arg = cmd.getOptionValue(UNIT_OPTION_NAME).toUpperCase();
-            try {
-              ByteUnit byteUnit;
-              byteUnit = ByteUnit.valueOf(arg);
-              System.out.println(
-                  FormatUtils.parseSpaceSize(property.getValue()) / byteUnit.getValue());
-              break;
-            } catch (Exception e) {
-              // try next unit parse
-            }
-            try {
-              TimeUnit timeUnit;
-              timeUnit = TimeUnit.valueOf(arg);
-              System.out.println(
-                  FormatUtils.parseTimeSize(property.getValue()) / timeUnit.getValue());
-              break;
-            } catch (IllegalArgumentException ex) {
-              // try next unit parse
-            }
-            printHelp(String.format("%s is not a valid unit", arg));
-            return 1;
-          } else {
-            System.out.println(property.getValue());
+        if (cmd.hasOption(SOURCE_OPTION_NAME)) {
+          System.out.println(property.getSource());
+        } else if (cmd.hasOption(UNIT_OPTION_NAME)) {
+          String arg = cmd.getOptionValue(UNIT_OPTION_NAME).toUpperCase();
+          try {
+            ByteUnit byteUnit;
+            byteUnit = ByteUnit.valueOf(arg);
+            System.out.println(
+                FormatUtils.parseSpaceSize(property.getValue()) / byteUnit.getValue());
+            break;
+          } catch (Exception e) {
+            // try next unit parse
           }
+          try {
+            TimeUnit timeUnit;
+            timeUnit = TimeUnit.valueOf(arg);
+            System.out.println(
+                FormatUtils.parseTimeSize(property.getValue()) / timeUnit.getValue());
+            break;
+          } catch (IllegalArgumentException ex) {
+            // try next unit parse
+          }
+          printHelp(String.format("%s is not a valid unit", arg));
+          return 1;
+        } else {
+          System.out.println(property.getValue());
         }
         break;
       default:
@@ -271,8 +264,7 @@ public final class GetConf {
    * @param args the arguments to specify the unit (optional) and configuration key (optional)
    */
   public static void main(String[] args) {
-    System.exit(getConf(
-        ClientContext.create(new InstancedConfiguration(ConfigurationUtils.defaults())), args));
+    System.exit(getConf(ClientContext.create(), args));
   }
 
   private GetConf() {} // this class is not intended for instantiation

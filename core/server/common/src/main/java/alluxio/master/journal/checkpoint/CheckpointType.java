@@ -32,9 +32,9 @@ public enum CheckpointType {
    */
   LONGS(2, new LongsCheckpointFormat()),
   /**
-   * A RocksDB backup in .tar.gz format.
+   * A RocksDB backup in .tar.gz format with single thread.
    */
-  ROCKS(3, new TarballCheckpointFormat()),
+  ROCKS_SINGLE(3, new TarballCheckpointFormat()),
   /**
    * This format sequentially writes delimited InodeMeta.Inode protocol buffers one after another
    * using the protocol buffer writeDelimitedTo method.
@@ -43,7 +43,11 @@ public enum CheckpointType {
   /**
    * A checkpoint consisting of a single long value written by a data output stream.
    */
-  LONG(5, new LongCheckpointFormat());
+  LONG(5, new LongCheckpointFormat()),
+  /**
+   * A RocksDB backup in .zip format with multi threads.
+   */
+  ROCKS_PARALLEL(6, new ZipCheckpointFormat());
 
   private final long mId;
   private final CheckpointFormat mCheckpointFormat;

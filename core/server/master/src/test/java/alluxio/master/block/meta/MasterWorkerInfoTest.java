@@ -16,8 +16,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
-import alluxio.StorageTierAssoc;
 import alluxio.DefaultStorageTierAssoc;
+import alluxio.StorageTierAssoc;
+import alluxio.client.block.options.GetWorkerReportOptions;
+import alluxio.master.WorkerState;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -137,13 +139,15 @@ public final class MasterWorkerInfoTest {
    */
   @Test
   public void workerInfoGeneration() {
-    WorkerInfo workerInfo = mInfo.generateWorkerInfo(null, true);
+    WorkerInfo workerInfo = mInfo.generateWorkerInfo(GetWorkerReportOptions.WorkerInfoField.ALL,
+        WorkerState.LIVE);
     assertEquals(mInfo.getId(), workerInfo.getId());
     assertEquals(mInfo.getWorkerAddress(), workerInfo.getAddress());
-    assertEquals("In Service", workerInfo.getState());
+    assertEquals(WorkerState.LIVE.toString(), workerInfo.getState());
     assertEquals(mInfo.getCapacityBytes(), workerInfo.getCapacityBytes());
     assertEquals(mInfo.getUsedBytes(), workerInfo.getUsedBytes());
     assertEquals(mInfo.getStartTime(), workerInfo.getStartTimeMs());
+    assertEquals(mInfo.getBlockCount(), workerInfo.getBlockCount());
   }
 
   /**

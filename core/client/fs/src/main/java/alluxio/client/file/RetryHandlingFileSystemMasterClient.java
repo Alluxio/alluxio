@@ -15,6 +15,8 @@ import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.CancelSyncMetadataPRequest;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -33,6 +35,8 @@ import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.FreePRequest;
 import alluxio.grpc.GetFilePathPRequest;
+import alluxio.grpc.GetJobProgressPRequest;
+import alluxio.grpc.GetJobProgressPResponse;
 import alluxio.grpc.GetLostFilesPRequest;
 import alluxio.grpc.GetMountTablePRequest;
 import alluxio.grpc.GetNewBlockIdForFilePOptions;
@@ -42,12 +46,19 @@ import alluxio.grpc.GetStateLockHoldersPRequest;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetSyncPathListPRequest;
+import alluxio.grpc.GetSyncProgressPRequest;
+import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.JobProgressPOptions;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
+import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.grpc.ListStatusPartialPRequest;
 import alluxio.grpc.LostBlockList;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.MountPRequest;
+import alluxio.grpc.NeedsSyncRequest;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.ReverseResolvePRequest;
@@ -60,18 +71,30 @@ import alluxio.grpc.SetAclPRequest;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.SetAttributePRequest;
 import alluxio.grpc.StartSyncPRequest;
+import alluxio.grpc.StopJobPRequest;
+import alluxio.grpc.StopJobPResponse;
 import alluxio.grpc.StopSyncPRequest;
+import alluxio.grpc.SubmitJobPRequest;
+import alluxio.grpc.SubmitJobPResponse;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
+import alluxio.grpc.SyncMetadataPOptions;
+import alluxio.grpc.SyncMetadataPRequest;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
+import alluxio.job.JobDescription;
+import alluxio.job.JobRequest;
 import alluxio.master.MasterClientContext;
-import alluxio.retry.RetryUtils;
+import alluxio.retry.CountingRetry;
 import alluxio.security.authorization.AclEntry;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.SyncPointInfo;
 
+import com.google.protobuf.ByteString;
+import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,6 +102,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.Consumer;
@@ -236,11 +260,13 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public Map<String, alluxio.wire.MountPointInfo> getMountTable() throws AlluxioStatusException {
+  public Map<String, alluxio.wire.MountPointInfo> getMountTable(boolean checkUfs)
+      throws AlluxioStatusException {
     return retryRPC(() -> {
       Map<String, alluxio.wire.MountPointInfo> mountTableWire = new HashMap<>();
       for (Map.Entry<String, alluxio.grpc.MountPointInfo> entry : mClient
-          .getMountTable(GetMountTablePRequest.newBuilder().build()).getMountPointsMap()
+          .getMountTable(GetMountTablePRequest.newBuilder().setCheckUfs(checkUfs).build())
+          .getMountPointsMap()
           .entrySet()) {
         mountTableWire.put(entry.getKey(), GrpcUtils.fromProto(entry.getValue()));
       }
@@ -253,7 +279,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       Consumer<? super URIStatus> action)
       throws AlluxioStatusException {
     retryRPC(
-        RetryUtils.noRetryPolicy(),
+         new CountingRetry(0),
         () ->  {
           StreamSupport.stream(
               Spliterators.spliteratorUnknownSize(
@@ -286,6 +312,16 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
+  public ListStatusPartialResult listStatusPartial(
+      final AlluxioURI path, final ListStatusPartialPOptions options)
+      throws AlluxioStatusException {
+    return retryRPC(() -> ListStatusPartialResult.fromProto(mClient
+        .listStatusPartial(ListStatusPartialPRequest.newBuilder().setPath(getTransportPath(path))
+            .setOptions(options).build())), RPC_LOG,
+        "ListStatusPartial", "path=%s,options=%s", path, options);
+  }
+
+  @Override
   public void mount(final AlluxioURI alluxioPath, final AlluxioURI ufsPath,
       final MountPOptions options) throws AlluxioStatusException {
     retryRPC(
@@ -307,7 +343,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public void rename(final AlluxioURI src, final AlluxioURI dst)
       throws AlluxioStatusException {
-    rename(src, dst, FileSystemOptions.renameDefaults(mContext.getClusterConf()));
+    rename(src, dst, FileSystemOptionsUtils.renameDefaults(mContext.getClusterConf()));
   }
 
   @Override
@@ -395,6 +431,106 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
           .forEach((thread) -> result.add(thread));
       return result;
     }, RPC_LOG, "GetStateLockHolders", "");
+  }
+
+  @Override
+  public void needsSync(AlluxioURI path) throws AlluxioStatusException {
+    retryRPC(
+        () -> mClient.needsSync(
+            NeedsSyncRequest.newBuilder().setPath(getTransportPath(path)).build()),
+        RPC_LOG, "NeedsSync", "path=%s", path);
+  }
+
+  @Override
+  public Optional<String> submitJob(JobRequest job) {
+    connectWithRuntimeException();
+    final ByteString requestBody = ByteString.copyFrom(SerializationUtils.serialize(job));
+    SubmitJobPRequest request = SubmitJobPRequest
+        .newBuilder()
+        .setRequestBody(requestBody)
+        .build();
+    SubmitJobPResponse response = mClient.submitJob(request);
+    return response.hasJobId() ? Optional.of(response.getJobId()) : Optional.empty();
+  }
+
+  @Override
+  public boolean stopJob(JobDescription jobDescription) {
+    connectWithRuntimeException();
+    StopJobPResponse response = mClient.stopJob(StopJobPRequest
+        .newBuilder()
+        .setJobDescription(alluxio.grpc.JobDescription
+            .newBuilder()
+            .setType(jobDescription.getType())
+            .setPath(jobDescription.getPath())
+            .build())
+        .build());
+    return response.getJobStopped();
+  }
+
+  @Override
+  public String getJobProgress(JobDescription jobDescription,
+      JobProgressReportFormat format, boolean verbose) {
+    JobProgressPOptions.Builder options = JobProgressPOptions.newBuilder()
+            .setVerbose(verbose)
+            .setFormat(format);
+    connectWithRuntimeException();
+    GetJobProgressPResponse response = mClient.getJobProgress(
+        GetJobProgressPRequest.newBuilder()
+            .setJobDescription(alluxio.grpc.JobDescription
+            .newBuilder()
+            .setType(jobDescription.getType())
+            .setPath(jobDescription.getPath())
+            .build())
+            .setOptions(options.build())
+            .build());
+    return response.getProgressReport();
+  }
+
+  @Override
+  public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+      throws AlluxioStatusException {
+    return retryRPC(() -> {
+      SyncMetadataPRequest request = SyncMetadataPRequest.newBuilder()
+          .setPath(path.getPath())
+          .setOptions(options)
+          .build();
+      SyncMetadataPResponse response = mClient.syncMetadata(request);
+      return response;
+    }, RPC_LOG, "SyncMetadata", "path=%s,options=%s", path, options);
+  }
+
+  @Override
+  public SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path, SyncMetadataPOptions options)
+      throws AlluxioStatusException {
+    return retryRPC(() -> {
+      SyncMetadataPRequest request = SyncMetadataPRequest.newBuilder()
+          .setPath(path.getPath())
+          .setOptions(options)
+          .build();
+      SyncMetadataAsyncPResponse response = mClient.syncMetadataAsync(request);
+      return response;
+    }, RPC_LOG, "SyncMetadataAsync", "path=%s,options=%s", path, options);
+  }
+
+  @Override
+  public GetSyncProgressPResponse getSyncProgress(long taskGroupId) throws AlluxioStatusException {
+    return retryRPC(() -> {
+      GetSyncProgressPRequest request = GetSyncProgressPRequest.newBuilder()
+          .setTaskGroupId(taskGroupId)
+          .build();
+      return mClient.getSyncProgress(request);
+    }, RPC_LOG, "GetSyncProgress", "taskGroupId=%s", taskGroupId);
+  }
+
+  @Override
+  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId)
+      throws AlluxioStatusException {
+    return retryRPC(() -> {
+      CancelSyncMetadataPRequest request = CancelSyncMetadataPRequest.newBuilder()
+          .setTaskGroupId(taskGroupId)
+          .build();
+      return mClient.cancelSyncMetadata(request);
+    }, RPC_LOG, "CancelSyncMetadata", "taskGroupId=%s", taskGroupId);
   }
 
   @Override

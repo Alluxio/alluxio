@@ -14,19 +14,35 @@ package alluxio.stress.master;
 import alluxio.stress.StressConstants;
 import alluxio.stress.common.TaskResultStatistics;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.Arrays;
+import javax.annotation.Nullable;
 
 /**
  * Statistics class that is used in {@link MasterBenchTaskResult}.
  */
 public class MasterBenchTaskResultStatistics extends TaskResultStatistics {
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  @Nullable
+  public Operation mOperation;
+
+  /**
+   * Creates an instance.
+   *
+   * @param operation the operation
+   */
+  public MasterBenchTaskResultStatistics(@Nullable Operation operation) {
+    super();
+    mOperation = operation;
+    mMaxResponseTimeNs = new long[StressConstants.MAX_TIME_COUNT];
+    Arrays.fill(mMaxResponseTimeNs, -1);
+  }
 
   /**
    * Creates an instance.
    */
   public MasterBenchTaskResultStatistics() {
-    super();
-    mMaxResponseTimeNs = new long[StressConstants.MAX_TIME_COUNT];
-    Arrays.fill(mMaxResponseTimeNs, -1);
+    this(null);
   }
 }

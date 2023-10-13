@@ -17,6 +17,7 @@ import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.cli.fsadmin.report.JobServiceMetricsCommand;
 import alluxio.cli.fsadmin.report.MetricsCommand;
+import alluxio.cli.fsadmin.report.ProxyCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.cli.fsadmin.report.UfsCommand;
 import alluxio.conf.AlluxioConfiguration;
@@ -38,6 +39,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
   public static final String HELP_OPTION_NAME = "h";
   public static final String LIVE_OPTION_NAME = "live";
   public static final String LOST_OPTION_NAME = "lost";
+  public static final String DECOMMISSIONED_OPTION_NAME = "decommissioned";
   public static final String SPECIFIED_OPTION_NAME = "workers";
 
   private static final Option HELP_OPTION =
@@ -61,6 +63,13 @@ public final class ReportCommand extends AbstractFsAdminCommand {
           .desc("show capacity information of lost workers.")
           .build();
 
+  private static final Option DECOMMISSIONED_OPTION =
+      Option.builder(DECOMMISSIONED_OPTION_NAME)
+              .required(false)
+              .hasArg(false)
+              .desc("show capacity information of decommissioned workers.")
+              .build();
+
   private static final Option SPECIFIED_OPTION =
       Option.builder(SPECIFIED_OPTION_NAME)
           .required(false)
@@ -73,7 +82,8 @@ public final class ReportCommand extends AbstractFsAdminCommand {
     METRICS, // Report metrics information
     SUMMARY, // Report cluster summary
     UFS, // Report under filesystem information
-    JOBSERVICE // Report job service metrics information
+    JOBSERVICE, // Report job service metrics information
+    PROXY // Report proxy information in the cluster
   }
 
   private AlluxioConfiguration mConf;
@@ -125,6 +135,9 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         case "jobservice":
           command = Command.JOBSERVICE;
           break;
+        case "proxy":
+          command = Command.PROXY;
+          break;
         default:
           System.out.println(getUsage());
           System.out.println(getDescription());
@@ -165,6 +178,10 @@ public final class ReportCommand extends AbstractFsAdminCommand {
             mJobMasterClient, mPrintStream, mConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN));
         jobmetricsCommand.run();
         break;
+      case PROXY:
+        ProxyCommand proxyCommand = new ProxyCommand(mMetaClient, mPrintStream);
+        proxyCommand.run();
+        break;
       default:
         break;
     }
@@ -177,6 +194,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         .addOption(HELP_OPTION)
         .addOption(LIVE_OPTION)
         .addOption(LOST_OPTION)
+        .addOption(DECOMMISSIONED_OPTION)
         .addOption(SPECIFIED_OPTION);
   }
 

@@ -89,9 +89,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
     mIOBytes = ioBytes;
   }
 
-  /**
-   * @return the base parameters
-   */
+  @Override
   public BaseParameters getBaseParameters() {
     return mBaseParameters;
   }
@@ -145,9 +143,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
     mEndMs = endMs;
   }
 
-  /**
-   * @return the list of errors
-   */
+  @Override
   public List<String> getErrors() {
     return mErrors;
   }

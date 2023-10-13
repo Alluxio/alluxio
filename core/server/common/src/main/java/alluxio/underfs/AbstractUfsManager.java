@@ -13,11 +13,12 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.concurrent.ManagedBlockingUfsForwarder;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.recorder.Recorder;
 import alluxio.util.IdUtils;
 
 import com.google.common.base.MoreObjects;
@@ -118,18 +119,37 @@ public abstract class AbstractUfsManager implements UfsManager {
    * @return the UFS instance
    */
   private UnderFileSystem getOrAdd(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
+    return getOrAddWithRecorder(ufsUri, ufsConf, Recorder.noopRecorder());
+  }
+
+  /**
+   * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
+   * return it and record the execution process.
+   *
+   * @param ufsUri the UFS path
+   * @param ufsConf the UFS configuration
+   * @param recorder recorder used to record the detailed execution process
+   * @return the UFS instance
+   */
+  private UnderFileSystem getOrAddWithRecorder(AlluxioURI ufsUri,
+      UnderFileSystemConfiguration ufsConf, Recorder recorder) {
     Key key = new Key(ufsUri, ufsConf.getMountSpecificConf());
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
+      recorder.record("Using cached instance of UFS {} identified by key {}",
+          cachedFs.getClass().getSimpleName(), key.toString());
       return cachedFs;
     }
     // On cache miss, synchronize the creation to ensure ufs is only created once
     synchronized (mLock) {
       cachedFs = mUnderFileSystemMap.get(key);
       if (cachedFs != null) {
+        recorder.record("Using cached instance of UFS {} identified by key {}",
+            cachedFs.getClass().getSimpleName(), key.toString());
         return cachedFs;
       }
-      UnderFileSystem fs = UnderFileSystem.Factory.create(ufsUri.toString(), ufsConf);
+      UnderFileSystem fs = UnderFileSystem.Factory.createWithRecorder(
+          ufsUri.toString(), ufsConf, recorder);
 
       // Detect whether to use managed blocking on UFS operations.
       boolean useManagedBlocking = fs.isObjectStorage();
@@ -140,16 +160,20 @@ public abstract class AbstractUfsManager implements UfsManager {
       if (useManagedBlocking) {
         fs = new ManagedBlockingUfsForwarder(fs);
       }
-
-      if (mUnderFileSystemMap.putIfAbsent(key, fs) != null) {
-        // This shouldn't occur unless our synchronization is incorrect
-        LOG.warn("UFS already existed in UFS manager");
-      }
       mCloser.register(fs);
       try {
         connectUfs(fs);
-      } catch (IOException e) {
-        LOG.warn("Failed to perform initial connect to UFS {}: {}", ufsUri, e.toString());
+        tryUseFileSystem(fs, ufsUri.getPath());
+      } catch (Exception e) {
+        String message = String.format(
+            "Failed to perform initial connect to UFS %s: %s", ufsUri, e);
+        recorder.record(message);
+        LOG.warn(message);
+        throw new RuntimeException(e);
+      }
+      if (mUnderFileSystemMap.putIfAbsent(key, fs) != null) {
+        // This shouldn't occur unless our synchronization is incorrect
+        LOG.warn("UFS already existed in UFS manager");
       }
       return fs;
     }
@@ -162,13 +186,31 @@ public abstract class AbstractUfsManager implements UfsManager {
    */
   protected abstract void connectUfs(UnderFileSystem fs) throws IOException;
 
+  /**
+   * To check whether the filesystem is available by calling exists.
+   *
+   * @param fs the filesystem
+   * @param ufsPath the UFS path
+   * @throws Exception
+   */
+  private void tryUseFileSystem(UnderFileSystem fs, String ufsPath) throws Exception {
+    fs.exists(ufsPath);
+  }
+
   @Override
   public void addMount(long mountId, final AlluxioURI ufsUri,
       final UnderFileSystemConfiguration ufsConf) {
+    addMountWithRecorder(mountId, ufsUri, ufsConf, Recorder.noopRecorder());
+  }
+
+  @Override
+  public void addMountWithRecorder(long mountId, final AlluxioURI ufsUri,
+      final UnderFileSystemConfiguration ufsConf, Recorder recorder) {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
     Preconditions.checkNotNull(ufsUri, "ufsUri");
     Preconditions.checkNotNull(ufsConf, "ufsConf");
-    mMountIdToUfsInfoMap.put(mountId, new UfsClient(() -> getOrAdd(ufsUri, ufsConf), ufsUri));
+    mMountIdToUfsInfoMap.put(mountId, new UfsClient(() ->
+        getOrAddWithRecorder(ufsUri, ufsConf, recorder), ufsUri));
   }
 
   @Override
@@ -193,16 +235,14 @@ public abstract class AbstractUfsManager implements UfsManager {
   public UfsClient getRoot() {
     synchronized (this) {
       if (mRootUfsClient == null) {
-        String rootUri = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+        String rootUri = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
         boolean rootReadOnly =
-            ServerConfiguration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
-        boolean rootShared = ServerConfiguration
-            .getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
+            Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
         Map<String, Object> rootConf =
-            ServerConfiguration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+            Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
         addMount(IdUtils.ROOT_MOUNT_ID, new AlluxioURI(rootUri),
-            UnderFileSystemConfiguration.defaults(ServerConfiguration.global())
-                .setReadOnly(rootReadOnly).setShared(rootShared).createMountSpecificConf(rootConf));
+            new UnderFileSystemConfiguration(Configuration.global(), rootReadOnly)
+                .createMountSpecificConf(rootConf));
         try {
           mRootUfsClient = get(IdUtils.ROOT_MOUNT_ID);
         } catch (NotFoundException | UnavailableException e) {
@@ -232,5 +272,10 @@ public abstract class AbstractUfsManager implements UfsManager {
   @Override
   public void close() throws IOException {
     mCloser.close();
+  }
+
+  @Override
+  public boolean hasMount(long mountId) {
+    return mMountIdToUfsInfoMap.containsKey(mountId);
   }
 }

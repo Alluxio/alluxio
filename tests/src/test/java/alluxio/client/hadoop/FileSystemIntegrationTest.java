@@ -11,14 +11,13 @@
 
 package alluxio.client.hadoop;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.hadoop.FileSystem;
 import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
@@ -43,13 +42,13 @@ public class FileSystemIntegrationTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    Configuration conf = new Configuration();
+    org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     conf.set("fs.alluxio.impl", FileSystem.class.getName());
 
     URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, HadoopConfigurationUtils
-        .mergeAlluxioConfiguration(conf, ServerConfiguration.global()));
+        .mergeAlluxioConfiguration(conf, Configuration.global()));
   }
 
   @Test

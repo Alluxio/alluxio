@@ -205,8 +205,8 @@ func getAndCompleteFusePodObj(nodeId string, req *csi.NodeStageVolumeRequest) (*
 		return nil, errors.Wrap(err, "Error getting Fuse pod object from template.")
 	}
 
-	// Append volumeId to pod name for uniqueness
-	csiFusePodObj.Name = csiFusePodObj.Name + "-" + req.GetVolumeId()
+	// Append nodeId and volumeId to pod name for uniqueness
+	csiFusePodObj.Name = strings.Join([]string{csiFusePodObj.Name, nodeId, req.GetVolumeId()}, "-")
 
 	// Set node name for scheduling
 	csiFusePodObj.Spec.NodeName = nodeId
@@ -263,7 +263,11 @@ func checkIfMountPointReady(mountPoint string) error {
 }
 
 func (ns *nodeServer) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVolumeRequest) (*csi.NodeUnstageVolumeResponse, error) {
-	podName := "alluxio-fuse-" + req.GetVolumeId()
+	csiFusePodObj, err := getFusePodObj()
+	if err != nil {
+		return nil, errors.Wrap(err, "Error getting Fuse pod object from template.")
+	}
+	podName := strings.Join([]string{csiFusePodObj.Name, ns.nodeId, req.GetVolumeId()}, "-")
 	if err := ns.client.CoreV1().Pods(os.Getenv("NAMESPACE")).Delete(podName, &metav1.DeleteOptions{}); err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			// Pod not found. Try to clean up the mount point.

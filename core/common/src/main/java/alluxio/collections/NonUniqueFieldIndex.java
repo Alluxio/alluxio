@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -43,47 +44,30 @@ public class NonUniqueFieldIndex<T, V> implements FieldIndex<T, V> {
 
   @Override
   public boolean add(T object) {
+    AtomicBoolean res = new AtomicBoolean(false);
     V fieldValue = mIndexDefinition.getFieldValue(object);
-
-    ConcurrentHashSet<T> objSet;
-
-    while (true) {
-      objSet = mIndexMap.get(fieldValue);
-      // If there is no object set for the current value, creates a new one.
-      while (objSet == null) {
-        mIndexMap.putIfAbsent(fieldValue, new ConcurrentHashSet<>());
-        objSet = mIndexMap.get(fieldValue);
+    mIndexMap.compute(fieldValue, (value, set) -> {
+      if (set == null) {
+        set = new ConcurrentHashSet<>();
       }
-
-      synchronized (objSet) {
-        if (objSet != mIndexMap.get(fieldValue)) {
-          continue;
-        }
-        // Adds the value to the object set.
-        objSet.add(object);
-        break;
-      }
-    }
-    return true;
+      res.set(set.add(object));
+      return set;
+    });
+    return res.get();
   }
 
   @Override
   public boolean remove(T object) {
-    boolean res = false;
+    AtomicBoolean res = new AtomicBoolean(false);
     V fieldValue = mIndexDefinition.getFieldValue(object);
-    ConcurrentHashSet<T> objSet = mIndexMap.get(fieldValue);
-    if (objSet != null) {
-      synchronized (objSet) {
-        if (objSet != mIndexMap.get(fieldValue)) {
-          return false;
-        }
-        res = objSet.remove(object);
-        if (objSet.isEmpty()) {
-          mIndexMap.remove(fieldValue, objSet);
-        }
+    mIndexMap.computeIfPresent(fieldValue, (value, set) -> {
+      res.set(set.remove(object));
+      if (set.isEmpty()) {
+        return null;
       }
-    }
-    return res;
+      return set;
+    });
+    return res.get();
   }
 
   @Override

@@ -12,7 +12,7 @@
 package alluxio.server.health;
 
 import alluxio.HealthCheckClient;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterHealthCheckClient;
 import alluxio.retry.CountingRetry;
@@ -36,7 +36,7 @@ public class MasterHealthCheckClientIntegrationTest extends BaseIntegrationTest 
   @Before
   public final void before() {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
-    mHealthCheckClient = new MasterHealthCheckClient.Builder(ServerConfiguration.global())
+    mHealthCheckClient = new MasterHealthCheckClient.Builder(Configuration.global())
         .withProcessCheck(false).withRetryPolicy(() -> new CountingRetry(1))
         .build();
   }

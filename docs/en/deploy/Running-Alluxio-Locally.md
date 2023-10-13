@@ -100,7 +100,7 @@ However, on Linux, it requires sudo privileges to perform `mount` (and the assoc
 If you have no sudo privileges on Linux, for Alluxio Filesystem to work, it requires a RAMFS (e.g.,
 `/path/to/ramdisk`) already mounted by the system admin and accessible for read/write-operations by
 the user.
-In this case you have can specify the path in `conf/alluxio-site.properties`:
+In this case you can specify the path in `conf/alluxio-site.properties`:
 
 ```properties
 alluxio.worker.tieredstore.level0.alias=MEM

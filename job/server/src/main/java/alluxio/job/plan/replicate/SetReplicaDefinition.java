@@ -17,9 +17,10 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.RemoveBlockRequest;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
@@ -37,6 +38,7 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -136,7 +138,7 @@ public final class SetReplicaDefinition
   private void evict(SetReplicaConfig config, RunTaskContext context) throws Exception {
     long blockId = config.getBlockId();
     String localHostName = NetworkAddressUtils
-        .getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC, ServerConfiguration.global());
+        .getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC, Configuration.global());
     List<BlockWorkerInfo> workerInfoList = context.getFsContext().getCachedWorkers();
     WorkerNetAddress localNetAddress = null;
 
@@ -168,8 +170,25 @@ public final class SetReplicaDefinition
     // to avoid the the race between "replicate" and "rename", so that even a file to replicate is
     // renamed, the job is still working on the correct file.
     URIStatus status = context.getFileSystem().getStatus(new AlluxioURI(config.getPath()));
-
-    JobUtils.loadBlock(status, context.getFsContext(), config.getBlockId(), null, false);
+    try {
+      JobUtils.loadBlock(status, context.getFsContext(), config.getBlockId(), null, false);
+    } catch (IOException e) {
+      // This will remove the file from the pinlist if it fails to replicate, there can be false
+      // positives because replication can fail transiently and this would unpin it. However,
+      // compared to repeatedly replicating, this is a more acceptable result.
+      LOG.warn("Replication of {} failed, reduce min replication to 0 and unpin. Reason: {} ",
+          status.getPath(), e.getMessage());
+      SetAttributePOptions.Builder optionsBuilder =
+          SetAttributePOptions.newBuilder();
+      try {
+        context.getFileSystem().setAttribute(new AlluxioURI(config.getPath()),
+            optionsBuilder.setReplicationMin(0).setPinned(false).build());
+      } catch (Throwable e2) {
+        e.addSuppressed(e2);
+        LOG.warn("Attempt to set min replication to 0 and unpin failed due to ", e2);
+      }
+      throw e;
+    }
     LOG.info("Replicated file " + config.getPath() + " block " + config.getBlockId());
   }
 }

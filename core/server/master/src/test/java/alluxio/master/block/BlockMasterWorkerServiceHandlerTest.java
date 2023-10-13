@@ -17,8 +17,8 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.clock.ManualClock;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockIdList;
@@ -28,9 +28,11 @@ import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
+import alluxio.master.AlwaysPrimaryPrimarySelector;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.util.SleepUtils;
@@ -74,17 +76,18 @@ public class BlockMasterWorkerServiceHandlerTest {
 
   public void initServiceHandler(boolean leaseEnabled) throws Exception {
     if (leaseEnabled) {
-      ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, true);
-      ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_TTL, "3s");
+      Configuration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, true);
+      Configuration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_TTL, "3s");
       // Tests on the JVM check logic will be done separately
-      ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE, false);
-      ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_COUNT, 1);
+      Configuration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_RESPECT_JVM_SPACE, false);
+      Configuration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_COUNT, 1);
     } else {
-      ServerConfiguration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
+      Configuration.set(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
     }
 
     mRegistry = new MasterRegistry();
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
+    CoreMasterContext masterContext = MasterTestUtils.testMasterContext(new NoopJournalSystem(),
+        null, new AlwaysPrimaryPrimarySelector());
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mClock = new ManualClock();
     mExecutorService =

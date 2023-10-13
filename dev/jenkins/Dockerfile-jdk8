@@ -21,16 +21,18 @@ RUN mkdir -p /home/jenkins && \
     chmod -R 777 /.config && \
     apt-get update -y && \
     apt-get upgrade -y ca-certificates && \
-    apt-get install -y build-essential fuse libfuse-dev fuse3 libfuse3-dev make ruby ruby-dev
+    apt-get install -y build-essential fuse3 libfuse3-dev libfuse-dev make ruby ruby-dev
 # jekyll for documentation
-RUN gem install jekyll bundler
+RUN gem install public_suffix:4.0.7 jekyll:4.2.2 bundler:2.3.18
 # golang for tooling
-RUN wget https://dl.google.com/go/go1.12.linux-amd64.tar.gz && \
-    tar -xvf go1.12.linux-amd64.tar.gz && \
+RUN ARCH=$(dpkg --print-architecture) && \
+    wget https://go.dev/dl/go1.18.1.linux-${ARCH}.tar.gz && \
+    tar -xvf go1.18.1.linux-${ARCH}.tar.gz && \
     mv go /usr/local
 ENV GOROOT=/usr/local/go
 ENV PATH=$GOROOT/bin:$PATH
 # terraform for deployment scripts
-RUN wget --quiet https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip && \
-    unzip -o ./terraform_0.12.24_linux_amd64.zip -d /usr/local/bin/ && \
-    rm terraform_0.12.24_linux_amd64.zip
+RUN ARCH=$(dpkg --print-architecture) && \
+    wget --quiet https://releases.hashicorp.com/terraform/1.0.1/terraform_1.0.1_linux_${ARCH}.zip && \
+    unzip -o ./terraform_1.0.1_linux_${ARCH}.zip -d /usr/local/bin/ && \
+    rm terraform_1.0.1_linux_${ARCH}.zip

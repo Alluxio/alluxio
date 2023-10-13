@@ -11,77 +11,79 @@
 
 package alluxio.master.metastore;
 
+import static org.apache.commons.io.FileUtils.writeStringToFile;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
-import alluxio.AlluxioTestDirectory;
 import alluxio.ConfigurationRule;
-import alluxio.concurrent.LockMode;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.master.file.contexts.CreateDirectoryContext;
-import alluxio.master.file.contexts.CreateFileContext;
-import alluxio.master.file.meta.Edge;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeLockManager;
-import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.metastore.InodeStore.WriteBatch;
 import alluxio.master.metastore.caching.CachingInodeStore;
-import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
-import alluxio.resource.LockResource;
+import alluxio.resource.CloseableIterator;
 
-import com.google.common.collect.Iterables;
-import org.junit.After;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.rocksdb.RocksDBException;
 
+import java.io.File;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
 @RunWith(Parameterized.class)
-public class InodeStoreTest {
-  private static final int CACHE_SIZE = 16;
-
-  @Parameters
-  public static Iterable<Function<InodeLockManager, InodeStore>> parameters() throws Exception {
-    String dir =
-        AlluxioTestDirectory.createTemporaryDirectory("inode-store-test").getAbsolutePath();
-    return Arrays.asList(
-        lockManager -> new HeapInodeStore(),
-        lockManager -> new RocksInodeStore(dir),
-        lockManager -> new CachingInodeStore(new RocksInodeStore(dir), lockManager));
-  }
-
-  @Rule
-  public ConfigurationRule mConf =
-      new ConfigurationRule(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE,
-          CACHE_SIZE, ServerConfiguration.global());
-
-  private final MutableInodeDirectory mRoot = inodeDir(0, -1, "");
-
-  private final InodeStore mStore;
-  private final InodeLockManager mLockManager;
-
+public class InodeStoreTest extends InodeStoreTestBase {
   public InodeStoreTest(Function<InodeLockManager, InodeStore> store) {
-    mLockManager = new InodeLockManager();
-    mStore = store.apply(mLockManager);
+    super(store);
   }
 
-  @After
-  public void after() {
+  @Test
+  public void rocksConfigFile() throws Exception {
+    assumeTrue(mStore instanceof RocksInodeStore || mStore instanceof CachingInodeStore);
+    // close the store first because we want to reopen it with the new config
     mStore.close();
+    try (AutoCloseable ignored = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+      {
+        put(PropertyKey.ROCKS_INODE_CONF_FILE, sDir + CONF_NAME);
+      }
+    }, Configuration.modifiableGlobal()).toResource()) {
+      before();
+      writeInode(mRoot);
+      assertEquals(Inode.wrap(mRoot), mStore.get(0).get());
+    }
+  }
+
+  @Test
+  public void rocksInvalidConfigFile() throws Exception {
+    assumeTrue(mStore instanceof RocksInodeStore || mStore instanceof CachingInodeStore);
+    // close the store first because we want to reopen it with the new config
+    mStore.close();
+    // write an invalid config
+    String path = sDir + CONF_NAME + "invalid";
+    File confFile = new File(path);
+    writeStringToFile(confFile, "Invalid config", (Charset) null);
+
+    try (AutoCloseable ignored = new ConfigurationRule(new HashMap<PropertyKey, Object>() {
+      {
+        put(PropertyKey.ROCKS_INODE_CONF_FILE, path);
+      }
+    }, Configuration.modifiableGlobal()).toResource()) {
+      RuntimeException exception = assertThrows(RuntimeException.class, this::before);
+      assertEquals(RocksDBException.class, exception.getCause().getClass());
+    }
   }
 
   @Test
@@ -157,19 +159,22 @@ public class InodeStoreTest {
       writeInode(file);
       writeEdge(mRoot, file);
     }
-    assertEquals(9, Iterables.size(mStore.getChildren(mRoot)));
+    assertEquals(9, CloseableIterator.size(mStore.getChildren(mRoot)));
 
-    for (Inode child : mStore.getChildren(mRoot)) {
-      MutableInode<?> childMut = mStore.getMutable(child.getId()).get();
-      removeParentEdge(childMut);
-      removeInode(childMut);
+    try (CloseableIterator<? extends Inode> it = mStore.getChildren(mRoot)) {
+      while (it.hasNext()) {
+        Inode child = it.next();
+        MutableInode<?> childMut = mStore.getMutable(child.getId()).get();
+        removeParentEdge(childMut);
+        removeInode(childMut);
+      }
     }
     for (int i = 1; i < 10; i++) {
       MutableInodeFile file = inodeFile(i, 0, "file" + i);
       writeInode(file);
       writeEdge(mRoot, file);
     }
-    assertEquals(9, Iterables.size(mStore.getChildren(mRoot)));
+    assertEquals(9, CloseableIterator.size(mStore.getChildren(mRoot)));
   }
 
   @Test
@@ -194,7 +199,7 @@ public class InodeStoreTest {
     for (MutableInodeDirectory dir : dirs) {
       removeParentEdge(dir);
     }
-    assertEquals(1, Iterables.size(mStore.getChildren(mRoot)));
+    assertEquals(1, CloseableIterator.size(mStore.getChildren(mRoot)));
   }
 
   @Test
@@ -240,40 +245,6 @@ public class InodeStoreTest {
     assertTrue(renamed.isPresent());
     assertTrue(mStore.getChild(renamed.get().asDirectory(), "dir" + (middleDir + 1)).isPresent());
     assertEquals(0,
-        Iterables.size(mStore.getChildren(mStore.get(middleDir - 1).get().asDirectory())));
-  }
-
-  private void writeInode(MutableInode<?> inode) {
-    try (LockResource lr = mLockManager.lockInode(inode, LockMode.WRITE, false)) {
-      mStore.writeInode(inode);
-    }
-  }
-
-  private void writeEdge(MutableInode<?> parent, MutableInode<?> child) {
-    try (LockResource lr =
-        mLockManager.lockEdge(new Edge(parent.getId(), child.getName()), LockMode.WRITE, false)) {
-      mStore.addChild(parent.getId(), child);
-    }
-  }
-
-  private void removeInode(InodeView inode) {
-    try (LockResource lr = mLockManager.lockInode(inode, LockMode.WRITE, false)) {
-      mStore.remove(inode);
-    }
-  }
-
-  private void removeParentEdge(InodeView child) {
-    try (LockResource lr = mLockManager
-        .lockEdge(new Edge(child.getParentId(), child.getName()), LockMode.WRITE, false)) {
-      mStore.removeChild(child.getParentId(), child.getName());
-    }
-  }
-
-  private static MutableInodeDirectory inodeDir(long id, long parentId, String name) {
-    return MutableInodeDirectory.create(id, parentId, name, CreateDirectoryContext.defaults());
-  }
-
-  private static MutableInodeFile inodeFile(long containerId, long parentId, String name) {
-    return MutableInodeFile.create(containerId, parentId, name, 0, CreateFileContext.defaults());
+        CloseableIterator.size(mStore.getChildren(mStore.get(middleDir - 1).get().asDirectory())));
   }
 }

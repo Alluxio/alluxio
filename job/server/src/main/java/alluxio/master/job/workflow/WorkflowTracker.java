@@ -131,10 +131,9 @@ public class WorkflowTracker {
       }
     }
 
-    WorkflowInfo workflowInfo = new WorkflowInfo(jobId, workflowExecution.getName(),
+    return new WorkflowInfo(jobId, workflowExecution.getName(),
         workflowExecution.getStatus(), workflowExecution.getLastUpdated(),
         workflowExecution.getErrorType(), workflowExecution.getErrorMessage(), jobInfos);
-    return workflowInfo;
   }
 
   /**
@@ -235,7 +234,6 @@ public class WorkflowTracker {
     workflowExecution.stop(status, errorType, errorMessage);
 
     stop(parentJobId, status, errorType, errorMessage);
-    return;
   }
 
   private synchronized void next(long jobId) {

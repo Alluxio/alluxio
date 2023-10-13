@@ -27,7 +27,7 @@ this="${config_bin}/${script}"
 
 # This will set the default installation for a tarball installation while os distributors can
 # set system installation locations.
-VERSION=2.9.0-SNAPSHOT
+VERSION=2.10.0-SNAPSHOT
 ALLUXIO_HOME=$(dirname $(dirname "${this}"))
 ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
@@ -155,6 +155,7 @@ ALLUXIO_SECONDARY_MASTER_JAVA_OPTS="${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS_DEFAULT
 
 # Proxy specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_PROXY_JAVA_OPTS_DEFAULT=" -Dalluxio.logger.type=${ALLUXIO_PROXY_LOGGER:-PROXY_LOGGER}"
+ALLUXIO_PROXY_JAVA_OPTS_DEFAULT+=" -Dalluxio.proxy.audit.logger.type=${ALLUXIO_PROXY_AUDIT_LOGGER:-PROXY_AUDIT_LOGGER}"
 if [[ -n "${ALLUXIO_LOGSERVER_HOSTNAME}" && -n "${ALLUXIO_LOGSERVER_PORT}" ]]; then
     ALLUXIO_PROXY_JAVA_OPTS_DEFAULT+=" -Dalluxio.remote.logger.type=REMOTE_PROXY_LOGGER"
 fi

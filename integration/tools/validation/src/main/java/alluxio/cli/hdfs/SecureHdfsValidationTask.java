@@ -16,6 +16,7 @@ import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.util.ExceptionUtils;
 import alluxio.util.ShellUtils;
 
 import com.google.common.collect.ImmutableMap;
@@ -169,7 +170,7 @@ public final class SecureHdfsValidationTask extends HdfsConfValidationTask {
     } catch (IOException e) {
       mMsg.append(String.format("Kerberos login failed for %s with keytab %s.%n",
               principal, keytab));
-      mMsg.append(ValidationUtils.getErrorInfo(e));
+      mMsg.append(ExceptionUtils.asPlainText(e));
       mMsg.append(String.format("Primary is %s, instance is %s and realm is %s.%n",
               primary, instance, realm));
       ValidationTaskResult result = new ValidationTaskResult(

@@ -16,9 +16,7 @@ import alluxio.cli.Command;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.exception.AlluxioException;
-import alluxio.util.ConfigurationUtils;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
@@ -47,8 +45,7 @@ public abstract class AbstractFileSystemCommand implements Command {
   // filesystem client, if null - load default properties
   protected AbstractFileSystemCommand(@Nullable FileSystemContext fsContext) {
     if (fsContext == null) {
-      fsContext =
-          FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+      fsContext = FileSystemContext.create();
     }
     mFsContext = fsContext;
     mFileSystem = FileSystem.Factory.create(fsContext);

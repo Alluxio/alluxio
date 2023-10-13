@@ -58,7 +58,7 @@ public final class PlanCoordinator {
   private final PlanInfo mPlanInfo;
   private final CommandManager mCommandManager;
 
-  /** The context containing containing the necessary references to schedule jobs. */
+  /** The context containing the necessary references to schedule jobs. */
   private final JobServerContext mJobServerContext;
 
   /**
@@ -66,12 +66,12 @@ public final class PlanCoordinator {
    * to represent an already-completed job, this list will be empty.
    */
   private List<WorkerInfo> mWorkersInfoList;
-  /**
+  /*
    * Map containing the worker info for every task associated with the coordinated job. If this
    * coordinator was created to represent an already-completed job, this map will be empty.
    */
   private final Map<Long, WorkerInfo> mTaskIdToWorkerInfo = Maps.newHashMap();
-  /**
+  /*
    * Mapping from workers running tasks for this job to the ids of those tasks. If this coordinator
    * was created to represent an already-completed job, this map will be empty.
    */

@@ -4,6 +4,7 @@
 [![Release](https://img.shields.io/github/release/alluxio/alluxio/all.svg)](https://www.alluxio.io/download)
 [![Docker Pulls](https://img.shields.io/docker/pulls/alluxio/alluxio.svg)](https://hub.docker.com/r/alluxio/alluxio)
 [![Documentation](https://img.shields.io/badge/docs-reference-blue.svg)](https://www.alluxio.io/docs)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Alluxio/alluxio/badge)](https://api.securityscorecards.dev/projects/github.com/Alluxio/alluxio)
 [![Twitter Follow](https://img.shields.io/twitter/follow/alluxio.svg?label=Follow&style=social)](https://twitter.com/intent/follow?screen_name=alluxio)
 [![License](https://img.shields.io/github/license/alluxio/alluxio.svg)](https://github.com/Alluxio/alluxio/blob/master/LICENSE)
 
@@ -98,11 +99,11 @@ Alluxio project provides several different client artifacts for external project
   The jar of this artifact is self-contained (including all dependencies in a shaded form to prevent dependency conflicts),
   and thus larger than the following two artifacts.
 - Artifact `alluxio-core-client-fs` provides
-  [Alluxio Java file system API](https://docs.alluxio.io/os/user/stable/en/api/FS-API.html#alluxio-java-api))
+  [Alluxio Java file system API](https://docs.alluxio.io/os/user/stable/en/api/Java-API.html#alluxio-java-api))
   to access all Alluxio-specific functionalities.
   This artifact is included in `alluxio-shaded-client`.
 - Artifact `alluxio-core-client-hdfs` provides
-  [HDFS-Compatible file system API](https://docs.alluxio.io/os/user/stable/en/api/FS-API.html#hadoop-compatible-java-client).
+  [HDFS-Compatible file system API](https://docs.alluxio.io/os/user/stable/en/api/Java-API.html#hadoop-compatible-java-client).
   This artifact is included in `alluxio-shaded-client`.
 
 Here are examples to declare the dependecies on  `alluxio-shaded-client` using Maven:
@@ -131,7 +132,7 @@ For advanced feature requests and contributions,
 Alluxio core team is hosting regular online meetings with community users and developers to iterate the project in two special interest groups:
 
 * Alluxio and AI workloads: e.g., running Tensorflow, Pytorch on Alluxio through the POSIX API. Checkout the [meeting notes](https://docs.google.com/spreadsheets/d/1OlprIiUkGjMuZJ_6cLTJYVJpTGpnTWkFhHzX16tYNDQ/)
-* Alluxio and Presto workloads: e.g., running Presto on Alluxio, running Alluxio catalog service. Checkout the [meeting notes](https://docs.google.com/spreadsheets/d/1V-fxqfG_oj3B1ZWSgbRWVuTHFvjL3pq6uXgAL-xvFQA/)
+* Alluxio and Presto workloads: e.g., running Presto on Alluxio. Checkout the [meeting notes](https://docs.google.com/spreadsheets/d/1V-fxqfG_oj3B1ZWSgbRWVuTHFvjL3pq6uXgAL-xvFQA/)
 
 Subscribe our [public calendar](https://calendar.google.com/calendar/embed?src=alluxio.com_g9ec8agk27baqu2nu692ft1m3s%40group.calendar.google.com&ctz=America%2FLos_Angeles) to join us.
 

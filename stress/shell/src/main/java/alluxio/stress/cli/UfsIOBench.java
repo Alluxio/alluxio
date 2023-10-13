@@ -11,13 +11,13 @@
 
 package alluxio.stress.cli;
 
-import alluxio.cli.ValidationUtils;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.stress.worker.IOTaskResult;
 import alluxio.stress.worker.UfsIOParameters;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.CommonUtils;
+import alluxio.util.ExceptionUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -48,9 +48,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   private static final String TEST_DIR_NAME = "UfsIOTest";
 
   @ParametersDelegate
-  private UfsIOParameters mParameters = new UfsIOParameters();
-
-  private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
+  private final UfsIOParameters mParameters = new UfsIOParameters();
 
   private final UUID mTaskId = UUID.randomUUID();
   private String mDataDir;
@@ -99,7 +97,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
         result = new IOTaskResult();
         result.setParameters(mParameters);
         result.setBaseParameters(mBaseParameters);
-        result.addError(ValidationUtils.getErrorInfo(e));
+        result.addError(ExceptionUtils.asPlainText(e));
       }
       return result;
     } finally {
@@ -147,8 +145,9 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
   }
 
   private void cleanUp() throws IOException {
-    UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(mConf)
-            .createMountSpecificConf(mParameters.mConf);
+    UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration
+        .defaults(Configuration.global())
+        .createMountSpecificConf(mParameters.mConf);
     UnderFileSystem ufs = UnderFileSystem.Factory.create(mDataDir, ufsConf);
 
     for (int i = 0; i < mParameters.mThreads; i++) {
@@ -166,7 +165,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
       // Use multiple threads to saturate the bandwidth of this worker
       numThreads = mParameters.mThreads;
       ioSizeBytes = FormatUtils.parseSpaceSize(mParameters.mDataSize);
-      ufsConf = UnderFileSystemConfiguration.defaults(mConf)
+      ufsConf = UnderFileSystemConfiguration.defaults(Configuration.global())
               .createMountSpecificConf(mParameters.mConf);
       ufs = UnderFileSystem.Factory.create(mDataDir, ufsConf);
       if (!ufs.exists(mDataDir)) {
@@ -179,7 +178,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
       IOTaskResult result = new IOTaskResult();
       result.setParameters(mParameters);
       result.setBaseParameters(mBaseParameters);
-      result.addError(ValidationUtils.getErrorInfo(e));
+      result.addError(ExceptionUtils.asPlainText(e));
       return result;
     }
 
@@ -213,7 +212,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
           LOG.debug("Read task finished {}", p);
         } catch (Exception e) {
           LOG.error("Failed to read {}", filePath, e);
-          result.addError(ValidationUtils.getErrorInfo(e));
+          result.addError(ExceptionUtils.asPlainText(e));
         } finally {
           if (inStream != null) {
             try {
@@ -251,7 +250,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
       // Use multiple threads to saturate the bandwidth of this worker
       numThreads = mParameters.mThreads;
       ioSizeBytes = FormatUtils.parseSpaceSize(mParameters.mDataSize);
-      ufsConf = UnderFileSystemConfiguration.defaults(mConf)
+      ufsConf = UnderFileSystemConfiguration.defaults(Configuration.global())
               .createMountSpecificConf(mParameters.mConf);
       // Create a subdir for the IO
       ufs = UnderFileSystem.Factory.create(mDataDir, ufsConf);
@@ -265,7 +264,7 @@ public class UfsIOBench extends Benchmark<IOTaskResult> {
       IOTaskResult result = new IOTaskResult();
       result.setParameters(mParameters);
       result.setBaseParameters(mBaseParameters);
-      result.addError(ValidationUtils.getErrorInfo(e));
+      result.addError(ExceptionUtils.asPlainText(e));
       return result;
     }
 

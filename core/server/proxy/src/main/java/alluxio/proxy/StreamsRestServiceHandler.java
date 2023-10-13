@@ -15,7 +15,7 @@ import alluxio.RestUtils;
 import alluxio.StreamCache;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.io.ByteStreams;
@@ -79,7 +79,7 @@ public final class StreamsRestServiceHandler {
         throw new IllegalArgumentException("stream does not exist");
       }
       return null;
-    }, ServerConfiguration.global());
+    }, Configuration.global());
   }
 
   /**
@@ -103,7 +103,7 @@ public final class StreamsRestServiceHandler {
         }
         throw new IllegalArgumentException("stream does not exist");
       }
-    }, ServerConfiguration.global());
+    }, Configuration.global());
   }
 
   /**
@@ -124,6 +124,6 @@ public final class StreamsRestServiceHandler {
         return ByteStreams.copy(is, os);
       }
       throw new IllegalArgumentException("stream does not exist");
-    }, ServerConfiguration.global());
+    }, Configuration.global());
   }
 }

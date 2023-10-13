@@ -68,6 +68,8 @@ public class CollectAlluxioInfoCommand extends ExecuteShellCollectInfoCommand {
         new AlluxioCommand(mAlluxioPath, "getConf --master --source"), null);
     registerCommand("fsadmin",
         new AlluxioCommand(mAlluxioPath, "fsadmin report"), null);
+    registerCommand("fsadmin",
+        new AlluxioCommand(mAlluxioPath, "fsadmin report capacity"), null);
     registerCommand("mount",
         new AlluxioCommand(mAlluxioPath, "fs mount"), null);
     registerCommand("version",

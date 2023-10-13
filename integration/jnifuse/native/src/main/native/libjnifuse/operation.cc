@@ -373,16 +373,16 @@ RenameOperation::RenameOperation(JniFuseFileSystem *fs) {
   JNIEnv *env = AttachCurrentThreadIfNeeded();
   this->obj = this->fs->getFSObj();
   this->clazz = env->GetObjectClass(this->fs->getFSObj());
-  this->signature = "(Ljava/lang/String;Ljava/lang/String;)I";
+  this->signature = "(Ljava/lang/String;Ljava/lang/String;I)I";
   this->methodID = env->GetMethodID(this->clazz, "renameCallback", signature);
 }
 
-int RenameOperation::call(const char *oldPath, const char *newPath) {
+int RenameOperation::call(const char *oldPath, const char *newPath, unsigned int flags) {
   JNIEnv *env = AttachCurrentThreadIfNeeded();
   jstring jspath = env->NewStringUTF(oldPath);
   jstring jspathNew = env->NewStringUTF(newPath);
 
-  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, jspathNew);
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, jspathNew, flags);
 
   env->DeleteLocalRef(jspath);
   env->DeleteLocalRef(jspathNew);

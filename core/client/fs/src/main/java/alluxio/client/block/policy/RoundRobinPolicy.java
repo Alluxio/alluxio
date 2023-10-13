@@ -24,8 +24,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -43,9 +43,9 @@ public final class RoundRobinPolicy implements BlockLocationPolicy {
   /**
    * Constructs a new {@link RoundRobinPolicy}.
    *
-   * @param conf Alluxio configuration
+   * @param ignoredConf unused, but needed for instantiation in {@link BlockLocationPolicy.Factory}
    */
-  public RoundRobinPolicy(AlluxioConfiguration conf) {}
+  public RoundRobinPolicy(AlluxioConfiguration ignoredConf) {}
 
   /**
    * The policy uses the first fetch of worker info list as the base, and visits each of them in a
@@ -59,8 +59,7 @@ public final class RoundRobinPolicy implements BlockLocationPolicy {
    * @return the address of the worker to write to
    */
   @Override
-  @Nullable
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+  public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
     Set<WorkerNetAddress> eligibleAddresses = new HashSet<>();
     for (BlockWorkerInfo info : options.getBlockWorkerInfos()) {
       eligibleAddresses.add(info.getNetAddress());
@@ -68,7 +67,7 @@ public final class RoundRobinPolicy implements BlockLocationPolicy {
 
     WorkerNetAddress address = mBlockLocationCache.get(options.getBlockInfo().getBlockId());
     if (address != null && eligibleAddresses.contains(address)) {
-      return address;
+      return Optional.of(address);
     } else {
       address = null;
     }
@@ -93,7 +92,7 @@ public final class RoundRobinPolicy implements BlockLocationPolicy {
       }
     }
     mBlockLocationCache.put(options.getBlockInfo().getBlockId(), address);
-    return address;
+    return Optional.ofNullable(address);
   }
 
   /**

@@ -13,12 +13,14 @@ package alluxio.client.block.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.Configuration;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class CapacityBaseRandomPolicyTest {
 
@@ -35,16 +37,27 @@ public class CapacityBaseRandomPolicyTest {
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress3, 0, 0));
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress4, 1000, 0));
     getWorkerOptions.setBlockWorkerInfos(blockWorkerInfos);
-    Assert.assertEquals(netAddress1, buildPolicyWithTarget(0).getWorker(getWorkerOptions));
-    Assert.assertEquals(netAddress1, buildPolicyWithTarget(7).getWorker(getWorkerOptions));
-    Assert.assertEquals(netAddress1, buildPolicyWithTarget(9).getWorker(getWorkerOptions));
-    Assert.assertEquals(netAddress2, buildPolicyWithTarget(10).getWorker(getWorkerOptions));
-    Assert.assertEquals(netAddress2, buildPolicyWithTarget(70).getWorker(getWorkerOptions));
-    Assert.assertEquals(netAddress2, buildPolicyWithTarget(109).getWorker(getWorkerOptions));
-    Assert.assertEquals(netAddress4, buildPolicyWithTarget(110).getWorker(getWorkerOptions));
-    Assert.assertEquals(netAddress4, buildPolicyWithTarget(700).getWorker(getWorkerOptions));
-    Assert.assertEquals(netAddress4, buildPolicyWithTarget(1109).getWorker(getWorkerOptions));
-    Assert.assertNotEquals(netAddress1, buildPolicyWithTarget(1109).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress1),
+        buildPolicyWithTarget(0).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress1),
+        buildPolicyWithTarget(7).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress1),
+        buildPolicyWithTarget(9).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress2),
+        buildPolicyWithTarget(10).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress2),
+        buildPolicyWithTarget(70).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress2),
+        buildPolicyWithTarget(109).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress4),
+        buildPolicyWithTarget(110).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress4),
+        buildPolicyWithTarget(700).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress4),
+        buildPolicyWithTarget(1109).getWorker(getWorkerOptions));
+    Optional<WorkerNetAddress> address = buildPolicyWithTarget(1109).getWorker(getWorkerOptions);
+    Assert.assertTrue(address.isPresent());
+    Assert.assertNotEquals(netAddress1, address.get());
   }
 
   @Test
@@ -58,16 +71,27 @@ public class CapacityBaseRandomPolicyTest {
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress2, 100, 0));
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress3, 100, 0));
     getWorkerOptions.setBlockWorkerInfos(blockWorkerInfos);
-    Assert.assertEquals(netAddress1, buildPolicyWithTarget(0).getWorker(getWorkerOptions));
-    Assert.assertEquals(netAddress1, buildPolicyWithTarget(7).getWorker(getWorkerOptions));
-    Assert.assertEquals(netAddress1, buildPolicyWithTarget(99).getWorker(getWorkerOptions));
-    Assert.assertEquals(netAddress2, buildPolicyWithTarget(100).getWorker(getWorkerOptions));
-    Assert.assertEquals(netAddress2, buildPolicyWithTarget(156).getWorker(getWorkerOptions));
-    Assert.assertEquals(netAddress2, buildPolicyWithTarget(199).getWorker(getWorkerOptions));
-    Assert.assertEquals(netAddress3, buildPolicyWithTarget(200).getWorker(getWorkerOptions));
-    Assert.assertEquals(netAddress3, buildPolicyWithTarget(211).getWorker(getWorkerOptions));
-    Assert.assertEquals(netAddress3, buildPolicyWithTarget(299).getWorker(getWorkerOptions));
-    Assert.assertNotEquals(netAddress1, buildPolicyWithTarget(299).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress1),
+        buildPolicyWithTarget(0).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress1),
+        buildPolicyWithTarget(7).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress1),
+        buildPolicyWithTarget(99).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress2),
+        buildPolicyWithTarget(100).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress2),
+        buildPolicyWithTarget(156).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress2),
+        buildPolicyWithTarget(199).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress3),
+        buildPolicyWithTarget(200).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress3),
+        buildPolicyWithTarget(211).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.of(netAddress3),
+        buildPolicyWithTarget(299).getWorker(getWorkerOptions));
+    Optional<WorkerNetAddress> address = buildPolicyWithTarget(299).getWorker(getWorkerOptions);
+    Assert.assertTrue(address.isPresent());
+    Assert.assertNotEquals(netAddress1, address.get());
   }
 
   @Test
@@ -81,15 +105,15 @@ public class CapacityBaseRandomPolicyTest {
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress2, 0, 0));
     blockWorkerInfos.add(new BlockWorkerInfo(netAddress3, 0, 0));
     getWorkerOptions.setBlockWorkerInfos(blockWorkerInfos);
-    Assert.assertNull(buildPolicyWithTarget(0).getWorker(getWorkerOptions));
-    Assert.assertNull(buildPolicyWithTarget(1009).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.empty(), buildPolicyWithTarget(0).getWorker(getWorkerOptions));
+    Assert.assertEquals(Optional.empty(), buildPolicyWithTarget(1009).getWorker(getWorkerOptions));
   }
 
   /**
    * @param targetValue must be in [0,totalCapacity)
    */
   private CapacityBaseRandomPolicy buildPolicyWithTarget(final int targetValue) {
-    return new CapacityBaseRandomPolicy(null) {
+    return new CapacityBaseRandomPolicy(Configuration.global()) {
       @Override
       protected long randomInCapacity(long totalCapacity) {
         return targetValue;

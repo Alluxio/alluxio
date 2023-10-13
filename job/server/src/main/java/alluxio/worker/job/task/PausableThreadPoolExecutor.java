@@ -25,13 +25,11 @@ import java.util.concurrent.locks.ReentrantLock;
 public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
 
   // write/read locked by mPauseLock
-  private boolean mIsPaused;
-
+  private boolean mIsPaused = false;
   // writes are locked by mPauseLock
-  private int mNumPaused;
-
-  private ReentrantLock mPauseLock;
-  private Condition mUnpaused;
+  private int mNumPaused = 0;
+  private final ReentrantLock mPauseLock = new ReentrantLock();
+  private final Condition mUnpaused = mPauseLock.newCondition();
 
   /**
     * Copy of one of the constructors in {@link ThreadPoolExecutor}.
@@ -46,10 +44,6 @@ public class PausableThreadPoolExecutor extends ThreadPoolExecutor {
   public PausableThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime,
       TimeUnit unit, BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory) {
     super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
-    mIsPaused = false;
-    mNumPaused = 0;
-    mPauseLock =  new ReentrantLock();
-    mUnpaused = mPauseLock.newCondition();
   }
 
   /**

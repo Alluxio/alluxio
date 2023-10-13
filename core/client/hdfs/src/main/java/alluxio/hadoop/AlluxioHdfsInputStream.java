@@ -14,6 +14,7 @@ package alluxio.hadoop;
 import alluxio.client.file.FileInStream;
 
 import com.google.common.base.Preconditions;
+import org.apache.hadoop.fs.ByteBufferReadable;
 import org.apache.hadoop.fs.FSDataInputStream;
 
 import java.io.IOException;
@@ -50,7 +51,30 @@ public class AlluxioHdfsInputStream extends FileInStream {
 
   @Override
   public int read(ByteBuffer buf) throws IOException {
-    return mInput.read(buf);
+    // @see <a href="https://github.com/apache/hadoop/blob/rel/release-3.3.6/
+    // * hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/
+    // * fs/FSDataInputStream.java#L154">FSDataInputStream.java</a>
+    if (mInput.getWrappedStream() instanceof ByteBufferReadable) {
+      return mInput.read(buf);
+    } else {
+      int off = buf.position();
+      int len = buf.remaining();
+      final int totalBytesRead;
+      if (buf.hasArray()) {
+        byte[] byteArray = buf.array();
+        totalBytesRead = read(byteArray, buf.arrayOffset() + off, len);
+        if (totalBytesRead > 0) {
+          buf.position(off + totalBytesRead);
+        }
+      } else {
+        byte[] byteArray = new byte[len];
+        totalBytesRead = read(byteArray);
+        if (totalBytesRead > 0) {
+          buf.put(byteArray, 0, totalBytesRead);
+        }
+      }
+      return totalBytesRead;
+    }
   }
 
   @Override
@@ -103,5 +127,10 @@ public class AlluxioHdfsInputStream extends FileInStream {
   public int positionedRead(long position, byte[] buffer, int offset, int length)
       throws IOException {
     return mInput.read(position, buffer, offset, length);
+  }
+
+  @Override
+  public void unbuffer() {
+    mInput.unbuffer();
   }
 }

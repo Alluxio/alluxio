@@ -54,8 +54,8 @@ public class MigrateCliRunner extends AbstractCmdRunner {
 
   /**
    * constructor.
-   * @param fsContext
-   * @param jobMaster
+   * @param fsContext fs context
+   * @param jobMaster job master
    */
   public MigrateCliRunner(FileSystemContext fsContext, JobMaster jobMaster) {
     super(fsContext, jobMaster);
@@ -102,17 +102,6 @@ public class MigrateCliRunner extends AbstractCmdRunner {
     return cmdInfo;
   }
 
-  // call this method after finishing distCp job submission.
-  // user can only see the child jobs after submisssion is completed.
-  private List<CmdRunAttempt> consolidateDistCpJobs(long jobControlId) {
-    if (mJobMap.containsKey(jobControlId)) {
-      List<CmdRunAttempt> attempts = mJobMap.get(jobControlId);
-      return attempts;
-    } else {
-      return null;
-    }
-  }
-
   private void copy(AlluxioURI srcPath, AlluxioURI dstPath, boolean overwrite, int batchSize,
       List<Pair<String, String>> pool, WriteType writeType, CmdInfo cmdInfo)
           throws IOException, AlluxioException {
@@ -135,7 +124,7 @@ public class MigrateCliRunner extends AbstractCmdRunner {
   // Submit a child job within a distributed command job.
   private void submitDistCp(List<Pair<String, String>> pool, boolean overwrite,
          WriteType writeType, CmdInfo cmdInfo) {
-    if (mSubmitted.size() >= DEFAULT_ACTIVE_JOBS) {
+    if (mSubmitted.size() >= mActiveJobs) {
       waitForCmdJob();
     }
 

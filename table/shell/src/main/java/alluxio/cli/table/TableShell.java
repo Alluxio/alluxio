@@ -18,9 +18,8 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.table.TableMasterClient;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.MasterClientContext;
-import alluxio.util.ConfigurationUtils;
 
 import java.util.Map;
 
@@ -33,11 +32,9 @@ public class TableShell extends AbstractShell {
 
   /**
    * Construct a new instance of {@link TableShell}.
-   *
-   * @param conf the Alluxio configuration to use when instantiating the shell
    */
-  public TableShell(InstancedConfiguration conf) {
-    super(null, null, conf);
+  public TableShell() {
+    super(null, null, Configuration.global());
   }
 
   /**
@@ -46,8 +43,7 @@ public class TableShell extends AbstractShell {
    * @param args array of arguments given by the user's input from the terminal
    */
   public static void main(String[] args) {
-    TableShell tableShell =
-        new TableShell(new InstancedConfiguration(ConfigurationUtils.defaults()));
+    TableShell tableShell = new TableShell();
     System.exit(tableShell.run(args));
   }
 

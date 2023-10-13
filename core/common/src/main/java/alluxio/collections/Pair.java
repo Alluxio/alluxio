@@ -37,6 +37,12 @@ public class Pair<T1, T2> {
     mSecond = second;
   }
 
+  /**
+   * Default constructor for deserialization.
+   */
+  public Pair() {
+  }
+
   @Override
   public boolean equals(Object o) {
     if (o == null) {

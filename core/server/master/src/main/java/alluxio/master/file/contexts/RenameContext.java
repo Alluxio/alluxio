@@ -11,9 +11,9 @@
 
 package alluxio.master.file.contexts;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.RenamePOptions;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.OperationId;
 
 import com.google.common.base.MoreObjects;
@@ -53,7 +53,7 @@ public class RenameContext extends OperationContext<RenamePOptions.Builder, Rena
    */
   public static RenameContext mergeFrom(RenamePOptions.Builder optionsBuilder) {
     RenamePOptions masterOptions =
-        FileSystemOptions.renameDefaults(ServerConfiguration.global(), false);
+        FileSystemOptionsUtils.renameDefaults(Configuration.global(), false);
     RenamePOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -64,7 +64,7 @@ public class RenameContext extends OperationContext<RenamePOptions.Builder, Rena
    */
   public static RenameContext defaults() {
     return create(
-        FileSystemOptions.renameDefaults(ServerConfiguration.global(), false).toBuilder());
+        FileSystemOptionsUtils.renameDefaults(Configuration.global(), false).toBuilder());
   }
 
   /**

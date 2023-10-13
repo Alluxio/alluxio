@@ -13,7 +13,7 @@
 
 FROM maven:3.6.3-jdk-11
 
-# reference: https://github.com/docker-library/openjdk/blob/master/8/jdk/buster/Dockerfile 
+# reference: https://github.com/docker-library/openjdk/blob/master/8/jdk/buster/Dockerfile
 # we need jdk 8 in jdk 11 so that we can compile with jdk 8 and test with jdk 11
 
 ENV JAVA_HOME /usr/local/openjdk-8
@@ -22,29 +22,68 @@ ENV PATH $JAVA_HOME/bin:$PATH
 # backwards compatibility shim
 RUN { echo '#/bin/sh'; echo 'echo "$JAVA_HOME"'; } > /usr/local/bin/docker-java-home && chmod +x /usr/local/bin/docker-java-home && [ "$JAVA_HOME" = "$(docker-java-home)" ]
 
-ENV JAVA_VERSION 8u262
+RUN set -eux; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends \
+		bzip2 \
+		unzip \
+		xz-utils \
+		\
+# java.lang.UnsatisfiedLinkError: /usr/local/openjdk-11/lib/libfontmanager.so: libfreetype.so.6: cannot open shared object file: No such file or directory
+# java.lang.NoClassDefFoundError: Could not initialize class sun.awt.X11FontManager
+# https://github.com/docker-library/openjdk/pull/235#issuecomment-424466077
+		fontconfig libfreetype6 \
+		\
+# utilities for keeping Debian and OpenJDK CA certificates in sync
+		ca-certificates p11-kit \
+	; \
+	rm -rf /var/lib/apt/lists/*
+
+ENV JAVA_HOME /usr/local/openjdk-8
+RUN { echo '#/bin/sh'; echo 'echo "$JAVA_HOME"'; } > /usr/local/bin/docker-java-home && chmod +x /usr/local/bin/docker-java-home && [ "$JAVA_HOME" = "$(docker-java-home)" ] # backwards compatibility
+ENV PATH $JAVA_HOME/bin:$PATH
+
+# Default to UTF-8 file.encoding
+ENV LANG C.UTF-8
+
+# https://adoptopenjdk.net/upstream.html
+# >
+# > What are these binaries?
+# >
+# > These binaries are built by Red Hat on their infrastructure on behalf of the OpenJDK jdk8u and jdk11u projects. The binaries are created from the unmodified source code at OpenJDK. Although no formal support agreement is provided, please report any bugs you may find to https://bugs.java.com/.
+# >
+ENV JAVA_VERSION 8u332
+# https://github.com/docker-library/openjdk/issues/320#issuecomment-494050246
+# >
+# > I am the OpenJDK 8 and 11 Updates OpenJDK project lead.
+# > ...
+# > While it is true that the OpenJDK Governing Board has not sanctioned those releases, they (or rather we, since I am a member) didn't sanction Oracle's OpenJDK releases either. As far as I am aware, the lead of an OpenJDK project is entitled to release binary builds, and there is clearly a need for them.
+# >
 
 RUN set -eux; \
 	\
 	arch="$(dpkg --print-architecture)"; \
-# this "case" statement is generated via "update.sh"
 	case "$arch" in \
-# amd64
-		amd64 | i386:x86-64) downloadUrl=https://github.com/AdoptOpenJDK/openjdk8-upstream-binaries/releases/download/jdk8u262-b10/OpenJDK8U-jdk_x64_linux_8u262b10.tar.gz ;; \
-# fallback
+		'amd64') \
+			downloadUrl='https://github.com/AdoptOpenJDK/openjdk8-upstream-binaries/releases/download/jdk8u332-b09/OpenJDK8U-jdk_x64_linux_8u332b09.tar.gz'; \
+			;; \
+		'arm64') \
+			downloadUrl='https://github.com/AdoptOpenJDK/openjdk8-upstream-binaries/releases/download/jdk8u332-b09/OpenJDK8U-jdk_aarch64_linux_8u332b09.tar.gz'; \
+			;; \
 		*) echo >&2 "error: unsupported architecture: '$arch'"; exit 1 ;; \
 	esac; \
 	\
-	wget -O openjdk.tgz.asc "$downloadUrl.sign"; \
-	wget -O openjdk.tgz "$downloadUrl" --progress=dot:giga; \
+	wget --progress=dot:giga -O openjdk.tgz "$downloadUrl"; \
+	wget --progress=dot:giga -O openjdk.tgz.asc "$downloadUrl.sign"; \
 	\
 	export GNUPGHOME="$(mktemp -d)"; \
+# pre-fetch Andrew Haley's (the OpenJDK 8 and 11 Updates OpenJDK project lead) key so we can verify that the OpenJDK key was signed by it
+# (https://github.com/docker-library/openjdk/pull/322#discussion_r286839190)
+# we pre-fetch this so that the signature it makes on the OpenJDK key can survive "import-clean" in gpg
+	gpg --batch --keyserver keyserver.ubuntu.com --recv-keys EAC843EBD3EFDB98CC772FADA5CD6035332FA671; \
 # TODO find a good link for users to verify this key is right (https://mail.openjdk.java.net/pipermail/jdk-updates-dev/2019-April/000951.html is one of the only mentions of it I can find); perhaps a note added to https://adoptopenjdk.net/upstream.html would make sense?
 # no-self-sigs-only: https://salsa.debian.org/debian/gnupg2/commit/c93ca04a53569916308b369c8b218dad5ae8fe07
-	gpg --batch --keyserver hkps://keyserver.ubuntu.com --keyserver-options no-self-sigs-only --recv-keys CA5F11C6CE22644D42C6AC4492EF8D39DC13168F; \
-# also verify that key was signed by Andrew Haley (the OpenJDK 8 and 11 Updates OpenJDK project lead)
-# (https://github.com/docker-library/openjdk/pull/322#discussion_r286839190)
-	gpg --batch --keyserver hkps://keyserver.ubuntu.com --recv-keys EAC843EBD3EFDB98CC772FADA5CD6035332FA671; \
+	gpg --batch --keyserver keyserver.ubuntu.com --keyserver-options no-self-sigs-only --recv-keys CA5F11C6CE22644D42C6AC4492EF8D39DC13168F; \
 	gpg --batch --list-sigs --keyid-format 0xLONG CA5F11C6CE22644D42C6AC4492EF8D39DC13168F \
 		| tee /dev/stderr \
 		| grep '0xA5CD6035332FA671' \
@@ -62,8 +101,6 @@ RUN set -eux; \
 	; \
 	rm openjdk.tgz*; \
 	\
-# TODO strip "demo" and "man" folders?
-	\
 # update "cacerts" bundle to use Debian's CA certificates (and make sure it stays up-to-date with changes to Debian's store)
 # see https://github.com/docker-library/openjdk/issues/327
 #     http://rabexc.org/posts/certificates-not-working-java#comment-4099504075
@@ -72,11 +109,7 @@ RUN set -eux; \
 	{ \
 		echo '#!/usr/bin/env bash'; \
 		echo 'set -Eeuo pipefail'; \
-		echo 'if ! [ -d "$JAVA_HOME" ]; then echo >&2 "error: missing JAVA_HOME environment variable"; exit 1; fi'; \
-# 8-jdk uses "$JAVA_HOME/jre/lib/security/cacerts" and 8-jre and 11+ uses "$JAVA_HOME/lib/security/cacerts" directly (no "jre" directory)
-		echo 'cacertsFile=; for f in "$JAVA_HOME/lib/security/cacerts" "$JAVA_HOME/jre/lib/security/cacerts"; do if [ -e "$f" ]; then cacertsFile="$f"; break; fi; done'; \
-		echo 'if [ -z "$cacertsFile" ] || ! [ -f "$cacertsFile" ]; then echo >&2 "error: failed to find cacerts file in $JAVA_HOME"; exit 1; fi'; \
-		echo 'trust extract --overwrite --format=java-cacerts --filter=ca-anchors --purpose=server-auth "$cacertsFile"'; \
+		echo 'trust extract --overwrite --format=java-cacerts --filter=ca-anchors --purpose=server-auth "$JAVA_HOME/jre/lib/security/cacerts"'; \
 	} > /etc/ca-certificates/update.d/docker-openjdk; \
 	chmod +x /etc/ca-certificates/update.d/docker-openjdk; \
 	/etc/ca-certificates/update.d/docker-openjdk; \
@@ -105,16 +138,18 @@ RUN mkdir -p /home/jenkins && \
     chmod -R 777 /.config && \
     apt-get update -y && \
     apt-get upgrade -y ca-certificates && \
-    apt-get install -y build-essential fuse libfuse-dev fuse3 libfuse3-dev make ruby ruby-dev
+    apt-get install -y build-essential fuse3 libfuse3-dev libfuse-dev make ruby ruby-dev
 # jekyll for documentation
-RUN gem install jekyll bundler
+RUN gem install public_suffix:4.0.7 jekyll:4.2.2 bundler:2.3.18
 # golang for tooling
-RUN wget https://dl.google.com/go/go1.12.linux-amd64.tar.gz && \
-    tar -xvf go1.12.linux-amd64.tar.gz && \
+RUN ARCH=$(dpkg --print-architecture) && \
+    wget https://go.dev/dl/go1.18.1.linux-${ARCH}.tar.gz && \
+    tar -xvf go1.18.1.linux-${ARCH}.tar.gz && \
     mv go /usr/local
 ENV GOROOT=/usr/local/go
 ENV PATH=$GOROOT/bin:$PATH
 # terraform for deployment scripts
-RUN wget --quiet https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip && \
-    unzip -o ./terraform_0.12.24_linux_amd64.zip -d /usr/local/bin/ && \
-    rm terraform_0.12.24_linux_amd64.zip
+RUN ARCH=$(dpkg --print-architecture) && \
+    wget --quiet https://releases.hashicorp.com/terraform/1.0.1/terraform_1.0.1_linux_${ARCH}.zip && \
+    unzip -o ./terraform_1.0.1_linux_${ARCH}.zip -d /usr/local/bin/ && \
+    rm terraform_1.0.1_linux_${ARCH}.zip

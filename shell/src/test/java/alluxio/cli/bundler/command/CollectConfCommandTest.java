@@ -16,6 +16,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.cli.bundler.InfoCollectorTestUtils;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -42,6 +43,10 @@ public class CollectConfCommandTest {
           "metrics.properties",
           "metrics.properties.template",
           "log4j.properties",
+          "rocks-block-bloom.ini.template",
+          "rocks-inode-bloom.ini.template",
+          "rocks-block.ini.template",
+          "rocks-inode.ini.template",
           "core-site.properties",
           "core-site.properties.template",
           "hdfs-site.properties",
@@ -57,7 +62,7 @@ public class CollectConfCommandTest {
   public void initConf() throws IOException {
     mExpectedFiles = new HashSet<>();
     mTestDir = prepareConfDir();
-    mConf = InstancedConfiguration.defaults();
+    mConf = Configuration.copyGlobal();
     mConf.set(PropertyKey.CONF_DIR, mTestDir.getAbsolutePath());
   }
 

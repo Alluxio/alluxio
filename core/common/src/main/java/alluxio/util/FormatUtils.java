@@ -190,15 +190,15 @@ public final class FormatUtils {
     end = end.toLowerCase();
     if (end.isEmpty() || end.equals("b")) {
       return (long) (ret + alpha);
-    } else if (end.equals("kb") || end.equals("k")) {
+    } else if (end.equals("kb") || end.equals("k") || end.equals("kib") || end.equals("ki")) {
       return (long) (ret * Constants.KB + alpha);
-    } else if (end.equals("mb") || end.equals("m")) {
+    } else if (end.equals("mb") || end.equals("m") || end.equals("mib") || end.equals("mi")) {
       return (long) (ret * Constants.MB + alpha);
-    } else if (end.equals("gb") || end.equals("g")) {
+    } else if (end.equals("gb") || end.equals("g") || end.equals("gib") || end.equals("gi")) {
       return (long) (ret * Constants.GB + alpha);
-    } else if (end.equals("tb") || end.equals("t")) {
+    } else if (end.equals("tb") || end.equals("t") || end.equals("tib") || end.equals("ti")) {
       return (long) (ret * Constants.TB + alpha);
-    } else if (end.equals("pb") || end.equals("p")) {
+    } else if (end.equals("pb") || end.equals("p") || end.equals("pib") || end.equals("pi")) {
       // When parsing petabyte values, we can't multiply with doubles and longs, since that will
       // lose presicion with such high numbers. Therefore we use a BigDecimal.
       BigDecimal pBDecimal = new BigDecimal(Constants.PB);

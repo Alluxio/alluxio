@@ -16,6 +16,7 @@ export { default as MasterConfiguration } from './pages/MasterConfiguration/Mast
 export { default as Data } from './pages/Data/Data';
 export { default as Overview } from './pages/Overview/Overview';
 export { default as MasterLogs } from './pages/MasterLogs/MasterLogs';
+export { default as Masters } from './pages/Masters/Masters';
 export { default as Workers } from './pages/Workers/Workers';
 export { default as Metrics } from './pages/Metrics/Metrics';
 export { default as Stacks } from './pages/MasterStacks/MasterStacks';

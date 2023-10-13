@@ -11,7 +11,6 @@
 
 package alluxio.table.common.transform.action;
 
-import alluxio.exception.ExceptionMessage;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.transform.CompactConfig;
 import alluxio.table.common.Layout;
@@ -72,7 +71,7 @@ public class CompactAction implements TransformAction {
       }
 
       Preconditions.checkArgument(numFiles > 0,
-          ExceptionMessage.TRANSFORM_WRITE_ACTION_INVALID_NUM_FILES.getMessage());
+          "Write action must have positive number of files");
       return new CompactAction(numFiles, fileSize);
     }
 

@@ -13,8 +13,7 @@ package alluxio.heartbeat;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.ConfigurationTestUtils;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.security.user.UserState;
 
 import org.junit.After;
@@ -66,8 +65,6 @@ public final class HeartbeatThreadTest {
   private static final int NUMBER_OF_THREADS = 10;
 
   private ExecutorService mExecutorService;
-
-  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
 
   @Before
   public void before() {
@@ -142,8 +139,9 @@ public final class HeartbeatThreadTest {
       try (ManuallyScheduleHeartbeat.Resource r =
           new ManuallyScheduleHeartbeat.Resource(Arrays.asList(mThreadName))) {
         DummyHeartbeatExecutor executor = new DummyHeartbeatExecutor();
-        HeartbeatThread ht = new HeartbeatThread(mThreadName, executor, 1, mConfiguration,
-            UserState.Factory.create(mConfiguration));
+        HeartbeatThread ht = new HeartbeatThread(mThreadName, executor,
+            () -> new FixedIntervalSupplier(1L),
+            Configuration.global(), UserState.Factory.create(Configuration.global()));
 
         // Run the HeartbeatThread.
         mExecutorService.submit(ht);
@@ -169,7 +167,7 @@ public final class HeartbeatThreadTest {
     private int mCounter = 0;
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       mCounter++;
     }
 

@@ -18,7 +18,7 @@ import alluxio.cli.hdfs.HdfsProxyUserValidationTask;
 import alluxio.cli.hdfs.HdfsVersionValidationTask;
 import alluxio.cli.hdfs.SecureHdfsValidationTask;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.CommonUtils;
@@ -364,7 +364,7 @@ public final class ValidateEnv {
   private static int runTasks(String target, String name, CommandLine cmd)
       throws InterruptedException {
     // Validate against root path
-    AlluxioConfiguration conf = InstancedConfiguration.defaults();
+    AlluxioConfiguration conf = Configuration.global();
     String rootPath = conf.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     ValidateEnv validate = new ValidateEnv(rootPath, conf);
 
@@ -439,7 +439,7 @@ public final class ValidateEnv {
     }
     if (command.equals("list")) {
       // Validate against root path
-      AlluxioConfiguration conf = InstancedConfiguration.defaults();
+      AlluxioConfiguration conf = Configuration.global();
       String rootPath = conf.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       ValidateEnv task = new ValidateEnv(rootPath, conf);
       task.printTasks();

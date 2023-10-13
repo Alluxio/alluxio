@@ -13,21 +13,23 @@ package alluxio.metrics;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.MetricType;
 import alluxio.grpc.MetricValue;
 import alluxio.metrics.sink.Sink;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.codahale.metrics.CachedGauge;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SlidingTimeWindowMovingAverages;
 import com.codahale.metrics.Timer;
+import com.codahale.metrics.UniformReservoir;
 import com.codahale.metrics.jvm.CachedThreadStatesGaugeSet;
 import com.codahale.metrics.jvm.ClassLoadingGaugeSet;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
@@ -39,6 +41,8 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.management.BufferPoolMXBean;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,6 +51,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -67,8 +72,7 @@ public final class MetricsSystem {
 
   private static final ConcurrentHashMap<String, String> CACHED_METRICS = new ConcurrentHashMap<>();
   private static int sResolveTimeout =
-      (int) new InstancedConfiguration(ConfigurationUtils.defaults())
-          .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+      (int) Configuration.getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
   // A map from AlluxioURI to corresponding cached escaped path.
   private static final ConcurrentHashMap<AlluxioURI, String> CACHED_ESCAPED_PATH
       = new ConcurrentHashMap<>();
@@ -88,6 +92,9 @@ public final class MetricsSystem {
   // Local hostname will be used if no related property key founds.
   private static Supplier<String> sSourceNameSupplier =
       CommonUtils.memoize(() -> constructSourceName());
+  private static final Map<String, InstrumentedExecutorService>
+      EXECUTOR_SERVICES = new ConcurrentHashMap<>();
+  private static final int SECONDS_IN_A_MINUTE = 60;
 
   /**
    * An enum of supported instance type.
@@ -100,6 +107,7 @@ public final class MetricsSystem {
     JOB_MASTER("JobMaster"),
     JOB_WORKER("JobWorker"),
     PLUGIN("Plugin"),
+    PROCESS("Process"),
     PROXY("Proxy"),
     CLIENT("Client"),
     FUSE("Fuse");
@@ -139,6 +147,7 @@ public final class MetricsSystem {
   // Supported special instance names.
   public static final String CLUSTER = "Cluster";
 
+  public static final BufferPoolMXBean DIRECT_BUFFER_POOL;
   public static final MetricRegistry METRIC_REGISTRY;
 
   static {
@@ -149,6 +158,32 @@ public final class MetricsSystem {
     METRIC_REGISTRY.registerAll(new ClassLoadingGaugeSet());
     METRIC_REGISTRY.registerAll(new CachedThreadStatesGaugeSet(5, TimeUnit.SECONDS));
     METRIC_REGISTRY.registerAll(new OperationSystemGaugeSet());
+
+    DIRECT_BUFFER_POOL = getDirectBufferPool();
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricsSystem.getMetricName(MetricKey.PROCESS_POOL_DIRECT_MEM_USED.getName()),
+        MetricsSystem::getDirectMemUsed);
+  }
+
+  private static BufferPoolMXBean getDirectBufferPool() {
+    for (BufferPoolMXBean bufferPoolMXBean
+        :  ManagementFactory.getPlatformMXBeans(BufferPoolMXBean.class)) {
+      if (bufferPoolMXBean.getName().equals("direct")) {
+        return bufferPoolMXBean;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * @return the used direct memory
+   */
+  public static long getDirectMemUsed() {
+    if (DIRECT_BUFFER_POOL != null) {
+      return DIRECT_BUFFER_POOL.getMemoryUsed();
+    }
+    return 0;
   }
 
   @GuardedBy("MetricsSystem")
@@ -204,7 +239,7 @@ public final class MetricsSystem {
       default:
         break;
     }
-    AlluxioConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
+    AlluxioConfiguration conf = Configuration.global();
     if (sourceKey != null && conf.isSet(sourceKey)) {
       return conf.getString(sourceKey);
     }
@@ -505,6 +540,19 @@ public final class MetricsSystem {
   }
 
   // Some helper functions.
+  /** Add or replace the instrumented executor service metrics for
+   * the given name and executor service.
+   *
+   * @param delegate the executor service delegate that will be instrumented with metrics
+   * @param name the name of the metric
+   * @return the instrumented executor service
+   */
+  public static InstrumentedExecutorService executorService(ExecutorService delegate, String name) {
+    InstrumentedExecutorService service = new InstrumentedExecutorService(
+        delegate, METRIC_REGISTRY, getMetricName(name));
+    EXECUTOR_SERVICES.put(name, service);
+    return service;
+  }
 
   /**
    * Get or add counter with the given name.
@@ -547,7 +595,8 @@ public final class MetricsSystem {
    * @return a meter object with the qualified metric name
    */
   public static Meter meter(String name) {
-    return METRIC_REGISTRY.meter(getMetricName(name));
+    return METRIC_REGISTRY.meter(getMetricName(name),
+        () -> new Meter(new SlidingTimeWindowMovingAverages()));
   }
 
   /**
@@ -581,6 +630,30 @@ public final class MetricsSystem {
    */
   public static Timer timer(String name) {
     return METRIC_REGISTRY.timer(getMetricName(name));
+  }
+
+  /**
+   * Same with {@link #timer} but with UnirformReservoir for sampling.
+   *
+   * @param name the name of the metric
+   * @return a timer object with the qualified metric name
+   */
+  public static Timer uniformTimer(String name) {
+    return METRIC_REGISTRY.timer(getMetricName(name),
+            () -> {
+              Timer timer = new Timer(new UniformReservoir());
+              return timer;
+            });
+  }
+
+  /**
+   * Get or add a histogram with the given name.
+   *
+   * @param name the name of the metric
+   * @return a histogram object with the qualified metric name
+   */
+  public static Histogram histogram(String name) {
+    return METRIC_REGISTRY.histogram(getMetricName(name));
   }
 
   /**
@@ -626,6 +699,35 @@ public final class MetricsSystem {
         }
       });
     }
+  }
+
+  /**
+   * Created a gauge that aggregates the value of existing gauges.
+   *
+   * @param name the gauge name
+   * @param metrics the set of metric values to be aggregated
+   * @param timeout the cached gauge timeout
+   * @param timeUnit the unit of timeout
+   */
+  public static synchronized void registerAggregatedCachedGaugeIfAbsent(
+      String name, Set<MetricKey> metrics, long timeout, TimeUnit timeUnit) {
+    if (METRIC_REGISTRY.getMetrics().containsKey(name)) {
+      return;
+    }
+    METRIC_REGISTRY.register(name, new CachedGauge<Double>(timeout, timeUnit) {
+      @Override
+      protected Double loadValue() {
+        double total = 0.0;
+        for (MetricKey key : metrics) {
+          Metric m = getMetricValue(key.getName());
+          if (m == null || m.getMetricType() != MetricType.GAUGE) {
+            continue;
+          }
+          total += m.getValue();
+        }
+        return total;
+      }
+    });
   }
 
   /**
@@ -699,7 +801,7 @@ public final class MetricsSystem {
         // that a value marked. For clients, especially short-life clients,
         // the minute rates will be zero for their whole life.
         // That's why all throughput meters are not aggregated at cluster level.
-        rpcMetrics.add(Metric.from(entry.getKey(), meter.getOneMinuteRate(),
+        rpcMetrics.add(Metric.from(entry.getKey(), meter.getOneMinuteRate() / SECONDS_IN_A_MINUTE,
             MetricType.METER).toProto());
       } else if (metric instanceof Timer) {
         Timer timer = (Timer) metric;
@@ -784,7 +886,7 @@ public final class MetricsSystem {
       return Metric.from(name, counter.getCount(), MetricType.COUNTER);
     } else if (metric instanceof Meter) {
       Meter meter = (Meter) metric;
-      return Metric.from(name, meter.getOneMinuteRate(), MetricType.METER);
+      return Metric.from(name, meter.getOneMinuteRate() / SECONDS_IN_A_MINUTE, MetricType.METER);
     } else if (metric instanceof Timer) {
       Timer timer = (Timer) metric;
       return Metric.from(name, timer.getCount(), MetricType.TIMER);
@@ -816,7 +918,7 @@ public final class MetricsSystem {
             .setDoubleValue(((Counter) metric).getCount());
       } else if (metric instanceof Meter) {
         valueBuilder.setMetricType(MetricType.METER)
-            .setDoubleValue(((Meter) metric).getOneMinuteRate());
+            .setDoubleValue(((Meter) metric).getOneMinuteRate() / SECONDS_IN_A_MINUTE);
       } else if (metric instanceof Timer) {
         valueBuilder.setMetricType(MetricType.TIMER)
             .setDoubleValue(((Timer) metric).getCount());
@@ -872,6 +974,11 @@ public final class MetricsSystem {
       METRIC_REGISTRY.remove(timerName);
       METRIC_REGISTRY.timer(timerName);
     }
+
+    // Reset the InstrumentedExecutorServices last as it needs to keep the
+    // reference to the new metrics objects
+    EXECUTOR_SERVICES.values().forEach(InstrumentedExecutorService::reset);
+
     LAST_REPORTED_METRICS.clear();
     LOG.info("Reset all metrics in the metrics system in {}ms",
         System.currentTimeMillis() - startTime);
@@ -885,6 +992,7 @@ public final class MetricsSystem {
     for (String name : METRIC_REGISTRY.getNames()) {
       METRIC_REGISTRY.remove(name);
     }
+    EXECUTOR_SERVICES.clear();
   }
 
   /**

@@ -98,7 +98,13 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setUpdateInodeFile(UpdateInodeFileEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setAddTransformJobInfo(Table.AddTransformJobInfoEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setRemoveTransformJobInfo(Table.RemoveTransformJobInfoEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setCompleteTransformTable(Table.CompleteTransformTableEntry.getDefaultInstance()).build()
+      JournalEntry.newBuilder().setCompleteTransformTable(Table.CompleteTransformTableEntry.getDefaultInstance()).build(),
+      JournalEntry.newBuilder().setLoadJob(alluxio.proto.journal.Job.LoadJobEntry.newBuilder()
+          .setLoadPath("/test").setState(alluxio.proto.journal.Job.PJobState.CREATED)
+          .setBandwidth(1).setPartialListing(false).setVerify(true).setJobId("1").build()).build(),
+      JournalEntry.newBuilder().setCopyJob(alluxio.proto.journal.Job.CopyJobEntry.newBuilder()
+          .setSrc("/src").setDst("/dst").setState(alluxio.proto.journal.Job.PJobState.CREATED)
+          .setBandwidth(1).setPartialListing(false).setVerify(true).setJobId("2").build()).build()
   );
   // CHECKSTYLE.OFF: LineLengthExceed
 

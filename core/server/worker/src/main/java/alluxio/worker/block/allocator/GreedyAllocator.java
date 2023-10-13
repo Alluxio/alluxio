@@ -33,7 +33,7 @@ public final class GreedyAllocator implements Allocator {
   private static final Logger LOG = LoggerFactory.getLogger(GreedyAllocator.class);
 
   private BlockMetadataView mMetadataView;
-  private Reviewer mReviewer;
+  private final Reviewer mReviewer;
 
   /**
    * Creates a new instance of {@link GreedyAllocator}.

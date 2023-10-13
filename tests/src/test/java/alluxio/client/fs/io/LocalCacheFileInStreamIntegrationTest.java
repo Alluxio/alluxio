@@ -46,7 +46,7 @@ public final class LocalCacheFileInStreamIntegrationTest extends BaseIntegration
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES)
-          .setProperty(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES)
+          .setProperty(PropertyKey.USER_CLIENT_CACHE_SIZE, String.valueOf(CACHE_SIZE_BYTES))
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Constants.MB)
           .setProperty(PropertyKey.USER_CLIENT_CACHE_ENABLED, true)
           .setProperty(PropertyKey.USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED, false)

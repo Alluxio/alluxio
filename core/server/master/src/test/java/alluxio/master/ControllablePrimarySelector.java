@@ -11,7 +11,6 @@
 
 package alluxio.master;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
@@ -22,12 +21,12 @@ import java.net.InetSocketAddress;
  */
 public class ControllablePrimarySelector extends AbstractPrimarySelector {
   @Override
-  public void start(InetSocketAddress localAddress) throws IOException {
+  public void start(InetSocketAddress localAddress) {
       // nothing to do
   }
 
   @Override
-  public void stop() throws IOException {
+  public void stop() {
     // nothing to do
   }
 }

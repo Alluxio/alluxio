@@ -15,18 +15,19 @@ import static com.google.common.hash.Hashing.md5;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileInStream;
 import alluxio.client.file.cache.filter.CacheFilter;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricsConfig;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
+import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -39,10 +40,8 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * An Alluxio client compatible with Apache Hadoop {@link org.apache.hadoop.fs.FileSystem}
@@ -51,12 +50,6 @@ import java.util.Set;
  */
 public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheFileSystem.class);
-  private static final Set<String> SUPPORTED_FS = new HashSet<String>() {
-    {
-      add(Constants.SCHEME);
-      add("ws");
-    }
-  };
 
   /** The external Hadoop filesystem to query on cache miss. */
   private final org.apache.hadoop.fs.FileSystem mExternalFileSystem;
@@ -88,10 +81,6 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public synchronized void initialize(URI uri, org.apache.hadoop.conf.Configuration conf)
       throws IOException {
-    if (!SUPPORTED_FS.contains(uri.getScheme())) {
-      throw new UnsupportedOperationException(
-          uri.getScheme() + " is not supported as the external filesystem.");
-    }
     super.initialize(uri, conf);
     mHadoopConf = conf;
     // Set statistics
@@ -143,8 +132,15 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
         .setGroup(externalFileStatus.getGroup());
     // FilePath is a unique identifier for a file, however it can be a long string
     // hence using md5 hash of the file path as the identifier in the cache.
-    CacheContext context = CacheContext.defaults().setCacheIdentifier(
-        md5().hashString(externalFileStatus.getPath().toString(), UTF_8).toString());
+    String cacheIdentifier;
+    if (mAlluxioConf.getBoolean(PropertyKey.USER_CLIENT_CACHE_IDENTIFIER_INCLUDE_MTIME)) {
+      // include mtime to avoid consistency issues if the file may update
+      cacheIdentifier = md5().hashString(externalFileStatus.getPath().toString()
+          + externalFileStatus.getModificationTime(), UTF_8).toString();
+    } else {
+      cacheIdentifier = md5().hashString(externalFileStatus.getPath().toString(), UTF_8).toString();
+    }
+    CacheContext context = CacheContext.defaults().setCacheIdentifier(cacheIdentifier);
     URIStatus status = new URIStatus(info, context);
     return open(status, bufferSize);
   }
@@ -217,5 +213,23 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public FileStatus getFileStatus(Path f) throws IOException {
     return mExternalFileSystem.getFileStatus(f);
+  }
+
+  @Override
+  public BlockLocation[] getFileBlockLocations(FileStatus file, long start,
+      long len) throws IOException {
+    // Applications use the block information here to schedule/distribute the tasks.
+    // Return the UFS locations directly instead of the local cache location,
+    // so the application can schedule the tasks accordingly
+    return mExternalFileSystem.getFileBlockLocations(file, start, len);
+  }
+
+  @Override
+  public BlockLocation[] getFileBlockLocations(Path p, long start, long len)
+      throws IOException {
+    // Applications use the block information here to schedule/distribute the tasks.
+    // Return the UFS locations directly instead of the local cache location,
+    // so the application can schedule the tasks accordingly
+    return mExternalFileSystem.getFileBlockLocations(p, start, len);
   }
 }

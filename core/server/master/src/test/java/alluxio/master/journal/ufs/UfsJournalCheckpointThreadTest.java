@@ -11,8 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.MockMaster;
 import alluxio.master.NoopMaster;
 import alluxio.proto.journal.Journal;
@@ -50,7 +50,7 @@ public final class UfsJournalCheckpointThreadTest {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
     mUfs = Mockito
-        .spy(UnderFileSystem.Factory.create(location.toString(), ServerConfiguration.global()));
+        .spy(UnderFileSystem.Factory.create(location.toString(), Configuration.global()));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 600, Collections::emptySet);
     mJournal.start();
     mJournal.gainPrimacy();
@@ -59,7 +59,7 @@ public final class UfsJournalCheckpointThreadTest {
   @After
   public void after() throws Exception {
     mJournal.close();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   /**
@@ -67,8 +67,8 @@ public final class UfsJournalCheckpointThreadTest {
    */
   @Test
   public void catchupState() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 15);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "200ms");
+    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 15);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "200ms");
     buildCompletedLog(0, 10);
     buildIncompleteLog(10, 15);
     MockMaster mockMaster = new MockMaster();
@@ -89,8 +89,8 @@ public final class UfsJournalCheckpointThreadTest {
    */
   @Test
   public void catchStateShutdown() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 15);
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "200ms");
+    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 15);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "200ms");
     buildCompletedLog(0, 10);
     buildIncompleteLog(10, 15);
     MockMaster mockMaster = new MockMaster();
@@ -109,7 +109,7 @@ public final class UfsJournalCheckpointThreadTest {
    */
   @Test
   public void checkpointBeforeShutdown() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2);
     buildCompletedLog(0, 10);
     buildIncompleteLog(10, 15);
     MockMaster mockMaster = new MockMaster();
@@ -142,7 +142,7 @@ public final class UfsJournalCheckpointThreadTest {
    */
   @Test
   public void checkpointAfterShutdown() throws Exception {
-    ServerConfiguration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 2);
     buildCompletedLog(0, 10);
     buildIncompleteLog(10, 15);
     MockMaster mockMaster = new MockMaster();

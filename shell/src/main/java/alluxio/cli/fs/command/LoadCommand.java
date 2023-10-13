@@ -27,21 +27,30 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CacheRequest;
+import alluxio.grpc.JobProgressReportFormat;
+import alluxio.grpc.LoadJobPOptions;
 import alluxio.grpc.OpenFilePOptions;
+import alluxio.job.JobDescription;
+import alluxio.job.LoadJobRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
+import alluxio.util.FormatUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
+import java.util.OptionalLong;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -50,6 +59,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class LoadCommand extends AbstractFileSystemCommand {
+  private static final JobProgressReportFormat DEFAULT_FORMAT = JobProgressReportFormat.TEXT;
+  private static final String JOB_TYPE = "load";
   private static final Option LOCAL_OPTION =
       Option.builder()
           .longOpt("local")
@@ -57,6 +68,65 @@ public final class LoadCommand extends AbstractFileSystemCommand {
           .hasArg(false)
           .desc("load the file to local worker.")
           .build();
+  private static final Option SUBMIT_OPTION = Option.builder()
+      .longOpt("submit")
+      .required(false)
+      .hasArg(false)
+      .desc("Submit load job to Alluxio master, update job options if already exists.")
+      .build();
+
+  private static final Option STOP_OPTION = Option.builder()
+      .longOpt("stop")
+      .required(false)
+      .hasArg(false)
+      .desc("Stop a load job if it's still running.")
+      .build();
+
+  private static final Option PROGRESS_OPTION = Option.builder()
+      .longOpt("progress")
+      .required(false)
+      .hasArg(false)
+      .desc("Get progress report of a load job.")
+      .build();
+
+  private static final Option PARTIAL_LISTING_OPTION = Option.builder()
+      .longOpt("partial-listing")
+      .required(false)
+      .hasArg(false)
+      .desc("Use partial directory listing. This limits the memory usage "
+          + "and starts load sooner for larger directory. But progress "
+          + "report cannot report on the total number of files because the "
+          + "whole directory is not listed yet.")
+      .build();
+
+  private static final Option VERIFY_OPTION = Option.builder()
+      .longOpt("verify")
+      .required(false)
+      .hasArg(false)
+      .desc("Run verification when load finish and load new files if any.")
+      .build();
+
+  private static final Option BANDWIDTH_OPTION = Option.builder()
+      .longOpt("bandwidth")
+      .required(false)
+      .hasArg(true)
+      .desc("Single worker read bandwidth limit.")
+      .build();
+
+  private static final Option PROGRESS_FORMAT = Option.builder()
+      .longOpt("format")
+      .required(false)
+      .hasArg(true)
+      .desc("Format of the progress report, supports TEXT and JSON. If not "
+          + "set, TEXT is used.")
+      .build();
+
+  private static final Option PROGRESS_VERBOSE = Option.builder()
+      .longOpt("verbose")
+      .required(false)
+      .hasArg(false)
+      .desc("Whether to return a verbose progress report with detailed errors")
+      .build();
 
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
@@ -74,21 +144,170 @@ public final class LoadCommand extends AbstractFileSystemCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(LOCAL_OPTION);
-  }
-
-  @Override
-  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
-      throws AlluxioException, IOException {
-    load(plainPath, cl.hasOption(LOCAL_OPTION.getLongOpt()));
+    return new Options()
+        .addOption(BANDWIDTH_OPTION)
+        .addOption(PARTIAL_LISTING_OPTION)
+        .addOption(VERIFY_OPTION)
+        .addOption(SUBMIT_OPTION)
+        .addOption(STOP_OPTION)
+        .addOption(PROGRESS_OPTION)
+        .addOption(PROGRESS_FORMAT)
+        .addOption(PROGRESS_VERBOSE)
+        .addOption(LOCAL_OPTION);
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
-    runWildCardCmd(path, cl);
+    if (isOldFormat(cl)) {
+      runWildCardCmd(path, cl);
+      return 0;
+    }
+
+    if (path.containsWildcard()) {
+      throw new UnsupportedOperationException("Load does not support wildcard path");
+    }
+
+    if (cl.hasOption(SUBMIT_OPTION.getLongOpt())) {
+      OptionalLong bandwidth = OptionalLong.empty();
+      if (cl.hasOption(BANDWIDTH_OPTION.getLongOpt())) {
+        bandwidth = OptionalLong.of(FormatUtils.parseSpaceSize(
+            cl.getOptionValue(BANDWIDTH_OPTION.getLongOpt())));
+      }
+      return submitLoad(
+          path,
+          bandwidth,
+          cl.hasOption(PARTIAL_LISTING_OPTION.getLongOpt()),
+          cl.hasOption(VERIFY_OPTION.getLongOpt()));
+    }
+
+    if (cl.hasOption(STOP_OPTION.getLongOpt())) {
+      return stopLoad(path);
+    }
+    JobProgressReportFormat format = DEFAULT_FORMAT;
+    if (cl.hasOption(PROGRESS_OPTION.getLongOpt())) {
+      if (cl.hasOption(PROGRESS_FORMAT.getLongOpt())) {
+        format = JobProgressReportFormat.valueOf(cl.getOptionValue(PROGRESS_FORMAT.getLongOpt()));
+      }
+      return getProgress(path, format, cl.hasOption(PROGRESS_VERBOSE.getLongOpt()));
+    }
+
     return 0;
+  }
+
+  @Override
+  public String getUsage() {
+    return "For backward compatibility: load [--local] <path>\n"
+        + "For distributed load:\n"
+        + "\tload <path> --submit [--bandwidth N] [--verify] [--partial-listing]\n"
+        + "\tload <path> --stop\n"
+        + "\tload <path> --progress [--format TEXT|JSON] [--verbose]\n";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Loads a file or directory in Alluxio space, makes it resident in Alluxio.";
+  }
+
+  @Override
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
+    if (!isOldFormat(cl)) {
+      int commands = 0;
+      if (cl.hasOption(SUBMIT_OPTION.getLongOpt())) {
+        commands++;
+      }
+      if (cl.hasOption(STOP_OPTION.getLongOpt())) {
+        commands++;
+      }
+      if (cl.hasOption(PROGRESS_OPTION.getLongOpt())) {
+        commands++;
+      }
+      if (commands != 1) {
+        throw new InvalidArgumentException("Must have one of submit / stop / progress");
+      }
+    }
+  }
+
+  private int submitLoad(AlluxioURI path, OptionalLong bandwidth,
+      boolean usePartialListing, boolean verify) {
+    LoadJobPOptions.Builder options = alluxio.grpc.LoadJobPOptions
+        .newBuilder().setPartialListing(usePartialListing).setVerify(verify);
+    if (bandwidth.isPresent()) {
+      options.setBandwidth(bandwidth.getAsLong());
+    }
+    LoadJobRequest job = new LoadJobRequest(path.getPath(), options.build());
+    try {
+      Optional<String> jobId = mFileSystem.submitJob(job);
+      if (jobId.isPresent()) {
+        System.out.printf("Load '%s' is successfully submitted. JobId: %s%n", path, jobId.get());
+      } else {
+        System.out.printf("Load already running for path '%s', updated the job with "
+                + "new bandwidth: %s, verify: %s%n",
+            path,
+            bandwidth.isPresent() ? String.valueOf(bandwidth.getAsLong()) : "unlimited",
+            verify);
+      }
+      return 0;
+    } catch (StatusRuntimeException e) {
+      System.out.println("Failed to submit load job " + path + ": " + e.getMessage());
+      return -1;
+    }
+  }
+
+  private int stopLoad(AlluxioURI path) {
+    try {
+      if (mFileSystem.stopJob(JobDescription
+          .newBuilder()
+          .setPath(path.getPath())
+          .setType(JOB_TYPE)
+          .build())) {
+        System.out.printf("Load '%s' is successfully stopped.%n", path);
+      }
+      else {
+        System.out.printf("Cannot find load job for path %s, it might have already been "
+            + "stopped or finished%n", path);
+      }
+      return 0;
+    } catch (StatusRuntimeException e) {
+      System.out.println("Failed to stop load job " + path + ": " + e.getMessage());
+      return -1;
+    }
+  }
+
+  private int getProgress(AlluxioURI path, JobProgressReportFormat format,
+      boolean verbose) {
+    try {
+      System.out.println("Progress for loading path '" + path + "':");
+      System.out.println(mFileSystem.getJobProgress(JobDescription
+          .newBuilder()
+          .setPath(path.getPath())
+          .setType(JOB_TYPE)
+          .build(), format, verbose));
+      return 0;
+    } catch (StatusRuntimeException e) {
+      if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {
+        System.out.println("Load for path '" + path + "' cannot be found.");
+        return -2;
+      }
+      System.out.println("Failed to get progress for load job " + path + ": " + e.getMessage());
+      return -1;
+    }
+  }
+
+  private boolean isOldFormat(CommandLine cl) {
+    return cl.getOptions().length == 0
+        || (cl.getOptions().length == 1 && cl.hasOption(LOCAL_OPTION.getLongOpt()));
+  }
+
+  @Override
+  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
+      throws AlluxioException, IOException {
+    Preconditions.checkState(
+        isOldFormat(cl),
+        "The new load command should not hit this code path");
+    oldLoad(plainPath, cl.hasOption(LOCAL_OPTION.getLongOpt()));
   }
 
   /**
@@ -97,14 +316,14 @@ public final class LoadCommand extends AbstractFileSystemCommand {
    * @param filePath The {@link AlluxioURI} path to load into Alluxio
    * @param local whether to load data to local worker even when the data is already loaded remotely
    */
-  private void load(AlluxioURI filePath, boolean local)
+  private void oldLoad(AlluxioURI filePath, boolean local)
       throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(filePath);
     if (status.isFolder()) {
       List<URIStatus> statuses = mFileSystem.listStatus(filePath);
       for (URIStatus uriStatus : statuses) {
         AlluxioURI newPath = new AlluxioURI(uriStatus.getPath());
-        load(newPath, local);
+        oldLoad(newPath, local);
       }
     } else {
       if (local) {
@@ -126,7 +345,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   private void runLoadTask(AlluxioURI filePath, URIStatus status, boolean local)
       throws IOException {
     AlluxioConfiguration conf = mFsContext.getPathConf(filePath);
-    OpenFilePOptions options = FileSystemOptions.openFileDefaults(conf);
+    OpenFilePOptions options = FileSystemOptionsUtils.openFileDefaults(conf);
     BlockLocationPolicy policy = Preconditions.checkNotNull(
         BlockLocationPolicy.Factory
             .create(conf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf),
@@ -143,45 +362,25 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         dataSource = dataSourceAndType.getFirst();
       }
       Protocol.OpenUfsBlockOptions openUfsBlockOptions =
-          new InStreamOptions(status, options, conf).getOpenUfsBlockOptions(blockId);
-      cacheBlock(blockId, dataSource, status, openUfsBlockOptions);
-    }
-  }
-
-  @Override
-  public String getUsage() {
-    return "load [--local] <path>";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Loads a file or directory in Alluxio space, makes it resident in Alluxio.";
-  }
-
-  @Override
-  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
-  }
-
-  private void cacheBlock(long blockId, WorkerNetAddress dataSource, URIStatus status,
-      Protocol.OpenUfsBlockOptions options) {
-    BlockInfo info = status.getBlockInfo(blockId);
-    long blockLength = info.getLength();
-    String host = dataSource.getHost();
-    // issues#11172: If the worker is in a container, use the container hostname
-    // to establish the connection.
-    if (!dataSource.getContainerHost().equals("")) {
-      host = dataSource.getContainerHost();
-    }
-    CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
-        .setOpenUfsBlockOptions(options).setSourceHost(host)
-        .setSourcePort(dataSource.getDataPort()).build();
-    try (CloseableResource<BlockWorkerClient> blockWorker =
-        mFsContext.acquireBlockWorkerClient(dataSource)) {
-      blockWorker.get().cache(request);
-    } catch (Exception e) {
-      System.out.printf("Failed to complete cache request for block %d of file %s: %s", blockId,
-          status.getPath(), e);
+          new InStreamOptions(status, options, conf, mFsContext).getOpenUfsBlockOptions(blockId);
+      BlockInfo info = status.getBlockInfo(blockId);
+      long blockLength = info.getLength();
+      String host = dataSource.getHost();
+      // issues#11172: If the worker is in a container, use the container hostname
+      // to establish the connection.
+      if (!dataSource.getContainerHost().equals("")) {
+        host = dataSource.getContainerHost();
+      }
+      CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
+          .setOpenUfsBlockOptions(openUfsBlockOptions).setSourceHost(host)
+          .setSourcePort(dataSource.getDataPort()).build();
+      try (CloseableResource<BlockWorkerClient> blockWorker =
+          mFsContext.acquireBlockWorkerClient(dataSource)) {
+        blockWorker.get().cache(request);
+      } catch (Exception e) {
+        throw new RuntimeException(String.format("Failed to complete cache request from %s for "
+            + "block %d of file %s: %s", dataSource, blockId, status.getPath(), e), e);
+      }
     }
   }
 }

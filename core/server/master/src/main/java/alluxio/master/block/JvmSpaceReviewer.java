@@ -56,7 +56,7 @@ public class JvmSpaceReviewer {
 
   /**
    * Calculates the available space in the heap based on the runtime.
-   * Ref: https://stackoverflow.com/a/18375641/4933827
+   * Ref: <a href="https://stackoverflow.com/a/18375641/4933827">explanation</a>
    */
   private long getAvailableBytes() {
     return mRuntime.maxMemory() - (mRuntime.totalMemory() - mRuntime.freeMemory());

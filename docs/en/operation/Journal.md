@@ -197,11 +197,15 @@ the default backup directory would be `hdfs://192.168.1.1:9000/alluxio_backups`.
 The files to retain in the backup directory is limited by `alluxio.master.daily.backup.files.retained`.
 Users can set this property to the number of backup files they want to keep in the backup directory.
 
+In addition, upon encountering journal corruption, the master will take a backup of its current state
+automatically. This can be disabled by setting `alluxio.master.journal.backup.when.corrupted=false`.
+
 ### Backup delegation on HA cluster
 
 Alluxio supports taking backup without causing service unavailability on a HA cluster configuration.
 When enabled, Alluxio leading master delegates backups to standby masters in the cluster.
 After configuring backup delegation, both manual and scheduled backups will run in delegated mode.
+From Alluxio 2.9, backup delegation is by default enabled.
 
 Backup delegation can be configured with the below properties:
 - `alluxio.master.backup.delegation.enabled`: Whether to delegate backups to standby masters. Default: `false`.
@@ -218,9 +222,8 @@ Since it is uncertain which host will take the backup, it is suggested to use sh
 A backup attempt will fail if delegation fails to find a standby master, thus favoring service availability.
 For manual backups, you can pass `--allow-leader` option to allow the leading master to take a backup when there are no standby masters to delegate the backup.
 
-You can also pass `--bypass-delegation` flag to disable delegation all together.
-
-Disabling backup delegation using above flags will revert backup behavior to local and will cause temporary service unavailability while the leading master is writing a backup.
+You can also pass `--bypass-delegation` flag to disable delegation altogether.
+Disabling backup delegation will cause temporary service unavailability while the leading master is writing a backup.
 
 ### Restoring from a backup
 
@@ -348,6 +351,13 @@ setting `alluxio.master.journal.checkpoint.period.entries` on the masters. Setti
 the value lower will reduce the amount of disk space needed by the journal at the
 cost of additional work for the standby masters.
 
+When the metadata are stored in RocksDB, Alluxio 2.9 added support to checkpointing with multiple threads.
+`alluxio.master.metastore.rocks.parallel.backup=true` will turn on multi-threaded checkpointing and
+make the checkpointing a few times faster(depending how many threads are used). 
+`alluxio.master.metastore.rocks.parallel.backup.threads` controls how many threads to use.
+`alluxio.master.metastore.rocks.parallel.backup.compression.level` specifies the compression level, 
+where smaller means bigger file and less CPU consumption, and larger means smaller file and more CPU consumption. 
+
 #### Checkpointing on secondary master
 
 If HA mode is not an option, it is possible to run a master on the same node as a
@@ -393,6 +403,11 @@ Alluxio must be reformatted to recover. To avoid the need for full reformatting,
 we recommend [taking regular journal backups](#automatically-backing-up-the-journal)
 at a time when the cluster is under low load.
 Then if something happens to the journal, you can recover from one of the backups.
+
+By default, if a master encounters corruption when replaying a journal it will automatically
+take a backup of the state up to the corrupted entry in the configured backup directory. The master will notice the
+corruption when elected leader. The backup directory is configured by `alluxio.master.backup.directory`.
+This feature can be disabled by setting `alluxio.master.journal.backup.when.corrupted` to `false`.
 
 ### Get a human-readable journal
 

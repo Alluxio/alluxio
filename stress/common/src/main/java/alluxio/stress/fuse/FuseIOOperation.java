@@ -26,7 +26,7 @@ public enum FuseIOOperation {
    */
   LIST_FILE("ListFile"),
 
-  /** Now only streaming reading is supported, that is, sequentially read the written files. */
+  /*Now only streaming reading is supported, that is, sequentially read the written files. */
   /**
    * Each job worker, or client, will read the files it wrote through local Fuse mount point.
    */

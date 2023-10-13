@@ -13,6 +13,7 @@ package alluxio.exception;
 
 import alluxio.AlluxioURI;
 
+import java.text.MessageFormat;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -32,43 +33,11 @@ public class OpenDirectoryException extends AlluxioException {
   }
 
   /**
-   * Constructs a new exception with the specified detail message and cause.
-   *
-   * @param message the detail message
-   * @param cause the cause
-   */
-  public OpenDirectoryException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  /**
-   * Constructs a new exception with the specified exception message and multiple parameters.
-   *
-   * @param message the exception message
-   * @param params the parameters
-   */
-  public OpenDirectoryException(ExceptionMessage message, Object... params) {
-    this(message.getMessage(params));
-  }
-
-  /**
-   * Constructs a new exception with the specified exception message, the cause and multiple
-   * parameters.
-   *
-   * @param message the exception message
-   * @param cause the cause
-   * @param params the parameters
-   */
-  public OpenDirectoryException(ExceptionMessage message, Throwable cause, Object... params) {
-    this(message.getMessage(params), cause);
-  }
-
-  /**
    * Constructs a new exception stating that the given directory cannot be opened for reading.
    *
    * @param path the path to the directory
    */
   public OpenDirectoryException(AlluxioURI path) {
-    this(ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(path));
+    this(MessageFormat.format("Cannot read from {0} because it is a directory", path));
   }
 }

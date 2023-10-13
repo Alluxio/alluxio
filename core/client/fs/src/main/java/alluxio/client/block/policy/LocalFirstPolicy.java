@@ -32,8 +32,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A policy that returns the local worker first, and if the local worker doesn't
- * exist or doesn't have enough availability, will select the nearest worker from the active
- * workers list with sufficient availability.
+ * exist or doesn't have enough capacity, will select the nearest worker from the active
+ * workers list with sufficient capacity.
  *
  * The definition of 'nearest worker' is based on {@link alluxio.wire.TieredIdentity}.
  * @see alluxio.util.TieredIdentityUtils#nearest
@@ -66,7 +66,7 @@ public final class LocalFirstPolicy implements BlockLocationPolicy {
   }
 
   @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+  public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
     List<BlockWorkerInfo> shuffledWorkers = Lists.newArrayList(options.getBlockWorkerInfos());
     Collections.shuffle(shuffledWorkers);
     // Workers must have enough capacity to hold the block.
@@ -76,15 +76,12 @@ public final class LocalFirstPolicy implements BlockLocationPolicy {
 
     // Try finding the nearest worker.
     List<WorkerNetAddress> addresses = candidateWorkers.stream()
-        .map(worker -> worker.getNetAddress())
+        .map(BlockWorkerInfo::getNetAddress)
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
     Optional<Pair<WorkerNetAddress, Boolean>> nearest =
         BlockLocationUtils.nearest(mTieredIdentity, addresses, mConf);
-    if (!nearest.isPresent()) {
-      return null;
-    }
-    return nearest.get().getFirst();
+    return nearest.map(Pair::getFirst);
   }
 
   @Override

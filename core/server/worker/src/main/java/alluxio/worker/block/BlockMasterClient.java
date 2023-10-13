@@ -13,13 +13,16 @@ package alluxio.worker.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.FailedToAcquireRegisterLeaseException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockIdList;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
 import alluxio.grpc.BlockStoreLocationProto;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockPRequest;
@@ -30,11 +33,13 @@ import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.Metric;
+import alluxio.grpc.NotifyWorkerIdPRequest;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.master.MasterClientContext;
+import alluxio.master.selectionpolicy.MasterSelectionPolicy;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 
@@ -43,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -71,6 +77,17 @@ public class BlockMasterClient extends AbstractMasterClient {
     super(conf);
   }
 
+  /**
+   * Creates a new instance of {@link BlockMasterClient} for the worker and
+   * connects to a specific master.
+   *
+   * @param conf master client configuration
+   * @param address the master address
+   */
+  public BlockMasterClient(MasterClientContext conf, InetSocketAddress address) {
+    super(conf, MasterSelectionPolicy.Factory.specifiedMaster(address));
+  }
+
   @Override
   protected ServiceType getRemoteServiceType() {
     return ServiceType.BLOCK_MASTER_WORKER_SERVICE;
@@ -87,7 +104,7 @@ public class BlockMasterClient extends AbstractMasterClient {
   }
 
   @Override
-  protected void afterConnect() throws IOException {
+  protected void afterConnect() {
     mClient = BlockMasterWorkerServiceGrpc.newBlockingStub(mChannel);
     mAsyncClient = BlockMasterWorkerServiceGrpc.newStub(mChannel);
   }
@@ -104,7 +121,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    */
   public void commitBlock(final long workerId, final long usedBytesOnTier,
       final String tierAlias, final String mediumType,
-      final long blockId, final long length) throws IOException {
+      final long blockId, final long length) throws AlluxioStatusException {
     retryRPC(() -> {
       CommitBlockPRequest request =
           CommitBlockPRequest.newBuilder().setWorkerId(workerId).setUsedBytesOnTier(usedBytesOnTier)
@@ -124,7 +141,7 @@ public class BlockMasterClient extends AbstractMasterClient {
    * @param length the length of the block being committed
    */
   public void commitBlockInUfs(final long blockId, final long length)
-      throws IOException {
+      throws AlluxioStatusException {
     retryRPC(() -> {
       CommitBlockInUfsPRequest request =
           CommitBlockInUfsPRequest.newBuilder().setBlockId(blockId).setLength(length).build();
@@ -287,8 +304,15 @@ public class BlockMasterClient extends AbstractMasterClient {
       final Map<String, List<String>> lostStorage,
       final List<ConfigProperty> configList) throws IOException {
 
+    final BuildVersion buildVersion = BuildVersion.newBuilder()
+        .setVersion(ProjectConstants.VERSION)
+        .setRevision(ProjectConstants.REVISION).build();
+
     final RegisterWorkerPOptions options =
-        RegisterWorkerPOptions.newBuilder().addAllConfigs(configList).build();
+        RegisterWorkerPOptions.newBuilder().addAllConfigs(configList)
+            .setBuildVersion(buildVersion)
+            .setNumVCpu(Runtime.getRuntime().availableProcessors())
+            .build();
 
     final List<LocationBlockIdListEntry> currentBlocks
         = convertBlockListMapToProto(currentBlocksOnLocation);
@@ -302,7 +326,8 @@ public class BlockMasterClient extends AbstractMasterClient {
         .putAllUsedBytesOnTiers(usedBytesOnTiers)
         .addAllCurrentBlocks(currentBlocks)
         .putAllLostStorage(lostStorageMap)
-        .setOptions(options).build();
+        .setOptions(options)
+        .build();
 
     retryRPC(() -> {
       mClient.registerWorker(request);
@@ -350,5 +375,21 @@ public class BlockMasterClient extends AbstractMasterClient {
     if (ioe.get() != null) {
       throw ioe.get();
     }
+  }
+
+  /**
+   * Notify all masters about the worker ID.
+   * @param workerId the worker id
+   * @param address the worker address
+   */
+  public void notifyWorkerId(long workerId, WorkerNetAddress address) throws IOException {
+    retryRPC(() -> {
+      LOG.info("Notifying workerID to master {} with workerId {}, workerAddress {}",
+          mServerAddress,
+          workerId,
+          address);
+      return mClient.notifyWorkerId(NotifyWorkerIdPRequest.newBuilder()
+          .setWorkerId(workerId).setWorkerNetAddress(GrpcUtils.toProto(address)).build());
+    }, LOG, "NotifyWorkerId", "workerId=%d, workerAddress=%s", workerId, address);
   }
 }

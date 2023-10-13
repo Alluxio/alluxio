@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.TestLoggerRule;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.resource.CloseableResource;
 import alluxio.security.user.TestUserState;
 import alluxio.testutils.BaseIntegrationTest;
@@ -48,8 +48,8 @@ public final class BlockWorkerClientCloseIntegrationTest extends BaseIntegration
   public void before() throws Exception {
     mWorkerNetAddress = mClusterResource.get().getWorkerAddress();
     mFsContext = FileSystemContext
-        .create(new TestUserState("test", ServerConfiguration.global()).getSubject(),
-            ServerConfiguration.global());
+        .create(new TestUserState("test", Configuration.global()).getSubject(),
+            Configuration.global());
   }
 
   @After

@@ -53,8 +53,10 @@ public final class MasterWebUIOverview implements Serializable {
   private String mUsedCapacity;
   private String mUniqueBlockCount;
   private String mVersion;
+  private String mRevision;
   private String mMasterRole;
   private String mLeaderId;
+  private String mSystemStatus;
 
   /**
    * Creates a new instance of {@link MasterWebUIOverview}.
@@ -239,6 +241,15 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets revision.
+   *
+   * @return the revision
+   */
+  public String getRevision() {
+    return mRevision;
+  }
+
+  /**
    * Gets config check warn num.
    *
    * @return the config check warn num
@@ -293,10 +304,19 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Gets system status.
+   *
+   * @return the system status
+   */
+  public String getSystemStatus() {
+    return mSystemStatus;
+  }
+
+  /**
    * Sets capacity.
    *
    * @param capacity the capacity
-   * @return capacity
+   * @return the updated {@link MasterWebUIOverview} object
    */
   public MasterWebUIOverview setCapacity(String capacity) {
     mCapacity = capacity;
@@ -318,7 +338,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets config check error num.
    *
    * @param configCheckErrorNum the config check error num
-   * @return config check error num
+   * @return the updated {@link MasterWebUIOverview} object
    */
   public MasterWebUIOverview setConfigCheckErrorNum(int configCheckErrorNum) {
     mConfigCheckErrorNum = configCheckErrorNum;
@@ -329,7 +349,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets config check errors.
    *
    * @param configCheckErrors the config check errors
-   * @return config check errors
+   * @return the updated {@link MasterWebUIOverview} object
    */
   public MasterWebUIOverview setConfigCheckErrors(
       Map<Scope, List<InconsistentProperty>> configCheckErrors) {
@@ -341,7 +361,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets config check status.
    *
    * @param configCheckStatus the config check status
-   * @return config check status
+   * @return the updated {@link MasterWebUIOverview} object
    */
   public MasterWebUIOverview setConfigCheckStatus(
       ConfigStatus configCheckStatus) {
@@ -353,7 +373,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets config check warns.
    *
    * @param configCheckWarns the config check warns
-   * @return config check warns
+   * @return the updated {@link MasterWebUIOverview} object
    */
   public MasterWebUIOverview setConfigCheckWarns(
       Map<Scope, List<InconsistentProperty>> configCheckWarns) {
@@ -365,7 +385,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets debug.
    *
    * @param debug the debug
-   * @return debug
+   * @return the updated {@link MasterWebUIOverview} object
    */
   public MasterWebUIOverview setDebug(boolean debug) {
     mDebug = debug;
@@ -376,7 +396,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets disk capacity.
    *
    * @param diskCapacity the disk capacity
-   * @return disk capacity
+   * @return the updated {@link MasterWebUIOverview} object
    */
   public MasterWebUIOverview setDiskCapacity(String diskCapacity) {
     mDiskCapacity = diskCapacity;
@@ -387,7 +407,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets disk free capacity.
    *
    * @param diskFreeCapacity the disk free capacity
-   * @return disk free capacity
+   * @return the updated {@link MasterWebUIOverview} object
    */
   public MasterWebUIOverview setDiskFreeCapacity(String diskFreeCapacity) {
     mDiskFreeCapacity = diskFreeCapacity;
@@ -398,7 +418,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets disk used capacity.
    *
    * @param diskUsedCapacity the disk used capacity
-   * @return disk used capacity
+   * @return the updated {@link MasterWebUIOverview} object
    */
   public MasterWebUIOverview setDiskUsedCapacity(String diskUsedCapacity) {
     mDiskUsedCapacity = diskUsedCapacity;
@@ -409,7 +429,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets free capacity.
    *
    * @param freeCapacity the free capacity
-   * @return free capacity
+   * @return the updated {@link MasterWebUIOverview} object
    */
   public MasterWebUIOverview setFreeCapacity(String freeCapacity) {
     mFreeCapacity = freeCapacity;
@@ -438,7 +458,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets live worker nodes.
    *
    * @param liveWorkerNodes the live worker nodes
-   * @return live worker nodes
+   * @return the updated {@link MasterWebUIOverview} object
    */
   public MasterWebUIOverview setLiveWorkerNodes(String liveWorkerNodes) {
     mLiveWorkerNodes = liveWorkerNodes;
@@ -449,7 +469,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets master node address.
    *
    * @param masterNodeAddress the master node address
-   * @return master node address
+   * @return the master webui overview
    */
   public MasterWebUIOverview setMasterNodeAddress(String masterNodeAddress) {
     mMasterNodeAddress = masterNodeAddress;
@@ -460,7 +480,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets start time.
    *
    * @param startTime the start time
-   * @return start time
+   * @return the master webui overview
    */
   public MasterWebUIOverview setStartTime(String startTime) {
     mStartTime = startTime;
@@ -471,7 +491,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets storage tier infos.
    *
    * @param storageTierInfos the storage tier infos
-   * @return storage tier infos
+   * @return the master webui overview
    */
   public MasterWebUIOverview setStorageTierInfos(List<StorageTierInfo> storageTierInfos) {
     mStorageTierInfos = storageTierInfos;
@@ -482,7 +502,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets uptime.
    *
    * @param uptime the uptime
-   * @return uptime
+   * @return the master webui overview
    */
   public MasterWebUIOverview setUptime(String uptime) {
     mUptime = uptime;
@@ -493,7 +513,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets used capacity.
    *
    * @param usedCapacity the used capacity
-   * @return used capacity
+   * @return the master webui overview
    */
   public MasterWebUIOverview setUsedCapacity(String usedCapacity) {
     mUsedCapacity = usedCapacity;
@@ -504,7 +524,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets version.
    *
    * @param version the version
-   * @return version
+   * @return the master webui overview
    */
   public MasterWebUIOverview setVersion(String version) {
     mVersion = version;
@@ -512,10 +532,21 @@ public final class MasterWebUIOverview implements Serializable {
   }
 
   /**
+   * Sets revision.
+   *
+   * @param revision the revision
+   * @return the master webui overview
+   */
+  public MasterWebUIOverview setRevision(String revision) {
+    mRevision = revision;
+    return this;
+  }
+
+  /**
    * Sets config check warn num.
    *
    * @param configCheckWarnNum the config check warn num
-   * @return config check warn num
+   * @return the master webui overview
    */
   public MasterWebUIOverview setConfigCheckWarnNum(int configCheckWarnNum) {
     mConfigCheckWarnNum = configCheckWarnNum;
@@ -526,7 +557,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets unique block count.
    *
    * @param uniqueBlockCount the unique block count
-   * @return unique block count
+   * @return the master webui overview
    */
   public MasterWebUIOverview setUniqueBlockCount(String uniqueBlockCount) {
     mUniqueBlockCount = uniqueBlockCount;
@@ -537,7 +568,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets total path.
    *
    * @param totalPath the total path
-   * @return total path
+   * @return the master webui overview
    */
   public MasterWebUIOverview setTotalPath(String totalPath) {
     mTotalPath = totalPath;
@@ -548,7 +579,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets replica block count.
    *
    * @param replicaBlockCount the replica block count
-   * @return replica block count
+   * @return the master webui overview
    */
   public MasterWebUIOverview setReplicaBlockCount(String replicaBlockCount) {
     mReplicaBlockCount = replicaBlockCount;
@@ -559,7 +590,7 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets the master role name.
    *
    * @param roleName the master role name
-   * @return master role name
+   * @return the master webui overview
    */
   public MasterWebUIOverview setMasterRole(String roleName) {
     mMasterRole = roleName;
@@ -570,10 +601,21 @@ public final class MasterWebUIOverview implements Serializable {
    * Sets the leader id.
    *
    * @param leaderId the leader id
-   * @return leader id
+   * @return the master webui overview
    */
   public MasterWebUIOverview setLeaderId(String leaderId) {
     mLeaderId = leaderId;
+    return this;
+  }
+
+  /**
+   * Sets the system status.
+   *
+   * @param systemStatus the system status
+   * @return the master status system
+   */
+  public MasterWebUIOverview setSystemStatus(String systemStatus) {
+    mSystemStatus = systemStatus;
     return this;
   }
 
@@ -592,8 +634,10 @@ public final class MasterWebUIOverview implements Serializable {
         .add("replicaBlockCount", mReplicaBlockCount)
         .add("startTime", mStartTime).add("storageTierInfos", mStorageTierInfos)
         .add("totalPath", mTotalPath).add("uniqueBlockCount", mUniqueBlockCount)
-        .add("uptime", mUptime).add("usedCapacity", mUsedCapacity).add("version", mVersion)
+        .add("uptime", mUptime).add("usedCapacity", mUsedCapacity)
+        .add("version", mVersion).add("revision", mRevision)
         .add("leaderId", mLeaderId)
+        .add("systemStatus", mSystemStatus)
         .add("masterRole", mMasterRole)
         .toString();
   }
