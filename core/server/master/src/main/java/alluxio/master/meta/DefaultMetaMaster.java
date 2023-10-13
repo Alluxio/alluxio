@@ -728,7 +728,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   @Override
   public Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap) {
     Map<String, Boolean> result = new HashMap<>();
-    int successCount = 0;
+    Map<PropertyKey, Object> changedProperties = new HashMap<>();
     for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
       try {
         PropertyKey key = PropertyKey.fromString(entry.getKey());
@@ -738,7 +738,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           Object value = key.parseValue(entry.getValue());
           Configuration.set(key, value, Source.RUNTIME);
           result.put(entry.getKey(), true);
-          successCount++;
+          changedProperties.put(key, Configuration.get(key));
           LOG.info("Property {} has been updated to \"{}\" from \"{}\"",
               key.getName(), entry.getValue(), oldValue);
         } else {
@@ -750,9 +750,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         LOG.error("Failed to update property {} to {}", entry.getKey(), entry.getValue(), e);
       }
     }
-    LOG.debug("Update {} properties, succeed {}.", propertiesMap.size(), successCount);
-    if (successCount > 0) {
-      ReconfigurableRegistry.update();
+    LOG.debug("Updating {} properties, {} succeed.", propertiesMap.size(),
+        changedProperties.size());
+    if (changedProperties.size() > 0) {
+      ReconfigurableRegistry.update(changedProperties);
     }
     return result;
   }

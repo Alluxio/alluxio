@@ -41,6 +41,7 @@ public final class WorkerInfo implements Serializable {
   private long mBlockCount;
   private String mVersion = "";
   private String mRevision = "";
+  private int mNumVCpu;
 
   /**
    * @return the worker id
@@ -128,6 +129,14 @@ public final class WorkerInfo implements Serializable {
   @ApiModelProperty(value = "Git revision at the time of building the worker")
   public String getRevision() {
     return mRevision;
+  }
+
+  /**
+   * @return the git revision at the time of building the worker
+   */
+  @ApiModelProperty(value = "Number of available processors on the worker")
+  public int getNumVCpu() {
+    return mNumVCpu;
   }
 
   /**
@@ -231,6 +240,15 @@ public final class WorkerInfo implements Serializable {
     return this;
   }
 
+  /**
+   * @param numVCpu the number of available processors on the worker
+   * @return the worker information
+   */
+  public WorkerInfo setNumVCpu(int numVCpu) {
+    mNumVCpu = numVCpu;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -246,7 +264,8 @@ public final class WorkerInfo implements Serializable {
         && mStartTimeMs == that.mStartTimeMs
         && Objects.equal(mCapacityBytesOnTiers, that.mCapacityBytesOnTiers)
         && Objects.equal(mUsedBytesOnTiers, that.mUsedBytesOnTiers)
-        && mVersion.equals(that.mVersion) && mRevision.equals(that.mRevision);
+        && mVersion.equals(that.mVersion) && mRevision.equals(that.mRevision)
+        && mNumVCpu == that.mNumVCpu;
   }
 
   /**
@@ -287,7 +306,7 @@ public final class WorkerInfo implements Serializable {
   @Override
   public int hashCode() {
     return Objects.hashCode(mId, mAddress, mLastContactSec, mState, mCapacityBytes, mUsedBytes,
-        mStartTimeMs, mCapacityBytesOnTiers, mUsedBytesOnTiers, mVersion, mRevision);
+        mStartTimeMs, mCapacityBytesOnTiers, mUsedBytesOnTiers, mVersion, mRevision, mNumVCpu);
   }
 
   @Override
@@ -297,6 +316,7 @@ public final class WorkerInfo implements Serializable {
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("startTimeMs", mStartTimeMs).add("capacityBytesOnTiers", mCapacityBytesOnTiers)
         .add("usedBytesOnTiers", mUsedBytesOnTiers)
-        .add("version", mVersion).add("revision", mRevision).toString();
+        .add("version", mVersion).add("revision", mRevision)
+        .add("numVCpu", mNumVCpu).toString();
   }
 }

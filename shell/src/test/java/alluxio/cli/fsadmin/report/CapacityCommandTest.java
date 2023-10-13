@@ -59,6 +59,7 @@ public class CapacityCommandTest {
       String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
       // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
       List<String> expectedOutput = Arrays.asList("Capacity information for all workers: ",
+          "    Total vCPUs: 2",
           "    Total Capacity: 29.80GB",
           "        Tier: MEM  Size: 8.38GB",
           "        Tier: SSD  Size: 4768.37MB",
@@ -101,6 +102,7 @@ public class CapacityCommandTest {
       String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
       // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
       List<String> expectedOutput = Arrays.asList("Capacity information for all workers: ",
+          "    Total vCPUs: 0",
           "    Total Capacity: 14.90GB",
           "        Tier: RAM  Size: 14.90GB",
           "    Used Capacity: 5.12GB",
@@ -135,6 +137,7 @@ public class CapacityCommandTest {
       List<String> testRst = Arrays.asList(output.split("\n"));
       // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
       List<String> expectedOutput = Arrays.asList("Capacity information for all workers: ",
+          "    Total vCPUs: 0",
           "    Total Capacity: 3051.76MB",
           "        Tier: MEM  Size: 1144.41MB",
           "        Tier: SSD  Size: 572.20MB",
@@ -178,6 +181,7 @@ public class CapacityCommandTest {
         .setCapacityBytesOnTiers(capacityBytesOnTiersOne)
         .setId(1)
         .setLastContactSec(3123)
+        .setNumVCpu(2)
         .setStartTimeMs(1331231121212L)
         .setState(WorkerState.LIVE.toString())
         .setUsedBytes(10000000000L)

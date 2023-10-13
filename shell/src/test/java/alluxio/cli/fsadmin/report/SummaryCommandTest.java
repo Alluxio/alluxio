@@ -193,11 +193,12 @@ public class SummaryCommandTest {
         "    Version: testVersion",
         "    Safe Mode: false"));
     expectedOutput.addAll(HAPattern);
+    String versionStr = String.format("%-32s", RuntimeConstants.VERSION);
     expectedOutput.addAll(new ArrayList<>(Arrays.asList(
         "    Master Address                   State    Version                         ",
-        "    hostname1:10000                  Primary  2.10.0-SNAPSHOT                 ",
-        "    hostname2:10001                  Standby  2.10.0-SNAPSHOT                 ",
-        "    hostname3:10002                  Standby  2.10.0-SNAPSHOT                 ",
+        "    hostname1:10000                  Primary  " + versionStr,
+        "    hostname2:10001                  Standby  " + versionStr,
+        "    hostname3:10002                  Standby  " + versionStr,
         "    Live Workers: 12",
         "    Lost Workers: 4",
         "    Total Capacity: 1309.92KB",

@@ -28,6 +28,7 @@ import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.grpc.Block;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.job.FileIterable;
 import alluxio.master.job.LoadJob;
 import alluxio.scheduler.job.JobState;
@@ -77,6 +78,64 @@ public class LoadJobTest {
         batch.stream().map(Block::getUfsPath).collect(ImmutableSet.toImmutableSet()));
 
     batch = load.getNextBatchBlocks(80);
+    assertEquals(0, batch.size());
+  }
+
+  @Test
+  public void testGetNextBatchWithPartialListing()
+      throws FileDoesNotExistException, AccessControlException, IOException, InvalidPathException {
+    List<FileInfo> fileInfos = generateRandomFileInfo(400, 2, 64 * Constants.MB);
+
+    for (int i = 0; i < 100; i++) {
+      fileInfos.get(i).setInAlluxioPercentage(100);
+    }
+    for (int i = 200; i < 300; i++) {
+      fileInfos.get(i).setInAlluxioPercentage(100);
+    }
+    for (int i = 0; i < 10; i++) {
+      fileInfos.get(300 + i * i).setInAlluxioPercentage(100);
+    }
+
+    FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
+    when(fileSystemMaster.listStatus(any(), any())).thenAnswer(invocation -> {
+      ListStatusContext context = invocation.getArgument(1, ListStatusContext.class);
+      int fileSize = fileInfos.size();
+      int from = 0;
+      int to = fileSize;
+      if (context.isPartialListing()) {
+        String startAfter = context.getPartialOptions().get().getStartAfter();
+        int batch = context.getPartialOptions().get().getBatchSize();
+        for (int i = 0; i < fileSize; i++) {
+          if (startAfter.equals(fileInfos.get(i).getPath())) {
+            from = i + 1;
+            break;
+          }
+        }
+        to = fileSize < from + batch ? fileSize : from + batch;
+      }
+      return fileInfos.subList(from, to);
+    });
+    String testPath = "test";
+    Optional<String> user = Optional.of("user");
+    FileIterable files =
+        new FileIterable(fileSystemMaster, testPath, user, true,
+            LoadJob.QUALIFIED_FILE_FILTER);
+    LoadJob load =
+        new LoadJob(testPath, user, "1", OptionalLong.empty(), true, false, files);
+
+    List<Block> batch = load.getNextBatchBlocks(100);
+    assertEquals(100, batch.size());
+    assertEquals(50, batch.stream().map(Block::getUfsPath).distinct().count());
+
+    batch = load.getNextBatchBlocks(200);
+    assertEquals(200, batch.size());
+    assertEquals(100, batch.stream().map(Block::getUfsPath).distinct().count());
+
+    batch = load.getNextBatchBlocks(300);
+    assertEquals(80, batch.size());
+    assertEquals(40, batch.stream().map(Block::getUfsPath).distinct().count());
+
+    batch = load.getNextBatchBlocks(100);
     assertEquals(0, batch.size());
   }
 

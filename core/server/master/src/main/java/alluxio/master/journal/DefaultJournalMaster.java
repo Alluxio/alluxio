@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.clock.SystemClock;
 import alluxio.grpc.GetNodeStatePResponse;
 import alluxio.grpc.GetQuorumInfoPResponse;
+import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NetAddress;
@@ -87,6 +88,14 @@ public class DefaultJournalMaster extends AbstractMaster implements JournalMaste
   public void resetPriorities() throws IOException {
     checkQuorumOpSupported();
     ((RaftJournalSystem) mJournalSystem).resetPriorities();
+  }
+
+  @Override
+  public GetTransferLeaderMessagePResponse getTransferLeaderMessage(String transferId) {
+    checkQuorumOpSupported();
+    return GetTransferLeaderMessagePResponse.newBuilder()
+           .setTransMsg(((RaftJournalSystem) mJournalSystem).getTransferLeaderMessage(transferId))
+           .build();
   }
 
   @Override

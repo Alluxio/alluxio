@@ -1399,6 +1399,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
 
     worker.setBuildVersion(options.getBuildVersion());
+    worker.setNumVCpu(options.getNumVCpu());
 
     // Gather all blocks on this worker.
     int totalSize = currentBlocksOnLocation.values().stream().mapToInt(List::size).sum();
@@ -1538,6 +1539,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     processWorkerOrphanedBlocks(workerInfo);
     workerInfo.addLostStorage(lostStorage);
     workerInfo.setBuildVersion(options.getBuildVersion());
+    workerInfo.setNumVCpu(options.getNumVCpu());
 
     // TODO(jiacheng): This block can be moved to a non-locked section
     if (options.getConfigsCount() > 0) {
