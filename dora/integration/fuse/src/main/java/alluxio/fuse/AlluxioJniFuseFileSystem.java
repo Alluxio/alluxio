@@ -659,6 +659,7 @@ public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       LOG.error("Failed to statfs {}: cannot get block master info", path);
       return -ErrorCodes.EIO();
     }
+    LOG.warn("BlockMasterInfo !!! : " + info);
     long blockSize = 16L * Constants.KB;
     // fs block size
     // The size in bytes of the minimum unit of allocation on this file system
