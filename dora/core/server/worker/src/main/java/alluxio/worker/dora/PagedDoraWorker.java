@@ -46,6 +46,7 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadFileFailure;
 import alluxio.grpc.LoadFileResponse;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
@@ -364,6 +365,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     boolean isRecursive = options.getRecursive();
     final Optional<ListStatusResult> resultFromCache = mMetaManager.listCached(path, isRecursive);
     if (resultFromCache.isPresent()
+        && options.getLoadMetadataType() != LoadMetadataPType.ALWAYS
         && (syncIntervalMs < 0
         || System.nanoTime() - resultFromCache.get().mTimeStamp
         <= syncIntervalMs * Constants.MS_NANO)) {
