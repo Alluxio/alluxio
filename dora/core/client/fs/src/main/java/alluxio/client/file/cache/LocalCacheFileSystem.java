@@ -21,18 +21,23 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.cache.filter.CacheFilter;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.OpenFilePOptions;
+import alluxio.metrics.MetricsConfig;
+import alluxio.metrics.MetricsSystem;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 
 /**
  * A FileSystem implementation with a local cache.
@@ -50,9 +55,12 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
    */
   public LocalCacheFileSystem(CacheManager cacheManage, FileSystem fs, AlluxioConfiguration conf) {
     super(fs);
+    // Handle metrics
+    MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
     mCacheManager = Preconditions.checkNotNull(cacheManage, "cacheManager");
     mConf = Preconditions.checkNotNull(conf, "conf");
     mCacheFilter = CacheFilter.create(conf);
+    LocalCacheFileInStream.registerMetrics();
   }
 
   @Override
