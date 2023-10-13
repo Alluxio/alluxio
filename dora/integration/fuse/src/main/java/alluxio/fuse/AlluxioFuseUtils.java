@@ -688,8 +688,14 @@ public final class AlluxioFuseUtils {
   public static String getMountedRootPath(AlluxioConfiguration conf, FuseOptions fuseOptions) {
     Optional<UfsFileSystemOptions> options
         = fuseOptions.getFileSystemOptions().getUfsFileSystemOptions();
-    return options.isPresent() ? options.get().getUfsAddress()
-        : conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
+    if (conf.isSet(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH))  {
+      return conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
+    }
+    if (options.isPresent())  {
+      return options.get().getUfsAddress();
+    }
+    // if running at here, return value is an empty String.
+    return conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
   }
 
   /**
