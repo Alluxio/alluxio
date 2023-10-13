@@ -35,6 +35,7 @@ import alluxio.worker.http.HttpServerInitializer;
 import alluxio.worker.http.PagedService;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Provider;
 import com.google.inject.Scopes;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
@@ -58,10 +59,11 @@ public class DoraWorkerModule extends AbstractModule {
       bind(WorkerIdentity.class)
           .toProvider(WorkerIdentityProvider.class)
           .in(Scopes.SINGLETON);
+      Provider<WorkerIdentity> workerIdentityProvider = getProvider(WorkerIdentity.class);
       bind(new TypeLiteral<AtomicReference<WorkerIdentity>>() {
       })
           .annotatedWith(Names.named("workerId"))
-          .toProvider(() -> new AtomicReference<>(getProvider(WorkerIdentity.class).get()))
+          .toProvider(() -> new AtomicReference<>(workerIdentityProvider.get()))
           .in(Scopes.SINGLETON);
     }
 
