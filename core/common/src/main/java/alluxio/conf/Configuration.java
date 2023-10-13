@@ -481,6 +481,7 @@ public final class Configuration
   public static InstancedConfiguration getClusterConf(GetConfigurationPResponse response,
       AlluxioConfiguration conf, Scope scope) {
     String clientVersion = conf.getString(PropertyKey.VERSION);
+    String clientUfsVersion = conf.getString(PropertyKey.UNDERFS_VERSION);
     LOG.debug("Alluxio {} (version {}) is trying to load cluster level configurations",
         scope, clientVersion);
     List<alluxio.grpc.ConfigProperty> clusterConfig = response.getClusterConfigsList();
@@ -492,6 +493,11 @@ public final class Configuration
       LOG.warn("Alluxio {} version ({}) does not match Alluxio cluster version ({})",
           scope, clientVersion, clusterVersion);
       clusterProps.remove(PropertyKey.VERSION);
+    }
+    // Check ufs version. Avoid adding it to user properties if the two versions are the same.
+    String clusterUfsVersion = clusterProps.get(PropertyKey.UNDERFS_VERSION).toString();
+    if (clientUfsVersion.equals(clusterUfsVersion)) {
+      clusterProps.remove(PropertyKey.UNDERFS_VERSION);
     }
     // Merge conf returned by master as the cluster default into conf object
     AlluxioProperties props = conf.copyProperties();
