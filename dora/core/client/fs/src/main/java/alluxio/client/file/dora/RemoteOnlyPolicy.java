@@ -15,6 +15,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,18 +37,55 @@ public class RemoteOnlyPolicy implements WorkerLocationPolicy {
     mConf = conf;
   }
 
+  enum WorkerInfoListSingleton {
+    WORKER_INFO_LIST;
+
+    private List<BlockWorkerInfo> mWorkerInfoList;
+    WorkerInfoListSingleton() {
+      mWorkerInfoList = new ArrayList<>();
+    }
+    public boolean isEmpty() {
+      return mWorkerInfoList.isEmpty();
+    }
+    public void initialize(List<BlockWorkerInfo> workerInfoList) {
+      mWorkerInfoList = workerInfoList;
+    }
+    public List<BlockWorkerInfo> getWorkerInfoList() {
+      return mWorkerInfoList;
+    }
+    public void roulette() {
+      if (!mWorkerInfoList.isEmpty()) {
+        BlockWorkerInfo firstWorker = mWorkerInfoList.remove(0);
+        mWorkerInfoList.add(firstWorker);
+      }
+    }
+  }
+
   /**
    * Finds a remote worker from the available workers, matching by hostname.
    */
   @Override
   public List<BlockWorkerInfo> getPreferredWorkers(List<BlockWorkerInfo> blockWorkerInfos,
-      String fileId, int count) throws ResourceExhaustedException {
+                                                   String fileId, int count) throws ResourceExhaustedException {
+    if (WorkerInfoListSingleton.WORKER_INFO_LIST.isEmpty()) {
+      WorkerInfoListSingleton.WORKER_INFO_LIST.initialize(blockWorkerInfos);
+    } else {
+      //TODO(tongyu): check if workers changed
+      WorkerInfoListSingleton.WORKER_INFO_LIST.roulette();
+    }
     String userHostname = NetworkAddressUtils.getClientHostName(mConf);
+    // Find the worker matching in hostname
     List<BlockWorkerInfo> results = new ArrayList<>();
-    // TODO(tongyu): get result
-    if (results.size() < count) {
-      throw new ResourceExhaustedException(String.format(
-          "Failed to find a local worker for client hostname %s", userHostname));
+    for (BlockWorkerInfo worker : WorkerInfoListSingleton.WORKER_INFO_LIST.getWorkerInfoList()) {
+      WorkerNetAddress workerAddr = worker.getNetAddress();
+      if (workerAddr == null) {
+        continue;
+      }
+      // Only a plain string match is performed on hostname
+      // If one is IP and the other is hostname, a false positive will be returned
+      if (!userHostname.equals(workerAddr.getHost())) {
+        results.add(worker);
+      }
     }
     return results;
   }
