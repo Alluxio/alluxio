@@ -48,7 +48,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.net.HostAndPort;
-import io.etcd.jetcd.Auth;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -731,6 +730,15 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     return true;
   }
 
+  /**
+   * rename when previous rename fail, reconstruct path and check status.
+   * In order to support hdfs rename interface
+   * @param src src
+   * @param dst dst
+   * @param srcPath srcPath
+   * @param dstPath srcPath
+   * @return true in success, false if fail
+   */
   public boolean renameInternal(Path src, Path dst, AlluxioURI srcPath, AlluxioURI dstPath) {
     try {
       ensureExists(srcPath);
