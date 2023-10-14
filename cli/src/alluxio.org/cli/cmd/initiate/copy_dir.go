@@ -31,9 +31,14 @@ type CopyDirCommand struct{}
 
 func (c *CopyDirCommand) ToCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "copyDir [path]",
+		Use:   "copy-dir [path]",
 		Args:  cobra.ExactArgs(1),
-		Short: "Copy a path to all master/worker nodes.",
+		Short: "Copy a path to all master and worker nodes.",
+		Long: `The copy-dir command copies the directory at given path to all master nodes listed in conf/masters and all worker nodes listed in conf/workers.
+
+> Note: This command does not require the Alluxio cluster to be running.`,
+		Example: `# copy alluxio-site properties file to all nodes
+$ ./bin/alluxio init copy-dir conf/alluxio-site.properties`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// get list of masters or workers, or both
 			hosts, err := processes.GetHostnames([]string{processes.HostGroupMasters, processes.HostGroupWorkers})

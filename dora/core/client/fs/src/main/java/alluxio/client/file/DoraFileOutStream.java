@@ -240,7 +240,7 @@ public class DoraFileOutStream extends FileOutStream {
       // client must send data over netty.
       try {
         mNettyDataWriter.writeChunk(b, off, len);
-        Metrics.BYTES_WRITTEN_ALLUXIO.inc(len);
+        Metrics.BYTES_WRITTEN_TO_WORKERS.inc(len);
         mBytesWritten += len;
         return;
       } catch (IOException e) {
@@ -255,7 +255,7 @@ public class DoraFileOutStream extends FileOutStream {
     if (mAlluxioStorageType.isStore()) {
       try {
         mNettyDataWriter.writeChunk(b, off, len);
-        Metrics.BYTES_WRITTEN_ALLUXIO.inc(len);
+        Metrics.BYTES_WRITTEN_TO_WORKERS.inc(len);
       } catch (IOException e) {
         Throwable throwable = mNettyDataWriter.getPacketWriteException();
         if (throwable != null) {
@@ -268,7 +268,7 @@ public class DoraFileOutStream extends FileOutStream {
     if (mUnderStorageType.isSyncPersist()) {
       if (mUnderStorageOutputStream != null) {
         mUnderStorageOutputStream.write(b, off, len);
-        Metrics.BYTES_WRITTEN_UFS.inc(len);
+        Metrics.BYTES_WRITTEN_TO_UFS.inc(len);
       }
     }
     mBytesWritten += len;
@@ -282,10 +282,10 @@ public class DoraFileOutStream extends FileOutStream {
     // Note that only counter can be added here.
     // Both meter and timer need to be used inline
     // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
-    private static final Counter BYTES_WRITTEN_ALLUXIO =
-        MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_ALLUXIO.getName());
-    private static final Counter BYTES_WRITTEN_UFS =
-        MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_UFS.getName());
+    private static final Counter BYTES_WRITTEN_TO_WORKERS =
+        MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_TO_WORKERS.getName());
+    private static final Counter BYTES_WRITTEN_TO_UFS =
+        MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_TO_UFS.getName());
 
     private Metrics() {
     } // prevent instantiation

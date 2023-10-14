@@ -29,6 +29,7 @@ import alluxio.job.wire.JobWorkerHealth;
 import alluxio.master.MasterInquireClient;
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.ZookeeperAuthority;
+import alluxio.wire.WorkerIdentityTestUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import org.apache.commons.cli.CommandLine;
@@ -207,9 +208,9 @@ public class LogLevelTest {
 
     // Prepare a list of workers
     List<BlockWorkerInfo> workers = new ArrayList<>();
-    workers.add(new BlockWorkerInfo(new WorkerNetAddress()
+    workers.add(new BlockWorkerInfo(WorkerIdentityTestUtils.randomLegacyId(), new WorkerNetAddress()
         .setHost("workers-1").setWebPort(WORKER_WEB_PORT), 0, 0));
-    workers.add(new BlockWorkerInfo(new WorkerNetAddress()
+    workers.add(new BlockWorkerInfo(WorkerIdentityTestUtils.randomLegacyId(), new WorkerNetAddress()
         .setHost("workers-2").setWebPort(WORKER_WEB_PORT), 0, 0));
     try (MockedStatic<FileSystemContext> mockFactory = mockStatic(FileSystemContext.class)) {
       FileSystemContext mockFsContext = mock(FileSystemContext.class);

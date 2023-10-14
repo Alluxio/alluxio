@@ -37,9 +37,14 @@ import com.qcloud.cos.exception.CosClientException;
 import com.qcloud.cos.model.COSObjectSummary;
 import com.qcloud.cos.model.DeleteObjectsRequest;
 import com.qcloud.cos.model.DeleteObjectsResult;
+import com.qcloud.cos.model.GetObjectTaggingRequest;
+import com.qcloud.cos.model.GetObjectTaggingResult;
 import com.qcloud.cos.model.ListObjectsRequest;
 import com.qcloud.cos.model.ObjectListing;
 import com.qcloud.cos.model.ObjectMetadata;
+import com.qcloud.cos.model.ObjectTagging;
+import com.qcloud.cos.model.SetObjectTaggingRequest;
+import com.qcloud.cos.model.Tag.Tag;
 import com.qcloud.cos.region.Region;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +53,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
@@ -143,6 +151,39 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
   // No ACL integration currently, no-op
   @Override
   public void setMode(String path, short mode) {}
+
+  @Override
+  public void setObjectTagging(String path, String name, String value) throws IOException {
+    GetObjectTaggingRequest getTaggingReq = new GetObjectTaggingRequest(mBucketNameInternal, path);
+    GetObjectTaggingResult taggingResult = mClient.getObjectTagging(getTaggingReq);
+    List<Tag> tagList = taggingResult.getTagSet();
+    // It's a read-and-update race condition. When there is a competitive conflict scenario,
+    // it may lead to inconsistent final results. The final conflict occurs in UFS,
+    // UFS will determine the final result.
+    boolean matchFound = false;
+    for (Tag tag : tagList) {
+      if (tag.getKey().equals(name)) {
+        matchFound = true;
+        tag.setValue(value);
+      }
+    }
+    if (!matchFound) {
+      Tag tag = new Tag(name, value);
+      tagList.add(tag);
+    }
+    mClient.setObjectTagging(
+        new SetObjectTaggingRequest(mBucketNameInternal, path, new ObjectTagging(tagList)));
+  }
+
+  @Override
+  public Map<String, String> getObjectTags(String path) throws IOException {
+    GetObjectTaggingRequest getTaggingReq = new GetObjectTaggingRequest(mBucketNameInternal, path);
+    GetObjectTaggingResult taggingResult = mClient.getObjectTagging(getTaggingReq);
+    List<Tag> tagList = taggingResult.getTagSet();
+    return Collections.unmodifiableMap(tagList.stream()
+        .collect(HashMap::new, (map, tag) -> map.put(tag.getKey(), tag.getValue()),
+            HashMap::putAll));
+  }
 
   @Override
   protected boolean copyObject(String src, String dst) {

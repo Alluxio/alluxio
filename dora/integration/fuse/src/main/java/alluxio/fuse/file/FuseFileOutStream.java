@@ -216,15 +216,27 @@ public class FuseFileOutStream implements FuseFileStream {
 
   @Override
   public synchronized void close() {
+    try {
+      closeStream();
+    } finally {
+      releaseLock();
+    }
+  }
+
+  @Override
+  public synchronized void releaseLock() {
+    if (!mLockResource.isClosed()) {
+      mLockResource.close();
+    }
+  }
+
+  @Override
+  public synchronized void closeStream() {
     if (mClosed) {
       return;
     }
     mClosed = true;
-    try {
-      closeStreams();
-    } finally {
-      mLockResource.close();
-    }
+    closeStreams();
   }
 
   @Override

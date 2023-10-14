@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.alluxio</groupId>
+    <artifactId>alluxio-native-rust</artifactId>
+    <version>${project.version}</version>
+  </parent>
+
+  <artifactId>\${artifactId}</artifactId>
+  <packaging>jar</packaging>
+  <name>Alluxio Native Components - Rust crate \${cargo_crate_name}</name>
+  <description>Rust crate \${cargo_crate_name}</description>
+
+  <properties>
+    <!-- These need to be defined here as well as in the parent pom so that mvn can run
+         properly from sub-project directories -->
+    <build.path>\${project.parent.parent.parent.basedir}/build</build.path>
+    <!-- Version of the rust toolchain -->
+    <toolchain.version>\${toolchain_version}</toolchain.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna-jpms</artifactId>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.questdb</groupId>
+        <artifactId>rust-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <!-- runs `cargo build \-\-release` on the crate -->
+            <id>release-build</id>
+            <goals>
+              <goal>build</goal>
+            </goals>
+            <configuration>
+              <copyTo>\${project.build.directory}/classes</copyTo>
+              <copyWithPlatformDir>true</copyWithPlatformDir>
+              <path>src/main/rust</path>
+              <release>true</release>
+            </configuration>
+          </execution>
+          <execution>
+            <!--
+                This execution will run the `cargo test` command on the crate.
+                This is useful for running unit tests written in Rust.
+            -->
+            <id>unit-test</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <!-- rust unit tests are in the same files as production code -->
+              <path>src/main/rust</path>
+              <release>false</release>
+              <verbosity>-v</verbosity>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

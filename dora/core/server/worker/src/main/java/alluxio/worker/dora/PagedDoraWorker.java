@@ -46,6 +46,7 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadFileFailure;
 import alluxio.grpc.LoadFileResponse;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
@@ -82,10 +83,10 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
-import alluxio.util.HashUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
@@ -106,6 +107,7 @@ import com.google.common.io.Closer;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
+import com.google.protobuf.ByteString;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,7 +139,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private static final int MOUNT_POINT = 1;
   private final Closer mResourceCloser = Closer.create();
   // TODO(lucy) change to string typed once membership manager got enabled by default
-  private final AtomicReference<Long> mWorkerId;
+  private final AtomicReference<WorkerIdentity> mWorkerId;
   protected final CacheManager mCacheManager;
   protected final DoraUfsManager mUfsManager;
   private final DoraMetaManager mMetaManager;
@@ -154,6 +156,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final DoraOpenFileHandleContainer mOpenFileHandleContainer;
 
   private final boolean mClientWriteToUFSEnabled;
+  private final boolean mXAttrWriteToUFSEnabled;
 
   /**
    * Constructor.
@@ -162,20 +165,22 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @param conf
    * @param cacheManager
    * @param membershipManager
+   * @param blockMasterClientPool
    */
   @Inject
   public PagedDoraWorker(
-      @Named("workerId") AtomicReference<Long> workerId,
+      @Named("workerId") AtomicReference<WorkerIdentity> workerId,
       AlluxioConfiguration conf,
       CacheManager cacheManager,
-      MembershipManager membershipManager
+      MembershipManager membershipManager,
+      BlockMasterClientPool blockMasterClientPool
   ) {
-    this(workerId, conf, cacheManager, membershipManager, new BlockMasterClientPool(),
+    this(workerId, conf, cacheManager, membershipManager, blockMasterClientPool,
         FileSystemContext.create(conf));
   }
 
   protected PagedDoraWorker(
-      AtomicReference<Long> workerId,
+      AtomicReference<WorkerIdentity> workerId,
       AlluxioConfiguration conf,
       CacheManager cacheManager,
       MembershipManager membershipManager,
@@ -204,6 +209,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
     mClientWriteToUFSEnabled = mConf
         .getBoolean(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED);
+    mXAttrWriteToUFSEnabled = mConf.getBoolean(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED);
   }
 
   /**
@@ -279,8 +285,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       try {
         LOG.info("{} membership manager starts joining...",
             mConf.get(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE));
-        mMembershipManager.join(new WorkerInfo().setAddress(mAddress));
-        mWorkerId.set(HashUtils.hashAsLong(mAddress.dumpMainInfo()));
+        mMembershipManager.join(new WorkerInfo().setIdentity(mWorkerId.get()).setAddress(mAddress));
         break;
       } catch (UnavailableRuntimeException ioe) {
         /* We should only expect such exception when situation such as
@@ -303,11 +308,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
     while (true) {
       try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
-        mWorkerId.set(bmc.get().getId(mAddress));
+        long id = bmc.get().getId(mAddress);
+        LOG.debug("Obtained worker id {} from master", id);
+        WorkerIdentity identity = WorkerIdentity.ParserV0.INSTANCE.fromLong(id);
+        mWorkerId.set(identity);
         StorageTierAssoc storageTierAssoc =
             new DefaultStorageTierAssoc(ImmutableList.of(Constants.MEDIUM_MEM));
         bmc.get().register(
-            mWorkerId.get(),
+            id,
             storageTierAssoc.getOrderedStorageAliases(),
             ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.GB),
             ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
@@ -345,7 +353,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public AtomicReference<Long> getWorkerId() {
+  public AtomicReference<WorkerIdentity> getWorkerId() {
     return mWorkerId;
   }
 
@@ -360,6 +368,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     boolean isRecursive = options.getRecursive();
     final Optional<ListStatusResult> resultFromCache = mMetaManager.listCached(path, isRecursive);
     if (resultFromCache.isPresent()
+        && options.getLoadMetadataType() != LoadMetadataPType.ALWAYS
         && (syncIntervalMs < 0
         || System.nanoTime() - resultFromCache.get().mTimeStamp
         <= syncIntervalMs * Constants.MS_NANO)) {
@@ -442,9 +451,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    *
    * @param status
    * @param ufsFullPath
+   * @param xattrMap
    * @return a FileInfo
    */
-  public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath) {
+  public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath,
+                                                          @Nullable Map<String, String> xattrMap)
+      throws IOException {
     UnderFileSystem ufs = getUfsInstance(ufsFullPath);
     String filename = new AlluxioURI(ufsFullPath).getName();
 
@@ -460,6 +472,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         .setGroup(status.getGroup())
         .setCompleted(true)
         .setPersisted(true);
+    if (xattrMap != null) {
+      for (Map.Entry<String, String> entry : xattrMap.entrySet()) {
+        infoBuilder.putXattr(entry.getKey(), ByteString.copyFromUtf8(entry.getValue()));
+      }
+    }
     if (status instanceof UfsFileStatus) {
       UfsFileStatus fileStatus = (UfsFileStatus) status;
       infoBuilder.setLength(fileStatus.getContentLength())
@@ -494,11 +511,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    *
    * @param status the ufs status
    * @param ufsFullPath the full ufs path
+   * @param xattrMap the map of file xAttrs
    * @return the file status
    */
-  public DoraMeta.FileStatus buildFileStatusFromUfsStatus(UfsStatus status, String ufsFullPath) {
+  public DoraMeta.FileStatus buildFileStatusFromUfsStatus(UfsStatus status, String ufsFullPath,
+                                                          @Nullable Map<String, String> xattrMap)
+      throws IOException {
     return DoraMeta.FileStatus.newBuilder()
-        .setFileInfo(buildFileInfoFromUfsStatus(status, ufsFullPath))
+        .setFileInfo(buildFileInfoFromUfsStatus(status, ufsFullPath, xattrMap))
         .setTs(System.nanoTime())
         .build();
   }
@@ -542,7 +562,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     AtomicLong skippedFileLength = new AtomicLong();
     for (UfsStatus status : ufsStatuses) {
       String ufsFullPath = status.getUfsFullPath().toString();
-      DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath);
+      UnderFileSystem ufs = getUfsInstance(ufsFullPath);
+      Map<String, String> xattrMap = null;
+      if (mXAttrWriteToUFSEnabled) {
+        xattrMap = ufs.getAttributes(ufsFullPath);
+      }
+      DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath, xattrMap);
       Optional<DoraMeta.FileStatus> originalFs = mMetaManager.getFromMetaStore(ufsFullPath);
       mMetaManager.put(ufsFullPath, fs);
       // We use the ufs status sent from master to construct the file metadata,
@@ -806,7 +831,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                                 group,
                                 createOption.getMode().toShort(),
                                 DUMMY_BLOCK_SIZE);
-      info = buildFileInfoFromUfsStatus(status, path);
+      info = buildFileInfoFromUfsStatus(status, path, null);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -963,6 +988,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     } else if (options.hasGroup()) {
       ufs.setOwner(path, null, options.getGroup());
     }
+    if (options.getXattrCount() > 0) {
+      if (mXAttrWriteToUFSEnabled) {
+        Map<String, ByteString> xattr = options.getXattrMap();
+        for (Map.Entry<String, ByteString> attr : xattr.entrySet()) {
+          ufs.setAttribute(path, attr.getKey(), attr.getValue().toByteArray());
+        }
+      }
+    }
     mMetaManager.loadFromUfs(path);
     mMetaManager.invalidateListingCacheOfParent(path);
   }
@@ -974,9 +1007,18 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private class BlockMasterSync implements HeartbeatExecutor {
     @Override
     public void heartbeat(long timeLimitMs) throws InterruptedException {
+      WorkerIdentity identity = mWorkerId.get();
+      Preconditions.checkState(identity != null, "worker not registered");
+      final long numericId;
+      try {
+        numericId = WorkerIdentity.ParserV0.INSTANCE.toLong(identity);
+      } catch (IllegalArgumentException e) {
+        throw new IllegalStateException("Worker is using identity based on UUID, which should "
+            + "not be doing block master sync", e);
+      }
       final Command cmdFromMaster;
       try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
-        cmdFromMaster = bmc.get().heartbeat(mWorkerId.get(),
+        cmdFromMaster = bmc.get().heartbeat(numericId,
             ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.GB),
             ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
             ImmutableList.of(),

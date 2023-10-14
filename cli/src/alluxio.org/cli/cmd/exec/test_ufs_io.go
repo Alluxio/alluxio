@@ -46,10 +46,22 @@ func (c *TestUfsIOCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   c.CommandName,
 		Short: "A benchmarking tool for the I/O between Alluxio and UFS.",
-		Long: "A benchmarking tool for the I/O between Alluxio and UFS." +
-			"This test will measure the I/O throughput between Alluxio workers and the specified UFS path. " +
-			"Each worker will create concurrent clients to first generate test files of the specified size " +
-			"then read those files. The write/read I/O throughput will be measured in the process.",
+		Long: `A benchmarking tool for the I/O between Alluxio and UFS.
+This test will measure the I/O throughput between Alluxio workers and the specified UFS path.
+Each worker will create concurrent clients to first generate test files of the specified size then read those files.
+The write/read I/O throughput will be measured in the process.`,
+		Example: `# This runs the I/O benchmark to HDFS in your process locally
+$ ./bin/alluxio runUfsIOTest --path hdfs://<hdfs-address>
+
+# This invokes the I/O benchmark to HDFS in the Alluxio cluster
+# 1 worker will be used. 4 threads will be created, each writing then reading 4G of data
+$ ./bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limit 1
+
+# This invokes the I/O benchmark to HDFS in the Alluxio cluster
+# 2 workers will be used
+# 2 threads will be created on each worker
+# Each thread is writing then reading 512m of data
+$ ./bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limit 2 --io-size 512m --threads 2`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},

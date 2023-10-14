@@ -13,6 +13,7 @@ package alluxio.master.scheduler;
 
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -36,7 +37,7 @@ public interface WorkerProvider {
    * Get live workerInfo list.
    * @return list of WorkerInfos who are alive
    */
-  List<WorkerInfo> getLiveWorkerInfos();
+  List<WorkerInfo> getLiveWorkerInfos() throws UnavailableException;
 
   /**
    * Gets a worker client.

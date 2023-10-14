@@ -11,7 +11,7 @@
 
 package alluxio.master.predicate;
 
-import alluxio.exception.runtime.FailedPreconditionRuntimeException;
+import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.master.predicate.interval.Interval;
 import alluxio.proto.journal.Job.FileFilter;
 import alluxio.wire.FileInfo;
@@ -19,6 +19,7 @@ import alluxio.wire.FileInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.function.Function;
@@ -114,7 +115,7 @@ public class DatePredicate implements FilePredicate {
       return Interval.between(
           convertDateToMs(values[0].trim()), convertDateToMs(values[1].trim()));
     }
-    throw new IllegalArgumentException("Fail to parse " + stringValue);
+    throw new InvalidArgumentRuntimeException("Fail to parse " + stringValue);
   }
 
   private long convertDateToMs(String dateString) {
@@ -122,8 +123,8 @@ public class DatePredicate implements FilePredicate {
     try {
       Date d = f.parse(dateString);
       return d.getTime();
-    } catch (Exception e) {
-      throw FailedPreconditionRuntimeException.from(e);
+    } catch (ParseException e) {
+      throw new InvalidArgumentRuntimeException(e);
     }
   }
 
@@ -131,7 +132,8 @@ public class DatePredicate implements FilePredicate {
   public Predicate<FileInfo> get() {
     return FileInfo -> {
       try {
-        Interval interval = Interval.between(0, mGetter.apply(FileInfo));
+        Long time = mGetter.apply(FileInfo);
+        Interval interval = Interval.between(time, time + 1);
         return mInterval.intersect(interval).isValid();
       } catch (RuntimeException e) {
         LOG.debug("Failed to filter: ", e);

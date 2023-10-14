@@ -78,7 +78,7 @@ public class SummaryCommand {
     BlockMasterInfo blockMasterInfo = mBlockMasterClient.getBlockMasterInfo(blockMasterInfoFilter);
 
     ObjectMapper objectMapper = new ObjectMapper();
-    SummaryOutput summaryInfo = new SummaryOutput(masterInfo, blockMasterInfo, mDateFormatPattern);
+    SummaryOutput summaryInfo = new SummaryOutput(masterInfo, blockMasterInfo);
     try {
       String json = objectMapper.writeValueAsString(summaryInfo);
       mPrintStream.println(json);

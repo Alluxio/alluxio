@@ -30,7 +30,6 @@ type FreeCommand struct {
 	*env.BaseJavaCommand
 	worker string
 	path   string
-	force  bool
 }
 
 func (c *FreeCommand) Base() *env.BaseJavaCommand {
@@ -39,9 +38,13 @@ func (c *FreeCommand) Base() *env.BaseJavaCommand {
 
 func (c *FreeCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use: Free.CommandName,
-		Short: "Synchronously free all blocks and directories of specific worker, " +
-			"or free the space occupied by a file or a directory in Alluxio",
+		Use:   Free.CommandName,
+		Short: "Synchronously free cached files along a path or held by a specific worker",
+		Example: `# Free a file by its path
+$ ./bin/alluxio cache free --path /path/to/file
+
+# Free files on a worker
+$ ./bin/alluxio cache free --worker <workerHostName>`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
@@ -49,8 +52,6 @@ func (c *FreeCommand) ToCommand() *cobra.Command {
 	})
 	cmd.Flags().StringVar(&c.worker, "worker", "", "The worker to free")
 	cmd.Flags().StringVar(&c.path, "path", "", "The file or directory to free")
-	cmd.Flags().BoolVarP(&c.force, "force", "f", false,
-		"Force freeing pinned files in the directory")
 	cmd.MarkFlagsMutuallyExclusive("worker", "path")
 	return cmd
 }
@@ -60,11 +61,7 @@ func (c *FreeCommand) Run(args []string) error {
 	if c.worker == "" {
 		if c.path != "" {
 			// free directory
-			javaArgs = append(javaArgs, "free")
-			if c.force {
-				javaArgs = append(javaArgs, "-f")
-			}
-			javaArgs = append(javaArgs, c.path)
+			javaArgs = append(javaArgs, "free", c.path)
 		} else {
 			return stacktrace.NewError("neither worker nor path to free specified")
 		}

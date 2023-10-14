@@ -64,7 +64,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -186,6 +188,15 @@ public class FileSystemContext implements Closeable {
   private final RefreshPolicy mWorkerRefreshPolicy;
 
   private final List<InetSocketAddress> mMasterAddresses;
+
+  /**
+   * This enum class is used for specifying the type of worker list to get.
+   */
+  public enum GetWorkerListType {
+    ALL,
+    LIVE,
+    LOST
+  }
 
   /**
    * FileSystemContextFactory, it can be extended.
@@ -833,48 +844,146 @@ public class FileSystemContext implements Closeable {
   }
 
   /**
-   * Gets the cached worker information list.
+   * Gets the cached live worker information list.
    * This method is relatively cheap as the result is cached, but may not
    * be up-to-date. If up-to-date worker info list is required,
-   * use {@link #getAllWorkers()} instead.
-   *
+   * use {@link #getLiveWorkers()} ()} instead.
    * @return the info of all block workers eligible for reads and writes
    */
   public List<BlockWorkerInfo> getCachedWorkers() throws IOException {
+    return getCachedWorkers(GetWorkerListType.LIVE);
+  }
+
+  /**
+   * Gets the cached worker information list.
+   * This method is relatively cheap as the result is cached, but may not
+   * be up-to-date. If up-to-date worker info list is required,
+   * use {@link #getAllWorkers()}, {@link #getLiveWorkers()} ()}
+   * or {@link #getLostWorkers()} ()} instead.
+   *
+   * @param type get worker list type
+   * @return the info of all block workers eligible for reads and writes
+   */
+  public List<BlockWorkerInfo> getCachedWorkers(GetWorkerListType type) throws IOException {
     synchronized (mWorkerInfoList) {
       if (mWorkerInfoList.get() == null || mWorkerInfoList.get().isEmpty()
           || mWorkerRefreshPolicy.attempt()) {
-        mWorkerInfoList.set(getAllWorkers());
+        switch (type) {
+          case ALL:
+            mWorkerInfoList.set(getAllWorkers());
+            break;
+          case LIVE:
+            mWorkerInfoList.set(getLiveWorkers());
+            break;
+          case LOST:
+            mWorkerInfoList.set(getLostWorkers());
+            break;
+          default:
+        }
       }
       return mWorkerInfoList.get();
     }
   }
 
   /**
-   * Gets the worker information list.
-   * This method is more expensive than {@link #getCachedWorkers()}.
+   * Gets the live worker information list.
+   * This method is more expensive than {@link #getCachedWorkers(GetWorkerListType)}.
    * Used when more up-to-date data is needed.
    *
-   * @return the info of all block workers
+   * @return the info of live workers
    */
-  protected List<BlockWorkerInfo> getAllWorkers() throws IOException {
-    // TODO(lucy) once ConfigHashSync reinit is gotten rid of, will remove the blockReinit
-    // guard altogether
+  public List<BlockWorkerInfo> getLiveWorkers() throws IOException {
     try (ReinitBlockerResource r = blockReinit()) {
       // Use membership mgr
       if (mMembershipManager != null && !(mMembershipManager instanceof MasterMembershipManager)) {
-        return mMembershipManager.getAllMembers().stream()
-            .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
-            .collect(toList());
+        return mMembershipManager.getLiveMembers().stream()
+            .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
+                w.getUsedBytes(), true)).collect(toList());
       }
     }
     // Fall back to old way
     try (CloseableResource<BlockMasterClient> masterClientResource =
              acquireBlockMasterClientResource()) {
       return masterClientResource.get().getWorkerInfoList().stream()
-          .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
-          .collect(toList());
+          .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
+              w.getUsedBytes(), true)).collect(toList());
     }
+  }
+
+  /**
+   * Gets the lost worker information list.
+   * This method is more expensive than {@link #getCachedWorkers(GetWorkerListType)}.
+   * Used when more up-to-date data is needed.
+   *
+   * @return the info of lost workers
+   */
+  public List<BlockWorkerInfo> getLostWorkers() throws IOException {
+    try (ReinitBlockerResource r = blockReinit()) {
+      // Use membership mgr
+      if (mMembershipManager != null && !(mMembershipManager instanceof MasterMembershipManager)) {
+        return mMembershipManager.getFailedMembers().stream()
+            .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
+                w.getUsedBytes(), false)).collect(toList());
+      }
+    }
+    // Fall back to old way
+    try (CloseableResource<BlockMasterClient> masterClientResource =
+             acquireBlockMasterClientResource()) {
+      return masterClientResource.get().getLostWorkerInfoList().stream()
+          .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
+              w.getUsedBytes(), false)).collect(toList());
+    }
+  }
+
+  /**
+   * Gets the worker information list.
+   * This method is more expensive than {@link #getCachedWorkers(GetWorkerListType)}.
+   * Used when more up-to-date data is needed.
+   *
+   * @return the info of all workers
+   */
+  public List<BlockWorkerInfo> getAllWorkers() throws IOException {
+    // TODO(lucy) once ConfigHashSync reinit is gotten rid of, will remove the blockReinit
+    // guard altogether
+    try (ReinitBlockerResource r = blockReinit()) {
+      // Use membership mgr
+      if (mMembershipManager != null && !(mMembershipManager instanceof MasterMembershipManager)) {
+        List<BlockWorkerInfo> liveWorkers = mMembershipManager.getLiveMembers().stream()
+            .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
+                w.getUsedBytes(), true)).collect(toList());
+        List<BlockWorkerInfo> lostWorkers = mMembershipManager.getFailedMembers().stream()
+            .map(w -> new BlockWorkerInfo(
+                w.getIdentity(), w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),
+                false)).collect(toList());
+        // avoid duplicate elements in list
+        return combineAllWorkers(liveWorkers, lostWorkers);
+      }
+    }
+
+    // Fall back to old way
+    try (CloseableResource<BlockMasterClient> masterClientResource =
+             acquireBlockMasterClientResource()) {
+      List<BlockWorkerInfo> liveWorkers = masterClientResource.get().getWorkerInfoList().stream()
+          .map(w -> new BlockWorkerInfo(
+              w.getIdentity(), w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),
+              true)).collect(toList());
+      List<BlockWorkerInfo> lostWorkers = masterClientResource.get().getLostWorkerInfoList()
+          .stream().map(w -> new BlockWorkerInfo(w.getIdentity(),
+              w.getAddress(), w.getCapacityBytes(),
+              w.getUsedBytes(), false)).collect(toList());
+      // avoid duplicate elements in list
+      return combineAllWorkers(liveWorkers, lostWorkers);
+    }
+  }
+
+  private List<BlockWorkerInfo> combineAllWorkers(List<BlockWorkerInfo> liveWorkers,
+                                                  List<BlockWorkerInfo> lostWorkers) {
+    Map<WorkerNetAddress, BlockWorkerInfo> allWorkersMap = new HashMap();
+    liveWorkers.forEach(liveWorker ->
+        allWorkersMap.put(liveWorker.getNetAddress(), liveWorker));
+    lostWorkers.forEach(lostWorker ->
+        allWorkersMap.put(lostWorker.getNetAddress(), lostWorker));
+    return new ArrayList<>(allWorkersMap.values());
   }
 
   protected ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> getBlockWorkerClientPoolMap() {

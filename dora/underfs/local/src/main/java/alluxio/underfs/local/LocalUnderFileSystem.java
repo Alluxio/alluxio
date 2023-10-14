@@ -60,6 +60,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -451,6 +452,18 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
     path = stripPath(path);
     String posixPerm = new Mode(mode).toString();
     FileUtils.changeLocalFilePermission(path, posixPerm);
+  }
+
+  @Override
+  public void setAttribute(String path, String name, byte[] value) throws IOException {
+    path = stripPath(path);
+    FileUtils.changeLocalFileUserDefinedAttribute(path, name, value);
+  }
+
+  @Override
+  public Map<String, String> getAttributes(String path) throws IOException {
+    path = stripPath(path);
+    return FileUtils.getLocalFileUserDefinedAttribute(path);
   }
 
   @Override

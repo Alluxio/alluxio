@@ -232,7 +232,7 @@ public class JournalStateMachine extends BaseStateMachine {
 
   /**
    * Allows leader to take snapshots. This is used exclusively for the
-   * `bin/alluxio fsadmin journal checkpoint` command.
+   * `bin/alluxio journal checkpoint` command.
    * @param manager allows the state machine to take a snapshot as leader by using it
    */
   void allowLeaderSnapshots(StateLockManager manager) {

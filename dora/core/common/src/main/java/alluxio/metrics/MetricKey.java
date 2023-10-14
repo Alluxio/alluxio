@@ -2195,15 +2195,31 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
-  public static final MetricKey CLIENT_BYTES_WRITTEN_ALLUXIO =
-      new Builder("Client.BytesWrittenAlluxio")
-          .setDescription("Total number of bytes write to Alluxio by this client")
+  public static final MetricKey CLIENT_BYTES_WRITTEN_TO_WORKERS =
+      new Builder("Client.BytesWrittenToWorkers")
+          .setDescription("Total number of bytes write to Alluxio workers by this client")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
-  public static final MetricKey CLIENT_BYTES_WRITTEN_UFS =
-      new Builder("Client.BytesWrittenUfs")
+  public static final MetricKey CLIENT_BYTES_WRITTEN_TO_UFS =
+      new Builder("Client.BytesWrittenToUfs")
           .setDescription("Total number of bytes write to UFS by this client")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey CLIENT_BYTES_READ_FROM_WORKERS =
+      new Builder("Client.BytesReadFromWorkers")
+          .setDescription("Total number of bytes read from Alluxio workers by this client. "
+              + "This includes both the case where the data has been cached on the "
+              + "workers, and the case where the workers need to load it from the "
+              + "UFS.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey CLIENT_BYTES_READ_FROM_UFS =
+      new Builder("Client.BytesReadFromUfs")
+          .setDescription("Total number of bytes read from UFS directly by this "
+              + "client, bypassing any kind of cache of Alluxio.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
@@ -2576,24 +2592,31 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   public static final MetricKey CLIENT_UFS_FALLBACK_COUNT =
-      new Builder("Client.UfsFallBackCount")
+      new Builder("Client.UfsFallbackCount")
           .setDescription("The number of fallbacks to UFS when failing to open file in Alluxio "
               + "distributed cache.")
-          .setMetricType(MetricType.GAUGE)
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_UFS_FALLBACK_READ_BYTES =
+      new Builder("Client.UfsFallbackReadBytes")
+          .setDescription("Total bytes of data read fallback to UFS "
+              + "after encountering error when reading from worker.")
+          .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
 
   public static final MetricKey CLOSE_UFS_OUTSTREAM_LATENCY =
-          new Builder("Client.CloseUFSOutStreamLatency")
-                  .setDescription("Latency of close UFS outstream latency")
-                  .setMetricType(MetricType.TIMER)
-                  .build();
+      new Builder("Client.CloseUFSOutStreamLatency")
+          .setDescription("Latency of close UFS outstream latency")
+          .setMetricType(MetricType.TIMER)
+          .build();
 
   public static final MetricKey CLOSE_ALLUXIO_OUTSTREAM_LATENCY =
-          new Builder("Client.CloseAlluxioOutStreamLatency")
-                  .setDescription("Latency of close Alluxio outstream latency")
-                  .setMetricType(MetricType.TIMER)
-                  .build();
+      new Builder("Client.CloseAlluxioOutStreamLatency")
+          .setDescription("Latency of close Alluxio outstream latency")
+          .setMetricType(MetricType.TIMER)
+          .build();
 
   // Fuse operation timer and failure counter metrics are added dynamically.
   // Other Fuse related metrics are added here

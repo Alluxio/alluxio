@@ -40,6 +40,7 @@ import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -62,6 +63,8 @@ public class DoraMetaManager implements Closeable {
       = Configuration.getInt(PropertyKey.DORA_UFS_LIST_STATUS_CACHE_NR_FILES);
   private final boolean mGetRealContentHash
       = Configuration.getBoolean(PropertyKey.USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH);
+  private final boolean mXAttrWriteToUFSEnabled =
+      Configuration.getBoolean(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED);
   private final Cache<String, ListStatusResult> mListStatusCache = mListingCacheCapacity == 0
       ? null
       : Caffeine.newBuilder()
@@ -113,7 +116,11 @@ public class DoraMetaManager implements Closeable {
       UnderFileSystem ufs = getUfsInstance(path);
       UfsStatus status = ufs.getStatus(path,
           GetStatusOptions.defaults().setIncludeRealContentHash(mGetRealContentHash));
-      DoraMeta.FileStatus fs = mDoraWorker.buildFileStatusFromUfsStatus(status, path);
+      Map<String, String> xattrMap = null;
+      if (mXAttrWriteToUFSEnabled) {
+        xattrMap = ufs.getAttributes(path);
+      }
+      DoraMeta.FileStatus fs = mDoraWorker.buildFileStatusFromUfsStatus(status, path, xattrMap);
       return Optional.ofNullable(fs);
     } catch (FileNotFoundException e) {
       return Optional.empty();

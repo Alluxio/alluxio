@@ -24,7 +24,7 @@ import (
 )
 
 func VersionF() error {
-	ver, err := alluxioVersionFromPom()
+	ver, err := AlluxioVersionFromPom()
 	if err != nil {
 		return stacktrace.Propagate(err, "error finding alluxio version from pom")
 	}
@@ -36,7 +36,7 @@ func VersionF() error {
 // only one <version> tag is expected in the root pom.xml that is at the level directly under the root project node
 var versionRe = regexp.MustCompile(`^  <version>(.*)</version>$`)
 
-func alluxioVersionFromPom() (string, error) {
+func AlluxioVersionFromPom() (string, error) {
 	rootPomPath := filepath.Join(repo.FindRepoRoot(), "pom.xml")
 	contents, err := ioutil.ReadFile(rootPomPath)
 	if err != nil {
