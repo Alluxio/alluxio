@@ -22,8 +22,6 @@ import java.util.List;
 
 /**
  * An implementation of WorkerLocationPolicy, where a client will ONLY talk to a local worker.
- *
- * Policy description.
  */
 public class RemoteOnlyPolicy implements WorkerLocationPolicy {
   private final AlluxioConfiguration mConf;
