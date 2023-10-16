@@ -27,6 +27,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.WebServer;
 import alluxio.web.WorkerWebServer;
+import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.http.HttpServer;
@@ -295,7 +296,7 @@ public class AlluxioWorkerProcess implements WorkerProcess {
     }
 
     // Start serving RPC, this will block
-    AtomicReference<Long> workerId = mRegistry.get(DataWorker.class).getWorkerId();
+    AtomicReference<WorkerIdentity> workerId = mRegistry.get(DataWorker.class).getWorkerId();
     LOG.info("Alluxio worker started. id={}, bindHost={}, connectHost={}, rpcPort={}, webPort={}",
         workerId,
         NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC, Configuration.global()),

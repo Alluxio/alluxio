@@ -19,6 +19,7 @@ import static org.junit.Assert.fail;
 
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.wire.WorkerIdentityTestUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
@@ -238,8 +239,8 @@ public class ConsistentHashProviderTest {
       netAddress.setSecureRpcPort(rng.nextInt(0, 65536));
       netAddress.setWebPort(rng.nextInt(0, 65536));
 
-      BlockWorkerInfo workerInfo = new BlockWorkerInfo(netAddress,
-          rng.nextLong(0, Constants.GB), rng.nextLong(0, Constants.GB));
+      BlockWorkerInfo workerInfo = new BlockWorkerInfo(WorkerIdentityTestUtils.randomLegacyId(),
+          netAddress, rng.nextLong(0, Constants.GB), rng.nextLong(0, Constants.GB));
       builder.add(workerInfo);
     }
     return builder.build();

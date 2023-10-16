@@ -14,6 +14,7 @@ package alluxio.client.util;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.wire.WorkerIdentityTestUtils;
 import alluxio.wire.WorkerNetAddress;
 
 /**
@@ -47,6 +48,6 @@ public final class ClientTestUtils {
     if (node != null && !node.isEmpty()) {
       address.setHost(node);
     }
-    return new BlockWorkerInfo(address, capacity, used);
+    return new BlockWorkerInfo(WorkerIdentityTestUtils.randomLegacyId(), address, capacity, used);
   }
 }

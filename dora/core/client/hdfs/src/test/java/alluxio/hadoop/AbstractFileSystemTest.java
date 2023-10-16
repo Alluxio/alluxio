@@ -45,6 +45,7 @@ import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerIdentityTestUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
@@ -789,7 +790,8 @@ public class AbstractFileSystemTest {
     alluxio.client.file.FileSystem spyFs = spy(fs);
     doReturn(new URIStatus(fileInfo)).when(spyFs).getStatus(uri);
     List<BlockWorkerInfo> eligibleWorkerInfos = allWorkers.stream().map(worker ->
-        new BlockWorkerInfo(worker, 0, 0)).collect(toList());
+        new BlockWorkerInfo(WorkerIdentityTestUtils.randomLegacyId(),
+            worker, 0, 0)).collect(toList());
     when(fsContext.getCachedWorkers()).thenReturn(eligibleWorkerInfos);
     List<HostAndPort> expectedWorkerNames = expectedWorkers.stream()
         .map(addr -> HostAndPort.fromParts(addr.getHost(), addr.getDataPort())).collect(toList());
