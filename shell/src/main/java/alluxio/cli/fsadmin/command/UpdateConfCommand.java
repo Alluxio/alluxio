@@ -51,6 +51,7 @@ public final class UpdateConfCommand extends AbstractFsAdminCommand {
     for (String arg : cl.getArgList()) {
       if (!arg.contains("=")) {
         System.err.printf("argument %s must contains \"=\"", arg);
+        return -1;
       } else {
         String[] kv = arg.split("=");
         String value;

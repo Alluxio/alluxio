@@ -738,7 +738,7 @@ public class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           try {
             oldValue = Configuration.get(key);
           } catch (RuntimeException e) {
-            LOG.debug("Cannot get old value for the given key {}", key.getName());
+            LOG.warn("Cannot get old value for the given key {}", key.getName());
           }
           Object value = key.parseValue(entry.getValue());
           Configuration.set(key, value, Source.RUNTIME);
