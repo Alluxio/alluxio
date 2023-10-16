@@ -37,46 +37,22 @@ public class RemoteOnlyPolicy implements WorkerLocationPolicy {
     mConf = conf;
   }
 
-  enum WorkerInfoListSingleton {
-    WORKER_INFO_LIST;
-
-    private List<BlockWorkerInfo> mWorkerInfoList;
-    WorkerInfoListSingleton() {
-      mWorkerInfoList = new ArrayList<>();
-    }
-    public boolean isEmpty() {
-      return mWorkerInfoList.isEmpty();
-    }
-    public void initialize(List<BlockWorkerInfo> workerInfoList) {
-      mWorkerInfoList = workerInfoList;
-    }
-    public List<BlockWorkerInfo> getWorkerInfoList() {
-      return mWorkerInfoList;
-    }
-    public void roulette() {
-      if (!mWorkerInfoList.isEmpty()) {
-        BlockWorkerInfo firstWorker = mWorkerInfoList.remove(0);
-        mWorkerInfoList.add(firstWorker);
-      }
-    }
-  }
-
   /**
    * Finds a remote worker from the available workers, matching by hostname.
    */
   @Override
   public List<BlockWorkerInfo> getPreferredWorkers(List<BlockWorkerInfo> blockWorkerInfos,
-                                                   String fileId, int count) throws ResourceExhaustedException {
-    if (WorkerInfoListSingleton.WORKER_INFO_LIST.isEmpty()) {
-      WorkerInfoListSingleton.WORKER_INFO_LIST.initialize(blockWorkerInfos);
+      String fileId, int count) throws ResourceExhaustedException {
+    WorkerInfoListSingleton workerInfoListSingleton = WorkerInfoListSingleton.getInstance();
+    if (workerInfoListSingleton.isEmpty()) {
+      workerInfoListSingleton.initWorkerList(blockWorkerInfos);
     } else {
-      //TODO(tongyu): check if workers changed
-      WorkerInfoListSingleton.WORKER_INFO_LIST.roulette();
+      workerInfoListSingleton.roulette();
     }
     String userHostname = NetworkAddressUtils.getClientHostName(mConf);
     // Find the worker matching in hostname
     List<BlockWorkerInfo> results = new ArrayList<>();
-    for (BlockWorkerInfo worker : WorkerInfoListSingleton.WORKER_INFO_LIST.getWorkerInfoList()) {
+    for (BlockWorkerInfo worker : workerInfoListSingleton.getWorkerList()) {
       WorkerNetAddress workerAddr = worker.getNetAddress();
       if (workerAddr == null) {
         continue;
