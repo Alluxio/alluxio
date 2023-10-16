@@ -57,7 +57,8 @@ public final class UpdateConfIntegrationTest extends AbstractFsAdminShellTest {
 
   @Test
   public void unsetKey() {
-    int ret = mFsAdminShell.run("unsetConf",
+    // Update `alluxio.master.worker.timeout` to `6min` which other than default value `5min`
+    int ret = mFsAdminShell.run("updateConf",
         "alluxio.master.worker.timeout=6min");
     Assert.assertEquals(0, ret);
     GetConf.getConf(ClientContext.create(), "--master",
@@ -65,6 +66,8 @@ public final class UpdateConfIntegrationTest extends AbstractFsAdminShellTest {
     String output = mOutput.toString();
     String lastLineOutput = lastLine(output);
     Assert.assertTrue(lastLineOutput, lastLine(output).contains("6min"));
+
+    // Unset `alluxio.master.worker.timeout`, so the value should go back to default value `5min`
     ret = mFsAdminShell.run("unsetConf", "alluxio.master.worker.timeout");
     Assert.assertEquals(0, ret);
     GetConf.getConf(ClientContext.create(), "--master",
