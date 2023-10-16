@@ -226,6 +226,7 @@ message Block{
   optional int64 offset_in_file = 4;
   optional int64 mountId = 5;
   optional UfsStatus ufs_status = 6;
+  optional WorkerNetAddress main_worker = 7;
 }
 
 message LoadResponse {

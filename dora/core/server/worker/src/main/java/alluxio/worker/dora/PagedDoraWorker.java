@@ -16,6 +16,7 @@ import static alluxio.client.file.cache.CacheUsage.PartitionDescriptor.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
+import alluxio.PositionReader;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
 import alluxio.client.file.FileSystem;
@@ -23,6 +24,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageId;
+import alluxio.client.file.dora.netty.NettyDataReader;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
@@ -119,6 +121,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -565,42 +568,24 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       }
       if (task.hasBlock()) {
         Block block = task.getBlock();
-
-        if (block.getLength() > 0) {
-          boolean countAsSkipped = skipIfExists && isAllPageCached(block);
-          if (countAsSkipped) {
-            numSkipped.incrementAndGet();
-            skippedLength.addAndGet(block.getLength());
-            continue;
-          }
-
-          try {
-            ListenableFuture<Void> loadFuture = Futures.submit(() -> {
-              try {
-                if (options.hasUser()) {
-                  AuthenticatedClientUser.set(options.getUser());
-                }
-                loadData(block.getUfsPath(), 0, block.getOffsetInFile(), block.getLength(),
-                    block.getUfsStatus().getUfsFileStatus().getContentLength());
-              } catch (Throwable e) {
-                LOG.error("Loading {} failed", block, e);
-                boolean permissionCheckSucceeded = !(e instanceof AccessControlException);
-                AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
-                errors.add(LoadFailure.newBuilder()
-                                      .setSubtask(LoadSubTask.newBuilder().setBlock(block).build())
-                                      .setCode(t.getStatus().getCode().value())
-                                      .setRetryable(permissionCheckSucceeded)
-                                      .setMessage(t.getMessage()).build());
-              }
-            }, GrpcExecutors.READER_EXECUTOR);
-            futures.add(loadFuture);
-          } catch (RejectedExecutionException ex) {
-            LOG.warn("Load task overloaded.");
-            errors.add(LoadFailure.newBuilder()
-                                  .setSubtask(LoadSubTask.newBuilder().setBlock(block).build())
-                                  .setCode(Status.RESOURCE_EXHAUSTED.getCode().value())
-                                  .setRetryable(true).setMessage(ex.getMessage()).build());
-          }
+        if (block.getLength() <= 0) {
+          continue;
+        }
+        boolean countAsSkipped = skipIfExists && isAllPageCached(block);
+        if (countAsSkipped) {
+          numSkipped.incrementAndGet();
+          skippedLength.addAndGet(block.getLength());
+          continue;
+        }
+        try {
+          ListenableFuture<Void> loadFuture = submitLoadDataSubTask(block, options, errors);
+          futures.add(loadFuture);
+        } catch (RejectedExecutionException ex) {
+          LOG.warn("Load task overloaded.");
+          errors.add(LoadFailure.newBuilder()
+                                .setSubtask(LoadSubTask.newBuilder().setBlock(block).build())
+                                .setCode(Status.RESOURCE_EXHAUSTED.getCode().value())
+                                .setRetryable(true).setMessage(ex.getMessage()).build());
         }
       }
     }
@@ -610,6 +595,52 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                               // Status is a required field, put it as a placeholder
                               .setStatus(TaskStatus.SUCCESS).build(),
         GrpcExecutors.READER_EXECUTOR);
+  }
+
+  private ListenableFuture<Void> submitLoadDataSubTask(
+      Block block, UfsReadOptions options, List<LoadFailure> errors) {
+    ListenableFuture<Void> future =
+        Futures.submit(() -> {
+          try {
+            if (options.hasUser()) {
+              AuthenticatedClientUser.set(options.getUser());
+            }
+            long fileLength = block.getUfsStatus().getUfsFileStatus().getContentLength();
+            if (block.hasMainWorker()) {
+              WorkerNetAddress address = GrpcUtils.fromProto(block.getMainWorker());
+              if (mAddress != address) {
+                long chunkSize = mPageSize;
+                Protocol.OpenUfsBlockOptions openOptions =
+                    Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(block.getUfsPath())
+                                                .setMountId(0).setNoCache(false)
+                                                .setOffsetInFile(0)
+                                                .setBlockSize(fileLength).build();
+                Protocol.ReadRequest.Builder builder =
+                    Protocol.ReadRequest.newBuilder().setBlockId(-1)
+                                        .setOpenUfsBlockOptions(openOptions)
+                                        .setChunkSize(chunkSize);
+                try (PositionReader reader = new NettyDataReader(mFsContext, address, builder)) {
+                  loadDataFromRemote(block.getUfsPath(), block.getOffsetInFile(), block.getLength(),
+                      reader, (int) chunkSize);
+                }
+              }
+            }
+            else {
+              loadData(block.getUfsPath(), 0, block.getOffsetInFile(), block.getLength(),
+                  fileLength);
+            }
+          } catch (Throwable e) {
+            LOG.error("Loading {} failed", block, e);
+            boolean permissionCheckSucceeded = !(e instanceof AccessControlException);
+            AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
+            errors.add(LoadFailure.newBuilder()
+                                  .setSubtask(LoadSubTask.newBuilder().setBlock(block).build())
+                                  .setCode(t.getStatus().getCode().value())
+                                  .setRetryable(permissionCheckSucceeded).setMessage(t.getMessage())
+                                  .build());
+          }
+        }, GrpcExecutors.READER_EXECUTOR);
+    return future;
   }
 
   /**
@@ -673,6 +704,39 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       throw AlluxioRuntimeException.from(e);
     } finally {
       buf.release();
+    }
+  }
+
+  /**
+   * Loads data from remote worker.
+   *
+   * @param filePath     the file path
+   * @param offset       the offset
+   * @param lengthToLoad the length to load
+   * @param reader       the netty reader
+   * @param chunkSize    the chunk size
+   * @throws IOException when failed to read from remote worker
+   */
+  @VisibleForTesting
+  public void loadDataFromRemote(String filePath, long offset, long lengthToLoad,
+      PositionReader reader, int chunkSize) throws IOException {
+    ByteBuffer buf = ByteBuffer.allocate(chunkSize);
+    String fileId = new AlluxioURI(filePath).hash();
+
+    while (0 < lengthToLoad) {
+      long currentPageIndex = offset / mPageSize;
+      PageId pageId = new PageId(fileId.toString(), currentPageIndex);
+      int lengthToRead = (int) Math.min(chunkSize, lengthToLoad);
+      int lengthRead = reader.read(offset, buf, lengthToRead);
+      if (lengthRead != lengthToRead) {
+        throw new FailedPreconditionRuntimeException(
+            "Read " + lengthRead + " bytes, expected to read " + lengthToRead + " bytes");
+      }
+      buf.flip();
+      mCacheManager.put(pageId, buf);
+      offset += lengthRead;
+      lengthToLoad -= lengthRead;
+      buf.clear();
     }
   }
 

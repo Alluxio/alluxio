@@ -19,6 +19,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.PositionReader;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.PageId;
@@ -26,6 +27,7 @@ import alluxio.client.file.cache.PageMetaStore;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.grpc.Block;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -182,6 +184,40 @@ public class PagedDoraWorkerTest {
         mCacheManager.getCachedPageIdsByFileId(new AlluxioURI(ufsPath).hash(), length);
     assertEquals(0, cachedPages.size());
     assertTrue(mWorker.getMetaManager().getFromMetaStore(ufsPath).isPresent());
+  }
+
+  @Test
+  public void testLoadFromReader() throws IOException {
+    String ufsPath = "testLoadRemote";
+    mWorker.loadDataFromRemote(ufsPath, 0, 10, new TestDataReader(100), (int) mPageSize);
+    byte[] buffer = new byte[10];
+    String fileId = new AlluxioURI(ufsPath).hash();
+    List<PageId> cachedPages = mCacheManager.getCachedPageIdsByFileId(fileId, 10);
+    assertEquals(1, cachedPages.size());
+    mCacheManager.get(new PageId(fileId, 0), 10, buffer, 0);
+    assertTrue(BufferUtils.equalIncreasingByteArray(0, 10, buffer));
+  }
+
+  @Test
+  public void testLoadBlockFromReader() throws IOException {
+    String ufsPath = "testLoadBlockRemote";
+    long offset = mPageSize;
+    int numPages = 3;
+    long lengthToLoad = numPages * mPageSize + 5;
+    mWorker.loadDataFromRemote(ufsPath, offset, lengthToLoad,
+        new TestDataReader((int) (5 * mPageSize)), (int) mPageSize);
+    String fileId = new AlluxioURI(ufsPath).hash();
+    List<PageId> cachedPages = mCacheManager.getCachedPageIdsByFileId(fileId, 5 * mPageSize);
+    assertEquals(4, cachedPages.size());
+    for (int i = 1; i < 4; i++) {
+      byte[] buffer = new byte[(int) mPageSize];
+      mCacheManager.get(new PageId(fileId, i), (int) mPageSize, buffer, 0);
+      assertTrue(BufferUtils.equalIncreasingByteArray((int) (offset + (i - 1) * mPageSize),
+          (int) mPageSize, buffer));
+    }
+    byte[] buffer = new byte[(int) 5];
+    mCacheManager.get(new PageId(fileId, 4), 5, buffer, 0);
+    assertTrue(BufferUtils.equalIncreasingByteArray((int) (offset + 3 * mPageSize), 5, buffer));
   }
 
   @Test
@@ -870,5 +906,25 @@ public class PagedDoraWorkerTest {
         RenamePOptions.getDefaultInstance());
     assertFalse(mWorker.exists(f.getAbsolutePath(), ExistsPOptions.getDefaultInstance()));
     assertTrue(mWorker.exists(f.getAbsolutePath() + "2", ExistsPOptions.getDefaultInstance()));
+  }
+
+  private class TestDataReader implements PositionReader {
+    private final byte[] mBuffer;
+
+    public TestDataReader(int length) {
+      mBuffer = BufferUtils.getIncreasingByteArray(length);
+    }
+
+    @Override
+    public int readInternal(long position, ReadTargetBuffer buffer, int length) {
+      int start = (int) position;
+      int end = start + length;
+      if (end > mBuffer.length) {
+        end = mBuffer.length;
+      }
+      int size = end - start;
+      buffer.writeBytes(mBuffer, start, size);
+      return size;
+    }
   }
 }
