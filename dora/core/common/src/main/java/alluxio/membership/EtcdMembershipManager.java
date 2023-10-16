@@ -13,7 +13,6 @@ package alluxio.membership;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.AlreadyExistsException;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
@@ -97,8 +96,9 @@ public class EtcdMembershipManager implements MembershipManager {
       if (!Arrays.equals(existingEntityBytes, serializedEntity)) {
         // In k8s this might be bcos worker pod restarting with the same worker identity
         // but certain fields such as hostname has been changed. Register to ring path anyway.
-        LOG.warn("Same worker entity found bearing same workerid, maybe benign if pod restart in k8s env or "
-            + " same worker scheduled to restart on another machine in baremetal env.");
+        LOG.warn("Same worker entity found bearing same workerid,"
+            + "maybe benign if pod restart in k8s env or same worker"
+            + " scheduled to restart on another machine in baremetal env.");
         mAlluxioEtcdClient.createForPath(pathOnRing, Optional.of(serializedEntity));
       }
       // It's me, go ahead to start heartbeating.
