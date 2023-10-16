@@ -25,15 +25,17 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 
-public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellTest {
+public class DoraLoadCommandWithVirtualBlockIntegrationTest
+    extends AbstractDoraFileSystemShellTest {
 
-  public DoraLoadCommandIntegrationTest() throws IOException {
-    super(3);
+  public DoraLoadCommandWithVirtualBlockIntegrationTest() throws IOException {
+    super(1);
   }
 
   @Override
   public void before() throws Exception {
     mLocalAlluxioClusterResource.setProperty(PropertyKey.MASTER_SCHEDULER_INITIAL_DELAY, "1s")
+                                .setProperty(PropertyKey.DORA_READ_VIRTUAL_BLOCK_SIZE, "50MB")
                                 .setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false);
     super.before();
   }
@@ -43,9 +45,9 @@ public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellT
     File testRoot = mTestFolder.newFolder("testRoot");
     mTestFolder.newFolder("testRoot/testDirectory");
 
-    createByteFileInUfs("/testRoot/testFileA", Constants.MB);
-    createByteFileInUfs("/testRoot/testFileB", Constants.MB);
-    createByteFileInUfs("/testRoot/testDirectory/testFileC", Constants.MB);
+    createByteFileInUfs("/testRoot/testFileA", 100 * Constants.MB);
+    createByteFileInUfs("/testRoot/testFileB", 100 * Constants.MB);
+    createByteFileInUfs("/testRoot/testDirectory/testFileC", 100 * Constants.MB);
 
     AlluxioURI uriA = new AlluxioURI("/testRoot/testFileA");
     AlluxioURI uriB = new AlluxioURI("/testRoot/testFileB");
@@ -67,7 +69,7 @@ public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellT
       Thread.sleep(1000);
     }
     assertTrue(mOutput.toString().contains("Inodes Processed: 4"));
-    assertTrue(mOutput.toString().contains("Bytes Loaded: 3072.00KB out of 3072.00KB"));
+    assertTrue(mOutput.toString().contains("Bytes Loaded: 300.00MB out of 300.00MB"));
     assertTrue(mOutput.toString().contains("Files Failed: 0"));
     assertEquals(0, mFsShell.run("load", "/testRoot", "--stop"));
     assertEquals(-2, mFsShell.run("load", "/testRootNotExists", "--progress"));

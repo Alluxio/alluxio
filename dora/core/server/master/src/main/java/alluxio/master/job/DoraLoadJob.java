@@ -262,19 +262,25 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private List<LoadSubTask> createSubTasks(UfsStatus ufsStatus) {
     List<LoadSubTask> subTasks = new ArrayList<>();
         // add load metadata task
-    subTasks.add(new LoadMetadataSubTask(ufsStatus));
-    if (mLoadMetadataOnly || ufsStatus.isDirectory()) {
+    subTasks.add(new LoadMetadataSubTask(ufsStatus, mVirtualBlockSize));
+    if (mLoadMetadataOnly || ufsStatus.isDirectory()
+        || ufsStatus.asUfsFileStatus().getContentLength() == 0) {
       return subTasks;
     }
+    long contentLength = ufsStatus.asUfsFileStatus().getContentLength();
     if (mVirtualBlockSize > 0) {
-      for (int i = 0; i < ufsStatus.asUfsFileStatus().getContentLength(); i += mVirtualBlockSize) {
-        subTasks.add(new LoadDataSubTask(ufsStatus,
-            mVirtualBlockSize, mVirtualBlockSize * i));
+      int numBlocks = (int) (contentLength / mVirtualBlockSize);
+      for (int i = 0; i < numBlocks; i++) {
+        long offset = mVirtualBlockSize * i;
+        long leftover = contentLength - offset;
+        subTasks.add(new LoadDataSubTask(ufsStatus, mVirtualBlockSize, offset,
+            Math.min(leftover, mVirtualBlockSize)));
       }
     }
     else {
-      subTasks.add(new LoadDataSubTask(ufsStatus, mVirtualBlockSize, 0));
+      subTasks.add(new LoadDataSubTask(ufsStatus, mVirtualBlockSize, 0, contentLength));
     }
+
     return subTasks;
   }
 
