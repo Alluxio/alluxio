@@ -12,7 +12,6 @@
 package alluxio.master.meta;
 
 import alluxio.RpcUtils;
-import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.UpdatedConfigEventDiff;
 import alluxio.grpc.GetConfigHashPOptions;

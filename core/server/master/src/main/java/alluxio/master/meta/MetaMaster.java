@@ -11,7 +11,6 @@
 
 package alluxio.master.meta;
 
-import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.UpdatedConfigEventDiff;
 import alluxio.exception.status.NotFoundException;
