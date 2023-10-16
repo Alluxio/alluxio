@@ -737,7 +737,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           } catch (RuntimeException e) {
             LOG.debug("Cannot get old value for the given key {}", key.getName());
           }
-          if ("<UNSET_VALUE>".equals(entry.getValue())) {
+          if (PropertyKey.UNSET_VALUE.equals(entry.getValue())) {
             Configuration.unset(key);
             LOG.info("Property {} has been unset from \"{}\"",
                 key.getName(), entry.getValue(), oldValue);
