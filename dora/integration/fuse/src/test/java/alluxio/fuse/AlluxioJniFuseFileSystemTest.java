@@ -119,8 +119,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
-      comment = "waiting on security metadata to be implemented in Dora")
   public void chmod() throws Exception {
     long mode = 123;
     mFuseFs.chmod("/foo/bar", mode);
@@ -131,8 +129,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
-      comment = "waiting on security metadata to be implemented in Dora")
   public void chown() throws Exception {
     Optional<Long> uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
     // avoid using the launch user
@@ -162,8 +158,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
-      comment = "waiting on security metadata to be implemented in Dora")
   public void chownWithoutValidGid() throws Exception {
     Optional<Long> uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
     assertTrue(uid.isPresent());
@@ -188,8 +182,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
-      comment = "waiting on security metadata to be implemented in Dora")
   public void chownWithoutValidUid() throws Exception {
     String userName = System.getProperty("user.name");
     long uid = AlluxioFuseUtils.ID_NOT_SET_VALUE;
@@ -227,7 +219,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
   public void create() throws Exception {
     // "create" checks if the file already exists first
     when(mFileSystem.getStatus(any(AlluxioURI.class)))
@@ -249,7 +240,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
   public void flush() throws Exception {
     FileOutStream fos = mock(FileOutStream.class);
     AlluxioURI anyURI = any();
@@ -311,7 +301,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
   public void getattrWithDelay() throws Exception {
     String path = "/foo/bar";
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
@@ -347,7 +336,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
   public void getattrWhenWriting() throws Exception {
     String path = "/foo/bar";
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join(path);
@@ -394,7 +382,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
   public void mkDir() throws Exception {
     long mode = 0755L;
     mFuseFs.mkdir("/foo/bar", mode);
@@ -415,7 +402,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
   public void openWithoutDelay() throws Exception {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     setUpOpenMock(expectedPath);
@@ -429,7 +415,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
   public void incompleteFileCannotOpen() throws Exception {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     FileInfo fi = setUpOpenMock(expectedPath);
@@ -440,7 +425,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
   public void read() throws Exception {
     // mocks set-up
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
@@ -477,7 +461,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
   public void rename() throws Exception {
     AlluxioURI oldPath = BASE_EXPECTED_URI.join("/old");
     AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
@@ -523,7 +506,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
   public void rmdir() throws Exception {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     doNothing().when(mFileSystem).delete(expectedPath);
@@ -560,7 +542,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
   public void unlink() throws Exception {
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     doNothing().when(mFileSystem).delete(expectedPath);
@@ -569,7 +550,6 @@ public class AlluxioJniFuseFileSystemTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
   public void pathTranslation() {
     final LoadingCache<String, AlluxioURI> resolver = mFuseFs.getPathResolverCache();
 
