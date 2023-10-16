@@ -13,10 +13,13 @@ package alluxio.master.meta;
 
 import alluxio.RpcUtils;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.UpdatedConfigEventDiff;
 import alluxio.grpc.GetConfigHashPOptions;
 import alluxio.grpc.GetConfigHashPResponse;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GetConfigurationPResponse;
+import alluxio.grpc.GetUpdatedConfigurationPRequest;
+import alluxio.grpc.GetUpdatedConfigurationPResponse;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.RemovePathConfigurationPRequest;
 import alluxio.grpc.RemovePathConfigurationPResponse;
@@ -139,5 +142,23 @@ public final class MetaMasterConfigurationServiceHandler
           .putAllStatus(result)
           .build();
     }, "updateConfiguration", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getUpdatedConfiguration(GetUpdatedConfigurationPRequest request,
+      StreamObserver<GetUpdatedConfigurationPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      UpdatedConfigEventDiff diff =
+          mMetaMaster.getUpdatedConfiguration(request.getVersion());
+      GetUpdatedConfigurationPResponse.Builder response =
+          GetUpdatedConfigurationPResponse.newBuilder();
+      for (Map<String, String> updatedConfiguration : diff.getChangedProperties()) {
+        response.addUpdatedConfigurationPRequests(
+            UpdateConfigurationPRequest.newBuilder().putAllProperties(updatedConfiguration)
+                .build());
+      }
+      response.setVersion(diff.getVersion());
+      return response.build();
+    }, "getUpdatedConfigs", "request=%s", responseObserver, request);
   }
 }

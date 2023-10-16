@@ -72,6 +72,8 @@ public final class HeartbeatContext {
   public static final String MASTER_WORKER_REGISTER_SESSION_CLEANER =
       "Worker register stream session cleaner";
 
+  public static final String CONFIG_SYNC = "Alluxio Config Sync";
+
   /**
    * HeartBeat Enum Type.
    */
