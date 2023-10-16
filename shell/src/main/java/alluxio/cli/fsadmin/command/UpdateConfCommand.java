@@ -64,6 +64,9 @@ public final class UpdateConfCommand extends AbstractFsAdminCommand {
         } else {
           value = kv[1];
         }
+        PropertyKey property = PropertyKey.Builder.stringBuilder(kv[0]).buildUnregistered();
+        System.out.format("Setting property %s to %s%n", property, value);
+        // Master will reject if the property is not recognized
         properties.put(PropertyKey.Builder.stringBuilder(kv[0]).buildUnregistered(), value);
       }
     }
