@@ -16,6 +16,7 @@ import static alluxio.client.file.cache.CacheUsage.PartitionDescriptor.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
+import alluxio.PositionReader;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
 import alluxio.client.file.FileSystem;
@@ -23,6 +24,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageId;
+import alluxio.client.file.dora.netty.NettyDataReader;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
@@ -119,6 +121,7 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -673,6 +676,37 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       throw AlluxioRuntimeException.from(e);
     } finally {
       buf.release();
+    }
+  }
+protected void loadDataFromRemoteWorker(String ufsPath, long length, WorkerNetAddress workerNetAddress)
+      throws AccessControlException, IOException {
+    int capacity = (int) mPageSize;
+    Protocol.OpenUfsBlockOptions options =
+        Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(ufsPath).setMountId(0).setNoCache(false).setOffsetInFile(0).setBlockSize(length)
+                                    .build();
+    Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder().setBlockId(-1).setOpenUfsBlockOptions(options)
+                                                               .setChunkSize(capacity);
+
+
+    ByteBuffer buf = ByteBuffer.allocate(capacity);
+    int position = 0;
+    String fileId = new AlluxioURI(ufsPath).hash();
+    try (PositionReader reader = new NettyDataReader(mFsContext, workerNetAddress, builder)) {
+      while (position < length) {
+        long currentPageIndex = position / mPageSize;
+        PageId pageId = new PageId(fileId.toString(), currentPageIndex);
+        int lengthToRead = (int) Math.min(capacity, length - position);
+        int lengthRead = reader.read(position, buf, lengthToRead);
+        if (lengthRead != lengthToRead) {
+          throw new FailedPreconditionRuntimeException("Read " + lengthRead + " bytes, expected to read " + lengthToRead + " bytes");
+        }
+        buf.flip();
+        mCacheManager.put(pageId, buf);
+        position += lengthToRead;
+        buf.clear();
+      }
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
     }
   }
 

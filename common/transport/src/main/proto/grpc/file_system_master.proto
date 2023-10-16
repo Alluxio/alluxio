@@ -608,6 +608,7 @@ message LoadJobPOptions {
   optional bool partialListing = 3;
   optional bool loadMetadataOnly = 4;
   optional bool skipIfExists = 5;
+  optional int32 replicas = 6;
 }
 
 message CopyJobPOptions {
