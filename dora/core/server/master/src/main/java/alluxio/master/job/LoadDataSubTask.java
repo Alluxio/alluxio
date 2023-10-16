@@ -14,28 +14,33 @@ package alluxio.master.job;
 import alluxio.grpc.Block;
 import alluxio.underfs.UfsStatus;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * Load data subtask.
  */
 public class LoadDataSubTask extends LoadSubTask {
   private final long mVirtualBlockSize;
   private final long mOffset;
+  private final long mLength;
 
-  LoadDataSubTask(UfsStatus ufsStatus, long virtualBlockSize, long offset) {
+  LoadDataSubTask(UfsStatus ufsStatus, long virtualBlockSize, long offset, long length) {
     super(ufsStatus);
     mVirtualBlockSize = virtualBlockSize;
     mOffset = offset;
     int index = mVirtualBlockSize == 0 ? 0 : (int) (offset / virtualBlockSize);
-    mHashKey = new VirtualBlockShardKey(ufsStatus.getUfsFullPath().toString(), index);
+    if (virtualBlockSize == 0) {
+      mHashKey = new ConsistentHashShardKey(ufsStatus.getUfsFullPath().toString());
+    }
+    else {
+      mHashKey = new VirtualBlockShardKey(ufsStatus.getUfsFullPath().toString(), index);
+    }
+    mLength = length;
   }
 
   @Override
   public long getLength() {
-    if (mVirtualBlockSize == 0) {
-      return mUfsStatus.asUfsFileStatus().getContentLength();
-    }
-    long leftover = mUfsStatus.asUfsFileStatus().getContentLength() - mOffset;
-    return Math.min(leftover, mVirtualBlockSize);
+    return mLength;
   }
 
   @Override
@@ -54,5 +59,13 @@ public class LoadDataSubTask extends LoadSubTask {
   @Override
   public String asString() {
     return mHashKey.asString();
+  }
+
+  /**
+   * @return the offset
+   */
+  @VisibleForTesting
+  public long getOffset() {
+    return mOffset;
   }
 }

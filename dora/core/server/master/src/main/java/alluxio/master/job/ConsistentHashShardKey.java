@@ -11,36 +11,25 @@
 
 package alluxio.master.job;
 
-import static java.lang.String.format;
-
 import alluxio.common.ShardKey;
 
 /**
  * The key for accessing the hash ring.
- * There's two types of usage for this key:
- * 1. metadata operation: the partition index is 0
- * 2. data operation: the partition index is offset / virtual block size
- *
  */
-public final class VirtualBlockShardKey implements ShardKey {
-  private final String mUFSPath;
-  private final int mVirtualBlockIndex;
+public final class ConsistentHashShardKey implements ShardKey {
+  private final String mUfsPath;
 
   /**
    * constructor for VirtualBlockShardKey.
    *
    * @param ufsPath           the ufs path
-   * @param virtualBlockIndex the virtual block index
    */
-  public VirtualBlockShardKey(String ufsPath, int virtualBlockIndex) {
-    mUFSPath = ufsPath;
-    mVirtualBlockIndex = virtualBlockIndex;
+  public ConsistentHashShardKey(String ufsPath) {
+    mUfsPath = ufsPath;
   }
 
   @Override
   public String asString() {
-    // use the same format as ConsistentHashProvider,
-    // we can't distinguish the two index, but it's fine
-    return format("%s%d", mUFSPath, mVirtualBlockIndex);
+    return mUfsPath;
   }
 }

@@ -27,15 +27,17 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 
-public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellTest {
+public class DoraLoadCommandWithVirtualBlockIntegrationTest
+    extends AbstractDoraFileSystemShellTest {
 
-  public DoraLoadCommandIntegrationTest() throws IOException {
-    super(3);
+  public DoraLoadCommandWithVirtualBlockIntegrationTest() throws IOException {
+    super(1);
   }
 
   @Override
   public void before() throws Exception {
     mLocalAlluxioClusterResource.setProperty(PropertyKey.MASTER_SCHEDULER_INITIAL_DELAY, "1s")
+                                .setProperty(PropertyKey.DORA_READ_VIRTUAL_BLOCK_SIZE, "30MB")
                                 .setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false);
     super.before();
   }
@@ -45,9 +47,12 @@ public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellT
     File testRoot = mTestFolder.newFolder("testRoot");
     mTestFolder.newFolder("testRoot/testDirectory");
 
-    createByteFileInUfs("/testRoot/testFileA", Constants.MB);
-    createByteFileInUfs("/testRoot/testFileB", Constants.MB);
-    createByteFileInUfs("/testRoot/testDirectory/testFileC", Constants.MB);
+    int lengthA = 16 * Constants.MB;
+    createByteFileInUfs("/testRoot/testFileA", lengthA);
+    int lengthB = 32 * Constants.MB;
+    createByteFileInUfs("/testRoot/testFileB", lengthB);
+    int lengthC = 64 * Constants.MB;
+    createByteFileInUfs("/testRoot/testDirectory/testFileC", lengthC);
 
     AlluxioURI uriA = new AlluxioURI("/testRoot/testFileA");
     AlluxioURI uriB = new AlluxioURI("/testRoot/testFileB");
@@ -65,15 +70,25 @@ public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellT
     FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uriB, 100);
     FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uriC, 100);
     FileInStream fileInStream = mFileSystem.openFile(uriA);
-    byte[] buffer = new byte[Constants.MB];
-    fileInStream.positionedRead(0, buffer, 0, Constants.MB);
-    assertTrue(BufferUtils.equalIncreasingByteArray(Constants.MB, buffer));
+    byte[] buffer = new byte[lengthA];
+    fileInStream.positionedRead(0, buffer, 0, lengthA);
+    assertTrue(BufferUtils.equalIncreasingByteArray(lengthA, buffer));
+    fileInStream = mFileSystem.openFile(uriB);
+    buffer = new byte[lengthB];
+    fileInStream.positionedRead(0, buffer, 0, lengthB);
+    assertTrue(BufferUtils.equalIncreasingByteArray(lengthB, buffer));
+    fileInStream = mFileSystem.openFile(uriC);
+    buffer = new byte[lengthC];
+    fileInStream.positionedRead(0, buffer, 0, lengthC);
+    assertTrue(BufferUtils.equalIncreasingByteArray(lengthC, buffer));
     while (!mOutput.toString().contains("SUCCEEDED")) {
       assertEquals(0, mFsShell.run("load", "/testRoot", "--progress"));
       Thread.sleep(1000);
     }
     assertTrue(mOutput.toString().contains("Inodes Processed: 4"));
-    assertTrue(mOutput.toString().contains("Bytes Loaded: 3072.00KB out of 3072.00KB"));
+    int bytes = (lengthA + lengthB + lengthC) / Constants.MB;
+    assertTrue(mOutput.toString().contains(
+        String.format("Bytes Loaded: %s.00MB out of %s.00MB", bytes, bytes)));
     assertTrue(mOutput.toString().contains("Files Failed: 0"));
     assertEquals(0, mFsShell.run("load", "/testRoot", "--stop"));
     assertEquals(-2, mFsShell.run("load", "/testRootNotExists", "--progress"));
