@@ -33,17 +33,6 @@ import java.util.concurrent.TimeUnit;
  * Tests for {@link UpdateChecker}.
  */
 public class UpdateCheckerTest {
-  @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
-      comment = "fix UpdateChecker for 30x")
-  @Ignore
-  public void UnderFileSystemAlluxio() {
-    try (UpdateChecker checker = UpdateChecker
-        .create(FuseOptions.Builder.fromConfig(Configuration.global()).build())) {
-      Assert.assertTrue(containsTargetInfo(checker.getUnchangeableFuseInfo(),
-          UpdateChecker.ALLUXIO_FS));
-    }
-  }
 
   @Test
   public void UnderFileSystemLocal() {
