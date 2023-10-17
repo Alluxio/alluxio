@@ -17,6 +17,7 @@ import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
 
@@ -123,6 +124,7 @@ public abstract class WebServer {
             DispatcherType.ASYNC, DispatcherType.ERROR));
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mMetricsServlet.getHandler(), mPMetricsServlet.getHandler(),
+        MultiDimensionalMetricsSystem.WebHandler.getHandler(),
         mServletContextHandler, new DefaultHandler()});
     mServer.setHandler(handlers);
   }

@@ -164,6 +164,7 @@
     <powermock.version>2.0.7</powermock.version>
     <project.build.outputTimestamp>${git.commit.time}</project.build.outputTimestamp>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <prometheus.client.version>1.0.0</prometheus.client.version>
     <prometheus.version>0.8.0</prometheus.version>
     <protobuf.version>3.19.6</protobuf.version>
     <ratis.version>2.5.1</ratis.version>
@@ -455,6 +456,16 @@
       </dependency>
       <dependency>
         <groupId>io.prometheus</groupId>
+        <artifactId>prometheus-metrics-core</artifactId>
+        <version>${prometheus.client.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>prometheus-metrics-exporter-servlet-jakarta</artifactId>
+        <version>${prometheus.client.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
         <artifactId>simpleclient</artifactId>
         <version>${prometheus.version}</version>
       </dependency>
@@ -477,6 +488,11 @@
         <groupId>it.unimi.dsi</groupId>
         <artifactId>fastutil-core</artifactId>
         <version>${fastutil.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.servlet</groupId>
+        <artifactId>jakarta.servlet-api</artifactId>
+        <version>5.0.0</version>
       </dependency>
       <dependency>
         <groupId>jakarta.ws.rs</groupId>
