@@ -17,6 +17,7 @@ import io.netty.channel.DefaultFileRegion;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -24,9 +25,10 @@ import java.nio.channels.FileChannel;
  * A DataBuffer with the underlying data being a {@link FileChannel}.
  */
 public final class DataFileChannel implements DataBuffer {
-  private final File mFile;
+  public final RandomAccessFile mFile;
   private final long mOffset;
   private final long mLength;
+  public final long mPageIndex;
 
   /**
    *
@@ -34,15 +36,21 @@ public final class DataFileChannel implements DataBuffer {
    * @param offset The offset into the FileChannel
    * @param length The length of the data to read
    */
-  public DataFileChannel(File file, long offset, long length) {
+  public DataFileChannel(long pageIndex, RandomAccessFile file, long offset, long length) {
     mFile = Preconditions.checkNotNull(file, "file");
+    try {
+      mFile.seek(offset);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
     mOffset = offset;
     mLength = length;
+    mPageIndex = pageIndex;
   }
 
   @Override
   public Object getNettyOutput() {
-    return new DefaultFileRegion(mFile, mOffset, mLength);
+    return new DefaultFileRegion(mFile.getChannel(), mOffset, mLength);
   }
 
   @Override
