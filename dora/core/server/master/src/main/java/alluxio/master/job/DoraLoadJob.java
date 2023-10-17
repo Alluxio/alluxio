@@ -89,9 +89,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private static final double RETRY_THRESHOLD = 0.8 * RETRY_BLOCK_CAPACITY;
   private static final int BATCH_SIZE = Configuration.getInt(PropertyKey.JOB_BATCH_SIZE);
 
-  /* TODO(lucy) add logic to detect loaded files, as currently each file loaded
-     status is on each dora worker, so the decision to load or not delegates to
-     worker on getting the load req. */
   // Job configurations
   private final String mLoadPath;
   private OptionalLong mBandwidth;
