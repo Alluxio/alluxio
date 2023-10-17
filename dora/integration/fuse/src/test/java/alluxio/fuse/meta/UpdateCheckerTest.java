@@ -11,7 +11,6 @@
 
 package alluxio.fuse.meta;
 
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.Configuration;
@@ -23,7 +22,6 @@ import alluxio.metrics.MetricsSystem;
 
 import org.junit.Assert;
 import org.junit.Assume;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
