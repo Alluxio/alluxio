@@ -15,272 +15,161 @@ import alluxio.PositionReader;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
-import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 
 import com.amazonaws.annotation.NotThreadSafe;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.EvictingQueue;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 
 /**
- * Implementation of {@link FileInStream} that reads from a dora cache if possible.
+ * This class extends the {@link FileInStream} class and provides the functionality to read a file
+ * from a specific position. It maintains the current position, length of the file, and a cache
+ * for prefetching data. It uses a PositionReader to read the file positions.
  */
 @NotThreadSafe
 public class PositionReadFileInStream extends FileInStream {
-  private final long mLength;
-  private long mPos = 0;
-  private boolean mClosed;
-  private final PositionReader mPositionReader;
-  private final PrefetchCache mCache;
-
-  private static class PrefetchCache implements AutoCloseable {
-    private final long mFileLength;
-    private final EvictingQueue<CallTrace> mCallHistory;
-    private int mPrefetchSize = 0;
-
-    private ByteBuf mCache = Unpooled.wrappedBuffer(new byte[0]);
-    private long mCacheStartPos = 0;
-
-    PrefetchCache(int prefetchMultiplier, long fileLength) {
-      mCallHistory = EvictingQueue.create(prefetchMultiplier);
-      mFileLength = fileLength;
-    }
-
-    private void update() {
-      int consecutiveReadLength = 0;
-      long lastReadEnd = -1;
-      for (CallTrace trace : mCallHistory) {
-        if (trace.mPosition == lastReadEnd) {
-          lastReadEnd += trace.mLength;
-          consecutiveReadLength += trace.mLength;
-        } else {
-          lastReadEnd = trace.mPosition + trace.mLength;
-          consecutiveReadLength = trace.mLength;
-        }
-      }
-      mPrefetchSize = consecutiveReadLength;
-    }
-
-    private void addTrace(long pos, int size) {
-      mCallHistory.add(new CallTrace(pos, size));
-      update();
-    }
-
-    /**
-     * Fills the output with bytes from the prefetch cache.
-     *
-     * @param targetStartPos the position within the file to read from
-     * @param outBuffer output buffer
-     * @return number of bytes copied from the cache, 0 if the cache does not contain the requested
-     *         range of data
-     */
-    private int fillWithCache(long targetStartPos, ByteBuffer outBuffer) {
-      if (mCacheStartPos <= targetStartPos) {
-        if (targetStartPos - mCacheStartPos < mCache.readableBytes()) {
-          final int posInCache = (int) (targetStartPos - mCacheStartPos);
-          final int size = Math.min(outBuffer.remaining(), mCache.readableBytes() - posInCache);
-          ByteBuffer slice = outBuffer.slice();
-          slice.limit(size);
-          mCache.getBytes(posInCache, slice);
-          outBuffer.position(outBuffer.position() + size);
-          return size;
-        } else {
-          // the position is beyond the cache end position
-          return 0;
-        }
-      } else {
-        // the position is behind the cache start position
-        return 0;
-      }
-    }
-
-    /**
-     * Prefetches and caches data from the reader.
-     *
-     * @param reader reader
-     * @param pos position within the file
-     * @param minBytesToRead minimum number of bytes to read from the reader
-     * @return number of bytes that's been prefetched, 0 if exception occurs
-     */
-    private int prefetch(PositionReader reader, long pos, int minBytesToRead) {
-      int prefetchSize = Math.max(mPrefetchSize, minBytesToRead);
-      // cap to remaining file length
-      prefetchSize = (int) Math.min(mFileLength - pos, prefetchSize);
-
-      if (mCache.capacity() < prefetchSize) {
-        mCache.release();
-        mCache = PooledDirectNioByteBuf.allocate(prefetchSize);
-        mCacheStartPos = 0;
-      }
-      mCache.clear();
-      try {
-        int bytesPrefetched = reader.read(pos, mCache, prefetchSize);
-        if (bytesPrefetched > 0) {
-          mCache.readerIndex(0).writerIndex(bytesPrefetched);
-          mCacheStartPos = pos;
-        }
-        return bytesPrefetched;
-      } catch (IOException ignored) {
-        // silence exceptions as we don't care if prefetch fails
-        mCache.clear();
-        return 0;
-      }
-    }
-
-    @Override
-    public void close() {
-      mCache.release();
-      mCache = Unpooled.wrappedBuffer(new byte[0]);
-      mCacheStartPos = 0;
-    }
-  }
-
-  private static class CallTrace {
-    final long mPosition;
-    final int mLength;
-
-    private CallTrace(long pos, int length) {
-      mPosition = pos;
-      mLength = length;
-    }
-  }
+  private final long mLength; // length of the file
+  private long mPos = 0; // current position
+  private boolean mClosed; // flag indicating if the stream is closed
+  private final PositionReader mPositionReader; // reader for file positions
+  private final PrefetchCache mPrefetchCache; // cache for prefetching data
 
   /**
-   * Constructor.
-   * @param reader
-   * @param length
+   * Initializes a new instance of the PositionReadFileInStream class with the given PositionReader
+   * and length parameters. It sets the PositionReader, length, and creates a PrefetchCache object
+   * with the specified streaming multiplier and length.
+   *
+   * @param reader the PositionReader used for reading the file positions
+   * @param length the length of the file
    */
   public PositionReadFileInStream(PositionReader reader,
-      long length) {
+                                  long length) {
     mPositionReader = reader;
     mLength = length;
-    mCache = new PrefetchCache(
-        Configuration.getInt(PropertyKey.USER_POSITION_READER_STREAMING_MULTIPLIER), mLength);
+    mPrefetchCache = new PrefetchCache(
+            Configuration.getInt(PropertyKey.USER_POSITION_READER_STREAMING_MULTIPLIER), mLength);
   }
-
+  @VisibleForTesting
+  public PositionReadFileInStream(PositionReader reader, long length,
+                                  PrefetchCache prefetchCache) {
+    mPositionReader = reader;
+    mLength = length;
+    mPrefetchCache = prefetchCache;
+  }
+  /**
+   * Returns the number of remaining bytes to be read from the stream.
+   *
+   * @return the number of remaining bytes
+   */
   @Override
   public long remaining() {
     return mLength - mPos;
   }
 
-  @VisibleForTesting
-  int getBufferedLength() {
-    return mCache.mCache.readableBytes();
-  }
+//  @VisibleForTesting
+//  int getBufferedLength() {
+//    return mPrefetchCache.getCache().readableBytes();
+//  }
+//
+//  @VisibleForTesting
+//  long getBufferedPosition() {
+//    return mPrefetchCache.getCacheStartPos();
+//  }
+//
+//  @VisibleForTesting
+//  int getPrefetchSize() {
+//    return mPrefetchCache.getPrefetchSize();
+//  }
 
-  @VisibleForTesting
-  long getBufferedPosition() {
-    return mCache.mCacheStartPos;
-  }
-
-  @VisibleForTesting
-  int getPrefetchSize() {
-    return mCache.mPrefetchSize;
-  }
-
+  /**
+   * Reads data from the stream into the provided byte array.
+   *
+   * @param b the byte array to read data into
+   * @param off the starting offset in the byte array
+   * @param len the maximum number of bytes to read
+   * @return the number of bytes read, or -1 if the end of the stream is reached
+   * @throws IOException if an I/O error occurs
+   */
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     Objects.requireNonNull(b, "Read buffer cannot be null");
     return read(ByteBuffer.wrap(b), off, len);
   }
 
+  /**
+   * Reads data from the stream into the provided ByteBuffer.
+   *
+   * @param byteBuffer the ByteBuffer to read data into
+   * @param off the starting offset in the ByteBuffer
+   * @param len the maximum number of bytes to read
+   * @return the number of bytes read, or -1 if the end of the stream is reached
+   * @throws IOException if an I/O error occurs
+   */
   @Override
   public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
     byteBuffer.position(off).limit(off + len);
-    mCache.addTrace(mPos, len);
-    int totalBytesRead = 0;
-    int bytesReadFromCache = mCache.fillWithCache(mPos, byteBuffer);
-    totalBytesRead += bytesReadFromCache;
-    mPos += bytesReadFromCache;
-    if (!byteBuffer.hasRemaining()) {
-      return totalBytesRead;
-    }
-    int bytesPrefetched = mCache.prefetch(mPositionReader, mPos, byteBuffer.remaining());
-    if (bytesPrefetched < 0) {
-      if (totalBytesRead == 0) {
-        return -1;
-      }
-      return totalBytesRead;
-    }
-    bytesReadFromCache = mCache.fillWithCache(mPos, byteBuffer);
-    totalBytesRead += bytesReadFromCache;
-    mPos += bytesReadFromCache;
-    if (!byteBuffer.hasRemaining()) {
-      return totalBytesRead;
-    }
-    int bytesRead = mPositionReader.read(mPos, byteBuffer, byteBuffer.remaining());
-    if (bytesRead < 0) {
-      if (totalBytesRead == 0) {
-        return -1;
-      }
-      return totalBytesRead;
-    }
-    totalBytesRead += bytesRead;
-    mPos += bytesRead;
-    return totalBytesRead;
+    mPrefetchCache.addTrace(mPos, len);
+    return readDataFromCacheAndSource(mPos, byteBuffer,true);
   }
 
+  /**
+   * Reads data from the stream at the specified position into the provided byte array.
+   *
+   * @param position the position in the stream to read from
+   * @param buffer the byte array to read data into
+   * @param offset the starting offset in the byte array
+   * @param len the maximum number of bytes to read
+   * @return the number of bytes read, or -1 if the end of the stream is reached
+   * @throws IOException if an I/O error occurs
+   */
   @Override
   public int positionedRead(long position, byte[] buffer, int offset, int len)
-      throws IOException {
-    long pos = position;
+          throws IOException {
     ByteBuffer byteBuffer = ByteBuffer.wrap(buffer, offset, len);
-    mCache.addTrace(position, len);
-    int totalBytesRead = 0;
-    int bytesReadFromCache = mCache.fillWithCache(pos, byteBuffer);
-    totalBytesRead += bytesReadFromCache;
-    pos += bytesReadFromCache;
-    if (!byteBuffer.hasRemaining()) {
-      return totalBytesRead;
-    }
-    int bytesPrefetched = mCache.prefetch(mPositionReader, pos, byteBuffer.remaining());
-    if (bytesPrefetched < 0) {
-      if (totalBytesRead == 0) {
-        return -1;
-      }
-      return totalBytesRead;
-    }
-    bytesReadFromCache = mCache.fillWithCache(pos, byteBuffer);
-    totalBytesRead += bytesReadFromCache;
-    pos += bytesReadFromCache;
-    if (!byteBuffer.hasRemaining()) {
-      return totalBytesRead;
-    }
-    int bytesRead = mPositionReader.read(pos, byteBuffer, byteBuffer.remaining());
-    if (bytesRead < 0) {
-      if (totalBytesRead == 0) {
-        return -1;
-      }
-      return totalBytesRead;
-    }
-    totalBytesRead += bytesRead;
-    pos += bytesRead;
-    return totalBytesRead;
+    mPrefetchCache.addTrace(position, len);
+    return readDataFromCacheAndSource(position, byteBuffer,false);
   }
 
+  /**
+   * Returns the current position in the stream.
+   *
+   * @return the current position
+   * @throws IOException if an I/O error occurs
+   */
   @Override
   public long getPos() throws IOException {
     return mPos;
   }
 
+  /**
+   * Sets the current position in the stream.
+   *
+   * @param pos the position to seek to
+   * @throws IOException if an I/O error occurs
+   */
   @Override
   public void seek(long pos) throws IOException {
     Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockInStream");
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
     Preconditions.checkArgument(pos <= mLength,
-        "Seek position past the end of the read region (block or file).");
+            "Seek position past the end of the read region (block or file).");
     if (pos == mPos) {
       return;
     }
     mPos = pos;
   }
 
+  /**
+   * Skips over and discards a specified number of bytes from the stream.
+   *
+   * @param n the number of bytes to skip
+   * @return the actual number of bytes skipped
+   * @throws IOException if an I/O error occurs
+   */
   @Override
   public long skip(long n) throws IOException {
     Preconditions.checkState(!mClosed, "Cannot do operations on a closed BlockInStream");
@@ -292,6 +181,11 @@ public class PositionReadFileInStream extends FileInStream {
     return toSkip;
   }
 
+  /**
+   * Closes the stream and releases any system resources associated with it.
+   *
+   * @throws IOException if an I/O error occurs
+   */
   @Override
   public void close() throws IOException {
     if (mClosed) {
@@ -299,6 +193,61 @@ public class PositionReadFileInStream extends FileInStream {
     }
     mClosed = true;
     mPositionReader.close();
-    mCache.close();
+    mPrefetchCache.close();
+  }
+
+  /**
+   * Reads data from the cache and the source into the provided ByteBuffer.
+   *
+   * @param pos the position to read data from
+   * @param byteBuffer the ByteBuffer to read data into
+   * @param updatePosition whether to update the position of the stream
+   * @return the number of bytes read, or -1 if the end of the stream is reached
+   * @throws IOException if an I/O error occurs
+   */
+  public int readDataFromCacheAndSource(long pos, ByteBuffer byteBuffer,boolean updatePosition) throws IOException {
+    int totalBytesRead = 0;
+    int bytesReadFromCache = mPrefetchCache.fillWithCache(pos, byteBuffer);
+    totalBytesRead += bytesReadFromCache;
+    pos += bytesReadFromCache;
+
+    if (!byteBuffer.hasRemaining()) {
+      return totalBytesRead;
+    }
+
+    int bytesPrefetched = mPrefetchCache.prefetch(mPositionReader, pos, byteBuffer.remaining());
+    if (bytesPrefetched < 0) {
+      if (totalBytesRead == 0) {
+        return -1;
+      }
+      return totalBytesRead;
+    }
+
+    bytesReadFromCache = mPrefetchCache.fillWithCache(pos, byteBuffer);
+    totalBytesRead += bytesReadFromCache;
+    pos += bytesReadFromCache;
+
+    if (!byteBuffer.hasRemaining()) {
+      return totalBytesRead;
+    }
+
+    int bytesRead = mPositionReader.read(pos, byteBuffer, byteBuffer.remaining());
+    if (bytesRead < 0) {
+      if (totalBytesRead == 0) {
+        return -1;
+      }
+      return totalBytesRead;
+    }
+
+    totalBytesRead += bytesRead;
+    pos += bytesRead;
+
+    if (updatePosition) {
+      mPos = pos;
+    }
+
+    return totalBytesRead;
   }
 }
+
+
