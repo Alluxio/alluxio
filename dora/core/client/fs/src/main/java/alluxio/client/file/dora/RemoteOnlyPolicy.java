@@ -14,14 +14,12 @@ package alluxio.client.file.dora;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.ResourceExhaustedException;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.WorkerNetAddress;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * An implementation of WorkerLocationPolicy, where a client will ONLY talk to a local worker.
+ * An implementation of WorkerLocationPolicy, where a client will ONLY talk to a remote worker.
  */
 public class RemoteOnlyPolicy implements WorkerLocationPolicy {
   private final AlluxioConfiguration mConf;
@@ -41,25 +39,10 @@ public class RemoteOnlyPolicy implements WorkerLocationPolicy {
   @Override
   public List<BlockWorkerInfo> getPreferredWorkers(List<BlockWorkerInfo> blockWorkerInfos,
       String fileId, int count) throws ResourceExhaustedException {
-    WorkerInfoListSingleton workerInfoListSingleton = WorkerInfoListSingleton.getInstance();
-    if (workerInfoListSingleton.isEmpty()) {
-      workerInfoListSingleton.initWorkerList(blockWorkerInfos);
-    } else {
-      workerInfoListSingleton.roulette();
-    }
-    String userHostname = NetworkAddressUtils.getClientHostName(mConf);
     // Find the worker matching in hostname
     List<BlockWorkerInfo> results = new ArrayList<>();
-    for (BlockWorkerInfo worker : workerInfoListSingleton.getWorkerList()) {
-      WorkerNetAddress workerAddr = worker.getNetAddress();
-      if (workerAddr == null) {
-        continue;
-      }
-      // Only a plain string match is performed on hostname
-      // If one is IP and the other is hostname, a false positive will be returned
-      if (!userHostname.equals(workerAddr.getHost())) {
-        results.add(worker);
-      }
+    for (int i = 0; i < count; i++) {
+      results.add(RemoteWorkerList.getInstance(blockWorkerInfos, mConf).findNextWorker());
     }
     return results;
   }
