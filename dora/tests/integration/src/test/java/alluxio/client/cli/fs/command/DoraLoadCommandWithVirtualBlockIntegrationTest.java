@@ -45,6 +45,7 @@ public class DoraLoadCommandWithVirtualBlockIntegrationTest
   @Test
   public void testCommand() throws Exception {
     File testRoot = mTestFolder.newFolder("testRoot");
+    String path = testRoot.getAbsolutePath();
     mTestFolder.newFolder("testRoot/testDirectory");
 
     int lengthA = 16 * Constants.MB;
@@ -63,8 +64,8 @@ public class DoraLoadCommandWithVirtualBlockIntegrationTest
     assertEquals(0, mFileSystem.getStatus(uriC).getInAlluxioPercentage());
 
     // Testing loading of a directory
-    assertEquals(0, mFsShell.run("load", "/testRoot", "--submit", "--verify"));
-    assertEquals(0, mFsShell.run("load", "/testRoot", "--progress"));
+    assertEquals(0, mFsShell.run("load", path, "--submit", "--verify"));
+    assertEquals(0, mFsShell.run("load", path, "--progress"));
 
     FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uriA, 100);
     FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uriB, 100);
@@ -82,7 +83,7 @@ public class DoraLoadCommandWithVirtualBlockIntegrationTest
     fileInStream.positionedRead(0, buffer, 0, lengthC);
     assertTrue(BufferUtils.equalIncreasingByteArray(lengthC, buffer));
     while (!mOutput.toString().contains("SUCCEEDED")) {
-      assertEquals(0, mFsShell.run("load", "/testRoot", "--progress"));
+      assertEquals(0, mFsShell.run("load", path, "--progress"));
       Thread.sleep(1000);
     }
     assertTrue(mOutput.toString().contains("Inodes Processed: 4"));
@@ -90,12 +91,12 @@ public class DoraLoadCommandWithVirtualBlockIntegrationTest
     assertTrue(mOutput.toString().contains(
         String.format("Bytes Loaded: %s.00MB out of %s.00MB", bytes, bytes)));
     assertTrue(mOutput.toString().contains("Files Failed: 0"));
-    assertEquals(0, mFsShell.run("load", "/testRoot", "--stop"));
+    assertEquals(0, mFsShell.run("load", path, "--stop"));
     assertEquals(-2, mFsShell.run("load", "/testRootNotExists", "--progress"));
     assertTrue(mOutput.toString().contains("cannot be found."));
-    mFsShell.run("load", "/testRoot", "--progress", "--format", "JSON");
+    mFsShell.run("load", path, "--progress", "--format", "JSON");
     assertTrue(mOutput.toString().contains("\"mJobState\":\"SUCCEEDED\""));
-    mFsShell.run("load", "/testRoot", "--progress", "--format", "JSON", "--verbose");
+    mFsShell.run("load", path, "--progress", "--format", "JSON", "--verbose");
     assertTrue(mOutput.toString().contains("\"mVerbose\":true"));
   }
 }
