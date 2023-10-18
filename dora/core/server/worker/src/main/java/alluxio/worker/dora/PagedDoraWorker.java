@@ -22,6 +22,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheUsage;
+import alluxio.client.file.cache.PageId;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
@@ -33,6 +34,7 @@ import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.FailedPreconditionException;
+import alluxio.grpc.Block;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.CompleteFilePOptions;
@@ -44,9 +46,10 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadFileFailure;
+import alluxio.grpc.LoadFailure;
 import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.LoadSubTask;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
@@ -64,7 +67,6 @@ import alluxio.membership.MasterMembershipManager;
 import alluxio.membership.MembershipManager;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.meta.DoraMeta;
 import alluxio.resource.PooledResource;
@@ -108,7 +110,9 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
+import io.grpc.Status;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -195,7 +199,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         UnderFileSystemConfiguration.defaults(mConf));
     mFsContext = mResourceCloser.register(fileSystemContext);
     mUfsStreamCache = new UfsInputStreamCache();
-
     mPageSize = mConf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
     mBlockMasterClientPool = blockMasterClientPool;
     mCacheManager = cacheManager;
@@ -203,10 +206,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         new DoraMetaManager(mConf, this, mCacheManager, mUfsManager));
     mMembershipManager = membershipManager;
     mOpenFileHandleContainer = new DoraOpenFileHandleContainer();
-
     mMkdirsRecursive = MkdirsOptions.defaults(mConf).setCreateParent(true);
     mMkdirsNonRecursive = MkdirsOptions.defaults(mConf).setCreateParent(false);
-
     mClientWriteToUFSEnabled = mConf
         .getBoolean(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED);
     mXAttrWriteToUFSEnabled = mConf.getBoolean(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED);
@@ -534,113 +535,139 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return new PagedFileWriter(this, ufsPath, mCacheManager, fileId, mPageSize);
   }
 
-  private boolean isAllPageCached(UfsFileStatus status, Optional<DoraMeta.FileStatus> fileStatus) {
-    if (!fileStatus.isPresent()) {
-      return false;
+  private boolean isAllPageCached(Block block) {
+    alluxio.grpc.UfsStatus status = block.getUfsStatus();
+    String fileId = new AlluxioURI(status.getUfsFullPath()).hash();
+    List<PageId> cachedPages = mCacheManager.getCachedPageIdsByFileId(fileId,
+        status.getUfsFileStatus().getContentLength());
+    int numOfPagesInBlock = (int) (block.getLength() / mPageSize);
+    for (long pageIndex = block.getOffsetInFile() / mPageSize; pageIndex < numOfPagesInBlock;
+         pageIndex++) {
+      PageId pageId = new PageId(fileId, pageIndex);
+      if (!cachedPages.contains(pageId)) {
+        return false;
+      }
     }
-    alluxio.grpc.FileInfo fi = fileStatus.get().getFileInfo();
-    if (!fi.getContentHash().equals(status.getContentHash())) {
-      return false;
-    }
-    String cacheManagerFileId = status.getUfsFullPath().hash();
-    final long bytesInCache = mCacheManager.getUsage()
-        .flatMap(usage -> usage.partitionedBy(file(cacheManagerFileId)))
-        .map(CacheUsage::used).orElse(0L);
-    return bytesInCache == fi.getLength();
+    return true;
   }
 
   @Override
-  public ListenableFuture<LoadFileResponse> load(
-      boolean loadData, boolean skipIfExists, List<UfsStatus> ufsStatuses, UfsReadOptions options)
-      throws AccessControlException, IOException {
+  public ListenableFuture<LoadFileResponse> load(List<LoadSubTask> subTasks, boolean skipIfExists,
+      UfsReadOptions options) throws AccessControlException, IOException {
     List<ListenableFuture<Void>> futures = new ArrayList<>();
-    List<LoadFileFailure> errors = Collections.synchronizedList(new ArrayList<>());
-    AtomicInteger skippedFiles = new AtomicInteger();
-    AtomicLong skippedFileLength = new AtomicLong();
-    for (UfsStatus status : ufsStatuses) {
-      String ufsFullPath = status.getUfsFullPath().toString();
-      UnderFileSystem ufs = getUfsInstance(ufsFullPath);
-      Map<String, String> xattrMap = null;
+    List<LoadFailure> errors = Collections.synchronizedList(new ArrayList<>());
+    AtomicInteger numSkipped = new AtomicInteger();
+    AtomicLong skippedLength = new AtomicLong();
+    for (LoadSubTask task : subTasks) {
+      if (task.hasUfsStatus()) {
+        UfsStatus status = UfsStatus.fromProto(task.getUfsStatus());
+        loadStatus(status, errors);
+      }
+      if (task.hasBlock()) {
+        Block block = task.getBlock();
+
+        if (block.getLength() > 0) {
+          boolean countAsSkipped = skipIfExists && isAllPageCached(block);
+          if (countAsSkipped) {
+            numSkipped.incrementAndGet();
+            skippedLength.addAndGet(block.getLength());
+            continue;
+          }
+
+          try {
+            ListenableFuture<Void> loadFuture = Futures.submit(() -> {
+              try {
+                if (options.hasUser()) {
+                  AuthenticatedClientUser.set(options.getUser());
+                }
+                loadData(block.getUfsPath(), 0, block.getOffsetInFile(), block.getLength(),
+                    block.getUfsStatus().getUfsFileStatus().getContentLength());
+              } catch (Throwable e) {
+                LOG.error("Loading {} failed", block, e);
+                boolean permissionCheckSucceeded = !(e instanceof AccessControlException);
+                AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
+                errors.add(LoadFailure.newBuilder()
+                                      .setSubtask(LoadSubTask.newBuilder().setBlock(block).build())
+                                      .setCode(t.getStatus().getCode().value())
+                                      .setRetryable(permissionCheckSucceeded)
+                                      .setMessage(t.getMessage()).build());
+              }
+            }, GrpcExecutors.READER_EXECUTOR);
+            futures.add(loadFuture);
+          } catch (RejectedExecutionException ex) {
+            LOG.warn("Load task overloaded.");
+            errors.add(LoadFailure.newBuilder()
+                                  .setSubtask(LoadSubTask.newBuilder().setBlock(block).build())
+                                  .setCode(Status.RESOURCE_EXHAUSTED.getCode().value())
+                                  .setRetryable(true).setMessage(ex.getMessage()).build());
+          }
+        }
+      }
+    }
+    return Futures.whenAllComplete(futures).call(
+        () -> LoadFileResponse.newBuilder().addAllFailures(errors)
+                              .setBytesSkipped(skippedLength.get()).setNumSkipped(numSkipped.get())
+                              // Status is a required field, put it as a placeholder
+                              .setStatus(TaskStatus.SUCCESS).build(),
+        GrpcExecutors.READER_EXECUTOR);
+  }
+
+  /**
+   * We use the ufs status sent from master to construct the file metadata,
+   * and that ufs status might be stale.
+   * This is a known consistency issue and will remain as long as the get metadata and
+   * load data operations are not atomic.
+   * Ideally, we can either:
+   * 1. Use a single API to load the file alongside with fetching the file metadata
+   * 2. Getting a last updated timestamp when loading data of a file and use it to
+   * validate the freshness of the metadata and discard the metadata if it is stale.
+   * These two need UFS api support and cannot be achieved in a generic UFS interface.
+   * We may be able to solve this by providing specific implementations for certain UFSes
+   * in the future.
+   *
+   * @param status the ufs status
+   * @param errors the errors
+   */
+  private void loadStatus(UfsStatus status, List<LoadFailure> errors) {
+    String ufsFullPath = status.getUfsFullPath().toString();
+    Map<String, String> xattrMap = null;
+    UnderFileSystem ufs = getUfsInstance(ufsFullPath);
+    try {
       if (mXAttrWriteToUFSEnabled) {
         xattrMap = ufs.getAttributes(ufsFullPath);
       }
       DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath, xattrMap);
-      Optional<DoraMeta.FileStatus> originalFs = mMetaManager.getFromMetaStore(ufsFullPath);
       mMetaManager.put(ufsFullPath, fs);
-      // We use the ufs status sent from master to construct the file metadata,
-      // and that ufs status might be stale.
-      // This is a known consistency issue and will remain as long as the get metadata and
-      // load data operations are not atomic.
-      // Ideally, we can either:
-      // 1. Use a single API to load the file alongside with fetching the file metadata
-      // 2. Getting a last updated timestamp when loading data of a file and use it to
-      //  validate the freshness of the metadata and discard the metadata if it is stale.
-      // These two need UFS api support and cannot be achieved in a generic UFS interface.
-      // We may be able to solve this by providing specific implementations for certain UFSes
-      // in the future.
-      if (!loadData || !status.isFile()) {
-        continue;
-      }
-      long fileLength = status.asUfsFileStatus().getContentLength();
-      boolean countAsSkipped =
-          skipIfExists && isAllPageCached(status.asUfsFileStatus(), originalFs);
-      if (countAsSkipped) {
-        skippedFiles.incrementAndGet();
-        skippedFileLength.addAndGet(status.asUfsFileStatus().getContentLength());
-        continue;
-      }
-      if (fileLength == 0) {
-        continue;
-      }
-      try {
-        ListenableFuture<Void> loadFuture = Futures.submit(() -> {
-          try {
-            if (options.hasUser()) {
-              AuthenticatedClientUser.set(options.getUser());
-            }
-            loadData(status.getUfsFullPath().toString(), 0,
-                status.asUfsFileStatus().getContentLength());
-          } catch (Throwable e) {
-            LOG.error("[DistributedLoad] Loading {} failed", status, e);
-            AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
-            errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
-                .setCode(t.getStatus().getCode().value())
-                .setRetryable(true)
-                .setMessage(t.getMessage()).build());
-          }
-        }, GrpcExecutors.READER_EXECUTOR);
-        futures.add(loadFuture);
-      } catch (RejectedExecutionException ex) {
-        LOG.warn("BlockDataReaderExecutor overloaded.");
-        AlluxioRuntimeException t = AlluxioRuntimeException.from(ex);
-        errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
-            .setCode(t.getStatus().getCode().value())
-            .setRetryable(true)
-            .setMessage(t.getMessage()).build());
-      }
+    } catch (Exception e) {
+      LOG.error("Failed to put file status to meta manager", e);
+      AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
+
+      errors.add(LoadFailure.newBuilder().setSubtask(
+                                LoadSubTask.newBuilder().setUfsStatus(status.toProto()).build())
+                            .setCode(t.getStatus().getCode().value()).setRetryable(true)
+                            .setMessage(t.getMessage()).build());
     }
-    return Futures.whenAllComplete(futures).call(() -> LoadFileResponse.newBuilder()
-            .addAllFailures(errors)
-            .setBytesSkipped(skippedFileLength.get())
-            .setFilesSkipped(skippedFiles.get())
-            // Status is a required field, put it as a placeholder
-            .setStatus(TaskStatus.SUCCESS)
-            .build(),
-        GrpcExecutors.READER_EXECUTOR);
   }
 
-  protected void loadData(String ufsPath, long mountId, long length)
-      throws AccessControlException, IOException {
+  protected void loadData(String ufsPath, long mountId, long offset, long lengthToLoad,
+      long fileLength) throws AccessControlException, IOException {
     Protocol.OpenUfsBlockOptions options =
         Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(ufsPath).setMountId(mountId)
-            .setNoCache(false).setOffsetInFile(0).setBlockSize(length)
-            .build();
+                                    .setNoCache(false).setOffsetInFile(offset)
+                                    .setBlockSize(fileLength).build();
     String fileId = new AlluxioURI(ufsPath).hash();
-    ByteBuf buf = PooledDirectNioByteBuf.allocate((int) (4 * mPageSize));
-    try (BlockReader fileReader = createFileReader(fileId, 0, false, options)) {
-      // cache file data
-      while (fileReader.transferTo(buf) != -1) {
+    int bufferSize = (int) Math.min(4 * mPageSize, lengthToLoad);
+    ByteBuf buf =
+        PooledByteBufAllocator.DEFAULT.directBuffer(bufferSize);
+    try (BlockReader fileReader = createFileReader(fileId, offset, false, options)) {
+      //Transfers data from this reader to the buffer until we reach lengthToLoad.
+      int bytesRead;
+      while (lengthToLoad > 0 && (bytesRead = fileReader.transferTo(buf)) != -1) {
+        lengthToLoad -= bytesRead;
         buf.clear();
+        if (lengthToLoad < bufferSize) {
+          buf.capacity((int) Math.min(lengthToLoad, bufferSize));
+        }
       }
     } catch (IOException | AccessControlException e) {
       throw AlluxioRuntimeException.from(e);

@@ -71,7 +71,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Server side implementation of the gRPC dora worker interface.
@@ -130,12 +129,9 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   public void loadFile(LoadFileRequest request, StreamObserver<LoadFileResponse> responseObserver) {
     try {
       ListenableFuture<LoadFileResponse> response =
-          mWorker.load(!request.getLoadMetadataOnly(), request.getSkipIfExists(),
-              request.getUfsStatusList().stream().map(
-                  UfsStatus::fromProto).collect(
-                  Collectors.toList()), request.getOptions());
+          mWorker.load(request.getSubtasksList(), request.getSkipIfExists(), request.getOptions());
       ListenableFuture<LoadFileResponse> future = Futures.transform(response, resp -> {
-        int numFiles = request.getUfsStatusCount();
+        int numFiles = request.getSubtasksCount();
         TaskStatus taskStatus = TaskStatus.SUCCESS;
         if (!resp.getFailuresList().isEmpty()) {
           taskStatus = numFiles > resp.getFailuresList().size()
@@ -145,7 +141,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       }, GrpcExecutors.WRITER_EXECUTOR);
       RpcUtils.invoke(LOG, future, "loadFile", "request=%s", responseObserver, request);
     } catch (Exception e) {
-      LOG.debug(String.format("Failed to load file %s: ", request.getUfsStatusList()), e);
+      LOG.debug(String.format("Failed to load file %s: ", request.getSubtasksList()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }

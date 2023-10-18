@@ -11,12 +11,20 @@
 
 package alluxio.master.job;
 
+import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
 import alluxio.grpc.LoadJobPOptions;
 import alluxio.job.LoadJobRequest;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.underfs.UfsStatus;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+
+import com.google.common.base.Predicates;
 
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -28,13 +36,16 @@ import java.util.UUID;
 public class LoadJobFactory implements JobFactory {
 
   private final LoadJobRequest mRequest;
+  private final DefaultFileSystemMaster mFs;
 
   /**
    * Create factory.
    * @param request load job request
+   * @param fsMaster file system master
    */
-  public LoadJobFactory(LoadJobRequest request) {
+  public LoadJobFactory(LoadJobRequest request, DefaultFileSystemMaster fsMaster) {
     mRequest = request;
+    mFs = fsMaster;
   }
 
   @Override
@@ -48,13 +59,15 @@ public class LoadJobFactory implements JobFactory {
     Optional<String> user = Optional
         .ofNullable(AuthenticatedClientUser.getOrNull())
         .map(User::getName);
-    return new DoraLoadJob(path, user, UUID.randomUUID().toString(),
-        bandwidth,
-        partialListing,
-        verificationEnabled,
-        options.getLoadMetadataOnly(),
-        options.getSkipIfExists()
-    );
+
+    UnderFileSystem ufs = mFs.getUfsManager().getOrAdd(new AlluxioURI(path),
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
+    Iterable<UfsStatus> iterable = new UfsStatusIterable(ufs, path,
+        Optional.ofNullable(AuthenticatedClientUser.getOrNull()).map(User::getName),
+        Predicates.alwaysTrue());
+    return new DoraLoadJob(path, user, UUID.randomUUID().toString(), bandwidth, partialListing,
+        verificationEnabled, options.getLoadMetadataOnly(), options.getSkipIfExists(),
+        iterable.iterator(), ufs);
   }
 }
 
