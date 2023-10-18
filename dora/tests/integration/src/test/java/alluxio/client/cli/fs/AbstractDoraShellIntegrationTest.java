@@ -50,6 +50,8 @@ public abstract class AbstractDoraShellIntegrationTest extends BaseIntegrationTe
         .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, Constants.KB)
         .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, "1GB")
         .setProperty(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false)
+        .setProperty(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED, false)
+        // current s3 ufs mock don't support setXattr, disable the flag to bypass it
         .setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false)
         .setNumWorkers(numWorkers)
         .setStartCluster(false)
