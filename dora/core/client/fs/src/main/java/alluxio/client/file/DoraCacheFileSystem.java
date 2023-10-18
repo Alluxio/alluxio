@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
+import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.ReadType;
@@ -445,6 +446,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
    * @return UfsBaseFileSystem based full path
    */
   public AlluxioURI convertAlluxioPathToUFSPath(AlluxioURI alluxioPath) {
+    if (alluxioPath.isPathAbsolute() && !Constants.SCHEME.equals(alluxioPath.getScheme())) {
+      return alluxioPath; //already ufs path
+    }
     if (mDelegatedFileSystem instanceof UfsBaseFileSystem) {
       UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
       AlluxioURI rootUFS = under.getRootUFS();

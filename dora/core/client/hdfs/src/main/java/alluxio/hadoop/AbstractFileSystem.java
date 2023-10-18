@@ -18,7 +18,9 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.FileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
@@ -75,6 +77,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.auth.Subject;
@@ -549,9 +552,6 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     // Merge relevant connection details in the URI with the highest priority
     alluxioProps.merge(uriConfProperties, Source.RUNTIME);
     // Creating a new instanced configuration from an AlluxioProperties object isn't expensive.
-    if (!uri.getScheme().equals(Constants.SCHEME)) {
-      alluxioProps.set(PropertyKey.DORA_CLIENT_UFS_ROOT, uri.toString());
-    }
     mAlluxioConf = new InstancedConfiguration(alluxioProps);
     mAlluxioConf.validate();
     mExcludeMountInfoOnListStatus = mAlluxioConf.getBoolean(
@@ -571,8 +571,10 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     // Disable URI validation for non-Alluxio schemes.
     boolean enableUriValidation =
         (uri.getScheme() == null) || uri.getScheme().equals(Constants.SCHEME);
-    mFileSystem = FileSystem.Factory.create(
+    FileSystemContext context = FileSystemContext.create(
         ClientContext.create(subject, mAlluxioConf).setUriValidationEnabled(enableUriValidation));
+    mFileSystem = FileSystem.Factory.create(context,
+        FileSystemOptions.Builder.fromConf(mAlluxioConf, Optional.of(mUri.toString())).build());
   }
 
   private Subject getSubjectFromUGI(UserGroupInformation ugi)
