@@ -33,9 +33,6 @@ import java.util.TreeSet;
 /**
  * Integration tests for help command.
  */
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
-    comment = "fix or remove this test")
-@Ignore
 public final class HelpCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   /**
