@@ -69,6 +69,7 @@ import alluxio.membership.MasterMembershipManager;
 import alluxio.membership.MembershipManager;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.meta.DoraMeta;
 import alluxio.resource.PooledResource;
@@ -720,23 +721,26 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @VisibleForTesting
   public void loadDataFromRemote(String filePath, long offset, long lengthToLoad,
       PositionReader reader, int chunkSize) throws IOException {
-    ByteBuffer buf = ByteBuffer.allocate(chunkSize);
-    String fileId = new AlluxioURI(filePath).hash();
 
-    while (0 < lengthToLoad) {
-      long currentPageIndex = offset / mPageSize;
-      PageId pageId = new PageId(fileId.toString(), currentPageIndex);
-      int lengthToRead = (int) Math.min(chunkSize, lengthToLoad);
-      int lengthRead = reader.read(offset, buf, lengthToRead);
-      if (lengthRead != lengthToRead) {
-        throw new FailedPreconditionRuntimeException(
-            "Read " + lengthRead + " bytes, expected to read " + lengthToRead + " bytes");
+    String fileId = new AlluxioURI(filePath).hash();
+    ByteBuf buf = PooledDirectNioByteBuf.allocate(chunkSize);
+    try {
+      while (0 < lengthToLoad) {
+        long currentPageIndex = offset / mPageSize;
+        PageId pageId = new PageId(fileId.toString(), currentPageIndex);
+        int lengthToRead = (int) Math.min(chunkSize, lengthToLoad);
+        int lengthRead = reader.read(offset, buf, lengthToRead);
+        if (lengthRead != lengthToRead) {
+          throw new FailedPreconditionRuntimeException(
+              "Read " + lengthRead + " bytes, expected to read " + lengthToRead + " bytes");
+        }
+        mCacheManager.put(pageId, buf.nioBuffer(0, lengthRead));
+        offset += lengthRead;
+        lengthToLoad -= lengthRead;
+        buf.clear();
       }
-      buf.flip();
-      mCacheManager.put(pageId, buf);
-      offset += lengthRead;
-      lengthToLoad -= lengthRead;
-      buf.clear();
+    } finally {
+      buf.release();
     }
   }
 

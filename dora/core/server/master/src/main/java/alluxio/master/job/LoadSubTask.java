@@ -14,6 +14,7 @@ package alluxio.master.job;
 import alluxio.common.ShardKey;
 import alluxio.grpc.LoadFailure;
 import alluxio.underfs.UfsStatus;
+import alluxio.wire.WorkerInfo;
 
 /**
  * Load sub task. It's either load metadata or load data.
@@ -21,10 +22,16 @@ import alluxio.underfs.UfsStatus;
 public abstract class LoadSubTask implements ShardKey {
   protected UfsStatus mUfsStatus;
   protected ShardKey mHashKey;
+  private WorkerInfo mWorkerInfo;
 
   LoadSubTask(UfsStatus ufsStatus) {
     mUfsStatus = ufsStatus;
   }
+
+  /**
+   * @return the shallow copy of the subtask
+   */
+  public abstract LoadSubTask copy();
 
   /**
    * @return the length
@@ -44,6 +51,22 @@ public abstract class LoadSubTask implements ShardKey {
   abstract boolean isLoadMetadata();
 
   abstract alluxio.grpc.LoadSubTask toProto();
+
+  /**
+   * @return the worker to run the task
+   */
+  public WorkerInfo getWorkerInfo() {
+    return mWorkerInfo;
+  }
+
+  /**
+   * @param worker the worker info
+   * @return the subtask
+   */
+  public LoadSubTask setWorkerInfo(WorkerInfo worker) {
+    mWorkerInfo = worker;
+    return this;
+  }
 
   /**
    * @param loadFailure      the subtask failure from worker

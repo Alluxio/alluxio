@@ -215,6 +215,7 @@ public class PagedDoraWorkerTest {
       assertTrue(BufferUtils.equalIncreasingByteArray((int) (offset + (i - 1) * mPageSize),
           (int) mPageSize, buffer));
     }
+    // test last page with 5 bytes
     byte[] buffer = new byte[(int) 5];
     mCacheManager.get(new PageId(fileId, 4), 5, buffer, 0);
     assertTrue(BufferUtils.equalIncreasingByteArray((int) (offset + 3 * mPageSize), 5, buffer));

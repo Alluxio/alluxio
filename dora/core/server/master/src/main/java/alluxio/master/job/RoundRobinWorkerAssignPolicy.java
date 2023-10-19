@@ -13,23 +13,31 @@ package alluxio.master.job;
 
 import alluxio.wire.WorkerInfo;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Policy which employs Round Robin around given workers to select worker.
  */
-public class RoundRobinWorkerAssignPolicy extends WorkerAssignPolicy {
+public class RoundRobinWorkerAssignPolicy implements WorkerAssignPolicy {
   private AtomicInteger mCounter = new AtomicInteger(0);
 
   @Override
-  protected WorkerInfo pickAWorker(String object, Collection<WorkerInfo> workerInfos) {
-    if (workerInfos.isEmpty()) {
-      return null;
+  public List<WorkerInfo> pickWorkers(String object, Collection<WorkerInfo> workerInfos,
+      int count) {
+    if (count > workerInfos.size()) {
+      return Collections.emptyList();
     }
-    int nextWorkerIdx = Math.floorMod(mCounter.incrementAndGet(), workerInfos.size());
-    WorkerInfo pickedWorker = workerInfos.toArray(new WorkerInfo[workerInfos.size()])
-        [nextWorkerIdx];
-    return pickedWorker;
+    ArrayList workers = new ArrayList<>();
+    for (int i = 0; i < count; i++) {
+      int nextWorkerIdx = Math.floorMod(mCounter.incrementAndGet(), workerInfos.size());
+      WorkerInfo pickedWorker =
+          workerInfos.toArray(new WorkerInfo[workerInfos.size()])[nextWorkerIdx];
+      workers.add(pickedWorker);
+    }
+    return workers;
   }
 }

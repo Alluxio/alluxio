@@ -68,4 +68,9 @@ public class LoadDataSubTask extends LoadSubTask {
   public long getOffset() {
     return mOffset;
   }
+
+  @Override
+  public LoadSubTask copy() {
+    return new LoadDataSubTask(mUfsStatus, mVirtualBlockSize, mOffset, mLength);
+  }
 }
