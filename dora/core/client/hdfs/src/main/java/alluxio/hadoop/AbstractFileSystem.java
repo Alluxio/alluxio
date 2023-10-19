@@ -532,7 +532,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
 
     // HDFS doesn't allow the authority to be empty; it must be "/" instead.
     String authority = uri.getAuthority() == null ? "/" : uri.getAuthority();
-    mAlluxioHeader = getFsScheme(uri) + "://" + authority;
+    mAlluxioHeader = getFsScheme(uri) + "://" + authority + "/";
     // Set the statistics member. Use mStatistics instead of the parent class's variable.
     mStatistics = statistics;
     mUri = URI.create(mAlluxioHeader);
