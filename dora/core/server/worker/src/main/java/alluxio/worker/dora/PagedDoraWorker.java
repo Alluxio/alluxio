@@ -784,7 +784,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       PositionReader reader, int chunkSize) throws IOException {
     ByteBuffer buf = ByteBuffer.allocateDirect(chunkSize);
     String fileId = new AlluxioURI(filePath).hash();
-
     while (lengthToLoad > 0) {
       long currentPageIndex = offset / mPageSize;
       PageId pageId = new PageId(fileId.toString(), currentPageIndex);

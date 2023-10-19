@@ -18,8 +18,11 @@ import alluxio.underfs.UfsStatus;
  */
 public class LoadMetadataSubTask extends LoadSubTask {
 
+  private final long mVirtualBlockSize;
+
   LoadMetadataSubTask(UfsStatus ufsStatus, long virtualBlockSize) {
     super(ufsStatus);
+    mVirtualBlockSize = virtualBlockSize;
     if (virtualBlockSize == 0) {
       mHashKey = new ConsistentHashShardKey(ufsStatus.getUfsFullPath().toString());
     }
@@ -48,5 +51,10 @@ public class LoadMetadataSubTask extends LoadSubTask {
   @Override
   public String asString() {
     return mHashKey.asString();
+  }
+
+  @Override
+  public LoadSubTask copy() {
+    return new LoadMetadataSubTask(mUfsStatus, mVirtualBlockSize);
   }
 }

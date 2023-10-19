@@ -302,9 +302,10 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
       if (routes.isEmpty()) {
         return Collections.unmodifiableList(tasks);
       }
-      WorkerInfo workerInfo = mWorkerAssignPolicy.pickAWorker(StringUtil.EMPTY_STRING, workers);
+      List<WorkerInfo>
+          workerInfo = mWorkerAssignPolicy.pickWorkers(StringUtil.EMPTY_STRING, workers, 1);
       CopyTask copyTask = new CopyTask(routes);
-      copyTask.setMyRunningWorker(workerInfo);
+      copyTask.setMyRunningWorker(workerInfo.get(0));
       tasks.add(copyTask);
     }
     return Collections.unmodifiableList(tasks);

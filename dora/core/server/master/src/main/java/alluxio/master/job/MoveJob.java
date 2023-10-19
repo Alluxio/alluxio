@@ -302,9 +302,10 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
       if (routes.isEmpty()) {
         return Collections.unmodifiableList(tasks);
       }
-      WorkerInfo workerInfo = mWorkerAssignPolicy.pickAWorker(StringUtil.EMPTY_STRING, workers);
+      List<WorkerInfo>
+          workerInfo = mWorkerAssignPolicy.pickWorkers(StringUtil.EMPTY_STRING, workers, 1);
       MoveTask moveTask = new MoveTask(routes);
-      moveTask.setMyRunningWorker(workerInfo);
+      moveTask.setMyRunningWorker(workerInfo.get(0));
       tasks.add(moveTask);
     }
     return Collections.unmodifiableList(tasks);

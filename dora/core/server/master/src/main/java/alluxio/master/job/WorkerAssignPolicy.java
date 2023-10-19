@@ -11,9 +11,11 @@
 
 package alluxio.master.job;
 
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.wire.WorkerInfo;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * The worker assign policy.
@@ -21,13 +23,16 @@ import java.util.Collection;
  * from a given set of workers based on the policy, it is caller's responsibility
  * to resolve any membership considerations before giving the worker set to pick from.
  */
-public abstract class WorkerAssignPolicy {
+public interface WorkerAssignPolicy {
 
   /**
-   * Pick a worker based on the policy.
-   * @param object object
-   * @param workerInfos worker information
-   * @return the picked worker
+   * Pick workers based on the policy. If the expected number is not met, it will return empty list
+   *
+   * @param object      object
+   * @param workerInfos distinct workers' information
+   * @param count       expected number of distinct workers
+   * @return the picked workers
+   * @throws ResourceExhaustedRuntimeException if there are not enough workers to pick from
    */
-  protected abstract WorkerInfo pickAWorker(String object, Collection<WorkerInfo> workerInfos);
+  List<WorkerInfo> pickWorkers(String object, Collection<WorkerInfo> workerInfos, int count);
 }
