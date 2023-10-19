@@ -5774,6 +5774,35 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .build();
+  public static final PropertyKey USER_POSITION_READER_PRELOAD_DATA_ENABLED =
+      booleanBuilder("user.position.reader.preload.data.enabled")
+          .setScope(Scope.CLIENT)
+          .setDefaultValue(false)
+          .setDescription("")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD =
+      dataSizeBuilder("user.position.reader.preload.data.file.size.threshold")
+          .setScope(Scope.CLIENT)
+          .setDefaultValue("2GB")
+          .setDescription("")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey USER_POSITION_READER_PRELOAD_DATA_SIZE =
+      dataSizeBuilder("user.position.reader.preload.data.size")
+          .setScope(Scope.CLIENT)
+          .setDefaultValue("320MB")
+          .setDescription("")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey WORKER_PRELOAD_DATA_CONCURRENCY =
+      intBuilder("alluxio.worker.preload.data.concurrency")
+          .setScope(Scope.WORKER)
+          .setDefaultValue(20)
+          .setDescription("")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+
   public static final PropertyKey USER_STREAMING_DATA_READ_TIMEOUT =
       durationBuilder(Name.USER_STREAMING_DATA_READ_TIMEOUT)
           .setAlias("alluxio.user.network.data.timeout.ms", Name.USER_NETWORK_DATA_TIMEOUT,

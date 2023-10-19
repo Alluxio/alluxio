@@ -191,6 +191,13 @@ public class AlluxioFuse {
             + "with around 40MB memory consumption for FUSE");
       }
     }
+    if (Configuration.getBoolean(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_ENABLED)) {
+      LOG.info(
+          "Position reader preload data is enabled, loading size {}, file threshold {}",
+          Configuration.getString(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_SIZE),
+          Configuration.getString(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD)
+      );
+    }
     AlluxioConfiguration conf = Configuration.global();
     alluxioFuse.start(conf);
   }

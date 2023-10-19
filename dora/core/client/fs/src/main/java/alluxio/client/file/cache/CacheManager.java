@@ -343,6 +343,10 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
    */
   State state();
 
+  default boolean hasPageUnsafe(PageId pageId) {
+    throw new UnsupportedOperationException();
+  }
+
   /**
    *
    * @param pageId

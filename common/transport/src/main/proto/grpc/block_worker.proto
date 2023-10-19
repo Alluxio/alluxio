@@ -76,6 +76,7 @@ service BlockWorker {
    * Sets file or directory attributes.
    */
   rpc SetAttribute(grpc.file.SetAttributePRequest) returns (grpc.file.SetAttributePResponse);
+  rpc CacheData(CacheDataRequest) returns (CacheDataResponse);
 }
 
 message UfsStatus {
@@ -243,6 +244,16 @@ message LoadFileRequest {
   required UfsReadOptions options = 2;
   optional bool load_metadata_only = 3; // If set false, only the metadata of file will be loaded.
   optional bool skip_if_exists = 4;
+}
+
+message CacheDataRequest {
+  optional string ufs_path = 1;
+  optional int64 pos = 2;
+  optional int64 length = 3;
+}
+
+message CacheDataResponse {
+  optional string place_holder = 1;
 }
 
 message File{

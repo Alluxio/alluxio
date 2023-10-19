@@ -33,6 +33,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.PermissionDeniedException;
+import alluxio.grpc.CacheDataRequest;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CompleteFilePRequest;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -120,7 +121,7 @@ public class DoraCacheClient {
     } else {
       throw new UnsupportedOperationException("Grpc dora reader not implemented");
     }
-    return new PositionReadFileInStream(reader, status.getLength());
+    return new PositionReadFileInStream(reader, status, this);
   }
 
   /**
@@ -422,6 +423,20 @@ public class DoraCacheClient {
           .setOptions(options)
           .build();
       client.get().setAttribute(request);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public void loadDataAsync(String ufsPath, long pos, long length) {
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(ufsPath))) {
+      CacheDataRequest request = CacheDataRequest.newBuilder()
+          .setUfsPath(ufsPath)
+          .setPos(pos)
+          .setLength(length)
+          .build();
+      client.get().cacheData(request);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

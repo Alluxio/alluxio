@@ -211,6 +211,11 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
+  public boolean hasPageUnsafe(PageId pageId) {
+    return mCacheManager.hasPageUnsafe(pageId);
+  }
+
+  @Override
   public void deleteFile(String fileId) {
     try {
       mCacheManager.deleteFile(fileId);
