@@ -63,7 +63,7 @@ public class DoraLoadJobTest {
   @Test
   public void testGetNextTaskWithVirtualBlocks() throws IOException {
     int testLength = 3 * Constants.MB;
-    String testPath = createByteFileInUfs("a", testLength);
+    String testPath = createByteFileInUfs("testFileVirtualBlock", testLength);
     // test get next task is working properly with virtual blocks
     Iterator<UfsStatus> iterator = new UfsStatusIterable(mLocalUfs, mLocalUfsRoot, Optional.empty(),
         Predicates.alwaysTrue()).iterator();
