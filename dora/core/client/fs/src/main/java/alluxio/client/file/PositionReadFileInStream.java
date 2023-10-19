@@ -115,7 +115,11 @@ public class PositionReadFileInStream extends FileInStream {
 
       if (mCache.capacity() < prefetchSize) {
         mCache.release();
-        mCache = PooledDirectNioByteBuf.allocate(prefetchSize);
+        try {
+          mCache = PooledDirectNioByteBuf.allocate(prefetchSize);
+        } catch (OutOfMemoryError oom) {
+          mCache = Unpooled.wrappedBuffer(new byte[0]);
+        }
         mCacheStartPos = 0;
       }
       mCache.clear();
