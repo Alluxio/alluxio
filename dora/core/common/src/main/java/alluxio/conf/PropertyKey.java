@@ -5774,6 +5774,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .build();
+  public static final PropertyKey USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE =
+      dataSizeBuilder(Name.USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue("16MB")
+          .setDescription("The max size of the prefetch of dynamic buffering")
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
   public static final PropertyKey USER_POSITION_READER_PRELOAD_DATA_ENABLED =
       booleanBuilder("user.position.reader.preload.data.enabled")
           .setScope(Scope.CLIENT)
@@ -8293,6 +8301,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_APP_ID = "alluxio.user.app.id";
     public static final String USER_POSITION_READER_STREAMING_MULTIPLIER =
         "alluxio.user.position.reader.streaming.multiplier";
+    public static final String USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE =
+        "alluxio.user.position.reader.streaming.prefetch.max.size";
     public static final String USER_NETWORK_DATA_TIMEOUT =
         "alluxio.user.network.data.timeout";
     public static final String USER_NETWORK_READER_BUFFER_SIZE_MESSAGES =
