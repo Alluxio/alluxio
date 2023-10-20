@@ -117,6 +117,10 @@
       <artifactId>prometheus-metrics-exporter-servlet-jakarta</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.prometheus</groupId>
+      <artifactId>prometheus-metrics-instrumentation-jvm</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.swagger</groupId>
       <artifactId>swagger-annotations</artifactId>
     </dependency>

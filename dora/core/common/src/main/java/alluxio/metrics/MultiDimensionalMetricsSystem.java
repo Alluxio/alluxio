@@ -19,11 +19,12 @@ import io.prometheus.metrics.config.PrometheusProperties;
 import io.prometheus.metrics.core.metrics.Counter;
 import io.prometheus.metrics.core.metrics.Gauge;
 import io.prometheus.metrics.core.metrics.GaugeWithCallback;
-import io.prometheus.metrics.core.metrics.Histogram;
+import io.prometheus.metrics.core.metrics.Summary;
 import io.prometheus.metrics.exporter.common.PrometheusHttpRequest;
 import io.prometheus.metrics.exporter.common.PrometheusHttpResponse;
 import io.prometheus.metrics.exporter.common.PrometheusScrapeHandler;
 import io.prometheus.metrics.exporter.servlet.jakarta.HttpExchangeAdapter;
+import io.prometheus.metrics.instrumentation.jvm.JvmMetrics;
 import io.prometheus.metrics.model.registry.PrometheusRegistry;
 import io.prometheus.metrics.model.snapshots.Unit;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -42,14 +43,14 @@ import javax.servlet.http.HttpServletResponse;
  * and expose all the metrics to the web server.
  */
 public final class MultiDimensionalMetricsSystem {
-  public static final Histogram DATA_ACCESS = Histogram.builder()
+  public static final Summary DATA_ACCESS = Summary.builder()
       .name("alluxio_data_access")
       .help("aggregated latency of all the data access")
       .unit(Unit.SECONDS)
       .labelNames("method")
       .register();
 
-  public static final Histogram UFS_DATA_ACCESS = Histogram.builder()
+  public static final Summary UFS_DATA_ACCESS = Summary.builder()
       .name("alluxio_ufs_data_access")
       .help("aggregated latency of ufs access")
       .unit(Unit.SECONDS)
@@ -96,6 +97,13 @@ public final class MultiDimensionalMetricsSystem {
       .help("amount of readable cached data")
       .unit(Unit.BYTES)
       .register();
+
+  /**
+   * Initialize all the metrics.
+   */
+  public static void initMetrics() {
+    JvmMetrics.builder().register();
+  }
 
   /**
    * A servlet that exposes metrics data in prometheus format by HTTP.

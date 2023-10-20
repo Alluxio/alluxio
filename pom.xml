@@ -466,6 +466,11 @@
       </dependency>
       <dependency>
         <groupId>io.prometheus</groupId>
+        <artifactId>prometheus-metrics-instrumentation-jvm</artifactId>
+        <version>${prometheus.client.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
         <artifactId>simpleclient</artifactId>
         <version>${prometheus.version}</version>
       </dependency>
