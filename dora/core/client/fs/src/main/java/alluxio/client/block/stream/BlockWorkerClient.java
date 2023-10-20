@@ -153,6 +153,11 @@ public interface BlockWorkerClient extends Closeable {
    */
   void cache(CacheRequest request);
 
+  /**
+   * Cache data.
+   *
+   * @param request
+   */
   void cacheData(CacheDataRequest request);
 
   /**

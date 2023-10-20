@@ -176,8 +176,10 @@ public class PositionReadFileInStream extends FileInStream {
 
   /**
    * Constructor.
+   *
    * @param reader
-   * @param length
+   * @param uriStatus
+   * @param client
    */
   public PositionReadFileInStream(
       PositionReader reader,

@@ -343,6 +343,12 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
    */
   State state();
 
+  /**
+   * Check if a page is being stored.
+   *
+   * @param pageId
+   * @return whether the cache has stored the page
+   */
   default boolean hasPageUnsafe(PageId pageId) {
     throw new UnsupportedOperationException();
   }
