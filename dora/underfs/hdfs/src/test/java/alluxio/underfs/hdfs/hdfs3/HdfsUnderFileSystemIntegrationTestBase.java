@@ -103,6 +103,10 @@ public class HdfsUnderFileSystemIntegrationTestBase {
         mUfs.getFs().getFileBlockLocations(status, 0, status.getLen()).length);
   }
 
+  protected void createDirectoryTest(String dirPath) throws IOException {
+    mUfs.mkdirs(dirPath);
+  }
+
   protected void writeEmptyFileTest() throws IOException {
     String testFilePath = "/empty_file";
     OutputStream os = mUfs.create(testFilePath, getCreateOption());
