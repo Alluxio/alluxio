@@ -730,6 +730,7 @@ message CancelSyncMetadataPRequest {
 message CancelSyncMetadataPResponse {
   optional bool success = 1;
 }
+
 message LostBlockList {
   repeated int64 blockId = 1;
 }

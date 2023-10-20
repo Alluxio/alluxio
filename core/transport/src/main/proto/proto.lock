@@ -4217,16 +4217,29 @@
             ]
           },
           {
-            "name": "GetLostFilesIdPRequest"
-          },
-          {
-            "name": "GetLostFilesIdPResponse",
+            "name": "LostBlockList",
             "fields": [
               {
                 "id": 1,
-                "name": "lostFilesId",
+                "name": "blockId",
                 "type": "int64",
                 "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "GetLostFilesPRequest"
+          },
+          {
+            "name": "GetLostFilesPResponse",
+            "maps": [
+              {
+                "key_type": "int64",
+                "field": {
+                  "id": 1,
+                  "name": "lostFiles",
+                  "type": "LostBlockList"
+                }
               }
             ]
           },
@@ -4534,9 +4547,9 @@
                 "out_type": "CancelSyncMetadataPResponse"
               },
               {
-                "name": "GetLostFilesId",
-                "in_type": "GetLostFilesIdPRequest",
-                "out_type": "GetLostFilesIdPResponse"
+                "name": "GetLostFilesWithBlocks",
+                "in_type": "GetLostFilesPRequest",
+                "out_type": "GetLostFilesPResponse"
               }
             ]
           },
