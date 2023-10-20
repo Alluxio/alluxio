@@ -51,6 +51,7 @@ public class WorkerHttpServerIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.WORKER_HTTP_SERVER_PORT, mHttpServerPort)
+          .setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false)
           .build();
 
   private static final String TEST_CONTENT = "test-content";

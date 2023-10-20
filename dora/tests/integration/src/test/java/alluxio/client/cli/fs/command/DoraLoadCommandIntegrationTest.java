@@ -83,4 +83,32 @@ public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellT
     mFsShell.run("load", path, "--progress", "--format", "JSON", "--verbose");
     assertTrue(mOutput.toString().contains("\"mVerbose\":true"));
   }
+
+  @Test
+  public void testRegxPatternFileFilter() throws Exception {
+    File testRoot = mTestFolder.newFolder("testRoot");
+    mTestFolder.newFolder("testRoot/testDirectory");
+    String path = testRoot.getAbsolutePath();
+    createByteFileInUfs("/testRoot/testFileA", Constants.MB);
+    createByteFileInUfs("/testRoot/testFileB", Constants.MB);
+    createByteFileInUfs("/testRoot/testDirectory/testFileC", Constants.MB);
+
+    AlluxioURI uriA = new AlluxioURI("/testRoot/testFileA");
+    AlluxioURI uriB = new AlluxioURI("/testRoot/testFileB");
+    AlluxioURI uriC = new AlluxioURI("/testRoot/testDirectory/testFileC");
+
+    assertEquals(0, mFileSystem.getStatus(uriA).getInAlluxioPercentage());
+    assertEquals(0, mFileSystem.getStatus(uriB).getInAlluxioPercentage());
+    assertEquals(0, mFileSystem.getStatus(uriC).getInAlluxioPercentage());
+    // Testing loading of a directory
+
+    assertEquals(0, mFsShell.run("load", path, "--submit", "--verify",
+        "--file-filter-regx", ".*B"));
+    assertEquals(0, mFsShell.run("load", path, "--progress"));
+    while (!mOutput.toString().contains("SUCCEEDED")) {
+      assertEquals(0, mFsShell.run("load", path, "--progress"));
+      Thread.sleep(1000);
+    }
+    assertTrue(mOutput.toString().contains("Inodes Processed: 1"));
+  }
 }

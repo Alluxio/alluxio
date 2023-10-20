@@ -23,6 +23,7 @@ message LoadJobEntry {
   optional int64 end_time = 8;
   optional bool load_metadata_only = 9;
   optional bool skip_if_exists = 10;
+  optional string file_filter_regx = 11;
 }
 
 // next available id: 13

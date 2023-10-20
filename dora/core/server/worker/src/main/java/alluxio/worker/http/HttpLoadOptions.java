@@ -11,6 +11,7 @@
 
 package alluxio.worker.http;
 
+import java.util.Optional;
 import java.util.OptionalLong;
 
 /**
@@ -35,6 +36,8 @@ public class HttpLoadOptions {
     private boolean mLoadMetadataOnly;
 
     private boolean mSkipIfExists;
+
+    private Optional<String> mFileFilterRegx = Optional.empty();
 
     private Builder() {
     }
@@ -104,6 +107,14 @@ public class HttpLoadOptions {
     }
 
     /**
+     * Set the file filter regx pattern string.
+     * @param fileFilterRegx the file filter regx pattern string
+     */
+    public void setFileFilterRegx(Optional<String> fileFilterRegx) {
+      mFileFilterRegx = fileFilterRegx;
+    }
+
+    /**
      * Get the operation type {@link OpType}.
      * @return the operation type {@link OpType}
      */
@@ -167,13 +178,21 @@ public class HttpLoadOptions {
       return mSkipIfExists;
     }
 
+    /**
+     * Get the file filter regx pattern string.
+     * @return the file filter regx pattern string
+     */
+    public Optional<String> getFileFilterRegx() {
+      return mFileFilterRegx;
+    }
+
     public static Builder newBuilder() {
       return new Builder();
     }
 
     public HttpLoadOptions build() {
       return new HttpLoadOptions(mOpType, mPartialListing, mVerify, mBandwidth,
-          mProgressFormat, mVerbose, mLoadMetadataOnly, mSkipIfExists);
+          mProgressFormat, mVerbose, mLoadMetadataOnly, mSkipIfExists, mFileFilterRegx);
     }
   }
 
@@ -212,6 +231,8 @@ public class HttpLoadOptions {
 
   private final boolean mSkipIfExists;
 
+  private final Optional<String> mFileFilterRegx;
+
   /**
    * Create an object of {@link HttpLoadOptions}. A data model for the HTTP load options.
    * @param opType the operation type
@@ -222,10 +243,12 @@ public class HttpLoadOptions {
    * @param verbose if we want to print the verbose information
    * @param loadMetadataOnly if we load metadata only
    * @param skipIfExists skip if exists
+   * @param fileFilterRegx the file filter regx pattern string
    */
   public HttpLoadOptions(OpType opType, boolean partialListing, boolean verify,
                          OptionalLong bandwidth, String progressFormat, boolean verbose,
-                         boolean loadMetadataOnly, boolean skipIfExists) {
+                         boolean loadMetadataOnly, boolean skipIfExists,
+                         Optional<String> fileFilterRegx) {
     mOpType = opType;
     mPartialListing = partialListing;
     mVerify = verify;
@@ -234,6 +257,7 @@ public class HttpLoadOptions {
     mVerbose = verbose;
     mLoadMetadataOnly = loadMetadataOnly;
     mSkipIfExists = skipIfExists;
+    mFileFilterRegx = fileFilterRegx;
   }
 
   /**
@@ -298,5 +322,13 @@ public class HttpLoadOptions {
    */
   public boolean isSkipIfExists() {
     return mSkipIfExists;
+  }
+
+  /**
+   * Get the file filter regx pattern string.
+   * @return the file filter regx pattern string
+   */
+  public Optional<String> getFileFilterRegx() {
+    return mFileFilterRegx;
   }
 }

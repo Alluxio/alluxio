@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * {@link HttpServerHandler} deals with HTTP requests received from Netty Channel.
@@ -216,6 +217,10 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
     String skipIfExistsStr = parameters.get("skipIfExists");
     if (skipIfExistsStr != null && !skipIfExistsStr.isEmpty()) {
       builder.setSkipIfExists(Boolean.parseBoolean(skipIfExistsStr));
+    }
+    String fileFilterRegxPattern = parameters.get("fileFilterRegx");
+    if (fileFilterRegxPattern != null && !fileFilterRegxPattern.isEmpty()) {
+      builder.setFileFilterRegx(Optional.of(fileFilterRegxPattern));
     }
     String progressFormatStr = parameters.get("progressFormat");
     if (progressFormatStr != null && !progressFormatStr.isEmpty()) {
