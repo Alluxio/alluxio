@@ -101,6 +101,7 @@ public final class MultiDimensionalMetricsSystem {
    * A servlet that exposes metrics data in prometheus format by HTTP.
    */
   public static class WebHandler extends HttpServlet {
+    private static final long serialVersionUID = 1;
     private static final String SERVLET_PATH = "/metrics";
 
     private final PrometheusScrapeHandler mHandler = new PrometheusScrapeHandler(

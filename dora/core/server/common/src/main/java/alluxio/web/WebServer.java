@@ -124,6 +124,8 @@ public abstract class WebServer {
             DispatcherType.ASYNC, DispatcherType.ERROR));
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mMetricsServlet.getHandler(), mPMetricsServlet.getHandler(),
+        // The handler of the multi-dimensional metrics should be put after all
+        // the other metrics-related handlers, and before the webui servlet.
         MultiDimensionalMetricsSystem.WebHandler.getHandler(),
         mServletContextHandler, new DefaultHandler()});
     mServer.setHandler(handlers);
