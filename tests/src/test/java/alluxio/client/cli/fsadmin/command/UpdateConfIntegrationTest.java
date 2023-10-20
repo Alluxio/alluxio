@@ -35,7 +35,7 @@ public final class UpdateConfIntegrationTest extends AbstractFsAdminShellTest {
 
   @Test
   public void updateUnknownKey() {
-    // Support update non-existing key
+    // Do not support update non-existing key
     int ret = mFsAdminShell.run("updateConf", "unknown-key=unknown-value");
     Assert.assertEquals(-2, ret);
     ret = mFsAdminShell.run("updateConf", "unknown-key");
