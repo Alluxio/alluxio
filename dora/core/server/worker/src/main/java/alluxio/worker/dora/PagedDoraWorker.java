@@ -144,7 +144,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final Closer mResourceCloser = Closer.create();
   // TODO(lucy) change to string typed once membership manager got enabled by default
   private final AtomicReference<WorkerIdentity> mWorkerId;
-  private final CacheManager mCacheManager;
+  protected final CacheManager mCacheManager;
   protected final DoraUfsManager mUfsManager;
   private final DoraMetaManager mMetaManager;
   private final MembershipManager mMembershipManager;
@@ -196,7 +196,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mUfsManager = mResourceCloser.register(new DoraUfsManager());
     String rootUFS = mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     mUfsManager.getOrAdd(new AlluxioURI(rootUFS),
-        UnderFileSystemConfiguration.defaults(mConf));
+        () -> UnderFileSystemConfiguration.defaults(mConf));
     mFsContext = mResourceCloser.register(fileSystemContext);
     mUfsStreamCache = new UfsInputStreamCache();
     mPageSize = mConf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
@@ -213,14 +213,17 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mXAttrWriteToUFSEnabled = mConf.getBoolean(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED);
   }
 
+  /**
+   * Finds the matching UFS instance for a UFS path.
+   *
+   * @param ufsUriStr the UFS path to find a UFS instance for
+   * @return the corresponding UFS instance
+   */
   @VisibleForTesting
-  protected UnderFileSystem getUfsInstance(String ufsUriStr) {
+  public UnderFileSystem getUfsInstance(String ufsUriStr) {
     AlluxioURI ufsUriUri = new AlluxioURI(ufsUriStr);
     try {
-      Optional<UnderFileSystem> ufs = mUfsManager.get(ufsUriUri,
-          // todo(bowen): local configuration may not have UFS-specific configurations
-          //  find another way to load UFS configurations
-          UnderFileSystemConfiguration.defaults(mConf));
+      Optional<UnderFileSystem> ufs = mUfsManager.get(ufsUriUri);
       return ufs.orElseThrow(() ->
           new IllegalArgumentException(String.format("UFS not registered for %s", ufsUriUri)));
     } catch (Exception e) {
@@ -737,7 +740,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   protected UnderFileSystem getUnderFileSystem(String ufsPath) {
     return mUfsManager.getOrAdd(new AlluxioURI(ufsPath),
-        UnderFileSystemConfiguration.defaults(mConf));
+        () -> UnderFileSystemConfiguration.defaults(mConf));
   }
 
   @Override
