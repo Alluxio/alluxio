@@ -96,9 +96,13 @@ public class EtcdMembershipManager implements MembershipManager {
       if (!Arrays.equals(existingEntityBytes, serializedEntity)) {
         // In k8s this might be bcos worker pod restarting with the same worker identity
         // but certain fields such as hostname has been changed. Register to ring path anyway.
-        LOG.warn("Same worker entity found bearing same workerid,"
+        WorkerServiceEntity existingEntity = new WorkerServiceEntity();
+        existingEntity.deserialize(existingEntityBytes);
+        LOG.warn("Same worker entity found bearing same workerid:{},"
+            + "existing WorkerServiceEntity to be overwritten:{},"
             + "maybe benign if pod restart in k8s env or same worker"
-            + " scheduled to restart on another machine in baremetal env.");
+            + " scheduled to restart on another machine in baremetal env.",
+            workerInfo.getIdentity().toString(), existingEntity);
         mAlluxioEtcdClient.createForPath(pathOnRing, Optional.of(serializedEntity));
       }
       // It's me, go ahead to start heartbeating.
