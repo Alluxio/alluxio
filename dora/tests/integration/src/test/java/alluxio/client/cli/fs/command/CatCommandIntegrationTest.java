@@ -16,7 +16,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileInStream;
@@ -27,7 +26,6 @@ import alluxio.grpc.WritePType;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -36,10 +34,6 @@ import java.io.PrintWriter;
 /**
  * Tests for cat command.
  */
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
-    comment = "the cluster is not properly cleaned up before each test run, "
-        + "see alluxio.testutils.LocalAlluxioClusterResource.ResetRule.resetCluster")
-@Ignore("ignored due to broken test infrastructure")
 public final class CatCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void catDirectory() throws Exception {

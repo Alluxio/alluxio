@@ -63,7 +63,7 @@ public class DoraLoadJobTest {
   @Test
   public void testGetNextTaskWithVirtualBlocks() throws IOException {
     int testLength = 3 * Constants.MB;
-    String testPath = createByteFileInUfs("a", testLength);
+    String testPath = createByteFileInUfs("testFileVirtualBlock", testLength);
     // test get next task is working properly with virtual blocks
     Iterator<UfsStatus> iterator = new UfsStatusIterable(mLocalUfs, mLocalUfsRoot, Optional.empty(),
         Predicates.alwaysTrue()).iterator();
@@ -72,9 +72,7 @@ public class DoraLoadJobTest {
             false, false, iterator, mLocalUfs);
     Collection<WorkerInfo> workers = ImmutableList.of(
             new WorkerInfo().setId(1).setAddress(
-                new WorkerNetAddress().setHost("worker1").setRpcPort(1234)),
-            new WorkerInfo().setId(2).setAddress(
-                new WorkerNetAddress().setHost("worker2").setRpcPort(1234)));
+                new WorkerNetAddress().setHost("worker1").setRpcPort(1234)));
     List<DoraLoadJob.DoraLoadTask> tasks = loadJob.getNextTasks(workers);
     List<LoadSubTask> subTasks = tasks.get(0).getSubTasks();
     assertEquals(3, subTasks.size());

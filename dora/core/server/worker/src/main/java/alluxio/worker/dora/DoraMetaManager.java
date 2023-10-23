@@ -55,7 +55,7 @@ public class DoraMetaManager implements Closeable {
   private final DoraMetaStore mMetaStore;
   private final CacheManager mCacheManager;
   private final PagedDoraWorker mDoraWorker;
-  private final DoraUfsManager mUfsManager;
+  protected final DoraUfsManager mUfsManager;
 
   private static final Logger SAMPLING_LOG = new SamplingLogger(
       LoggerFactory.getLogger(DoraMetaManager.class), 1L * Constants.MINUTE_MS);
@@ -94,13 +94,11 @@ public class DoraMetaManager implements Closeable {
     mUfsManager = ufsManager;
   }
 
-  private UnderFileSystem getUfsInstance(String ufsUriStr) {
+  protected UnderFileSystem getUfsInstance(String ufsUriStr) {
     AlluxioURI ufsUriUri = new AlluxioURI(ufsUriStr);
     try {
       UnderFileSystem ufs = mUfsManager.getOrAdd(ufsUriUri,
-          // todo(bowen): local configuration may not have UFS-specific configurations
-          //  find another way to load UFS configurations
-          UnderFileSystemConfiguration.defaults(mConf));
+          () -> UnderFileSystemConfiguration.defaults(mConf));
       return ufs;
     } catch (Exception e) {
       LOG.debug("failed to get UFS instance for URI {}", ufsUriStr, e);

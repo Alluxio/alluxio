@@ -74,7 +74,7 @@ public final class LocationCommand extends AbstractFileSystemCommand {
           if (workersThatHaveDataList != null && !workersThatHaveDataList.isEmpty()) {
             dataOnPreferredWorker = workersThatHaveDataList.contains(preferredWorker);
             workersThatHaveDataSet = workersThatHaveDataList.stream()
-                .map(workerNetAddress -> workerNetAddress.getHost()).collect(Collectors.toSet());
+                .map(WorkerNetAddress::getHost).collect(Collectors.toSet());
           }
         }
       }
