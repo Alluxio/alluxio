@@ -61,7 +61,7 @@ public class LoadJobFactory implements JobFactory {
         .map(User::getName);
 
     UnderFileSystem ufs = mFs.getUfsManager().getOrAdd(new AlluxioURI(path),
-        UnderFileSystemConfiguration.defaults(Configuration.global()));
+        () -> UnderFileSystemConfiguration.defaults(Configuration.global()));
     Iterable<UfsStatus> iterable = new UfsStatusIterable(ufs, path,
         Optional.ofNullable(AuthenticatedClientUser.getOrNull()).map(User::getName),
         Predicates.alwaysTrue());
