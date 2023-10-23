@@ -817,10 +817,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @VisibleForTesting
   public void loadDataFromRemote(String filePath, long offset, long lengthToLoad,
       PositionReader reader, int chunkSize) throws IOException {
-    ByteBuffer buf = ByteBuffer.allocate(chunkSize);
+    ByteBuffer buf = ByteBuffer.allocateDirect(chunkSize);
     String fileId = new AlluxioURI(filePath).hash();
 
-    while (0 < lengthToLoad) {
+    while (lengthToLoad > 0) {
       long currentPageIndex = offset / mPageSize;
       PageId pageId = new PageId(fileId.toString(), currentPageIndex);
       int lengthToRead = (int) Math.min(chunkSize, lengthToLoad);
