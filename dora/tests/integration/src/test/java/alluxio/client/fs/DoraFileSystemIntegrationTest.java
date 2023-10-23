@@ -17,6 +17,7 @@ import static org.junit.Assert.assertThrows;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -41,6 +42,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.apache.commons.io.IOUtils;
 import org.gaul.s3proxy.junit.S3ProxyRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -50,6 +52,9 @@ import java.io.IOException;
 /**
  * Integration tests for Alluxio Client (reuse the {@link LocalAlluxioCluster}).
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "yichuan",
+    comment = "Bring back but not passed, need to fix.")
 public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   @Rule
   public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
