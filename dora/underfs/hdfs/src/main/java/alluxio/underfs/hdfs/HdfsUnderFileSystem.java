@@ -34,6 +34,7 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.GetStatusOptions;
+import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
@@ -69,6 +70,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -507,6 +509,14 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   public boolean isFile(String path) throws IOException {
     FileSystem hdfs = getFs();
     return hdfs.isFile(new Path(path));
+  }
+
+  @Nullable
+  @Override
+  public Iterator<UfsStatus> listStatusIterable(String path, ListOptions options, String startAfter,
+                                                int batchSize) throws IOException {
+    FileSystem hdfs = getFs();
+    return new HdfsUfsStatusIterator(path, hdfs);
   }
 
   @Override

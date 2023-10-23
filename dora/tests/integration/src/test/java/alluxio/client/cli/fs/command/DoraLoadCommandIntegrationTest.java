@@ -44,7 +44,7 @@ public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellT
   public void testCommand() throws Exception {
     File testRoot = mTestFolder.newFolder("testRoot");
     mTestFolder.newFolder("testRoot/testDirectory");
-
+    String path = testRoot.getAbsolutePath();
     createByteFileInUfs("/testRoot/testFileA", Constants.MB);
     createByteFileInUfs("/testRoot/testFileB", Constants.MB);
     createByteFileInUfs("/testRoot/testDirectory/testFileC", Constants.MB);
@@ -56,10 +56,10 @@ public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellT
     assertEquals(0, mFileSystem.getStatus(uriA).getInAlluxioPercentage());
     assertEquals(0, mFileSystem.getStatus(uriB).getInAlluxioPercentage());
     assertEquals(0, mFileSystem.getStatus(uriC).getInAlluxioPercentage());
-
     // Testing loading of a directory
-    assertEquals(0, mFsShell.run("load", "/testRoot", "--submit", "--verify"));
-    assertEquals(0, mFsShell.run("load", "/testRoot", "--progress"));
+
+    assertEquals(0, mFsShell.run("load", path, "--submit", "--verify"));
+    assertEquals(0, mFsShell.run("load", path, "--progress"));
 
     FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uriA, 100);
     FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uriB, 100);
@@ -69,18 +69,18 @@ public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellT
     fileInStream.positionedRead(0, buffer, 0, Constants.MB);
     assertTrue(BufferUtils.equalIncreasingByteArray(Constants.MB, buffer));
     while (!mOutput.toString().contains("SUCCEEDED")) {
-      assertEquals(0, mFsShell.run("load", "/testRoot", "--progress"));
+      assertEquals(0, mFsShell.run("load", path, "--progress"));
       Thread.sleep(1000);
     }
     assertTrue(mOutput.toString().contains("Inodes Processed: 4"));
     assertTrue(mOutput.toString().contains("Bytes Loaded: 3072.00KB out of 3072.00KB"));
     assertTrue(mOutput.toString().contains("Files Failed: 0"));
-    assertEquals(0, mFsShell.run("load", "/testRoot", "--stop"));
+    assertEquals(0, mFsShell.run("load", path, "--stop"));
     assertEquals(-2, mFsShell.run("load", "/testRootNotExists", "--progress"));
     assertTrue(mOutput.toString().contains("cannot be found."));
-    mFsShell.run("load", "/testRoot", "--progress", "--format", "JSON");
+    mFsShell.run("load", path, "--progress", "--format", "JSON");
     assertTrue(mOutput.toString().contains("\"mJobState\":\"SUCCEEDED\""));
-    mFsShell.run("load", "/testRoot", "--progress", "--format", "JSON", "--verbose");
+    mFsShell.run("load", path, "--progress", "--format", "JSON", "--verbose");
     assertTrue(mOutput.toString().contains("\"mVerbose\":true"));
   }
 }
