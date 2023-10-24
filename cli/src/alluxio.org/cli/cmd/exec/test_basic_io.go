@@ -23,7 +23,7 @@ var TestRun = &TestRunCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "basicIOTest",
 		JavaClassName: "alluxio.cli.TestRunner",
-		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
+		ShellJavaOpts: []string{fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console")},
 	},
 }
 

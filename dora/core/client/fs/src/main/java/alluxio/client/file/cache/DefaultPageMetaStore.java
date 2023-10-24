@@ -123,11 +123,11 @@ public class DefaultPageMetaStore implements PageMetaStore {
       throw new PageNotFoundException(
           String.format("No Pages found for file %s when committing", fileId));
     }
-    for (PageInfo oldPage : pages) {
-      PageId newPageId = new PageId(newFileId, oldPage.getPageId().getPageIndex());
-      PageInfo newPageInfo = new PageInfo(newPageId, oldPage.getPageSize(), oldPage.getScope(),
-          oldPage.getLocalCacheDir());
-      mPages.remove(oldPage);
+    for (PageInfo oldPageInfo : pages) {
+      PageId newPageId = new PageId(newFileId, oldPageInfo.getPageId().getPageIndex());
+      PageInfo newPageInfo = new PageInfo(newPageId, oldPageInfo.getPageSize(),
+          oldPageInfo.getScope(), oldPageInfo.getLocalCacheDir());
+      mPages.remove(oldPageInfo);
       mPages.add(newPageInfo);
     }
   }

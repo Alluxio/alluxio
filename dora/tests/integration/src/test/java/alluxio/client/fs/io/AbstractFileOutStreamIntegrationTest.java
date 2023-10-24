@@ -31,6 +31,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.InputStream;
 
@@ -51,11 +52,15 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
 
   protected FileSystem mFileSystem = null;
 
+  protected String mRoot;
+
+  @Rule
+  public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
+
   @Before
   public void before() throws Exception {
-    mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
-    mLocalAlluxioJobCluster.start();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+    mRoot = mTemporaryFolder.getRoot().getAbsolutePath();
   }
 
   @After
@@ -141,6 +146,21 @@ public abstract class AbstractFileOutStreamIntegrationTest extends BaseIntegrati
       int len2 = fileLen - len1;
       os.write(BufferUtils.getIncreasingByteArray(0, len1), 0, len1);
       os.write(BufferUtils.getIncreasingByteArray(len1, len2), 0, len2);
+    }
+  }
+
+  /**
+   * Helper to write an Alluxio file with one byte from an int.
+   * {@link FileOutStream#write(byte[], int, int)} invocations.
+   *
+   * @param filePath path of the tmp file
+   * @param b byte about to write
+   * @param options options to create file
+   */
+  protected void writeOneIntegerToFile(AlluxioURI filePath, int b, CreateFilePOptions options)
+      throws Exception {
+    try (FileOutStream fileOutStream = mFileSystem.createFile(filePath, options)) {
+      fileOutStream.write(b);
     }
   }
 

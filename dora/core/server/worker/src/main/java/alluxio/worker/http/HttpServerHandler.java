@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * {@link HttpServerHandler} deals with HTTP requests received from Netty Channel.
@@ -61,12 +62,24 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
   private final PagedService mPagedService;
 
+  private final HttpLoadService mLoadService;
+
+  private final FileSystemContext mFileSystemContext;
+
+  private final FileSystem mFileSystem;
+
   /**
    * {@link HttpServerHandler} deals with HTTP requests received from Netty Channel.
-   * @param pagedService the {@link PagedService} object provides page related RESTful API
+   *
+   * @param pagedService     the {@link PagedService} object provides page related RESTful API
+   * @param fsContextFactory the factory for creating file system context
    */
-  public HttpServerHandler(PagedService pagedService) {
+  public HttpServerHandler(PagedService pagedService,
+                           FileSystemContext.FileSystemContextFactory fsContextFactory) {
     mPagedService = pagedService;
+    mFileSystemContext = fsContextFactory.create(Configuration.global());
+    mFileSystem = FileSystem.Factory.create(mFileSystemContext);
+    mLoadService = new HttpLoadService(mFileSystem);
   }
 
   @Override
@@ -119,6 +132,8 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
         return doGetPage(httpRequest, httpRequestUri);
       case "files":
         return doListFiles(httpRequest, httpRequestUri);
+      case "load":
+        return doLoad(httpRequest, httpRequestUri);
       default:
         // TODO(JiamingMai): this should not happen, we should throw an exception here
         return null;
@@ -146,16 +161,12 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
     ListStatusPOptions options = FileSystemOptionsUtils.listStatusDefaults(
         Configuration.global()).toBuilder().build();
     try {
-      FileSystemContext.FileSystemContextFactory factory =
-          new FileSystemContext.FileSystemContextFactory();
-      FileSystemContext fileSystemContext = factory.create(Configuration.global());
-      FileSystem fileSystem = FileSystem.Factory.create(fileSystemContext);
-
-      List<URIStatus> uriStatuses = fileSystem.listStatus(new AlluxioURI(path), options);
+      List<URIStatus> uriStatuses = mFileSystem.listStatus(new AlluxioURI(path), options);
       List<ResponseFileInfo> responseFileInfoList = new ArrayList<>();
       for (URIStatus uriStatus : uriStatuses) {
         String type = uriStatus.isFolder() ? "directory" : "file";
         ResponseFileInfo responseFileInfo = new ResponseFileInfo(type, uriStatus.getName(),
+            uriStatus.getPath(), uriStatus.getUfsPath(), uriStatus.getLastModificationTimeMs(),
             uriStatus.getLength());
         responseFileInfoList.add(responseFileInfo);
       }
@@ -174,6 +185,55 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
     }
   }
 
+  private HttpResponseContext doLoad(HttpRequest httpRequest, HttpRequestUri httpRequestUri) {
+    HttpLoadOptions.Builder builder = HttpLoadOptions.Builder.newBuilder();
+
+    Map<String, String> parameters = httpRequestUri.getParameters();
+    String opTypeStr = parameters.get("opType");
+    if (opTypeStr != null && !opTypeStr.isEmpty()) {
+      builder.setOpType(HttpLoadOptions.OpType.of(opTypeStr));
+    }
+    String partialListingStr = parameters.get("partialListing");
+    if (partialListingStr != null && !partialListingStr.isEmpty()) {
+      builder.setPartialListing(Boolean.parseBoolean(partialListingStr));
+    }
+    String verifyStr = parameters.get("verify");
+    if (verifyStr != null && !verifyStr.isEmpty()) {
+      builder.setVerify(Boolean.parseBoolean(verifyStr));
+    }
+    String bandwidthStr = parameters.get("bandwidth");
+    if (bandwidthStr != null && !bandwidthStr.isEmpty()) {
+      builder.setBandWidth(Long.parseLong(bandwidthStr));
+    }
+    String verboseStr = parameters.get("verbose");
+    if (verboseStr != null && !verboseStr.isEmpty()) {
+      builder.setVerbose(Boolean.parseBoolean(verboseStr));
+    }
+    String loadMetadataOnlyStr = parameters.get("loadMetadataOnly");
+    if (loadMetadataOnlyStr != null && !loadMetadataOnlyStr.isEmpty()) {
+      builder.setLoadMetadataOnly(Boolean.parseBoolean(loadMetadataOnlyStr));
+    }
+    String skipIfExistsStr = parameters.get("skipIfExists");
+    if (skipIfExistsStr != null && !skipIfExistsStr.isEmpty()) {
+      builder.setSkipIfExists(Boolean.parseBoolean(skipIfExistsStr));
+    }
+    String progressFormatStr = parameters.get("progressFormat");
+    if (progressFormatStr != null && !progressFormatStr.isEmpty()) {
+      builder.setProgressFormat(progressFormatStr);
+    }
+    String path = parameters.get("path");
+    path = handleReservedCharacters(path);
+
+    String responseStr = mLoadService.load(new AlluxioURI(path), builder.build());
+
+    FullHttpResponse response = new DefaultFullHttpResponse(httpRequest.protocolVersion(), OK,
+        Unpooled.wrappedBuffer(responseStr.getBytes()));
+    response.headers()
+        .set(CONTENT_TYPE, TEXT_PLAIN)
+        .setInt(CONTENT_LENGTH, response.content().readableBytes());
+    return new HttpResponseContext(response, null);
+  }
+
   private String handleReservedCharacters(String path) {
     path = path.replace("%2F", "/");
     path = path.replace("%3A", ":");
@@ -184,5 +244,12 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     cause.printStackTrace();
     ctx.close();
+  }
+
+  @Override
+  public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+    super.handlerRemoved(ctx);
+    mFileSystem.close();
+    mFileSystemContext.close();
   }
 }

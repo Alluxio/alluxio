@@ -26,7 +26,7 @@ var JobWorker = &WorkerProcess{
 	BaseProcess: &env.BaseProcess{
 		Name:                 "job_worker",
 		JavaClassName:        "alluxio.worker.AlluxioJobWorker",
-		JavaOptsEnvVarKey:    ConfAlluxioJobWorkerJavaOpts.EnvVar,
+		JavaOpts:             ConfAlluxioJobWorkerJavaOpts,
 		ProcessOutFile:       "job_worker.out",
 		MonitorJavaClassName: "alluxio.worker.job.AlluxioJobWorkerMonitor",
 	},
@@ -39,10 +39,12 @@ const (
 
 var (
 	ConfAlluxioJobWorkerJavaOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_JOB_WORKER_JAVA_OPTS",
+		EnvVar:     "ALLUXIO_JOB_WORKER_JAVA_OPTS",
+		IsJavaOpts: true,
 	})
 	confAlluxioJobWorkerAttachOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_JOB_WORKER_ATTACH_OPTS",
+		EnvVar:     "ALLUXIO_JOB_WORKER_ATTACH_OPTS",
+		IsJavaOpts: true,
 	})
 )
 
@@ -55,14 +57,14 @@ func (p *JobWorkerProcess) Base() *env.BaseProcess {
 }
 
 func (p *JobWorkerProcess) SetEnvVars(envVar *viper.Viper) {
-	// ALLUXIO_JOB_WORKER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_WORKER_JAVA_OPTS}
 	envVar.SetDefault(envAlluxioJobWorkerLogger, jobWorkerLoggerType)
-	jobWorkerJavaOpts := fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, envVar.Get(envAlluxioJobWorkerLogger))
-
-	jobWorkerJavaOpts += envVar.GetString(env.ConfAlluxioJavaOpts.EnvVar)
-	jobWorkerJavaOpts += envVar.GetString(p.JavaOptsEnvVarKey)
-
-	envVar.Set(p.JavaOptsEnvVarKey, strings.TrimSpace(jobWorkerJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
+	// ALLUXIO_JOB_WORKER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_WORKER_JAVA_OPTS}
+	javaOpts := []string{
+		fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, envVar.Get(envAlluxioJobWorkerLogger)),
+	}
+	javaOpts = append(javaOpts, env.ConfAlluxioJavaOpts.JavaOptsToArgs(envVar)...)
+	javaOpts = append(javaOpts, p.JavaOpts.JavaOptsToArgs(envVar)...)
+	envVar.Set(p.JavaOpts.EnvVar, strings.Join(javaOpts, " "))
 }
 
 func (p *JobWorkerProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
@@ -72,14 +74,9 @@ func (p *JobWorkerProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
 
 func (p *JobWorkerProcess) Start(cmd *env.StartProcessCommand) error {
 	cmdArgs := []string{env.Env.EnvVar.GetString(env.ConfJava.EnvVar)}
-	if attachOpts := env.Env.EnvVar.GetString(confAlluxioJobWorkerAttachOpts.EnvVar); attachOpts != "" {
-		cmdArgs = append(cmdArgs, strings.Split(attachOpts, " ")...)
-	}
+	cmdArgs = append(cmdArgs, confAlluxioJobWorkerAttachOpts.JavaOptsToArgs(env.Env.EnvVar)...)
 	cmdArgs = append(cmdArgs, "-cp", env.Env.EnvVar.GetString(env.EnvAlluxioServerClasspath))
-
-	jobWorkerJavaOpts := env.Env.EnvVar.GetString(p.JavaOptsEnvVarKey)
-	cmdArgs = append(cmdArgs, strings.Split(jobWorkerJavaOpts, " ")...)
-
+	cmdArgs = append(cmdArgs, p.JavaOpts.JavaOptsToArgs(env.Env.EnvVar)...)
 	cmdArgs = append(cmdArgs, p.JavaClassName)
 
 	if err := p.Launch(cmd, cmdArgs); err != nil {

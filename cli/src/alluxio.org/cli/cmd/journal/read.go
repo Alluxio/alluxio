@@ -26,7 +26,7 @@ var Read = &ReadCommand{
 		CommandName:        "read",
 		JavaClassName:      "alluxio.master.journal.tool.JournalTool",
 		UseServerClasspath: true,
-		ShellJavaOpts:      fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
+		ShellJavaOpts:      []string{fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console")},
 	},
 }
 

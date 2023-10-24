@@ -11,7 +11,7 @@
 
 package alluxio.client.cli.fs.command;
 
-import alluxio.annotation.dora.DoraTestTodoItem;
+import alluxio.AlluxioURI;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
@@ -19,15 +19,13 @@ import alluxio.util.io.BufferUtils;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
+
+import java.util.Objects;
 
 /**
  * Tests checksum command.
  */
-@Ignore
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Jiacheng",
-    comment = "need to check if this command will still exist in Dora")
 public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   /**
@@ -76,7 +74,11 @@ public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShel
   @Test
   public void checksumInvalidArgs() throws Exception {
     sFsShell.run("checksum", "/testFile");
-    String expected = ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/testFile") + "\n";
+    AlluxioURI expectedUri =
+        Objects.requireNonNull(sFileSystem.getDoraCacheFileSystem())
+            .convertToUfsPath(new AlluxioURI("/testFile"));
+    String expected =
+        ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(expectedUri.toString()) + "\n";
     Assert.assertEquals(expected, mOutput.toString());
     sFsShell.run("mkdir", "/testFolder");
     int ret = sFsShell.run("checksum", "/testFolder");

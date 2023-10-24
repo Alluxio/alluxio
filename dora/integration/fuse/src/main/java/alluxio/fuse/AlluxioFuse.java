@@ -36,6 +36,7 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.jnifuse.LibFuse;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
@@ -85,6 +86,7 @@ public class AlluxioFuse {
                               FuseOptions fuseOptions,
                               FileSystemContext fsContext) {
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
+    MultiDimensionalMetricsSystem.initMetrics();
     MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
     if (conf.getBoolean(PropertyKey.FUSE_WEB_ENABLED)) {
       mWebServer = new FuseWebServer(

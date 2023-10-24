@@ -29,6 +29,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.worker.block.io.BlockReadableChannel;
 import alluxio.worker.block.io.BlockReader;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -86,6 +87,16 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     mPositionReader = Preconditions.checkNotNull(localCachePositionReader);
     mFileSize = fileSize;
     mPos = startPosition;
+  }
+
+  @VisibleForTesting
+  void setPosition(int pos) {
+    mPos = pos;
+  }
+
+  @VisibleForTesting
+  long getPosition() {
+    return mPos;
   }
 
   /**

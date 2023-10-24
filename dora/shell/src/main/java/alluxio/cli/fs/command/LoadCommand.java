@@ -149,7 +149,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
-
     if (path.containsWildcard()) {
       throw new UnsupportedOperationException("Load does not support wildcard path");
     }
@@ -224,7 +223,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     if (bandwidth.isPresent()) {
       options.setBandwidth(bandwidth.getAsLong());
     }
-    LoadJobRequest job = new LoadJobRequest(path.getPath(), options.build());
+    LoadJobRequest job = new LoadJobRequest(path.toString(), options.build());
     try {
       Optional<String> jobId = mFileSystem.submitJob(job);
       if (jobId.isPresent()) {
@@ -243,7 +242,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     try {
       if (mFileSystem.stopJob(JobDescription
           .newBuilder()
-          .setPath(path.getPath())
+          .setPath(path.toString())
           .setType(JOB_TYPE)
           .build())) {
         System.out.printf("Load '%s' is successfully stopped.%n", path);
@@ -265,7 +264,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       System.out.println("Progress for loading path '" + path + "':");
       System.out.println(mFileSystem.getJobProgress(JobDescription
           .newBuilder()
-          .setPath(path.getPath())
+          .setPath(path.toString())
           .setType(JOB_TYPE)
           .build(), format, verbose));
       return 0;

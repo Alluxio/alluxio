@@ -15,13 +15,13 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.cli.Command;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -37,7 +37,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.reflections.Reflections;
@@ -55,8 +54,10 @@ import javax.annotation.Nullable;
 /**
  * Unit tests on {@link FileSystemShellUtils}.
  *
- * Note that the test case for {@link FileSystemShellUtils#validatePath(String)} is already covered
- * in {@link FileSystemShellUtils#getFilePath(String)}. Hence only getFilePathTest is specified.
+ * Note that the test case for
+ * {@link FileSystemShellUtils#validatePath(String, AlluxioConfiguration)} is already covered
+ * in {@link FileSystemShellUtils#getFilePath(String, AlluxioConfiguration)}.
+ * Hence, only getFilePathTest is specified.
  */
 public final class FileSystemShellUtilsTest {
   public static final String TEST_DIR = "/testDir";
@@ -300,9 +301,6 @@ public final class FileSystemShellUtilsTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jianjian",
-      comment = "fix or remove this test")
-  @Ignore
   public void loadCommands() {
     Map<String, Command> map =
         FileSystemShellUtils.loadCommands(FileSystemContext.create(Configuration.global()));
