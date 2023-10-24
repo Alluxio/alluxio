@@ -288,13 +288,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             mConf.get(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE));
         mMembershipManager.join(new WorkerInfo().setIdentity(mWorkerId.get()).setAddress(mAddress));
         break;
-      } catch (UnavailableRuntimeException ioe) {
-        /* We should only expect such exception when situation such as
-         * etcd hasn't started up yet when alluxio components and etcd
-         * are starting up at same time. In such case we keep retrying.
+      } catch (IOException | UnavailableRuntimeException e) {
+        /* Retry everything it might have coming from membership, as now a different worker
+         * instance might assume same worker id in k8s pod restart situation. There might
+         * be gaps in updating etcd states in the interim of transition.
          */
         if (!retry.attempt()) {
-          throw ioe;
+          throw e;
         }
       }
     }
