@@ -21,7 +21,6 @@ import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import com.amazonaws.annotation.NotThreadSafe;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.EvictingQueue;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
@@ -51,35 +50,18 @@ public class PositionReadFileInStream extends FileInStream {
 
   private class PrefetchCache implements AutoCloseable {
     private final long mFileLength;
-    private final EvictingQueue<CallTrace> mCallHistory;
-    private int mPrefetchSize = 0;
 
     private ByteBuf mCache = Unpooled.wrappedBuffer(new byte[0]);
     private long mCacheStartPos = 0;
+    private final PrefetchCachePolicy mPolicy;
 
-    PrefetchCache(int prefetchMultiplier, long fileLength) {
-      mCallHistory = EvictingQueue.create(prefetchMultiplier);
+    PrefetchCache(PrefetchCachePolicy policy, long fileLength) {
+      mPolicy = policy;
       mFileLength = fileLength;
     }
 
-    private void update() {
-      int consecutiveReadLength = 0;
-      long lastReadEnd = -1;
-      for (CallTrace trace : mCallHistory) {
-        if (trace.mPosition == lastReadEnd) {
-          lastReadEnd += trace.mLength;
-          consecutiveReadLength += trace.mLength;
-        } else {
-          lastReadEnd = trace.mPosition + trace.mLength;
-          consecutiveReadLength = trace.mLength;
-        }
-      }
-      mPrefetchSize = consecutiveReadLength;
-    }
-
     private void addTrace(long pos, int size) {
-      mCallHistory.add(new CallTrace(pos, size));
-      update();
+      mPolicy.addTrace(pos, size);
     }
 
     /**
@@ -99,13 +81,16 @@ public class PositionReadFileInStream extends FileInStream {
           slice.limit(size);
           mCache.getBytes(posInCache, slice);
           outBuffer.position(outBuffer.position() + size);
+          mPolicy.onCacheHitRead();
           return size;
         } else {
           // the position is beyond the cache end position
+          mPolicy.onCacheMissRead();
           return 0;
         }
       } else {
         // the position is behind the cache start position
+        mPolicy.onCacheMissRead();
         return 0;
       }
     }
@@ -129,7 +114,7 @@ public class PositionReadFileInStream extends FileInStream {
         }
       }
 
-      int prefetchSize = Math.max(mPrefetchSize, minBytesToRead);
+      int prefetchSize = Math.max((int) mPolicy.getPrefetchSize(), minBytesToRead);
       // cap to remaining file length
       prefetchSize = (int) Math.min(mFileLength - pos, prefetchSize);
 
@@ -165,16 +150,6 @@ public class PositionReadFileInStream extends FileInStream {
     }
   }
 
-  private static class CallTrace {
-    final long mPosition;
-    final int mLength;
-
-    private CallTrace(long pos, int length) {
-      mPosition = pos;
-      mLength = length;
-    }
-  }
-
   /**
    * Constructor.
    * @param reader the position reader
@@ -191,7 +166,7 @@ public class PositionReadFileInStream extends FileInStream {
     mPositionReader = reader;
     mLength = uriStatus.getLength();
     mCache = new PrefetchCache(
-        Configuration.getInt(PropertyKey.USER_POSITION_READER_STREAMING_MULTIPLIER), mLength);
+        PrefetchCachePolicy.Factory.create(), mLength);
     long dataPreloadFileSizeThreshold =
         Configuration.getBytes(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD);
     mDataPreloadEnabled =
@@ -216,8 +191,8 @@ public class PositionReadFileInStream extends FileInStream {
   }
 
   @VisibleForTesting
-  int getPrefetchSize() {
-    return mCache.mPrefetchSize;
+  long getPrefetchSize() {
+    return mCache.mPolicy.getPrefetchSize();
   }
 
   @Override
