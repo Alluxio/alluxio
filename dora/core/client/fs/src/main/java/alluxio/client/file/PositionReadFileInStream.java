@@ -24,6 +24,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.EvictingQueue;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -34,6 +36,7 @@ import java.util.Objects;
  */
 @NotThreadSafe
 public class PositionReadFileInStream extends FileInStream {
+  private static final Logger LOG = LoggerFactory.getLogger(DoraCacheClient.class);
   private final long mLength;
   private long mPos = 0;
   private boolean mClosed;
@@ -42,10 +45,7 @@ public class PositionReadFileInStream extends FileInStream {
   private final URIStatus mURIStatus;
   private final DoraCacheClient mClient;
   // Preload requests are async so a cached thread pool is used here.
-  private final boolean mDataPreloadEnabled =
-      Configuration.getBoolean(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_ENABLED);
-  private final long mDataPreloadFileSizeThreshold =
-      Configuration.getBytes(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD);
+  private final boolean mDataPreloadEnabled;
   private final long mNumPreloadedDataSize =
       Configuration.getBytes(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_SIZE);
 
@@ -119,11 +119,14 @@ public class PositionReadFileInStream extends FileInStream {
      * @return number of bytes that's been prefetched, 0 if exception occurs
      */
     private int prefetch(PositionReader reader, long pos, int minBytesToRead) {
-      if (mDataPreloadEnabled && mURIStatus.getLength() > mDataPreloadFileSizeThreshold
-          && mURIStatus.getInAlluxioPercentage() != 100) {
-        mClient.cacheData(
-            mURIStatus.getUfsPath(), pos,
-            Math.min(mURIStatus.getLength() - pos, mNumPreloadedDataSize));
+      if (mDataPreloadEnabled) {
+        try {
+          mClient.cacheData(
+              mURIStatus.getUfsPath(), pos,
+              Math.min(mURIStatus.getLength() - pos, mNumPreloadedDataSize));
+        } catch (Throwable t) {
+          LOG.warn("Preload data failed for {}", mURIStatus.getUfsPath(), t);
+        }
       }
 
       int prefetchSize = Math.max(mPrefetchSize, minBytesToRead);
@@ -185,6 +188,12 @@ public class PositionReadFileInStream extends FileInStream {
     mLength = uriStatus.getLength();
     mCache = new PrefetchCache(
         Configuration.getInt(PropertyKey.USER_POSITION_READER_STREAMING_MULTIPLIER), mLength);
+    long dataPreloadFileSizeThreshold =
+        Configuration.getBytes(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD);
+    mDataPreloadEnabled =
+        Configuration.getBoolean(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_ENABLED)
+            && uriStatus.getLength() > dataPreloadFileSizeThreshold
+            && uriStatus.getInAlluxioPercentage() != 100;
   }
 
   @Override
