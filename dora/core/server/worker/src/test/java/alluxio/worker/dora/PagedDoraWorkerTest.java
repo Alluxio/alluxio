@@ -28,7 +28,6 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.file.ReadTargetBuffer;
-import alluxio.grpc.Block;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -38,7 +37,9 @@ import alluxio.grpc.FileInfo;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadDataSubTask;
 import alluxio.grpc.LoadFileResponse;
+import alluxio.grpc.LoadMetadataSubTask;
 import alluxio.grpc.LoadSubTask;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
@@ -145,13 +146,14 @@ public class PagedDoraWorkerTest {
     UfsStatus ufsStatus = mWorker.getUfsInstance(ufsPath).getStatus(ufsPath);
     ufsStatus.setUfsFullPath(new AlluxioURI(ufsPath));
 
-    Block block =
-        Block.newBuilder().setOffsetInFile(mPageSize).setLength(mPageSize * numCachedPages)
-             .setUfsPath(ufsPath).setUfsStatus(ufsStatus.toProto()).build();
-    ListenableFuture<LoadFileResponse> load =
-        mWorker.load(Collections.singletonList(LoadSubTask.newBuilder().setBlock(block).build()),
-            false, UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false)
-                                 .build());
+    LoadDataSubTask block = LoadDataSubTask.newBuilder().setOffsetInFile(mPageSize)
+                                           .setLength(mPageSize * numCachedPages)
+                                           .setUfsPath(ufsPath).setUfsStatus(ufsStatus.toProto())
+                                           .build();
+    ListenableFuture<LoadFileResponse> load = mWorker.load(
+        Collections.singletonList(LoadSubTask.newBuilder().setLoadDataSubtask(block).build()),
+        false,
+        UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build());
     LoadFileResponse response = load.get(30, TimeUnit.SECONDS);
     assertEquals(0, response.getFailuresCount());
     List<PageId> cachedPages =
@@ -177,7 +179,9 @@ public class PagedDoraWorkerTest {
     UfsStatus ufsStatus = mWorker.getUfsInstance(ufsPath).getStatus(ufsPath);
     ufsStatus.setUfsFullPath(new AlluxioURI(ufsPath));
     ListenableFuture<LoadFileResponse> load = mWorker.load(Collections.singletonList(
-            LoadSubTask.newBuilder().setUfsStatus(ufsStatus.toProto()).build()), false,
+            LoadSubTask.newBuilder().setLoadMetadataSubtask(
+                LoadMetadataSubTask.newBuilder()
+                                   .setUfsStatus(ufsStatus.toProto()).build()).build()), false,
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build());
     load.get(30, TimeUnit.SECONDS);
     List<PageId> cachedPages =
@@ -899,12 +903,14 @@ public class PagedDoraWorkerTest {
     UfsStatus ufsStatus = mWorker.getUfsInstance(path).getStatus(path);
     ufsStatus.setUfsFullPath(new AlluxioURI(path));
 
-    Block block = Block.newBuilder().setLength(ufsStatus.asUfsFileStatus().getContentLength())
+    LoadDataSubTask block =
+        LoadDataSubTask.newBuilder().setLength(ufsStatus.asUfsFileStatus().getContentLength())
                        .setOffsetInFile(0).setUfsPath(ufsStatus.getUfsFullPath().toString())
                        .setUfsStatus(ufsStatus.toProto()).build();
     ListenableFuture<LoadFileResponse> load = mWorker.load(
-        Arrays.asList(LoadSubTask.newBuilder().setUfsStatus(ufsStatus.toProto()).build(),
-            LoadSubTask.newBuilder().setBlock(block).build()), false,
+        Arrays.asList(LoadSubTask.newBuilder().setLoadMetadataSubtask(
+                LoadMetadataSubTask.newBuilder().setUfsStatus(ufsStatus.toProto()).build()).build(),
+            LoadSubTask.newBuilder().setLoadDataSubtask(block).build()), false,
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build());
     LoadFileResponse response = load.get(30, TimeUnit.SECONDS);
     assertEquals(0, response.getFailuresCount());
