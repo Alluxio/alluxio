@@ -191,6 +191,15 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
   void setAttribute(String path, SetAttributePOptions options) throws IOException;
 
   /**
+   * Load data from UFS and cache it on worker. Will skip if data is already on worker.
+   * @param path the full UFS path
+   * @param length the length of the data to load
+   * @param pos the position of the file where loading starts from
+   * @param isAsync if the load is done in async mode
+   */
+  void cacheData(String path, long length, long pos, boolean isAsync) throws IOException;
+
+  /**
    * Get the address of the Dora Worker.
    * @return worker address
    */

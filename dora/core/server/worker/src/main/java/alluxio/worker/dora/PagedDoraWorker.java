@@ -22,8 +22,10 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheUsage;
+import alluxio.client.file.cache.PageId;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -108,6 +110,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,6 +123,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -156,6 +162,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final DoraOpenFileHandleContainer mOpenFileHandleContainer;
 
   private final boolean mClientWriteToUFSEnabled;
+  private final ConcurrentHashSet<PageId> mLoadingPages = new ConcurrentHashSet<>();
+  private final ExecutorService mCacheDataExecutor = Executors.newFixedThreadPool(
+      Configuration.getInt(PropertyKey.WORKER_PRELOAD_DATA_THREAD_POOL_SIZE));
 
   /**
    * Constructor.
@@ -627,6 +636,82 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       throw AlluxioRuntimeException.from(e);
     } finally {
       buf.release();
+    }
+  }
+
+  protected void loadDataV2(String ufsPath, long mountId, long offset, long lengthToLoad,
+                          long fileLength) throws AccessControlException, IOException {
+    Protocol.OpenUfsBlockOptions options =
+        Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(ufsPath).setMountId(mountId)
+            .setNoCache(false).setOffsetInFile(offset)
+            .setBlockSize(fileLength).build();
+    String fileId = new AlluxioURI(ufsPath).hash();
+    int bufferSize = (int) Math.min(4 * mPageSize, lengthToLoad);
+    ByteBuf buf =
+        PooledByteBufAllocator.DEFAULT.directBuffer(bufferSize);
+    try (BlockReader fileReader = createFileReader(fileId, offset, false, options)) {
+      //Transfers data from this reader to the buffer until we reach lengthToLoad.
+      int bytesRead;
+      while (lengthToLoad > 0 && (bytesRead = fileReader.transferTo(buf)) != -1) {
+        lengthToLoad -= bytesRead;
+        buf.clear();
+        if (lengthToLoad < bufferSize) {
+          buf.capacity((int) Math.min(lengthToLoad, bufferSize));
+        }
+      }
+    } catch (IOException | AccessControlException e) {
+      throw AlluxioRuntimeException.from(e);
+    } finally {
+      buf.release();
+    }
+  }
+
+  @Override
+  // TODO(yimin) integrate this method with load() method
+  public void cacheData(String ufsPath, long length, long pos, boolean isAsync)
+      throws IOException {
+    List<CompletableFuture<Void>> futures = new ArrayList<>();
+    // TODO(yimin) To implement the sync data caching.
+    alluxio.grpc.FileInfo fi = getGrpcFileInfo(ufsPath, -1);
+    String fileId = new AlluxioURI(ufsPath).hash();
+    for (long i = pos / mPageSize;
+         i <= Math.min(pos + length, fi.getLength()) / mPageSize; ++i) {
+      PageId pageId = new PageId(fileId, i);
+      // TODO(yimin) As an optimization, data does not need to load on a page basis.
+      // Can implement a bulk load mechanism and load a couple of pages at the same time,
+      // to improve the performance.
+      if (mLoadingPages.contains(pageId)) {
+        continue;
+      }
+      if (mCacheManager.hasPageUnsafe(pageId)) {
+        continue;
+      }
+      long loadPos = i * mPageSize;
+      long loadLength = Math.min(mPageSize, fi.getLength() - loadPos);
+      if (loadLength == 0) {
+        continue;
+      }
+      mLoadingPages.add(pageId);
+      futures.add(CompletableFuture.runAsync(() -> {
+        try {
+          if (mCacheManager.hasPageUnsafe(pageId)) {
+            return;
+          }
+          LOG.debug("Preloading {} pos: {} length: {}", ufsPath, loadPos, loadLength);
+          loadDataV2(ufsPath, 0, loadPos, loadLength, fi.getLength());
+        } catch (Exception e) {
+          LOG.debug("Preloading failed for {} page: {}", ufsPath, pageId, e);
+        } finally {
+          mLoadingPages.remove(pageId);
+        }
+      }, mCacheDataExecutor));
+      if (!isAsync) {
+        try {
+          CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
     }
   }
 

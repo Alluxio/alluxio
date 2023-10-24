@@ -137,6 +137,50 @@ public class PagedDoraWorkerTest {
   }
 
   @Test
+  public void testCacheData() throws Exception {
+    int numPages = 10;
+    long length = mPageSize * numPages;
+    String ufsPath = mTestFolder.newFile("test").getAbsolutePath();
+    byte[] buffer = BufferUtils.getIncreasingByteArray((int) length);
+    BufferUtils.writeBufferToFile(ufsPath, buffer);
+
+    mWorker.cacheData(ufsPath, length, 0, false);
+    List<PageId> cachedPages =
+        mCacheManager.getCachedPageIdsByFileId(new AlluxioURI(ufsPath).hash(), length);
+    assertEquals(numPages, cachedPages.size());
+    int start = 0;
+    for (PageId pageId : cachedPages) {
+      byte[] buff = new byte[(int) mPageSize];
+      mCacheManager.get(pageId, (int) mPageSize, buff, 0);
+      assertTrue(BufferUtils.equalIncreasingByteArray(start, (int) mPageSize, buff));
+      start += mPageSize;
+    }
+  }
+
+  @Test
+  public void testCacheDataPartial() throws Exception {
+    int numPages = 10;
+    long length = mPageSize * numPages;
+    String ufsPath = mTestFolder.newFile("test").getAbsolutePath();
+    byte[] buffer = BufferUtils.getIncreasingByteArray((int) length);
+    BufferUtils.writeBufferToFile(ufsPath, buffer);
+
+    int startPage = 2;
+    // Loading bytes [19, 40] -> page 1,2,3,4 will be loaded
+    mWorker.cacheData(ufsPath, 2 * mPageSize + 2, startPage * mPageSize - 1, false);
+    List<PageId> cachedPages =
+        mCacheManager.getCachedPageIdsByFileId(new AlluxioURI(ufsPath).hash(), length);
+    assertEquals(4, cachedPages.size());
+    int start = (int) mPageSize;
+    for (PageId pageId : cachedPages) {
+      byte[] buff = new byte[(int) mPageSize];
+      mCacheManager.get(pageId, (int) mPageSize, buff, 0);
+      assertTrue(BufferUtils.equalIncreasingByteArray(start, (int) mPageSize, buff));
+      start += mPageSize;
+    }
+  }
+
+  @Test
   public void testSingleFileCopy() throws IOException, ExecutionException, InterruptedException {
     File srcRoot = mTestFolder.newFolder("src");
     File dstRoot = mTestFolder.newFolder("dst");

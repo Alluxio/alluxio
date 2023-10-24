@@ -21,6 +21,8 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.CacheDataRequest;
+import alluxio.grpc.CacheDataResponse;
 import alluxio.grpc.CompleteFilePRequest;
 import alluxio.grpc.CompleteFilePResponse;
 import alluxio.grpc.CopyRequest;
@@ -373,6 +375,21 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       responseObserver.onCompleted();
     } catch (Exception e) {
       LOG.error(String.format("Failed to setAttribute for %s: ", request.getPath()), e);
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
+    }
+  }
+
+  @Override
+  public void cacheData(
+      CacheDataRequest request,
+      StreamObserver<CacheDataResponse> responseObserver) {
+    try {
+      mWorker.cacheData(
+          request.getUfsPath(), request.getLength(), request.getPos(), request.getAsync());
+      responseObserver.onNext(CacheDataResponse.getDefaultInstance());
+      responseObserver.onCompleted();
+    } catch (Exception e) {
+      LOG.error("Failed to cache data, {}", request.getUfsPath(), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }
