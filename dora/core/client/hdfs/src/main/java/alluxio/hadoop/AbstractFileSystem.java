@@ -710,17 +710,19 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      try {
-        throw toHdfsIOException(e);
-      } catch (FileNotFoundException | UnsupportedFileSystemException e2) {
-        return renameInternal(src, dst, srcPath, dstPath);
-      } catch (AccessControlException e2) {
-        LOG.error("Failed to rename {} to {}", src, dst, e2);
-        return false;
-      } catch (IOException e2) {
-        LOG.error("Failed to rename {} to {}", src, dst, e2);
-        return false;
-      }
+      LOG.warn("rename failed: {}", toHdfsIOException(e));
+      System.out.println("rename failed: {}" + toHdfsIOException(e));
+      // try {
+      //   throw toHdfsIOException(e);
+      // } catch (FileNotFoundException | UnsupportedFileSystemException e2) {
+      //   return renameInternal(src, dst, srcPath, dstPath);
+      // } catch (AccessControlException e2) {
+      //   LOG.error("Failed to rename {} to {}", src, dst, e2);
+      //   return false;
+      // } catch (IOException e2) {
+      //   LOG.error("Failed to rename {} to {}", src, dst, e2);
+      //   return false;
+      // }
     } catch (AlluxioException e) {
       return renameInternal(src, dst, srcPath, dstPath);
     } catch (IOException e) {
