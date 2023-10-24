@@ -34,6 +34,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.grpc.CacheDataRequest;
+import alluxio.grpc.CacheDataResponse;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CompleteFilePRequest;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -62,6 +63,13 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -85,6 +93,7 @@ public class DoraCacheClient {
   private final int mPreferredWorkerCount;
 
   private final boolean mEnableDynamicHashRing;
+  private static final Logger LOG = LoggerFactory.getLogger(DoraCacheClient.class);
 
   /**
    * Constructor.
@@ -472,7 +481,17 @@ public class DoraCacheClient {
           .setLength(length)
           .setAsync(true)
           .build();
-      client.get().cacheData(request);
+      ListenableFuture<CacheDataResponse> future = client.get().cacheData(request);
+      Futures.addCallback(future, new FutureCallback<CacheDataResponse>() {
+        @Override
+        public void onSuccess(CacheDataResponse result) {
+        }
+
+        @Override
+        public void onFailure(Throwable t) {
+          LOG.warn("Preloading {} failed", ufsPath, t);
+        }
+      }, MoreExecutors.directExecutor());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

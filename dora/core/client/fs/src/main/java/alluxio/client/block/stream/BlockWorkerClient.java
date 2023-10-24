@@ -13,6 +13,7 @@ package alluxio.client.block.stream;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.CacheDataRequest;
+import alluxio.grpc.CacheDataResponse;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
@@ -157,8 +158,9 @@ public interface BlockWorkerClient extends Closeable {
    * Caches data from UFS.
    *
    * @param request the cache request
+   * @return listenable future of CacheDataResponse
    */
-  void cacheData(CacheDataRequest request);
+  ListenableFuture<CacheDataResponse> cacheData(CacheDataRequest request);
 
   /**
    * Free this worker.

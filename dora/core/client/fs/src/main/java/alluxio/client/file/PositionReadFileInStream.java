@@ -28,8 +28,6 @@ import io.netty.buffer.Unpooled;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Objects;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 /**
  * Implementation of {@link FileInStream} that reads from a dora cache if possible.
@@ -44,12 +42,11 @@ public class PositionReadFileInStream extends FileInStream {
   private final URIStatus mURIStatus;
   private final DoraCacheClient mClient;
   // Preload requests are async so a cached thread pool is used here.
-  private final Executor mPreloadThreadPool = Executors.newCachedThreadPool();
-  private boolean mDataPreloadEnabled =
+  private final boolean mDataPreloadEnabled =
       Configuration.getBoolean(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_ENABLED);
-  private long mDataPreloadFileSizeThreshold =
+  private final long mDataPreloadFileSizeThreshold =
       Configuration.getBytes(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD);
-  private long mNumPreloadedDataSize =
+  private final long mNumPreloadedDataSize =
       Configuration.getBytes(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_SIZE);
 
   private class PrefetchCache implements AutoCloseable {
@@ -124,11 +121,9 @@ public class PositionReadFileInStream extends FileInStream {
     private int prefetch(PositionReader reader, long pos, int minBytesToRead) {
       if (mDataPreloadEnabled && mURIStatus.getLength() > mDataPreloadFileSizeThreshold
           && mURIStatus.getInAlluxioPercentage() != 100) {
-        mPreloadThreadPool.execute(() -> {
-          mClient.cacheData(
-              mURIStatus.getUfsPath(), pos,
-              Math.min(mURIStatus.getLength() - pos, mNumPreloadedDataSize));
-        });
+        mClient.cacheData(
+            mURIStatus.getUfsPath(), pos,
+            Math.min(mURIStatus.getLength() - pos, mNumPreloadedDataSize));
       }
 
       int prefetchSize = Math.max(mPrefetchSize, minBytesToRead);
