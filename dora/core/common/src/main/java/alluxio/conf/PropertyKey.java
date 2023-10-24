@@ -5780,6 +5780,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .build();
+  public static final PropertyKey USER_POSITION_READER_STREAMING_ADAPTIVE_POLICY_ENABLED =
+      booleanBuilder(Name.USER_POSITION_READER_STREAMING_ADAPTIVE_POLICY_ENABLED)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue(false)
+          .setDescription("If uses adaptive policy to adjust the prefetch window size")
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE =
+      dataSizeBuilder(Name.USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue("16MB")
+          .setDescription("The max size of the prefetch of dynamic buffering")
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
   public static final PropertyKey USER_POSITION_READER_PRELOAD_DATA_ENABLED =
       booleanBuilder(Name.USER_POSITION_READER_PRELOAD_DATA_ENABLED)
           .setScope(Scope.CLIENT)
@@ -8296,6 +8312,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_APP_ID = "alluxio.user.app.id";
     public static final String USER_POSITION_READER_STREAMING_MULTIPLIER =
         "alluxio.user.position.reader.streaming.multiplier";
+    public static final String USER_POSITION_READER_STREAMING_ADAPTIVE_POLICY_ENABLED =
+        "alluxio.user.position.reader.streaming.adaptive.policy.enabled";
+    public static final String USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE =
+        "alluxio.user.position.reader.streaming.prefetch.max.size";
     public static final String USER_POSITION_READER_PRELOAD_DATA_ENABLED =
         "alluxio.user.position.reader.preload.data.enabled";
     public static final String USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD =
