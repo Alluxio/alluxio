@@ -25,6 +25,7 @@ import alluxio.PositionReader;
 import alluxio.collections.Pair;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.util.io.BufferUtils;
+import alluxio.wire.FileInfo;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,6 +44,7 @@ public class PositionReadFileInStreamTest {
   private final byte[] mBuffer;
   private final int mDataLength;
   private final int mBufferSize;
+  private final URIStatus mUriStatus;
 
   @Parameterized.Parameters(name = "{index}_DL_{0}_BS_{1}")
   public static Iterable<Object[]> data() {
@@ -61,6 +63,7 @@ public class PositionReadFileInStreamTest {
 
   public PositionReadFileInStreamTest(int dataLength, int bufferSize) {
     mDataLength = dataLength;
+    mUriStatus = new URIStatus(new FileInfo().setLength(dataLength).setInAlluxioPercentage(100));
     mBufferSize = bufferSize;
     mPositionReader = new ByteArrayPositionReader(BufferUtils.getIncreasingByteArray(dataLength));
     mBuffer = new byte[bufferSize];
@@ -78,7 +81,7 @@ public class PositionReadFileInStreamTest {
 
   private void testSequentialRead(double smallBufProb) throws Exception {
     PositionReader spy = Mockito.spy(mPositionReader);
-    PositionReadFileInStream stream = new PositionReadFileInStream(spy, mDataLength);
+    PositionReadFileInStream stream = new PositionReadFileInStream(spy, mUriStatus, null);
     int readLength;
     int totalBytesRead = 0;
     int bytesRead;
@@ -104,7 +107,7 @@ public class PositionReadFileInStreamTest {
   @Test
   public void positionedReadWithRandomBufferSize() throws Exception {
     PositionReader spy = Mockito.spy(mPositionReader);
-    PositionReadFileInStream stream = new PositionReadFileInStream(spy, mDataLength);
+    PositionReadFileInStream stream = new PositionReadFileInStream(spy, mUriStatus, null);
     int readLength;
     int bytesRead;
     int numUnbufferedCalls = 0;
