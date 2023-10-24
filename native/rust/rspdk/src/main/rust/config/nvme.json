@@ -1,0 +1,17 @@
+{
+  "subsystems": [
+    {
+      "subsystem": "bdev",
+      "config": [
+        {
+          "method": "bdev_nvme_attach_controller",
+          "params": {
+            "name": "NVMe0",
+            "trtype": "PCIe",
+            "traddr": "0000:01:00.0"
+          }
+        }
+      ]
+    }
+  ]
+}
