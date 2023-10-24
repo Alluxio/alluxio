@@ -11,7 +11,22 @@
 
 # See https://hub.docker.com/r/alluxio/alluxio-maven for instructions on running the image.
 
+ARG RUST_VERSION=1.66.1
+FROM rust:${RUST_VERSION} as rust-installer
+RUN rustup target add x86_64-unknown-linux-gnu && \
+    rustup component add clippy rustfmt && \
+    # move the two directories into an empty directory to save one COPY instruction in the next stage
+    mkdir /cargo-and-rustup && \
+    mv /usr/local/rustup /cargo-and-rustup/rustup && \
+    mv /usr/local/cargo /cargo-and-rustup/cargo
+
 FROM maven:3.8.6-jdk-11
+ARG RUST_VERSION
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH \
+    RUST_VERSION=${RUST_VERSION}
+COPY --from=rust-installer /cargo-and-rustup /usr/local/
 
 # reference: https://github.com/docker-library/openjdk/blob/master/8/jdk/buster/Dockerfile
 # we need jdk 8 in jdk 11 so that we can compile with jdk 8 and test with jdk 11
@@ -138,9 +153,7 @@ RUN mkdir -p /home/jenkins && \
     chmod -R 777 /.config && \
     apt-get update -y && \
     apt-get upgrade -y ca-certificates && \
-    apt-get install -y build-essential docker.io fuse3 libfuse3-dev libfuse-dev make ruby ruby-dev && \
-# Rust toolchians for native components
-    apt-get install -y rust-all
+    apt-get install -y build-essential docker.io fuse3 libfuse3-dev libfuse-dev make ruby ruby-dev
 # jekyll for documentation
 RUN gem install public_suffix:4.0.7 jekyll:4.2.2 bundler:2.3.18
 # golang for tooling

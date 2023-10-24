@@ -12,7 +12,13 @@
 # See https://hub.docker.com/r/alluxio/alluxio-maven for instructions on running the image.
 
 ARG RUST_VERSION=1.66.1
-FROM rust:${RUST_VERSION}-alpine as rust-installer
+FROM rust:${RUST_VERSION} as rust-installer
+RUN rustup target add x86_64-unknown-linux-gnu && \
+    rustup component add clippy rustfmt && \
+    # move the two directories into an empty directory to save one COPY instruction in the next stage
+    mkdir /cargo-and-rustup && \
+    mv /usr/local/rustup /cargo-and-rustup/rustup && \
+    mv /usr/local/cargo /cargo-and-rustup/cargo
 
 FROM maven:3.8.6-jdk-8
 ARG RUST_VERSION
@@ -20,8 +26,7 @@ ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
     RUST_VERSION=${RUST_VERSION}
-COPY --from=rust-installer /usr/local/rustup /usr/local/rustup
-COPY --from=rust-installer /usr/local/cargo /usr/local/cargo
+COPY --from=rust-installer /cargo-and-rustup /usr/local/
 
 # need to create /.config to avoid npm errors
 RUN mkdir -p /home/jenkins && \
