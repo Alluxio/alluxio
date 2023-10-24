@@ -45,6 +45,7 @@ public class AdaptivePrefetchCachePolicy implements PrefetchCachePolicy {
     // previous position
     // halve the prefetch size to be conservative
     mPrefetchSize /= 2;
+    mPrefetchSize++;
   }
 
   @Override

@@ -113,8 +113,7 @@ public class PositionReadFileInStream extends FileInStream {
           LOG.warn("Preload data failed for {}", mURIStatus.getUfsPath(), t);
         }
       }
-
-      int prefetchSize = Math.max((int) mPolicy.getPrefetchSize(), minBytesToRead);
+      int prefetchSize = Math.max(mPolicy.getPrefetchSize(), minBytesToRead);
       // cap to remaining file length
       prefetchSize = (int) Math.min(mFileLength - pos, prefetchSize);
 
