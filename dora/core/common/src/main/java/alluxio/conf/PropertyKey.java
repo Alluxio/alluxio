@@ -5794,6 +5794,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .setDefaultValue(false)
           .setDescription("If uses adaptive policy to adjust the prefetch window size")
+          .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .build();
   public static final PropertyKey USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE =

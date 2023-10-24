@@ -19,14 +19,15 @@ import alluxio.conf.PropertyKey;
  * on cache miss.
  */
 public class AdaptivePrefetchCachePolicy implements PrefetchCachePolicy {
-  private long mPrefetchSize = 0;
+  private int mPrefetchSize = 0;
   private long mLastCallEndPos = -1;
-  private final long mMaxPrefetchSize =
-      Configuration.getBytes(PropertyKey.USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE);
+  private final int mMaxPrefetchSize =
+      (int) Configuration.getBytes(PropertyKey.USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE);
 
   @Override
   public void addTrace(long pos, int size) {
     if (pos == mLastCallEndPos) {
+      // increase the prefetch size by the size of cumulative, consecutive reads
       mPrefetchSize = Math.min(mMaxPrefetchSize, mPrefetchSize + size);
     }
     mLastCallEndPos = pos + size;
@@ -39,11 +40,15 @@ public class AdaptivePrefetchCachePolicy implements PrefetchCachePolicy {
 
   @Override
   public void onCacheMissRead() {
+    // on prefetch cache miss, there may be a chance that the read position is
+    // not consecutive, e.g. the reader seeks to a position far away from the
+    // previous position
+    // halve the prefetch size to be conservative
     mPrefetchSize /= 2;
   }
 
   @Override
-  public long getPrefetchSize() {
+  public int getPrefetchSize() {
     return mPrefetchSize;
   }
 }

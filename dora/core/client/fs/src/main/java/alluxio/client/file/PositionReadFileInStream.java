@@ -191,7 +191,7 @@ public class PositionReadFileInStream extends FileInStream {
   }
 
   @VisibleForTesting
-  long getPrefetchSize() {
+  int getPrefetchSize() {
     return mCache.mPolicy.getPrefetchSize();
   }
 

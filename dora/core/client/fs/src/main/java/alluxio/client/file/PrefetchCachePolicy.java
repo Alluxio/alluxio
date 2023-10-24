@@ -14,9 +14,12 @@ package alluxio.client.file;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 
+import com.amazonaws.annotation.NotThreadSafe;
+
 /**
  * The prefetch cache policy to determine the prefetch size.
  */
+@NotThreadSafe
 public interface PrefetchCachePolicy {
   /**
    * Adds the trace of a read request.
@@ -38,7 +41,7 @@ public interface PrefetchCachePolicy {
   /**
    * @return the expected prefetch size
    */
-  long getPrefetchSize();
+  int getPrefetchSize();
 
   /**
    * The factory class.

@@ -21,7 +21,7 @@ import com.google.common.collect.EvictingQueue;
  * contiguous and reduce the window down to the read size if it is not.
  */
 public class BasePrefetchCachePolicy implements PrefetchCachePolicy {
-  private long mPrefetchSize = 0;
+  private int mPrefetchSize = 0;
   private final EvictingQueue<CallTrace> mCallHistory = EvictingQueue.create(
       Configuration.getInt(PropertyKey.USER_POSITION_READER_STREAMING_MULTIPLIER));
 
@@ -53,7 +53,7 @@ public class BasePrefetchCachePolicy implements PrefetchCachePolicy {
   }
 
   @Override
-  public long getPrefetchSize() {
+  public int getPrefetchSize() {
     return mPrefetchSize;
   }
 
