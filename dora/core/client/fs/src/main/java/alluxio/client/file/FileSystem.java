@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.PositionReader;
 import alluxio.annotation.PublicApi;
+import alluxio.client.DoraClientFileSystemManager;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.client.file.options.FileSystemOptions;
@@ -88,6 +89,8 @@ public interface FileSystem extends Closeable {
    * {@link Factory#create} methods will always guarantee returning a new FileSystem.
    */
   class Factory {
+    private static final DoraClientFileSystemManager DORA_CLIENT_FILE_SYSTEM_MANAGER =
+        DoraClientFileSystemManager.get(Configuration.global());
 
     static {
       // If the extra loaded class name is set, try to load it.
@@ -95,9 +98,6 @@ public interface FileSystem extends Closeable {
         Configuration.global().getClass(PropertyKey.EXTRA_LOADED_FILESYSTEM_CLASSNAME);
       }
     }
-
-    private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
-    private static final AtomicBoolean CONF_LOGGED = new AtomicBoolean(false);
 
     protected static final FileSystemCache FILESYSTEM_CACHE = new FileSystemCache();
 
@@ -174,46 +174,7 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
-      AlluxioConfiguration conf = context.getClusterConf();
-      checkSortConf(conf);
-      Optional<UfsFileSystemOptions> ufsOptions = options.getUfsFileSystemOptions();
-      Preconditions.checkArgument(ufsOptions.isPresent(),
-          "Missing UfsFileSystemOptions in FileSystemOptions");
-      FileSystem fs = new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get());
-
-      if (options.isDoraCacheEnabled()) {
-        LOG.debug("Dora cache enabled");
-        fs = DoraCacheFileSystem.sDoraCacheFileSystemFactory.createAnInstance(fs, context);
-      }
-      if (options.isMetadataCacheEnabled()) {
-        LOG.debug("Client metadata caching enabled");
-        fs = new MetadataCachingFileSystem(fs, context);
-      }
-      if (options.isDataCacheEnabled()
-          && CommonUtils.PROCESS_TYPE.get() == CommonUtils.ProcessType.CLIENT) {
-        try {
-          CacheManager cacheManager = CacheManager.Factory.get(conf);
-          LOG.debug("Client local data caching enabled");
-          return new LocalCacheFileSystem(cacheManager, fs, conf);
-        } catch (IOException e) {
-          LOG.error("Client local data caching enabled but failed to initialize cache manager, "
-              + "continuing without data caching enabled", e);
-        }
-      }
-      return fs;
-    }
-
-    static void checkSortConf(AlluxioConfiguration conf) {
-      if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
-        // Sort properties by name to keep output ordered.
-        List<PropertyKey> keys = new ArrayList<>(conf.keySet());
-        keys.sort(Comparator.comparing(PropertyKey::getName));
-        for (PropertyKey key : keys) {
-          Object value = conf.getOrDefault(key, null);
-          Source source = conf.getSource(key);
-          LOG.debug("{}={} ({})", key.getName(), value, source);
-        }
-      }
+      return DORA_CLIENT_FILE_SYSTEM_MANAGER.create(context, options);
     }
   }
 
