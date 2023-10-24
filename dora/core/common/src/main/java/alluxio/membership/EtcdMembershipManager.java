@@ -13,7 +13,6 @@ package alluxio.membership;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.AlreadyExistsException;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 
@@ -83,7 +82,8 @@ public class EtcdMembershipManager implements MembershipManager {
   @Override
   public void join(WorkerInfo workerInfo) throws IOException {
     LOG.info("Try joining on etcd for worker:{} ", workerInfo);
-    WorkerServiceEntity entity = new WorkerServiceEntity(workerInfo.getAddress());
+    WorkerServiceEntity entity =
+        new WorkerServiceEntity(workerInfo.getIdentity(), workerInfo.getAddress());
     // 1) register to the ring, check if there's existing entry
     String pathOnRing = new StringBuffer()
         .append(getRingPathPrefix())
@@ -92,11 +92,18 @@ public class EtcdMembershipManager implements MembershipManager {
     byte[] serializedEntity = entity.serialize();
     // If there's existing entry, check if it's me.
     if (existingEntityBytes != null) {
-      // It's not me, something is wrong.
+      // It's not me, or not the same me.
       if (!Arrays.equals(existingEntityBytes, serializedEntity)) {
-        // Might be regression of different formatted value of workerinfo is registered.
-        throw new AlreadyExistsException(
-            "Some other member with same id registered on the ring, bail.");
+        // In k8s this might be bcos worker pod restarting with the same worker identity
+        // but certain fields such as hostname has been changed. Register to ring path anyway.
+        WorkerServiceEntity existingEntity = new WorkerServiceEntity();
+        existingEntity.deserialize(existingEntityBytes);
+        LOG.warn("Same worker entity found bearing same workerid:{},"
+            + "existing WorkerServiceEntity to be overwritten:{},"
+            + "maybe benign if pod restart in k8s env or same worker"
+            + " scheduled to restart on another machine in baremetal env.",
+            workerInfo.getIdentity().toString(), existingEntity);
+        mAlluxioEtcdClient.createForPath(pathOnRing, Optional.of(serializedEntity));
       }
       // It's me, go ahead to start heartbeating.
     } else {
@@ -112,7 +119,8 @@ public class EtcdMembershipManager implements MembershipManager {
   public List<WorkerInfo> getAllMembers() throws IOException {
     List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
     return registeredWorkers.stream()
-        .map(e -> new WorkerInfo().setAddress(e.getWorkerNetAddress()))
+        .map(e -> new WorkerInfo().setIdentity(e.getIdentity())
+            .setAddress(e.getWorkerNetAddress()))
         .collect(Collectors.toList());
   }
 
@@ -151,7 +159,8 @@ public class EtcdMembershipManager implements MembershipManager {
   public List<WorkerInfo> getLiveMembers() throws IOException {
     List<WorkerServiceEntity> liveWorkers = retrieveLiveMembers();
     return liveWorkers.stream()
-        .map(e -> new WorkerInfo().setAddress(e.getWorkerNetAddress()))
+        .map(e -> new WorkerInfo().setIdentity(e.getIdentity())
+            .setAddress(e.getWorkerNetAddress()))
         .collect(Collectors.toList());
   }
 
@@ -164,7 +173,8 @@ public class EtcdMembershipManager implements MembershipManager {
         .collect(Collectors.toList());
     registeredWorkers.removeIf(e -> liveWorkers.contains(e.getServiceEntityName()));
     return registeredWorkers.stream()
-        .map(e -> new WorkerInfo().setAddress(e.getWorkerNetAddress()))
+        .map(e -> new WorkerInfo().setIdentity(e.getIdentity())
+            .setAddress(e.getWorkerNetAddress()))
         .collect(Collectors.toList());
   }
 
@@ -194,7 +204,7 @@ public class EtcdMembershipManager implements MembershipManager {
 
   @Override
   public void stopHeartBeat(WorkerInfo worker) throws IOException {
-    WorkerServiceEntity entity = new WorkerServiceEntity(worker.getAddress());
+    WorkerServiceEntity entity = new WorkerServiceEntity(worker.getIdentity(), worker.getAddress());
     mAlluxioEtcdClient.mServiceDiscovery.unregisterService(entity.getServiceEntityName());
   }
 
@@ -206,5 +216,6 @@ public class EtcdMembershipManager implements MembershipManager {
   @Override
   public void close() throws Exception {
     // NOTHING TO CLOSE
+    // The EtcdClient is a singleton so its life cycle is managed by the class itself
   }
 }

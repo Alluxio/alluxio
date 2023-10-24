@@ -133,6 +133,7 @@ public class DoraFileOutStream extends FileOutStream {
     if (mClosed) {
       return;
     }
+    Exception exceptionToThrow = null;
     try (Timer.Context ctx = MetricsSystem
         .uniformTimer(MetricKey.CLOSE_ALLUXIO_OUTSTREAM_LATENCY.getName()).time()) {
       try {
@@ -163,6 +164,7 @@ public class DoraFileOutStream extends FileOutStream {
             }
           }
         } catch (Exception e) {
+          LOG.warn("Flushing/canceling stream failed {}", mUri, e);
           // Ignore;
         } finally {
           // Only close this output stream when write is enabled.
@@ -172,7 +174,8 @@ public class DoraFileOutStream extends FileOutStream {
               mUnderStorageOutputStream.close();
             }
           } catch (Exception e) {
-            // Ignore;
+            LOG.warn("Closing stream failed {}", mUri, e);
+            exceptionToThrow = e;
           }
         }
       }
@@ -184,8 +187,12 @@ public class DoraFileOutStream extends FileOutStream {
           .build();
       mClosed = true;
       mDoraClient.completeFile(mUri.toString(), options, mUuid);
+      if (exceptionToThrow != null) {
+        throw exceptionToThrow;
+      }
     } catch (Exception e) {
-      // Ignore.
+      LOG.warn("Closing DoraFileOutStream failed: {}", mUri, e);
+      throw new RuntimeException(e);
     } finally {
       mClosed = true;
       mCloser.close();
@@ -225,36 +232,46 @@ public class DoraFileOutStream extends FileOutStream {
   }
 
   private void writeInternal(byte[] b, int off, int len) throws IOException {
-    try {
-      Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
-      Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-          PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
-
-      if (mAlluxioStorageType.isStore() || !mClientWriteToUFSEnabled) {
-        // If client is configured to write data to worker and ask worker to write to UFS,
-        // client must send data over netty.
+    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
+    if (!mClientWriteToUFSEnabled) {
+      // If client is configured to write data to worker and ask worker to write to UFS,
+      // client must send data over netty.
+      try {
         mNettyDataWriter.writeChunk(b, off, len);
-
-        Metrics.BYTES_WRITTEN_ALLUXIO.inc(len);
-      }
-      if (mUnderStorageType.isSyncPersist()) {
-        if (mUnderStorageOutputStream != null) {
-          mUnderStorageOutputStream.write(b, off, len);
-          Metrics.BYTES_WRITTEN_UFS.inc(len);
+        Metrics.BYTES_WRITTEN_TO_WORKERS.inc(len);
+        mBytesWritten += len;
+        return;
+      } catch (IOException e) {
+        Throwable throwable = mNettyDataWriter.getPacketWriteException();
+        if (throwable != null) {
+          e.addSuppressed(throwable);
         }
+        throw e;
       }
-      mBytesWritten += len;
-    } catch (IOException e) {
-      StringBuffer exceptionMsg = new StringBuffer();
-      Throwable throwable = mNettyDataWriter.getPacketWriteException();
-      if (throwable != null) {
-        exceptionMsg.append(throwable.getMessage() + " ");
-      }
-      if (e.getMessage() != null) {
-        exceptionMsg.append(e.getMessage());
-      }
-      throw new IOException(exceptionMsg.toString());
     }
+
+    if (mAlluxioStorageType.isStore()) {
+      try {
+        mNettyDataWriter.writeChunk(b, off, len);
+        Metrics.BYTES_WRITTEN_TO_WORKERS.inc(len);
+      } catch (IOException e) {
+        Throwable throwable = mNettyDataWriter.getPacketWriteException();
+        if (throwable != null) {
+          e.addSuppressed(throwable);
+        }
+        // writing to worker over netty failed. But Alluxio client continues writing to UFS.
+        LOG.error("Failed to write data to alluxio worker. ", e);
+      }
+    }
+    if (mUnderStorageType.isSyncPersist()) {
+      if (mUnderStorageOutputStream != null) {
+        mUnderStorageOutputStream.write(b, off, len);
+        Metrics.BYTES_WRITTEN_TO_UFS.inc(len);
+      }
+    }
+    mBytesWritten += len;
   }
 
   /**
@@ -265,10 +282,10 @@ public class DoraFileOutStream extends FileOutStream {
     // Note that only counter can be added here.
     // Both meter and timer need to be used inline
     // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
-    private static final Counter BYTES_WRITTEN_ALLUXIO =
-        MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_ALLUXIO.getName());
-    private static final Counter BYTES_WRITTEN_UFS =
-        MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_UFS.getName());
+    private static final Counter BYTES_WRITTEN_TO_WORKERS =
+        MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_TO_WORKERS.getName());
+    private static final Counter BYTES_WRITTEN_TO_UFS =
+        MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_TO_UFS.getName());
 
     private Metrics() {
     } // prevent instantiation

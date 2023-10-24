@@ -75,6 +75,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 import javax.security.auth.Subject;
 
 /**
@@ -757,4 +758,18 @@ public interface FileSystem extends Closeable {
    */
   String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose);
+
+  /**
+   * @return the instance of {@link DoraCacheFileSystem}
+   */
+  default @Nullable DoraCacheFileSystem getDoraCacheFileSystem() {
+    return null;
+  }
+
+  /**
+   * @return the instance of {@link UfsBaseFileSystem}
+   */
+  default @Nullable UfsBaseFileSystem getUfsBaseFileSystem() {
+    return null;
+  }
 }

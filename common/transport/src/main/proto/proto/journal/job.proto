@@ -22,6 +22,7 @@ message LoadJobEntry {
   required string job_id = 7;
   optional int64 end_time = 8;
   optional bool load_metadata_only = 9;
+  optional bool skip_if_exists = 10;
 }
 
 // next available id: 13

@@ -21,8 +21,8 @@ can use in-memory streams, the REST API decouples the stream creation and access
 `create` and `open` REST API methods and the `streams` resource endpoints for details).
 
 The HTTP proxy is a standalone server that can be started using
-`${ALLUXIO_HOME}/bin/alluxio-start.sh proxy` and stopped using `${ALLUXIO_HOME}/bin/alluxio-stop.sh
-proxy`. By default, the REST API is available on port 39999.
+`${ALLUXIO_HOME}/bin/alluxio process start proxy` and stopped using `${ALLUXIO_HOME}/bin/alluxio process stop proxy`.
+By default, the REST API is available on port 39999.
 
 There are performance implications of using the HTTP proxy. In particular, using the proxy requires
 an extra network hop to perform filesystem operations. For optimal performance, it is recommended to

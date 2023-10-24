@@ -33,6 +33,7 @@ var Collect = &CollectCommand{
 type CollectCommand struct {
 	*env.BaseJavaCommand
 
+	AdditionalCommands   map[string]string
 	additionalLogs       []string
 	endTime              string
 	excludeLogs          []string
@@ -40,7 +41,7 @@ type CollectCommand struct {
 	includeLogs          []string
 	local                bool
 	maxThreads           int
-	outputPath           string
+	outputDir            string
 	startTime            string
 }
 
@@ -55,18 +56,17 @@ func (c *CollectCommand) ToCommand() *cobra.Command {
 		Use:   fmt.Sprintf("%v [command]", c.CommandName),
 		Short: "Collects information such as logs, config, metrics, and more from the running Alluxio cluster and bundle into a single tarball",
 		Long: `Collects information such as logs, config, metrics, and more from the running Alluxio cluster and bundle into a single tarball
-[command] must be one of the following values:
-  all      runs all the commands below
-  cluster: runs a set of Alluxio commands to collect information about the Alluxio cluster
-  conf:    collects the configuration files under ${ALLUXIO_HOME}/config/
-  env:     runs a set of linux commands to collect information about the cluster
-  jvm:     collects jstack from the JVMs
-  log:     collects the log files under ${ALLUXIO_HOME}/logs/
-  metrics: collects Alluxio system metrics
 
-WARNING: This command MAY bundle credentials. To understand the risks refer to the docs here.
-https://docs.alluxio.io/os/user/edge/en/operation/Troubleshooting.html#collect-alluxio-cluster-information
-`,
+[command] must be one of the following values:
+- all: runs all the commands below
+- cluster: runs a set of Alluxio commands to collect information about the Alluxio cluster
+- conf: collects the configuration files under ${ALLUXIO_HOME}/config/
+- env: runs a set of linux commands to collect information about the cluster
+- jvm: collects jstack from the JVMs
+- log: collects the log files under ${ALLUXIO_HOME}/logs/
+- metrics: collects Alluxio system metrics
+
+> WARNING: This command MAY bundle credentials. Inspect the output tarball for any sensitive information and remove it before sharing with others.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
@@ -79,9 +79,9 @@ https://docs.alluxio.io/os/user/edge/en/operation/Troubleshooting.html#collect-a
 	cmd.Flags().StringSliceVar(&c.includeLogs, "include-logs", nil, "File name prefixes from ${ALLUXIO_HOME}/logs to include in the tarball, ignoring the default log files; cannot be used with --exclude-logs or --additional-logs")
 	cmd.Flags().BoolVar(&c.local, "local", false, "True to only collect information from the local machine")
 	cmd.Flags().IntVar(&c.maxThreads, "max-threads", 1, "Parallelism of the command; use a smaller value to limit network I/O when transferring tarballs")
-	const outputPath = "output-path"
-	cmd.Flags().StringVar(&c.outputPath, outputPath, "", "Output directory to write collect info tarball to")
-	cmd.MarkFlagRequired(outputPath)
+	const outputDir = "output-dir"
+	cmd.Flags().StringVar(&c.outputDir, outputDir, "", "Output directory to write collect info tarball to")
+	cmd.MarkFlagRequired(outputDir)
 	cmd.Flags().StringVar(&c.startTime, "start-time", "", "Logs that do not contain entries after this time will be ignored, format must be like "+dateFormat)
 	return cmd
 }
@@ -96,6 +96,9 @@ func (c *CollectCommand) Run(args []string) error {
 		"jvm":     "collectJvmInfo",
 		"log":     "collectLog",
 		"metrics": "collectMetrics",
+	}
+	for k, v := range c.AdditionalCommands {
+		commands[k] = v
 	}
 	commandArg, ok := commands[args[0]]
 	if !ok {
@@ -145,7 +148,7 @@ func (c *CollectCommand) Run(args []string) error {
 		javaArgs = append(javaArgs, "--start-time", c.startTime)
 	}
 
-	javaArgs = append(javaArgs, commandArg, c.outputPath)
+	javaArgs = append(javaArgs, "--output-dir", c.outputDir, commandArg)
 
 	return c.Base().Run(javaArgs)
 }

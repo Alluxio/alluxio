@@ -109,6 +109,13 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       .desc("If specified, only the file metadata are loaded")
       .build();
 
+  private static final Option SKIP_IF_EXISTS = Option.builder()
+      .longOpt("skip-if-exists")
+      .required(false)
+      .hasArg(false)
+      .desc("If specified, skip files if they exist and are fully cached in alluxio.")
+      .build();
+
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
@@ -134,14 +141,14 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         .addOption(PROGRESS_OPTION)
         .addOption(PROGRESS_FORMAT)
         .addOption(PROGRESS_VERBOSE)
-        .addOption(LOAD_METADATA_ONLY);
+        .addOption(LOAD_METADATA_ONLY)
+        .addOption(SKIP_IF_EXISTS);
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
-
     if (path.containsWildcard()) {
       throw new UnsupportedOperationException("Load does not support wildcard path");
     }
@@ -157,7 +164,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
           bandwidth,
           cl.hasOption(PARTIAL_LISTING_OPTION.getLongOpt()),
           cl.hasOption(VERIFY_OPTION.getLongOpt()),
-          cl.hasOption(LOAD_METADATA_ONLY.getLongOpt()));
+          cl.hasOption(LOAD_METADATA_ONLY.getLongOpt()),
+          cl.hasOption(SKIP_IF_EXISTS.getLongOpt()));
     }
 
     if (cl.hasOption(STOP_OPTION.getLongOpt())) {
@@ -178,7 +186,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   public String getUsage() {
     return "For distributed load:\n"
         + "\tload <path> --submit "
-        + "[--bandwidth N] [--verify] [--partial-listing] [--metadata-only]\n"
+        + "[--bandwidth N] [--verify] [--partial-listing] [--metadata-only] [--skip-if-exists]\n"
         + "\tload <path> --stop\n"
         + "\tload <path> --progress [--format TEXT|JSON] [--verbose]\n";
   }
@@ -207,14 +215,15 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   }
 
   private int submitLoad(AlluxioURI path, OptionalLong bandwidth,
-      boolean usePartialListing, boolean verify, boolean loadMetadataOnly) {
+      boolean usePartialListing, boolean verify, boolean loadMetadataOnly, boolean skipIfExists) {
     LoadJobPOptions.Builder options = alluxio.grpc.LoadJobPOptions
         .newBuilder().setPartialListing(usePartialListing).setVerify(verify)
-        .setLoadMetadataOnly(loadMetadataOnly);
+        .setLoadMetadataOnly(loadMetadataOnly)
+        .setSkipIfExists(skipIfExists);
     if (bandwidth.isPresent()) {
       options.setBandwidth(bandwidth.getAsLong());
     }
-    LoadJobRequest job = new LoadJobRequest(path.getPath(), options.build());
+    LoadJobRequest job = new LoadJobRequest(path.toString(), options.build());
     try {
       Optional<String> jobId = mFileSystem.submitJob(job);
       if (jobId.isPresent()) {
@@ -233,7 +242,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     try {
       if (mFileSystem.stopJob(JobDescription
           .newBuilder()
-          .setPath(path.getPath())
+          .setPath(path.toString())
           .setType(JOB_TYPE)
           .build())) {
         System.out.printf("Load '%s' is successfully stopped.%n", path);
@@ -255,7 +264,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       System.out.println("Progress for loading path '" + path + "':");
       System.out.println(mFileSystem.getJobProgress(JobDescription
           .newBuilder()
-          .setPath(path.getPath())
+          .setPath(path.toString())
           .setType(JOB_TYPE)
           .build(), format, verbose));
       return 0;

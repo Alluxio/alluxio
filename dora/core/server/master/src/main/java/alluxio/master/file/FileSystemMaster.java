@@ -543,6 +543,11 @@ public interface FileSystemMaster extends Master {
   List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
 
   /**
+   * @return a list of {@link WorkerInfo} objects representing the lost workers in Alluxio
+   */
+  List<WorkerInfo> getLostWorkerList() throws UnavailableException;
+
+  /**
    * Get the total inode count.
    *
    * @return inode count

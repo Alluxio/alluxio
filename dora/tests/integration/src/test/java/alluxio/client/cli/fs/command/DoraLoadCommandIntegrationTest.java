@@ -16,14 +16,15 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractDoraFileSystemShellTest;
+import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.conf.PropertyKey;
+import alluxio.util.io.BufferUtils;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 
 public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellTest {
@@ -34,23 +35,16 @@ public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellT
 
   @Override
   public void before() throws Exception {
-    mLocalAlluxioClusterResource.setProperty(
-        PropertyKey.JOB_BATCH_SIZE, 3
-    );
-    mLocalAlluxioClusterResource.setProperty(
-        PropertyKey.MASTER_SCHEDULER_INITIAL_DELAY, "1s"
-    );
+    mLocalAlluxioClusterResource.setProperty(PropertyKey.MASTER_SCHEDULER_INITIAL_DELAY, "1s")
+                                .setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false);
     super.before();
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "yimin",
-      comment = "fix or remove this test")
-  @Ignore
   public void testCommand() throws Exception {
-    mTestFolder.newFolder("testRoot");
+    File testRoot = mTestFolder.newFolder("testRoot");
     mTestFolder.newFolder("testRoot/testDirectory");
-
+    String path = testRoot.getAbsolutePath();
     createByteFileInUfs("/testRoot/testFileA", Constants.MB);
     createByteFileInUfs("/testRoot/testFileB", Constants.MB);
     createByteFileInUfs("/testRoot/testDirectory/testFileC", Constants.MB);
@@ -62,28 +56,31 @@ public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellT
     assertEquals(0, mFileSystem.getStatus(uriA).getInAlluxioPercentage());
     assertEquals(0, mFileSystem.getStatus(uriB).getInAlluxioPercentage());
     assertEquals(0, mFileSystem.getStatus(uriC).getInAlluxioPercentage());
-
     // Testing loading of a directory
-    assertEquals(0, mFsShell.run("load", "/testRoot", "--submit", "--verify"));
-    assertEquals(0, mFsShell.run("load", "/testRoot", "--progress"));
+
+    assertEquals(0, mFsShell.run("load", path, "--submit", "--verify"));
+    assertEquals(0, mFsShell.run("load", path, "--progress"));
 
     FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uriA, 100);
     FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uriB, 100);
     FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uriC, 100);
+    FileInStream fileInStream = mFileSystem.openFile(uriA);
+    byte[] buffer = new byte[Constants.MB];
+    fileInStream.positionedRead(0, buffer, 0, Constants.MB);
+    assertTrue(BufferUtils.equalIncreasingByteArray(Constants.MB, buffer));
     while (!mOutput.toString().contains("SUCCEEDED")) {
-      assertEquals(0, mFsShell.run("load", "/testRoot", "--progress"));
+      assertEquals(0, mFsShell.run("load", path, "--progress"));
       Thread.sleep(1000);
     }
-    assertTrue(mOutput.toString().contains("Files Processed: 3"));
-    assertTrue(mOutput.toString().contains("Directories Processed: 1"));
+    assertTrue(mOutput.toString().contains("Inodes Processed: 4"));
     assertTrue(mOutput.toString().contains("Bytes Loaded: 3072.00KB out of 3072.00KB"));
     assertTrue(mOutput.toString().contains("Files Failed: 0"));
-    assertEquals(0, mFsShell.run("load", "/testRoot", "--stop"));
+    assertEquals(0, mFsShell.run("load", path, "--stop"));
     assertEquals(-2, mFsShell.run("load", "/testRootNotExists", "--progress"));
-    assertTrue(mOutput.toString().contains("Load for path '/testRootNotExists' cannot be found."));
-    mFsShell.run("load", "/testRoot", "--progress", "--format", "JSON");
+    assertTrue(mOutput.toString().contains("cannot be found."));
+    mFsShell.run("load", path, "--progress", "--format", "JSON");
     assertTrue(mOutput.toString().contains("\"mJobState\":\"SUCCEEDED\""));
-    mFsShell.run("load", "/testRoot", "--progress", "--format", "JSON", "--verbose");
+    mFsShell.run("load", path, "--progress", "--format", "JSON", "--verbose");
     assertTrue(mOutput.toString().contains("\"mVerbose\":true"));
   }
 }

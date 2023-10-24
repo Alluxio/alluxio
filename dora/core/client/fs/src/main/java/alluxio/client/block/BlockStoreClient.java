@@ -12,10 +12,8 @@
 package alluxio.client.block;
 
 import alluxio.client.file.FileSystemContext;
-import alluxio.network.TieredIdentityFactory;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.BlockInfo;
-import alluxio.wire.TieredIdentity;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -33,7 +31,6 @@ public final class BlockStoreClient {
   private static final Logger LOG = LoggerFactory.getLogger(BlockStoreClient.class);
 
   private final FileSystemContext mContext;
-  private final TieredIdentity mTieredIdentity;
 
   /**
    * Creates an Alluxio block store with default local hostname.
@@ -42,20 +39,17 @@ public final class BlockStoreClient {
    * @return the {@link BlockStoreClient} created
    */
   public static BlockStoreClient create(FileSystemContext context) {
-    return new BlockStoreClient(context,
-        TieredIdentityFactory.localIdentity(context.getClusterConf()));
+    return new BlockStoreClient(context);
   }
 
   /**
    * Creates an Alluxio block store.
    *
    * @param context the file system context
-   * @param tieredIdentity the tiered identity
    */
   @VisibleForTesting
-  BlockStoreClient(FileSystemContext context, TieredIdentity tieredIdentity) {
+  BlockStoreClient(FileSystemContext context) {
     mContext = context;
-    mTieredIdentity = tieredIdentity;
   }
 
   /**

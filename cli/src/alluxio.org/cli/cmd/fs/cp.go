@@ -46,9 +46,20 @@ func (c *CopyCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   "cp [srcPath] [dstPath]",
 		Short: "Copy a file or directory",
-		Long: `Copies a file or directory in the Alluxio filesystem or between local and Alluxio filesystems
-Use the file:// schema to indicate a local filesystem path (ex. file:///absolute/path/to/file) and
-use the recursive flag to copy directories`,
+		Long: `Copies a file or directory in the Alluxio filesystem or between local and Alluxio filesystems.
+The file:// scheme indicates a local filesystem path and the alluxio:// scheme or no scheme indicates an Alluxio filesystem path.`,
+		Example: `# Copy within the Alluxio filesystem
+$ ./bin/alluxio fs cp /file1 /file2
+
+# Copy a local file to the Alluxio filesystem
+$ ./bin/alluxio fs cp file:///file1 /file2
+
+# Copy a file in Alluxio to local
+$ ./bin/alluxio fs cp alluxio:///file1 file:///file2
+
+# Recursively copy a directory within the Alluxio filesystem
+$ ./bin/alluxio fs cp -R /dir1 /dir2
+`,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)

@@ -46,25 +46,26 @@ type DockerImage struct {
 	outputTarball string `yaml:"-"`
 }
 
-type dockerBuildOpts struct {
+type DockerBuildOpts struct {
 	*buildOpts
 
-	dockerImages  map[string]*DockerImage
+	DockerImages map[string]*DockerImage
+	Image        string
+	Metadata     map[string]string
+
 	dockerYmlFile string
-	image         string
-	metadata      map[string]string
 	tarballPath   string
 }
 
-func newDockerBuildOpts(args []string) (*dockerBuildOpts, error) {
+func NewDockerBuildOpts(args []string) (*DockerBuildOpts, error) {
 	cmd := flag.NewFlagSet(Docker, flag.ExitOnError)
-	opts := &dockerBuildOpts{
-		metadata: map[string]string{},
+	opts := &DockerBuildOpts{
+		Metadata: map[string]string{},
 	}
 	var flagMetadata string
 	// docker flags
 	cmd.StringVar(&opts.dockerYmlFile, "dockerYmlFile", defaultDockerYmlFilePath, "Path to docker.yml file")
-	cmd.StringVar(&opts.image, "image", "", "Choose the docker image to build. See available images in docker.yml")
+	cmd.StringVar(&opts.Image, "image", "", "Choose the docker image to build. See available images in docker.yml")
 	cmd.StringVar(&opts.tarballPath, "tarballPath", "", "Set to use existing tarball for building docker image")
 	cmd.StringVar(&flagMetadata, "metadata", "", "Set to add metadata key-value pairs. Comma-delimited format (ex. key1=value1,key2=value2")
 	// parse flags
@@ -80,12 +81,12 @@ func newDockerBuildOpts(args []string) (*dockerBuildOpts, error) {
 			if len(kvp) != 2 {
 				return nil, stacktrace.NewError("expected key and value but got %v", kvp)
 			}
-			opts.metadata[kvp[0]] = kvp[1]
+			opts.Metadata[kvp[0]] = kvp[1]
 		}
 	}
 	opts.buildOpts = tOpts
 
-	alluxioVersion, err := alluxioVersionFromPom()
+	alluxioVersion, err := AlluxioVersionFromPom()
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "error parsing version string")
 	}
@@ -101,35 +102,36 @@ func newDockerBuildOpts(args []string) (*dockerBuildOpts, error) {
 		if err != nil {
 			return nil, stacktrace.Propagate(err, "error reading file at %v", dockerYmlPath)
 		}
-		if err := yaml.Unmarshal(content, &opts.dockerImages); err != nil {
+		if err := yaml.Unmarshal(content, &opts.DockerImages); err != nil {
 			return nil, stacktrace.Propagate(err, "error unmarshalling docker images from:\n%v", string(content))
 		}
-		for _, img := range opts.dockerImages {
+		for _, img := range opts.DockerImages {
 			img.init(alluxioVersion)
 		}
 	}
 
-	image, ok := opts.dockerImages[opts.image]
+	image, ok := opts.DockerImages[opts.Image]
 	if !ok {
 		return nil, stacktrace.NewError("must provide valid 'image' arg")
 	}
-	opts.metadata["docker:tag"] = image.Tag
+	opts.Metadata["docker:tag"] = image.Tag
+	opts.Metadata["name"] = opts.Image
 
 	return opts, nil
 }
 
 func DockerF(args []string) error {
-	opts, err := newDockerBuildOpts(args)
+	opts, err := NewDockerBuildOpts(args)
 	if err != nil {
 		return stacktrace.Propagate(err, "error creating docker build opts")
 	}
 
-	alluxioVersion, err := alluxioVersionFromPom()
+	alluxioVersion, err := AlluxioVersionFromPom()
 	if err != nil {
 		return stacktrace.Propagate(err, "error parsing version string")
 	}
 
-	image, ok := opts.dockerImages[opts.image]
+	image, ok := opts.DockerImages[opts.Image]
 	if !ok {
 		return stacktrace.NewError("must provide valid 'image' arg")
 	}
@@ -141,7 +143,7 @@ func DockerF(args []string) error {
 		a.Add(artifact.DockerArtifact,
 			opts.outputDir,
 			image.TargetName,
-			opts.metadata,
+			opts.Metadata,
 		)
 		return a.WriteToFile(opts.artifactOutput)
 	}
@@ -169,21 +171,21 @@ func DockerF(args []string) error {
 	defer os.RemoveAll(tmpTarballPath)
 
 	if err := image.build(opts, true); err != nil {
-		return stacktrace.Propagate(err, "error building image %v", opts.image)
+		return stacktrace.Propagate(err, "error building image %v", opts.Image)
 	}
 
 	return nil
 }
 
 func (i *DockerImage) init(alluxioVersion string) {
-	i.Tag = strings.ReplaceAll(i.Tag, versionPlaceholder, alluxioVersion)
-	i.TargetName = strings.ReplaceAll(i.TargetName, versionPlaceholder, alluxioVersion)
+	i.Tag = strings.ReplaceAll(i.Tag, VersionPlaceholder, alluxioVersion)
+	i.TargetName = strings.ReplaceAll(i.TargetName, VersionPlaceholder, alluxioVersion)
 }
 
-func (i *DockerImage) build(opts *dockerBuildOpts, save bool) error {
+func (i *DockerImage) build(opts *DockerBuildOpts, save bool) error {
 	dockerWs := filepath.Join(repo.FindRepoRoot(), i.BuildDir)
 	if i.Dependency != "" {
-		dep, ok := opts.dockerImages[i.Dependency]
+		dep, ok := opts.DockerImages[i.Dependency]
 		if !ok {
 			return stacktrace.NewError("%v not found in list of docker images", i.Dependency)
 		}

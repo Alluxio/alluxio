@@ -41,7 +41,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.apache.commons.io.IOUtils;
 import org.gaul.s3proxy.junit.S3ProxyRule;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -76,11 +75,14 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001")
           .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2")
           .setProperty(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true)
-          .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, "s3://" + TEST_BUCKET)
-          .setProperty(PropertyKey.DORA_CLIENT_UFS_ROOT, "s3://" + TEST_BUCKET)
+          .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, "s3://" + TEST_BUCKET + "/")
+          .setProperty(PropertyKey.DORA_CLIENT_UFS_ROOT, "s3://" + TEST_BUCKET + "/")
           .setProperty(PropertyKey.WORKER_HTTP_SERVER_ENABLED, false)
           .setProperty(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey())
           .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
+          .setProperty(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED, false)
+          // current s3 ufs mock don't support setXattr, disable the flag to bypass it
+          .setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false)
           .setNumWorkers(2)
           .setStartCluster(false);
 
@@ -95,12 +97,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   public ExpectedException mThrown = ExpectedException.none();
   private AmazonS3 mS3Client = null;
 
-  @Before
-  public void before() throws Exception {
-  }
-
-  private void startCluster(LocalAlluxioClusterResource cluster) throws Exception
-  {
+  private void startCluster(LocalAlluxioClusterResource cluster) throws Exception {
     cluster.start();
     mFileSystem = cluster.get().getClient();
 
@@ -119,8 +116,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  private void stopCluster(LocalAlluxioClusterResource cluster) throws Exception
-  {
+  private void stopCluster(LocalAlluxioClusterResource cluster) throws Exception {
     mFileSystem = null;
     cluster.stop();
   }
@@ -133,7 +129,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   private void writeThenDeleteFromUfs(boolean clientWriteToUFS)
       throws IOException, AlluxioException, Exception {
     mLocalAlluxioClusterResourceBuilder.setProperty(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED,
-                                                    clientWriteToUFS);
+        clientWriteToUFS);
     LocalAlluxioClusterResource clusterResource = mLocalAlluxioClusterResourceBuilder.build();
     startCluster(clusterResource);
 
@@ -171,7 +167,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   private void writeThenUpdateFromUfs(boolean clientWriteToUFS)
       throws IOException, AlluxioException, Exception {
     mLocalAlluxioClusterResourceBuilder.setProperty(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED,
-                                                    clientWriteToUFS);
+        clientWriteToUFS);
     LocalAlluxioClusterResource clusterResource = mLocalAlluxioClusterResourceBuilder.build();
     startCluster(clusterResource);
 
@@ -208,12 +204,12 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
 
   private FileSystemMasterCommonPOptions optionNoSync() {
     return FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
-            .build();
+        .build();
   }
 
   private FileSystemMasterCommonPOptions optionSync() {
     return FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0)
-            .build();
+        .build();
   }
 
   /**
@@ -222,8 +218,17 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
    * Read the file with sync interval setting to 0 should return error.
    */
   @Test
-  public void testWriteThenDeleteFromUfs() throws Exception {
+  public void testWriteThenDeleteFromUfsThrough() throws Exception {
     writeThenDeleteFromUfs(true);
+  }
+
+  /**
+   * Writes a file through alluxio into UFS. Deletes the file from UFS.
+   * Read the file with sync interval setting to -1 should give the cached file.
+   * Read the file with sync interval setting to 0 should return error.
+   */
+  @Test
+  public void testWriteThenDeleteFromUfsNotThrough() throws Exception {
     writeThenDeleteFromUfs(false);
   }
 
@@ -236,5 +241,40 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   public void testWriteThenUpdateFromUfs() throws Exception {
     writeThenUpdateFromUfs(true);
     writeThenUpdateFromUfs(false);
+  }
+
+  @Test
+  public void testRename() throws Exception {
+    mLocalAlluxioClusterResourceBuilder.setProperty(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED, true);
+    LocalAlluxioClusterResource clusterResource = mLocalAlluxioClusterResourceBuilder.build();
+    startCluster(clusterResource);
+
+    FileOutStream fos = mFileSystem.createFile(TEST_FILE_URI,
+        CreateFilePOptions.newBuilder().setOverwrite(true).build());
+    fos.write(TEST_CONTENT.getBytes());
+    fos.close();
+
+    AlluxioURI oldPath = TEST_FILE_URI;
+    for (int i = 1; i < 3; i++) {
+      AlluxioURI newPath = new AlluxioURI(oldPath.getPath() + i);
+      assertNotNull(mFileSystem.getStatus(oldPath, GetStatusPOptions.newBuilder()
+          .setCommonOptions(optionNoSync())
+          .build()));
+      long oldFileId = mFileSystem.getStatus(oldPath, GetStatusPOptions.newBuilder()
+          .setCommonOptions(optionNoSync())
+          .build()).getFileId();
+      mFileSystem.rename(oldPath, newPath);
+      assertNotNull(mFileSystem.getStatus(newPath, GetStatusPOptions.newBuilder()
+          .setCommonOptions(optionNoSync())
+          .build()));
+      long newFileId = mFileSystem.getStatus(newPath, GetStatusPOptions.newBuilder()
+          .setCommonOptions(optionNoSync())
+          .build()).getFileId();
+      assertEquals(TEST_CONTENT, IOUtils.toString(mFileSystem.openFile(newPath,
+          OpenFilePOptions.newBuilder().setCommonOptions(optionNoSync()).build())));
+      oldPath = newPath;
+    }
+
+    stopCluster(clusterResource);
   }
 }

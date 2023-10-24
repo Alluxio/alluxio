@@ -26,6 +26,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,6 +94,8 @@ public class CollectConfCommandTest {
     CommandLine mockCommandLine = mock(CommandLine.class);
     String[] mockArgs = new String[]{cmd.getCommandName(), targetDir.getAbsolutePath()};
     when(mockCommandLine.getArgs()).thenReturn(mockArgs);
+    when(mockCommandLine.getOptionValue(ArgumentMatchers.eq("output-dir"), ArgumentMatchers.eq("")))
+            .thenReturn(targetDir.getAbsolutePath());
     int ret = cmd.run(mockCommandLine);
     Assert.assertEquals(0, ret);
 

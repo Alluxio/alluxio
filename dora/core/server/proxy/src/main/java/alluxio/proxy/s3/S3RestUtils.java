@@ -358,19 +358,18 @@ public final class S3RestUtils {
     final AlluxioURI metaUri = new AlluxioURI(
         S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId));
     URIStatus metaStatus = metaFs.getStatus(metaUri);
-    /*  TODO(pkuweblab): 3.x haven't supported XAttr yet
     if (metaStatus.getXAttr() == null
         || !metaStatus.getXAttr().containsKey(S3Constants.UPLOADS_FILE_ID_XATTR_KEY)) {
       //TODO(czhu): determine intended behavior in this edge-case
       throw new RuntimeException(
           "Alluxio is missing multipart-upload metadata for upload ID: " + uploadId);
     }
-    if (Longs.fromByteArray(metaStatus.getXAttr().get(S3Constants.UPLOADS_FILE_ID_XATTR_KEY))
-        != multipartTempDirStatus.getFileId()) {
+    if (Long.parseLong(
+        ByteString.copyFrom(metaStatus.getXAttr().get(S3Constants.UPLOADS_FILE_ID_XATTR_KEY))
+            .toStringUtf8()) != multipartTempDirStatus.getFileId()) {
       throw new RuntimeException(
           "Alluxio mismatched file ID for multipart-upload with upload ID: " + uploadId);
     }
-     */
     return new ArrayList<>(Arrays.asList(multipartTempDirStatus, metaStatus));
   }
 
@@ -493,11 +492,11 @@ public final class S3RestUtils {
    */
   public static TaggingData deserializeTags(Map<String, byte[]> xAttr)
       throws IOException {
-    // Fetch the S3 tags from the Inode xAttr
-    if (xAttr == null || !xAttr.containsKey(S3Constants.TAGGING_XATTR_KEY)) {
-      return null;
+    Map<String, String> tagMap = new HashMap<>(xAttr.size());
+    for (Map.Entry<String, byte[]> tags : xAttr.entrySet()) {
+      tagMap.put(tags.getKey(), new String(tags.getValue()));
     }
-    return TaggingData.deserialize(xAttr.get(S3Constants.TAGGING_XATTR_KEY));
+    return new TaggingData().addTags(tagMap);
   }
 
   /**

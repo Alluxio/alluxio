@@ -23,7 +23,7 @@ import (
 var Validate = &ValidateCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "validate",
-		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
+		ShellJavaOpts: []string{fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console")},
 	},
 }
 
@@ -39,8 +39,12 @@ func (c *ValidateCommand) Base() *env.BaseJavaCommand {
 func (c *ValidateCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   c.CommandName,
-		Short: "Validate Alluxio conf or environment and exit",
-		Args:  cobra.NoArgs,
+		Short: "Validate Alluxio configuration or environment",
+		Example: `# Validate configuration
+$ ./bin/alluxio init validate --type conf
+
+# Validate environment
+$ ./bin/alluxio init validate --type env`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},

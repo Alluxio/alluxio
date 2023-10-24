@@ -113,6 +113,8 @@ public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   private final boolean mUfsEnabled;
   private final FuseOptions mFuseOptions;
 
+  private static final BlockMasterInfo ZERO_BLOCK_MASTER_INFO = new BlockMasterInfo();
+
   /** df command will treat -1 as an unknown value. */
   @VisibleForTesting
   public static final int UNKNOWN_INODES = -1;
@@ -216,6 +218,7 @@ public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
       if (mFuseOptions.specialCommandEnabled()
           && mFuseShell.isSpecialCommand(uri)) {
         // TODO(lu) add cache for isFuseSpecialCommand if needed
+        LOG.debug("Special commmand = {}", uri);
         AlluxioFuseUtils.fillStat(mAuthPolicy, stat, mFuseShell.runCommand(uri));
         return 0;
       }
@@ -651,7 +654,9 @@ public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     if (res != 0) {
       return res;
     }
-    BlockMasterInfo info = mFsStatCache.get();
+
+    // Alluxio does not keep valid nor useful block info at this moment.
+    BlockMasterInfo info = ZERO_BLOCK_MASTER_INFO;
     if (info == null) {
       LOG.error("Failed to statfs {}: cannot get block master info", path);
       return -ErrorCodes.EIO();

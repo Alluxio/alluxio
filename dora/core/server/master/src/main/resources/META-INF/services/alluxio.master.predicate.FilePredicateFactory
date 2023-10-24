@@ -11,3 +11,4 @@
 
 alluxio.master.predicate.TimePredicate$DateFromFileNameOlderThanFactory
 alluxio.master.predicate.TimePredicate$UnmodifiedForFactory
+alluxio.master.predicate.DatePredicate$LastModifiedDateFactory

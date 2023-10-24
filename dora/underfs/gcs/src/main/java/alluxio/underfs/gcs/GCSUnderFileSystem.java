@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UfsDirectoryStatus;
@@ -47,6 +48,7 @@ import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.Map;
 import java.util.function.Supplier;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -129,6 +131,16 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   // Setting GCS owner via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setOwner(String path, String user, String group) {}
+
+  @Override
+  public void setObjectTagging(String path, String name, String value) throws IOException {
+    throw new UnimplementedRuntimeException("setObjectTagging is not implemented");
+  }
+
+  @Override
+  public Map<String, String> getObjectTags(String path) throws IOException {
+    throw new UnimplementedRuntimeException("getObjectTags is not implemented");
+  }
 
   // Setting GCS mode via Alluxio is not supported yet. This is a no-op.
   @Override
@@ -230,7 +242,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   // Get next chunk of listing result.
-  private StorageObjectsChunk getObjectListingChunk(String key, String delimiter,
+  protected StorageObjectsChunk getObjectListingChunk(String key, String delimiter,
       String priorLastKey) {
     StorageObjectsChunk res;
     try {

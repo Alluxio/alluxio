@@ -201,10 +201,10 @@ public final class MetricsSystemTest {
     assertEquals("Cluster.counter", MetricsSystem.getMetricName("Cluster.counter"));
     assertEquals("Master.timer", MetricsSystem.getMetricName("Master.timer"));
     String workerGaugeName = "Worker.gauge";
-    assertNotEquals(workerGaugeName, MetricsSystem.getMetricName(workerGaugeName));
+    assertEquals(workerGaugeName, MetricsSystem.getMetricName(workerGaugeName));
     assertTrue(MetricsSystem.getMetricName(workerGaugeName).startsWith(workerGaugeName));
     String clientCounterName = "Client.counter";
-    assertNotEquals(clientCounterName, MetricsSystem.getMetricName(clientCounterName));
+    assertEquals(clientCounterName, MetricsSystem.getMetricName(clientCounterName));
     assertTrue(MetricsSystem.getMetricName(clientCounterName).startsWith(clientCounterName));
   }
 

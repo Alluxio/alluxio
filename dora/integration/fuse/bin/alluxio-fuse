@@ -250,24 +250,22 @@ wait_for_fuse_mounted() {
 
   sleep 2
   local cnt=0
+  printf "Mounting %s to %s\n" "${ufs_address}" "${mount_point}"
+  sleep 1
   until fuse_mounted "${mount_point}"; do
-    if [[ "${cnt}" -eq 0 ]];then
-      printf "Mounting %s to %s" "${ufs_address}" "${mount_point}"
-    elif [[ "${cnt}" -lt 60 ]]; then
-      printf "."
-      sleep 1
-    else
-      printf "\n"
+    if [[ "${cnt}" -gt 60 ]]; then
       err "Failed to mount ufs path ${ufs_address} to local mount point ${mount_point}."
       cat "${ALLUXIO_LOGS_DIR}"/fuse.out >&2
       return 1
     fi
+    printf "."
+    sleep 1
     (( cnt += 1 ))
   done
   if [[ ${cnt} -gt 0 ]]; then
     printf "\n"
-    echo "Successfully mount ${ufs_address} to ${mount_point}"
   fi
+  printf "Successfully mounted %s to %s\n" "${ufs_address}" "${mount_point}"
   return 0
 }
 
@@ -286,7 +284,7 @@ fuse_mounted() {
     echo -e "${USAGE}"
     return 1
   fi
-  declare -r mount_point="$1"
+  declare -r mount_point=$(readlink -f "$1")
   fuse_mount_info="$(mount | grep " ${mount_point} ")"
   if [[ -n "${fuse_mount_info}" ]]; then
     return 0 # true
@@ -337,14 +335,14 @@ unmount_command() {
     return 1
   fi
   readonly fuse_pid
-  
+
   if [[ "${force_kill}" = 'true' ]] ; then
     kill -9 "${fuse_pid}"
     echo "Forcibly killed fuse process ${fuse_pid}"
     umount_fuse "${mount_point}"
     return $?
   fi
-  
+
   kill "${fuse_pid}"
   wait_for_fuse_process_killed "${fuse_pid}"
   if fuse_mounted "${mount_point}"; then
@@ -390,7 +388,7 @@ umount_fuse() {
   if fuse_mounted; then
     err "Failed to umount fuse mount point ${mount_point}"
     return 1
-  else 
+  else
     echo "Path ${mount_point} is not mounted"
     return 0
   fi
@@ -424,7 +422,7 @@ wait_for_fuse_process_killed() {
       sleep 1
     else
       printf "\n"
-      err  "Failed to kill fuse process [${fuse_pid}] after 60 seconds. 
+      err  "Failed to kill fuse process [${fuse_pid}] after 60 seconds.
 Run \"alluxio-fuse umount -f mount_point\" if needed to forcibly kill the alluxio fuse process and fuse mount point. "
       return 1
     fi

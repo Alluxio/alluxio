@@ -55,7 +55,7 @@ public interface FuseFileStream extends AutoCloseable {
   void truncate(long size);
 
   /**
-   * Closes the stream.
+   * Closes the stream and releases the lock.
    */
   void close();
 
@@ -63,4 +63,19 @@ public interface FuseFileStream extends AutoCloseable {
    * @return if the stream is closed
    */
   boolean isClosed();
+
+  /**
+   * @return if this stream is for read only
+   */
+  boolean isReadOnly();
+
+  /**
+   * Releases the lock resource the stream obtained.
+   */
+  void releaseLock();
+
+  /**
+   * Closes the stream without releasing the locking resource.
+   */
+  void closeStream();
 }

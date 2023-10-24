@@ -33,6 +33,7 @@ import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * Basic implementation of {@link UfsManager}. Store the journal UFS and root
@@ -49,17 +50,15 @@ public abstract class AbstractUfsManager implements UfsManager {
   public static class Key {
     private final String mScheme;
     private final String mAuthority;
-    private final Map<String, Object> mProperties;
 
-    protected Key(AlluxioURI uri, Map<String, Object> properties) {
+    protected Key(AlluxioURI uri) {
       mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
       mAuthority = uri.getAuthority().toString().toLowerCase();
-      mProperties = (properties == null || properties.isEmpty()) ? null : properties;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(mScheme, mAuthority, mProperties);
+      return Objects.hashCode(mScheme, mAuthority);
     }
 
     @Override
@@ -73,8 +72,7 @@ public abstract class AbstractUfsManager implements UfsManager {
       }
 
       Key that = (Key) object;
-      return Objects.equal(mAuthority, that.mAuthority) && Objects
-          .equal(mProperties, that.mProperties) && Objects.equal(mScheme, that.mScheme);
+      return Objects.equal(mAuthority, that.mAuthority) && Objects.equal(mScheme, that.mScheme);
     }
 
     @Override
@@ -82,7 +80,6 @@ public abstract class AbstractUfsManager implements UfsManager {
       return MoreObjects.toStringHelper(this)
           .add("authority", mAuthority)
           .add("scheme", mScheme)
-          .add("properties", mProperties)
           .toString();
     }
   }
@@ -116,13 +113,14 @@ public abstract class AbstractUfsManager implements UfsManager {
    * return it.
    *
    * @param ufsUri  the UFS path
-   * @param ufsConf the UFS configuration
+   * @param ufsConfSupplier supplier for UFS configuration
    * @return the UFS instance
    */
-  public UnderFileSystem getOrAdd(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
-    Key key = generateKey(ufsUri, ufsConf);
+  public UnderFileSystem getOrAdd(AlluxioURI ufsUri,
+                                  Supplier<UnderFileSystemConfiguration> ufsConfSupplier) {
+    Key key = generateKey(ufsUri);
     return get(key)
-        .orElseGet(() -> add(key, ufsUri, ufsConf, Recorder.noopRecorder()));
+        .orElseGet(() -> add(key, ufsUri, ufsConfSupplier, Recorder.noopRecorder()));
   }
 
   /**
@@ -130,30 +128,33 @@ public abstract class AbstractUfsManager implements UfsManager {
    * return it and record the execution process.
    *
    * @param ufsUri the UFS path
-   * @param ufsConf the UFS configuration
+   * @param ufsConfSupplier supplier for UFS configuration
    * @param recorder recorder used to record the detailed execution process
    * @return the UFS instance
    */
   private UnderFileSystem getOrAddWithRecorder(AlluxioURI ufsUri,
-      UnderFileSystemConfiguration ufsConf, Recorder recorder) {
-    Key key = generateKey(ufsUri, ufsConf);
+       Supplier<UnderFileSystemConfiguration> ufsConfSupplier, Recorder recorder) {
+    Key key = generateKey(ufsUri);
     return get(key)
-        .orElseGet(() -> add(key, ufsUri, ufsConf, recorder));
+        .orElseGet(() -> add(key, ufsUri, ufsConfSupplier, recorder));
   }
 
-  protected Key generateKey(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
-    return new Key(ufsUri, ufsConf.getMountSpecificConf());
+  protected Key generateKey(AlluxioURI ufsUri) {
+    return new Key(ufsUri);
   }
 
   // On cache miss, synchronize the creation to ensure ufs is only created once
   private synchronized UnderFileSystem add(Key key, AlluxioURI ufsUri,
-      UnderFileSystemConfiguration ufsConf, Recorder recorder) {
+       Supplier<UnderFileSystemConfiguration> ufsConfSupplier, Recorder recorder) {
+    LOG.debug("Creating UFS instance on request to {}", ufsUri);
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
       recorder.record("Using cached instance of UFS {} identified by key {}",
           cachedFs.getClass().getSimpleName(), key.toString());
       return cachedFs;
     }
+    LOG.debug("Generating specific conf set for UFS {}://{}", key.mScheme, key.mAuthority);
+    UnderFileSystemConfiguration ufsConf = ufsConfSupplier.get();
     UnderFileSystem fs = UnderFileSystem.Factory.createWithRecorder(
         ufsUri.toString(), ufsConf, recorder);
 
@@ -215,7 +216,7 @@ public abstract class AbstractUfsManager implements UfsManager {
     Preconditions.checkNotNull(ufsUri, "ufsUri");
     Preconditions.checkNotNull(ufsConf, "ufsConf");
     mMountIdToUfsInfoMap.put(mountId, new UfsClient(() ->
-        getOrAddWithRecorder(ufsUri, ufsConf, recorder), ufsUri));
+        getOrAddWithRecorder(ufsUri, () -> ufsConf, recorder), ufsUri));
   }
 
   @Override
@@ -230,11 +231,10 @@ public abstract class AbstractUfsManager implements UfsManager {
    * Gets an instance for the given UFS URI and configuration, if such exists.
    *
    * @param ufsUri the URI of the UFS
-   * @param ufsConf the configuration for the UFS
    * @return a UFS instance, or none if not registered
    */
-  public Optional<UnderFileSystem> get(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
-    Key key = generateKey(ufsUri, ufsConf);
+  public Optional<UnderFileSystem> get(AlluxioURI ufsUri) {
+    Key key = generateKey(ufsUri);
     return get(key);
   }
 

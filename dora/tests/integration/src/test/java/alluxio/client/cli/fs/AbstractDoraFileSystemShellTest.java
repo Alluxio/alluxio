@@ -15,6 +15,7 @@ import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.util.io.BufferUtils;
 
 import org.junit.Before;
 
@@ -48,6 +49,6 @@ public abstract class AbstractDoraFileSystemShellTest extends AbstractDoraShellI
       fileName = fileName.substring(1);
     }
     File f = mTestFolder.newFile(fileName);
-    Files.write(f.toPath(), new byte[length]);
+    Files.write(f.toPath(), BufferUtils.getIncreasingByteArray(length));
   }
 }

@@ -40,15 +40,15 @@ Differences between the two solutions are listed below, choose your desired solu
 See [Local Cache Quick Start]({{ '/en/fuse-sdk/Local-Cache-Quick-Start.html' | relative_url }}) to quickly setup your FUSE SDK local cache solution
 which can connects to your desired storage services.
 
-[Local Cache Overview]({{ '/en/fuse-sdk/Local-Cache-Overview.html' | relative_url }}) provides different local cache capabilities
+[Local Cache Tuning]({{ '/en/fuse-sdk/Local-Cache-Tuning.html' | relative_url }}) provides different local cache capabilities
 to speed up your workloads and reduce the pressure of storage services. 
-* [Local Kernel Data Cache Configuration]({{ '/en/fuse-sdk/Local-Cache-Overview.html#local-kernel-data-cache-configuration' | relativize_url
+* [Local Kernel Data Cache Configuration]({{ '/en/fuse-sdk/Local-Cache-Tuning.html#local-kernel-data-cache-configuration' | relativize_url
 }})
-* [Local Userspace Data Cache Configuration]({{ '/en/fuse-sdk/Local-Cache-Overview.html#local-userspace-data-cache-configuration' | relativize_url
+* [Local Userspace Data Cache Configuration]({{ '/en/fuse-sdk/Local-Cache-Tuning.html#local-userspace-data-cache-configuration' | relativize_url
 }})
-* [Local Kernel Metadata Cache Configuration]({{ '/en/fuse-sdk/Local-Cache-Overview.html#local-kernel-metadata-cache-configuration' | relativize_url
+* [Local Kernel Metadata Cache Configuration]({{ '/en/fuse-sdk/Local-Cache-Tuning.html#local-kernel-metadata-cache-configuration' | relativize_url
 }})
-* [Local Userspace Metadata Cache Configuration]({{ '/en/fuse-sdk/Local-Cache-Overview.html#local-userspace-metadata-cache-configuration' | relativize_url
+* [Local Userspace Metadata Cache Configuration]({{ '/en/fuse-sdk/Local-Cache-Tuning.html#local-userspace-metadata-cache-configuration' | relativize_url
 }})
 
 [Advanced Tuning Guide]({{ '/en/fuse-sdk/Advanced-Tuning.html' | relative_url }}) provides advanced FUSE SDK tuning tips

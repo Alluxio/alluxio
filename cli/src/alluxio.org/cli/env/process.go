@@ -15,8 +15,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -53,9 +55,9 @@ type Process interface {
 }
 
 type BaseProcess struct {
-	Name              string
-	JavaClassName     string
-	JavaOptsEnvVarKey string
+	Name          string
+	JavaClassName string
+	JavaOpts      *AlluxioConfigEnvVar
 
 	// start
 	ProcessOutFile string
@@ -113,7 +115,7 @@ var debugOptsToRemove = []*regexp.Regexp{
 func (p *BaseProcess) Monitor() error {
 	cmdArgs := []string{"-cp", Env.EnvVar.GetString(EnvAlluxioClientClasspath)}
 
-	javaOpts := strings.TrimSpace(Env.EnvVar.GetString(p.JavaOptsEnvVarKey))
+	javaOpts := strings.TrimSpace(Env.EnvVar.GetString(p.JavaOpts.EnvVar))
 	// remove debugging options from java opts for monitor process
 	for _, re := range debugOptsToRemove {
 		javaOpts = re.ReplaceAllString(javaOpts, "")
@@ -143,15 +145,31 @@ func (p *BaseProcess) Stop(cmd *StopProcessCommand) error {
 	if err != nil {
 		return stacktrace.Propagate(err, "error listing processes")
 	}
+	currentUser, err := user.Current()
+	if err != nil {
+		return stacktrace.Propagate(err, "error fetching the current user")
+	}
+	uid, err := strconv.Atoi(currentUser.Uid)
+	if err != nil {
+		return stacktrace.Propagate(err, "error converting UID to int")
+	}
+
 	var matchingProcesses []*process.Process
 	for _, ps := range processes {
-		cmdline, err := ps.Cmdline()
+		procUIDs, err := ps.Uids()
 		if err != nil {
-			// process may have been terminated since listing
 			continue
 		}
-		if strings.Contains(cmdline, p.JavaClassName) {
-			matchingProcesses = append(matchingProcesses, ps)
+		// match uid first
+		if len(procUIDs) > 0 && int32(uid) == procUIDs[0] {
+			cmdline, err := ps.Cmdline()
+			if err != nil {
+				// process may have been terminated since listing
+				continue
+			}
+			if strings.Contains(cmdline, p.JavaClassName) {
+				matchingProcesses = append(matchingProcesses, ps)
+			}
 		}
 	}
 	if len(matchingProcesses) == 0 {

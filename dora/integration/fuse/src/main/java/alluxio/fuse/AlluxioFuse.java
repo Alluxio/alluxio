@@ -36,6 +36,7 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.jnifuse.LibFuse;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
@@ -55,7 +56,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -65,35 +68,33 @@ import javax.annotation.concurrent.ThreadSafe;
 public class AlluxioFuse {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuse.class);
 
+  @Nullable
+  private FuseWebServer mWebServer = null;
+
   // prevent instantiation
   protected AlluxioFuse() {
   }
 
   /**
-   * Startup the FUSE process.
+   * Start common functionalities for a fuse client.
    *
-   * @param conf configuration
-   * @throws ParseException
+   * @param conf the Alluxio configuration
+   * @param fuseOptions Fuse options from conf or command line
+   * @param fsContext the file system context for this client
    */
-  public void start(AlluxioConfiguration conf) throws ParseException {
-    FuseOptions fuseOptions = FuseOptions.Builder.fromConfig(conf).build();
-
-    FileSystemContext fsContext = FileSystemContext.create(conf);
-    if (!fuseOptions.getFileSystemOptions().getUfsFileSystemOptions().isPresent()
-        && !fuseOptions.getFileSystemOptions().isDoraCacheEnabled()) {
-      // cases other than standalone fuse sdk
-      conf = AlluxioFuseUtils.tryLoadingConfigFromMaster(fsContext);
-    }
-
+  protected void startCommon(AlluxioConfiguration conf,
+                              FuseOptions fuseOptions,
+                              FileSystemContext fsContext) {
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
+    MultiDimensionalMetricsSystem.initMetrics();
     MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
     if (conf.getBoolean(PropertyKey.FUSE_WEB_ENABLED)) {
-      FuseWebServer webServer = new FuseWebServer(
+      mWebServer = new FuseWebServer(
           NetworkAddressUtils.ServiceType.FUSE_WEB.getServiceName(),
           NetworkAddressUtils.getBindAddress(
               NetworkAddressUtils.ServiceType.FUSE_WEB,
               Configuration.global()));
-      webServer.start();
+      mWebServer.start();
     }
     startJvmMonitorProcess();
     ExecutorService executor = null;
@@ -106,13 +107,59 @@ public class AlluxioFuse {
     try (FileSystem fs = createBaseFileSystem(fsContext, fuseOptions)) {
       AlluxioJniFuseFileSystem fuseFileSystem = createFuseFileSystem(fsContext, fs, fuseOptions);
       setupFuseFileSystem(fuseFileSystem);
-      launchFuse(fuseFileSystem, fsContext, fuseOptions, true);
+      launchFuse(fuseFileSystem, fsContext, fuseOptions, true); // This will block until umount
     } catch (Throwable t) {
-      if (executor != null) {
-        executor.shutdown();
-      }
       // TODO(lu) FUSE unmount gracefully
       LOG.error("Failed to launch FUSE", t);
+      System.exit(-1);
+    } finally {
+      if (executor != null) {
+        executor.shutdown();
+        try {
+          executor.awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+          LOG.warn("Interrupted while terminating the update checker thread");
+          Thread.currentThread().interrupt();
+          throw new RuntimeException(e);
+        }
+      }
+    }
+  }
+
+  protected void stopCommon() {
+    if (mWebServer != null) {
+      try {
+        mWebServer.stop();
+      } catch (Exception e) {
+        LOG.error("Failed to shut down fuse web server gracefully.", e);
+      }
+      mWebServer = null;
+    }
+  }
+
+  /**
+   * Startup the FUSE process.
+   *
+   * @param conf configuration
+   * @throws ParseException
+   */
+  public void start(AlluxioConfiguration conf) throws ParseException, IOException {
+    FuseOptions fuseOptions = FuseOptions.Builder.fromConfig(conf).build();
+
+    try (FileSystemContext fsContext = FileSystemContext.create(conf)) {
+      if (!fuseOptions.getFileSystemOptions().getUfsFileSystemOptions().isPresent()
+              && !fuseOptions.getFileSystemOptions().isDoraCacheEnabled()) {
+        // cases other than standalone fuse sdk
+        conf = AlluxioFuseUtils.tryLoadingConfigFromMaster(fsContext);
+      }
+
+      startCommon(conf, fuseOptions, fsContext); // This will be blocked until quitting
+
+      stopCommon();
+      // Explicitly exit() so non daemon threads will be terminated
+      System.exit(0);
+    } catch (Throwable t) {
+      LOG.error("Failed running FUSE", t);
       System.exit(-1);
     }
   }
@@ -124,7 +171,7 @@ public class AlluxioFuse {
    *
    * @param args arguments to run the command line
    */
-  public static void main(String[] args) throws ParseException {
+  public static void main(String[] args) throws ParseException, IOException {
     AlluxioFuse alluxioFuse = new AlluxioFuse();
     FuseCliOptions fuseCliOptions = new FuseCliOptions();
     JCommander jCommander = JCommander.newBuilder()

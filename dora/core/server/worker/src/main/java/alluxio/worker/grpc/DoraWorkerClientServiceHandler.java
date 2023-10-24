@@ -38,7 +38,6 @@ import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
-import alluxio.grpc.LoadFileFailure;
 import alluxio.grpc.LoadFileRequest;
 import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.MoveRequest;
@@ -72,7 +71,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Server side implementation of the gRPC dora worker interface.
@@ -130,22 +128,20 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   @Override
   public void loadFile(LoadFileRequest request, StreamObserver<LoadFileResponse> responseObserver) {
     try {
-      ListenableFuture<List<LoadFileFailure>> failures =
-          mWorker.load(!request.getLoadMetadataOnly(), request.getUfsStatusList().stream().map(
-              UfsStatus::fromProto).collect(
-              Collectors.toList()), request.getOptions());
-      ListenableFuture<LoadFileResponse> future = Futures.transform(failures, fail -> {
-        int numFiles = request.getUfsStatusCount();
+      ListenableFuture<LoadFileResponse> response =
+          mWorker.load(request.getSubtasksList(), request.getSkipIfExists(), request.getOptions());
+      ListenableFuture<LoadFileResponse> future = Futures.transform(response, resp -> {
+        int numFiles = request.getSubtasksCount();
         TaskStatus taskStatus = TaskStatus.SUCCESS;
-        if (fail.size() > 0) {
-          taskStatus = numFiles > fail.size() ? TaskStatus.PARTIAL_FAILURE : TaskStatus.FAILURE;
+        if (!resp.getFailuresList().isEmpty()) {
+          taskStatus = numFiles > resp.getFailuresList().size()
+              ? TaskStatus.PARTIAL_FAILURE : TaskStatus.FAILURE;
         }
-        LoadFileResponse.Builder response = LoadFileResponse.newBuilder();
-        return response.addAllFailures(fail).setStatus(taskStatus).build();
+        return resp.toBuilder().setStatus(taskStatus).build();
       }, GrpcExecutors.WRITER_EXECUTOR);
       RpcUtils.invoke(LOG, future, "loadFile", "request=%s", responseObserver, request);
     } catch (Exception e) {
-      LOG.debug(String.format("Failed to load file %s: ", request.getUfsStatusList()), e);
+      LOG.debug(String.format("Failed to load file %s: ", request.getSubtasksList()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }
@@ -232,8 +228,10 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
         UfsStatus status = statuses[i];
         String ufsFullPath = PathUtils.concatPath(request.getPath(), status.getName());
 
+        // the list status do not include xattr now. GetAttr will cause some additional overhead.
+        // And not every request requires the Xattr. Now only get file xattr in GetStatus.
         alluxio.grpc.FileInfo fi =
-            ((PagedDoraWorker) mWorker).buildFileInfoFromUfsStatus(status, ufsFullPath);
+            ((PagedDoraWorker) mWorker).buildFileInfoFromUfsStatus(status, ufsFullPath, null);
 
         builder.addFileInfos(fi);
         if (builder.getFileInfosCount() == LIST_STATUS_BATCH_SIZE) {
