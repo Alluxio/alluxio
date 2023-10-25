@@ -672,6 +672,8 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
             requestContext.getRequest());
       }
       fireNext(mTriggerEventsWithParam.mOutputLengthFulfilled, requestContext);
+      LOG.debug("releasing the package when readableBytes = 0");
+      packet.release();
       return;
     }
     requestContext.increaseReadProgress(packet.readableBytes());

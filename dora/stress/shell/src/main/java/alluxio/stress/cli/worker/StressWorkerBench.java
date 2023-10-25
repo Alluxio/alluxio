@@ -482,6 +482,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       WorkerBenchDataPoint slice = new WorkerBenchDataPoint();
       List<Long> throughputList = new ArrayList<>();
       long lastSlice = 0;
+      LOG.debug("Thread for file {} starts now", mFilePaths[mTargetFileIndex]);
 
       while (!Thread.currentThread().isInterrupted()
           && CommonUtils.getCurrentMs() < mContext.getEndMs()) {
@@ -497,6 +498,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
               // throughput unit: MB/s
               // max file size allowed: 9223372036B (8.5GB)
               throughputList.add(output.mBytesRead * SECOND_NANO / (MB * output.mDuration));
+              LOG.debug("Thread for file {} read operation finished in {}ms",
+                  mFilePaths[mTargetFileIndex], output.mDuration / 1000_000L);
             } else if (output.mDuration == 0) {
               // if duration is 0ns, treat is as 1ns
               throughputList.add(output.mBytesRead * SECOND_NANO / MB);

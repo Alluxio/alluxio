@@ -47,7 +47,7 @@ public class NoExceptionCacheManager implements CacheManager {
     try {
       mCacheManager.commitFile(fileId);
     } catch (Exception e) {
-      LOG.error("Failed to commit file {}", fileId);
+      LOG.error("Failed to commit file {}", fileId, e);
     }
   }
 
