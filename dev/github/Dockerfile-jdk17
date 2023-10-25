@@ -13,7 +13,7 @@
 
 ARG RUST_VERSION=1.66.1
 FROM rust:${RUST_VERSION} as rust-installer
-RUN rustup target add x86_64-unknown-linux-gnu && \
+RUN rustup target add aarch64-unknown-linux-gnu x86_64-unknown-linux-gnu && \
     rustup component add clippy rustfmt && \
     # move the two directories into an empty directory to save one COPY instruction in the next stage
     mkdir /cargo-and-rustup && \
