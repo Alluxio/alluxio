@@ -137,9 +137,6 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
    * Tests {@link FileInStream#read()} across block boundary.
    * This test might cost about 240s
    */
-  @Ignore
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "haoyuan",
-      comment = "Bring back but not passed, need to fix.")
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.USER_STREAMING_READER_CHUNK_SIZE_BYTES, "64KB"})
