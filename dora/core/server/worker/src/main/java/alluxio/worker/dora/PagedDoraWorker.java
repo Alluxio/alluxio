@@ -25,6 +25,7 @@ import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -125,6 +126,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -161,6 +165,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   private final boolean mClientWriteToUFSEnabled;
   private final boolean mXAttrWriteToUFSEnabled;
+  private final ConcurrentHashSet<PageId> mLoadingPages = new ConcurrentHashSet<>();
+  private final ExecutorService mCacheDataExecutor = Executors.newFixedThreadPool(
+      Configuration.getInt(PropertyKey.WORKER_PRELOAD_DATA_THREAD_POOL_SIZE));
 
   /**
    * Constructor.
@@ -288,13 +295,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             mConf.get(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE));
         mMembershipManager.join(new WorkerInfo().setIdentity(mWorkerId.get()).setAddress(mAddress));
         break;
-      } catch (UnavailableRuntimeException ioe) {
-        /* We should only expect such exception when situation such as
-         * etcd hasn't started up yet when alluxio components and etcd
-         * are starting up at same time. In such case we keep retrying.
+      } catch (IOException | UnavailableRuntimeException e) {
+        /* Retry everything it might have coming from membership, as now a different worker
+         * instance might assume same worker id in k8s pod restart situation. There might
+         * be gaps in updating etcd states in the interim of transition.
          */
         if (!retry.attempt()) {
-          throw ioe;
+          throw e;
         }
       }
     }
@@ -590,29 +597,78 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                 boolean permissionCheckSucceeded = !(e instanceof AccessControlException);
                 AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
                 errors.add(LoadFailure.newBuilder()
-                                      .setSubtask(LoadSubTask.newBuilder().setBlock(block).build())
-                                      .setCode(t.getStatus().getCode().value())
-                                      .setRetryable(permissionCheckSucceeded)
-                                      .setMessage(t.getMessage()).build());
+                    .setSubtask(LoadSubTask.newBuilder().setBlock(block).build())
+                    .setCode(t.getStatus().getCode().value())
+                    .setRetryable(permissionCheckSucceeded)
+                    .setMessage(t.getMessage()).build());
               }
             }, GrpcExecutors.READER_EXECUTOR);
             futures.add(loadFuture);
           } catch (RejectedExecutionException ex) {
             LOG.warn("Load task overloaded.");
             errors.add(LoadFailure.newBuilder()
-                                  .setSubtask(LoadSubTask.newBuilder().setBlock(block).build())
-                                  .setCode(Status.RESOURCE_EXHAUSTED.getCode().value())
-                                  .setRetryable(true).setMessage(ex.getMessage()).build());
+                .setSubtask(LoadSubTask.newBuilder().setBlock(block).build())
+                .setCode(Status.RESOURCE_EXHAUSTED.getCode().value())
+                .setRetryable(true).setMessage(ex.getMessage()).build());
           }
         }
       }
     }
     return Futures.whenAllComplete(futures).call(
         () -> LoadFileResponse.newBuilder().addAllFailures(errors)
-                              .setBytesSkipped(skippedLength.get()).setNumSkipped(numSkipped.get())
-                              // Status is a required field, put it as a placeholder
-                              .setStatus(TaskStatus.SUCCESS).build(),
+            .setBytesSkipped(skippedLength.get()).setNumSkipped(numSkipped.get())
+            // Status is a required field, put it as a placeholder
+            .setStatus(TaskStatus.SUCCESS).build(),
         GrpcExecutors.READER_EXECUTOR);
+  }
+
+  @Override
+  // TODO(yimin) integrate this method with load() method
+  public void cacheData(String ufsPath, long length, long pos, boolean isAsync)
+      throws IOException {
+    List<CompletableFuture<Void>> futures = new ArrayList<>();
+    // TODO(yimin) To implement the sync data caching.
+    alluxio.grpc.FileInfo fi = getGrpcFileInfo(ufsPath, -1);
+    String fileId = new AlluxioURI(ufsPath).hash();
+    for (long i = pos / mPageSize;
+         i <= Math.min(pos + length, fi.getLength()) / mPageSize; ++i) {
+      PageId pageId = new PageId(fileId, i);
+      // TODO(yimin) As an optimization, data does not need to load on a page basis.
+      // Can implement a bulk load mechanism and load a couple of pages at the same time,
+      // to improve the performance.
+      if (mLoadingPages.contains(pageId)) {
+        continue;
+      }
+      if (mCacheManager.hasPageUnsafe(pageId)) {
+        continue;
+      }
+      long loadPos = i * mPageSize;
+      long loadLength = Math.min(mPageSize, fi.getLength() - loadPos);
+      if (loadLength == 0) {
+        continue;
+      }
+      mLoadingPages.add(pageId);
+      futures.add(CompletableFuture.runAsync(() -> {
+        try {
+          if (mCacheManager.hasPageUnsafe(pageId)) {
+            return;
+          }
+          LOG.debug("Preloading {} pos: {} length: {}", ufsPath, loadPos, loadLength);
+          loadData(ufsPath, 0, loadPos, loadLength, fi.getLength());
+        } catch (Exception e) {
+          LOG.debug("Preloading failed for {} page: {}", ufsPath, pageId, e);
+        } finally {
+          mLoadingPages.remove(pageId);
+        }
+      }, mCacheDataExecutor));
+      if (!isAsync) {
+        try {
+          CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }
   }
 
   /**

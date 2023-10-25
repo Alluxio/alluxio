@@ -4529,7 +4529,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-
+  public static final PropertyKey WORKER_PRELOAD_DATA_THREAD_POOL_SIZE =
+      intBuilder(Name.WORKER_PRELOAD_DATA_THREAD_POOL_SIZE)
+          .setScope(Scope.WORKER)
+          .setDefaultValue(20)
+          .setDescription("The worker preload data thread pool size; Each thread loads a page.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
   public static final PropertyKey WORKER_PRINCIPAL = stringBuilder(Name.WORKER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio worker.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -5781,6 +5787,46 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "aggressive prefetching, but uses more memory and suffers a greater loss if the "
               + "buffered data ends up being unused.")
           .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey USER_POSITION_READER_STREAMING_ADAPTIVE_POLICY_ENABLED =
+      booleanBuilder(Name.USER_POSITION_READER_STREAMING_ADAPTIVE_POLICY_ENABLED)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue(false)
+          .setDescription("If uses adaptive policy to adjust the prefetch window size")
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE =
+      dataSizeBuilder(Name.USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue("16MB")
+          .setDescription("The max size of the prefetch of dynamic buffering")
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey USER_POSITION_READER_PRELOAD_DATA_ENABLED =
+      booleanBuilder(Name.USER_POSITION_READER_PRELOAD_DATA_ENABLED)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue(false)
+          .setDescription(
+              "If enabled, the client will ask worker to preload the following data "
+                  + "from UFS, if it is not cached. Turning this on improves the cold "
+                  + "read performance, but also might result in caching unused data.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD =
+      dataSizeBuilder(Name.USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue("2GB")
+          .setDescription("The file size threshold that triggers the worker data preload.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey USER_POSITION_READER_PRELOAD_DATA_SIZE =
+      dataSizeBuilder(Name.USER_POSITION_READER_PRELOAD_DATA_SIZE)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue("256MB")
+          .setDescription("The preload data size to load on worker.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .build();
   public static final PropertyKey USER_STREAMING_DATA_READ_TIMEOUT =
@@ -8010,6 +8056,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.page.store.timeout.threads";
     public static final String WORKER_PAGE_STORE_TYPE =
         "alluxio.worker.page.store.type";
+    public static final String WORKER_PRELOAD_DATA_THREAD_POOL_SIZE =
+        "alluxio.worker.preload.data.thread.pool.size";
     public static final String WORKER_RAMDISK_SIZE = "alluxio.worker.ramdisk.size";
     public static final String WORKER_REGISTER_LEASE_ENABLED =
         "alluxio.worker.register.lease.enabled";
@@ -8299,6 +8347,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_APP_ID = "alluxio.user.app.id";
     public static final String USER_POSITION_READER_STREAMING_MULTIPLIER =
         "alluxio.user.position.reader.streaming.multiplier";
+    public static final String USER_POSITION_READER_STREAMING_ADAPTIVE_POLICY_ENABLED =
+        "alluxio.user.position.reader.streaming.adaptive.policy.enabled";
+    public static final String USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE =
+        "alluxio.user.position.reader.streaming.prefetch.max.size";
+    public static final String USER_POSITION_READER_PRELOAD_DATA_ENABLED =
+        "alluxio.user.position.reader.preload.data.enabled";
+    public static final String USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD =
+        "alluxio.user.position.reader.preload.data.file.size.threshold";
+    public static final String USER_POSITION_READER_PRELOAD_DATA_SIZE =
+        "alluxio.user.position.reader.preload.data.size";
     public static final String USER_NETWORK_DATA_TIMEOUT =
         "alluxio.user.network.data.timeout";
     public static final String USER_NETWORK_READER_BUFFER_SIZE_MESSAGES =
