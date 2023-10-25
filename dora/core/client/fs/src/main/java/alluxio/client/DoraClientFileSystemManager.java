@@ -16,14 +16,13 @@ import static java.util.Objects.requireNonNull;
 import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.MetadataCache;
-import alluxio.client.file.cache.AlluxioCacheFileSystem;
-import alluxio.client.file.cache.CacheManager;
+import alluxio.client.file.dora.DefaultDoraCacheClientFactory;
 import alluxio.client.file.dora.DoraCacheClientFactory;
 import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.client.modules.DoraClientModule;
+import alluxio.client.modules.DoraFileSystemModule;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
@@ -49,17 +48,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Dora client manager.
  */
-public class DoraClientFileSystemManager {
+public class DoraClientFileSystemManager implements ClientFileSystemManager {
   private static DoraClientFileSystemManager sINSTANCE;
-  private static final Logger LOG = LoggerFactory.getLogger(FileSystem.Factory.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DoraClientFileSystemManager.class);
   private static final AtomicBoolean CONF_LOGGED = new AtomicBoolean(false);
 
+  private static DoraClientFileSystemManager sINSTANCE;
   private final FileSystemOptions mFileSystemOptions;
   private final DoraCacheClientFactory mDoraClientFactory;
-  private final Optional<CacheManager> mCacheManagerOpt;
-  private final Optional<MetadataCache> mMetadataCacheOpt;
-//  private final Optional<MetadataCache> mMetadataCacheOpt;
-//  private final Optional<MountTableManager> mMountTableManagerOpt;
 
   /**
    * @param conf
@@ -78,7 +74,7 @@ public class DoraClientFileSystemManager {
   }
 
   private static DoraClientFileSystemManager create(AlluxioConfiguration conf) {
-    ImmutableList<Module> modules = ImmutableList.of(new DoraClientModule());
+    ImmutableList<Module> modules = ImmutableList.of(new DoraFileSystemModule());
     Injector injector;
     if (conf.isSet(PropertyKey.USER_CLIENT_OVERRIDE_MODULE_CLASS)) {
       Class<? extends AbstractModule> overrideModule =
@@ -101,20 +97,14 @@ public class DoraClientFileSystemManager {
    * Constructor.
    * @param fileSystemOptions
    * @param doraCacheClientFactory
-   * @param cacheManagerOpt
-   * @param metadataCache
    */
   @Inject
   public DoraClientFileSystemManager(
       FileSystemOptions fileSystemOptions,
-      DoraCacheClientFactory doraCacheClientFactory,
-      Optional<CacheManager> cacheManagerOpt,
-      Optional<MetadataCache> metadataCache) {
+      DoraCacheClientFactory doraCacheClientFactory) {
     mFileSystemOptions = requireNonNull(fileSystemOptions, "fileSystemOptions is null");
     mDoraClientFactory = requireNonNull(doraCacheClientFactory,
         "doraCacheClientFactory is null");
-    mCacheManagerOpt = requireNonNull(cacheManagerOpt, "cacheManagerOpt is null");
-    mMetadataCacheOpt = requireNonNull(metadataCache, "metadataCacheOpt is null");
   }
 
   /**
@@ -143,18 +133,6 @@ public class DoraClientFileSystemManager {
       LOG.debug("Dora cache enabled");
       fs = new DoraCacheFileSystem(fs, context, mDoraClientFactory.create(context));
     }
-    fs = new AlluxioCacheFileSystem(fs, conf, mCacheManagerOpt, mMetadataCacheOpt);
-//    if (options.isMetadataCacheEnabled()) {
-//      LOG.debug("Client metadata caching enabled");
-//      fs = new MetadataCachingFileSystem(fs, context);
-//    }
-//    if (options.isDataCacheEnabled()
-//        && CommonUtils.PROCESS_TYPE.get() == CommonUtils.ProcessType.CLIENT
-//        && mCacheManagerOpt.isPresent()
-//    ) {
-//      LOG.debug("Client local data caching enabled");
-//      return new LocalCacheFileSystem(mCacheManagerOpt.get(), fs, conf);
-//    }
     return fs;
   }
 

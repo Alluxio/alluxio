@@ -11,24 +11,14 @@
 
 package alluxio.client.modules;
 
-import alluxio.client.file.MetadataCache;
-import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.dora.DefaultDoraCacheClientFactory;
 import alluxio.client.file.dora.DoraCacheClientFactory;
 import alluxio.client.file.options.FileSystemOptions;
 import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.InternalRuntimeException;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.multibindings.OptionalBinder;
-import com.google.inject.name.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.Optional;
 
 /**
  * Guice module for dora client filesystem.
@@ -41,36 +31,5 @@ public class DoraFileSystemModule extends AbstractModule {
     bind(DoraCacheClientFactory.class).to(DefaultDoraCacheClientFactory.class);
     bind(FileSystemOptions.class)
         .toInstance(FileSystemOptions.Builder.fromConf(Configuration.global()).build());
-    OptionalBinder.newOptionalBinder(binder(), CacheManager.class);
-    OptionalBinder.newOptionalBinder(binder(), MetadataCache.class);
-  }
-
-  /**
-   * @return the local cache manager
-   */
-  @Provides
-  @Named("LocalCacheManager")
-  public Optional<CacheManager> provideCacheManager() {
-    try {
-      CacheManager cacheManager = CacheManager.Factory.get(Configuration.global());
-      return Optional.of(cacheManager);
-    } catch (IOException e) {
-      String err = "can't construct the cache manager.";
-      LOG.error(err);
-      throw new InternalRuntimeException(err, e);
-    }
-  }
-
-  /**
-   * @return the local cache manager
-   */
-  @Provides
-  @Named("MetadataCache")
-  public Optional<MetadataCache> provideMetadataCache() {
-    int maxSize = Configuration.getInt(PropertyKey.USER_METADATA_CACHE_MAX_SIZE);
-    return Configuration.isSet(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME)
-        ? Optional.of(new MetadataCache(maxSize,
-        Configuration.getMs(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME)))
-        : Optional.of(new MetadataCache(maxSize));
   }
 }
