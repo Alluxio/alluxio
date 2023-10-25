@@ -59,7 +59,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -68,6 +67,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -171,7 +171,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
    * @param workers
    * @return list of DoraLoadTask
    */
-  private List<DoraLoadTask> prepareNextTasks(Collection<WorkerInfo> workers) {
+  private List<DoraLoadTask> prepareNextTasks(Set<WorkerInfo> workers) {
     LOG.debug("Preparing next set of tasks for jobId:{}", mJobId);
     int workerNum = workers.size();
     ImmutableList.Builder<LoadSubTask> batchBuilder = ImmutableList.builder();
@@ -227,7 +227,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     return tasks;
   }
 
-  private Iterator<LoadSubTask> initSubTaskIterator(Collection<WorkerInfo> workers) {
+  private Iterator<LoadSubTask> initSubTaskIterator(Set<WorkerInfo> workers) {
 
     return createSubTasks(mUfsStatusIterator.next(), workers).listIterator();
   }
@@ -249,7 +249,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     return workerToTaskMap;
   }
 
-  private List<LoadSubTask> createSubTasks(UfsStatus ufsStatus, Collection<WorkerInfo> workers) {
+  private List<LoadSubTask> createSubTasks(UfsStatus ufsStatus, Set<WorkerInfo> workers) {
     List<LoadSubTask> subTasks = new ArrayList<>();
         // add load metadata task
     LoadMetadataSubTask subTask = new LoadMetadataSubTask(ufsStatus, mVirtualBlockSize);
@@ -278,7 +278,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   }
 
   private List<LoadSubTask> assignSubtasksToWorkers(List<LoadSubTask> subTasks,
-      Collection<WorkerInfo> workers, int numReplica) {
+      Set<WorkerInfo> workers, int numReplica) {
     ImmutableList.Builder<LoadSubTask> replicaSubTasks = new ImmutableList.Builder<>();
     for (LoadSubTask subTask : subTasks) {
       List<WorkerInfo> pickedWorkers =
@@ -425,7 +425,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   }
 
   @Override
-  public List<DoraLoadTask> getNextTasks(Collection<WorkerInfo> workers) {
+  public List<DoraLoadTask> getNextTasks(Set<WorkerInfo> workers) {
     /* Both scheduler thread and worker thread will try to call getNextTasks,
     only one of them needs to do the preparation of next set of tasks and whoever
     wins will do the processjob and kick off those tasks.

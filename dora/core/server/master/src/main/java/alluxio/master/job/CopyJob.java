@@ -60,7 +60,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -70,6 +69,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -287,7 +287,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
    * @param workers workerInfos
    * @return the next task to run. If there is no task to run, return empty
    */
-  public List<CopyTask> getNextTasks(Collection<WorkerInfo> workers) {
+  public List<CopyTask> getNextTasks(Set<WorkerInfo> workers) {
     List<CopyTask> tasks = new ArrayList<>();
     Iterator<CopyTask> it = mRetryTaskList.iterator();
     if (it.hasNext()) {

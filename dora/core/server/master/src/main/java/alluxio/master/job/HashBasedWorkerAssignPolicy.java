@@ -19,9 +19,9 @@ import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.wire.WorkerInfo;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -32,7 +32,7 @@ public class HashBasedWorkerAssignPolicy implements WorkerAssignPolicy {
   ConsistentHashPolicy mWorkerLocationPolicy = new ConsistentHashPolicy(Configuration.global());
 
   @Override
-  public List<WorkerInfo> pickWorkers(String object, @Nullable Collection<WorkerInfo> workerInfos,
+  public List<WorkerInfo> pickWorkers(String object, @Nullable Set<WorkerInfo> workerInfos,
       int count) {
     if (workerInfos == null) {
       return Collections.emptyList();

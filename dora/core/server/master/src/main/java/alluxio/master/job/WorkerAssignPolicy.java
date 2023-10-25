@@ -14,8 +14,8 @@ package alluxio.master.job;
 import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.wire.WorkerInfo;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The worker assign policy.
@@ -34,5 +34,5 @@ public interface WorkerAssignPolicy {
    * @return the picked workers
    * @throws ResourceExhaustedRuntimeException if there are not enough workers to pick from
    */
-  List<WorkerInfo> pickWorkers(String object, Collection<WorkerInfo> workerInfos, int count);
+  List<WorkerInfo> pickWorkers(String object, Set<WorkerInfo> workerInfos, int count);
 }

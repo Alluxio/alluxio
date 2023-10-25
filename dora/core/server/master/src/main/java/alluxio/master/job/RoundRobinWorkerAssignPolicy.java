@@ -15,8 +15,8 @@ import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.wire.WorkerInfo;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -26,7 +26,7 @@ public class RoundRobinWorkerAssignPolicy implements WorkerAssignPolicy {
   private AtomicInteger mCounter = new AtomicInteger(0);
 
   @Override
-  public List<WorkerInfo> pickWorkers(String object, Collection<WorkerInfo> workerInfos,
+  public List<WorkerInfo> pickWorkers(String object, Set<WorkerInfo> workerInfos,
       int count) {
     if (count > workerInfos.size()) {
       throw new ResourceExhaustedRuntimeException(

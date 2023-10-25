@@ -31,7 +31,7 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,11 +40,11 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DoraLoadJobTest {
@@ -73,7 +73,7 @@ public class DoraLoadJobTest {
     DoraLoadJob loadJob =
         new DoraLoadJob(mLocalUfsRoot, Optional.of("user"), "1", OptionalLong.empty(), false, true,
             false, false, Optional.empty(), iterator, mLocalUfs, 1);
-    Collection<WorkerInfo> workers = ImmutableList.of(
+    Set<WorkerInfo> workers = ImmutableSet.of(
             new WorkerInfo().setId(1).setAddress(
                 new WorkerNetAddress().setHost("worker1").setRpcPort(1234)));
     List<DoraLoadJob.DoraLoadTask> tasks = loadJob.getNextTasks(workers);
@@ -110,7 +110,7 @@ public class DoraLoadJobTest {
     DoraLoadJob loadJob =
         new DoraLoadJob(testPath, Optional.of("user"), "1", OptionalLong.empty(), false, true,
             false, false, iterable.iterator(), mLocalUfs, 3);
-    Collection<WorkerInfo> workers = ImmutableList.of(
+    Set<WorkerInfo> workers = ImmutableSet.of(
             new WorkerInfo().setId(1).setAddress(
                 new WorkerNetAddress().setHost("worker1").setRpcPort(1234)),
             new WorkerInfo().setId(2).setAddress(

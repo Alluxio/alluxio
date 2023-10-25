@@ -17,9 +17,9 @@ import alluxio.job.JobDescription;
 import alluxio.proto.journal.Journal;
 import alluxio.wire.WorkerInfo;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.OptionalLong;
+import java.util.Set;
 
 /**
  * interface for job that can be scheduled by Alluxio scheduler.
@@ -118,7 +118,7 @@ public interface Job<T extends Task<?>> {
    * @return the next task to run. If there is no more task to run, return empty
    * @throws AlluxioRuntimeException if any error occurs when getting next task
    */
-  List<T> getNextTasks(Collection<WorkerInfo> workers);
+  List<T> getNextTasks(Set<WorkerInfo> workers);
 
   /**
    * Define how to process task that gets rejected when scheduler tried to kick off.
