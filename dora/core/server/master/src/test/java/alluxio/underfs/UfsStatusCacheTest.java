@@ -468,14 +468,8 @@ public class UfsStatusCacheTest {
             .build());
     MasterUfsManager manager = new MasterUfsManager();
     manager.getRoot(); // add root mount
-<<<<<<< HEAD
-    manager.mUnderFileSystemMap.put(new AbstractUfsManager.Key(new AlluxioURI("/")), mUfs);
-||||||| parent of 4ff13c31ea (other changes to make dep injection happen)
-    manager.mUnderFileSystemMap.put(new AbstractUfsManager.Key(new AlluxioURI("/"), null), mUfs);
-=======
     manager.mUnderFileSystemMap.put(new AbstractUfsManager.Key(new AlluxioURI("/")), mUfs);
 //    manager.mUnderFileSystemMap.put(new AbstractUfsManager.Key(new AlluxioURI("/"), null), mUfs);
->>>>>>> 4ff13c31ea (other changes to make dep injection happen)
     mMountTable = new MountTable(manager, rootMountInfo, Clock.systemUTC());
   }
 
