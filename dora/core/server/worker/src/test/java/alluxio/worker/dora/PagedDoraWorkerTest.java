@@ -107,8 +107,8 @@ public class PagedDoraWorkerTest {
     DoraMetaManager metaManager = new DoraMetaManager(Configuration.global(),
         mCacheManager, ufsManager);
     mWorker = new PagedDoraWorker(new AtomicReference<>(WorkerIdentity.ParserV0.INSTANCE.fromLong(1L)),
-        Configuration.global(), mCacheManager, mMembershipManager, ufsManager, metaManager,
-        FileSystemContext.create(), new BlockMasterClientPool());
+        Configuration.global(), mCacheManager, mMembershipManager,
+        new BlockMasterClientPool(), ufsManager, metaManager, FileSystemContext.create());
   }
 
   @After

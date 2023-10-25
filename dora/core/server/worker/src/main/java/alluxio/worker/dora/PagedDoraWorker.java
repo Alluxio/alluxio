@@ -686,7 +686,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       if (mXAttrWriteToUFSEnabled) {
         xattrMap = ufs.getAttributes(ufsFullPath);
       }
-      DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(getCacheUsage(), status, ufsFullPath, xattrMap);
+      DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(getCacheUsage(), ufs.getUnderFSType(),
+          status, ufsFullPath, xattrMap);
       mMetaManager.put(ufsFullPath, fs);
     } catch (Exception e) {
       LOG.error("Failed to put file status to meta manager", e);
