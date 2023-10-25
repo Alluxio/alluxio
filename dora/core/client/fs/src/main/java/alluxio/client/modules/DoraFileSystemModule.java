@@ -17,15 +17,11 @@ import alluxio.client.file.options.FileSystemOptions;
 import alluxio.conf.Configuration;
 
 import com.google.inject.AbstractModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Guice module for dora client filesystem.
  */
 public class DoraFileSystemModule extends AbstractModule {
-  private static final Logger LOG = LoggerFactory.getLogger(DoraFileSystemModule.class);
-
   @Override
   protected void configure() {
     bind(DoraCacheClientFactory.class).to(DefaultDoraCacheClientFactory.class);
