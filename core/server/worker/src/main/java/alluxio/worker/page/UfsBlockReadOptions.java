@@ -16,6 +16,7 @@ import alluxio.proto.dataserver.Protocol;
 import com.google.common.base.Preconditions;
 
 import java.util.Objects;
+import javax.annotation.Nullable;
 
 /**
  * Options for reading a block from UFS.
@@ -26,10 +27,10 @@ public final class UfsBlockReadOptions {
   private final long mOffsetInFile;
   private final String mUfsPath;
   private final boolean mCacheIntoAlluxio;
-  private final String mUser;
+  @Nullable private final String mUser;
 
   UfsBlockReadOptions(long mountId, long offsetInFile, String ufsPath, boolean cacheIntoAlluxio,
-                      String user) {
+                      @Nullable String user) {
     mMountId = mountId;
     mOffsetInFile = offsetInFile;
     mUfsPath = ufsPath;

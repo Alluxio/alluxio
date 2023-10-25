@@ -102,7 +102,9 @@ public class LocalFileBlockReader extends BlockReader {
 
   @Override
   public int transferTo(ByteBuf buf) throws IOException {
-    return buf.writeBytes(mLocalFileChannel, buf.writableBytes());
+    int bytesReadFromCache = buf.writeBytes(mLocalFileChannel, buf.writableBytes());
+    MetricsSystem.counter(MetricKey.WORKER_BYTES_READ_CACHE.getName()).inc(bytesReadFromCache);
+    return bytesReadFromCache;
   }
 
   @Override
