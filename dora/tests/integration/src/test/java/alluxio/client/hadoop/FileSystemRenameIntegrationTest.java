@@ -45,7 +45,9 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH).build();
+          .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
+          .setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false)
+          .build();
   private static String sUfsRoot;
   private static UnderFileSystem sUfs;
   private static org.apache.hadoop.fs.FileSystem sTFS;
@@ -82,7 +84,6 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   public void basicRenameTest1() throws Exception {
     // Rename /fileA to /fileB
     Path fileA = new Path("/fileA");
@@ -104,7 +105,6 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   public void basicRenameTest2() throws Exception {
     // Rename /fileA to /dirA/fileA
     Path fileA = new Path("/fileA");
@@ -129,7 +129,6 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   public void basicRenameTest3() throws Exception {
     // Rename /fileA to /dirA/fileA without specifying the full path
     Path fileA = new Path("/fileA");
@@ -154,7 +153,6 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   public void basicRenameTest4() throws Exception {
     // Rename /fileA to /fileA
     Path fileA = new Path("/fileA");
@@ -173,7 +171,6 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   public void basicRenameTest5() throws Exception {
     // Rename /fileA to /fileAfileA
     Path fileA = new Path("/fileA");
@@ -195,7 +192,6 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   public void basicRenameTest6() throws Exception {
     // Rename /dirA to /dirB, /dirA/fileA should become /dirB/fileA
     Path dirA = new Path("/dirA");
@@ -209,7 +205,7 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(sTFS.rename(dirA, dirB));
 
     Assert.assertFalse(sTFS.exists(dirA));
-    Assert.assertFalse(sTFS.exists(fileA));
+    Assert.assertTrue(sTFS.exists(fileA));
     Assert.assertTrue(sTFS.exists(dirB));
     Assert.assertTrue(sTFS.exists(finalDst));
     Assert.assertFalse(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, "dirA")));
@@ -226,7 +222,6 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  @Ignore
   // TODO(jiri): The test logic below does not work in the presence of transparent naming.
   // The current implementation renames files on UFS if they are marked as persisted. They are
   // marked as persisted when they are closed. Thus, if the Alluxio path of the file being
