@@ -77,8 +77,7 @@
               <goal>integration-test</goal>
             </goals>
             <configuration>
-              <!-- adding -DskipITs can be used to skip this IT from the command line -->
-              <skip>false</skip>
+              <skip>${skipTests}</skip>
               <properties>
                 <build.path>${build.path}</build.path>
               </properties>
