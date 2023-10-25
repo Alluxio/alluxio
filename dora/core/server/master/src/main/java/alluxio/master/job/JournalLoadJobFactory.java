@@ -55,8 +55,7 @@ public class JournalLoadJobFactory implements JobFactory {
   public Job<?> create() {
     String path = mJobEntry.getLoadPath();
     UnderFileSystem ufs = mFsMaster.getUfsManager().getOrAdd(new AlluxioURI(path),
-        UnderFileSystemConfiguration.defaults(Configuration.global()));
-
+        () -> UnderFileSystemConfiguration.defaults(Configuration.global()));
     Predicate<UfsStatus> predicate = Predicates.alwaysTrue();
     Optional<String> fileFilterRegx = Optional.empty();
     if (mJobEntry.hasFileFilterRegx()) {
@@ -70,7 +69,6 @@ public class JournalLoadJobFactory implements JobFactory {
         fileFilterRegx = Optional.of(regxPatternStr);
       }
     }
-
     Iterable<UfsStatus> iterable = new UfsStatusIterable(ufs, path,
         Optional.ofNullable(AuthenticatedClientUser.getOrNull()).map(User::getName),
         predicate);

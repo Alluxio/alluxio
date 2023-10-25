@@ -76,6 +76,11 @@ service BlockWorker {
    * Sets file or directory attributes.
    */
   rpc SetAttribute(grpc.file.SetAttributePRequest) returns (grpc.file.SetAttributePResponse);
+
+  /**
+   * Caches data from UFS.
+   */
+  rpc CacheData(CacheDataRequest) returns (CacheDataResponse);
 }
 
 message UfsStatus {
@@ -198,6 +203,15 @@ message CacheRequest {
   optional int64 length = 5;
   optional bool async = 6;
 }
+
+message CacheDataRequest {
+  optional string ufs_path = 1;
+  optional int64 pos = 2;
+  optional int64 length = 3;
+  optional bool async = 4;
+}
+
+message CacheDataResponse {}
 
 // Request for load a block into alluxio
 // next available id: 3

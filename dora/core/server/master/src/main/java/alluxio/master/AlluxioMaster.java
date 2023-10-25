@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.ProcessUtils;
 import alluxio.RuntimeConstants;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.util.CommonUtils;
 
 import org.slf4j.Logger;
@@ -40,6 +41,7 @@ public final class AlluxioMaster {
     }
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.MASTER);
+    MultiDimensionalMetricsSystem.initMetrics();
     MasterProcess process;
     try {
       process = AlluxioMasterProcess.Factory.create();
