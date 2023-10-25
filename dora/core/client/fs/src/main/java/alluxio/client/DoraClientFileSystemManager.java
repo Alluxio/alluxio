@@ -16,12 +16,10 @@ import static java.util.Objects.requireNonNull;
 import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.dora.DefaultDoraCacheClientFactory;
 import alluxio.client.file.dora.DoraCacheClientFactory;
 import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
-import alluxio.client.modules.DoraClientModule;
 import alluxio.client.modules.DoraFileSystemModule;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -34,7 +32,6 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.google.inject.util.Modules;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,12 +45,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Dora client manager.
  */
-public class DoraClientFileSystemManager implements ClientFileSystemManager {
+public class DoraClientFileSystemManager {
   private static DoraClientFileSystemManager sINSTANCE;
   private static final Logger LOG = LoggerFactory.getLogger(DoraClientFileSystemManager.class);
   private static final AtomicBoolean CONF_LOGGED = new AtomicBoolean(false);
 
-  private static DoraClientFileSystemManager sINSTANCE;
   private final FileSystemOptions mFileSystemOptions;
   private final DoraCacheClientFactory mDoraClientFactory;
 
@@ -82,15 +78,20 @@ public class DoraClientFileSystemManager implements ClientFileSystemManager {
       try {
         AbstractModule overrideModuleInstance =
             overrideModule.getDeclaredConstructor().newInstance();
-        injector = Guice.createInjector(Modules.override(modules).with(overrideModuleInstance));
+        modules = ImmutableList.of(overrideModuleInstance);
       } catch (InstantiationException | IllegalAccessException
                | InvocationTargetException | NoSuchMethodException e) {
         throw new RuntimeException(e);
       }
-    } else {
-      injector = Guice.createInjector(modules);
     }
-    return injector.getInstance(DoraClientFileSystemManager.class);
+    injector = Guice.createInjector(modules);
+    if (conf.isSet(PropertyKey.USER_CLIENT_OVERRIDE_INSTANCE_CLASS)) {
+      Class<? extends DoraClientFileSystemManager> overrideInstance =
+          conf.getClass(PropertyKey.USER_CLIENT_OVERRIDE_INSTANCE_CLASS);
+      return injector.getInstance(overrideInstance);
+    } else {
+      return injector.getInstance(DoraClientFileSystemManager.class);
+    }
   }
 
   /**

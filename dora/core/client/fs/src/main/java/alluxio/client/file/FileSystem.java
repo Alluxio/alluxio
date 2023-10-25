@@ -90,9 +90,6 @@ public interface FileSystem extends Closeable {
    * {@link Factory#create} methods will always guarantee returning a new FileSystem.
    */
   class Factory {
-    private static final DoraClientFileSystemManager DORA_CLIENT_FILE_SYSTEM_MANAGER =
-        DoraClientFileSystemManager.get(Configuration.global());
-
     static {
       // If the extra loaded class name is set, try to load it.
       if (Configuration.global().isSet(PropertyKey.EXTRA_LOADED_FILESYSTEM_CLASSNAME)) {
@@ -175,7 +172,9 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
-      return DORA_CLIENT_FILE_SYSTEM_MANAGER.create(context, options);
+      DoraClientFileSystemManager fileSystemManager =
+          DoraClientFileSystemManager.get(context.getClusterConf());
+      return fileSystemManager.create(context, options);
     }
   }
 
