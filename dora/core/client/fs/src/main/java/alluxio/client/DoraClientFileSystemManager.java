@@ -58,6 +58,7 @@ public class DoraClientFileSystemManager {
   private final DoraCacheClientFactory mDoraClientFactory;
   private final Optional<CacheManager> mCacheManagerOpt;
   private final Optional<MetadataCache> mMetadataCacheOpt;
+//  private final Optional<MetadataCache> mMetadataCacheOpt;
 //  private final Optional<MountTableManager> mMountTableManagerOpt;
 
   /**
