@@ -672,6 +672,8 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
             requestContext.getRequest());
       }
       fireNext(mTriggerEventsWithParam.mOutputLengthFulfilled, requestContext);
+      // Release the packet as there is nothing more to read
+      packet.release();
       return;
     }
     requestContext.increaseReadProgress(packet.readableBytes());
