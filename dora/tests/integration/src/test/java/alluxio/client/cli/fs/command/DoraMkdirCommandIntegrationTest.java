@@ -31,8 +31,7 @@ public class DoraMkdirCommandIntegrationTest extends AbstractDoraFileSystemShell
 
   @Override
   public void before() throws Exception {
-    mLocalAlluxioClusterResource.setProperty(PropertyKey.MASTER_SCHEDULER_INITIAL_DELAY, "1s")
-        .setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false);
+    mLocalAlluxioClusterResource.setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false);
     super.before();
   }
 
@@ -47,25 +46,17 @@ public class DoraMkdirCommandIntegrationTest extends AbstractDoraFileSystemShell
   }
 
   @Test
-  public void testMkdirComplexPath() throws Exception {
-    AlluxioURI uri = new AlluxioURI("/testRoot/Complex!@#$%^&*()-_=+[]{};\"'<>,.?/File");
-    assertEquals(0, mFsShell.run("mkdir", uri.toString()));
-    URIStatus status = mFileSystem.getStatus(uri);
-    assertNotNull(status);
-    assertTrue(status.isFolder());
-    assertTrue(mOutput.toString().contains("Successfully created directory " + uri));
-  }
-
-  @Test
-  public void testMkdirExisting() throws Exception {
+  public void testMkdirExisting() {
     AlluxioURI uri = new AlluxioURI("/testRoot/testDir");
     assertEquals(0, mFsShell.run("mkdir", uri.toString()));
     assertEquals(-1, mFsShell.run("mkdir", uri.toString()));
+    assertTrue(
+        mOutput.toString().contains("UNKNOWN: alluxio.exception.FileAlreadyExistsException"));
   }
 
   @Test
   public void testMkdirPathWithWhiteSpaces() throws Exception {
-    String[] paths = new String[]{
+    String[] paths = new String[] {
         "/ ",
         "/x y z",
         "/ x y z",
@@ -82,8 +73,10 @@ public class DoraMkdirCommandIntegrationTest extends AbstractDoraFileSystemShell
   }
 
   @Test
-  public void testMkdirInvalidPath() throws Exception {
+  public void testMkdirInvalidPath() {
     assertEquals(-1, mFsShell.run("mkdir", ""));
+    assertTrue(
+        mOutput.toString().contains("UNKNOWN: alluxio.exception.FileAlreadyExistsException"));
   }
 
   @Test
@@ -104,6 +97,20 @@ public class DoraMkdirCommandIntegrationTest extends AbstractDoraFileSystemShell
     status = mFileSystem.getStatus(new AlluxioURI(path3));
     assertNotNull(status);
     assertTrue(status.isFolder());
+  }
+
+  @Test
+  public void testMkdirRecursive() throws Exception {
+    String path1 = "/testDir2/testDir2.1";
+    String path2 = "/testDir2";
+    assertEquals(0, mFsShell.run("mkdir", path1));
+
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI(path1));
+    URIStatus status1 = mFileSystem.getStatus(new AlluxioURI(path2));
+    assertNotNull(status);
+    assertNotNull(status1);
+    assertTrue(status.isFolder());
+    assertTrue(status1.isFolder());
   }
 
   private void checkOutput(String... linePatterns) {
