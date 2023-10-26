@@ -510,8 +510,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         LOG.warn(format("[DistributedLoad] Get failure from worker:%s, failed files:%s",
             doraLoadTask.getMyRunningWorker(), response.getFailuresList()));
         for (LoadFailure failure : response.getFailuresList()) {
-          if (failure.getSubtask().hasBlock()) {
-            totalLoadedBytes -= failure.getSubtask().getBlock().getLength();
+          if (failure.getSubtask().hasLoadDataSubtask()) {
+            totalLoadedBytes -= failure.getSubtask().getLoadDataSubtask().getLength();
           }
           String status = Status.fromCodeValue(failure.getCode()).toString();
           LoadSubTask subTask = LoadSubTask.from(failure, mVirtualBlockSize);
@@ -524,8 +524,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       }
       int totalLoadedInodes = doraLoadTask.getSubTasks().stream()
           .filter(LoadSubTask::isLoadMetadata).collect(Collectors.toList()).size()
-          - response.getFailuresList().stream().filter(i -> i.getSubtask().hasUfsStatus()).collect(
-          Collectors.toList()).size();
+          - response.getFailuresList().stream().filter(i -> i.getSubtask().hasLoadMetadataSubtask())
+                    .collect(Collectors.toList()).size();
       if (!mLoadMetadataOnly) {
         addLoadedBytes(totalLoadedBytes - response.getBytesSkipped());
         LOAD_FILE_SIZE.inc(totalLoadedBytes);

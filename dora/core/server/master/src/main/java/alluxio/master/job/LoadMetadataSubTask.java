@@ -40,7 +40,9 @@ public class LoadMetadataSubTask extends LoadSubTask {
 
   @Override
   alluxio.grpc.LoadSubTask toProto() {
-    return alluxio.grpc.LoadSubTask.newBuilder().setUfsStatus(mUfsStatus.toProto()).build();
+    return alluxio.grpc.LoadSubTask.newBuilder().setLoadMetadataSubtask(
+                      alluxio.grpc.LoadMetadataSubTask.newBuilder().setUfsStatus(
+                          mUfsStatus.toProto()).build()).build();
   }
 
   @Override

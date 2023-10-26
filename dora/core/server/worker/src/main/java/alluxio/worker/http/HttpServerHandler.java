@@ -133,6 +133,8 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
         return doGetPage(httpRequest, httpRequestUri);
       case "files":
         return doListFiles(httpRequest, httpRequestUri);
+      case "info":
+        return doGetFileStatus(httpRequest, httpRequestUri);
       case "load":
         return doLoad(httpRequest, httpRequestUri);
       default:
@@ -171,6 +173,33 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
             uriStatus.getLength());
         responseFileInfoList.add(responseFileInfo);
       }
+      // convert to JSON string
+      String responseJson = new Gson().toJson(responseFileInfoList);
+      // create HTTP response
+      FullHttpResponse response = new DefaultFullHttpResponse(httpRequest.protocolVersion(), OK,
+          Unpooled.wrappedBuffer(responseJson.getBytes()));
+      response.headers()
+          .set(CONTENT_TYPE, APPLICATION_JSON)
+          .setInt(CONTENT_LENGTH, response.content().readableBytes());
+      return new HttpResponseContext(response, null);
+    } catch (IOException | AlluxioException e) {
+      LOG.error("Failed to list files of path {}", path, e);
+      return null;
+    }
+  }
+
+  private HttpResponseContext doGetFileStatus(
+      HttpRequest httpRequest, HttpRequestUri httpRequestUri) {
+    String path = httpRequestUri.getParameters().get("path");
+    path = handleReservedCharacters(path);
+    try {
+      URIStatus uriStatus = mFileSystem.getStatus(new AlluxioURI(path));
+      List<ResponseFileInfo> responseFileInfoList = new ArrayList<>();
+      String type = uriStatus.isFolder() ? "directory" : "file";
+      ResponseFileInfo responseFileInfo = new ResponseFileInfo(type, uriStatus.getName(),
+          uriStatus.getPath(), uriStatus.getUfsPath(), uriStatus.getLastModificationTimeMs(),
+          uriStatus.getLength());
+      responseFileInfoList.add(responseFileInfo);
       // convert to JSON string
       String responseJson = new Gson().toJson(responseFileInfoList);
       // create HTTP response

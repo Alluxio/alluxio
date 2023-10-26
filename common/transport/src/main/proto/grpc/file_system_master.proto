@@ -609,6 +609,7 @@ message LoadJobPOptions {
   optional bool loadMetadataOnly = 4;
   optional bool skipIfExists = 5;
   optional string fileFilterRegx = 6;
+  optional int32 replicas = 7;
 }
 
 message CopyJobPOptions {
