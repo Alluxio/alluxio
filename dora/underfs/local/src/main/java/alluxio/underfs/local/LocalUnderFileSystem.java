@@ -492,7 +492,11 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
     src = stripPath(src);
     dst = stripPath(dst);
     File file = new File(src);
-    return file.renameTo(new File(dst));
+    File newFile = new File(dst);
+    if (newFile.isFile() && newFile.exists()) {
+      return false;
+    }
+    return file.renameTo(newFile);
   }
 
   /**

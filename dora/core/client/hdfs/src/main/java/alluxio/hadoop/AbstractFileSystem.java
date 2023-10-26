@@ -699,12 +699,13 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
-
+    if (src == dst) {
+      return true;
+    }
     AlluxioURI srcPath = getAlluxioPath(src);
     AlluxioURI dstPath = getAlluxioPath(dst);
     try {
       mFileSystem.rename(srcPath, dstPath);
-      System.out.println("first rename no exception");
     } catch (FileDoesNotExistException e) {
       LOG.warn("rename failed: {}", e.toString());
       return false;
@@ -712,22 +713,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
       LOG.warn("rename failed: {}", toHdfsIOException(e));
-      System.out.println("rename failed: {}" + toHdfsIOException(e));
       return renameInternal(src, dst, srcPath, dstPath);
-      // try {
-      //   throw toHdfsIOException(e);
-      // } catch (FileNotFoundException | UnsupportedFileSystemException e2) {
-      //   System.out.println("about to internal");
-      //   return renameInternal(src, dst, srcPath, dstPath);
-      // } catch (AccessControlException e2) {
-      //   System.out.println("0");
-      //   LOG.error("Failed to rename {} to {}", src, dst, e2);
-      //   return false;
-      // } catch (IOException e2) {
-      //   System.out.println("1");
-      //   LOG.error("Failed to rename {} to {}", src, dst, e2);
-      //   return false;
-      // }
     } catch (AlluxioException e) {
       return renameInternal(src, dst, srcPath, dstPath);
     } catch (IOException e) {
@@ -747,7 +733,6 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
    * @return true in success, false if fail
    */
   public boolean renameInternal(Path src, Path dst, AlluxioURI srcPath, AlluxioURI dstPath) {
-    System.out.println("inside rename internal now");
     try {
       ensureExists(srcPath);
     } catch (IOException e) {
@@ -768,9 +753,12 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       LOG.error("Failed to rename {} to {}", src, dst);
       return false;
     }
+    // this try catch used to catch IOException and AlluxioException, AlluxioRuntimeException would leak from here
+    // however, due to this is renameinternal, I think no exception should get out of here
+    // thus all kinds of exception will be caught here
     try {
       mFileSystem.rename(srcPath, dstPath);
-    } catch (IOException | AlluxioException e) {
+    } catch (Exception e) {
       LOG.error("Failed to rename {} to {}", src, dst, e);
       return false;
     }
