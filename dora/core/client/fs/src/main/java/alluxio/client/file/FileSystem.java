@@ -15,15 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.PositionReader;
 import alluxio.annotation.PublicApi;
-import alluxio.client.file.cache.CacheManager;
-import alluxio.client.file.cache.LocalCacheFileSystem;
+import alluxio.client.DoraClientFileSystemManager;
 import alluxio.client.file.options.FileSystemOptions;
-import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -56,23 +53,17 @@ import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
-import alluxio.util.CommonUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
@@ -89,16 +80,12 @@ public interface FileSystem extends Closeable {
    * {@link Factory#create} methods will always guarantee returning a new FileSystem.
    */
   class Factory {
-
     static {
       // If the extra loaded class name is set, try to load it.
       if (Configuration.global().isSet(PropertyKey.EXTRA_LOADED_FILESYSTEM_CLASSNAME)) {
         Configuration.global().getClass(PropertyKey.EXTRA_LOADED_FILESYSTEM_CLASSNAME);
       }
     }
-
-    private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
-    private static final AtomicBoolean CONF_LOGGED = new AtomicBoolean(false);
 
     protected static final FileSystemCache FILESYSTEM_CACHE = new FileSystemCache();
 
@@ -175,46 +162,9 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
-      AlluxioConfiguration conf = context.getClusterConf();
-      checkSortConf(conf);
-      Optional<UfsFileSystemOptions> ufsOptions = options.getUfsFileSystemOptions();
-      Preconditions.checkArgument(ufsOptions.isPresent(),
-          "Missing UfsFileSystemOptions in FileSystemOptions");
-      FileSystem fs = new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get());
-
-      if (options.isDoraCacheEnabled()) {
-        LOG.debug("Dora cache enabled");
-        fs = DoraCacheFileSystem.sDoraCacheFileSystemFactory.createAnInstance(fs, context);
-      }
-      if (options.isMetadataCacheEnabled()) {
-        LOG.debug("Client metadata caching enabled");
-        fs = new MetadataCachingFileSystem(fs, context);
-      }
-      if (options.isDataCacheEnabled()
-          && CommonUtils.PROCESS_TYPE.get() == CommonUtils.ProcessType.CLIENT) {
-        try {
-          CacheManager cacheManager = CacheManager.Factory.get(conf);
-          LOG.debug("Client local data caching enabled");
-          return new LocalCacheFileSystem(cacheManager, fs, conf);
-        } catch (IOException e) {
-          LOG.error("Client local data caching enabled but failed to initialize cache manager, "
-              + "continuing without data caching enabled", e);
-        }
-      }
-      return fs;
-    }
-
-    static void checkSortConf(AlluxioConfiguration conf) {
-      if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
-        // Sort properties by name to keep output ordered.
-        List<PropertyKey> keys = new ArrayList<>(conf.keySet());
-        keys.sort(Comparator.comparing(PropertyKey::getName));
-        for (PropertyKey key : keys) {
-          Object value = conf.getOrDefault(key, null);
-          Source source = conf.getSource(key);
-          LOG.debug("{}={} ({})", key.getName(), value, source);
-        }
-      }
+      DoraClientFileSystemManager fileSystemManager =
+          DoraClientFileSystemManager.get(context.getClusterConf());
+      return fileSystemManager.create(context, options);
     }
   }
 

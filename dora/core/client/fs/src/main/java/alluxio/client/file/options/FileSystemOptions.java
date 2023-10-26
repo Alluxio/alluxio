@@ -47,15 +47,29 @@ public class FileSystemOptions {
      * @return new builder with options set to values from configuration
      */
     public static Builder fromConf(AlluxioConfiguration conf) {
+      return fromConf(conf, Optional.empty());
+    }
+
+    /**
+     * Creates new builder from configuration.
+     *
+     * @param conf configuration
+     * @param ufsPath ufs path
+     * @return new builder with options set to values from configuration
+     */
+    public static Builder fromConf(AlluxioConfiguration conf, Optional<String> ufsPath) {
       Builder builder = new Builder();
       builder.setDataCacheEnabled(conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED))
           .setMetadataCacheEnabled(FileSystemUtils.metadataEnabled(conf))
           .setDoraCacheEnabled(
               conf.getBoolean(PropertyKey.DORA_ENABLED))
           .setUfsFallbackEnabled(conf.getBoolean(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED));
-      //TODO(bowen): ufs root is required temporarily even though ufs fall back is disabled
-      builder.setUfsFileSystemOptions(
-          new UfsFileSystemOptions(conf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT)));
+      if (ufsPath.isPresent()) {
+        builder.setUfsFileSystemOptions(new UfsFileSystemOptions(ufsPath.get()));
+      } else {
+        builder.setUfsFileSystemOptions(
+            new UfsFileSystemOptions(conf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT)));
+      }
       return builder;
     }
 

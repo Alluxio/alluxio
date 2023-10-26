@@ -5621,7 +5621,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-
+  public static final PropertyKey USER_CLIENT_OVERRIDE_MODULE_CLASS =
+      classBuilder(Name.USER_CLIENT_OVERRIDE_MODULE_CLASS)
+          .setDescription("The guice module to override the default injection rules")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_OVERRIDE_INSTANCE_CLASS =
+      classBuilder(Name.USER_CLIENT_OVERRIDE_INSTANCE_CLASS)
+          .setDescription("The guice module to override the default injection rules")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CLIENT_REPORT_VERSION_ENABLED =
       booleanBuilder(Name.USER_CLIENT_REPORT_VERSION_ENABLED)
           .setDefaultValue(false)
@@ -8273,6 +8284,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.timeout.duration";
     public static final String USER_CLIENT_CACHE_TIMEOUT_THREADS =
         "alluxio.user.client.cache.timeout.threads";
+    public static final String USER_CLIENT_OVERRIDE_MODULE_CLASS =
+        "alluxio.user.client.override.module.class";
+    public static final String USER_CLIENT_OVERRIDE_INSTANCE_CLASS =
+        "alluxio.user.client.override.instance.class";
     public static final String USER_CLIENT_REPORT_VERSION_ENABLED =
         "alluxio.user.client.report.version.enabled";
     public static final String USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER =

@@ -26,6 +26,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.OpenFilePOptions;
+import alluxio.metrics.MetricsSystem;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -50,9 +51,12 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
    */
   public LocalCacheFileSystem(CacheManager cacheManage, FileSystem fs, AlluxioConfiguration conf) {
     super(fs);
+    // Handle metrics
+    MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
     mCacheManager = Preconditions.checkNotNull(cacheManage, "cacheManager");
     mConf = Preconditions.checkNotNull(conf, "conf");
     mCacheFilter = CacheFilter.create(conf);
+    LocalCacheFileInStream.registerMetrics();
   }
 
   @Override
