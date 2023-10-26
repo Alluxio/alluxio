@@ -110,5 +110,8 @@ public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellT
       Thread.sleep(1000);
     }
     assertTrue(mOutput.toString().contains("Inodes Processed: 1"));
+    assertEquals(0, mFileSystem.getStatus(uriA).getInAlluxioPercentage());
+    assertEquals(100, mFileSystem.getStatus(uriB).getInAlluxioPercentage());
+    assertEquals(0, mFileSystem.getStatus(uriC).getInAlluxioPercentage());
   }
 }
