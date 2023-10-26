@@ -47,6 +47,10 @@ function main {
     run_args+=" -e ALLUXIO_MVN_TESTS=${ALLUXIO_DOCKER_MVN_TESTS}"
   fi
 
+  if [ -n "${ALLUXIO_DOCKER_MVN_PROFILES}" ]; then
+    run_args+=" -e ALLUXIO_MVN_PROFILES=${ALLUXIO_DOCKER_MVN_PROFILES}"
+  fi
+
   local home="/home/jenkins"
   # Needed to run fuse tests:
   run_args+=" --cap-add SYS_ADMIN"

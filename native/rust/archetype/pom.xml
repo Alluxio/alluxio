@@ -84,6 +84,7 @@
                 <build.path>${build.path}</build.path>
               </properties>
             </configuration>
+            <phase>test</phase>
           </execution>
         </executions>
       </plugin>
