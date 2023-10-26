@@ -32,6 +32,8 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerIdentity;
+import alluxio.wire.WorkerIdentityTestUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -39,6 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Longs;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,26 +58,34 @@ public class BatchedJobDefinitionTest {
   private static final String TEST_URI = "/test";
   private static final WorkerNetAddress WORKER_ADDR_0 =
       new WorkerNetAddress().setHost("host0");
+  private static final WorkerIdentity WORKER_IDENTITY_0 =
+      WorkerIdentityTestUtils.fromRawParts(Longs.toByteArray(0L), 0);
   private static final WorkerNetAddress WORKER_ADDR_1 =
       new WorkerNetAddress().setHost("host1");
+  private static final WorkerIdentity WORKER_IDENTITY_1 =
+      WorkerIdentityTestUtils.fromRawParts(Longs.toByteArray(1L), 0);
   private static final WorkerNetAddress WORKER_ADDR_2 =
       new WorkerNetAddress().setHost("host2");
+  private static final WorkerIdentity WORKER_IDENTITY_2 =
+      WorkerIdentityTestUtils.fromRawParts(Longs.toByteArray(2L), 0);
   private static final WorkerNetAddress WORKER_ADDR_3 =
       new WorkerNetAddress().setHost("host3");
+  private static final WorkerIdentity WORKER_IDENTITY_3 =
+      WorkerIdentityTestUtils.fromRawParts(Longs.toByteArray(3L), 0);
 
   private static final List<WorkerInfo> JOB_WORKERS = new ImmutableList.Builder<WorkerInfo>()
-      .add(new WorkerInfo().setId(0).setAddress(WORKER_ADDR_0))
-      .add(new WorkerInfo().setId(1).setAddress(WORKER_ADDR_1))
-      .add(new WorkerInfo().setId(2).setAddress(WORKER_ADDR_2))
-      .add(new WorkerInfo().setId(3).setAddress(WORKER_ADDR_3))
+      .add(new WorkerInfo().setId(0).setIdentity(WORKER_IDENTITY_0).setAddress(WORKER_ADDR_0))
+      .add(new WorkerInfo().setId(1).setIdentity(WORKER_IDENTITY_1).setAddress(WORKER_ADDR_1))
+      .add(new WorkerInfo().setId(2).setIdentity(WORKER_IDENTITY_2).setAddress(WORKER_ADDR_2))
+      .add(new WorkerInfo().setId(3).setIdentity(WORKER_IDENTITY_3).setAddress(WORKER_ADDR_3))
       .build();
 
   private static final List<BlockWorkerInfo> BLOCK_WORKERS =
       new ImmutableList.Builder<BlockWorkerInfo>()
-          .add(new BlockWorkerInfo(WORKER_ADDR_0, 0, 0))
-          .add(new BlockWorkerInfo(WORKER_ADDR_1, 0, 0))
-          .add(new BlockWorkerInfo(WORKER_ADDR_2, 0, 0))
-          .add(new BlockWorkerInfo(WORKER_ADDR_3, 0, 0)).build();
+          .add(new BlockWorkerInfo(WORKER_IDENTITY_0, WORKER_ADDR_0, 0, 0))
+          .add(new BlockWorkerInfo(WORKER_IDENTITY_1, WORKER_ADDR_1, 0, 0))
+          .add(new BlockWorkerInfo(WORKER_IDENTITY_2, WORKER_ADDR_2, 0, 0))
+          .add(new BlockWorkerInfo(WORKER_IDENTITY_3, WORKER_ADDR_3, 0, 0)).build();
 
   private JobServerContext mJobServerContext;
   private FileSystem mMockFileSystem;

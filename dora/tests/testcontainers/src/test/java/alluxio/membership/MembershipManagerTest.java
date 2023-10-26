@@ -15,6 +15,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.wire.WorkerIdentityTestUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -189,18 +190,24 @@ public class MembershipManagerTest {
     Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.ETCD);
     Configuration.set(PropertyKey.ETCD_ENDPOINTS, getClientEndpoints());
     Assert.assertTrue(membershipManager instanceof EtcdMembershipManager);
-    WorkerInfo wkr1 = new WorkerInfo().setAddress(new WorkerNetAddress()
-        .setHost("worker1").setContainerHost("containerhostname1")
-        .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
-        .setDomainSocketPath("/var/lib/domain.sock"));
-    WorkerInfo wkr2 = new WorkerInfo().setAddress(new WorkerNetAddress()
-        .setHost("worker2").setContainerHost("containerhostname2")
-        .setRpcPort(2000).setDataPort(2001).setWebPort(2011)
-        .setDomainSocketPath("/var/lib/domain.sock"));
-    WorkerInfo wkr3 = new WorkerInfo().setAddress(new WorkerNetAddress()
-        .setHost("worker3").setContainerHost("containerhostname3")
-        .setRpcPort(3000).setDataPort(3001).setWebPort(3011)
-        .setDomainSocketPath("/var/lib/domain.sock"));
+    WorkerInfo wkr1 = new WorkerInfo()
+        .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker1").setContainerHost("containerhostname1")
+            .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
+            .setDomainSocketPath("/var/lib/domain.sock"));
+    WorkerInfo wkr2 = new WorkerInfo()
+        .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker2").setContainerHost("containerhostname2")
+            .setRpcPort(2000).setDataPort(2001).setWebPort(2011)
+            .setDomainSocketPath("/var/lib/domain.sock"));
+    WorkerInfo wkr3 = new WorkerInfo()
+        .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker3").setContainerHost("containerhostname3")
+            .setRpcPort(3000).setDataPort(3001).setWebPort(3011)
+            .setDomainSocketPath("/var/lib/domain.sock"));
     membershipManager.join(wkr1);
     membershipManager.join(wkr2);
     membershipManager.join(wkr3);
@@ -242,14 +249,18 @@ public class MembershipManagerTest {
     Configuration.set(PropertyKey.ETCD_ENDPOINTS, getProxiedClientEndpoints());
     MembershipManager membershipManager = MembershipManager.Factory.create(Configuration.global());
     Assert.assertTrue(membershipManager instanceof EtcdMembershipManager);
-    WorkerInfo wkr1 = new WorkerInfo().setAddress(new WorkerNetAddress()
-        .setHost("worker-1").setContainerHost("containerhostname1")
-        .setRpcPort(29999).setDataPort(29997).setWebPort(30000)
-        .setDomainSocketPath("/var/lib/domain.sock"));
-    WorkerInfo wkr2 = new WorkerInfo().setAddress(new WorkerNetAddress()
-        .setHost("worker-2").setContainerHost("containerhostname2")
-        .setRpcPort(29999).setDataPort(29997).setWebPort(30000)
-        .setDomainSocketPath("/var/lib/domain.sock"));
+    WorkerInfo wkr1 = new WorkerInfo()
+        .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker-1").setContainerHost("containerhostname1")
+            .setRpcPort(29999).setDataPort(29997).setWebPort(30000)
+            .setDomainSocketPath("/var/lib/domain.sock"));
+    WorkerInfo wkr2 = new WorkerInfo()
+        .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker-2").setContainerHost("containerhostname2")
+            .setRpcPort(29999).setDataPort(29997).setWebPort(30000)
+            .setDomainSocketPath("/var/lib/domain.sock"));
     membershipManager.join(wkr1);
     membershipManager.join(wkr2);
     CommonUtils.waitFor("Workers joined",
@@ -304,18 +315,24 @@ public class MembershipManagerTest {
 
     MembershipManager membershipManager = MembershipManager.Factory.create(Configuration.global());
     Assert.assertTrue(membershipManager instanceof StaticMembershipManager);
-    WorkerInfo wkr1 = new WorkerInfo().setAddress(new WorkerNetAddress()
-        .setHost("worker1").setContainerHost("containerhostname1")
-        .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
-        .setDomainSocketPath("/var/lib/domain.sock"));
-    WorkerInfo wkr2 = new WorkerInfo().setAddress(new WorkerNetAddress()
-        .setHost("worker2").setContainerHost("containerhostname2")
-        .setRpcPort(2000).setDataPort(2001).setWebPort(2011)
-        .setDomainSocketPath("/var/lib/domain.sock"));
-    WorkerInfo wkr3 = new WorkerInfo().setAddress(new WorkerNetAddress()
-        .setHost("worker3").setContainerHost("containerhostname3")
-        .setRpcPort(3000).setDataPort(3001).setWebPort(3011)
-        .setDomainSocketPath("/var/lib/domain.sock"));
+    WorkerInfo wkr1 = new WorkerInfo()
+        .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker1").setContainerHost("containerhostname1")
+            .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
+            .setDomainSocketPath("/var/lib/domain.sock"));
+    WorkerInfo wkr2 = new WorkerInfo()
+        .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker2").setContainerHost("containerhostname2")
+            .setRpcPort(2000).setDataPort(2001).setWebPort(2011)
+            .setDomainSocketPath("/var/lib/domain.sock"));
+    WorkerInfo wkr3 = new WorkerInfo()
+        .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker3").setContainerHost("containerhostname3")
+            .setRpcPort(3000).setDataPort(3001).setWebPort(3011)
+            .setDomainSocketPath("/var/lib/domain.sock"));
     membershipManager.join(wkr1);
     membershipManager.join(wkr2);
     membershipManager.join(wkr3);

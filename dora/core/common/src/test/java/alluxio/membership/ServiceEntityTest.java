@@ -11,19 +11,28 @@
 
 package alluxio.membership;
 
+import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.primitives.Longs;
+import com.google.protobuf.ByteString;
 import org.junit.Assert;
 import org.junit.Test;
 
 public final class ServiceEntityTest {
 
   @Test
-  public void testSerializationWorkerServiceEntity() {
-    WorkerServiceEntity entity = new WorkerServiceEntity(new WorkerNetAddress()
+  public void testSerializationWorkerServiceEntity() throws Exception {
+    final WorkerNetAddress workerNetAddress = new WorkerNetAddress()
         .setHost("worker1").setContainerHost("containerhostname1")
         .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
-        .setDomainSocketPath("/var/lib/domain.sock"));
+        .setDomainSocketPath("/var/lib/domain.sock");
+    final WorkerIdentity identity = WorkerIdentity.fromProto(
+        alluxio.grpc.WorkerIdentity.newBuilder()
+            .setIdentifier(ByteString.copyFrom(Longs.toByteArray(1L)))
+            .setVersion(0)
+            .build());
+    WorkerServiceEntity entity = new WorkerServiceEntity(identity, workerNetAddress);
     byte[] jsonBytes = entity.serialize();
     DefaultServiceEntity deserialized = new WorkerServiceEntity();
     deserialized.deserialize(jsonBytes);

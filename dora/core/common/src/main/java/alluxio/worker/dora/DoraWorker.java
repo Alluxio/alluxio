@@ -20,6 +20,7 @@ import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadFileResponse;
+import alluxio.grpc.LoadSubTask;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
@@ -100,14 +101,13 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
   /**
    * Loads the metadata and data of files from UFS to Alluxio.
    *
-   * @param loadData true if data should also be loaded, otherwise metadata only
    * @param skipIfExists true if data loading should be skipped if it's already loaded
-   * @param ufsStatuses the files to load
-   * @param options
+   * @param subTasks the subtasks to load
+   * @param options the options for reading
    * @return a list of failed files
    */
   ListenableFuture<LoadFileResponse> load(
-      boolean loadData, boolean skipIfExists, List<UfsStatus> ufsStatuses, UfsReadOptions options)
+      List<LoadSubTask> subTasks, boolean skipIfExists, UfsReadOptions options)
       throws AccessControlException, IOException;
 
   /**
@@ -189,6 +189,15 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @param options the options of this operation
    */
   void setAttribute(String path, SetAttributePOptions options) throws IOException;
+
+  /**
+   * Load data from UFS and cache it on worker. Will skip if data is already on worker.
+   * @param path the full UFS path
+   * @param length the length of the data to load
+   * @param pos the position of the file where loading starts from
+   * @param isAsync if the load is done in async mode
+   */
+  void cacheData(String path, long length, long pos, boolean isAsync) throws IOException;
 
   /**
    * Get the address of the Dora Worker.

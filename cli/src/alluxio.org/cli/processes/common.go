@@ -255,3 +255,14 @@ func getSigner() (ssh.Signer, error) {
 	}
 	return parsedPrivateKey, nil
 }
+
+func argsContainsOpt(args []string, optPrefixes ...string) bool {
+	for _, arg := range args {
+		for _, prefix := range optPrefixes {
+			if strings.HasPrefix(arg, prefix) {
+				return true
+			}
+		}
+	}
+	return false
+}

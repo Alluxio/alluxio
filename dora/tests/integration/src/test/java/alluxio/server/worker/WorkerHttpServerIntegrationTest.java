@@ -51,6 +51,7 @@ public class WorkerHttpServerIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.WORKER_HTTP_SERVER_PORT, mHttpServerPort)
+          .setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false)
           .build();
 
   private static final String TEST_CONTENT = "test-content";
@@ -68,11 +69,12 @@ public class WorkerHttpServerIntegrationTest {
 
   @After
   public void after() throws Exception {
+    mFileSystem.close();
     mLocalAlluxioClusterResource.stop();
   }
 
   @Test
-  public void testGetFileStatus() throws Exception {
+  public void testListStatus() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     String parentPath = uniqPath.substring(0, uniqPath.lastIndexOf("/"));
     // create a directory
@@ -122,5 +124,47 @@ public class WorkerHttpServerIntegrationTest {
             responseFileInfo.getHumanReadableFileSize());
       }
     }
+  }
+
+  @Test
+  public void testGetStatus() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    String parentPath = uniqPath.substring(0, uniqPath.lastIndexOf("/"));
+    // create a directory
+    AlluxioURI dirUri = new AlluxioURI(parentPath + "/test-dir");
+    mFileSystem.createDirectory(dirUri);
+    URIStatus dirStatus = mFileSystem.getStatus(dirUri);
+    Assert.assertNotNull(dirStatus);
+    // create a file
+    AlluxioURI fileUri = new AlluxioURI(parentPath + "/test-file");
+    FileOutStream out = mFileSystem.createFile(fileUri, mWriteBoth);
+    byte[] buf = TEST_CONTENT.getBytes(Charset.defaultCharset());
+    out.write(buf);
+    out.close();
+    URIStatus fileStatus = mFileSystem.getStatus(fileUri);
+    Assert.assertNotNull(fileStatus);
+    // try executing getStatus operation by HTTP RESTful API
+    CloseableHttpClient httpClient = HttpClients.createDefault();
+    URIBuilder uriBuilder = new URIBuilder("http://localhost:"
+        + mHttpServerPort + "/v1/info?path=" + parentPath + "/test-dir");
+    HttpGet httpGet = new HttpGet(uriBuilder.build());
+    CloseableHttpResponse response = httpClient.execute(httpGet);
+    HttpEntity entity = response.getEntity();
+    String entityStr = EntityUtils.toString(entity, "UTF-8");
+    Gson gson = new GsonBuilder().create();
+    Type type = new TypeToken<List<ResponseFileInfo>>() {
+    }.getType();
+    List<ResponseFileInfo> responseFileInfoList = gson.fromJson(entityStr, type);
+    Assert.assertEquals(1, responseFileInfoList.size());
+
+    ResponseFileInfo responseFileInfo = responseFileInfoList.get(0);
+    Assert.assertEquals("directory", responseFileInfo.getType());
+    Assert.assertEquals(dirStatus.getName(), responseFileInfo.getName());
+    Assert.assertEquals(dirStatus.getPath(), responseFileInfo.getPath());
+    Assert.assertEquals(dirStatus.getUfsPath(), responseFileInfo.getUfsPath());
+    Assert.assertEquals(dirStatus.getLastModificationTimeMs(),
+        responseFileInfo.getLastModificationTimeMs());
+    Assert.assertEquals(0, responseFileInfo.getLength());
+    Assert.assertEquals("0B", responseFileInfo.getHumanReadableFileSize());
   }
 }

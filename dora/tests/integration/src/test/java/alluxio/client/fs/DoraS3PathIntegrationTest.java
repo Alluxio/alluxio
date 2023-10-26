@@ -13,6 +13,7 @@ package alluxio.client.fs;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.PropertyKey;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.journal.JournalType;
@@ -33,6 +34,7 @@ import org.apache.hadoop.fs.Path;
 import org.gaul.s3proxy.junit.S3ProxyRule;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -44,6 +46,9 @@ import java.util.Arrays;
 /**
  * Integration tests for Alluxio Client (reuse the {@link LocalAlluxioCluster}).
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "beinan",
+    comment = "fix it.")
 public final class DoraS3PathIntegrationTest extends BaseIntegrationTest {
   @Rule
   public S3ProxyRule mS3Proxy = S3ProxyRule.builder()

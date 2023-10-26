@@ -21,9 +21,11 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
 import alluxio.membership.MembershipManager;
+import alluxio.membership.MembershipType;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerIdentity;
 import alluxio.worker.Worker;
+import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.dora.DoraUfsManager;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.PagedDoraWorker;
@@ -33,6 +35,7 @@ import alluxio.worker.http.HttpServerInitializer;
 import alluxio.worker.http.PagedService;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Provider;
 import com.google.inject.Scopes;
 import com.google.inject.TypeLiteral;
 import com.google.inject.name.Names;
@@ -46,13 +49,29 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DoraWorkerModule extends AbstractModule {
   @Override
   protected void configure() {
-    bind(new TypeLiteral<AtomicReference<Long>>() {
-    }).annotatedWith(Names.named("workerId"))
-        .toInstance(new AtomicReference<>(-1L));
-    bind(WorkerIdentity.class).toProvider(WorkerIdentityProvider.class).in(Scopes.SINGLETON);
+    if (Configuration.getEnum(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.class)
+        == MembershipType.MASTER) {
+      bind(new TypeLiteral<AtomicReference<WorkerIdentity>>() {
+      })
+          .annotatedWith(Names.named("workerId"))
+          .toInstance(new AtomicReference<>(null));
+    } else { // for etcd-based and static membership managers
+      bind(WorkerIdentity.class)
+          .toProvider(WorkerIdentityProvider.class)
+          .in(Scopes.SINGLETON);
+      Provider<WorkerIdentity> workerIdentityProvider = getProvider(WorkerIdentity.class);
+      bind(new TypeLiteral<AtomicReference<WorkerIdentity>>() {
+      })
+          .annotatedWith(Names.named("workerId"))
+          .toProvider(() -> new AtomicReference<>(workerIdentityProvider.get()))
+          .in(Scopes.SINGLETON);
+    }
 
     bind(FileSystemMasterClient.class).toProvider(() -> new FileSystemMasterClient(
         MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build()));
+    bind(BlockMasterClientPool.class)
+        .toProvider(BlockMasterClientPool::new)
+        .in(Scopes.SINGLETON);
     bind(UfsManager.class).to(DoraUfsManager.class).in(Scopes.SINGLETON);
     bind(AlluxioConfiguration.class).toProvider(() -> Configuration.global());
 

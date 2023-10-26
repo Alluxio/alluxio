@@ -23,7 +23,7 @@ import (
 var Validate = &ValidateCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "validate",
-		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
+		ShellJavaOpts: []string{fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console")},
 	},
 }
 

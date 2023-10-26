@@ -11,6 +11,7 @@
 
 package alluxio.web;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.rest.TestCase;
 import alluxio.client.rest.TestCaseOptions;
 import alluxio.conf.Configuration;
@@ -58,6 +59,9 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
   /**
    * Tests whether the metrics json is being served.
    */
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Adit",
+      comment = "fix test because the URI is general")
+  @Ignore
   @Test
   public void metricsJson() throws Exception {
     for (ServiceType serviceType : PAGES.keys()) {

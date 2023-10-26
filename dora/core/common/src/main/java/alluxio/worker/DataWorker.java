@@ -11,6 +11,8 @@
 
 package alluxio.worker;
 
+import alluxio.wire.WorkerIdentity;
+
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -20,5 +22,5 @@ public interface DataWorker extends Worker {
   /**
    * @return the worker id
    */
-  AtomicReference<Long> getWorkerId();
+  AtomicReference<WorkerIdentity> getWorkerId();
 }

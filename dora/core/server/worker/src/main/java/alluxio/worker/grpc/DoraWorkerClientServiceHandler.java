@@ -21,6 +21,8 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.CacheDataRequest;
+import alluxio.grpc.CacheDataResponse;
 import alluxio.grpc.CompleteFilePRequest;
 import alluxio.grpc.CompleteFilePResponse;
 import alluxio.grpc.CopyRequest;
@@ -71,7 +73,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Server side implementation of the gRPC dora worker interface.
@@ -130,12 +131,9 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   public void loadFile(LoadFileRequest request, StreamObserver<LoadFileResponse> responseObserver) {
     try {
       ListenableFuture<LoadFileResponse> response =
-          mWorker.load(!request.getLoadMetadataOnly(), request.getSkipIfExists(),
-              request.getUfsStatusList().stream().map(
-                  UfsStatus::fromProto).collect(
-                  Collectors.toList()), request.getOptions());
+          mWorker.load(request.getSubtasksList(), request.getSkipIfExists(), request.getOptions());
       ListenableFuture<LoadFileResponse> future = Futures.transform(response, resp -> {
-        int numFiles = request.getUfsStatusCount();
+        int numFiles = request.getSubtasksCount();
         TaskStatus taskStatus = TaskStatus.SUCCESS;
         if (!resp.getFailuresList().isEmpty()) {
           taskStatus = numFiles > resp.getFailuresList().size()
@@ -145,7 +143,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       }, GrpcExecutors.WRITER_EXECUTOR);
       RpcUtils.invoke(LOG, future, "loadFile", "request=%s", responseObserver, request);
     } catch (Exception e) {
-      LOG.debug(String.format("Failed to load file %s: ", request.getUfsStatusList()), e);
+      LOG.debug(String.format("Failed to load file %s: ", request.getSubtasksList()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }
@@ -375,6 +373,21 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       responseObserver.onCompleted();
     } catch (Exception e) {
       LOG.error(String.format("Failed to setAttribute for %s: ", request.getPath()), e);
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
+    }
+  }
+
+  @Override
+  public void cacheData(
+      CacheDataRequest request,
+      StreamObserver<CacheDataResponse> responseObserver) {
+    try {
+      mWorker.cacheData(
+          request.getUfsPath(), request.getLength(), request.getPos(), request.getAsync());
+      responseObserver.onNext(CacheDataResponse.getDefaultInstance());
+      responseObserver.onCompleted();
+    } catch (Exception e) {
+      LOG.error("Failed to cache data, {}", request.getUfsPath(), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }

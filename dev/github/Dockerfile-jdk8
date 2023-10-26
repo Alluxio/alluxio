@@ -11,7 +11,28 @@
 
 # See https://hub.docker.com/r/alluxio/alluxio-maven for instructions on running the image.
 
+ARG RUST_VERSION=1.66.1
+# Official rust image from https://github.com/rust-lang/docker-rust/blob/master/Dockerfile-debian.template
+# This image installs rustup and cargo into /usr/local/{rustup,cargo}
+# we install additional targets and components,
+# and copy the toolchains from this image into the maven base image in the next stage
+FROM rust:${RUST_VERSION} as rust-installer
+RUN rustup target add aarch64-unknown-linux-gnu x86_64-unknown-linux-gnu && \
+    rustup component add clippy rustfmt && \
+    # move the two directories into an empty directory to save one COPY instruction in the next stage
+    mkdir /cargo-and-rustup && \
+    mv /usr/local/rustup /cargo-and-rustup/rustup && \
+    mv /usr/local/cargo /cargo-and-rustup/cargo
+
 FROM maven:3.8.6-jdk-8
+# ARGs only last for the build phase of a single image. Redefine it to make it available in this stage as well.
+# See https://stackoverflow.com/questions/53681522/share-variable-in-multi-stage-dockerfile-arg-before-from-not-substituted
+ARG RUST_VERSION
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH \
+    RUST_VERSION=${RUST_VERSION}
+COPY --from=rust-installer /cargo-and-rustup /usr/local/
 
 # need to create /.config to avoid npm errors
 RUN mkdir -p /home/jenkins && \

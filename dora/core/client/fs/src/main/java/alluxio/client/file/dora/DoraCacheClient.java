@@ -33,6 +33,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.PermissionDeniedException;
+import alluxio.grpc.CacheDataRequest;
+import alluxio.grpc.CacheDataResponse;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CompleteFilePRequest;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -61,6 +63,13 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -84,6 +93,7 @@ public class DoraCacheClient {
   private final int mPreferredWorkerCount;
 
   private final boolean mEnableDynamicHashRing;
+  private static final Logger LOG = LoggerFactory.getLogger(DoraCacheClient.class);
 
   /**
    * Constructor.
@@ -120,7 +130,7 @@ public class DoraCacheClient {
     } else {
       throw new UnsupportedOperationException("Grpc dora reader not implemented");
     }
-    return new PositionReadFileInStream(reader, status.getLength());
+    return new PositionReadFileInStream(reader, status, this);
   }
 
   /**
@@ -450,6 +460,39 @@ public class DoraCacheClient {
     } catch (IOException e) {
       // If failed to find workers in the cluster or failed to find the specified number of
       // workers, throw an exception to the application
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Caches data from ufs.
+   * @param ufsPath the full ufs path
+   * @param pos the position
+   * @param length the length
+   */
+  public void cacheData(String ufsPath, long pos, long length) {
+    // TODO(yimin.wei) break down the load request into loading virtual block requests
+    // and load them on different workers.
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(ufsPath))) {
+      CacheDataRequest request = CacheDataRequest.newBuilder()
+          .setUfsPath(ufsPath)
+          .setPos(pos)
+          .setLength(length)
+          .setAsync(true)
+          .build();
+      ListenableFuture<CacheDataResponse> future = client.get().cacheData(request);
+      Futures.addCallback(future, new FutureCallback<CacheDataResponse>() {
+        @Override
+        public void onSuccess(CacheDataResponse result) {
+        }
+
+        @Override
+        public void onFailure(Throwable t) {
+          LOG.warn("Preloading {} failed", ufsPath, t);
+        }
+      }, MoreExecutors.directExecutor());
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }

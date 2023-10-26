@@ -11,21 +11,32 @@
 
 package alluxio.master.job;
 
+import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.master.file.FileSystemMaster;
+import alluxio.conf.Configuration;
+import alluxio.master.file.DefaultFileSystemMaster;
+import alluxio.master.predicate.FilePredicate;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.scheduler.job.JobState;
+import alluxio.security.User;
+import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.underfs.UfsStatus;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+
+import com.google.common.base.Predicates;
 
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.function.Predicate;
 
 /**
  * Factory for creating {@link LoadJob}s from journal entries.
  */
 @SuppressFBWarnings(value = "URF_UNREAD_FIELD", justification = "Field will be used in future")
 public class JournalLoadJobFactory implements JobFactory {
-  private final FileSystemMaster mFsMaster;
+  private final DefaultFileSystemMaster mFsMaster;
 
   private final alluxio.proto.journal.Job.LoadJobEntry mJobEntry;
 
@@ -35,19 +46,38 @@ public class JournalLoadJobFactory implements JobFactory {
    * @param fsMaster file system master
    */
   public JournalLoadJobFactory(alluxio.proto.journal.Job.LoadJobEntry journalEntry,
-       FileSystemMaster fsMaster) {
+       DefaultFileSystemMaster fsMaster) {
     mFsMaster = fsMaster;
     mJobEntry = journalEntry;
   }
 
   @Override
   public Job<?> create() {
+    String path = mJobEntry.getLoadPath();
+    UnderFileSystem ufs = mFsMaster.getUfsManager().getOrAdd(new AlluxioURI(path),
+        () -> UnderFileSystemConfiguration.defaults(Configuration.global()));
+    Predicate<UfsStatus> predicate = Predicates.alwaysTrue();
+    Optional<String> fileFilterRegx = Optional.empty();
+    if (mJobEntry.hasFileFilterRegx()) {
+      String regxPatternStr = mJobEntry.getFileFilterRegx();
+      if (regxPatternStr != null && !regxPatternStr.isEmpty()) {
+        alluxio.proto.journal.Job.FileFilter.Builder builder =
+            alluxio.proto.journal.Job.FileFilter.newBuilder()
+                .setName("fileNamePattern").setValue(regxPatternStr);
+        FilePredicate filePredicate = FilePredicate.create(builder.build());
+        predicate = filePredicate.getUfsStatusPredicate();
+        fileFilterRegx = Optional.of(regxPatternStr);
+      }
+    }
+    Iterable<UfsStatus> iterable = new UfsStatusIterable(ufs, path,
+        Optional.ofNullable(AuthenticatedClientUser.getOrNull()).map(User::getName),
+        predicate);
     Optional<String> user =
         mJobEntry.hasUser() ? Optional.of(mJobEntry.getUser()) : Optional.empty();
-    DoraLoadJob job = new DoraLoadJob(mJobEntry.getLoadPath(), user, mJobEntry.getJobId(),
+    DoraLoadJob job = new DoraLoadJob(path, user, mJobEntry.getJobId(),
         mJobEntry.hasBandwidth() ? OptionalLong.of(mJobEntry.getBandwidth()) : OptionalLong.empty(),
-        mJobEntry.getPartialListing(), mJobEntry.getVerify(),
-        mJobEntry.getLoadMetadataOnly(), mJobEntry.getSkipIfExists());
+        mJobEntry.getPartialListing(), mJobEntry.getVerify(), mJobEntry.getLoadMetadataOnly(),
+        mJobEntry.getSkipIfExists(), fileFilterRegx, iterable.iterator(), ufs);
     job.setJobState(JobState.fromProto(mJobEntry.getState()), false);
     if (mJobEntry.hasEndTime()) {
       job.setEndTime(mJobEntry.getEndTime());

@@ -55,9 +55,9 @@ type Process interface {
 }
 
 type BaseProcess struct {
-	Name              string
-	JavaClassName     string
-	JavaOptsEnvVarKey string
+	Name          string
+	JavaClassName string
+	JavaOpts      *AlluxioConfigEnvVar
 
 	// start
 	ProcessOutFile string
@@ -115,7 +115,7 @@ var debugOptsToRemove = []*regexp.Regexp{
 func (p *BaseProcess) Monitor() error {
 	cmdArgs := []string{"-cp", Env.EnvVar.GetString(EnvAlluxioClientClasspath)}
 
-	javaOpts := strings.TrimSpace(Env.EnvVar.GetString(p.JavaOptsEnvVarKey))
+	javaOpts := strings.TrimSpace(Env.EnvVar.GetString(p.JavaOpts.EnvVar))
 	// remove debugging options from java opts for monitor process
 	for _, re := range debugOptsToRemove {
 		javaOpts = re.ReplaceAllString(javaOpts, "")

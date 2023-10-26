@@ -30,7 +30,7 @@ var Master = &MasterProcess{
 	BaseProcess: &env.BaseProcess{
 		Name:                 "master",
 		JavaClassName:        "alluxio.master.AlluxioMaster",
-		JavaOptsEnvVarKey:    ConfAlluxioMasterJavaOpts.EnvVar,
+		JavaOpts:             ConfAlluxioMasterJavaOpts,
 		ProcessOutFile:       "master.out",
 		MonitorJavaClassName: "alluxio.master.AlluxioMasterMonitor",
 	},
@@ -48,10 +48,12 @@ const (
 
 var (
 	ConfAlluxioMasterJavaOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_MASTER_JAVA_OPTS",
+		EnvVar:     "ALLUXIO_MASTER_JAVA_OPTS",
+		IsJavaOpts: true,
 	})
 	confAlluxioMasterAttachOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_MASTER_ATTACH_OPTS",
+		EnvVar:     "ALLUXIO_MASTER_ATTACH_OPTS",
+		IsJavaOpts: true,
 	})
 )
 
@@ -64,16 +66,16 @@ func (p *MasterProcess) Base() *env.BaseProcess {
 }
 
 func (p *MasterProcess) SetEnvVars(envVar *viper.Viper) {
-	// ALLUXIO_MASTER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_MASTER_JAVA_OPTS}
 	envVar.SetDefault(envAlluxioMasterLogger, masterLoggerType)
-	masterJavaOpts := fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, envVar.Get(envAlluxioMasterLogger))
 	envVar.SetDefault(envAlluxioAuditMasterLogger, masterAuditLoggerType)
-	masterJavaOpts += fmt.Sprintf(env.JavaOptFormat, confAlluxioMasterAuditLoggerType, envVar.Get(envAlluxioAuditMasterLogger))
-
-	masterJavaOpts += envVar.GetString(env.ConfAlluxioJavaOpts.EnvVar)
-	masterJavaOpts += envVar.GetString(p.JavaOptsEnvVarKey)
-
-	envVar.Set(p.JavaOptsEnvVarKey, strings.TrimSpace(masterJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
+	// ALLUXIO_MASTER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_MASTER_JAVA_OPTS}
+	javaOpts := []string{
+		fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, envVar.Get(envAlluxioMasterLogger)),
+		fmt.Sprintf(env.JavaOptFormat, confAlluxioMasterAuditLoggerType, envVar.Get(envAlluxioAuditMasterLogger)),
+	}
+	javaOpts = append(javaOpts, env.ConfAlluxioJavaOpts.JavaOptsToArgs(envVar)...)
+	javaOpts = append(javaOpts, p.JavaOpts.JavaOptsToArgs(envVar)...)
+	envVar.Set(p.JavaOpts.EnvVar, strings.Join(javaOpts, " "))
 }
 
 func (p *MasterProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
@@ -87,22 +89,18 @@ func (p *MasterProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 
 	cmdArgs := []string{env.Env.EnvVar.GetString(env.ConfJava.EnvVar)}
-	if attachOpts := env.Env.EnvVar.GetString(confAlluxioMasterAttachOpts.EnvVar); attachOpts != "" {
-		cmdArgs = append(cmdArgs, strings.Split(attachOpts, " ")...)
-	}
+	cmdArgs = append(cmdArgs, confAlluxioMasterAttachOpts.JavaOptsToArgs(env.Env.EnvVar)...)
 	cmdArgs = append(cmdArgs, "-cp", env.Env.EnvVar.GetString(env.EnvAlluxioServerClasspath))
-
-	masterJavaOpts := env.Env.EnvVar.GetString(p.JavaOptsEnvVarKey)
-	cmdArgs = append(cmdArgs, strings.Split(masterJavaOpts, " ")...)
+	cmdArgs = append(cmdArgs, p.JavaOpts.JavaOptsToArgs(env.Env.EnvVar)...)
 
 	// specify a default of -Xmx8g if no memory setting is specified
 	const xmxOpt = "-Xmx"
-	if !strings.Contains(masterJavaOpts, xmxOpt) && !strings.Contains(masterJavaOpts, "MaxRAMPercentage") {
+	if !argsContainsOpt(cmdArgs, xmxOpt, "MaxRAMPercentage") {
 		cmdArgs = append(cmdArgs, fmt.Sprintf("%v8g", xmxOpt))
 	}
 	// specify a default of -XX:MetaspaceSize=256M if not set
 	const metaspaceSizeOpt = "-XX:MetaspaceSize"
-	if !strings.Contains(masterJavaOpts, metaspaceSizeOpt) {
+	if !argsContainsOpt(cmdArgs, metaspaceSizeOpt) {
 		cmdArgs = append(cmdArgs, fmt.Sprintf("%v=256M", metaspaceSizeOpt))
 	}
 
