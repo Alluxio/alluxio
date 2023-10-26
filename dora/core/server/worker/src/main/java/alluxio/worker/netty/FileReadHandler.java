@@ -141,7 +141,8 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequest> {
     }
 
     @Override
-    public DataBuffer getDataBuffer(Channel channel, long offset, int len) throws Exception {
+    public DataBuffer getOrCreateDataBuffer(Channel channel, long offset, int len)
+        throws Exception {
       if (mTransferType == FileTransferType.TRANSFER) {
         if (mReader instanceof PagedFileReader) {
           PagedFileReader pagedFileReader = (PagedFileReader) mReader;
@@ -153,10 +154,10 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequest> {
               + "is no longer supported in Alluxio 3.x");
         }
       }
-      return getDataBufferByCopying(channel, len);
+      return createDataBufferByCopying(channel, len);
     }
 
-    private DataBuffer getDataBufferByCopying(Channel channel, int len)
+    private DataBuffer createDataBufferByCopying(Channel channel, int len)
         throws IOException {
       ByteBuf buf = channel.alloc().buffer(len, len);
       try {
