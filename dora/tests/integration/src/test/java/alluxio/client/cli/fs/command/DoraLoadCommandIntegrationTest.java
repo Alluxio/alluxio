@@ -82,36 +82,34 @@ public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellT
     assertTrue(mOutput.toString().contains("\"mJobState\":\"SUCCEEDED\""));
     mFsShell.run("load", path, "--progress", "--format", "JSON", "--verbose");
     assertTrue(mOutput.toString().contains("\"mVerbose\":true"));
-  }
 
-  @Test
-  public void testRegxPatternFileFilter() throws Exception {
-    File testRoot = mTestFolder.newFolder("testRoot");
-    mTestFolder.newFolder("testRoot/testDirectory");
-    String path = testRoot.getAbsolutePath();
-    createByteFileInUfs("/testRoot/testFileA", Constants.MB);
-    createByteFileInUfs("/testRoot/testFileB", Constants.MB);
-    createByteFileInUfs("/testRoot/testDirectory/testFileC", Constants.MB);
+    // Test load with regx pattern file filter
+    createByteFileInUfs("/testRoot/testFileD", Constants.MB);
+    createByteFileInUfs("/testRoot/testDirectory/testFileE", Constants.MB);
+    createByteFileInUfs("/testRoot/testDirectory/testFileF", Constants.MB);
+    createByteFileInUfs("/testRoot/testDirectory/testFileG1", Constants.MB);
+    createByteFileInUfs("/testRoot/testDirectory/testFileG2", Constants.MB);
 
-    AlluxioURI uriA = new AlluxioURI("/testRoot/testFileA");
-    AlluxioURI uriB = new AlluxioURI("/testRoot/testFileB");
-    AlluxioURI uriC = new AlluxioURI("/testRoot/testDirectory/testFileC");
+    AlluxioURI uriD = new AlluxioURI("/testRoot/testFileD");
+    AlluxioURI uriE = new AlluxioURI("/testRoot/testDirectory/testFileE");
+    AlluxioURI uriF = new AlluxioURI("/testRoot/testDirectory/testFileF");
+    AlluxioURI uriG1 = new AlluxioURI("/testRoot/testDirectory/testFileG1");
+    AlluxioURI uriG2 = new AlluxioURI("/testRoot/testDirectory/testFileG2");
 
-    assertEquals(0, mFileSystem.getStatus(uriA).getInAlluxioPercentage());
-    assertEquals(0, mFileSystem.getStatus(uriB).getInAlluxioPercentage());
-    assertEquals(0, mFileSystem.getStatus(uriC).getInAlluxioPercentage());
-    // Testing loading of a directory
-
-    assertEquals(0, mFsShell.run("load", path, "--submit", "--verify",
-        "--file-filter-regx", ".*B"));
+    mOutput.reset();
+    assertEquals(0, mFsShell.run("load", path, "--submit",
+        "--file-filter-regx", ".*G[1|2]"));
     assertEquals(0, mFsShell.run("load", path, "--progress"));
     while (!mOutput.toString().contains("SUCCEEDED")) {
       assertEquals(0, mFsShell.run("load", path, "--progress"));
       Thread.sleep(1000);
     }
-    assertTrue(mOutput.toString().contains("Inodes Processed: 1"));
-    assertEquals(0, mFileSystem.getStatus(uriA).getInAlluxioPercentage());
-    assertEquals(100, mFileSystem.getStatus(uriB).getInAlluxioPercentage());
-    assertEquals(0, mFileSystem.getStatus(uriC).getInAlluxioPercentage());
+    assertTrue(mOutput.toString().contains("Inodes Processed: 2"));
+    assertEquals(0, mFileSystem.getStatus(uriD).getInAlluxioPercentage());
+    assertEquals(0, mFileSystem.getStatus(uriE).getInAlluxioPercentage());
+    assertEquals(0, mFileSystem.getStatus(uriF).getInAlluxioPercentage());
+    assertEquals(0, mFileSystem.getStatus(uriD).getInAlluxioPercentage());
+    assertEquals(100, mFileSystem.getStatus(uriG1).getInAlluxioPercentage());
+    assertEquals(100, mFileSystem.getStatus(uriG2).getInAlluxioPercentage());
   }
 }
