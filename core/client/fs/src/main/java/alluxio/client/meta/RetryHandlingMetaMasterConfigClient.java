@@ -132,7 +132,7 @@ public class RetryHandlingMetaMasterConfigClient extends AbstractMasterClient
                 .build()),
         RPC_LOG, "updateConfiguration", "propertiesMap=%s", propertiesMap)
         .getStatusMap().forEach((k, v) -> {
-          resultMap.put(PropertyKey.getOrBuildCustom(k), v);
+          resultMap.put(PropertyKey.Builder.stringBuilder(k).buildUnregistered(), v);
         });
     return resultMap;
   }
