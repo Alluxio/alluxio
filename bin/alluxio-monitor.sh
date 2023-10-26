@@ -192,7 +192,7 @@ run_monitors() {
       # if there is an error, print the log tail for the remaining master nodes.
       batch_run_on_nodes "$(echo ${nodes})" "${BIN}/alluxio-monitor.sh" -L "${node_type}"
     else
-      HA_ENABLED_GETCONF_RES=$(${BIN}/alluxio getConf alluxio.zookeeper.enabled)
+      HA_ENABLED_GETCONF_RES=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.zookeeper.enabled)
       HA_ENABLED=$(check_true "$HA_ENABLED_GETCONF_RES")
       JOURNAL_TYPE=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type | awk '{print toupper($0)}')
       if [[ ${JOURNAL_TYPE} == "EMBEDDED" ]]; then
