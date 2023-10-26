@@ -77,6 +77,8 @@
               <goal>integration-test</goal>
             </goals>
             <configuration>
+              <!-- reuse the `skipTests` flag defined by the surefire plugin, which is used to skip unit tests -->
+              <!-- this allows a user to skip this integration test from the command line by adding `-DskipTests` -->
               <skip>${skipTests}</skip>
               <properties>
                 <build.path>${build.path}</build.path>
