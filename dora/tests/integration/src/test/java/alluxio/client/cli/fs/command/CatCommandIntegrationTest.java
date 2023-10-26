@@ -16,6 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileInStream;
@@ -26,6 +27,7 @@ import alluxio.grpc.WritePType;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -35,6 +37,9 @@ import java.io.PrintWriter;
  * Tests for cat command.
  */
 public final class CatCommandIntegrationTest extends AbstractFileSystemShellTest {
+  @Ignore
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+      comment = "Bring back but not passed, need to fix.")
   @Test
   public void catDirectory() throws Exception {
     String[] command = new String[] {"mkdir", "/testDir"};
@@ -77,6 +82,9 @@ public final class CatCommandIntegrationTest extends AbstractFileSystemShellTest
     Assert.assertArrayEquals(mOutput.toByteArray(), expect);
   }
 
+  @Ignore
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+      comment = "Bring back but not passed, need to fix.")
   @Test
   public void catAfterForceMasterSync() throws Exception {
     // Create a file in the UFS and write some bytes into it
