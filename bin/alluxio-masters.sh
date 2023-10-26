@@ -51,7 +51,6 @@ N=0
 
 HA_ENABLED_GETCONF_RES=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.zookeeper.enabled)
 HA_ENABLED=$(check_true "$HA_ENABLED_GETCONF_RES")
-echo "$HA_ENABLED"
 
 JOURNAL_TYPE=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type | awk '{print toupper($0)}')
 if [[ ${JOURNAL_TYPE} == "EMBEDDED" ]]; then
