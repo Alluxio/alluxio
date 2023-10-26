@@ -37,8 +37,22 @@ ALLUXIO_TASK_LOG="${ALLUXIO_LOGS_DIR}/task.log"
 
 echo "Executing the following command on all master nodes and logging to ${ALLUXIO_TASK_LOG}: $@" | tee -a ${ALLUXIO_TASK_LOG}
 
+check_true() {
+    local output=$1
+    if [[ $output == *"true"* ]]; then
+        result="true"
+    else
+        result="false"
+    fi
+    echo $result
+}
+
 N=0
-HA_ENABLED=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.zookeeper.enabled)
+
+HA_ENABLED_GETCONF_RES=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.zookeeper.enabled)
+HA_ENABLED=$(check_true "$HA_ENABLED_GETCONF_RES")
+echo "$HA_ENABLED"
+
 JOURNAL_TYPE=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type | awk '{print toupper($0)}')
 if [[ ${JOURNAL_TYPE} == "EMBEDDED" ]]; then
   HA_ENABLED="true"
