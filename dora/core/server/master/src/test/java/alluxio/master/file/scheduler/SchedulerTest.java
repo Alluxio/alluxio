@@ -159,8 +159,9 @@ public final class SchedulerTest {
     Optional<String> user = Optional.of("user");
     UnderFileSystem ufs = mock(UnderFileSystem.class);
     DoraLoadJob loadJob =
-        new DoraLoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.empty(), false, true,
-            false, false, Collections.emptyIterator(), ufs);
+        new DoraLoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.empty(),
+            false, true, false, false,
+            Optional.empty(), Collections.emptyIterator(), ufs);
     assertTrue(scheduler.submitJob(loadJob));
     assertTrue(jobMetaStore.get(loadJob.getJobId()).getJobState() == JobState.RUNNING);
     assertEquals(1, scheduler.getJobs().size());
@@ -176,8 +177,10 @@ public final class SchedulerTest {
     DoraLoadJob job = (DoraLoadJob) scheduler.getJobs().get(loadJob.getDescription());
     assertEquals(OptionalLong.empty(), job.getBandwidth());
     loadJob =
-        new DoraLoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.of(1000), true, false,
-            false, false, Collections.emptyIterator(), ufs);
+        new DoraLoadJob(validLoadPath, Optional.of("user"), "1",
+            OptionalLong.of(1000), true, false,
+            false, false, Optional.empty(),
+            Collections.emptyIterator(), ufs);
     assertFalse(scheduler.submitJob(loadJob));
     assertEquals(1, scheduler.getJobs().size());
     job = (DoraLoadJob) scheduler.getJobs().get(loadJob.getDescription());
@@ -205,8 +208,10 @@ public final class SchedulerTest {
     Optional<String> user = Optional.of("user");
     UnderFileSystem ufs = mock(UnderFileSystem.class);
     DoraLoadJob job =
-        new DoraLoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.of(100), false, true,
-            false, false, Collections.emptyIterator(), ufs);
+        new DoraLoadJob(validLoadPath, Optional.of("user"), "1",
+            OptionalLong.of(100), false, true,
+            false, false, Optional.empty(),
+            Collections.emptyIterator(), ufs);
     assertTrue(scheduler.submitJob(job));
 
     assertTrue(scheduler.stopJob(job.getDescription()));
@@ -240,13 +245,15 @@ public final class SchedulerTest {
         i -> {
           String path = String.format("/path/to/load/%d", i);
           assertTrue(scheduler.submitJob(
-              new DoraLoadJob(path, Optional.of("user"), "1", OptionalLong.empty(), false, true,
-                  false, false, Collections.emptyIterator(), ufs)
+              new DoraLoadJob(path, Optional.of("user"), "1", OptionalLong.empty(),
+                  false, true, false, false,
+                  Optional.empty(), Collections.emptyIterator(), ufs)
           ));
         });
     assertThrows(ResourceExhaustedRuntimeException.class, () -> scheduler.submitJob(
-        new DoraLoadJob("/path/to/load/101", Optional.of("user"), "1", OptionalLong.empty(), false,
-            true, false, false, Collections.emptyIterator(), ufs)));
+        new DoraLoadJob("/path/to/load/101", Optional.of("user"), "1",
+            OptionalLong.empty(), false, true, false,
+            false, Optional.empty(), Collections.emptyIterator(), ufs)));
   }
 
   @Ignore
@@ -504,7 +511,7 @@ public final class SchedulerTest {
       UnderFileSystem ufs = mock(UnderFileSystem.class);
       assertTrue(scheduler.submitJob(
           new DoraLoadJob(path, Optional.of("user"), "1", OptionalLong.empty(), false, true, false,
-              false, Collections.emptyIterator(), ufs)));
+              false, Optional.empty(), Collections.emptyIterator(), ufs)));
     });
     assertEquals(5, scheduler.getJobs().size());
     scheduler.getJobs().get(JobDescription.newBuilder().setPath("/load/1").setType("load").build())
@@ -539,7 +546,7 @@ public final class SchedulerTest {
     UnderFileSystem ufs = mock(UnderFileSystem.class);
     DoraLoadJob job =
         new DoraLoadJob(path, Optional.of("user"), "5", OptionalLong.of(100), false, true, false,
-            false, Collections.emptyIterator(), ufs);
+            false, Optional.empty(), Collections.emptyIterator(), ufs);
     scheduler.start();
     scheduler.submitJob(job);
     assertEquals(1, scheduler.getJobs().size());
@@ -548,7 +555,7 @@ public final class SchedulerTest {
     assertEquals(1, metaStore.getJobs().size());
     DoraLoadJob job2 =
         new DoraLoadJob("new", Optional.of("user"), "6", OptionalLong.of(100), false, true, false,
-            false, Collections.emptyIterator(), ufs);
+            false, Optional.empty(), Collections.emptyIterator(), ufs);
     metaStore.updateJob(job2);
     assertEquals(0, scheduler.getJobs().size());
     assertEquals(2, metaStore.getJobs().size());
