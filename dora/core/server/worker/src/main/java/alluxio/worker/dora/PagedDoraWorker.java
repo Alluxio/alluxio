@@ -768,7 +768,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
   }
 
-<<<<<<< HEAD
   /**
    * Loads data from remote worker.
    *
@@ -801,42 +800,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
   }
 
-||||||| parent of 583e5de614... add support for load multi replicas
-=======
-  /**
-   * Loads data from remote worker.
-   *
-   * @param filePath     the file path
-   * @param offset       the offset
-   * @param lengthToLoad the length to load
-   * @param reader       the netty reader
-   * @param chunkSize    the chunk size
-   * @throws IOException when failed to read from remote worker
-   */
-  @VisibleForTesting
-  public void loadDataFromRemote(String filePath, long offset, long lengthToLoad,
-      PositionReader reader, int chunkSize) throws IOException {
-    ByteBuffer buf = ByteBuffer.allocateDirect(chunkSize);
-    String fileId = new AlluxioURI(filePath).hash();
-
-    while (lengthToLoad > 0) {
-      long currentPageIndex = offset / mPageSize;
-      PageId pageId = new PageId(fileId.toString(), currentPageIndex);
-      int lengthToRead = (int) Math.min(chunkSize, lengthToLoad);
-      int lengthRead = reader.read(offset, buf, lengthToRead);
-      if (lengthRead != lengthToRead) {
-        throw new FailedPreconditionRuntimeException(
-            "Read " + lengthRead + " bytes, expected to read " + lengthToRead + " bytes");
-      }
-      buf.flip();
-      mCacheManager.put(pageId, buf);
-      offset += lengthRead;
-      lengthToLoad -= lengthRead;
-      buf.clear();
-    }
-  }
-
->>>>>>> 583e5de614... add support for load multi replicas
   @Override
   public ListenableFuture<List<RouteFailure>> copy(List<Route> routes, UfsReadOptions readOptions,
                                                    WriteOptions writeOptions) {

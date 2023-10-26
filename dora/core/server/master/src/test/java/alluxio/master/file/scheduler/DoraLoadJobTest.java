@@ -109,7 +109,7 @@ public class DoraLoadJobTest {
         new UfsStatusIterable(mLocalUfs, testPath, Optional.empty(), Predicates.alwaysTrue());
     DoraLoadJob loadJob =
         new DoraLoadJob(testPath, Optional.of("user"), "1", OptionalLong.empty(), false, true,
-            false, false, iterable.iterator(), mLocalUfs, 3);
+            false, false, Optional.empty(), iterable.iterator(), mLocalUfs, 3);
     Set<WorkerInfo> workers = ImmutableSet.of(
             new WorkerInfo().setId(1).setAddress(
                 new WorkerNetAddress().setHost("worker1").setRpcPort(1234)),
@@ -126,7 +126,7 @@ public class DoraLoadJobTest {
     // test 2 replicas with 3 workers
     loadJob =
         new DoraLoadJob(mLocalUfsRoot, Optional.of("user"), "1", OptionalLong.empty(), false, true,
-            false, false, iterable.iterator(), mLocalUfs, 2);
+            false, false, Optional.empty(), iterable.iterator(), mLocalUfs, 2);
     tasks = loadJob.getNextTasks(workers);
     List<LoadSubTask> subTasks =
         tasks.stream().flatMap(task -> task.getSubTasks().stream()).collect(Collectors.toList());
@@ -134,7 +134,7 @@ public class DoraLoadJobTest {
     // test 4 replicas with 3 workers
     assertThrows(ResourceExhaustedRuntimeException.class, () -> {
       new DoraLoadJob(mLocalUfsRoot, Optional.of("user"), "1", OptionalLong.empty(), false, true,
-          false, false, iterable.iterator(), mLocalUfs, 4).getNextTasks(workers);
+          false, false, Optional.empty(), iterable.iterator(), mLocalUfs, 4).getNextTasks(workers);
     });
   }
 

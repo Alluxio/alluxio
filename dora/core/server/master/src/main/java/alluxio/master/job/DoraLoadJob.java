@@ -251,29 +251,28 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
   private List<LoadSubTask> createSubTasks(UfsStatus ufsStatus, Set<WorkerInfo> workers) {
     List<LoadSubTask> subTasks = new ArrayList<>();
-        // add load metadata task
+    // add load metadata task
     LoadMetadataSubTask subTask = new LoadMetadataSubTask(ufsStatus, mVirtualBlockSize);
     subTasks.add(subTask);
-    if (mLoadMetadataOnly || ufsStatus.isDirectory()
-        || ufsStatus.asUfsFileStatus().getContentLength() == 0) {
-      return subTasks;
-    }
-    long contentLength = ufsStatus.asUfsFileStatus().getContentLength();
-    if (mVirtualBlockSize > 0) {
-      int numBlocks = (int) (contentLength / mVirtualBlockSize) + 1;
-      for (int i = 0; i < numBlocks; i++) {
-        long offset = mVirtualBlockSize * i;
-        long leftover = contentLength - offset;
-        subTasks.add(new LoadDataSubTask(ufsStatus, mVirtualBlockSize, offset,
-            Math.min(leftover, mVirtualBlockSize)));
+    if (!mLoadMetadataOnly && ufsStatus.isFile()
+        && ufsStatus.asUfsFileStatus().getContentLength() != 0) {
+      long contentLength = ufsStatus.asUfsFileStatus().getContentLength();
+      if (mVirtualBlockSize > 0) {
+        int numBlocks = (int) (contentLength / mVirtualBlockSize) + 1;
+        for (int i = 0; i < numBlocks; i++) {
+          long offset = mVirtualBlockSize * i;
+          long leftover = contentLength - offset;
+          subTasks.add(new LoadDataSubTask(ufsStatus, mVirtualBlockSize, offset,
+              Math.min(leftover, mVirtualBlockSize)));
+        }
       }
-    }
-    else {
-      subTasks.add(new LoadDataSubTask(ufsStatus, mVirtualBlockSize, 0, contentLength));
+      else {
+        subTasks.add(new LoadDataSubTask(ufsStatus, mVirtualBlockSize, 0, contentLength));
+      }
     }
     List<LoadSubTask> subTasksWithWorker = assignSubtasksToWorkers(subTasks, workers, mNumReplica);
     mTotalByteCount.addAndGet(subTasksWithWorker.stream().mapToLong(LoadSubTask::getLength).sum());
-    mProcessingSubTasksCount.addAndGet(1);
+    mProcessingSubTasksCount.addAndGet(subTasksWithWorker.size());
     return subTasksWithWorker;
   }
 
