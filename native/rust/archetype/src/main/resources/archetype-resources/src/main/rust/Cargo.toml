@@ -9,9 +9,9 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 [package]
-name = "rspdk"
-version = "0.1.0"
+name = "${cargo_crate_name}"
 edition = "2021"
+version = "0.1.0"
 license = "Apache-2.0"
 authors = [ "Alluxio Developers" ]
 
@@ -19,10 +19,3 @@ authors = [ "Alluxio Developers" ]
 crate-type = [ "${cargo_crate_type}" ]
 
 [dependencies]
-spdk-sys = { path = "spdk-sys" }
-log = "0.4"
-futures-lite = "1.13"
-thiserror = "1.0"
-rand = "0.8"
-sha1 = "0.10.6"
-hex = "0.4.3"
