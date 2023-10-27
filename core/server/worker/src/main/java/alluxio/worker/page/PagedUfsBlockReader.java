@@ -12,6 +12,7 @@
 package alluxio.worker.page;
 
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricInfo;
@@ -70,8 +71,7 @@ public class PagedUfsBlockReader extends BlockReader {
    */
   public PagedUfsBlockReader(UfsManager ufsManager,
       UfsInputStreamCache ufsInStreamCache, BlockMeta blockMeta,
-      long offset, UfsBlockReadOptions ufsBlockReadOptions, long pageSize)
-          throws UnavailableException, NotFoundException {
+      long offset, UfsBlockReadOptions ufsBlockReadOptions, long pageSize) {
     Preconditions.checkArgument(offset >= 0 && offset <= blockMeta.getBlockSize(),
         "Attempt to read block %s which is %s bytes long at invalid byte offset %s",
         blockMeta.getBlockId(), blockMeta.getBlockSize(), offset);
@@ -83,19 +83,23 @@ public class PagedUfsBlockReader extends BlockReader {
     mInitialOffset = offset;
     mLastPage = ByteBuffer.allocateDirect((int) mPageSize);
     mPosition = offset;
-    UfsManager.UfsClient ufsClient = mUfsManager.get(mUfsBlockOptions.getMountId());
-    mUfsBytesRead = mUfsBytesReadMetrics.computeIfAbsent(
-            new BytesReadMetricKey(ufsClient.getUfsMountPointUri(), mUfsBlockOptions.getUser()),
-            key -> key.mUser == null
-                    ? MetricsSystem.counterWithTags(
-                    MetricKey.WORKER_BYTES_READ_UFS.getName(),
-                    MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
-                    MetricInfo.TAG_UFS, MetricsSystem.escape(key.mUri))
-                    : MetricsSystem.counterWithTags(
-                    MetricKey.WORKER_BYTES_READ_UFS.getName(),
-                    MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
-                    MetricInfo.TAG_UFS, MetricsSystem.escape(key.mUri),
-                    MetricInfo.TAG_USER, key.mUser));
+    try {
+      UfsManager.UfsClient ufsClient = mUfsManager.get(mUfsBlockOptions.getMountId());
+      mUfsBytesRead = mUfsBytesReadMetrics.computeIfAbsent(
+              new BytesReadMetricKey(ufsClient.getUfsMountPointUri(), mUfsBlockOptions.getUser()),
+              key -> key.mUser == null
+                      ? MetricsSystem.counterWithTags(
+                      MetricKey.WORKER_BYTES_READ_UFS.getName(),
+                      MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
+                      MetricInfo.TAG_UFS, MetricsSystem.escape(key.mUri))
+                      : MetricsSystem.counterWithTags(
+                      MetricKey.WORKER_BYTES_READ_UFS.getName(),
+                      MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
+                      MetricInfo.TAG_UFS, MetricsSystem.escape(key.mUri),
+                      MetricInfo.TAG_USER, key.mUser));
+    } catch (UnavailableException | NotFoundException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
   }
 
   @Override
