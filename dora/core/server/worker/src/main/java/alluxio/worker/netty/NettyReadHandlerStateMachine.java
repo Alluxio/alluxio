@@ -650,7 +650,8 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
     PacketReader<ReqT> packetReader = requestContext.getPacketReader(mRequestType);
     final DataBuffer packet;
     try {
-      packet = packetReader.getDataBuffer(mChannel, requestContext.positionRead(), packetSize);
+      packet = packetReader.createDataBuffer(
+          mChannel, requestContext.positionRead(), packetSize);
     } catch (Exception e) {
       LOG.error("Failed to read data.", e);
       if (!(e instanceof IOException)) {
@@ -662,6 +663,8 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
       return;
     }
     if (packet.readableBytes() == 0) {
+      // The packet can be released when there is nothing more to read
+      packet.release();
       // an empty packet means the underlying storage thinks it's EOF
       if (requestContext.positionRead() != requestContext.positionEnd()) {
         // it's possible that client expects more than what's available
@@ -674,6 +677,7 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
       fireNext(mTriggerEventsWithParam.mOutputLengthFulfilled, requestContext);
       return;
     }
+    // The packet will be released in sendData() where the channel flushes the response
     requestContext.increaseReadProgress(packet.readableBytes());
     fireNext(mTriggerEventsWithParam.mDataAvailable, requestContext, packet);
   }
