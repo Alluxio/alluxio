@@ -99,7 +99,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The default meta master.
  */
 @NotThreadSafe
-public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
+public class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultMetaMaster.class);
   private static final Set<Class<? extends Server>> DEPS = ImmutableSet.of(BlockMaster.class);
 
@@ -154,7 +154,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private DailyMetadataBackup mDailyBackup;
 
   /** Path level properties. */
-  private final PathProperties mPathProperties;
+  protected final PathProperties mPathProperties;
 
   /** Persisted state for {@link MetaMaster}. */
   private final State mState;
@@ -728,14 +728,17 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     int successCount = 0;
     for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
       try {
-        PropertyKey key = PropertyKey.fromString(entry.getKey());
+        PropertyKey key;
+        // Build template key if possible, an IllegalArgumentException will be thrown for
+        // unknown key. The exception will be caught and client will receive the failure
+        key = PropertyKey.fromString(entry.getKey());
         if (Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
             && key.isDynamic()) {
           Object oldValue = null;
           try {
             oldValue = Configuration.get(key);
           } catch (RuntimeException e) {
-            LOG.debug("Cannot get old value for the given key {}", key.getName());
+            LOG.warn("Cannot get old value for the given key {}", key.getName());
           }
           if (PropertyKey.UNSET_VALUE.equals(entry.getValue())) {
             Configuration.unset(key);
@@ -749,8 +752,6 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           }
           result.put(entry.getKey(), true);
           successCount++;
-          LOG.info("Property {} has been updated to \"{}\" from \"{}\"",
-              key.getName(), entry.getValue(), oldValue);
         } else {
           LOG.warn("Update a non-dynamic property {} is not allowed", key.getName());
           result.put(entry.getKey(), false);

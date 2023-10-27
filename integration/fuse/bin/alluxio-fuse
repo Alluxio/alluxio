@@ -109,7 +109,7 @@ mount_fuse() {
   else
     (nohup ${cmd} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
     # sleep: workaround to let the bg java process exit on errors, if any
-    sleep ${mount_sleep_seconds}s
+    sleep ${mount_sleep_seconds}
     if kill -0 $! > /dev/null 2>&1 ; then
       echo "Successfully mounted Alluxio to ${mount_point}."
       echo "See ${ALLUXIO_LOGS_DIR}/fuse.log for logging messages"

@@ -411,7 +411,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private final ActiveSyncManager mSyncManager;
 
   /** Log writer for user access audit log. */
-  protected AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+  protected volatile AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
   /** Stores the time series for various metrics which are exposed in the UI. */
   private final TimeSeriesStore mTimeSeriesStore;
@@ -558,6 +558,10 @@ public class DefaultFileSystemMaster extends CoreMaster
     MetricsSystem.registerCachedGaugeIfAbsent(
         MetricsSystem.getMetricName(MetricKey.MASTER_METADATA_SYNC_EXECUTOR_QUEUE_SIZE.getName()),
         () -> mSyncMetadataExecutor.getQueue().size(), 2, TimeUnit.SECONDS);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
+        () -> mAsyncAuditLogWriter != null
+            ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
   }
 
   private static MountInfo getRootMountInfo(MasterUfsManager ufsManager) {
@@ -780,14 +784,6 @@ public class DefaultFileSystemMaster extends CoreMaster
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.MASTER_METRICS_TIME_SERIES_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
-      if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
-        mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("AUDIT_LOG");
-        mAsyncAuditLogWriter.start();
-        MetricsSystem.registerGaugeIfAbsent(
-            MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
-            () -> mAsyncAuditLogWriter != null
-                    ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
-      }
       if (Configuration.getBoolean(PropertyKey.UNDERFS_CLEANUP_ENABLED)) {
         getExecutorService().submit(
             new HeartbeatThread(HeartbeatContext.MASTER_UFS_CLEANUP, new UfsCleaner(this),
@@ -801,6 +797,13 @@ public class DefaultFileSystemMaster extends CoreMaster
       mSyncManager.start();
       mScheduler.start();
     }
+    /**
+     * The audit logger will be running all the time, and an operation checks whether
+     * to enable audit logs in {@link #createAuditContext}. So audit log can be turned on/off
+     * at runtime by updating the property key.
+     */
+    mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("AUDIT_LOG");
+    mAsyncAuditLogWriter.start();
   }
 
   @Override

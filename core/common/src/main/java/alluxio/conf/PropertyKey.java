@@ -9772,12 +9772,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   /**
    * @param name name of the property
+   * @param builtIn whether to the property is a built-in Alluxio property
    * @return the registered property key if found, or else create a new one and return
    */
-  public static PropertyKey getOrBuildCustom(String name) {
+  public static PropertyKey getOrBuildCustom(String name, boolean builtIn) {
     return DEFAULT_KEYS_MAP.computeIfAbsent(name,
         (key) -> {
-          final Builder propertyKeyBuilder = stringBuilder(key).setIsBuiltIn(false);
+          final Builder propertyKeyBuilder = stringBuilder(key).setIsBuiltIn(builtIn);
           for (String customCredentialName : CUSTOM_CREDENTIAL_NAME_SUBSTR) {
             if (name.contains(customCredentialName)) {
               propertyKeyBuilder.setDisplayType(DisplayType.CREDENTIALS);
@@ -9785,6 +9786,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           }
           return propertyKeyBuilder.buildUnregistered();
         });
+  }
+
+  /**
+   * @param name name of the property
+   * @return the registered property key if found, or else create a new one and return
+   */
+  public static PropertyKey getOrBuildCustom(String name) {
+    return getOrBuildCustom(name, false);
   }
 
   @Override

@@ -51,6 +51,7 @@ public final class UpdateConfCommand extends AbstractFsAdminCommand {
     for (String arg : cl.getArgList()) {
       if (!arg.contains("=")) {
         System.err.printf("argument %s must contains \"=\"", arg);
+        return -1;
       } else {
         String[] kv = arg.split("=");
         String value;
@@ -64,7 +65,10 @@ public final class UpdateConfCommand extends AbstractFsAdminCommand {
         } else {
           value = kv[1];
         }
-        properties.put(PropertyKey.Builder.stringBuilder(kv[0]).buildUnregistered(), value);
+        PropertyKey property = PropertyKey.Builder.stringBuilder(kv[0]).buildUnregistered();
+        System.out.format("Setting property %s to %s%n", property, value);
+        // Master will reject if the property is not recognized
+        properties.put(property, value);
       }
     }
 
