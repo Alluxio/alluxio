@@ -33,5 +33,6 @@
 
   <modules>
     <module>archetype</module>
+    <module>rspdk</module>
   </modules>
 </project>
