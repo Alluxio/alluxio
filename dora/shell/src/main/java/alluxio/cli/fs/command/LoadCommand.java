@@ -116,6 +116,13 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       .desc("If specified, skip files if they exist and are fully cached in alluxio.")
       .build();
 
+  private static final Option FILE_FILTER_REGX = Option.builder()
+      .longOpt("file-filter-regx")
+      .required(false)
+      .hasArg(true)
+      .desc("If specified, skip files that doesn't match the regx pattern.")
+      .build();
+
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
@@ -142,7 +149,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         .addOption(PROGRESS_FORMAT)
         .addOption(PROGRESS_VERBOSE)
         .addOption(LOAD_METADATA_ONLY)
-        .addOption(SKIP_IF_EXISTS);
+        .addOption(SKIP_IF_EXISTS)
+        .addOption(FILE_FILTER_REGX);
   }
 
   @Override
@@ -159,13 +167,18 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         bandwidth = OptionalLong.of(FormatUtils.parseSpaceSize(
             cl.getOptionValue(BANDWIDTH_OPTION.getLongOpt())));
       }
+      Optional<String> regxPatternStr = Optional.empty();
+      if (cl.hasOption(FILE_FILTER_REGX.getLongOpt())) {
+        regxPatternStr = Optional.of(cl.getOptionValue(FILE_FILTER_REGX.getLongOpt()));
+      }
       return submitLoad(
           path,
           bandwidth,
           cl.hasOption(PARTIAL_LISTING_OPTION.getLongOpt()),
           cl.hasOption(VERIFY_OPTION.getLongOpt()),
           cl.hasOption(LOAD_METADATA_ONLY.getLongOpt()),
-          cl.hasOption(SKIP_IF_EXISTS.getLongOpt()));
+          cl.hasOption(SKIP_IF_EXISTS.getLongOpt()),
+          regxPatternStr);
     }
 
     if (cl.hasOption(STOP_OPTION.getLongOpt())) {
@@ -186,7 +199,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   public String getUsage() {
     return "For distributed load:\n"
         + "\tload <path> --submit "
-        + "[--bandwidth N] [--verify] [--partial-listing] [--metadata-only] [--skip-if-exists]\n"
+        + "[--bandwidth N] [--verify] [--partial-listing] [--metadata-only] [--skip-if-exists] "
+        + "[--file-filter-regx <regx_pattern_string>]\n"
         + "\tload <path> --stop\n"
         + "\tload <path> --progress [--format TEXT|JSON] [--verbose]\n";
   }
@@ -215,13 +229,17 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   }
 
   private int submitLoad(AlluxioURI path, OptionalLong bandwidth,
-      boolean usePartialListing, boolean verify, boolean loadMetadataOnly, boolean skipIfExists) {
+      boolean usePartialListing, boolean verify, boolean loadMetadataOnly, boolean skipIfExists,
+                         Optional<String> regxPatternStr) {
     LoadJobPOptions.Builder options = alluxio.grpc.LoadJobPOptions
         .newBuilder().setPartialListing(usePartialListing).setVerify(verify)
         .setLoadMetadataOnly(loadMetadataOnly)
         .setSkipIfExists(skipIfExists);
     if (bandwidth.isPresent()) {
       options.setBandwidth(bandwidth.getAsLong());
+    }
+    if (regxPatternStr.isPresent()) {
+      options.setFileFilterRegx(regxPatternStr.get());
     }
     LoadJobRequest job = new LoadJobRequest(path.toString(), options.build());
     try {

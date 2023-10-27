@@ -37,7 +37,7 @@ public class DoraLoadCommandWithVirtualBlockIntegrationTest
   @Override
   public void before() throws Exception {
     mLocalAlluxioClusterResource.setProperty(PropertyKey.MASTER_SCHEDULER_INITIAL_DELAY, "1s")
-                                .setProperty(PropertyKey.DORA_READ_VIRTUAL_BLOCK_SIZE, "30MB")
+                                .setProperty(PropertyKey.DORA_READ_VIRTUAL_BLOCK_SIZE, "2MB")
                                 .setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false);
     super.before();
   }
@@ -48,11 +48,11 @@ public class DoraLoadCommandWithVirtualBlockIntegrationTest
     String path = testRoot.getAbsolutePath();
     mTestFolder.newFolder("testRoot/testDirectory");
 
-    int lengthA = 16 * Constants.MB;
+    int lengthA = 1 * Constants.MB;
     createByteFileInUfs("/testRoot/testFileA", lengthA);
-    int lengthB = 32 * Constants.MB;
+    int lengthB = 3 * Constants.MB;
     createByteFileInUfs("/testRoot/testFileB", lengthB);
-    int lengthC = 64 * Constants.MB;
+    int lengthC = 5 * Constants.MB;
     createByteFileInUfs("/testRoot/testDirectory/testFileC", lengthC);
 
     AlluxioURI uriA = new AlluxioURI("/testRoot/testFileA");

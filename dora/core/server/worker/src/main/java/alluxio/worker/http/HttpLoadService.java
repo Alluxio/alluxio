@@ -104,6 +104,12 @@ public class HttpLoadService {
         options.setBandwidth(bandWidth);
       }
     }
+    if (loadOptions.getFileFilterRegx().isPresent()) {
+      String fileFilterRegxPatternStr = loadOptions.getFileFilterRegx().get();
+      if (fileFilterRegxPatternStr != null && !fileFilterRegxPatternStr.isEmpty()) {
+        options.setFileFilterRegx(fileFilterRegxPatternStr);
+      }
+    }
     LoadJobRequest job = new LoadJobRequest(path.toString(), options.build());
     try {
       Optional<String> jobId = mFileSystem.submitJob(job);

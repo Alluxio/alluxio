@@ -14,6 +14,7 @@ package alluxio.master.predicate;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.master.predicate.interval.Interval;
 import alluxio.proto.journal.Job.FileFilter;
+import alluxio.underfs.UfsStatus;
 import alluxio.util.FormatUtils;
 import alluxio.wire.FileInfo;
 
@@ -199,5 +200,11 @@ public class TimePredicate implements FilePredicate {
         return false;
       }
     };
+  }
+
+  @Override
+  public Predicate<UfsStatus> getUfsStatusPredicate() {
+    throw new UnsupportedOperationException(
+        "getUfsStatusPredicate() is unsupported in TimePredicate");
   }
 }
