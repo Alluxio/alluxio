@@ -21,6 +21,8 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
+import alluxio.client.file.options.UfsFileSystemOptions;
+import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.client.metrics.MetricsHeartbeatContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -999,6 +1001,18 @@ public class FileSystemContext implements Closeable {
       }
     }
     mLocalWorkerInitialized = true;
+  }
+
+  /**
+   * Creates an underlying file system which handles UFS fallback.
+   *
+   * @param ufsOptions options to access the UFS
+   * @return a UFS-based FileSystem implementation
+   */
+  public FileSystem createUfsBaseFileSystem(Optional<UfsFileSystemOptions> ufsOptions) {
+    Preconditions.checkArgument(ufsOptions.isPresent(),
+        "Missing UfsFileSystemOptions in FileSystemOptions");
+    return new UfsBaseFileSystem(this, ufsOptions.get());
   }
 
   /**
