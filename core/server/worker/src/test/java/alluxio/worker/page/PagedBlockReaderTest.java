@@ -239,7 +239,7 @@ public class PagedBlockReaderTest {
   }
 
   private static UfsBlockReadOptions createUfsBlockOptions(String ufsPath) {
-    return new UfsBlockReadOptions(MOUNT_ID, OFFSET_IN_FILE, ufsPath, true);
+    return new UfsBlockReadOptions(MOUNT_ID, OFFSET_IN_FILE, ufsPath, true, null);
   }
 
   private static void createTempUfsBlock(Path destPath, long blockSize) throws Exception {

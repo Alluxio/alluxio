@@ -12,6 +12,12 @@
 package alluxio.worker.page;
 
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
+import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsManager;
@@ -19,9 +25,11 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
 import alluxio.worker.block.UfsInputStreamCache;
+import alluxio.worker.block.UnderFileSystemBlockStore.BytesReadMetricKey;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 
@@ -31,6 +39,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ReadableByteChannel;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Block reader that reads from UFS.
@@ -47,6 +57,9 @@ public class PagedUfsBlockReader extends BlockReader {
   private long mLastPageIndex = -1;
   private boolean mClosed = false;
   private long mPosition;
+  private final ConcurrentMap<BytesReadMetricKey, Counter> mUfsBytesReadMetrics =
+          new ConcurrentHashMap<>();
+  private final Counter mUfsBytesRead;
 
   /**
    * @param ufsManager
@@ -70,6 +83,23 @@ public class PagedUfsBlockReader extends BlockReader {
     mInitialOffset = offset;
     mLastPage = ByteBuffer.allocateDirect((int) mPageSize);
     mPosition = offset;
+    try {
+      UfsManager.UfsClient ufsClient = mUfsManager.get(mUfsBlockOptions.getMountId());
+      mUfsBytesRead = mUfsBytesReadMetrics.computeIfAbsent(
+              new BytesReadMetricKey(ufsClient.getUfsMountPointUri(), mUfsBlockOptions.getUser()),
+              key -> key.mUser == null
+                      ? MetricsSystem.counterWithTags(
+                      MetricKey.WORKER_BYTES_READ_UFS.getName(),
+                      MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
+                      MetricInfo.TAG_UFS, MetricsSystem.escape(key.mUri))
+                      : MetricsSystem.counterWithTags(
+                      MetricKey.WORKER_BYTES_READ_UFS.getName(),
+                      MetricKey.WORKER_BYTES_READ_UFS.isClusterAggregated(),
+                      MetricInfo.TAG_UFS, MetricsSystem.escape(key.mUri),
+                      MetricInfo.TAG_USER, key.mUser));
+    } catch (UnavailableException | NotFoundException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
   }
 
   @Override
@@ -145,6 +175,7 @@ public class PagedUfsBlockReader extends BlockReader {
     mLastPage.flip();
     mLastPageIndex = pageIndex;
     fillWithCachedPage(buffer, pageIndex * mPageSize, totalBytesRead);
+    mUfsBytesRead.inc(totalBytesRead);
     return totalBytesRead;
   }
 

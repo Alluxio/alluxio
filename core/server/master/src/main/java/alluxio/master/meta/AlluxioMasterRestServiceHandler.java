@@ -989,8 +989,11 @@ public final class AlluxioMasterRestServiceHandler {
           .setTotalBytesReadRemote(FormatUtils.getSizeFromBytes(bytesReadRemote))
           .setTotalBytesReadUfs(FormatUtils.getSizeFromBytes(bytesReadUfs));
 
+      Long bytesReadCache = counters.get(
+              MetricKey.CLUSTER_BYTES_READ_CACHE.getName()).getCount();
+
       // cluster cache hit and miss
-      long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadDomainSocket;
+      long bytesReadTotal = bytesReadLocal + bytesReadCache + bytesReadUfs;
       double cacheHitLocalPercentage =
           (bytesReadTotal > 0)
               ? (100D * (bytesReadLocal + bytesReadDomainSocket) / bytesReadTotal) : 0;
