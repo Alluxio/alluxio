@@ -29,8 +29,9 @@ import alluxio.worker.block.annotator.BlockIterator;
 import alluxio.worker.block.annotator.BlockOrder;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.block.io.DeStoreBlockReader;
 import alluxio.worker.block.io.DelegatingBlockReader;
+import alluxio.worker.block.io.LocalFileBlockReader;
+import alluxio.worker.block.io.MetricAccountingBlockReader;
 import alluxio.worker.block.io.StoreBlockReader;
 import alluxio.worker.block.io.StoreBlockWriter;
 import alluxio.worker.block.management.DefaultStoreLoadTracker;
@@ -222,11 +223,11 @@ public class TieredBlockStore implements LocalBlockStore {
     }
 
     try {
-      BlockReader reader = new StoreBlockReader(sessionId, block);
-      BlockReader dereader = new DeStoreBlockReader(reader);
+      LocalFileBlockReader reader = new StoreBlockReader(sessionId, block);
       ((FileChannel) reader.getChannel()).position(offset);
       accessBlock(sessionId, blockId);
-      return new DelegatingBlockReader(dereader, blockLock);
+      BlockReader mareader = new MetricAccountingBlockReader(reader);
+      return new DelegatingBlockReader(mareader, blockLock);
     } catch (Exception e) {
       blockLock.close();
       throw new IOException(format("Failed to get local block reader, sessionId=%d, "
