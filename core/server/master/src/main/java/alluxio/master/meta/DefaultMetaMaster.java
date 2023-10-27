@@ -740,7 +740,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           if (PropertyKey.UNSET_VALUE.equals(entry.getValue())) {
             Configuration.unset(key);
             LOG.info("Property {} has been unset from \"{}\"",
-                key.getName(), entry.getValue(), oldValue);
+                key.getName(), oldValue);
           } else {
             Object value = key.parseValue(entry.getValue());
             Configuration.set(key, value, Source.RUNTIME);

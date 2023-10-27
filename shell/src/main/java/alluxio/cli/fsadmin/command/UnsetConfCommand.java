@@ -81,7 +81,7 @@ public final class UnsetConfCommand extends AbstractFsAdminCommand {
    */
   @VisibleForTesting
   public static String description() {
-    return "Unset config for alluxio master.";
+    return "Unset specified configuration keys on Alluxio master.";
   }
 
   @Override
