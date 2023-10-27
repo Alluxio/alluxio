@@ -650,7 +650,7 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
     PacketReader<ReqT> packetReader = requestContext.getPacketReader(mRequestType);
     final DataBuffer packet;
     try {
-      packet = packetReader.getOrCreateDataBuffer(
+      packet = packetReader.createDataBuffer(
           mChannel, requestContext.positionRead(), packetSize);
     } catch (Exception e) {
       LOG.error("Failed to read data.", e);

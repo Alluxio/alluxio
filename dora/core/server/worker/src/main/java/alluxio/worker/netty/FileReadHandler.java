@@ -141,7 +141,7 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequest> {
     }
 
     @Override
-    public DataBuffer getOrCreateDataBuffer(Channel channel, long offset, int len)
+    public DataBuffer createDataBuffer(Channel channel, long offset, int len)
         throws Exception {
       if (mTransferType == FileTransferType.TRANSFER) {
         if (mReader instanceof PagedFileReader) {
