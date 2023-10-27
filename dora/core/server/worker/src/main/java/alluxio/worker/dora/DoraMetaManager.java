@@ -253,7 +253,7 @@ public class DoraMetaManager implements Closeable {
                       System.nanoTime(), ufsStatuses,
                       ufsStatuses.length == 1 && ufsStatuses[0].isFile()
                   ))
-              // This cache also serves as absent cache, so we persist a NULL (not empty) result,che, so we persist a NULL (not empty) result,
+              // This cache also serves as absent cache, so we persist a NULL (not empty) result,
               // if the path not found or is not a directory.
               .orElseGet(() -> new ListStatusResult(System.nanoTime(), null, false));
         } catch (Exception e) {
