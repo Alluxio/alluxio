@@ -186,6 +186,9 @@ public class MetricsStore {
           MetricKey.WORKER_BYTES_READ_DOMAIN.getMetricName()),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()));
       mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
+                      MetricKey.WORKER_BYTES_READ_CACHE.getMetricName()),
+              MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_CACHE.getName()));
+      mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
           MetricKey.WORKER_BYTES_WRITTEN_REMOTE.getMetricName()),
           MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE.getName()));
       mClusterCounters.putIfAbsent(new ClusterCounterKey(InstanceType.WORKER,
