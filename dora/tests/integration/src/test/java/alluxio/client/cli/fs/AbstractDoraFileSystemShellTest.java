@@ -11,9 +11,14 @@
 
 package alluxio.client.cli.fs;
 
+import alluxio.AlluxioURI;
 import alluxio.cli.fs.FileSystemShell;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
+import alluxio.exception.AlluxioException;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.io.BufferUtils;
 
@@ -50,5 +55,13 @@ public abstract class AbstractDoraFileSystemShellTest extends AbstractDoraShellI
     }
     File f = mTestFolder.newFile(fileName);
     Files.write(f.toPath(), BufferUtils.getIncreasingByteArray(length));
+  }
+
+  protected void createByteFileInAlluxio(String filename, byte[] bytes, WritePType writePType)
+      throws IOException, AlluxioException {
+    FileOutStream fos = mFileSystem.createFile(new AlluxioURI(filename),
+        CreateFilePOptions.newBuilder().setWriteType(writePType).setRecursive(true).build());
+    fos.write(bytes);
+    fos.close();
   }
 }
