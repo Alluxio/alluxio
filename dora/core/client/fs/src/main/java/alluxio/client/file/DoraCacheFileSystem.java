@@ -60,6 +60,7 @@ import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -379,6 +380,18 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
       mDoraClient.rename(srcUfsFullPath.toString(), dstUfsFullPath.toString(), mergedOptions);
     } catch (RuntimeException ex) {
+      if (ex instanceof StatusRuntimeException) {
+        Status.Code code = ((StatusRuntimeException) ex).getStatus().getCode();
+        if (code == Status.FAILED_PRECONDITION.getCode()) {
+          // throw new RuntimeException(ex.getMessage());
+        } else if (code == Status.NOT_FOUND.getCode()) {
+          throw new FileNotFoundException(ex.getMessage());
+        } else if (code == Status.ALREADY_EXISTS.getCode()) {
+          // throw exception here, no fallback even the fallback is open
+          // which means even ufs support overwrite, alluxio won't allow doing it
+          throw new FileAlreadyExistsException(ex.getMessage());
+        }
+      }
       if (!mUfsFallbackEnabled) {
         throw ex;
       }

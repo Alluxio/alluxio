@@ -719,6 +719,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (IOException e) {
       LOG.error("Failed to rename {} to {}", src, dst, e);
       return false;
+    } catch (RuntimeException e) {
+      return false;
     }
     return true;
   }
