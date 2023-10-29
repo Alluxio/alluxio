@@ -22,7 +22,10 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Command for getting lost files.
@@ -67,7 +70,9 @@ public class GetLostFileCommand extends AbstractFsAdminCommand {
     if (lostFiles != null) {
       lostFiles.entrySet().stream().map((entry) -> {
         try {
-          return mFsClient.getFilePath(entry.getKey()) + ":" + entry.getValue();
+          List<Long> blockList = entry.getValue().getBlockIdList();
+          Collections.sort(blockList);
+          return mFsClient.getFilePath(entry.getKey()) + ":" + blockList;
         } catch (AlluxioStatusException e) {
           return e.getMessage() + " for lost fileId " + entry.getKey();
         }
