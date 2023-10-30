@@ -155,13 +155,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final AtomicReference<WorkerIdentity> mWorkerId;
   protected final CacheManager mCacheManager;
   protected final UfsManager mUfsManager;
-  protected DoraMetaManager mMetaManager;
+  protected final DoraMetaManager mMetaManager;
   private final MembershipManager mMembershipManager;
   private final UfsInputStreamCache mUfsStreamCache;
   private final long mPageSize;
   protected final AlluxioConfiguration mConf;
   private final BlockMasterClientPool mBlockMasterClientPool;
-  protected FileSystemContext mFsContext;
+  protected final FileSystemContext mFsContext;
   private MkdirsOptions mMkdirsRecursive;
   private MkdirsOptions mMkdirsNonRecursive;
 
@@ -1143,11 +1143,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   /**
    * Build FileInfo from UfsStatus and UFS full Path.
    *
-   * @param cacheUsage
-   * @param ufsType
-   * @param status
-   * @param ufsFullPath
-   * @param xattrMap
+   * @param cacheUsage cache usage
+   * @param ufsType type of the UFS
+   * @param status file status
+   * @param ufsFullPath full UFS path mapping to the file
+   * @param xattrMap extra attributes
    * @return a FileInfo
    */
   public static alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(
@@ -1204,8 +1204,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   /**
    * Build FileStatus from UfsStatus and UFS full Path.
    *
-   * @param cacheUsage
-   * @param ufsType
+   * @param cacheUsage cache usage
+   * @param ufsType type of the UFS
    * @param status the ufs status
    * @param ufsFullPath the full ufs path
    * @param xattrMap the map of file xAttrs
@@ -1219,5 +1219,4 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         .setTs(System.nanoTime())
         .build();
   }
-
 }

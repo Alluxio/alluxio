@@ -99,7 +99,7 @@ public class DoraMetaManager implements Closeable {
     AlluxioURI ufsUriUri = new AlluxioURI(ufsUriStr);
     try {
       UnderFileSystem ufs = mUfsManager.getOrAdd(ufsUriUri,
-              () -> UnderFileSystemConfiguration.defaults(mConf));
+          () -> UnderFileSystemConfiguration.defaults(mConf));
       return ufs;
     } catch (Exception e) {
       LOG.debug("failed to get UFS instance for URI {}", ufsUriStr, e);
