@@ -61,7 +61,7 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
     List<BlockWorkerInfo> workers = HASH_PROVIDER.getMultiple(fileId, count);
     if (workers.size() != count) {
       throw new ResourceExhaustedException(String.format(
-          "Found %d workers from the hash ring but %d required", blockWorkerInfos.size(), count));
+          "Found %d workers from the hash ring but %d required", workers.size(), count));
     }
     return workers;
   }

@@ -12,10 +12,12 @@
 package alluxio.master.file.scheduler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.master.job.DoraLoadJob;
 import alluxio.master.job.LoadDataSubTask;
 import alluxio.master.job.LoadMetadataSubTask;
@@ -29,7 +31,7 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,11 +40,12 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DoraLoadJobTest {
   @Rule
@@ -65,12 +68,12 @@ public class DoraLoadJobTest {
     int testLength = 3 * Constants.MB;
     String testPath = createByteFileInUfs("testFileVirtualBlock", testLength);
     // test get next task is working properly with virtual blocks
-    Iterator<UfsStatus> iterator = new UfsStatusIterable(mLocalUfs, mLocalUfsRoot, Optional.empty(),
+    Iterator<UfsStatus> iterator = new UfsStatusIterable(mLocalUfs, testPath, Optional.empty(),
         Predicates.alwaysTrue()).iterator();
     DoraLoadJob loadJob =
         new DoraLoadJob(mLocalUfsRoot, Optional.of("user"), "1", OptionalLong.empty(), false, true,
-            false, false, Optional.empty(), iterator, mLocalUfs);
-    Collection<WorkerInfo> workers = ImmutableList.of(
+            false, false, Optional.empty(), iterator, mLocalUfs, 1);
+    Set<WorkerInfo> workers = ImmutableSet.of(
             new WorkerInfo().setId(1).setAddress(
                 new WorkerNetAddress().setHost("worker1").setRpcPort(1234)));
     List<DoraLoadJob.DoraLoadTask> tasks = loadJob.getNextTasks(workers);
@@ -94,6 +97,45 @@ public class DoraLoadJobTest {
         }
       }
     }
+  }
+
+  @Test
+  public void testGetNextTaskWithReplicas() throws IOException, InterruptedException {
+    Thread.sleep(2000); // sleep so we can refresh hash ring
+    int testLength = 3 * Constants.MB;
+    String testPath = createByteFileInUfs("loadReplicas", testLength);
+    // test get next task is working properly with virtual blocks
+    UfsStatusIterable iterable =
+        new UfsStatusIterable(mLocalUfs, testPath, Optional.empty(), Predicates.alwaysTrue());
+    DoraLoadJob loadJob =
+        new DoraLoadJob(testPath, Optional.of("user"), "1", OptionalLong.empty(), false, true,
+            false, false, Optional.empty(), iterable.iterator(), mLocalUfs, 3);
+    Set<WorkerInfo> workers = ImmutableSet.of(
+            new WorkerInfo().setId(1).setAddress(
+                new WorkerNetAddress().setHost("worker1").setRpcPort(1234)),
+            new WorkerInfo().setId(2).setAddress(
+                new WorkerNetAddress().setHost("worker2").setRpcPort(1234)),
+        new WorkerInfo().setId(3).setAddress(
+                new WorkerNetAddress().setHost("worker3").setRpcPort(1234)));
+    List<DoraLoadJob.DoraLoadTask> tasks = loadJob.getNextTasks(workers);
+    assertEquals(3, tasks.size());
+    for (DoraLoadJob.DoraLoadTask task : tasks) {
+      List<LoadSubTask> subTasks = task.getSubTasks();
+      assertEquals(3, subTasks.size());
+    }
+    // test 2 replicas with 3 workers
+    loadJob =
+        new DoraLoadJob(mLocalUfsRoot, Optional.of("user"), "1", OptionalLong.empty(), false, true,
+            false, false, Optional.empty(), iterable.iterator(), mLocalUfs, 2);
+    tasks = loadJob.getNextTasks(workers);
+    List<LoadSubTask> subTasks =
+        tasks.stream().flatMap(task -> task.getSubTasks().stream()).collect(Collectors.toList());
+    assertEquals(6, subTasks.size());
+    // test 4 replicas with 3 workers
+    assertThrows(ResourceExhaustedRuntimeException.class, () -> {
+      new DoraLoadJob(mLocalUfsRoot, Optional.of("user"), "1", OptionalLong.empty(), false, true,
+          false, false, Optional.empty(), iterable.iterator(), mLocalUfs, 4).getNextTasks(workers);
+    });
   }
 
   protected String createByteFileInUfs(String fileName, int length) throws IOException {

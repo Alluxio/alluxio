@@ -44,7 +44,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
@@ -55,6 +55,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.Set;
 
 public class MoveJobTest {
   // test MoveJob get next task
@@ -72,7 +73,7 @@ public class MoveJobTest {
     MoveJob move = new MoveJob(srcPath, dstPath, false, user, "1",
         OptionalLong.empty(), false, false, false, files,
         Optional.empty());
-    List<WorkerInfo> workers = ImmutableList.of(
+    Set<WorkerInfo> workers = ImmutableSet.of(
         new WorkerInfo().setId(1).setAddress(
             new WorkerNetAddress().setHost("worker1").setRpcPort(1234)),
         new WorkerInfo().setId(2).setAddress(
