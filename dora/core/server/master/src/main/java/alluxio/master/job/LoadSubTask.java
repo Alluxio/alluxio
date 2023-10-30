@@ -52,13 +52,14 @@ public abstract class LoadSubTask implements ShardKey {
    */
   public static LoadSubTask from(LoadFailure loadFailure, long virtualBlockSize) {
     alluxio.grpc.LoadSubTask failure = loadFailure.getSubtask();
-    if (failure.hasUfsStatus()) {
-      return new LoadMetadataSubTask(UfsStatus.fromProto(failure.getUfsStatus()), virtualBlockSize);
+    if (failure.hasLoadMetadataSubtask()) {
+      return new LoadMetadataSubTask(
+          UfsStatus.fromProto(failure.getLoadMetadataSubtask().getUfsStatus()), virtualBlockSize);
     }
     else {
-      UfsStatus status = UfsStatus.fromProto(failure.getBlock().getUfsStatus());
-      return new LoadDataSubTask(status, virtualBlockSize, failure.getBlock().getOffsetInFile(),
-          failure.getBlock().getLength());
+      UfsStatus status = UfsStatus.fromProto(failure.getLoadDataSubtask().getUfsStatus());
+      return new LoadDataSubTask(status, virtualBlockSize,
+          failure.getLoadDataSubtask().getOffsetInFile(), failure.getLoadDataSubtask().getLength());
     }
   }
 }

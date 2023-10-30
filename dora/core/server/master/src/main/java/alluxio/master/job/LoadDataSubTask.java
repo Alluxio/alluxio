@@ -11,7 +11,6 @@
 
 package alluxio.master.job;
 
-import alluxio.grpc.Block;
 import alluxio.underfs.UfsStatus;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -50,10 +49,11 @@ public class LoadDataSubTask extends LoadSubTask {
 
   @Override
   alluxio.grpc.LoadSubTask toProto() {
-    Block block =
-        Block.newBuilder().setOffsetInFile(mOffset).setUfsPath(getUfsPath()).setLength(getLength())
-             .setUfsStatus(mUfsStatus.toProto()).build();
-    return alluxio.grpc.LoadSubTask.newBuilder().setBlock(block).build();
+    alluxio.grpc.LoadDataSubTask subtask =
+        alluxio.grpc.LoadDataSubTask.newBuilder().setOffsetInFile(mOffset).setUfsPath(getUfsPath())
+                                    .setLength(getLength()).setUfsStatus(mUfsStatus.toProto())
+                                    .build();
+    return alluxio.grpc.LoadSubTask.newBuilder().setLoadDataSubtask(subtask).build();
   }
 
   @Override

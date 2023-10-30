@@ -69,7 +69,7 @@ public class DoraLoadJobTest {
         Predicates.alwaysTrue()).iterator();
     DoraLoadJob loadJob =
         new DoraLoadJob(mLocalUfsRoot, Optional.of("user"), "1", OptionalLong.empty(), false, true,
-            false, false, iterator, mLocalUfs);
+            false, false, Optional.empty(), iterator, mLocalUfs);
     Collection<WorkerInfo> workers = ImmutableList.of(
             new WorkerInfo().setId(1).setAddress(
                 new WorkerNetAddress().setHost("worker1").setRpcPort(1234)));

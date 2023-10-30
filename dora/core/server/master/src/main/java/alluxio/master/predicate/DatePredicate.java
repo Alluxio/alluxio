@@ -14,6 +14,7 @@ package alluxio.master.predicate;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.master.predicate.interval.Interval;
 import alluxio.proto.journal.Job.FileFilter;
+import alluxio.underfs.UfsStatus;
 import alluxio.wire.FileInfo;
 
 import org.slf4j.Logger;
@@ -140,5 +141,11 @@ public class DatePredicate implements FilePredicate {
         return false;
       }
     };
+  }
+
+  @Override
+  public Predicate<UfsStatus> getUfsStatusPredicate() {
+    throw new UnsupportedOperationException(
+        "getUfsStatusPredicate() is unsupported in DatePredicate");
   }
 }

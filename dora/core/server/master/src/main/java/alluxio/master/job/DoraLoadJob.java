@@ -120,6 +120,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private static final int RETRY_ATTEMPT_THRESHOLD = Configuration.getInt(
       PropertyKey.MASTER_DORA_LOAD_JOB_RETRIES);
   private final boolean mSkipIfExists;
+
+  private final Optional<String> mFileFilterRegx;
   private final long mVirtualBlockSize = Configuration.getBytes(
       PropertyKey.DORA_READ_VIRTUAL_BLOCK_SIZE);
   private Iterator<LoadSubTask> mCurrentSubTaskIterator;
@@ -135,12 +137,14 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
    * @param verificationEnabled whether to verify the job after loaded
    * @param loadMetadataOnly    if set to true, only metadata will be loaded without loading
    * @param skipIfExists        skip if exists
+   * @param fileFilterRegx      the regx pattern string for file filter
    * @param ufsStatusIterator   ufsStatus iterable
    * @param ufs                 under file system
    */
   public DoraLoadJob(String path, Optional<String> user, String jobId, OptionalLong bandwidth,
       boolean usePartialListing, boolean verificationEnabled, boolean loadMetadataOnly,
-      boolean skipIfExists, Iterator<UfsStatus> ufsStatusIterator, UnderFileSystem ufs) {
+      boolean skipIfExists, Optional<String> fileFilterRegx, Iterator<UfsStatus> ufsStatusIterator,
+                     UnderFileSystem ufs) {
     super(user, jobId, new HashBasedWorkerAssignPolicy());
     mLoadPath = requireNonNull(path, "path is null");
     Preconditions.checkArgument(
@@ -152,6 +156,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     mUfs = ufs;
     mLoadMetadataOnly = loadMetadataOnly;
     mSkipIfExists = skipIfExists;
+    mFileFilterRegx = fileFilterRegx;
     mUfsStatusIterator = ufsStatusIterator;
     LOG.info("DoraLoadJob for {} created.", path);
   }
@@ -473,6 +478,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         .setVerify(mVerificationEnabled)
         .setSkipIfExists(mSkipIfExists)
         .setJobId(mJobId);
+    mFileFilterRegx.ifPresent(jobEntry::setFileFilterRegx);
     mUser.ifPresent(jobEntry::setUser);
     mBandwidth.ifPresent(jobEntry::setBandwidth);
     mEndTime.ifPresent(jobEntry::setEndTime);
@@ -504,8 +510,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         LOG.warn(format("[DistributedLoad] Get failure from worker:%s, failed files:%s",
             doraLoadTask.getMyRunningWorker(), response.getFailuresList()));
         for (LoadFailure failure : response.getFailuresList()) {
-          if (failure.getSubtask().hasBlock()) {
-            totalLoadedBytes -= failure.getSubtask().getBlock().getLength();
+          if (failure.getSubtask().hasLoadDataSubtask()) {
+            totalLoadedBytes -= failure.getSubtask().getLoadDataSubtask().getLength();
           }
           String status = Status.fromCodeValue(failure.getCode()).toString();
           LoadSubTask subTask = LoadSubTask.from(failure, mVirtualBlockSize);
@@ -518,8 +524,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       }
       int totalLoadedInodes = doraLoadTask.getSubTasks().stream()
           .filter(LoadSubTask::isLoadMetadata).collect(Collectors.toList()).size()
-          - response.getFailuresList().stream().filter(i -> i.getSubtask().hasUfsStatus()).collect(
-          Collectors.toList()).size();
+          - response.getFailuresList().stream().filter(i -> i.getSubtask().hasLoadMetadataSubtask())
+                    .collect(Collectors.toList()).size();
       if (!mLoadMetadataOnly) {
         addLoadedBytes(totalLoadedBytes - response.getBytesSkipped());
         LOAD_FILE_SIZE.inc(totalLoadedBytes);
