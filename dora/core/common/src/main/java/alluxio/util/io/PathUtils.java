@@ -473,7 +473,7 @@ public final class PathUtils {
   }
 
   /**
-   * Returns the path of concatenating two String paths, handle the slash between them.
+   * Returns the path of concatenating two String paths, handle the shash between them.
    * pathA = "/a/b/", pathB = "/c/d/", return "/a/b/c/d/"
    * pathA = "/a/b", pathB = "c/d", return "/a/b/c/d"
    *
