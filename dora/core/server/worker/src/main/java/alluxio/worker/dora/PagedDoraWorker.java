@@ -192,18 +192,15 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
     mWorkerId = workerId;
     mConf = conf;
+    mUfsManager = mResourceCloser.register(ufsManager);
+    String rootUFS = mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
+    mUfsManager.getOrAdd(new AlluxioURI(rootUFS),
+        () -> UnderFileSystemConfiguration.defaults(mConf));
     mFsContext = mResourceCloser.register(fileSystemContext);
     mUfsStreamCache = new UfsInputStreamCache();
     mPageSize = mConf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
     mBlockMasterClientPool = blockMasterClientPool;
     mCacheManager = cacheManager;
-    // TODO(jiacheng): use dep injection for UfsManager and DoraMetaManager
-    mUfsManager = mResourceCloser.register(ufsManager);
-    String rootUFS = mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
-    mUfsManager.getOrAdd(new AlluxioURI(rootUFS),
-            () -> UnderFileSystemConfiguration.defaults(mConf));
-//    mMetaManager = mResourceCloser.register(
-//        new DoraMetaManager(mConf, this, mCacheManager, mUfsManager));
     mMetaManager = mResourceCloser.register(metaManager);
     mMembershipManager = membershipManager;
     mOpenFileHandleContainer = new DoraOpenFileHandleContainer();
@@ -446,80 +443,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       cachedPercentage = 100;
     }
     return cachedPercentage;
-  }
-
-  /**
-   * Build FileInfo from UfsStatus and UFS full Path.
-   *
-   * @param status
-   * @param ufsFullPath
-   * @param xattrMap
-   * @return a FileInfo
-   */
-  // TODO(jiacheng): move this static method elsewhere
-  public static alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(Optional<CacheUsage> cacheUsage, String ufsType, UfsStatus status, String ufsFullPath, @Nullable Map<String, String> xattrMap) {
-//    UnderFileSystem ufs = getUfsInstance(ufsFullPath);
-    String filename = new AlluxioURI(ufsFullPath).getName();
-
-    alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
-        .setUfsType(ufsType)
-        .setFileId(ufsFullPath.hashCode())
-        .setName(filename)
-        .setPath(ufsFullPath)
-        .setUfsPath(ufsFullPath)
-        .setMode(status.getMode())
-        .setFolder(status.isDirectory())
-        .setOwner(status.getOwner())
-        .setGroup(status.getGroup())
-        .setCompleted(true)
-        .setPersisted(true);
-    if (xattrMap != null) {
-      for (Map.Entry<String, String> entry : xattrMap.entrySet()) {
-        infoBuilder.putXattr(entry.getKey(), ByteString.copyFromUtf8(entry.getValue()));
-      }
-    }
-    if (status instanceof UfsFileStatus) {
-      UfsFileStatus fileStatus = (UfsFileStatus) status;
-      infoBuilder.setLength(fileStatus.getContentLength())
-          .setLastModificationTimeMs(status.getLastModifiedTime())
-          .setBlockSizeBytes(fileStatus.getBlockSize());
-      String contentHash = ((UfsFileStatus) status).getContentHash();
-      if (contentHash != null) {
-        infoBuilder.setContentHash(contentHash);
-      }
-
-      // get cached percentage
-      String cacheManagerFileId = new AlluxioURI(ufsFullPath).hash();
-      final long bytesInCache = cacheUsage
-          .flatMap(usage -> usage.partitionedBy(file(cacheManagerFileId)))
-          .map(CacheUsage::used).orElse(0L);
-      final long fileLength = fileStatus.getContentLength();
-      final int cachedPercentage;
-      if (fileLength > 0) {
-        cachedPercentage = (int) (bytesInCache * 100 / fileLength);
-      } else {
-        cachedPercentage = 100;
-      }
-
-      infoBuilder.setInAlluxioPercentage(cachedPercentage)
-          .setInMemoryPercentage(cachedPercentage);
-    }
-    return infoBuilder.build();
-  }
-
-  /**
-   * Build FileStatus from UfsStatus and UFS full Path.
-   *
-   * @param status the ufs status
-   * @param ufsFullPath the full ufs path
-   * @param xattrMap the map of file xAttrs
-   * @return the file status
-   */
-  public static DoraMeta.FileStatus buildFileStatusFromUfsStatus(Optional<CacheUsage> cacheUsage, String ufsType, UfsStatus status, String ufsFullPath, @Nullable Map<String, String> xattrMap) {
-    return DoraMeta.FileStatus.newBuilder()
-        .setFileInfo(buildFileInfoFromUfsStatus(cacheUsage, ufsType, status, ufsFullPath, xattrMap))
-        .setTs(System.nanoTime())
-        .build();
   }
 
   @Override
@@ -858,7 +781,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   public OpenFileHandle createFile(String path, CreateFilePOptions options)
       throws AccessControlException, IOException {
     UnderFileSystem ufs = getUfsInstance(path);
-    LOG.info("Got UFS instance for createFile path {}", path);
     // TODO(yuyang): Lock is needed.
     alluxio.grpc.FileInfo info;
     OpenFileHandle existingHandle = mOpenFileHandleContainer.find(path);
@@ -914,11 +836,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
     OutputStream outStream;
     if (mClientWriteToUFSEnabled) {
-      LOG.info("Writing directly to UFS, not through worker");
       // client is writing directly to UFS. Worker does not write to UFS.
       outStream = null;
     } else {
-      LOG.info("Writing through worker to UFS");
       outStream = ufs.create(path, createOption);
     }
 
@@ -1080,6 +1000,87 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public void cleanupSession(long sessionId) {
+  }
+
+
+  /**
+   * Build FileInfo from UfsStatus and UFS full Path.
+   *
+   * @param cacheUsage
+   * @param ufsType
+   * @param status
+   * @param ufsFullPath
+   * @param xattrMap
+   * @return a FileInfo
+   */
+  public static alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(
+      Optional<CacheUsage> cacheUsage, String ufsType, UfsStatus status, String ufsFullPath,
+      @Nullable Map<String, String> xattrMap) {
+    String filename = new AlluxioURI(ufsFullPath).getName();
+
+    alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
+        .setUfsType(ufsType)
+        .setFileId(ufsFullPath.hashCode())
+        .setName(filename)
+        .setPath(ufsFullPath)
+        .setUfsPath(ufsFullPath)
+        .setMode(status.getMode())
+        .setFolder(status.isDirectory())
+        .setOwner(status.getOwner())
+        .setGroup(status.getGroup())
+        .setCompleted(true)
+        .setPersisted(true);
+    if (xattrMap != null) {
+      for (Map.Entry<String, String> entry : xattrMap.entrySet()) {
+        infoBuilder.putXattr(entry.getKey(), ByteString.copyFromUtf8(entry.getValue()));
+      }
+    }
+    if (status instanceof UfsFileStatus) {
+      UfsFileStatus fileStatus = (UfsFileStatus) status;
+      infoBuilder.setLength(fileStatus.getContentLength())
+              .setLastModificationTimeMs(status.getLastModifiedTime())
+              .setBlockSizeBytes(fileStatus.getBlockSize());
+      String contentHash = ((UfsFileStatus) status).getContentHash();
+      if (contentHash != null) {
+        infoBuilder.setContentHash(contentHash);
+      }
+
+      // get cached percentage
+      String cacheManagerFileId = new AlluxioURI(ufsFullPath).hash();
+      final long bytesInCache = cacheUsage
+              .flatMap(usage -> usage.partitionedBy(file(cacheManagerFileId)))
+              .map(CacheUsage::used).orElse(0L);
+      final long fileLength = fileStatus.getContentLength();
+      final int cachedPercentage;
+      if (fileLength > 0) {
+        cachedPercentage = (int) (bytesInCache * 100 / fileLength);
+      } else {
+        cachedPercentage = 100;
+      }
+
+      infoBuilder.setInAlluxioPercentage(cachedPercentage)
+              .setInMemoryPercentage(cachedPercentage);
+    }
+    return infoBuilder.build();
+  }
+
+  /**
+   * Build FileStatus from UfsStatus and UFS full Path.
+   *
+   * @param cacheUsage
+   * @param ufsType
+   * @param status the ufs status
+   * @param ufsFullPath the full ufs path
+   * @param xattrMap the map of file xAttrs
+   * @return the file status
+   */
+  public static DoraMeta.FileStatus buildFileStatusFromUfsStatus(
+      Optional<CacheUsage> cacheUsage, String ufsType, UfsStatus status, String ufsFullPath,
+      @Nullable Map<String, String> xattrMap) {
+    return DoraMeta.FileStatus.newBuilder()
+        .setFileInfo(buildFileInfoFromUfsStatus(cacheUsage, ufsType, status, ufsFullPath, xattrMap))
+        .setTs(System.nanoTime())
+        .build();
   }
 
   private class BlockMasterSync implements HeartbeatExecutor {

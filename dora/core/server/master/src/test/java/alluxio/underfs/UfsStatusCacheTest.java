@@ -469,7 +469,6 @@ public class UfsStatusCacheTest {
     MasterUfsManager manager = new MasterUfsManager();
     manager.getRoot(); // add root mount
     manager.mUnderFileSystemMap.put(new AbstractUfsManager.Key(new AlluxioURI("/")), mUfs);
-//    manager.mUnderFileSystemMap.put(new AbstractUfsManager.Key(new AlluxioURI("/"), null), mUfs);
     mMountTable = new MountTable(manager, rootMountInfo, Clock.systemUTC());
   }
 

@@ -75,6 +75,7 @@ public class DoraWorkerModule extends AbstractModule {
     bind(UfsManager.class).to(DoraUfsManager.class).in(Scopes.SINGLETON);
     bind(AlluxioConfiguration.class).toProvider(() -> Configuration.global());
 
+    // Create FileSystemContext shared across all worker components
     FileSystemContext fileSystemContext = FileSystemContext.create();
     bind(FileSystemContext.class).toInstance(fileSystemContext);
 

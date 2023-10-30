@@ -56,7 +56,6 @@ public class DoraMetaManager implements Closeable {
   private final AlluxioConfiguration mConf;
   private final DoraMetaStore mMetaStore;
   private final CacheManager mCacheManager;
-//  private final PagedDoraWorker mDoraWorker;
   protected final DoraUfsManager mUfsManager;
 
   private static final Logger SAMPLING_LOG = new SamplingLogger(
@@ -79,7 +78,6 @@ public class DoraMetaManager implements Closeable {
   /**
    * Creates a dora meta manager.
    * @param conf configuration
-//   * @param doraWorker the dora worker instance
    * @param cacheManger the cache manager to manage the page cache
    * @param ufsManager the ufs Manager
    */
@@ -118,13 +116,12 @@ public class DoraMetaManager implements Closeable {
       UnderFileSystem ufs = getUfsInstance(path);
       UfsStatus status = ufs.getStatus(path,
           GetStatusOptions.defaults().setIncludeRealContentHash(mGetRealContentHash));
-      // TODO(jiacheng): do not keep a worker ref here?
-//      DoraMeta.FileStatus fs = mDoraWorker.buildFileStatusFromUfsStatus(status, path);
       Map<String, String> xattrMap = null;
       if (mXAttrWriteToUFSEnabled) {
         xattrMap = ufs.getAttributes(path);
       }
-      DoraMeta.FileStatus fs = PagedDoraWorker.buildFileStatusFromUfsStatus(mCacheManager.getUsage(), ufs.getUnderFSType(), status, path, xattrMap);
+      DoraMeta.FileStatus fs = PagedDoraWorker.buildFileStatusFromUfsStatus(
+          mCacheManager.getUsage(), ufs.getUnderFSType(), status, path, xattrMap);
       return Optional.ofNullable(fs);
     } catch (FileNotFoundException e) {
       return Optional.empty();

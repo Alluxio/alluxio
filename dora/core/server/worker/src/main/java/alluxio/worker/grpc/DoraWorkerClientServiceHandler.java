@@ -88,14 +88,14 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       Configuration.getInt(PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE);
 
   private final ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
-  private final DoraWorker mWorker;
+  private final PagedDoraWorker mWorker;
 
   /**
    * Creates a new implementation of gRPC BlockWorker interface.
    * @param doraWorker the DoraWorker object
    */
   @Inject
-  public DoraWorkerClientServiceHandler(DoraWorker doraWorker) {
+  public DoraWorkerClientServiceHandler(PagedDoraWorker doraWorker) {
     mWorker = requireNonNull(doraWorker);
   }
 
