@@ -12,11 +12,12 @@
 package alluxio.uri;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.collections.Pair;
+import alluxio.exception.InvalidPathException;
 import alluxio.grpc.UfsUrlMessage;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.io.FilenameUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -58,10 +59,6 @@ public class UfsUrl {
   public static final String SLASH_SEPARATOR = "/";
   public static final String COLON_SEPARATOR = ":";
 
-  private static final String OUTDATED_ALLUXIO_SCHEME_INFO =
-      "Alluxio 3.x no longer supports alluxio:// scheme,"
-          + " please input the UFS path directly like hdfs://host:port/path";
-
   private final UfsUrlMessage mProto;
 
   private static class Parser {
@@ -69,80 +66,62 @@ public class UfsUrl {
     private final String mAuthority;
     private final List<String> mPathComponents;
 
-    private Parser(String inputUrl) throws IllegalArgumentException {
+    private Parser(String inputUrl) {
       Preconditions.checkArgument(inputUrl != null && !inputUrl.isEmpty(),
           "The input url is null or empty, please input a valid url.");
-
-      Pair<String, Integer> schemePair = parseScheme(inputUrl);
-      Pair<String, Integer> authorityPair = parseAuthority(inputUrl, schemePair.getSecond());
-      List<String> pathComponents = parsePath(inputUrl, authorityPair.getSecond());
-
-      mScheme = schemePair.getFirst();
-      mAuthority = authorityPair.getFirst();
-      mPathComponents = pathComponents;
-    }
-
-    private Pair<String, Integer> parseScheme(String inputString)
-        throws IllegalArgumentException {
-      int firstSlash = inputString.indexOf(SLASH_SEPARATOR);
-      int firstColon = inputString.indexOf(COLON_SEPARATOR);
-      int nextStart;
       String scheme = null;
-      if (firstColon != -1) {
-        if (firstSlash == -1) {
-          // have colon but no slash
-          scheme = inputString.substring(0, firstColon);
-          nextStart = firstColon + 1;
-        } else if (firstColon + 1 == firstSlash) {
-          // have colon and slash, colon is in front of slash -> have scheme
-          nextStart = firstSlash;
-          scheme = inputString.substring(0, firstColon);
-        } else { // have colon and slash, colon is back of slash -> illegal, have empty scheme
-          throw new IllegalArgumentException(String.format("empty scheme: %s", inputString));
-        }
-      } else {
-        throw new IllegalArgumentException(String.format("empty scheme: %s", inputString));
-      }
-      Preconditions.checkArgument(!scheme.isEmpty(), "empty scheme: %s", inputString);
-      Preconditions.checkArgument(!scheme.equalsIgnoreCase(Constants.SCHEME),
-          OUTDATED_ALLUXIO_SCHEME_INFO);
-      return new Pair<>(scheme, nextStart);
-    }
-
-    private Pair<String, Integer> parseAuthority(String inputString, Integer begin) {
       String authority = null;
-      int nextStart = begin;
-      if (inputString.startsWith(DOUBLE_SLASH_SEPARATOR, nextStart)
-          && nextStart + DOUBLE_SLASH_SEPARATOR.length() < inputString.length()) {
-        nextStart += DOUBLE_SLASH_SEPARATOR.length();
-        int authoritySplitIndex = inputString.indexOf(SLASH_SEPARATOR, nextStart);
+      String path = null;
+
+      int start = 0;
+      int schemeSplitIndex = inputUrl.indexOf(SCHEME_SEPARATOR, start);
+      if (schemeSplitIndex == -1) {
+        scheme = "";
+      } else {
+        scheme = inputUrl.substring(start, schemeSplitIndex);
+        start += scheme.length();
+      }
+      Preconditions.checkArgument(!scheme.isEmpty(), "scheme is not allowed to be empty,"
+          + "please input again.");
+      Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
+          "Alluxio 3.x no longer supports alluxio:// scheme,"
+              + " please input the UFS path directly like hdfs://host:port/path");
+
+      // unified address "://" and "//"
+      while (start < inputUrl.length() && inputUrl.charAt(start) == COLON_SEPARATOR.charAt(0))  {
+        start++;
+      }
+
+      if (inputUrl.startsWith(DOUBLE_SLASH_SEPARATOR, start)
+          && start + DOUBLE_SLASH_SEPARATOR.length() < inputUrl.length()) {
+        start += DOUBLE_SLASH_SEPARATOR.length();
+        int authoritySplitIndex = inputUrl.indexOf(SLASH_SEPARATOR, start);
         if (authoritySplitIndex == -1)  {
-          authority = inputString.substring(nextStart);
+          authority = inputUrl.substring(start);
         } else {
-          authority = inputString.substring(nextStart, authoritySplitIndex);
+          authority = inputUrl.substring(start, authoritySplitIndex);
         }
       } else {
         authority = "";
       }
 
-      nextStart += authority.length();
+      start += authority.length();
       // remove the fronting slash, if any.
-      while (nextStart < inputString.length() && inputString.charAt(nextStart)
-          == SLASH_SEPARATOR.charAt(0)) {
-        nextStart++;
+      while (start < inputUrl.length() && inputUrl.charAt(start) == SLASH_SEPARATOR.charAt(0)) {
+        start++;
       }
-      return new Pair<>(authority, nextStart);
-    }
+      // TODO(Tony Sun): remove the copy in next pr
+      path = FilenameUtils.normalizeNoEndSeparator(inputUrl.substring(start));
 
-    private List<String> parsePath(String inputUrl, Integer begin) {
-      String candidatePath = inputUrl.substring(begin);
-      String path = removeRedundantSlashes(candidatePath);
-      Preconditions.checkNotNull(path, "empty path after normalize: %s", candidatePath);
-      List<String> pathComponents = Collections.emptyList();
-      if (!path.isEmpty()) {
-        pathComponents = Arrays.asList(path.split(SLASH_SEPARATOR));
+      // scheme, authority, pathComponents are always not null.
+      mScheme = scheme;
+      mAuthority = authority;
+
+      if (path.isEmpty()) {
+        mPathComponents = Collections.emptyList();
+      } else {
+        mPathComponents = Arrays.asList(path.split(SLASH_SEPARATOR));
       }
-      return pathComponents;
     }
 
     public String getScheme() {
@@ -155,36 +134,6 @@ public class UfsUrl {
 
     public List<String> getPathComponents() {
       return mPathComponents;
-    }
-
-    /**
-     * Normalize the path component of the {@link UfsUrl},
-     * by replacing all "//", "///", "////", etc, with a single "/",
-     * and trimming trailing slash from non-root path.
-     * It is inspired by AlluxioURI.normalizePath(String).
-     *
-     * @param path the path to normalize
-     * @return the normalized path
-     */
-    private static String removeRedundantSlashes(String path) {
-      StringBuilder sb = new StringBuilder(path.length());
-      int i = 0;
-      while (i < path.length()) {
-        if (path.charAt(i) != SLASH_SEPARATOR.charAt(0))  {
-          sb.append(path.charAt(i));
-          i++;
-          continue;
-        }
-        sb.append(SLASH_SEPARATOR);
-        // remove adjacent slashes
-        while (i < path.length()) {
-          if (path.charAt(i) != SLASH_SEPARATOR.charAt(0))  {
-            break;
-          }
-          i++;
-        }
-      }
-      return sb.toString();
     }
   }
 
@@ -227,39 +176,32 @@ public class UfsUrl {
 
   /**
    * Constructs an {@link UfsUrl} from components.
-   *
    * @param proto the proto of the UfsUrl
    */
   private UfsUrl(UfsUrlMessage proto) {
-    Preconditions.checkArgument(!proto.getScheme().isEmpty(),
-        "scheme is empty in the path %s", proto);
-    Preconditions.checkArgument(!proto.getScheme().equalsIgnoreCase(Constants.SCHEME),
-        OUTDATED_ALLUXIO_SCHEME_INFO);
+    Preconditions.checkArgument(!proto.getScheme().isEmpty(), "scheme is not allowed to be empty,"
+        + "please input again.");
+    Preconditions.checkArgument(!proto.getScheme().equalsIgnoreCase("alluxio"),
+        "Alluxio 3.x no longer supports alluxio:// scheme,"
+            + " please input the UFS path directly like hdfs://host:port/path");
     mProto = proto;
   }
 
   /**
    * Constructs an {@link UfsUrl} from components.
-   * Note that if checkNormalization is false, it will also remove redundant slashes of path.
-   *
-   * @param scheme    the scheme of the path
+   * @param scheme the scheme of the path
    * @param authority the authority of the path
-   * @param path      the path component of the UfsUrl
+   * @param path the path component of the UfsUrl
    */
   public UfsUrl(String scheme, String authority, String path) {
-    Preconditions.checkArgument(!scheme.isEmpty(), "empty scheme: %s",
-        scheme + authority + path);
-    Preconditions.checkArgument(!scheme.equalsIgnoreCase(Constants.SCHEME),
-        OUTDATED_ALLUXIO_SCHEME_INFO);
-
-    path = Parser.removeRedundantSlashes(path);
-
+    Preconditions.checkArgument(!scheme.isEmpty(), "scheme is not allowed to be empty,"
+        + "please input again.");
+    Preconditions.checkArgument(!scheme.equalsIgnoreCase("alluxio"),
+        "Alluxio 3.x no longer supports alluxio:// scheme,"
+            + " please input the UFS path directly like hdfs://host:port/path");
     String[] arrayOfPath = path.split(SLASH_SEPARATOR);
     int notEmpty = 0;
-    while (notEmpty < arrayOfPath.length) {
-      if (!arrayOfPath[notEmpty].isEmpty()) {
-        break;
-      }
+    while (notEmpty < arrayOfPath.length && arrayOfPath[notEmpty].isEmpty()) {
       notEmpty++;
     }
     List<String> pathComponentsList = Arrays.asList(arrayOfPath);
@@ -281,13 +223,17 @@ public class UfsUrl {
   /**
    * @return the authority of the {@link UfsUrl}
    */
-  public Authority getAuthority() {
-    return Authority.fromString(mProto.getAuthority());
+  public Optional<Authority> getAuthority() {
+    if (!mProto.hasAuthority()) {
+      return Optional.empty();
+    }
+    return Optional.of(Authority.fromString(mProto.getAuthority()));
   }
 
   /**
    * @return the pathComponents List of the {@link UfsUrl}
    */
+  // TODO(Tony Sun): In the future Consider whether pathComponents should be extracted as a class.
   public List<String> getPathComponents() {
     return mProto.getPathComponentsList();
   }
@@ -315,13 +261,15 @@ public class UfsUrl {
    * @return the String representation of the {@link UfsUrl}
    */
   public String toString() {
-    String fullPath = getFullPath();
-    StringBuilder stringBuilder = new StringBuilder(mProto.getScheme().length()
-        + SCHEME_SEPARATOR.length() + mProto.getAuthority().length() + fullPath.length());
+    StringBuilder stringBuilder = new StringBuilder();
     stringBuilder.append(mProto.getScheme());
-    stringBuilder.append(SCHEME_SEPARATOR);
+    if (!mProto.getScheme().isEmpty()) {
+      stringBuilder.append(SCHEME_SEPARATOR);
+    } else {
+      stringBuilder.append(DOUBLE_SLASH_SEPARATOR);
+    }
     stringBuilder.append(mProto.getAuthority());
-    stringBuilder.append(fullPath);
+    stringBuilder.append(getFullPath());
     return stringBuilder.toString();
   }
 
@@ -339,7 +287,7 @@ public class UfsUrl {
    * @return true if equal, false if not equal
    */
   public boolean equals(Object o) {
-    if (this == o) {
+    if (this == o)  {
       return true;
     }
     if (!(o instanceof UfsUrl)) {
@@ -351,19 +299,22 @@ public class UfsUrl {
 
   /**
    * Gets parent UfsUrl of current UfsUrl.
+   * <p>
+   * e.g.
+   * <ul>
+   *   <li>getParentURL(abc://1.2.3.4:19998/xy z/a b c) -> abc://1.2.3.4:19998/xy z</li>
+   * </ul>
    *
-   * @return Optional UfsUrl The parent UfsUrl or null if at root
+   * @return parent UfsUrl
    */
-  public Optional<UfsUrl> getParentURL() {
-    if (mProto.getPathComponentsList().isEmpty()) {
-      return Optional.empty();
-    }
+  // TODO(Jiacheng Liu): try to avoid the copy by a RelativeUrl class
+  public UfsUrl getParentURL() {
     List<String> pathComponents = mProto.getPathComponentsList();
-    return Optional.of(new UfsUrl(UfsUrlMessage.newBuilder()
+    return new UfsUrl(UfsUrlMessage.newBuilder()
         .setScheme(mProto.getScheme())
         .setAuthority(mProto.getAuthority())
-        // sublist returns a view, not a copy
-        .addAllPathComponents(pathComponents.subList(0, pathComponents.size() - 1)).build()));
+        // TODO(Jiacheng Liu): how many copies are there. Improve the performance in the future.
+        .addAllPathComponents(pathComponents.subList(0, pathComponents.size() - 1)).build());
   }
 
   /**
@@ -372,25 +323,15 @@ public class UfsUrl {
    * @return a full path string
    */
   public String getFullPath() {
-    // calculate the memory allocation first to reduce copies of StringBuilder
-    int pathSize = 1;
-    int n = mProto.getPathComponentsList().size();
-    for (int i = 0; i < n - 1; i++) {
-      pathSize += 1 + mProto.getPathComponents(i).length();
-    }
-    if (n - 1 >= 0) {
-      pathSize += mProto.getPathComponents(n - 1).length();
-    }
-
-    StringBuilder sb = new StringBuilder(pathSize);
-
+    StringBuilder sb = new StringBuilder();
     sb.append(SLASH_SEPARATOR);
+    int n = mProto.getPathComponentsList().size();
     // Then sb is not empty.
     for (int i = 0; i < n - 1; i++) {
       sb.append(mProto.getPathComponents(i));
       sb.append(SLASH_SEPARATOR);
     }
-    if (n - 1 >= 0) {
+    if (n - 1 >= 0)  {
       sb.append(mProto.getPathComponents(n - 1));
     }
     return sb.toString();
@@ -422,36 +363,27 @@ public class UfsUrl {
    */
   public String getName() {
     List<String> pathComponents = getPathComponents();
-    if (pathComponents.isEmpty()) {
-      return "";
-    }
+    Preconditions.checkArgument(!pathComponents.isEmpty());
     return pathComponents.get(pathComponents.size() - 1);
   }
 
   /**
    * Returns true if the current UfsUrl is an ancestor of another UfsUrl.
    * otherwise, return false.
-   *
    * @param ufsUrl potential children to check
    * @return true the current ufsUrl is an ancestor of the ufsUrl
    */
-  public boolean isAncestorOf(UfsUrl ufsUrl) {
+  public boolean isAncestorOf(UfsUrl ufsUrl) throws InvalidPathException {
     if (!Objects.equals(getAuthority(), ufsUrl.getAuthority())) {
       return false;
     }
     if (!Objects.equals(getScheme(), ufsUrl.getScheme())) {
       return false;
     }
-    if (getDepth() >= ufsUrl.getDepth())  {
-      return false;
-    }
-    for (int i = 0; i < getDepth(); i++)  {
-      if (!getPathComponents().get(i).equals(ufsUrl.getPathComponents().get(i))) {
-        return false;
-      }
-    }
-    // path depth of this < Path depth of ufsUrl, and they have the same prefix.
-    return true;
+    // TODO(Tony Sun): optimize the performance later
+    // Both of the ufsUrls has the same scheme and authority, so just need to compare their paths.
+    return PathUtils.hasPrefix(PathUtils.normalizePath(ufsUrl.getFullPath(), SLASH_SEPARATOR),
+        PathUtils.normalizePath(getFullPath(), SLASH_SEPARATOR));
   }
 
   /**
@@ -466,25 +398,24 @@ public class UfsUrl {
     }
     String[] suffixArray = suffix.split(SLASH_SEPARATOR);
     int nonEmptyIndex = 0;
-    while (nonEmptyIndex < suffixArray.length) {
-      if (!suffixArray[nonEmptyIndex].isEmpty()) {
-        break;
-      }
+    while (nonEmptyIndex < suffixArray.length && suffixArray[nonEmptyIndex].isEmpty())  {
       nonEmptyIndex++;
     }
-    List<String> suffixComponentsList = Arrays.asList(suffixArray);
-    List<String> noEmptyElemSuffixComponentsList;
+    List<String> suffixComponentsList;
     if (nonEmptyIndex == 0) {
-      noEmptyElemSuffixComponentsList = suffixComponentsList;
+      suffixComponentsList = Arrays.asList(suffixArray);
     } else {
-      noEmptyElemSuffixComponentsList = suffixComponentsList.subList(nonEmptyIndex,
-          suffixComponentsList.size());
+      // TODO(Tony Sun): optimize the performance later
+      suffixComponentsList = Arrays.asList(
+          Arrays.copyOfRange(
+              suffixArray,
+              nonEmptyIndex, suffixArray.length));
     }
     List<String> pathComponents = mProto.getPathComponentsList();
     return new UfsUrl(UfsUrlMessage.newBuilder()
         .setScheme(mProto.getScheme())
         .setAuthority(mProto.getAuthority())
         .addAllPathComponents(pathComponents)
-        .addAllPathComponents(noEmptyElemSuffixComponentsList).build());
+        .addAllPathComponents(suffixComponentsList).build());
   }
 }
