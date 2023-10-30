@@ -74,7 +74,7 @@ public class UfsUrl {
       String path = null;
 
       int start = 0;
-      int schemeSplitIndex = inputUrl.indexOf(SCHEME_SEPARATOR, start);
+      int schemeSplitIndex = inputUrl.indexOf(COLON_SEPARATOR, start);
       if (schemeSplitIndex == -1) {
         scheme = "";
       } else {
@@ -356,7 +356,9 @@ public class UfsUrl {
    */
   public String getName() {
     List<String> pathComponents = getPathComponents();
-    Preconditions.checkArgument(!pathComponents.isEmpty());
+    if (pathComponents.isEmpty()) {
+      return "";
+    }
     return pathComponents.get(pathComponents.size() - 1);
   }
 
