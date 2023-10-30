@@ -8,14 +8,11 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
+
 [package]
-name = "${cargo_crate_name}"
-edition = "2021"
+name = "spdk-sys"
 version = "0.1.0"
-license = "Apache-2.0"
-authors = [ "Alluxio Developers" ]
+edition = "2021"
 
-[lib]
-crate-type = [ "${cargo_crate_type}" ]
-
-[dependencies]
+[build-dependencies]
+bindgen = "= 0.66"
