@@ -37,7 +37,7 @@ var hadoopDistributions = map[string]version{
 	"hadoop-3.0":  parseVersion("3.0.3"),
 	"hadoop-3.1":  parseVersion("3.1.1"),
 	"hadoop-3.2":  parseVersion("3.2.1"),
-	"hadoop-3.3":  parseVersion("3.3.1"),
+	"hadoop-3.3":  parseVersion("3.3.4"),
 	// This distribution type is built with 2.7.3, but doesn't include the hadoop version in the name.
 	"default": parseVersion("2.7.3"),
 }
@@ -69,7 +69,7 @@ var ufsModules = map[string]module{
 	"ufs-hadoop-3.0":  {"hadoop-3.0", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.0.0 -PhdfsActiveSync"},
 	"ufs-hadoop-3.1":  {"hadoop-3.1", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.1.1 -PhdfsActiveSync"},
 	"ufs-hadoop-3.2":  {"hadoop-3.2", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.2.1 -PhdfsActiveSync"},
-	"ufs-hadoop-3.3":  {"hadoop-3.3", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1 -PhdfsActiveSync"},
+	"ufs-hadoop-3.3":  {"hadoop-3.3", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.4 -PhdfsActiveSync"},
 
 	"ufs-hadoop-ozone-1.2.1":      {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
 	"ufs-hadoop-cosn-3.1.0-5.8.5": {"hadoop-cosn-3.1.0-5.8.5", "cosn", true, "-pl underfs/cosn -Dufs.cosn.version=3.1.0-5.8.5"},
