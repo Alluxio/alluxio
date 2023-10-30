@@ -16,7 +16,7 @@ license = "Apache-2.0"
 authors = [ "Alluxio Developers" ]
 
 [lib]
-crate-type = [ "cdylib" ]
+crate-type = [ "cdylib", "rlib" ]
 
 [dependencies]
 spdk-sys = { path = "spdk-sys" }
