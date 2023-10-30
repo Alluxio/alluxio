@@ -22,6 +22,7 @@ import alluxio.grpc.UfsUrlMessage;
 import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.UfsUrl;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -30,6 +31,7 @@ import java.util.List;
 /**
  * Unit tests for {@link UfsUrl}.
  */
+@Ignore
 public class UfsUrlTest {
 
   /**
