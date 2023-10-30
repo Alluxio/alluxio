@@ -51,7 +51,7 @@ public class DoraMkdirCommandIntegrationTest extends AbstractDoraFileSystemShell
     assertEquals(0, mFsShell.run("mkdir", uri.toString()));
     assertEquals(-1, mFsShell.run("mkdir", uri.toString()));
     assertTrue(
-        mOutput.toString().contains("UNKNOWN: alluxio.exception.FileAlreadyExistsException"));
+        mOutput.toString().contains("ALREADY_EXISTS"));
   }
 
   @Test
@@ -72,11 +72,12 @@ public class DoraMkdirCommandIntegrationTest extends AbstractDoraFileSystemShell
     }
   }
 
+  // TODO(xinyu): should test a invalid path, maybe redesign this test case XD
   @Test
   public void testMkdirInvalidPath() {
     assertEquals(-1, mFsShell.run("mkdir", ""));
     assertTrue(
-        mOutput.toString().contains("UNKNOWN: alluxio.exception.FileAlreadyExistsException"));
+        mOutput.toString().contains("ALREADY_EXISTS"));
   }
 
   @Test
