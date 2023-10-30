@@ -14,24 +14,28 @@ package alluxio.master.job;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.dora.ConsistentHashPolicy;
 import alluxio.conf.Configuration;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.wire.WorkerInfo;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 /**
  * Policy which employs Hash-Based algorithm to select worker from given workers set.
  */
-public class HashBasedWorkerAssignPolicy extends WorkerAssignPolicy {
+public class HashBasedWorkerAssignPolicy implements WorkerAssignPolicy {
   ConsistentHashPolicy mWorkerLocationPolicy = new ConsistentHashPolicy(Configuration.global());
 
   @Override
-  protected WorkerInfo pickAWorker(String object, @Nullable Collection<WorkerInfo> workerInfos) {
+  public List<WorkerInfo> pickWorkers(String object, @Nullable Set<WorkerInfo> workerInfos,
+      int count) {
     if (workerInfos == null) {
-      return null;
+      return Collections.emptyList();
     }
     List<BlockWorkerInfo> candidates = workerInfos.stream()
         .map(w -> new BlockWorkerInfo(w.getIdentity(),
@@ -39,14 +43,18 @@ public class HashBasedWorkerAssignPolicy extends WorkerAssignPolicy {
         .collect(Collectors.toList());
     try {
       List<BlockWorkerInfo> blockWorkerInfo = mWorkerLocationPolicy
-              .getPreferredWorkers(candidates, object, 1);
-      WorkerInfo returnWorker = workerInfos.stream().filter(workerInfo ->
-              workerInfo.getIdentity().equals(blockWorkerInfo.get(0).getIdentity()))
-              .findFirst().get();
-      return returnWorker;
+              .getPreferredWorkers(candidates, object, count);
+      ArrayList workers = new ArrayList<>();
+      for (int i = 0; i < count; i++) {
+        int finalI = i;
+        WorkerInfo returnWorker = workerInfos.stream().filter(workerInfo ->
+              workerInfo.getIdentity().equals(blockWorkerInfo.get(finalI).getIdentity()))
+                                             .findFirst().get();
+        workers.add(returnWorker);
+      }
+      return workers;
     } catch (ResourceExhaustedException e) {
-      // Tolerate the exception when there is no workers in the cluster
-      return null;
+      throw new ResourceExhaustedRuntimeException(e.getMessage(), e, false);
     }
   }
 }

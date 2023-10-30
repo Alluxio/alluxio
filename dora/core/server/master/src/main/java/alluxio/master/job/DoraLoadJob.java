@@ -59,7 +59,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -68,6 +67,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -104,7 +104,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private final AtomicLong mLoadedByteCount = new AtomicLong();
   private final AtomicLong mTotalByteCount = new AtomicLong();
   private final AtomicLong mSkippedByteCount = new AtomicLong();
-  private final AtomicLong mProcessingFileCount = new AtomicLong();
+  private final AtomicLong mProcessingSubTasksCount = new AtomicLong();
   //including retry, do accurate stats later.
   private final AtomicLong mTotalFailureCount = new AtomicLong();
   private final AtomicLong mCurrentFailureCount = new AtomicLong();
@@ -125,6 +125,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private final long mVirtualBlockSize = Configuration.getBytes(
       PropertyKey.DORA_READ_VIRTUAL_BLOCK_SIZE);
   private Iterator<LoadSubTask> mCurrentSubTaskIterator;
+  private final int mNumReplica;
 
   /**
    * Constructor.
@@ -140,16 +141,18 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
    * @param fileFilterRegx      the regx pattern string for file filter
    * @param ufsStatusIterator   ufsStatus iterable
    * @param ufs                 under file system
+   * @param replica             replica
    */
   public DoraLoadJob(String path, Optional<String> user, String jobId, OptionalLong bandwidth,
       boolean usePartialListing, boolean verificationEnabled, boolean loadMetadataOnly,
       boolean skipIfExists, Optional<String> fileFilterRegx, Iterator<UfsStatus> ufsStatusIterator,
-                     UnderFileSystem ufs) {
+                     UnderFileSystem ufs, int replica) {
     super(user, jobId, new HashBasedWorkerAssignPolicy());
     mLoadPath = requireNonNull(path, "path is null");
     Preconditions.checkArgument(
         !bandwidth.isPresent() || bandwidth.getAsLong() > 0,
         format("bandwidth should be greater than 0 if provided, get %s", bandwidth));
+    Preconditions.checkArgument(replica >= 1, "numReplica should be at least 1");
     mBandwidth = bandwidth;
     mUsePartialListing = usePartialListing;
     mVerificationEnabled = verificationEnabled;
@@ -158,6 +161,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     mSkipIfExists = skipIfExists;
     mFileFilterRegx = fileFilterRegx;
     mUfsStatusIterator = ufsStatusIterator;
+    mNumReplica = replica;
     LOG.info("DoraLoadJob for {} created.", path);
   }
 
@@ -167,13 +171,13 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
    * @param workers
    * @return list of DoraLoadTask
    */
-  private List<DoraLoadTask> prepareNextTasks(Collection<WorkerInfo> workers) {
+  private List<DoraLoadTask> prepareNextTasks(Set<WorkerInfo> workers) {
     LOG.debug("Preparing next set of tasks for jobId:{}", mJobId);
     int workerNum = workers.size();
     ImmutableList.Builder<LoadSubTask> batchBuilder = ImmutableList.builder();
     if (mCurrentSubTaskIterator == null) {
       if (mUfsStatusIterator.hasNext()) {
-        mCurrentSubTaskIterator = initSubTaskIterator();
+        mCurrentSubTaskIterator = initSubTaskIterator(workers);
       }
       else {
         return Collections.emptyList();
@@ -207,41 +211,32 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
           break;
         }
         else {
-          mCurrentSubTaskIterator = initSubTaskIterator();
+          mCurrentSubTaskIterator = initSubTaskIterator(workers);
         }
       }
       batchBuilder.add(mCurrentSubTaskIterator.next());
       numSubTasks++;
     }
     ImmutableList<LoadSubTask> subTasks = batchBuilder.build();
-    Map<WorkerInfo, DoraLoadTask> workerToTaskMap = pickWorkerForSubTasks(workers, subTasks);
+    Map<WorkerInfo, DoraLoadTask> workerToTaskMap = aggregateSubTasks(subTasks);
     if (workerToTaskMap.isEmpty()) {
       return Collections.unmodifiableList(new ArrayList<>());
     }
-    List<DoraLoadTask> tasks = workerToTaskMap.values().stream()
-        .collect(Collectors.toList());
+    List<DoraLoadTask> tasks = workerToTaskMap.values().stream().collect(Collectors.toList());
     LOG.debug("prepared tasks:{}", tasks);
     return tasks;
   }
 
-  private Iterator<LoadSubTask> initSubTaskIterator() {
-    return createSubTasks(mUfsStatusIterator.next()).listIterator();
+  private Iterator<LoadSubTask> initSubTaskIterator(Set<WorkerInfo> workers) {
+
+    return createSubTasks(mUfsStatusIterator.next(), workers).listIterator();
   }
 
-  private Map<WorkerInfo, DoraLoadTask> pickWorkerForSubTasks(
-      Collection<WorkerInfo> workers, ImmutableList<LoadSubTask> subTasks) {
+  private Map<WorkerInfo, DoraLoadTask> aggregateSubTasks(List<LoadSubTask> subTasks) {
     Map<WorkerInfo, DoraLoadTask> workerToTaskMap = new HashMap<>();
     for (LoadSubTask subtask : subTasks) {
-      // NOTE: active workers may not reflect all workers at start up,
-      // but hash based policy will deterministically pick only among
-      // current recognized active workers -> will change in future
-      // once membership module is ready to tell all registered workers
-      WorkerInfo pickedWorker = mWorkerAssignPolicy.pickAWorker(
-          subtask.asString(), workers);
-      if (pickedWorker == null) {
-        mRetrySubTasks.offer(subtask);
-        continue;
-      }
+      WorkerInfo pickedWorker = subtask.getWorkerInfo();
+      Preconditions.checkNotNull(pickedWorker, "pickedWorker is null");
       DoraLoadTask task = workerToTaskMap.computeIfAbsent(pickedWorker,
           w -> {
             DoraLoadTask t = new DoraLoadTask();
@@ -250,36 +245,48 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
             return t;
           });
       task.addSubTask(subtask);
-      if (!mLoadMetadataOnly) {
-        mTotalByteCount.addAndGet(subtask.getLength());
-      }
-      mProcessingFileCount.addAndGet(1);
     }
     return workerToTaskMap;
   }
 
-  private List<LoadSubTask> createSubTasks(UfsStatus ufsStatus) {
+  private List<LoadSubTask> createSubTasks(UfsStatus ufsStatus, Set<WorkerInfo> workers) {
     List<LoadSubTask> subTasks = new ArrayList<>();
-        // add load metadata task
-    subTasks.add(new LoadMetadataSubTask(ufsStatus, mVirtualBlockSize));
-    if (mLoadMetadataOnly || ufsStatus.isDirectory()
-        || ufsStatus.asUfsFileStatus().getContentLength() == 0) {
-      return subTasks;
-    }
-    long contentLength = ufsStatus.asUfsFileStatus().getContentLength();
-    if (mVirtualBlockSize > 0) {
-      int numBlocks = (int) (contentLength / mVirtualBlockSize) + 1;
-      for (int i = 0; i < numBlocks; i++) {
-        long offset = mVirtualBlockSize * i;
-        long leftover = contentLength - offset;
-        subTasks.add(new LoadDataSubTask(ufsStatus, mVirtualBlockSize, offset,
-            Math.min(leftover, mVirtualBlockSize)));
+    // add load metadata task
+    LoadMetadataSubTask subTask = new LoadMetadataSubTask(ufsStatus, mVirtualBlockSize);
+    subTasks.add(subTask);
+    if (!mLoadMetadataOnly && ufsStatus.isFile()
+        && ufsStatus.asUfsFileStatus().getContentLength() != 0) {
+      long contentLength = ufsStatus.asUfsFileStatus().getContentLength();
+      if (mVirtualBlockSize > 0) {
+        int numBlocks = (int) (contentLength / mVirtualBlockSize) + 1;
+        for (int i = 0; i < numBlocks; i++) {
+          long offset = mVirtualBlockSize * i;
+          long leftover = contentLength - offset;
+          subTasks.add(new LoadDataSubTask(ufsStatus, mVirtualBlockSize, offset,
+              Math.min(leftover, mVirtualBlockSize)));
+        }
+      }
+      else {
+        subTasks.add(new LoadDataSubTask(ufsStatus, mVirtualBlockSize, 0, contentLength));
       }
     }
-    else {
-      subTasks.add(new LoadDataSubTask(ufsStatus, mVirtualBlockSize, 0, contentLength));
+    List<LoadSubTask> subTasksWithWorker = assignSubtasksToWorkers(subTasks, workers, mNumReplica);
+    mTotalByteCount.addAndGet(subTasksWithWorker.stream().mapToLong(LoadSubTask::getLength).sum());
+    mProcessingSubTasksCount.addAndGet(subTasksWithWorker.size());
+    return subTasksWithWorker;
+  }
+
+  private List<LoadSubTask> assignSubtasksToWorkers(List<LoadSubTask> subTasks,
+      Set<WorkerInfo> workers, int numReplica) {
+    ImmutableList.Builder<LoadSubTask> replicaSubTasks = new ImmutableList.Builder<>();
+    for (LoadSubTask subTask : subTasks) {
+      List<WorkerInfo> pickedWorkers =
+          mWorkerAssignPolicy.pickWorkers(subTask.asString(), workers, numReplica);
+      for (int i = 0; i < numReplica; i++) {
+        replicaSubTasks.add(subTask.copy().setWorkerInfo(pickedWorkers.get(i)));
+      }
     }
-    return subTasks;
+    return replicaSubTasks.build();
   }
 
   /**
@@ -401,7 +408,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     }
     return mState != JobState.FAILED
         && totalFailureCount <= FAILURE_COUNT_THRESHOLD
-        || (double) totalFailureCount / mProcessingFileCount.get() <= FAILURE_RATIO_THRESHOLD;
+        || (double) totalFailureCount / mProcessingSubTasksCount.get() <= FAILURE_RATIO_THRESHOLD;
   }
 
   @Override
@@ -417,7 +424,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   }
 
   @Override
-  public List<DoraLoadTask> getNextTasks(Collection<WorkerInfo> workers) {
+  public List<DoraLoadTask> getNextTasks(Set<WorkerInfo> workers) {
     /* Both scheduler thread and worker thread will try to call getNextTasks,
     only one of them needs to do the preparation of next set of tasks and whoever
     wins will do the processjob and kick off those tasks.
@@ -477,6 +484,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         .setPartialListing(mUsePartialListing)
         .setVerify(mVerificationEnabled)
         .setSkipIfExists(mSkipIfExists)
+        .setReplicas(mNumReplica)
         .setJobId(mJobId);
     mFileFilterRegx.ifPresent(jobEntry::setFileFilterRegx);
     mUser.ifPresent(jobEntry::setUser);

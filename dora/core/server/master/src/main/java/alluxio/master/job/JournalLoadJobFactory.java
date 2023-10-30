@@ -77,7 +77,7 @@ public class JournalLoadJobFactory implements JobFactory {
     DoraLoadJob job = new DoraLoadJob(path, user, mJobEntry.getJobId(),
         mJobEntry.hasBandwidth() ? OptionalLong.of(mJobEntry.getBandwidth()) : OptionalLong.empty(),
         mJobEntry.getPartialListing(), mJobEntry.getVerify(), mJobEntry.getLoadMetadataOnly(),
-        mJobEntry.getSkipIfExists(), fileFilterRegx, iterable.iterator(), ufs);
+        mJobEntry.getSkipIfExists(), fileFilterRegx, iterable.iterator(), ufs, 1);
     job.setJobState(JobState.fromProto(mJobEntry.getState()), false);
     if (mJobEntry.hasEndTime()) {
       job.setEndTime(mJobEntry.getEndTime());

@@ -261,8 +261,10 @@ message LoadFileRequest {
 
 // A subtask of a load file request. either a load data or load metadata.
 message LoadSubTask {
-  optional LoadDataSubTask load_data_subtask = 1;
-  optional LoadMetadataSubTask load_metadata_subtask = 2;
+  oneof task {
+    LoadDataSubTask load_data_subtask = 1;
+    LoadMetadataSubTask load_metadata_subtask = 2;
+  }
 }
 
 message LoadDataSubTask {

@@ -60,7 +60,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -70,6 +69,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -287,7 +287,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
    * @param workers workers candidates
    * @return the next task to run. If there is no task to run, return empty
    */
-  public List<MoveTask> getNextTasks(Collection<WorkerInfo> workers) {
+  public List<MoveTask> getNextTasks(Set<WorkerInfo> workers) {
     List<MoveTask> tasks = new ArrayList<>();
     Iterator<MoveTask> it = mRetryTaskList.iterator();
     if (it.hasNext()) {
@@ -302,9 +302,10 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
       if (routes.isEmpty()) {
         return Collections.unmodifiableList(tasks);
       }
-      WorkerInfo workerInfo = mWorkerAssignPolicy.pickAWorker(StringUtil.EMPTY_STRING, workers);
+      List<WorkerInfo>
+          workerInfo = mWorkerAssignPolicy.pickWorkers(StringUtil.EMPTY_STRING, workers, 1);
       MoveTask moveTask = new MoveTask(routes);
-      moveTask.setMyRunningWorker(workerInfo);
+      moveTask.setMyRunningWorker(workerInfo.get(0));
       tasks.add(moveTask);
     }
     return Collections.unmodifiableList(tasks);

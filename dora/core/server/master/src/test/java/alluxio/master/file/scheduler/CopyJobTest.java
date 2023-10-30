@@ -41,7 +41,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.Set;
 
 public class CopyJobTest {
   // test CopyJob get next task
@@ -65,7 +66,7 @@ public class CopyJobTest {
         new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
     CopyJob copy = new CopyJob(srcPath, dstPath, false, user, "1",
         OptionalLong.empty(), false, false, false, files, Optional.empty());
-    List<WorkerInfo> workers = ImmutableList.of(
+    Set<WorkerInfo> workers = ImmutableSet.of(
         new WorkerInfo().setId(1).setAddress(
             new WorkerNetAddress().setHost("worker1").setRpcPort(1234)),
         new WorkerInfo().setId(2).setAddress(
