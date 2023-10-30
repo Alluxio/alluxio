@@ -90,6 +90,17 @@ public interface UfsManager extends Closeable {
   }
 
   /**
+   * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
+   * return it.
+   *
+   * @param ufsUri  the UFS path
+   * @param ufsConfSupplier supplier for UFS configuration
+   * @return the UFS instance
+   */
+  UnderFileSystem getOrAdd(AlluxioURI ufsUri,
+                                  Supplier<UnderFileSystemConfiguration> ufsConfSupplier);
+
+  /**
    * Keeps track of a mount id and maps it to its URI in Alluxio and configuration. This is an
    * Alluxio-only operation and no interaction to UFS will be made.
    *

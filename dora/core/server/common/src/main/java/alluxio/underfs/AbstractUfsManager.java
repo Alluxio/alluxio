@@ -108,14 +108,7 @@ public abstract class AbstractUfsManager implements UfsManager {
     mCloser = Closer.create();
   }
 
-  /**
-   * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
-   * return it.
-   *
-   * @param ufsUri  the UFS path
-   * @param ufsConfSupplier supplier for UFS configuration
-   * @return the UFS instance
-   */
+  @Override
   public UnderFileSystem getOrAdd(AlluxioURI ufsUri,
                                   Supplier<UnderFileSystemConfiguration> ufsConfSupplier) {
     Key key = generateKey(ufsUri);

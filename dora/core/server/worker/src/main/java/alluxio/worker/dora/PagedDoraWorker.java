@@ -79,6 +79,7 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.user.ServerUserState;
+import alluxio.underfs.AbstractUfsManager;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
@@ -153,7 +154,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   // TODO(lucy) change to string typed once membership manager got enabled by default
   private final AtomicReference<WorkerIdentity> mWorkerId;
   protected final CacheManager mCacheManager;
-  protected final DoraUfsManager mUfsManager;
+  protected final UfsManager mUfsManager;
   protected DoraMetaManager mMetaManager;
   private final MembershipManager mMembershipManager;
   private final UfsInputStreamCache mUfsStreamCache;
@@ -189,7 +190,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       CacheManager cacheManager,
       MembershipManager membershipManager,
       BlockMasterClientPool blockMasterClientPool,
-      DoraUfsManager ufsManager,
+      UfsManager ufsManager,
       DoraMetaManager metaManager,
       FileSystemContext fileSystemContext
   ) {
