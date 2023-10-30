@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -141,6 +142,8 @@ public interface UfsManager extends Closeable {
    * @throws UnavailableException if master is not available to query for mount table
    */
   UfsClient get(long mountId) throws NotFoundException, UnavailableException;
+
+  Optional<UnderFileSystem> get(AlluxioURI ufsUri);
 
   /**
    * @return the UFS client associated with root

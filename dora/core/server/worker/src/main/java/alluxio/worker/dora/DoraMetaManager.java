@@ -22,6 +22,7 @@ import alluxio.grpc.FileInfo;
 import alluxio.proto.meta.DoraMeta;
 import alluxio.proto.meta.DoraMeta.FileStatus;
 import alluxio.underfs.Fingerprint;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -56,7 +57,7 @@ public class DoraMetaManager implements Closeable {
   private final AlluxioConfiguration mConf;
   private final DoraMetaStore mMetaStore;
   private final CacheManager mCacheManager;
-  protected final DoraUfsManager mUfsManager;
+  protected final UfsManager mUfsManager;
 
   private static final Logger SAMPLING_LOG = new SamplingLogger(
       LoggerFactory.getLogger(DoraMetaManager.class), 1L * Constants.MINUTE_MS);
@@ -84,7 +85,7 @@ public class DoraMetaManager implements Closeable {
   @Inject
   public DoraMetaManager(AlluxioConfiguration conf,
       CacheManager cacheManger,
-      DoraUfsManager ufsManager) {
+      UfsManager ufsManager) {
     mConf = conf;
     String dbDir = mConf.getString(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR);
     Duration duration = mConf.getDuration(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_TTL);
