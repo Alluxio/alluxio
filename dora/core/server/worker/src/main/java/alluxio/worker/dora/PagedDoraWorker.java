@@ -1056,18 +1056,19 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       throw new FailedPreconditionException("Cannot rename a file in one UFS to another UFS");
     }
 
-     try {
-       // Check if the target file already exists. If yes, return by throwing error.
-       boolean overWrite = options.hasOverwrite() ? options.getOverwrite() : false;
-       boolean exists = srcUfs.exists(dst);
-       if (!overWrite && exists) {
-         throw new AlreadyExistsRuntimeException(String.format("File %s already exists but no overwrite flag", dst));
-       } else if (overWrite) {
-         mMetaManager.removeFromMetaStore(dst);
-       }
-     } catch (IOException e) {
-       throw new RuntimeException(e);
-     }
+    try {
+      // Check if the target file already exists. If yes, return by throwing error.
+      boolean overWrite = options.hasOverwrite() ? options.getOverwrite() : false;
+      boolean exists = srcUfs.exists(dst);
+      if (!overWrite && exists) {
+        throw new AlreadyExistsRuntimeException(String.format("File %s already exists but"
+            + "no overwrite flag", dst));
+      } else if (overWrite) {
+        mMetaManager.removeFromMetaStore(dst);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
 
     boolean rc;
     try {
