@@ -8,6 +8,7 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
+
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
@@ -17,7 +18,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.WritePType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import com.google.common.io.ByteStreams;
@@ -37,7 +37,7 @@ public class DirectAccessIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private static final String DIRECT_DIR = "/mnt/direct/";
-  private static final String NON_DIRECT_DIR = "/mnt/nondirect/";
+  private static final String NON_DIRECT_DIR = "/mnt/non_direct/";
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -46,20 +46,17 @@ public class DirectAccessIntegrationTest {
           .setProperty(PropertyKey.USER_FILE_DIRECT_ACCESS, DIRECT_DIR)
           .build();
   private FileSystem mFileSystem;
-  private CreateFilePOptions mWriteThrough;
 
-  private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
+  private final String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
 
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteThrough = CreateFilePOptions.newBuilder().setRecursive(true)
-        .setWriteType(WritePType.THROUGH).build();
     mFileSystem.mount(new AlluxioURI("/mnt/"), new AlluxioURI(mLocalUfsPath));
   }
 
   @Test
-  public void write() throws Exception {
+  public void writeDirect() throws Exception {
     final int n = 3;
     for (int i = 0; i < n; i++) {
       AlluxioURI uri = new AlluxioURI(DIRECT_DIR + i);
@@ -70,18 +67,36 @@ public class DirectAccessIntegrationTest {
     }
     Assert.assertEquals(n, new File(mLocalUfsPath + "/direct").listFiles().length);
     for (int i = 0; i < n; i++) {
-      checkCacheStatus(DIRECT_DIR + i, false);
+      checkCacheStatus(DIRECT_DIR + i, false, false);
     }
   }
 
-  private void checkCacheStatus(String path, boolean shouldCache) throws Exception {
+  @Test
+  public void writeNonDirect() throws Exception {
+    final int n = 3;
+    for (int i = 0; i < n; i++) {
+      AlluxioURI uri = new AlluxioURI(NON_DIRECT_DIR + i);
+      try (FileOutStream os = mFileSystem.createFile(uri,
+          CreateFilePOptions.newBuilder().setRecursive(true).build())) {
+        os.write(TEST_BYTES);
+      }
+    }
+    Assert.assertNull(new File(mLocalUfsPath + "/non_direct").listFiles());
+
+    for (int i = 0; i < n; i++) {
+      checkCacheStatus(NON_DIRECT_DIR + i, true, true);
+    }
+  }
+
+  private void checkCacheStatus(String path,
+      boolean shouldCacheBefore, boolean shouldCache) throws Exception {
     AlluxioURI uri = new AlluxioURI(path);
-    Assert.assertEquals(0, mFileSystem.getStatus(uri).getInMemoryPercentage());
+    Assert.assertEquals(shouldCacheBefore ? 100 : 0,
+        mFileSystem.getStatus(uri).getInMemoryPercentage());
     try (FileInStream is = mFileSystem.openFile(uri)) {
       IOUtils.copy(is, ByteStreams.nullOutputStream());
     }
     FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, shouldCache ? 100 : 0);
-    Assert.assertEquals(0, mFileSystem.getStatus(uri).getInMemoryPercentage());
-
+    Assert.assertEquals(shouldCache ? 100 : 0, mFileSystem.getStatus(uri).getInMemoryPercentage());
   }
 }
