@@ -16,6 +16,8 @@ import static java.util.stream.Collectors.toMap;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.client.ReadType;
+import alluxio.client.WriteType;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
@@ -55,7 +57,6 @@ import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
-import alluxio.grpc.ReadPType;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
@@ -65,7 +66,6 @@ import alluxio.grpc.SyncMetadataAsyncPResponse;
 import alluxio.grpc.SyncMetadataPOptions;
 import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.grpc.WritePType;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.master.MasterInquireClient;
@@ -73,6 +73,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.util.FileSystemOptionsUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
@@ -104,9 +105,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class BaseFileSystem implements FileSystem {
   private static final AlluxioConfiguration DIRECT_ACCESS_CONF = new ConfigurationBuilder()
-      .setProperty(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, 0)
-      .setProperty(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadPType.NO_CACHE)
-      .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WritePType.THROUGH).build();
+      .setProperty(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0")
+      .setProperty(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.NO_CACHE)
+      .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.THROUGH).build();
   private static final Logger LOG = LoggerFactory.getLogger(BaseFileSystem.class);
 
   /** Used to manage closeable resources. */
@@ -168,7 +169,13 @@ public class BaseFileSystem implements FileSystem {
 
   private boolean checkDirectAccess(AlluxioURI uri) {
     List<String> pathList = getConf().getList(PropertyKey.USER_FILE_DIRECT_ACCESS);
-    return pathList.contains(uri.getPath());
+    return pathList.stream().anyMatch(x -> {
+      try {
+        return PathUtils.hasPrefix(uri.getPath(), x);
+      } catch (InvalidPathException e) {
+        return false;
+      }
+    });
   }
 
   private AlluxioConfiguration getDirectAccessConf(AlluxioURI uri) {
