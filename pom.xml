@@ -1393,6 +1393,7 @@
                 <exclude>dev/scripts/workdir/**/*</exclude>
                 <exclude>generated/**</exclude>
                 <exclude>libexec/version.sh</exclude>
+                <exclude>**/Cargo.lock</exclude>
                 <exclude>**/.checkstyle</exclude>
                 <exclude>**/src/main/assembly/*</exclude>
                 <exclude>**/.idea/**</exclude>
@@ -1425,8 +1426,10 @@
             <h>SLASHSTAR_STYLE</h>
             <java>SLASHSTAR_STYLE</java>
             <properties.template>SCRIPT_STYLE</properties.template>
+            <rs>SLASHSTAR_STYLE</rs>
             <scss>SLASHSTAR_STYLE</scss>
             <sh.template>SCRIPT_STYLE</sh.template>
+            <toml>SCRIPT_STYLE</toml>
             <tsx>SLASHSTAR_STYLE</tsx>
             <workers>SCRIPT_STYLE</workers>
             <xml.template>XML_STYLE</xml.template>
