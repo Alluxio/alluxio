@@ -223,11 +223,8 @@ public class UfsUrl {
   /**
    * @return the authority of the {@link UfsUrl}
    */
-  public Optional<Authority> getAuthority() {
-    if (!mProto.hasAuthority()) {
-      return Optional.empty();
-    }
-    return Optional.of(Authority.fromString(mProto.getAuthority()));
+  public Authority getAuthority() {
+    return Authority.fromString(mProto.getAuthority());
   }
 
   /**
@@ -299,22 +296,18 @@ public class UfsUrl {
 
   /**
    * Gets parent UfsUrl of current UfsUrl.
-   * <p>
-   * e.g.
-   * <ul>
-   *   <li>getParentURL(abc://1.2.3.4:19998/xy z/a b c) -> abc://1.2.3.4:19998/xy z</li>
-   * </ul>
-   *
-   * @return parent UfsUrl
+   * @return Optional UfsUrl The parent UfsUrl or null if at root
    */
-  // TODO(Jiacheng Liu): try to avoid the copy by a RelativeUrl class
-  public UfsUrl getParentURL() {
+  public Optional<UfsUrl> getParentURL() {
+    if (mProto.getPathComponentsList().isEmpty()) {
+      return Optional.empty();
+    }
     List<String> pathComponents = mProto.getPathComponentsList();
-    return new UfsUrl(UfsUrlMessage.newBuilder()
+    return Optional.of(new UfsUrl(UfsUrlMessage.newBuilder()
         .setScheme(mProto.getScheme())
         .setAuthority(mProto.getAuthority())
-        // TODO(Jiacheng Liu): how many copies are there. Improve the performance in the future.
-        .addAllPathComponents(pathComponents.subList(0, pathComponents.size() - 1)).build());
+        // sublist returns a view, not a copy
+        .addAllPathComponents(pathComponents.subList(0, pathComponents.size() - 1)).build()));
   }
 
   /**
