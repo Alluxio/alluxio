@@ -168,6 +168,9 @@ public class BaseFileSystem implements FileSystem {
   }
 
   private boolean checkDirectAccess(AlluxioURI uri) {
+    if (!getConf().isSet(PropertyKey.USER_FILE_DIRECT_ACCESS)) {
+      return false;
+    }
     List<String> pathList = getConf().getList(PropertyKey.USER_FILE_DIRECT_ACCESS);
     return pathList.stream().anyMatch(x -> {
       try {

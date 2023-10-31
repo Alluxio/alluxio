@@ -5835,7 +5835,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_FILE_DIRECT_ACCESS =
       listBuilder(Name.USER_FILE_DIRECT_ACCESS)
-          .setDefaultValue("")
           .setDescription("A list of Alluxio paths that are not read or write cached and "
               + "always fetches from the ufs for the latest listing")
           .setScope(Scope.CLIENT)
