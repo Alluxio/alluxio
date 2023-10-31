@@ -553,7 +553,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     String fileId = new AlluxioURI(status.getUfsFullPath()).hash();
     List<PageId> cachedPages = mCacheManager.getCachedPageIdsByFileId(fileId,
         status.getUfsFileStatus().getContentLength());
-    int numOfPagesInBlock = (int) (length / mPageSize);
+    int numOfPagesInBlock = (int) ((length + mPageSize - 1) / mPageSize);
     for (long pageIndex = offset / mPageSize; pageIndex < numOfPagesInBlock;
          pageIndex++) {
       PageId pageId = new PageId(fileId, pageIndex);
