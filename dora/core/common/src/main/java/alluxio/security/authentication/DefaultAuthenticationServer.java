@@ -26,6 +26,7 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -160,12 +161,12 @@ public class DefaultAuthenticationServer
    * stale.
    */
   private void cleanupStaleClients() {
-    LocalTime cleanupTime = LocalTime.now();
+    LocalDateTime cleanupTime = LocalDateTime.now();
     LOG.debug("Starting cleanup authentication registry at {}", cleanupTime);
     // Get a list of stale clients under read lock.
     List<UUID> staleChannels = new ArrayList<>();
     for (Map.Entry<UUID, AuthenticatedChannelInfo> clientEntry : mChannels.entrySet()) {
-      LocalTime lat = clientEntry.getValue().getLastAccessTime();
+      LocalDateTime lat = clientEntry.getValue().getLastAccessTime();
       if (lat.plusSeconds(mCleanupIntervalMs / 1000).isBefore(cleanupTime)) {
         staleChannels.add(clientEntry.getKey());
       }
@@ -201,7 +202,7 @@ public class DefaultAuthenticationServer
    * and Sasl objects per channel.
    */
   class AuthenticatedChannelInfo {
-    private LocalTime mLastAccessTime;
+    private LocalDateTime mLastAccessTime;
     private AuthenticatedUserInfo mUserInfo;
     private AuthenticatedChannelServerDriver mSaslServerDriver;
 
@@ -213,17 +214,17 @@ public class DefaultAuthenticationServer
         AuthenticatedChannelServerDriver saslServerDriver) {
       mUserInfo = userInfo;
       mSaslServerDriver = saslServerDriver;
-      mLastAccessTime = LocalTime.now();
+      mLastAccessTime = LocalDateTime.now();
     }
 
     private synchronized void updateLastAccessTime() {
-      mLastAccessTime = LocalTime.now();
+      mLastAccessTime = LocalDateTime.now();
     }
 
     /**
      * @return the last access time
      */
-    public synchronized LocalTime getLastAccessTime() {
+    public synchronized LocalDateTime getLastAccessTime() {
       return mLastAccessTime;
     }
 
