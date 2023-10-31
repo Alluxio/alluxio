@@ -693,7 +693,7 @@ public final class AlluxioFuseUtils {
     // If we have set an FUSE_MOUNT_ALLUXIO_PATH, use it as the "MountedRootPath".
     if (!fuseMountAlluxioPath.isEmpty()
         && (!fuseMountAlluxioPath.equals(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH.getDefaultValue()))) {
-        return fuseMountAlluxioPath;
+      return fuseMountAlluxioPath;
     }
     if (options.isPresent())  {
       return options.get().getUfsAddress();
