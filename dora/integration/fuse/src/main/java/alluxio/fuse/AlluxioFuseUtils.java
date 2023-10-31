@@ -62,6 +62,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -688,16 +689,16 @@ public final class AlluxioFuseUtils {
   public static String getMountedRootPath(AlluxioConfiguration conf, FuseOptions fuseOptions) {
     Optional<UfsFileSystemOptions> options
         = fuseOptions.getFileSystemOptions().getUfsFileSystemOptions();
-    if (conf.getBoolean(PropertyKey.WORKER_FUSE_ENABLED)) {
-      if (!conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH).isEmpty())  {
-        return conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
-      }
+    String fuseMountAlluxioPath = conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
+    // If we have set an FUSE_MOUNT_ALLUXIO_PATH, use it as the "MountedRootPath".
+    if (!fuseMountAlluxioPath.isEmpty()
+        && (!fuseMountAlluxioPath.equals(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH.getDefaultValue()))) {
+        return fuseMountAlluxioPath;
     }
     if (options.isPresent())  {
       return options.get().getUfsAddress();
     }
-    // if running at here, return value is an empty String.
-    return conf.getString(PropertyKey.FUSE_MOUNT_ALLUXIO_PATH);
+    return Strings.EMPTY;
   }
 
   /**
