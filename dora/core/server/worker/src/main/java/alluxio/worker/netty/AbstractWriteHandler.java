@@ -15,6 +15,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -288,6 +289,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
           mContext.setPosToWrite(mContext.getPosToWrite() + readableBytes);
           writeBuf(mContext, mChannel, buf, mContext.getPosToWrite());
           incrementMetrics(readableBytes);
+          MultiDimensionalMetricsSystem.DATA_ACCESS.labelValues("write").observe(readableBytes);
         } catch (Exception e) {
           LOG.error("Failed to write packet for request {}", mContext.getRequest(), e);
           Throwables.propagateIfPossible(e);
@@ -300,6 +302,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
 
       if (abort) {
         try {
+          MultiDimensionalMetricsSystem.DATA_ACCESS.labelValues("write").observe(0);
           cleanupRequest(mContext);
           replyError();
         } catch (Exception e) {
@@ -308,6 +311,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
       } else if (cancel || eof) {
         try {
           if (cancel) {
+            MultiDimensionalMetricsSystem.DATA_ACCESS.labelValues("write").observe(0);
             cancelRequest(mContext);
             replyCancel();
           } else {

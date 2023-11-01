@@ -18,7 +18,6 @@ import alluxio.util.FormatUtils;
 
 import io.prometheus.metrics.config.PrometheusProperties;
 import io.prometheus.metrics.core.metrics.Counter;
-import io.prometheus.metrics.core.metrics.Gauge;
 import io.prometheus.metrics.core.metrics.GaugeWithCallback;
 import io.prometheus.metrics.core.metrics.Histogram;
 import io.prometheus.metrics.core.metrics.Summary;
@@ -36,6 +35,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.function.DoubleSupplier;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -91,10 +91,13 @@ public final class MultiDimensionalMetricsSystem {
       .unit(Unit.BYTES)
       .build();
 
-  public static final Gauge CACHED_STORAGE = Gauge.builder()
+  private static DoubleSupplier sCacheStorageSupplier = () -> 0;
+
+  public static final GaugeWithCallback CACHED_STORAGE = GaugeWithCallback.builder()
       .name("alluxio_cached_storage")
       .help("amount of the cached data")
       .unit(Unit.BYTES)
+      .callback(callback -> callback.call(sCacheStorageSupplier.getAsDouble()))
       .build();
 
   public static final GaugeWithCallback CACHED_CAPACITY = GaugeWithCallback.builder()
@@ -147,6 +150,15 @@ public final class MultiDimensionalMetricsSystem {
       default:
         // Ignore and only expose JVM-related metrics
     }
+  }
+
+  /**
+   * Set the supplier for CACHE_STORAGE metrics.
+   *
+   * @param supplier supplier for cache storage
+   */
+  public static void setCacheStorageSupplier(DoubleSupplier supplier) {
+    sCacheStorageSupplier = supplier;
   }
 
   /**

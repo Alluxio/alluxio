@@ -15,6 +15,7 @@ import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
 import alluxio.grpc.WritePType;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -107,6 +108,7 @@ public class PagedFileWriter extends BlockWriter {
       bytesWritten += bytesLeftInPage;
     }
 
+    MultiDimensionalMetricsSystem.UFS_DATA_ACCESS.labelValues("write").observe(bytesWritten);
     // data is written to local cache and UFS. Update Position.
     mPosition += bytesWritten;
     LOG.debug("after write {} bytes. New pos = {}", bytesWritten, mPosition);

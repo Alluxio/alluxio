@@ -15,6 +15,7 @@ import alluxio.client.file.dora.netty.DebugLoggingTracer;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.util.CommonUtils;
@@ -688,6 +689,7 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
     RPCProtoMessage response = RPCProtoMessage.createOkResponse(dataBuffer);
     mChannel.writeAndFlush(response)
         .addListener((ChannelFuture future) -> {
+          MultiDimensionalMetricsSystem.DATA_ACCESS.labelValues("read").observe(length);
           if (!future.isSuccess()) {
             LOG.error("Failed to send packet.", future.cause());
             mChannelEventQueue.add(WriteFutureResolved.failure(future.cause()));
@@ -895,6 +897,7 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
       Transition<State, TriggerEvent> transition) {
     LOG.warn("Client sent unexpected request {} when server was in state {} request was {}",
         unexpectedClientMessage, transition.getSource(), requestContext.getRequest());
+    MultiDimensionalMetricsSystem.DATA_ACCESS.labelValues("read").observe(0);
     String errorMessage = String.format("Unexpected client message %s when server is in state %s",
         unexpectedClientMessage, transition.getSource());
     Status errorStatus =
@@ -915,6 +918,7 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
         transition.getSource(), transition.getTrigger(), throwable.getMessage());
     LOG.debug("Server error occurred when server was in state {}, triggered by {}.",
         transition.getSource(), transition.getTrigger(), throwable);
+    MultiDimensionalMetricsSystem.DATA_ACCESS.labelValues("read").observe(0);
     RPCProtoMessage errorResponse =
         RPCProtoMessage.createResponse(AlluxioStatusException.fromThrowable(throwable));
     Throwable error = syncReplyMessage(errorResponse);

@@ -25,6 +25,7 @@ import alluxio.file.FileId;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -215,6 +216,7 @@ public class LocalCachePositionReader implements PositionReader {
     }
     // Bytes read from external, may be larger than requests due to reading complete pages
     MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).mark(totalBytesRead);
+    MultiDimensionalMetricsSystem.UFS_DATA_ACCESS.labelValues("read").observe(totalBytesRead);
     if (totalBytesRead != pageSize) {
       throw new FailedPreconditionRuntimeException(
           "Failed to read complete page from external storage. Bytes read: "
