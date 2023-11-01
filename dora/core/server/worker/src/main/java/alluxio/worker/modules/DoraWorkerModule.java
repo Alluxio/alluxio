@@ -74,7 +74,7 @@ public class DoraWorkerModule extends AbstractModule {
         .toProvider(BlockMasterClientPool::new)
         .in(Scopes.SINGLETON);
     bind(UfsManager.class).to(DoraUfsManager.class).in(Scopes.SINGLETON);
-    bind(DoraMetaManager.class).to(DoraMetaManager.class).in(Scopes.SINGLETON);
+    bind(DoraMetaManager.class).in(Scopes.SINGLETON);
     bind(AlluxioConfiguration.class).toProvider(() -> Configuration.global());
 
     // Create FileSystemContext shared across all worker components
