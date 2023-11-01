@@ -149,18 +149,18 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   // for now Dora Worker does not support Alluxio <-> UFS mapping,
   // and assumes all UFS paths belong to the same UFS.
   private static final int MOUNT_POINT = 1;
-  private final Closer mResourceCloser = Closer.create();
+  protected final Closer mResourceCloser = Closer.create();
   // TODO(lucy) change to string typed once membership manager got enabled by default
   private final AtomicReference<WorkerIdentity> mWorkerId;
   protected final CacheManager mCacheManager;
-  protected final DoraUfsManager mUfsManager;
-  private final DoraMetaManager mMetaManager;
+  protected final UfsManager mUfsManager;
+  protected final DoraMetaManager mMetaManager;
   private final MembershipManager mMembershipManager;
   private final UfsInputStreamCache mUfsStreamCache;
   private final long mPageSize;
   protected final AlluxioConfiguration mConf;
   private final BlockMasterClientPool mBlockMasterClientPool;
-  private FileSystemContext mFsContext;
+  protected final FileSystemContext mFsContext;
   private MkdirsOptions mMkdirsRecursive;
   private MkdirsOptions mMkdirsNonRecursive;
 
@@ -181,6 +181,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @param cacheManager
    * @param membershipManager
    * @param blockMasterClientPool
+   * @param ufsManager
+   * @param metaManager
+   * @param fileSystemContext
    */
   @Inject
   public PagedDoraWorker(
@@ -188,23 +191,15 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       AlluxioConfiguration conf,
       CacheManager cacheManager,
       MembershipManager membershipManager,
-      BlockMasterClientPool blockMasterClientPool
-  ) {
-    this(workerId, conf, cacheManager, membershipManager, blockMasterClientPool,
-        FileSystemContext.create(conf));
-  }
-
-  protected PagedDoraWorker(
-      AtomicReference<WorkerIdentity> workerId,
-      AlluxioConfiguration conf,
-      CacheManager cacheManager,
-      MembershipManager membershipManager,
       BlockMasterClientPool blockMasterClientPool,
-      FileSystemContext fileSystemContext) {
+      UfsManager ufsManager,
+      DoraMetaManager metaManager,
+      FileSystemContext fileSystemContext
+  ) {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
     mWorkerId = workerId;
     mConf = conf;
-    mUfsManager = mResourceCloser.register(new DoraUfsManager());
+    mUfsManager = mResourceCloser.register(ufsManager);
     String rootUFS = mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     mUfsManager.getOrAdd(new AlluxioURI(rootUFS),
         () -> UnderFileSystemConfiguration.defaults(mConf));
@@ -213,8 +208,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mPageSize = mConf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
     mBlockMasterClientPool = blockMasterClientPool;
     mCacheManager = cacheManager;
-    mMetaManager = mResourceCloser.register(
-        new DoraMetaManager(mConf, this, mCacheManager, mUfsManager));
+    mMetaManager = mResourceCloser.register(metaManager);
     mMembershipManager = membershipManager;
     mOpenFileHandleContainer = new DoraOpenFileHandleContainer();
     mMkdirsRecursive = MkdirsOptions.defaults(mConf).setCreateParent(true);
@@ -458,83 +452,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return cachedPercentage;
   }
 
-  /**
-   * Build FileInfo from UfsStatus and UFS full Path.
-   *
-   * @param status
-   * @param ufsFullPath
-   * @param xattrMap
-   * @return a FileInfo
-   */
-  public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath,
-                                                          @Nullable Map<String, String> xattrMap)
-      throws IOException {
-    UnderFileSystem ufs = getUfsInstance(ufsFullPath);
-    String filename = new AlluxioURI(ufsFullPath).getName();
-
-    alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
-        .setUfsType(ufs.getUnderFSType())
-        .setFileId(ufsFullPath.hashCode())
-        .setName(filename)
-        .setPath(ufsFullPath)
-        .setUfsPath(ufsFullPath)
-        .setMode(status.getMode())
-        .setFolder(status.isDirectory())
-        .setOwner(status.getOwner())
-        .setGroup(status.getGroup())
-        .setCompleted(true)
-        .setPersisted(true);
-    if (xattrMap != null) {
-      for (Map.Entry<String, String> entry : xattrMap.entrySet()) {
-        infoBuilder.putXattr(entry.getKey(), ByteString.copyFromUtf8(entry.getValue()));
-      }
-    }
-    if (status instanceof UfsFileStatus) {
-      UfsFileStatus fileStatus = (UfsFileStatus) status;
-      infoBuilder.setLength(fileStatus.getContentLength())
-          .setLastModificationTimeMs(status.getLastModifiedTime())
-          .setBlockSizeBytes(fileStatus.getBlockSize());
-      String contentHash = ((UfsFileStatus) status).getContentHash();
-      if (contentHash != null) {
-        infoBuilder.setContentHash(contentHash);
-      }
-
-      // get cached percentage
-      String cacheManagerFileId = new AlluxioURI(ufsFullPath).hash();
-      final long bytesInCache = mCacheManager.getUsage()
-          .flatMap(usage -> usage.partitionedBy(file(cacheManagerFileId)))
-          .map(CacheUsage::used).orElse(0L);
-      final long fileLength = fileStatus.getContentLength();
-      final int cachedPercentage;
-      if (fileLength > 0) {
-        cachedPercentage = (int) (bytesInCache * 100 / fileLength);
-      } else {
-        cachedPercentage = 100;
-      }
-
-      infoBuilder.setInAlluxioPercentage(cachedPercentage)
-          .setInMemoryPercentage(cachedPercentage);
-    }
-    return infoBuilder.build();
-  }
-
-  /**
-   * Build FileStatus from UfsStatus and UFS full Path.
-   *
-   * @param status the ufs status
-   * @param ufsFullPath the full ufs path
-   * @param xattrMap the map of file xAttrs
-   * @return the file status
-   */
-  public DoraMeta.FileStatus buildFileStatusFromUfsStatus(UfsStatus status, String ufsFullPath,
-                                                          @Nullable Map<String, String> xattrMap)
-      throws IOException {
-    return DoraMeta.FileStatus.newBuilder()
-        .setFileInfo(buildFileInfoFromUfsStatus(status, ufsFullPath, xattrMap))
-        .setTs(System.nanoTime())
-        .build();
-  }
-
   @Override
   public BlockReader createFileReader(String fileId, long offset, boolean positionShort,
       Protocol.OpenUfsBlockOptions options) throws IOException, AccessControlException {
@@ -728,7 +645,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       if (mXAttrWriteToUFSEnabled) {
         xattrMap = ufs.getAttributes(ufsFullPath);
       }
-      DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath, xattrMap);
+      DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(getCacheUsage(), ufs.getUnderFSType(),
+          status, ufsFullPath, xattrMap);
       mMetaManager.put(ufsFullPath, fs);
     } catch (Exception e) {
       LOG.error("Failed to put file status to meta manager", e);
@@ -980,7 +898,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                                 group,
                                 createOption.getMode().toShort(),
                                 DUMMY_BLOCK_SIZE);
-      info = buildFileInfoFromUfsStatus(status, path, null);
+      info = buildFileInfoFromUfsStatus(mCacheManager.getUsage(),
+          getUfsInstance(path).getUnderFSType(), status, path, null);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -1201,6 +1120,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return mMetaManager;
   }
 
+  /**
+   * Gets the current cache usage in worker.
+   * @return cache usage
+   */
+  public Optional<CacheUsage> getCacheUsage() {
+    return mCacheManager.getUsage();
+  }
+
   protected void checkCopyPermission(String srcPath, String dstPath)
       throws AccessControlException, IOException {
     // No-op
@@ -1218,5 +1145,85 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Override
   public WorkerNetAddress getAddress() {
     return mAddress;
+  }
+
+  /**
+   * Build FileInfo from UfsStatus and UFS full Path.
+   *
+   * @param cacheUsage cache usage
+   * @param ufsType type of the UFS
+   * @param status file status
+   * @param ufsFullPath full UFS path mapping to the file
+   * @param xattrMap extra attributes
+   * @return a FileInfo
+   */
+  public static alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(
+      Optional<CacheUsage> cacheUsage, String ufsType, UfsStatus status, String ufsFullPath,
+      @Nullable Map<String, String> xattrMap) {
+    String filename = new AlluxioURI(ufsFullPath).getName();
+
+    alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
+        .setUfsType(ufsType)
+        .setFileId(ufsFullPath.hashCode())
+        .setName(filename)
+        .setPath(ufsFullPath)
+        .setUfsPath(ufsFullPath)
+        .setMode(status.getMode())
+        .setFolder(status.isDirectory())
+        .setOwner(status.getOwner())
+        .setGroup(status.getGroup())
+        .setCompleted(true)
+        .setPersisted(true);
+    if (xattrMap != null) {
+      for (Map.Entry<String, String> entry : xattrMap.entrySet()) {
+        infoBuilder.putXattr(entry.getKey(), ByteString.copyFromUtf8(entry.getValue()));
+      }
+    }
+    if (status instanceof UfsFileStatus) {
+      UfsFileStatus fileStatus = (UfsFileStatus) status;
+      infoBuilder.setLength(fileStatus.getContentLength())
+          .setLastModificationTimeMs(status.getLastModifiedTime())
+          .setBlockSizeBytes(fileStatus.getBlockSize());
+      String contentHash = ((UfsFileStatus) status).getContentHash();
+      if (contentHash != null) {
+        infoBuilder.setContentHash(contentHash);
+      }
+
+      // get cached percentage
+      String cacheManagerFileId = new AlluxioURI(ufsFullPath).hash();
+      final long bytesInCache = cacheUsage
+          .flatMap(usage -> usage.partitionedBy(file(cacheManagerFileId)))
+          .map(CacheUsage::used).orElse(0L);
+      final long fileLength = fileStatus.getContentLength();
+      final int cachedPercentage;
+      if (fileLength > 0) {
+        cachedPercentage = (int) (bytesInCache * 100 / fileLength);
+      } else {
+        cachedPercentage = 100;
+      }
+
+      infoBuilder.setInAlluxioPercentage(cachedPercentage)
+          .setInMemoryPercentage(cachedPercentage);
+    }
+    return infoBuilder.build();
+  }
+
+  /**
+   * Build FileStatus from UfsStatus and UFS full Path.
+   *
+   * @param cacheUsage cache usage
+   * @param ufsType type of the UFS
+   * @param status the ufs status
+   * @param ufsFullPath the full ufs path
+   * @param xattrMap the map of file xAttrs
+   * @return the file status
+   */
+  public static DoraMeta.FileStatus buildFileStatusFromUfsStatus(
+      Optional<CacheUsage> cacheUsage, String ufsType, UfsStatus status, String ufsFullPath,
+      @Nullable Map<String, String> xattrMap) {
+    return DoraMeta.FileStatus.newBuilder()
+        .setFileInfo(buildFileInfoFromUfsStatus(cacheUsage, ufsType, status, ufsFullPath, xattrMap))
+        .setTs(System.nanoTime())
+        .build();
   }
 }

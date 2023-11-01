@@ -57,7 +57,7 @@ public class DoraMetaManagerTest {
     PagedDoraWorker worker = mock(PagedDoraWorker.class);
     CacheManager cacheManager = mock(CacheManager.class);
     mDoraUfsManager = mock(DoraUfsManager.class);
-    mManager = new DoraMetaManager(conf, worker, cacheManager, mDoraUfsManager);
+    mManager = new DoraMetaManager(conf, cacheManager, mDoraUfsManager);
   }
 
   @After

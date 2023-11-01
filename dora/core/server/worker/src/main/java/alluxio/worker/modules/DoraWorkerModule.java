@@ -26,6 +26,7 @@ import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerIdentity;
 import alluxio.worker.Worker;
 import alluxio.worker.block.BlockMasterClientPool;
+import alluxio.worker.dora.DoraMetaManager;
 import alluxio.worker.dora.DoraUfsManager;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.PagedDoraWorker;
@@ -73,7 +74,12 @@ public class DoraWorkerModule extends AbstractModule {
         .toProvider(BlockMasterClientPool::new)
         .in(Scopes.SINGLETON);
     bind(UfsManager.class).to(DoraUfsManager.class).in(Scopes.SINGLETON);
+    bind(DoraMetaManager.class).in(Scopes.SINGLETON);
     bind(AlluxioConfiguration.class).toProvider(() -> Configuration.global());
+
+    // Create FileSystemContext shared across all worker components
+    FileSystemContext fileSystemContext = FileSystemContext.create();
+    bind(FileSystemContext.class).toInstance(fileSystemContext);
 
     // Note that dora can only use Paged Store
     try {

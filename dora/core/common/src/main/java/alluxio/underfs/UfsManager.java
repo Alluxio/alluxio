@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -90,6 +91,17 @@ public interface UfsManager extends Closeable {
   }
 
   /**
+   * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
+   * return it.
+   *
+   * @param ufsUri the UFS path
+   * @param ufsConfSupplier supplier for UFS configuration
+   * @return the UFS instance
+   */
+  UnderFileSystem getOrAdd(AlluxioURI ufsUri,
+                           Supplier<UnderFileSystemConfiguration> ufsConfSupplier);
+
+  /**
    * Keeps track of a mount id and maps it to its URI in Alluxio and configuration. This is an
    * Alluxio-only operation and no interaction to UFS will be made.
    *
@@ -130,6 +142,14 @@ public interface UfsManager extends Closeable {
    * @throws UnavailableException if master is not available to query for mount table
    */
   UfsClient get(long mountId) throws NotFoundException, UnavailableException;
+
+  /**
+   * Gets an instance for the given UFS URI and configuration, if such exists.
+   *
+   * @param ufsUri the URI of the UFS
+   * @return a UFS instance, or none if not registered
+   */
+  Optional<UnderFileSystem> get(AlluxioURI ufsUri);
 
   /**
    * @return the UFS client associated with root
