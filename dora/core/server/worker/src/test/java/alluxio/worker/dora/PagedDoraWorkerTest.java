@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.PositionReader;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.PageId;
@@ -104,9 +105,13 @@ public class PagedDoraWorkerTest {
         CacheManager.Factory.create(Configuration.global(), cacheManagerOptions, pageMetaStore);
     mMembershipManager =
         MembershipManager.Factory.create(Configuration.global());
-    mWorker = new PagedDoraWorker(
-        new AtomicReference<>(WorkerIdentity.ParserV0.INSTANCE.fromLong(1L)),
-        Configuration.global(), mCacheManager, mMembershipManager, new BlockMasterClientPool());
+    DoraUfsManager ufsManager = new DoraUfsManager();
+    DoraMetaManager metaManager = new DoraMetaManager(Configuration.global(),
+        mCacheManager, ufsManager);
+    mWorker = new PagedDoraWorker(new AtomicReference<>(
+            WorkerIdentity.ParserV0.INSTANCE.fromLong(1L)),
+        Configuration.global(), mCacheManager, mMembershipManager,
+        new BlockMasterClientPool(), ufsManager, metaManager, FileSystemContext.create());
   }
 
   @After
