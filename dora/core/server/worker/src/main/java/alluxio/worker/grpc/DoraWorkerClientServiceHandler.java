@@ -55,7 +55,6 @@ import alluxio.grpc.SetAttributePResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.OpenFileHandle;
 import alluxio.worker.dora.PagedDoraWorker;
 

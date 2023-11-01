@@ -73,7 +73,8 @@ public class DoraWorkerClientServiceHandlerTest {
     DoraUfsManager ufsManager = new DoraUfsManager();
     DoraMetaManager metaManager = new DoraMetaManager(Configuration.global(),
         mCacheManager, ufsManager);
-    mWorker = new PagedDoraWorker(new AtomicReference<>(WorkerIdentity.ParserV0.INSTANCE.fromLong(1L)),
+    mWorker = new PagedDoraWorker(new AtomicReference<>(
+            WorkerIdentity.ParserV0.INSTANCE.fromLong(1L)),
             Configuration.global(), mCacheManager, mMembershipManager, new BlockMasterClientPool(),
             ufsManager, metaManager, FileSystemContext.create());
     mServiceHandler = new DoraWorkerClientServiceHandler(mWorker);

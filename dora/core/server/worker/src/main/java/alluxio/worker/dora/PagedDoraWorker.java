@@ -79,7 +79,6 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.user.ServerUserState;
-import alluxio.underfs.AbstractUfsManager;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
@@ -182,6 +181,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @param cacheManager
    * @param membershipManager
    * @param blockMasterClientPool
+   * @param ufsManager
+   * @param metaManager
+   * @param fileSystemContext
    */
   @Inject
   public PagedDoraWorker(
@@ -896,7 +898,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                                 group,
                                 createOption.getMode().toShort(),
                                 DUMMY_BLOCK_SIZE);
-      info = buildFileInfoFromUfsStatus(mCacheManager.getUsage(), getUfsInstance(path).getUnderFSType(), status, path, null);
+      info = buildFileInfoFromUfsStatus(mCacheManager.getUsage(),
+          getUfsInstance(path).getUnderFSType(), status, path, null);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -1117,6 +1120,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return mMetaManager;
   }
 
+  /**
+   * Gets the current cache usage in worker.
+   * @return cache usage
+   */
   public Optional<CacheUsage> getCacheUsage() {
     return mCacheManager.getUsage();
   }
