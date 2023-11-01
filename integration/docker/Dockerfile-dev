@@ -9,7 +9,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-FROM alluxio/alluxio:enterprise-3.0-0.0.0-RC1
+FROM alluxio/alluxio:DA-3.0-0.0.0
 
 USER root
 

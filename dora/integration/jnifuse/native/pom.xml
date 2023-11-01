@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-integration-jnifuse</artifactId>
-    <version>enterprise-3.0-0.0.0-RC1</version>
+    <version>DA-3.0-0.0.0</version>
   </parent>
 
   <artifactId>alluxio-integration-jnifuse-native</artifactId>
