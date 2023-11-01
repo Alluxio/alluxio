@@ -62,7 +62,7 @@ public final class UpdateCheckUtils {
     Preconditions.checkNotNull(additionalInfo);
     // Create the GET request.
     Joiner joiner = Joiner.on("/");
-    String path = joiner.join("v0", "version");
+    String path = joiner.join("v1", "version");
     String url = new URL(new URL(ProjectConstants.UPDATE_CHECK_HOST), path).toString();
 
     HttpGet post = new HttpGet(url);
