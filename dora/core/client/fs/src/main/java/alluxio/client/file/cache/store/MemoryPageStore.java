@@ -19,6 +19,7 @@ import alluxio.file.ReadTargetBuffer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
@@ -85,6 +86,11 @@ public class MemoryPageStore implements PageStore {
     mPageStoreMap.remove(pageKey);
   }
 
+  @Override
+  public void commit(String fileId, String newFileId) throws IOException {
+    // noop because the pages are all in memory, there is no underlying storage to commit to
+  }
+
   /**
    * @param pageId page Id
    * @return the key to this page
@@ -100,6 +106,7 @@ public class MemoryPageStore implements PageStore {
   public void close() {
     mPageStoreMap.clear();
     mPageStoreMap = null;
+    mPagePool.close();
   }
 
   /**
@@ -131,7 +138,7 @@ public class MemoryPageStore implements PageStore {
     }
   }
 
-  private static class PagePool {
+  private static class PagePool implements Closeable {
     private final int mPageSize;
     private final LinkedList<MemPage> mPool = new LinkedList<>();
 
@@ -154,6 +161,11 @@ public class MemoryPageStore implements PageStore {
       synchronized (mPool) {
         mPool.push(page);
       }
+    }
+
+    @Override
+    public void close() {
+      mPool.clear();
     }
   }
 }

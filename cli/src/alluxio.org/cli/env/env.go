@@ -69,20 +69,7 @@ func InitAlluxioEnv(rootPath string, jarEnvVars map[string]string, appendClasspa
 		envVar.Set(envVersion, ver)
 	}
 
-	// set default values
-	for k, v := range map[string]string{
-		ConfAlluxioHome.EnvVar:        rootPath,
-		ConfAlluxioConfDir.EnvVar:     filepath.Join(rootPath, "conf"),
-		ConfAlluxioLogsDir.EnvVar:     filepath.Join(rootPath, "logs"),
-		confAlluxioUserLogsDir.EnvVar: filepath.Join(rootPath, "logs", "user"),
-	} {
-		envVar.SetDefault(k, v)
-	}
-
-	// set jar env vars
-	for envVarName, jarPathFormat := range jarEnvVars {
-		envVar.SetDefault(envVarName, filepath.Join(rootPath, fmt.Sprintf(jarPathFormat, ver)))
-	}
+	setEnvDefaults(envVar, ver, rootPath, jarEnvVars)
 
 	// set user-specified environment variable values from alluxio-env.sh
 	{
@@ -108,17 +95,7 @@ func InitAlluxioEnv(rootPath string, jarEnvVars map[string]string, appendClasspa
 		}
 	}
 
-	// set classpath variables which are dependent on user configurable values
-	envVar.Set(EnvAlluxioClientClasspath, strings.Join([]string{
-		envVar.GetString(ConfAlluxioConfDir.EnvVar) + "/",
-		envVar.GetString(confAlluxioClasspath.EnvVar),
-		envVar.GetString(EnvAlluxioAssemblyClientJar),
-	}, ":"))
-	envVar.Set(EnvAlluxioServerClasspath, strings.Join([]string{
-		envVar.GetString(ConfAlluxioConfDir.EnvVar) + "/",
-		envVar.GetString(confAlluxioClasspath.EnvVar),
-		envVar.GetString(EnvAlluxioAssemblyServerJar),
-	}, ":"))
+	setClasspathVariables(envVar)
 
 	for envVarName, envF := range appendClasspathJars {
 		envVar.Set(envVarName, envF(envVar, ver))
@@ -132,57 +109,7 @@ func InitAlluxioEnv(rootPath string, jarEnvVars map[string]string, appendClasspa
 		return stacktrace.Propagate(err, "error checking java version compatibility")
 	}
 
-	// append default opts to ALLUXIO_JAVA_OPTS
-	alluxioJavaOpts := envVar.GetString(ConfAlluxioJavaOpts.EnvVar)
-	if alluxioJavaOpts != "" {
-		// warn about setting configuration through java opts that should be set through environment variables instead
-		for _, c := range []*AlluxioConfigEnvVar{
-			ConfAlluxioConfDir,
-			ConfAlluxioLogsDir,
-			confAlluxioUserLogsDir,
-		} {
-			if strings.Contains(alluxioJavaOpts, c.configKey) {
-				log.Logger.Warnf("Setting %v through %v will be ignored. Use environment variable %v instead.", c.configKey, ConfAlluxioJavaOpts.EnvVar, c.EnvVar)
-			}
-		}
-	}
-
-	for _, c := range []*AlluxioConfigEnvVar{
-		ConfAlluxioHome,
-		ConfAlluxioConfDir,
-		ConfAlluxioLogsDir,
-		confAlluxioUserLogsDir,
-	} {
-		alluxioJavaOpts += c.ToJavaOpt(envVar, true) // mandatory java opts
-	}
-
-	for _, c := range []*AlluxioConfigEnvVar{
-		confAlluxioRamFolder,
-		confAlluxioMasterHostname,
-		ConfAlluxioMasterMountTableRootUfs,
-		ConfAlluxioMasterJournalType,
-		confAlluxioWorkerRamdiskSize,
-	} {
-		alluxioJavaOpts += c.ToJavaOpt(envVar, false) // optional user provided java opts
-	}
-
-	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "log4j.configuration", "file:"+filepath.Join(envVar.GetString(ConfAlluxioConfDir.EnvVar), "log4j.properties"))
-	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "org.apache.jasper.compiler.disablejsr199", true)
-	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "java.net.preferIPv4Stack", true)
-	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads", false)
-
-	envVar.Set(ConfAlluxioJavaOpts.EnvVar, alluxioJavaOpts)
-
-	for _, p := range ProcessRegistry {
-		p.SetEnvVars(envVar)
-	}
-
-	// also set user environment variables, as they are not associated with a particular process
-	// ALLUXIO_USER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} {user provided opts}
-	userJavaOpts := fmt.Sprintf(JavaOptFormat, ConfAlluxioLoggerType, userLoggerType)
-	userJavaOpts += envVar.GetString(ConfAlluxioJavaOpts.EnvVar)
-	userJavaOpts += envVar.GetString(ConfAlluxioUserJavaOpts.EnvVar)
-	envVar.Set(ConfAlluxioUserJavaOpts.EnvVar, strings.TrimSpace(userJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
+	setJavaOpts(envVar)
 
 	if log.Logger.IsLevelEnabled(logrus.DebugLevel) {
 		keys := envVar.AllKeys()
@@ -253,4 +180,119 @@ func checkJavaVersion(javaPath string) error {
 		return stacktrace.NewError("Error: Alluxio requires Java 1.8 or 11.0, currently Java %v found.", matches[1])
 	}
 	return nil
+}
+
+func InitEnvForTesting(alluxioEnv map[string]string) {
+	envVar := viper.New()
+	ver := "300-testing"
+	envVar.Set(envVersion, ver)
+
+	rootPath := "/opt/alluxio"
+	setEnvDefaults(envVar, ver, rootPath, map[string]string{
+		EnvAlluxioAssemblyClientJar: filepath.Join("assembly", "client", "target", "alluxio-assembly-client-%v-jar-with-dependencies.jar"),
+		EnvAlluxioAssemblyServerJar: filepath.Join("assembly", "server", "target", "alluxio-assembly-server-%v-jar-with-dependencies.jar"),
+	})
+
+	// set test specified env
+	for k, v := range alluxioEnv {
+		envVar.Set(k, v)
+	}
+
+	setClasspathVariables(envVar)
+
+	// set dummy java
+	envVar.Set(ConfJava.EnvVar, "/usr/lib/java")
+
+	setJavaOpts(envVar)
+
+	Env = &AlluxioEnv{
+		RootPath: rootPath,
+		Version:  ver,
+		EnvVar:   envVar,
+	}
+}
+
+func setEnvDefaults(envVar *viper.Viper, ver, rootPath string, jarEnvVars map[string]string) {
+	// set default values
+	for k, v := range map[string]string{
+		ConfAlluxioHome.EnvVar:        rootPath,
+		ConfAlluxioConfDir.EnvVar:     filepath.Join(rootPath, "conf"),
+		ConfAlluxioLogsDir.EnvVar:     filepath.Join(rootPath, "logs"),
+		confAlluxioUserLogsDir.EnvVar: filepath.Join(rootPath, "logs", "user"),
+	} {
+		envVar.SetDefault(k, v)
+	}
+	// set jar env vars
+	for envVarName, jarPathFormat := range jarEnvVars {
+		envVar.SetDefault(envVarName, filepath.Join(rootPath, fmt.Sprintf(jarPathFormat, ver)))
+	}
+}
+
+func setClasspathVariables(envVar *viper.Viper) {
+	// set classpath variables which are dependent on user configurable values
+	envVar.Set(EnvAlluxioClientClasspath, strings.Join([]string{
+		envVar.GetString(ConfAlluxioConfDir.EnvVar) + "/",
+		envVar.GetString(confAlluxioClasspath.EnvVar),
+		envVar.GetString(EnvAlluxioAssemblyClientJar),
+	}, ":"))
+	envVar.Set(EnvAlluxioServerClasspath, strings.Join([]string{
+		envVar.GetString(ConfAlluxioConfDir.EnvVar) + "/",
+		envVar.GetString(confAlluxioClasspath.EnvVar),
+		envVar.GetString(EnvAlluxioAssemblyServerJar),
+	}, ":"))
+}
+
+func setJavaOpts(envVar *viper.Viper) {
+	// append default opts to ALLUXIO_JAVA_OPTS
+	alluxioJavaOpts := ConfAlluxioJavaOpts.JavaOptsToArgs(envVar)
+	if opts := strings.Join(alluxioJavaOpts, " "); opts != "" {
+		// warn about setting configuration through java opts that should be set through environment variables instead
+		for _, c := range []*AlluxioConfigEnvVar{
+			ConfAlluxioConfDir,
+			ConfAlluxioLogsDir,
+			confAlluxioUserLogsDir,
+		} {
+			if strings.Contains(opts, c.configKey) {
+				log.Logger.Warnf("Setting %v through %v will be ignored. Use environment variable %v instead.", c.configKey, ConfAlluxioJavaOpts.EnvVar, c.EnvVar)
+			}
+		}
+	}
+
+	for _, c := range []*AlluxioConfigEnvVar{
+		ConfAlluxioHome,
+		ConfAlluxioConfDir,
+		ConfAlluxioLogsDir,
+		confAlluxioUserLogsDir,
+	} {
+		alluxioJavaOpts = append(alluxioJavaOpts, c.ConfigToJavaOpts(envVar, true)...) // mandatory java opts
+	}
+
+	for _, c := range []*AlluxioConfigEnvVar{
+		confAlluxioRamFolder,
+		confAlluxioMasterHostname,
+		ConfAlluxioMasterMountTableRootUfs,
+		ConfAlluxioMasterJournalType,
+		confAlluxioWorkerRamdiskSize,
+	} {
+		alluxioJavaOpts = append(alluxioJavaOpts, c.ConfigToJavaOpts(envVar, false)...) // optional user provided java opts
+	}
+	alluxioJavaOpts = append(alluxioJavaOpts,
+		fmt.Sprintf(JavaOptFormat, "log4j.configuration", "file:"+filepath.Join(envVar.GetString(ConfAlluxioConfDir.EnvVar), "log4j.properties")),
+		fmt.Sprintf(JavaOptFormat, "org.apache.jasper.compiler.disablejsr199", true),
+		fmt.Sprintf(JavaOptFormat, "java.net.preferIPv4Stack", true),
+		fmt.Sprintf(JavaOptFormat, "org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads", false),
+	)
+
+	envVar.Set(ConfAlluxioJavaOpts.EnvVar, strings.Join(alluxioJavaOpts, " "))
+
+	for _, p := range ProcessRegistry {
+		p.SetEnvVars(envVar)
+	}
+
+	// also set user environment variables, as they are not associated with a particular process
+	// ALLUXIO_USER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} {user provided opts}
+	userJavaOpts := []string{fmt.Sprintf(JavaOptFormat, ConfAlluxioLoggerType, userLoggerType)}
+	userJavaOpts = append(userJavaOpts, ConfAlluxioJavaOpts.JavaOptsToArgs(envVar)...)
+	userJavaOpts = append(userJavaOpts, ConfAlluxioUserJavaOpts.JavaOptsToArgs(envVar)...)
+	envVar.Set(ConfAlluxioUserJavaOpts.EnvVar, strings.Join(userJavaOpts, " "))
 }

@@ -22,6 +22,7 @@ import alluxio.wire.FileInfo;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -37,7 +38,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @PublicApi
 @ThreadSafe
-public class URIStatus {
+public class URIStatus implements Serializable {
+  private static final long serialVersionUID = -8846678583749711935L;
   /** Information about this URI retrieved from Alluxio master. */
   private final FileInfo mInfo;
   /** Context associated with this URI, possibly set by other external engines (e.g., presto). */

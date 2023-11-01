@@ -40,6 +40,7 @@ import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -54,7 +55,7 @@ public class DoraMetaManager implements Closeable {
   private final DoraMetaStore mMetaStore;
   private final CacheManager mCacheManager;
   private final PagedDoraWorker mDoraWorker;
-  private final DoraUfsManager mUfsManager;
+  protected final DoraUfsManager mUfsManager;
 
   private static final Logger SAMPLING_LOG = new SamplingLogger(
       LoggerFactory.getLogger(DoraMetaManager.class), 1L * Constants.MINUTE_MS);
@@ -62,6 +63,8 @@ public class DoraMetaManager implements Closeable {
       = Configuration.getInt(PropertyKey.DORA_UFS_LIST_STATUS_CACHE_NR_FILES);
   private final boolean mGetRealContentHash
       = Configuration.getBoolean(PropertyKey.USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH);
+  private final boolean mXAttrWriteToUFSEnabled =
+      Configuration.getBoolean(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED);
   private final Cache<String, ListStatusResult> mListStatusCache = mListingCacheCapacity == 0
       ? null
       : Caffeine.newBuilder()
@@ -91,13 +94,11 @@ public class DoraMetaManager implements Closeable {
     mUfsManager = ufsManager;
   }
 
-  private UnderFileSystem getUfsInstance(String ufsUriStr) {
+  protected UnderFileSystem getUfsInstance(String ufsUriStr) {
     AlluxioURI ufsUriUri = new AlluxioURI(ufsUriStr);
     try {
       UnderFileSystem ufs = mUfsManager.getOrAdd(ufsUriUri,
-          // todo(bowen): local configuration may not have UFS-specific configurations
-          //  find another way to load UFS configurations
-          UnderFileSystemConfiguration.defaults(mConf));
+          () -> UnderFileSystemConfiguration.defaults(mConf));
       return ufs;
     } catch (Exception e) {
       LOG.debug("failed to get UFS instance for URI {}", ufsUriStr, e);
@@ -115,7 +116,11 @@ public class DoraMetaManager implements Closeable {
       UnderFileSystem ufs = getUfsInstance(path);
       UfsStatus status = ufs.getStatus(path,
           GetStatusOptions.defaults().setIncludeRealContentHash(mGetRealContentHash));
-      DoraMeta.FileStatus fs = mDoraWorker.buildFileStatusFromUfsStatus(status, path);
+      Map<String, String> xattrMap = null;
+      if (mXAttrWriteToUFSEnabled) {
+        xattrMap = ufs.getAttributes(path);
+      }
+      DoraMeta.FileStatus fs = mDoraWorker.buildFileStatusFromUfsStatus(status, path, xattrMap);
       return Optional.ofNullable(fs);
     } catch (FileNotFoundException e) {
       return Optional.empty();

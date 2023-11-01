@@ -21,6 +21,8 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
+import alluxio.client.file.options.UfsFileSystemOptions;
+import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.client.metrics.MetricsHeartbeatContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -897,16 +899,16 @@ public class FileSystemContext implements Closeable {
       // Use membership mgr
       if (mMembershipManager != null && !(mMembershipManager instanceof MasterMembershipManager)) {
         return mMembershipManager.getLiveMembers().stream()
-            .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),
-                true)).collect(toList());
+            .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
+                w.getUsedBytes(), true)).collect(toList());
       }
     }
     // Fall back to old way
     try (CloseableResource<BlockMasterClient> masterClientResource =
              acquireBlockMasterClientResource()) {
       return masterClientResource.get().getWorkerInfoList().stream()
-          .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),
-              true)).collect(toList());
+          .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
+              w.getUsedBytes(), true)).collect(toList());
     }
   }
 
@@ -922,16 +924,16 @@ public class FileSystemContext implements Closeable {
       // Use membership mgr
       if (mMembershipManager != null && !(mMembershipManager instanceof MasterMembershipManager)) {
         return mMembershipManager.getFailedMembers().stream()
-            .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),
-                false)).collect(toList());
+            .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
+                w.getUsedBytes(), false)).collect(toList());
       }
     }
     // Fall back to old way
     try (CloseableResource<BlockMasterClient> masterClientResource =
              acquireBlockMasterClientResource()) {
       return masterClientResource.get().getLostWorkerInfoList().stream()
-          .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),
-              false)).collect(toList());
+          .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
+              w.getUsedBytes(), false)).collect(toList());
     }
   }
 
@@ -949,10 +951,11 @@ public class FileSystemContext implements Closeable {
       // Use membership mgr
       if (mMembershipManager != null && !(mMembershipManager instanceof MasterMembershipManager)) {
         List<BlockWorkerInfo> liveWorkers = mMembershipManager.getLiveMembers().stream()
-            .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),
-                true)).collect(toList());
+            .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
+                w.getUsedBytes(), true)).collect(toList());
         List<BlockWorkerInfo> lostWorkers = mMembershipManager.getFailedMembers().stream()
-            .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),
+            .map(w -> new BlockWorkerInfo(
+                w.getIdentity(), w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),
                 false)).collect(toList());
         // avoid duplicate elements in list
         return combineAllWorkers(liveWorkers, lostWorkers);
@@ -963,10 +966,12 @@ public class FileSystemContext implements Closeable {
     try (CloseableResource<BlockMasterClient> masterClientResource =
              acquireBlockMasterClientResource()) {
       List<BlockWorkerInfo> liveWorkers = masterClientResource.get().getWorkerInfoList().stream()
-          .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),
+          .map(w -> new BlockWorkerInfo(
+              w.getIdentity(), w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),
               true)).collect(toList());
       List<BlockWorkerInfo> lostWorkers = masterClientResource.get().getLostWorkerInfoList()
-          .stream().map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(),
+          .stream().map(w -> new BlockWorkerInfo(w.getIdentity(),
+              w.getAddress(), w.getCapacityBytes(),
               w.getUsedBytes(), false)).collect(toList());
       // avoid duplicate elements in list
       return combineAllWorkers(liveWorkers, lostWorkers);
@@ -996,6 +1001,18 @@ public class FileSystemContext implements Closeable {
       }
     }
     mLocalWorkerInitialized = true;
+  }
+
+  /**
+   * Creates an underlying file system which handles UFS fallback.
+   *
+   * @param ufsOptions options to access the UFS
+   * @return a UFS-based FileSystem implementation
+   */
+  public FileSystem createUfsBaseFileSystem(Optional<UfsFileSystemOptions> ufsOptions) {
+    Preconditions.checkArgument(ufsOptions.isPresent(),
+        "Missing UfsFileSystemOptions in FileSystemOptions");
+    return new UfsBaseFileSystem(this, ufsOptions.get());
   }
 
   /**

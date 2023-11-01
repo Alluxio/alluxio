@@ -178,9 +178,7 @@ public interface FileSystem extends Closeable {
       AlluxioConfiguration conf = context.getClusterConf();
       checkSortConf(conf);
       Optional<UfsFileSystemOptions> ufsOptions = options.getUfsFileSystemOptions();
-      Preconditions.checkArgument(ufsOptions.isPresent(),
-          "Missing UfsFileSystemOptions in FileSystemOptions");
-      FileSystem fs = new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get());
+      FileSystem fs = context.createUfsBaseFileSystem(ufsOptions);
 
       if (options.isDoraCacheEnabled()) {
         LOG.debug("Dora cache enabled");

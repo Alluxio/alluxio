@@ -34,6 +34,7 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.GetStatusOptions;
+import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
@@ -68,6 +69,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -108,6 +111,8 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
 
   protected static final String CHECKSUM_COMBINE_MODE =
           "dfs.checksum.combine.mode";
+
+  protected static final String USER_NAMESPACE_PREFIX = "user.";
 
   private final LoadingCache<String, FileSystem> mUserFs;
   protected final HdfsAclProvider mHdfsAclProvider;
@@ -506,6 +511,14 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     return hdfs.isFile(new Path(path));
   }
 
+  @Nullable
+  @Override
+  public Iterator<UfsStatus> listStatusIterable(String path, ListOptions options, String startAfter,
+                                                int batchSize) throws IOException {
+    FileSystem hdfs = getFs();
+    return new HdfsUfsStatusIterator(path, hdfs);
+  }
+
   @Override
   @Nullable
   public UfsStatus[] listStatus(String path) throws IOException {
@@ -740,6 +753,40 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
             + "This failure is ignored but may cause permission inconsistency between Alluxio "
             + "and local under file system", path, user, group, e.toString());
       }
+    }
+  }
+
+  @Override
+  public void setAttribute(String path, String name, byte[] value) throws IOException {
+    if (StringUtils.isEmpty(name)) {
+      LOG.warn("Try to set Xattr to an empty file name for path {}", path);
+      return;
+    }
+    FileSystem hdfs = getFs();
+    try {
+      FileStatus fileStatus = hdfs.getFileStatus(new Path(path));
+      hdfs.setXAttr(fileStatus.getPath(), USER_NAMESPACE_PREFIX + name, value);
+    } catch (IOException e) {
+      LOG.warn("Failed to set XAttr for {} with name: {}, value: {}: {}. "
+              + "Running Alluxio as superuser is required to modify attributes of local files",
+          path, name, new String(value), e.toString());
+      throw e;
+    }
+  }
+
+  @Override
+  public Map<String, String> getAttributes(String path) throws IOException {
+    FileSystem hdfs = getFs();
+    try {
+      Map<String, byte[]> attrMap = hdfs.getXAttrs(new Path(path));
+      Map<String, String> resMap = new HashMap<>(attrMap.size());
+      attrMap.entrySet().stream().filter(entry -> entry.getKey().startsWith(USER_NAMESPACE_PREFIX))
+          .forEach(entry -> resMap.put(entry.getKey().substring(entry.getKey().indexOf(".") + 1),
+              new String(entry.getValue())));
+      return Collections.unmodifiableMap(resMap);
+    } catch (IOException e) {
+      LOG.warn("Failed to get XAttr for {}.", path);
+      throw e;
     }
   }
 

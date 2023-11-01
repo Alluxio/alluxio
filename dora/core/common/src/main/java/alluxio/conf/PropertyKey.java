@@ -1051,6 +1051,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * UFS related properties.
    */
+  public static final PropertyKey UNDERFS_XATTR_CHANGE_ENABLED =
+      Builder.booleanBuilder(Name.UNDERFS_XATTR_CHANGE_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("When enabled, Alluxio allows user to set/get xAttr from/to UFS. "
+              + "There will be different implementation methods in different UFS, "
+              + "implemented like HdfsUFS.setXattr, ObjectUFS.setTagging, or other ways.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_STRICT_VERSION_MATCH_ENABLED =
       Builder.booleanBuilder(Name.UNDERFS_STRICT_VERSION_MATCH_ENABLED)
           .setDefaultValue(false)
@@ -4520,7 +4529,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-
+  public static final PropertyKey WORKER_PRELOAD_DATA_THREAD_POOL_SIZE =
+      intBuilder(Name.WORKER_PRELOAD_DATA_THREAD_POOL_SIZE)
+          .setScope(Scope.WORKER)
+          .setDefaultValue(20)
+          .setDescription("The worker preload data thread pool size; Each thread loads a page.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
   public static final PropertyKey WORKER_PRINCIPAL = stringBuilder(Name.WORKER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio worker.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -5774,6 +5789,46 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .build();
+  public static final PropertyKey USER_POSITION_READER_STREAMING_ADAPTIVE_POLICY_ENABLED =
+      booleanBuilder(Name.USER_POSITION_READER_STREAMING_ADAPTIVE_POLICY_ENABLED)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue(false)
+          .setDescription("If uses adaptive policy to adjust the prefetch window size")
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE =
+      dataSizeBuilder(Name.USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue("16MB")
+          .setDescription("The max size of the prefetch of dynamic buffering")
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey USER_POSITION_READER_PRELOAD_DATA_ENABLED =
+      booleanBuilder(Name.USER_POSITION_READER_PRELOAD_DATA_ENABLED)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue(false)
+          .setDescription(
+              "If enabled, the client will ask worker to preload the following data "
+                  + "from UFS, if it is not cached. Turning this on improves the cold "
+                  + "read performance, but also might result in caching unused data.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD =
+      dataSizeBuilder(Name.USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue("2GB")
+          .setDescription("The file size threshold that triggers the worker data preload.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey USER_POSITION_READER_PRELOAD_DATA_SIZE =
+      dataSizeBuilder(Name.USER_POSITION_READER_PRELOAD_DATA_SIZE)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue("256MB")
+          .setDescription("The preload data size to load on worker.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
   public static final PropertyKey USER_STREAMING_DATA_READ_TIMEOUT =
       durationBuilder(Name.USER_STREAMING_DATA_READ_TIMEOUT)
           .setAlias("alluxio.user.network.data.timeout.ms", Name.USER_NETWORK_DATA_TIMEOUT,
@@ -6815,6 +6870,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "etcd cluster (e.g. http://localhost:2379,http://etcd1:2379)")
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey ETCD_USERNAME =
+      stringBuilder(Name.ETCD_USERNAME)
+          .setDescription("Username for communication with Etcd."
+              + "Make sure the given user has the full readwrite"
+              + " role permission on all keys with prefix '/'. "
+              + "Refer to etcd official site for Authentication section.")
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey ETCD_PASSWORD =
+      stringBuilder(Name.ETCD_PASSWORD)
+          .setDescription("User password for communication with Etcd.")
+          .setScope(Scope.ALL)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
 
   //
   // JVM Monitor related properties
@@ -7086,6 +7155,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey DORA_READ_VIRTUAL_BLOCK_SIZE =
+      dataSizeBuilder(Name.DORA_READ_VIRTUAL_BLOCK_SIZE)
+          .setDefaultValue("0MB")
+          .setDescription(format("The minimum required file size of virtual block. "
+              + "Files larger than this would be split into virtual blocks "
+              + "and read from different works. Virtual block size need to be "
+              + "a multiplier of %s", Name.WORKER_PAGE_STORE_PAGE_SIZE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.CLIENT)
+          .build();
 
   public static final PropertyKey CLIENT_WRITE_TO_UFS_ENABLED =
       booleanBuilder(Name.CLIENT_WRITE_TO_UFS_ENABLED)
@@ -7203,6 +7282,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // UFS related properties
     //
+    public static final String UNDERFS_XATTR_CHANGE_ENABLED =
+        "alluxio.underfs.xattr.change.enabled";
     public static final String UNDERFS_STRICT_VERSION_MATCH_ENABLED =
         "alluxio.underfs.strict.version.match.enabled";
     public static final String UNDERFS_ALLOW_SET_OWNER_FAILURE =
@@ -7975,6 +8056,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.page.store.timeout.threads";
     public static final String WORKER_PAGE_STORE_TYPE =
         "alluxio.worker.page.store.type";
+    public static final String WORKER_PRELOAD_DATA_THREAD_POOL_SIZE =
+        "alluxio.worker.preload.data.thread.pool.size";
     public static final String WORKER_RAMDISK_SIZE = "alluxio.worker.ramdisk.size";
     public static final String WORKER_REGISTER_LEASE_ENABLED =
         "alluxio.worker.register.lease.enabled";
@@ -8264,6 +8347,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_APP_ID = "alluxio.user.app.id";
     public static final String USER_POSITION_READER_STREAMING_MULTIPLIER =
         "alluxio.user.position.reader.streaming.multiplier";
+    public static final String USER_POSITION_READER_STREAMING_ADAPTIVE_POLICY_ENABLED =
+        "alluxio.user.position.reader.streaming.adaptive.policy.enabled";
+    public static final String USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE =
+        "alluxio.user.position.reader.streaming.prefetch.max.size";
+    public static final String USER_POSITION_READER_PRELOAD_DATA_ENABLED =
+        "alluxio.user.position.reader.preload.data.enabled";
+    public static final String USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD =
+        "alluxio.user.position.reader.preload.data.file.size.threshold";
+    public static final String USER_POSITION_READER_PRELOAD_DATA_SIZE =
+        "alluxio.user.position.reader.preload.data.size";
     public static final String USER_NETWORK_DATA_TIMEOUT =
         "alluxio.user.network.data.timeout";
     public static final String USER_NETWORK_READER_BUFFER_SIZE_MESSAGES =
@@ -8499,6 +8592,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     // Membership related properties
     public static final String ALLUXIO_CLUSTER_NAME = "alluxio.cluster.name";
     public static final String ETCD_ENDPOINTS = "alluxio.etcd.endpoints";
+    public static final String ETCD_USERNAME = "alluxio.etcd.username";
+    public static final String ETCD_PASSWORD = "alluxio.etcd.password";
 
     //
     // JVM Monitor related properties
@@ -8569,7 +8664,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String DORA_UFS_LIST_STATUS_CACHE_TTL =
         "alluxio.dora.ufs.list.status.cache.ttl";
-
     public static final String DORA_UFS_LIST_STATUS_CACHE_NR_FILES =
         "alluxio.dora.ufs.list.status.cache.nr.files";
 
@@ -8580,6 +8674,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String EXTRA_LOADED_FILESYSTEM_CLASSNAME =
             "alluxio.extra.loaded.filesystem.classname";
+    public static final String DORA_READ_VIRTUAL_BLOCK_SIZE =
+        "alluxio.dora.file.read.virtual.block.size";
 
     private Name() {} // prevent instantiation
   }

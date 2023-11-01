@@ -115,6 +115,7 @@ func NewDockerBuildOpts(args []string) (*DockerBuildOpts, error) {
 		return nil, stacktrace.NewError("must provide valid 'image' arg")
 	}
 	opts.Metadata["docker:tag"] = image.Tag
+	opts.Metadata["name"] = opts.Image
 
 	return opts, nil
 }

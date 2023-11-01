@@ -47,7 +47,7 @@ public class NoExceptionCacheManager implements CacheManager {
     try {
       mCacheManager.commitFile(fileId);
     } catch (Exception e) {
-      LOG.error("Failed to commit file {}", fileId);
+      LOG.error("Failed to commit file {}", fileId, e);
     }
   }
 
@@ -208,6 +208,11 @@ public class NoExceptionCacheManager implements CacheManager {
   @Override
   public List<PageId> getCachedPageIdsByFileId(String fileId, long fileLength) {
     return mCacheManager.getCachedPageIdsByFileId(fileId, fileLength);
+  }
+
+  @Override
+  public boolean hasPageUnsafe(PageId pageId) {
+    return mCacheManager.hasPageUnsafe(pageId);
   }
 
   @Override

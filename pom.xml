@@ -164,6 +164,7 @@
     <powermock.version>2.0.7</powermock.version>
     <project.build.outputTimestamp>${git.commit.time}</project.build.outputTimestamp>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <prometheus.client.version>1.0.0</prometheus.client.version>
     <prometheus.version>0.8.0</prometheus.version>
     <protobuf.version>3.19.6</protobuf.version>
     <ratis.version>2.5.1</ratis.version>
@@ -455,6 +456,21 @@
       </dependency>
       <dependency>
         <groupId>io.prometheus</groupId>
+        <artifactId>prometheus-metrics-core</artifactId>
+        <version>${prometheus.client.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>prometheus-metrics-exporter-servlet-jakarta</artifactId>
+        <version>${prometheus.client.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>prometheus-metrics-instrumentation-jvm</artifactId>
+        <version>${prometheus.client.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
         <artifactId>simpleclient</artifactId>
         <version>${prometheus.version}</version>
       </dependency>
@@ -479,6 +495,11 @@
         <version>${fastutil.version}</version>
       </dependency>
       <dependency>
+        <groupId>jakarta.servlet</groupId>
+        <artifactId>jakarta.servlet-api</artifactId>
+        <version>5.0.0</version>
+      </dependency>
+      <dependency>
         <groupId>jakarta.ws.rs</groupId>
         <artifactId>jakarta.ws.rs-api</artifactId>
         <version>2.1.6</version>
@@ -492,6 +513,11 @@
         <groupId>net.java.dev.jets3t</groupId>
         <artifactId>jets3t</artifactId>
         <version>0.8.1</version>
+      </dependency>
+      <dependency>
+        <groupId>net.java.dev.jna</groupId>
+        <artifactId>jna-jpms</artifactId>
+        <version>5.13.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -976,6 +1002,11 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-archetype-plugin</artifactId>
+          <version>3.2.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-antrun-plugin</artifactId>
           <version>3.0.0</version>
         </plugin>
@@ -1139,6 +1170,11 @@
               <phase>compile</phase>
             </execution>
           </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.questdb</groupId>
+          <artifactId>rust-maven-plugin</artifactId>
+          <version>1.1.1</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -1481,6 +1517,14 @@
         </executions>
       </plugin>
     </plugins>
+
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.archetype</groupId>
+        <artifactId>archetype-packaging</artifactId>
+        <version>3.2.1</version>
+      </extension>
+    </extensions>
   </build>
 
   <reporting>
@@ -1714,6 +1758,13 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+
+    <profile>
+      <id>native-components</id>
+      <modules>
+        <module>native</module>
+      </modules>
     </profile>
   </profiles>
 </project>

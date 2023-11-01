@@ -13,9 +13,8 @@ package alluxio.worker;
 
 import alluxio.ProcessUtils;
 import alluxio.RuntimeConstants;
-import alluxio.conf.Configuration;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,12 +40,8 @@ public final class AlluxioWorker {
       System.exit(-1);
     }
 
-    if (!ConfigurationUtils.masterHostConfigured(Configuration.global())) {
-      ProcessUtils.fatalError(LOG,
-          ConfigurationUtils.getMasterHostNotConfiguredMessage("Alluxio worker"));
-    }
-
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.WORKER);
+    MultiDimensionalMetricsSystem.initMetrics();
     WorkerProcess process;
     try {
       process = WorkerProcess.Factory.create();

@@ -157,6 +157,6 @@ public abstract class AbstractReadHandler<T extends ReadRequest>
      * @param len The length, in bytes, of the data to read from the block
      * @return a {@link DataBuffer} representing the data
      */
-    DataBuffer getDataBuffer(Channel channel, long offset, int len) throws Exception;
+    DataBuffer createDataBuffer(Channel channel, long offset, int len) throws Exception;
   }
 }

@@ -11,15 +11,40 @@
 
 package alluxio.wire;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.util.StdConverter;
+import com.google.common.hash.Funnel;
+import com.google.common.hash.PrimitiveSink;
 import com.google.common.primitives.Longs;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.UnsafeByteOperations;
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
+import java.io.IOException;
+import java.io.InvalidObjectException;
+import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.UUID;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -28,15 +53,19 @@ import javax.annotation.concurrent.Immutable;
  * representation and an instance of this class.
  */
 @Immutable
-public final class WorkerIdentity {
+@JsonAdapter(WorkerIdentity.GsonSerde.class)
+@JsonDeserialize(converter = WorkerIdentity.JacksonDeserializeConverter.class)
+@JsonSerialize(using = WorkerIdentity.JacksonSerializer.class)
+public final class WorkerIdentity implements Serializable {
+  private static final long serialVersionUID = -3241509286694514179L;
+
   private final byte[] mId;
   private final int mVersion;
-  private final int mHashcode;
+  private transient int mHashcode;
 
   WorkerIdentity(byte[] id, int version) {
     mId = id;
     mVersion = version;
-    mHashcode = Arrays.hashCode(mId) * 31 + mVersion;
   }
 
   /**
@@ -75,13 +104,40 @@ public final class WorkerIdentity {
 
   @Override
   public int hashCode() {
-    return mHashcode;
+    int hashCode = mHashcode;
+    if (hashCode == 0) {
+      hashCode = Arrays.hashCode(mId) * 31 + mVersion;
+      mHashcode = hashCode;
+    }
+    return hashCode;
   }
 
   @Override
   public String toString() {
-    return String.format("Worker (%s)",
+    return String.format("worker-%s",
         Parsers.getParserOfVersion(mVersion).getVersionSpecificRepresentation(this));
+  }
+
+  private void writeObject(java.io.ObjectOutputStream out)
+      throws IOException {
+    out.defaultWriteObject();
+  }
+
+  private void readObject(java.io.ObjectInputStream in)
+      throws IOException, ClassNotFoundException {
+    in.defaultReadObject();
+    final Parser parser;
+    try {
+      parser = Parsers.getParserOfVersion(mVersion);
+    } catch (IllegalArgumentException e) {
+      throw new InvalidObjectException("Unrecognized identity version: " + mVersion);
+    }
+    try {
+      parser.fromProto(parser.toProto(this));
+    } catch (ProtoParsingException e) {
+      throw new InvalidObjectException("Validation after deserialization failed: "
+          + "data corruption during serialization and/or transmission of the object: " + e);
+    }
   }
 
   /**
@@ -358,6 +414,212 @@ public final class WorkerIdentity {
     public UUID toUUID(WorkerIdentity identity) throws IllegalArgumentException {
       ensureVersionMatch(identity);
       return getVersionSpecificRepresentation0(identity);
+    }
+  }
+
+  /**
+   * Utility for ser/de with Gson.
+   * <p>
+   * The version field is encoded as a JSON number, and the identity field
+   * is encoded as a hexadecimal string.
+   */
+  public enum GsonSerde
+      implements JsonSerializer<WorkerIdentity>, JsonDeserializer<WorkerIdentity> {
+    INSTANCE;
+
+    static final String FIELD_VERSION = "version";
+    static final String FIELD_IDENTIFIER = "identifier";
+
+    /**
+     * @return serializer
+     */
+    public JsonSerializer<WorkerIdentity> getSerializer() {
+      return WorkerIdentitySerializer.INSTANCE;
+    }
+
+    /**
+     * @return deserializer
+     */
+    public JsonDeserializer<WorkerIdentity> getDeserializer() {
+      return WorkerIdentityDeserializer.INSTANCE;
+    }
+
+    @Override
+    public WorkerIdentity deserialize(JsonElement json, Type typeOfT,
+        JsonDeserializationContext context) throws JsonParseException {
+      return getDeserializer().deserialize(json, typeOfT, context);
+    }
+
+    @Override
+    public JsonElement serialize(WorkerIdentity src, Type typeOfSrc,
+        JsonSerializationContext context) {
+      return getSerializer().serialize(src, typeOfSrc, context);
+    }
+  }
+
+  private enum WorkerIdentitySerializer implements JsonSerializer<WorkerIdentity> {
+    INSTANCE;
+
+    @Override
+    public JsonElement serialize(WorkerIdentity src, Type typeOfSrc,
+        JsonSerializationContext context) {
+      JsonObject json = new JsonObject();
+      json.addProperty(GsonSerde.FIELD_VERSION, src.mVersion);
+      json.addProperty(GsonSerde.FIELD_IDENTIFIER, Hex.encodeHexString(src.mId));
+      return json;
+    }
+  }
+
+  private enum WorkerIdentityDeserializer implements JsonDeserializer<WorkerIdentity> {
+    INSTANCE;
+
+    @Override
+    public WorkerIdentity deserialize(JsonElement json, Type typeOfT,
+        JsonDeserializationContext context)
+        throws JsonParseException {
+      if (typeOfT != WorkerIdentity.class) {
+        throw new JsonParseException("Wrong type for deserialization, "
+            + "expecting " + WorkerIdentity.class.getSimpleName() + ", got " + typeOfT);
+      }
+      if (!json.isJsonObject()) {
+        throw new JsonParseException(
+            String.format("Expecting worker identity to be an object, got %s",
+                json.getClass().getSimpleName()));
+      }
+      JsonObject object = json.getAsJsonObject();
+      alluxio.grpc.WorkerIdentity.Builder protoBuilder = alluxio.grpc.WorkerIdentity.newBuilder();
+      JsonElement versionElement = object.get(GsonSerde.FIELD_VERSION);
+      if (versionElement != null) {
+        int version = parseVersion(versionElement);
+        protoBuilder.setVersion(version);
+      }
+
+      JsonElement identifierElement = object.get(GsonSerde.FIELD_IDENTIFIER);
+      if (identifierElement != null) {
+        byte[] identifier = parseIdentifier(identifierElement);
+        protoBuilder.setIdentifier(UnsafeByteOperations.unsafeWrap(identifier));
+      }
+
+      alluxio.grpc.WorkerIdentity proto = protoBuilder.build();
+      try {
+        return WorkerIdentity.fromProto(proto);
+      } catch (ProtoParsingException e) {
+        throw new JsonParseException("Invalid worker identity: " + proto, e);
+      }
+    }
+
+    private int parseVersion(JsonElement versionElement) throws JsonParseException {
+      if (versionElement.isJsonPrimitive()) {
+        JsonPrimitive versionPrimitive = versionElement.getAsJsonPrimitive();
+        if (versionPrimitive.isNumber()) {
+          return versionPrimitive.getAsInt();
+        }
+      }
+      throw new JsonParseException(
+          "Expected field " + GsonSerde.FIELD_VERSION + " to be integer, got " + versionElement);
+    }
+
+    private byte[] parseIdentifier(JsonElement identifierElement) throws JsonParseException {
+      if (identifierElement.isJsonPrimitive()) {
+        JsonPrimitive identifierPrimitive = identifierElement.getAsJsonPrimitive();
+        if (identifierPrimitive.isString()) {
+          try {
+            return Hex.decodeHex(identifierPrimitive.getAsString());
+          } catch (DecoderException e) {
+            throw new JsonParseException(String.format(
+                "Invalid hex representation of identifier bytes: %s",
+                identifierPrimitive.getAsString()), e);
+          }
+        }
+      }
+      throw new JsonParseException("Expected field " + GsonSerde.FIELD_IDENTIFIER
+          + " to be string, got " + identifierElement);
+    }
+  }
+
+  /**
+   * JSON serializer for Jackson.
+   */
+  public static class JacksonSerializer
+      extends com.fasterxml.jackson.databind.JsonSerializer<WorkerIdentity> {
+    public static final JacksonSerializer INSTANCE = new JacksonSerializer();
+
+    private JacksonSerializer() {
+      // prevent instantiation
+    }
+
+    @Override
+    public void serialize(WorkerIdentity value, JsonGenerator gen, SerializerProvider serializers)
+        throws IOException {
+      gen.writeStartObject();
+      gen.writeNumberField(GsonSerde.FIELD_VERSION, value.mVersion);
+      gen.writeStringField(GsonSerde.FIELD_IDENTIFIER, Hex.encodeHexString(value.mId));
+      gen.writeEndObject();
+    }
+  }
+
+  private static class JacksonDeserializeIntermediate {
+    @JsonProperty(GsonSerde.FIELD_VERSION)
+    @Nullable
+    private final String mIdHexEncoded;
+    @JsonProperty(GsonSerde.FIELD_IDENTIFIER)
+    @Nullable
+    private final Integer mVersion;
+
+    @JsonCreator
+    public JacksonDeserializeIntermediate(
+        @Nullable @JsonProperty(GsonSerde.FIELD_VERSION) Integer version,
+        @Nullable @JsonProperty(GsonSerde.FIELD_IDENTIFIER) String hexEncodedIdentifier) {
+      mVersion = version;
+      mIdHexEncoded = hexEncodedIdentifier;
+    }
+  }
+
+  /**
+   * Deserializer for Jackson.
+   */
+  public static class JacksonDeserializeConverter
+      extends StdConverter<JacksonDeserializeIntermediate, WorkerIdentity> {
+    @Override
+    public WorkerIdentity convert(JacksonDeserializeIntermediate value) {
+      alluxio.grpc.WorkerIdentity.Builder protoBuilder = alluxio.grpc.WorkerIdentity.newBuilder();
+      if (value.mIdHexEncoded != null) {
+        final byte[] identifier;
+        try {
+          identifier = Hex.decodeHex(value.mIdHexEncoded);
+          protoBuilder
+              .setIdentifier(UnsafeByteOperations.unsafeWrap(identifier));
+        } catch (DecoderException e) {
+          throw new IllegalArgumentException(
+              "Malformed hex encoded identifier: " + value.mIdHexEncoded, e);
+        }
+      }
+      if (value.mVersion != null) {
+        protoBuilder.setVersion(value.mVersion);
+      }
+      alluxio.grpc.WorkerIdentity proto = protoBuilder.build();
+      try {
+        return WorkerIdentity.fromProto(proto);
+      } catch (ProtoParsingException e) {
+        throw new IllegalArgumentException(
+            "Invalid worker identity: " + proto, e);
+      }
+    }
+  }
+
+  /**
+   * Funnel to serialize an instance of {@link WorkerIdentity} for hashing.
+   */
+  @SuppressWarnings("UnstableApiUsage")
+  public enum HashFunnel implements Funnel<WorkerIdentity> {
+    INSTANCE;
+
+    @Override
+    // @Nonnull annotation is needed to work around a bug in spotbugs
+    // see https://github.com/spotbugs/spotbugs/pull/2502
+    public void funnel(@Nonnull WorkerIdentity from, PrimitiveSink into) {
+      into.putBytes(from.mId)
+          .putInt(from.mVersion);
     }
   }
 }

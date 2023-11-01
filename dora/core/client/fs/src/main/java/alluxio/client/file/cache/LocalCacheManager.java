@@ -832,6 +832,11 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
+  public boolean hasPageUnsafe(PageId pageId) {
+    return mPageMetaStore.hasPage(pageId);
+  }
+
+  @Override
   public void deleteFile(String fileId) {
     Set<PageInfo> pages;
     try (LockResource r = new LockResource(mPageMetaStore.getLock().readLock())) {

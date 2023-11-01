@@ -36,6 +36,7 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.jnifuse.LibFuse;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
@@ -85,6 +86,7 @@ public class AlluxioFuse {
                               FuseOptions fuseOptions,
                               FileSystemContext fsContext) {
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.CLIENT);
+    MultiDimensionalMetricsSystem.initMetrics();
     MetricsSystem.startSinks(conf.getString(PropertyKey.METRICS_CONF_FILE));
     if (conf.getBoolean(PropertyKey.FUSE_WEB_ENABLED)) {
       mWebServer = new FuseWebServer(
@@ -154,6 +156,11 @@ public class AlluxioFuse {
       startCommon(conf, fuseOptions, fsContext); // This will be blocked until quitting
 
       stopCommon();
+      // Explicitly exit() so non daemon threads will be terminated
+      System.exit(0);
+    } catch (Throwable t) {
+      LOG.error("Failed running FUSE", t);
+      System.exit(-1);
     }
   }
 
@@ -190,6 +197,13 @@ public class AlluxioFuse {
         LOG.info("Set default metadata cache size to 20,000 entries "
             + "with around 40MB memory consumption for FUSE");
       }
+    }
+    if (Configuration.getBoolean(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_ENABLED)) {
+      LOG.info(
+          "Position reader preload data is enabled, loading size {}, file threshold {}",
+          Configuration.getString(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_SIZE),
+          Configuration.getString(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD)
+      );
     }
     AlluxioConfiguration conf = Configuration.global();
     alluxioFuse.start(conf);
