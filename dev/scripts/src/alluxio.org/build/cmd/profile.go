@@ -48,7 +48,7 @@ type ProfilesYaml struct {
 }
 
 func (t *TarballOpts) clientJarPath(alluxioVersion string) string {
-	return filepath.Join("client", strings.ReplaceAll(t.ClientJarName, versionPlaceholder, alluxioVersion))
+	return filepath.Join("client", strings.ReplaceAll(t.ClientJarName, VersionPlaceholder, alluxioVersion))
 }
 
 func (p *Profile) updateFromFlags(targetName, mvnArgs, libModules, pluginModules string) {

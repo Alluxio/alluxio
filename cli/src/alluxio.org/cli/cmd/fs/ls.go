@@ -70,8 +70,18 @@ func (c *LsCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   "ls [path]",
 		Short: "Prints information for files and directories at the given path",
-		Long:  `Displays information for all files and directories directly under the specified paths, including permission, owner, group, size (bytes for files or the number of children for directories), persistence state, last modified time, the percentage of content already in Alluxio, and the path`,
-		Args:  cobra.ExactArgs(1),
+		Long: `The ls command lists all the immediate children in a directory and displays the file size, last modification time, and in memory status of the files.
+Using ls on a file will only display the information for that specific file.
+
+The ls command will also load the metadata for any file or immediate children of a directory from the under storage system to Alluxio namespace if it does not exist in Alluxio.
+It queries the under storage system for any file or directory matching the given path and creates a mirror of the file in Alluxio backed by that file.
+Only the metadata, such as the file name and size, are loaded this way and no data transfer occurs.`,
+		Example: `# List and load metadata for all immediate children of /s3/data
+$ ./bin/alluxio fs ls /s3/data
+
+# Force loading metadata of /s3/data
+$ ./bin/alluxio fs ls -f /s3/data`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},

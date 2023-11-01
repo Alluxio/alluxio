@@ -146,15 +146,11 @@ public class FusePositionReadOrOutStream implements FuseFileStream {
 
   @Override
   public void close() {
-    if (mClosed) {
-      return;
+    try {
+      closeStream();
+    } finally {
+      releaseLock();
     }
-    mClosed = true;
-    if (mPositionReader.isPresent()) {
-      mPositionReader.get().close();
-      return;
-    }
-    mOutStream.ifPresent(FuseFileOutStream::close);
   }
 
   private synchronized FusePositionReader getOrInitPrositionReader() {
@@ -177,5 +173,36 @@ public class FusePositionReadOrOutStream implements FuseFileStream {
   @Override
   public boolean isClosed() {
     return mClosed;
+  }
+
+  @Override
+  public boolean isReadOnly() {
+    return false;
+  }
+
+  @Override
+  public void releaseLock() {
+    if (mPositionReader.isPresent()) {
+      mPositionReader.get().releaseLock();
+      return;
+    }
+    synchronized (this) {
+      mOutStream.ifPresent(FuseFileOutStream::releaseLock);
+    }
+  }
+
+  @Override
+  public void closeStream() {
+    if (mClosed) {
+      return;
+    }
+    mClosed = true;
+    if (mPositionReader.isPresent()) {
+      mPositionReader.get().closeStream();
+      return;
+    }
+    synchronized (this) {
+      mOutStream.ifPresent(FuseFileOutStream::closeStream);
+    }
   }
 }

@@ -1,0 +1,20 @@
+{
+  "subsystems": [
+    {
+      "subsystem": "bdev",
+      "config": [
+        {
+          "method": "bdev_nvme_attach_controller",
+          "params": {
+            "name": "NVMe0",
+            "trtype": "PCIe",
+            // the PCIe address looks like [[[[<domain>]:]<bus>]:][<slot>][.[<func>]]
+            // which can be obtained by running `lspci -D`
+            // may vary in different test env
+            "traddr": "0000:01:0.0"
+          }
+        }
+      ]
+    }
+  ]
+}

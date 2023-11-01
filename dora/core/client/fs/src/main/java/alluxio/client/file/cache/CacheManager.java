@@ -344,6 +344,14 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
   State state();
 
   /**
+   * @param pageId the page id
+   * @return true if the page is cached. This method is not thread-safe as no lock is acquired
+   */
+  default boolean hasPageUnsafe(PageId pageId) {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
    *
    * @param pageId
    * @param appendAt

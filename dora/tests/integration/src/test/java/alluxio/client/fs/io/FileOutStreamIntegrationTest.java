@@ -13,7 +13,6 @@ package alluxio.client.fs.io;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
@@ -28,11 +27,9 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerInfo;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -46,9 +43,6 @@ import java.util.List;
  * types.
  */
 @RunWith(Parameterized.class)
-@Ignore
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
-    comment = "fix the tests")
 public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamIntegrationTest {
   // TODO(binfan): Run tests with local writes enabled and disabled.
 
@@ -68,12 +62,11 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    */
   @Test
   public void writeBytes() throws Exception {
-    String uniqPath = PathUtils.uniqPath();
     for (int len = MIN_LEN; len <= MAX_LEN; len += DELTA) {
       CreateFilePOptions op = CreateFilePOptions.newBuilder().setWriteType(mWriteType.toProto())
           .setRecursive(true).build();
-      AlluxioURI filePath =
-          new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + len + "_" + mWriteType));
+      AlluxioURI filePath = new AlluxioURI(mRoot).join(
+          String.format("test_writeBytes_file_len_%d", len));
       writeIncreasingBytesToFile(filePath, len, op);
       if (mWriteType.getAlluxioStorageType().isStore()) {
         checkFileInAlluxio(filePath, len);
@@ -88,13 +81,28 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * Tests {@link FileOutStream#write(int)}.
    */
   @Test
+  public void writeByte() throws Exception {
+    CreateFilePOptions options = CreateFilePOptions.newBuilder()
+        .setWriteType(mWriteType.toProto()).setRecursive(true).build();
+    AlluxioURI filePath = new AlluxioURI(mRoot).join("test_writeByte");
+    writeOneIntegerToFile(filePath, 0, options);
+    if (mWriteType.getAlluxioStorageType().isStore()) {
+      checkFileInAlluxio(filePath, 1);
+    }
+    if (mWriteType.getUnderStorageType().isSyncPersist()) {
+      checkFileInUnderStorage(filePath, 1);
+    }
+  }
+
+  /**
+   * Tests {@link FileOutStream#write(int)}.
+   */
+  @Test
   public void writeInNonExistDirectory() throws Exception {
-    String uniqPath = PathUtils.uniqPath();
     CreateFilePOptions op = CreateFilePOptions.newBuilder().setWriteType(WritePType.CACHE_THROUGH)
         .setRecursive(true).build();
-    AlluxioURI filePath =
-        new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + MIN_LEN + "_" + mWriteType));
-    AlluxioURI parentPath = new AlluxioURI(uniqPath);
+    AlluxioURI filePath = new AlluxioURI(mRoot).join("test_writeInNonExistDirectory");
+    AlluxioURI parentPath = new AlluxioURI(mRoot);
 
     // create a directory without a backing directory in UFS
     mFileSystem.createDirectory(parentPath, CreateDirectoryPOptions.newBuilder()
@@ -118,12 +126,11 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    */
   @Test
   public void writeByteArray() throws Exception {
-    String uniqPath = PathUtils.uniqPath();
     for (int len = MIN_LEN; len <= MAX_LEN; len += DELTA) {
       CreateFilePOptions op = CreateFilePOptions.newBuilder().setWriteType(mWriteType.toProto())
           .setRecursive(true).build();
-      AlluxioURI filePath =
-          new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + len + "_" + mWriteType));
+      AlluxioURI filePath = new AlluxioURI(mRoot).join(
+          String.format("test_writeByteArray_file_len_%d", len));
       writeIncreasingByteArrayToFile(filePath, len, op);
       if (mWriteType.getAlluxioStorageType().isStore()) {
         checkFileInAlluxio(filePath, len);
@@ -139,12 +146,12 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    */
   @Test
   public void writeTwoByteArrays() throws Exception {
-    String uniqPath = PathUtils.uniqPath();
     for (int len = MIN_LEN; len <= MAX_LEN; len += DELTA) {
       CreateFilePOptions op = CreateFilePOptions.newBuilder().setWriteType(mWriteType.toProto())
           .setRecursive(true).build();
-      AlluxioURI filePath =
-          new AlluxioURI(PathUtils.concatPath(uniqPath, "file_" + len + "_" + mWriteType));
+      String uniqPath = PathUtils.uniqPath();
+      AlluxioURI filePath = new AlluxioURI(mRoot).join(
+          String.format("test_writeTwoByteArrays_file_len_%d", len));
       writeTwoIncreasingByteArraysToFile(filePath, len, op);
       if (mWriteType.getAlluxioStorageType().isStore()) {
         checkFileInAlluxio(filePath, len);
@@ -161,7 +168,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    */
   @Test
   public void longWrite() throws Exception {
-    AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
+    AlluxioURI filePath = new AlluxioURI(mRoot).join("test_longWrite");
     final int length = 2;
     try (FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
@@ -184,7 +191,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    */
   @Test
   public void outOfOrderWrite() throws Exception {
-    AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
+    AlluxioURI filePath = new AlluxioURI(mRoot).join("test_outOfOrderWrite");
     // A length greater than 0.5 * BUFFER_BYTES and less than BUFFER_BYTES.
     int length = (BUFFER_BYTES * 3) / 4;
     try (FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
@@ -211,8 +218,8 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
           PropertyKey.Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "250ms"})
   @Test
   public void cancelWrite() throws Exception {
-    AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
-    try (FileOutStream os = mFileSystem.createFile(path, CreateFilePOptions.newBuilder()
+    AlluxioURI filePath = new AlluxioURI(mRoot).join("test_cancelWrite");
+    try (FileOutStream os = mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
         .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
       os.write(BufferUtils.getIncreasingByteArray(0, BLOCK_SIZE_BYTES * 3 + 1));
       os.cancel();
@@ -226,32 +233,5 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     for (WorkerInfo worker : workers) {
       Assert.assertEquals(0, worker.getUsedBytes());
     }
-  }
-
-  @Test
-  public void getStatusBeforeClose() throws Exception {
-    AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
-    try (FileOutStream os = mFileSystem.createFile(path, CreateFilePOptions.newBuilder()
-            .setWriteType(mWriteType.toProto()).setRecursive(true).build())) {
-      for (int i = 0; i < 3; i++) {
-        os.write(BufferUtils.getIncreasingByteArray(i * BLOCK_SIZE_BYTES, BLOCK_SIZE_BYTES));
-        // Fetch file status when the stream is still open
-        URIStatus status = mFileSystem.getStatus(path);
-        if (!mWriteType.isThrough()) {
-          // When the writeType is THROUGH, we only see the blocks when the file is committed
-          // When the file is not committed, we only see incomplete FileBlockInfo
-          Assert.assertEquals(i + 1, status.getBlockIds().size());
-        }
-      }
-      os.write(BufferUtils.getIncreasingByteArray(3 * BLOCK_SIZE_BYTES, 1));
-    }
-    URIStatus finalStatus = mFileSystem.getStatus(path);
-    Assert.assertEquals(4, finalStatus.getBlockIds().size());
-    List<FileBlockInfo> fileBlocks = finalStatus.getFileBlockInfos();
-    Assert.assertEquals(4, fileBlocks.size());
-    for (int i = 0; i < 3; i++) {
-      Assert.assertEquals(BLOCK_SIZE_BYTES, fileBlocks.get(i).getBlockInfo().getLength());
-    }
-    Assert.assertEquals(1, fileBlocks.get(3).getBlockInfo().getLength());
   }
 }

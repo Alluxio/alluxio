@@ -35,6 +35,8 @@
                 url: /en/deploy/Software-Requirements.html
               - title: Install Alluxio Cluster with HA
                 url: /en/deploy/Install-Alluxio-Cluster-with-HA.html
+    - title: Install Alluxio on Docker
+      url: /en/deploy/Install-Alluxio-Cluster-with-Docker.html
   
 - title: Compute Integrations
   buttonTitle: Compute_Integrations
@@ -151,6 +153,8 @@
               url: /en/api/S3-API.html
     - title: Glossary
       url: /en/reference/Glossary.html
+    - title: Membership Management
+      url: /en/operation/Alluxio-Membership-Management.html
     - title: List of Configuration Properties
       url: /en/reference/Properties-List.html
     - title: List of Environment Variables

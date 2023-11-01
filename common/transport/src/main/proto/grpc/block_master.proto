@@ -59,7 +59,7 @@ message GetUsedBytesPResponse {
 }
 
 message WorkerInfo {
-  optional int64 id = 1;
+  optional int64 id = 1 [deprecated = true]; // deprecated in favor of WorkerIdentity
   optional grpc.WorkerNetAddress address = 2;
   optional int32 lastContactSec = 3;
   optional string state = 4;
@@ -69,6 +69,7 @@ message WorkerInfo {
   map<string, int64> capacityBytesOnTiers = 8;
   map<string, int64> usedBytesOnTiers = 9;
   optional BuildVersion buildVersion = 10;
+  optional WorkerIdentity identity = 11;
 }
 
 enum WorkerRange {
@@ -156,6 +157,11 @@ service BlockMasterClientService {
    * Returns a list of workers information.
    */
   rpc GetWorkerInfoList(GetWorkerInfoListPOptions) returns (GetWorkerInfoListPResponse);
+
+  /**
+ * Returns a list of workers information.
+ */
+  rpc GetLostWorkerList(GetWorkerInfoListPOptions) returns (GetWorkerInfoListPResponse);
 
   /**
    * If target worker is in the decommissioned worker set,

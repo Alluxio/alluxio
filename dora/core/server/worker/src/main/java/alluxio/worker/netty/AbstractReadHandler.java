@@ -11,8 +11,6 @@
 
 package alluxio.worker.netty;
 
-import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.InternalException;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -24,8 +22,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -52,31 +50,35 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @param <T> type of read request
  */
 @NotThreadSafe
-public abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
+public abstract class AbstractReadHandler<T extends ReadRequest>
     extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractReadHandler.class);
 
-  /** The executor to run {@link PacketReader}. */
+  /** The executor to run {@link NettyReadHandlerStateMachine}. */
   private final ExecutorService mPacketReaderExecutor;
-
-  private final ConcurrentHashMap<String, PacketReadTask<T>> mTasksMap =
-      new ConcurrentHashMap<>();
+  private final NettyReadHandlerStateMachine<T> mStateMachine;
 
   /**
    * Creates an instance of {@link AbstractReadHandler}.
    *
    * @param executorService the executor service to run {@link PacketReader}s
    */
-  AbstractReadHandler(ExecutorService executorService) {
+  protected AbstractReadHandler(ExecutorService executorService, Channel channel,
+      Class<T> requestType,
+      PacketReader.Factory<T, ? extends PacketReader<T>> packetReaderFactory) {
     mPacketReaderExecutor = executorService;
+    mStateMachine = new NettyReadHandlerStateMachine<>(channel, requestType, packetReaderFactory);
+  }
+
+  @Override
+  public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+    mPacketReaderExecutor.submit(mStateMachine::run);
+    ctx.fireChannelRegistered();
   }
 
   @Override
   public void channelUnregistered(ChannelHandlerContext ctx) {
-    // Notify all the tasks
-    mTasksMap.values().forEach(task -> task.notifyChannelException(
-        new Error(new InternalException("Channel has been unregistered"), false)));
-    mTasksMap.clear();
+    mStateMachine.notifyChannelClosed();
     ctx.fireChannelUnregistered();
   }
 
@@ -88,37 +90,19 @@ public abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     }
     Protocol.ReadRequest msg = ((RPCProtoMessage) object).getMessage().asReadRequest();
     if (msg.getCancel()) {
-      mTasksMap.values().forEach(PacketReadTask::cancelTask);
-      mTasksMap.clear();
+      mStateMachine.cancel();
       return;
     }
 
     // Create and submit a task for reading and sending packet
-    T requestContext = createRequestContext(msg);
-    requestContext.setPosToQueue(requestContext.getRequest().getStart());
-    requestContext.setPosToWrite(requestContext.getRequest().getStart());
-    PacketReader packetReader = createPacketReader();
-    String taskId = UUID.randomUUID().toString();
-    PacketReadTask<T> packetReadTask =
-        new PacketReadTask<>(taskId, requestContext, ctx.channel(), packetReader);
-    mTasksMap.put(taskId, packetReadTask);
-    mPacketReaderExecutor.submit(() -> {
-      try {
-        packetReadTask.call();
-      } finally {
-        mTasksMap.remove(taskId);
-      }
-    });
-    LOG.debug("taskMap.size(): " + mTasksMap.size());
+    T request = createReadRequest(msg);
+    mStateMachine.submitNewRequest(request);
   }
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOG.error("Exception caught in AbstractReadHandler for channel {}:", ctx.channel(), cause);
-    // Notify the task that there is an error
-    mTasksMap.values().forEach(task -> task.notifyChannelException(
-        new Error(AlluxioStatusException.fromThrowable(cause), true)));
-    mTasksMap.clear();
+    mStateMachine.notifyChannelException(cause);
   }
 
   /**
@@ -139,37 +123,40 @@ public abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
    * @param request the block read request
    * @return an instance of read request based on the request read from channel
    */
-  protected abstract T createRequestContext(Protocol.ReadRequest request);
-
-  /**
-   * Creates a read reader.
-   * @return the packet reader for this handler
-   */
-  protected abstract PacketReader createPacketReader();
+  protected abstract T createReadRequest(Protocol.ReadRequest request);
 
   /**
    * A runnable that reads packets and writes them to the channel.
+   * @param <T> type of read request
    */
-  protected abstract class PacketReader {
+  public interface PacketReader<T extends ReadRequest> extends Closeable {
 
     /**
-     * Completes the read request. When the request is closed, we should clean up any temporary
-     * state it may have accumulated.
+     * Factory that creates a PacketReader.
      *
-     * @param context context of the request to complete
+     * @param <T> type of read requestr
+     * @param <P> type of the packet reader created by this factory
      */
-    protected abstract void completeRequest(T context) throws Exception;
+    interface Factory<T extends ReadRequest, P extends PacketReader<T>> {
+      /**
+       * Creates a new packet reader.
+       *
+       * @param readRequest the read request
+       * @return packet reader
+       * @throws IOException if IOException occurs
+       */
+      P create(T readRequest) throws IOException;
+    }
 
     /**
      * Returns the appropriate {@link DataBuffer} representing the data to send, depending on the
      * configurable transfer type.
      *
-     * @param context context of the request to complete
      * @param channel the netty channel
+     * @param offset offset
      * @param len The length, in bytes, of the data to read from the block
      * @return a {@link DataBuffer} representing the data
      */
-    protected abstract DataBuffer getDataBuffer(T context, Channel channel, long offset, int len)
-        throws Exception;
+    DataBuffer createDataBuffer(Channel channel, long offset, int len) throws Exception;
   }
 }

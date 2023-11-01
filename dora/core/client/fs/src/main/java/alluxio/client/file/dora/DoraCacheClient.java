@@ -33,6 +33,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.PermissionDeniedException;
+import alluxio.grpc.CacheDataRequest;
+import alluxio.grpc.CacheDataResponse;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CompleteFilePRequest;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -61,9 +63,19 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -80,6 +92,9 @@ public class DoraCacheClient {
 
   private final int mPreferredWorkerCount;
 
+  private final boolean mEnableDynamicHashRing;
+  private static final Logger LOG = LoggerFactory.getLogger(DoraCacheClient.class);
+
   /**
    * Constructor.
    *
@@ -92,6 +107,8 @@ public class DoraCacheClient {
         PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
     mNettyTransEnabled =
         context.getClusterConf().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
+    mEnableDynamicHashRing =
+        context.getClusterConf().getBoolean(PropertyKey.USER_DYNAMIC_CONSISTENT_HASH_RING_ENABLED);
     int minReplicaCount = context.getClusterConf().getInt(PropertyKey.USER_FILE_REPLICATION_MIN);
     mPreferredWorkerCount = Math.max(1, minReplicaCount);
   }
@@ -113,7 +130,7 @@ public class DoraCacheClient {
     } else {
       throw new UnsupportedOperationException("Grpc dora reader not implemented");
     }
-    return new PositionReadFileInStream(reader, status.getLength());
+    return new PositionReadFileInStream(reader, status, this);
   }
 
   /**
@@ -148,7 +165,7 @@ public class DoraCacheClient {
    */
   public DoraCachePositionReader createNettyPositionReader(URIStatus status,
       Protocol.OpenUfsBlockOptions ufsOptions,
-      CloseableSupplier<PositionReader> externalPositionReader) {
+      Optional<CloseableSupplier<PositionReader>> externalPositionReader) {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.toString());
     // Construct the partial read request
     NettyDataReader reader = createNettyDataReader(workerNetAddress, ufsOptions);
@@ -248,6 +265,45 @@ public class DoraCacheClient {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Get a map that maps file path to the workers list.
+   * @param path the file path to check
+   * @param options the get status options
+   * @return a map that maps file path to the workers list
+   * @throws IOException
+   */
+  public Map<String, List<WorkerNetAddress>> checkFileLocation(String path,
+      GetStatusPOptions options) throws IOException {
+    Map<String, List<WorkerNetAddress>> pathDistributionMap = new HashMap<>();
+    List<BlockWorkerInfo> workers = mContext.getLiveWorkers();
+    for (BlockWorkerInfo worker : workers) {
+      try (CloseableResource<BlockWorkerClient> client =
+               mContext.acquireBlockWorkerClient(worker.getNetAddress())) {
+        GetStatusPRequest request = GetStatusPRequest.newBuilder()
+            .setPath(path)
+            .setOptions(options)
+            .build();
+        try {
+          FileInfo fileInfo = client.get().getStatus(request).getFileInfo();
+          URIStatus uriStatus = new URIStatus(GrpcUtils.fromProto(fileInfo));
+          if (uriStatus.getInAlluxioPercentage() > 0) {
+            List<WorkerNetAddress> assignedWorkers = pathDistributionMap.get(path);
+            if (assignedWorkers == null) {
+              assignedWorkers = new ArrayList<>();
+            }
+            assignedWorkers.add(worker.getNetAddress());
+            pathDistributionMap.put(path, assignedWorkers);
+          }
+        } catch (Exception e) {
+          // ignore this exception
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return pathDistributionMap;
   }
 
   /**
@@ -388,16 +444,55 @@ public class DoraCacheClient {
    */
   public WorkerNetAddress getWorkerNetAddress(String path) {
     try {
-      List<BlockWorkerInfo> workers = mContext.getCachedWorkers();
+      List<BlockWorkerInfo> workers = mEnableDynamicHashRing ? mContext.getCachedWorkers(
+          FileSystemContext.GetWorkerListType.LIVE) : mContext.getCachedWorkers(
+          FileSystemContext.GetWorkerListType.ALL);
       List<BlockWorkerInfo> preferredWorkers =
           mWorkerLocationPolicy.getPreferredWorkers(workers,
               path, mPreferredWorkerCount);
       checkState(preferredWorkers.size() > 0);
-      WorkerNetAddress workerNetAddress = choosePreferredWorker(preferredWorkers).getNetAddress();
+      BlockWorkerInfo worker = choosePreferredWorker(preferredWorkers);
+      if (!worker.isActive()) {
+        throw new RuntimeException("The preferred worker is not active.");
+      }
+      WorkerNetAddress workerNetAddress = worker.getNetAddress();
       return workerNetAddress;
     } catch (IOException e) {
       // If failed to find workers in the cluster or failed to find the specified number of
       // workers, throw an exception to the application
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Caches data from ufs.
+   * @param ufsPath the full ufs path
+   * @param pos the position
+   * @param length the length
+   */
+  public void cacheData(String ufsPath, long pos, long length) {
+    // TODO(yimin.wei) break down the load request into loading virtual block requests
+    // and load them on different workers.
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(ufsPath))) {
+      CacheDataRequest request = CacheDataRequest.newBuilder()
+          .setUfsPath(ufsPath)
+          .setPos(pos)
+          .setLength(length)
+          .setAsync(true)
+          .build();
+      ListenableFuture<CacheDataResponse> future = client.get().cacheData(request);
+      Futures.addCallback(future, new FutureCallback<CacheDataResponse>() {
+        @Override
+        public void onSuccess(CacheDataResponse result) {
+        }
+
+        @Override
+        public void onFailure(Throwable t) {
+          LOG.warn("Preloading {} failed", ufsPath, t);
+        }
+      }, MoreExecutors.directExecutor());
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }

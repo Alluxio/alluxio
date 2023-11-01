@@ -18,8 +18,8 @@ CWD=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 OS_ARCH_TUPLES=(
 "linux amd64 Linux-x86_64"
 "darwin amd64 Darwin-x86_64"
-"linux arm64 Linux-aarch64"
-"darwin arm64 Darwin-aarch64"
+"linux arm64 Linux-arm64"
+"darwin arm64 Darwin-arm64"
 )
 
 MAIN_PATH="cli/main.go"
@@ -47,8 +47,8 @@ main() {
     exit 1
   fi
   go_version=$(go version)
-  if [[ ! ${go_version} =~ ^go\ version\ go1\.(18|19|[2-9][0-9]) ]]; then
-    echo "Go version must be 1.18 or later, but got ${go_version}"
+  if [[ ! ${go_version} =~ ^go\ version\ go1\.(1[5-9]|[2-9][0-9]) ]]; then
+    echo "Go version must be 1.15 or later, but got ${go_version}"
     exit 1
   fi
 

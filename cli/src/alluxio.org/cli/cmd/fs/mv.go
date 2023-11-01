@@ -39,7 +39,13 @@ func (c *MoveCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   "mv [srcPath] [dstPath]",
 		Short: "Rename a file or directory",
-		Args:  cobra.ExactArgs(2),
+		Long: `The mv command moves a file or directory to another path in Alluxio.
+The destination path must not exist or be a directory.
+If it is a directory, the file or directory will be placed as a child of the directory.
+The command is purely a metadata operation and does not affect the data blocks of the file.`,
+		Example: `# Moving a file
+$ ./bin/alluxio fs mv /data/2014 /data/archives/2014`,
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},

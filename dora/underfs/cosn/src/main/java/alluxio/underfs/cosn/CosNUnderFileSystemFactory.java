@@ -17,7 +17,7 @@ import alluxio.CosnUfsConstants;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.hdfs.HdfsUnderFileSystemFactory;
+import alluxio.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
 
@@ -27,7 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Factory for creating {@link CosnUnderFileSystem}.
  */
 @ThreadSafe
-public class CosNUnderFileSystemFactory extends HdfsUnderFileSystemFactory {
+public class CosNUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {

@@ -506,7 +506,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         workerProvider = new MembershipManagerWorkerProvider(
             MembershipManager.Factory.create(Configuration.global()), schedulerFsContext);
         break;
-      case NOOP:
+      case MASTER:
         workerProvider = new DefaultWorkerProvider(this, schedulerFsContext);
         break;
       default:
@@ -4145,6 +4145,11 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
     return mBlockMaster.getWorkerInfoList();
+  }
+
+  @Override
+  public List<WorkerInfo> getLostWorkerList() throws UnavailableException {
+    return mBlockMaster.getLostWorkersInfoList();
   }
 
   @Override

@@ -55,7 +55,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -64,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -287,7 +287,7 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
    * @return the next task to run. If there is no task to run, return empty
    */
   @Override
-  public  List<LoadJob.LoadTask> getNextTasks(Collection<WorkerInfo> workers) {
+  public  List<LoadJob.LoadTask> getNextTasks(Set<WorkerInfo> workers) {
     List<LoadTask> tasks = new ArrayList<>();
     List<Block> blocks = getNextBatchBlocks(BATCH_SIZE);
     if (blocks.isEmpty()) {

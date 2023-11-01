@@ -33,6 +33,7 @@ var Collect = &CollectCommand{
 type CollectCommand struct {
 	*env.BaseJavaCommand
 
+	AdditionalCommands   map[string]string
 	additionalLogs       []string
 	endTime              string
 	excludeLogs          []string
@@ -55,18 +56,17 @@ func (c *CollectCommand) ToCommand() *cobra.Command {
 		Use:   fmt.Sprintf("%v [command]", c.CommandName),
 		Short: "Collects information such as logs, config, metrics, and more from the running Alluxio cluster and bundle into a single tarball",
 		Long: `Collects information such as logs, config, metrics, and more from the running Alluxio cluster and bundle into a single tarball
-[command] must be one of the following values:
-  all      runs all the commands below
-  cluster: runs a set of Alluxio commands to collect information about the Alluxio cluster
-  conf:    collects the configuration files under ${ALLUXIO_HOME}/config/
-  env:     runs a set of linux commands to collect information about the cluster
-  jvm:     collects jstack from the JVMs
-  log:     collects the log files under ${ALLUXIO_HOME}/logs/
-  metrics: collects Alluxio system metrics
 
-WARNING: This command MAY bundle credentials. To understand the risks refer to the docs here.
-https://docs.alluxio.io/os/user/edge/en/operation/Troubleshooting.html#collect-alluxio-cluster-information
-`,
+[command] must be one of the following values:
+- all: runs all the commands below
+- cluster: runs a set of Alluxio commands to collect information about the Alluxio cluster
+- conf: collects the configuration files under ${ALLUXIO_HOME}/config/
+- env: runs a set of linux commands to collect information about the cluster
+- jvm: collects jstack from the JVMs
+- log: collects the log files under ${ALLUXIO_HOME}/logs/
+- metrics: collects Alluxio system metrics
+
+> WARNING: This command MAY bundle credentials. Inspect the output tarball for any sensitive information and remove it before sharing with others.`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
@@ -96,6 +96,9 @@ func (c *CollectCommand) Run(args []string) error {
 		"jvm":     "collectJvmInfo",
 		"log":     "collectLog",
 		"metrics": "collectMetrics",
+	}
+	for k, v := range c.AdditionalCommands {
+		commands[k] = v
 	}
 	commandArg, ok := commands[args[0]]
 	if !ok {

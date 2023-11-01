@@ -239,13 +239,30 @@ func getSigner() (ssh.Signer, error) {
 		return nil, stacktrace.Propagate(err, "user home directory not found at %v", homePath)
 	}
 	privateKeyFile := filepath.Join(homePath, ".ssh", "id_rsa")
-	privateKey, err := os.ReadFile(privateKeyFile)
+
+	f, err := os.Open(privateKeyFile)
 	if err != nil {
-		return nil, stacktrace.Propagate(err, "private key file not found at %v", privateKeyFile)
+		return nil, stacktrace.Propagate(err, "error reading file %v", privateKeyFile)
+	}
+	defer f.Close()
+	privateKey, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "error reading contents of %v", privateKeyFile)
 	}
 	parsedPrivateKey, err := ssh.ParsePrivateKey(privateKey)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "cannot parse public key at %v", privateKeyFile)
 	}
 	return parsedPrivateKey, nil
+}
+
+func argsContainsOpt(args []string, optPrefixes ...string) bool {
+	for _, arg := range args {
+		for _, prefix := range optPrefixes {
+			if strings.HasPrefix(arg, prefix) {
+				return true
+			}
+		}
+	}
+	return false
 }

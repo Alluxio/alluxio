@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  * ServiceDiscoveryRecipe for etcd, to track health status
  * of all registered services.
  */
-public class ServiceDiscoveryRecipe {
+public class ServiceDiscoveryRecipe implements AutoCloseable {
   private static final Logger LOG = LoggerFactory.getLogger(ServiceDiscoveryRecipe.class);
   final AlluxioEtcdClient mAlluxioEtcdClient;
   private final ScheduledExecutorService mExecutor;
@@ -70,7 +70,7 @@ public class ServiceDiscoveryRecipe {
     mAlluxioEtcdClient = client;
     mRegisterPathPrefix = pathPrefix;
     mExecutor = Executors.newSingleThreadScheduledExecutor(
-        ThreadFactoryUtils.build("service-discovery-checker", false));
+        ThreadFactoryUtils.build("service-discovery-checker", true));
     mExecutor.scheduleWithFixedDelay(this::checkAllForReconnect,
         AlluxioEtcdClient.DEFAULT_LEASE_TTL_IN_SEC, AlluxioEtcdClient.DEFAULT_LEASE_TTL_IN_SEC,
         TimeUnit.SECONDS);
@@ -81,16 +81,18 @@ public class ServiceDiscoveryRecipe {
    * given DefaultServiceEntity in atomic fashion.
    * Atomicity:
    * creation of given DefaultServiceEntity entry on etcd is handled by etcd transaction
-   * iff the version = 0 which means when there's no such key present.
+   * if the version = 0 which means when there's no such key present.
    * (expired lease will automatically delete the kv attached with it on etcd)
    * update of the DefaultServiceEntity fields(lease,revision num) is guarded by
    * lock within DefaultServiceEntity instance.
    * @param service
+   * @param force
    * @throws IOException
    */
-  private void newLeaseInternal(DefaultServiceEntity service) throws IOException {
+  private void newLeaseInternal(DefaultServiceEntity service, boolean force) throws IOException {
     try (LockResource lockResource = new LockResource(service.getLock())) {
-      if (service.getLease() != null && !mAlluxioEtcdClient.isLeaseExpired(service.getLease())) {
+      if (!force && service.getLease() != null
+          && !mAlluxioEtcdClient.isLeaseExpired(service.getLease())) {
         LOG.info("Lease attached with service:{} is not expired, bail from here.",
             service.getServiceEntityName());
         return;
@@ -118,8 +120,7 @@ public class ServiceDiscoveryRecipe {
             r -> kvs.addAll(r.getKvs())).collect(Collectors.toList());
         if (!txnResponse.isSucceeded()) {
           if (!kvs.isEmpty()) {
-            throw new AlreadyExistsException("Same service kv pair is there but "
-                + "attached lease is expired, this should not happen");
+            throw new AlreadyExistsException("Same service kv pair already exists.");
           }
           throw new IOException("Failed to new a lease for service:" + service.toString());
         }
@@ -153,7 +154,7 @@ public class ServiceDiscoveryRecipe {
       throw new AlreadyExistsException("Service " + service.getServiceEntityName()
           + " already registered.");
     }
-    newLeaseInternal(service);
+    newLeaseInternal(service, false);
     DefaultServiceEntity existEntity = mRegisteredServices.putIfAbsent(
         service.getServiceEntityName(), service);
     if (existEntity != null) {
@@ -332,6 +333,7 @@ public class ServiceDiscoveryRecipe {
    * to renew the lease with new keepalive client.
    */
   private void checkAllForReconnect() {
+    LOG.debug("instance {} - Checking if any service needs reconnection ...", this);
     // No need for lock over all services, just individual DefaultServiceEntity is enough
     for (Map.Entry<String, DefaultServiceEntity> entry : mRegisteredServices.entrySet()) {
       DefaultServiceEntity entity = entry.getValue();
@@ -341,11 +343,27 @@ public class ServiceDiscoveryRecipe {
       if (entity.mNeedReconnect.get()) {
         try {
           LOG.info("Start reconnect for service:{}", entity.getServiceEntityName());
-          newLeaseInternal(entity);
+          // Always force create a new lease as when onCompleted / onError called
+          // from RetryKeepAliveObserver, the lease might not directly got expired at the time.
+          newLeaseInternal(entity, true);
           entity.mNeedReconnect.set(false);
         } catch (IOException | UnavailableRuntimeException e) {
-          LOG.info("Failed trying to new the lease for service:{}", entity, e);
+          LOG.warn("Failed trying to new the lease for service:{}", entity, e);
         }
+      }
+    }
+  }
+
+  @Override
+  public void close() {
+    if (mExecutor != null) {
+      mExecutor.shutdown();
+      try {
+        mExecutor.awaitTermination(5, TimeUnit.SECONDS);
+      } catch (InterruptedException e) {
+        LOG.warn("interrupted while terminating the thread used to poll ETCD");
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(e);
       }
     }
   }

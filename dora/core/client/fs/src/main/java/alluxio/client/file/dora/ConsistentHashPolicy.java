@@ -46,7 +46,7 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
    * @param conf the configuration used by the policy
    */
   public ConsistentHashPolicy(AlluxioConfiguration conf) {
-    mNumVirtualNodes = conf.getInt(PropertyKey.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT);
+    mNumVirtualNodes = conf.getInt(PropertyKey.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER);
   }
 
   @Override
@@ -61,7 +61,7 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
     List<BlockWorkerInfo> workers = HASH_PROVIDER.getMultiple(fileId, count);
     if (workers.size() != count) {
       throw new ResourceExhaustedException(String.format(
-          "Found %d workers from the hash ring but %d required", blockWorkerInfos.size(), count));
+          "Found %d workers from the hash ring but %d required", workers.size(), count));
     }
     return workers;
   }

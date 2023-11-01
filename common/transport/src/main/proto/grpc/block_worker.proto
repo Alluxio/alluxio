@@ -76,6 +76,11 @@ service BlockWorker {
    * Sets file or directory attributes.
    */
   rpc SetAttribute(grpc.file.SetAttributePRequest) returns (grpc.file.SetAttributePResponse);
+
+  /**
+   * Caches data from UFS.
+   */
+  rpc CacheData(CacheDataRequest) returns (CacheDataResponse);
 }
 
 message UfsStatus {
@@ -199,6 +204,15 @@ message CacheRequest {
   optional bool async = 6;
 }
 
+message CacheDataRequest {
+  optional string ufs_path = 1;
+  optional int64 pos = 2;
+  optional int64 length = 3;
+  optional bool async = 4;
+}
+
+message CacheDataResponse {}
+
 // Request for load a block into alluxio
 // next available id: 3
 message LoadRequest {
@@ -218,13 +232,14 @@ message UfsReadOptions{
 }
 
 message Block{
-  required int64 block_id = 1;
+  optional int64 block_id = 1;
     // The block length.
   required int64 length = 2;
   optional string ufs_path = 3;
   // The offset of the block in within ufs the file.
   optional int64 offset_in_file = 4;
   optional int64 mountId = 5;
+  optional UfsStatus ufs_status = 6;
 }
 
 message LoadResponse {
@@ -239,9 +254,29 @@ enum TaskStatus {
 }
 
 message LoadFileRequest {
-  repeated UfsStatus ufs_status = 1;
+  repeated LoadSubTask subtasks = 1;
   required UfsReadOptions options = 2;
-  optional bool load_metadata_only = 3; // If set false, only the metadata of file will be loaded.
+  optional bool skip_if_exists = 3;
+}
+
+// A subtask of a load file request. either a load data or load metadata.
+message LoadSubTask {
+  oneof task {
+    LoadDataSubTask load_data_subtask = 1;
+    LoadMetadataSubTask load_metadata_subtask = 2;
+  }
+}
+
+message LoadDataSubTask {
+  required int64 length = 1;
+  optional string ufs_path = 2;
+  optional int64 offset_in_file = 3;
+  optional UfsStatus ufs_status = 4;
+  optional WorkerNetAddress main_worker = 5;
+}
+
+message LoadMetadataSubTask {
+  optional UfsStatus ufs_status = 1;
 }
 
 message File{
@@ -254,7 +289,9 @@ message File{
 
 message LoadFileResponse {
   required TaskStatus status = 1;
-  repeated LoadFileFailure failures = 2;
+  repeated LoadFailure failures = 2;
+  optional int32 num_skipped = 3;
+  optional int64 bytes_skipped = 4;
 }
 
 message FreeWorkerRequest{}
@@ -270,19 +307,11 @@ message BlockStatus {
   optional bool retryable = 4;
 }
 
-message LoadFileFailure {
-  optional UfsStatus ufs_status = 1;
+// load subtask failure, either metadata or load block we only need to input one of them
+message LoadFailure {
+  optional LoadSubTask subtask = 1;
   // The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
   optional int32 code = 2;
-  // A developer-facing error message
-  optional string message = 3;
-  optional bool retryable = 4;
-}
-
-message FileFailure {
-  required File file = 1;
-  // The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
-  required int32 code = 2;
   // A developer-facing error message
   optional string message = 3;
   optional bool retryable = 4;

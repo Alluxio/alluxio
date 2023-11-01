@@ -39,7 +39,10 @@ func (c *CatCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   "cat [path]",
 		Short: "Print specified file's content",
-		Args:  cobra.ExactArgs(1),
+		Long:  `The cat command prints the contents of a file in Alluxio to the shell.`,
+		Example: `# Print the contents of /output/part-00000
+$ ./bin/alluxio fs cat /output/part-00000`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},

@@ -44,6 +44,9 @@ public abstract class AbstractShellIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
           .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, SIZE_BYTES / 2)
           .setProperty(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED, true)
+          .setProperty(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED, false)
+          // current s3 ufs mock don't support setXattr, disable the flag to bypass it
+          .setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false)
           .build();
 
   @Rule

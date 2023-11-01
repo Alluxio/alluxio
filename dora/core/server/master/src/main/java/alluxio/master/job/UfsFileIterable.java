@@ -38,7 +38,6 @@ import java.util.function.Predicate;
 public class UfsFileIterable implements Iterable<FileInfo> {
   private final String mPath;
   private final Optional<String> mUser;
-
   private final Predicate<FileInfo> mFilter;
   private final UnderFileSystem mUfs;
 
@@ -93,7 +92,7 @@ public class UfsFileIterable implements Iterable<FileInfo> {
                                   .setOwner(ufsStatus.getOwner()).setGroup(ufsStatus.getGroup())
                                   .setMode(ufsStatus.getMode()).setCompleted(true);
     if (ufsStatus.getLastModifiedTime() != null) {
-      info.setLastModificationTimeMs(info.getLastModificationTimeMs());
+      info.setLastModificationTimeMs(ufsStatus.getLastModifiedTime());
     }
     if (ufsStatus.getXAttr() != null) {
       info.setXAttr(ufsStatus.getXAttr());

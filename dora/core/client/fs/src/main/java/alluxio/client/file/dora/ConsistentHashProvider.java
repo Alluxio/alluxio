@@ -12,20 +12,19 @@
 package alluxio.client.file.dora;
 
 import static com.google.common.hash.Hashing.murmur3_32_fixed;
-import static java.lang.Math.ceil;
-import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerIdentity;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -111,7 +110,7 @@ public class ConsistentHashProvider {
    * @return a list of workers following the hash ring
    */
   public List<BlockWorkerInfo> getMultiple(String key, int count) {
-    Set<BlockWorkerInfo> workers = new HashSet<>();
+    Set<BlockWorkerInfo> workers = new LinkedHashSet<>(); // preserve insertion order
     int attempts = 0;
     while (workers.size() < count && attempts < mMaxAttempts) {
       attempts++;
@@ -192,10 +191,10 @@ public class ConsistentHashProvider {
     if (workerInfoList == anotherWorkerInfoList) {
       return false;
     }
-    Set<WorkerNetAddress> workerAddressSet = workerInfoList.stream()
-            .map(info -> info.getNetAddress()).collect(Collectors.toSet());
-    Set<WorkerNetAddress> anotherWorkerAddressSet = anotherWorkerInfoList.stream()
-            .map(info -> info.getNetAddress()).collect(Collectors.toSet());
+    Set<WorkerIdentity> workerAddressSet = workerInfoList.stream()
+        .map(BlockWorkerInfo::getIdentity).collect(Collectors.toSet());
+    Set<WorkerIdentity> anotherWorkerAddressSet = anotherWorkerInfoList.stream()
+        .map(BlockWorkerInfo::getIdentity).collect(Collectors.toSet());
     return !workerAddressSet.equals(anotherWorkerAddressSet);
   }
 
@@ -208,7 +207,11 @@ public class ConsistentHashProvider {
 
   @VisibleForTesting
   static BlockWorkerInfo get(NavigableMap<Integer, BlockWorkerInfo> map, String key, int index) {
-    int hashKey = HASH_FUNCTION.hashString(format("%s%d", key, index), UTF_8).asInt();
+    HashCode hashCode = HASH_FUNCTION.newHasher()
+        .putString(key, UTF_8)
+        .putInt(index)
+        .hash();
+    int hashKey = hashCode.asInt();
     Map.Entry<Integer, BlockWorkerInfo> entry = map.ceilingEntry(hashKey);
     if (entry != null) {
       return entry.getValue();
@@ -241,13 +244,13 @@ public class ConsistentHashProvider {
           List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
     Preconditions.checkArgument(!workerInfos.isEmpty(), "worker list is empty");
     NavigableMap<Integer, BlockWorkerInfo> activeNodesByConsistentHashing = new TreeMap<>();
-    int weight = (int) ceil(1.0 * numVirtualNodes / workerInfos.size());
     for (BlockWorkerInfo workerInfo : workerInfos) {
-      for (int i = 0; i < weight; i++) {
-        activeNodesByConsistentHashing.put(
-            HASH_FUNCTION.hashString(format("%s%d", workerInfo.getNetAddress().dumpMainInfo(), i),
-                UTF_8).asInt(),
-            workerInfo);
+      for (int i = 0; i < numVirtualNodes; i++) {
+        final HashCode hashCode = HASH_FUNCTION.newHasher()
+            .putObject(workerInfo.getIdentity(), WorkerIdentity.HashFunnel.INSTANCE)
+            .putInt(i)
+            .hash();
+        activeNodesByConsistentHashing.put(hashCode.asInt(), workerInfo);
       }
     }
     return activeNodesByConsistentHashing;

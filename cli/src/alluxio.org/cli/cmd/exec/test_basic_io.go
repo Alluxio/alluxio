@@ -23,7 +23,7 @@ var TestRun = &TestRunCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "basicIOTest",
 		JavaClassName: "alluxio.cli.TestRunner",
-		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
+		ShellJavaOpts: []string{fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console")},
 	},
 }
 
@@ -44,7 +44,12 @@ func (c *TestRunCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   "basicIOTest",
 		Args:  cobra.NoArgs,
-		Short: "Run all end-to-end tests, or a specific test, on an Alluxio cluster.",
+		Short: "Run all end-to-end tests or a specific test, on an Alluxio cluster.",
+		Example: `# Run all permutations of IO tests
+$ ./bin/alluxio exec basicIOTest
+
+# Run a specific permutation of the IO tests
+$ ./bin/alluxio exec basicIOtest --operation BASIC --readType NO_CACHE --writeType THROUGH`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
@@ -61,7 +66,7 @@ func (c *TestRunCommand) ToCommand() *cobra.Command {
 		"Alluxio worker addresses to run tests on. \n"+
 			"If not specified, random ones will be used.")
 	cmd.Flags().StringVar(&c.writeType, "writeType", "",
-		"The write type to use, one of MUST_CACHE, CACHE_THROUGH, THROUGH, ASYNC_THROUGH. \n"+
+		"The write type to use, one of MUST_CACHE, CACHE_THROUGH, THROUGH. \n"+
 			"By default all writeTypes are tested.")
 	return cmd
 }

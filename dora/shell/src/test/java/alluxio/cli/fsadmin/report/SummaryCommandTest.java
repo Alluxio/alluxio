@@ -11,6 +11,8 @@
 
 package alluxio.cli.fsadmin.report;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -25,12 +27,12 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterVersion;
 import alluxio.grpc.NetAddress;
-import alluxio.util.CommonUtils;
 import alluxio.wire.BlockMasterInfo;
 
-import org.hamcrest.collection.IsIterableContainingInOrder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,11 +40,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class SummaryCommandTest {
 
@@ -95,7 +96,13 @@ public class SummaryCommandTest {
     mPrintStream = new PrintStream(mOutputStream, true, "utf-8");
   }
 
-  void prepareZKHADependencies() throws IOException {
+  @After
+  public void after() {
+    mPrintStream.close();
+  }
+
+  @Test
+  public void ZkHaSummary() throws IOException {
     MasterVersion primaryVersion = MasterVersion.newBuilder()
         .setVersion(RuntimeConstants.VERSION).setState("Primary").setAddresses(
             NetAddress.newBuilder().setHost("hostname1").setRpcPort(10000).build()
@@ -115,9 +122,14 @@ public class SummaryCommandTest {
         .setRaftJournal(false)
         .build();
     when(mMetaMasterClient.getMasterInfo(any())).thenReturn(mMasterInfo);
+    SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
+        mBlockMasterClient, sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), mPrintStream);
+    summaryCommand.run();
+    checkIfOutputValid(sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), "zk");
   }
 
-  void prepareRaftHaDependencies() throws IOException {
+  @Test
+  public void RaftHaSummary() throws IOException {
     MasterVersion primaryVersion = MasterVersion.newBuilder()
         .setVersion(RuntimeConstants.VERSION).setState("Primary").setAddresses(
             NetAddress.newBuilder().setHost("hostname1").setRpcPort(10000).build()
@@ -137,80 +149,78 @@ public class SummaryCommandTest {
         .addAllMasterVersions(Arrays.asList(primaryVersion, standby1Version, standby2Version))
         .build();
     when(mMetaMasterClient.getMasterInfo(any())).thenReturn(mMasterInfo);
-  }
-
-  @After
-  public void after() {
-    mPrintStream.close();
-  }
-
-  @Test
-  public void ZkHaSummary() throws IOException {
-    prepareZKHADependencies();
     SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
         mBlockMasterClient, sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), mPrintStream);
-    ArrayList<String> zkHAPattern = new ArrayList<>(Arrays.asList(
-        "    Zookeeper Enabled: true",
-        "    Zookeeper Addresses: ",
-        "        [zookeeper_hostname1]:2181",
-        "        [zookeeper_hostname2]:2181",
-        "        [zookeeper_hostname3]:2181",
-        "    Raft-based Journal: false"));
     summaryCommand.run();
-    checkIfOutputValid(sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), zkHAPattern);
-  }
-
-  @Test
-  public void RaftHaSummary() throws IOException {
-    prepareRaftHaDependencies();
-    SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
-        mBlockMasterClient, sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), mPrintStream);
-    ArrayList<String> raftHaPattern = new ArrayList<>(Arrays.asList(
-        "    Zookeeper Enabled: false",
-        "    Raft-based Journal: true",
-        "    Raft Journal Addresses: ",
-        "        [raftJournal_hostname1]:19200",
-        "        [raftJournal_hostname2]:19200",
-        "        [raftJournal_hostname3]:19200"));
-    summaryCommand.run();
-
-    checkIfOutputValid(sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), raftHaPattern);
+    checkIfOutputValid(sConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN), "raft");
   }
 
   /**
    * Checks if the output is expected.
    */
-  private void checkIfOutputValid(String dateFormatPattern, List<? extends String> HAPattern) {
+  private void checkIfOutputValid(String dateFormatPattern, String HAPattern)
+      throws JsonProcessingException {
     String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode jsonNode = mapper.readTree(output);
+
+    // check master
+    String versionStr = String.format("%s", RuntimeConstants.VERSION);
+    assertEquals("testAddress", jsonNode.get("masterAddress").asText());
+    assertEquals("10000", jsonNode.get("masterVersions").get(0).get("port").asText());
+    assertEquals(versionStr, jsonNode.get("masterVersions").get(0).get("version").asText());
+    assertEquals("hostname1", jsonNode.get("masterVersions").get(0).get("host").asText());
+    assertEquals("Primary", jsonNode.get("masterVersions").get(0).get("state").asText());
+    assertEquals("10001", jsonNode.get("masterVersions").get(1).get("port").asText());
+    assertEquals(versionStr, jsonNode.get("masterVersions").get(1).get("version").asText());
+    assertEquals("hostname2", jsonNode.get("masterVersions").get(1).get("host").asText());
+    assertEquals("Standby", jsonNode.get("masterVersions").get(1).get("state").asText());
+    assertEquals("10002", jsonNode.get("masterVersions").get(2).get("port").asText());
+    assertEquals(versionStr, jsonNode.get("masterVersions").get(2).get("version").asText());
+    assertEquals("hostname3", jsonNode.get("masterVersions").get(2).get("host").asText());
+    assertEquals("Standby", jsonNode.get("masterVersions").get(2).get("state").asText());
+
+    // check cluster summary
     // Skip checking startTime which relies on system time zone
-    String startTime =  CommonUtils.convertMsToDate(1131242343122L, dateFormatPattern);
-    List<String> expectedOutput = new ArrayList<>(Arrays.asList("Alluxio cluster summary: ",
-        "    Master Address: testAddress",
-        "    Web Port: 1231",
-        "    Rpc Port: 8462",
-        "    Started: " + startTime,
-        "    Uptime: 143 day(s), 15 hour(s), 53 minute(s), and 32 second(s)",
-        "    Version: testVersion",
-        "    Safe Mode: false"));
-    expectedOutput.addAll(HAPattern);
-    String versionStr = String.format("%-32s", RuntimeConstants.VERSION);
-    expectedOutput.addAll(new ArrayList<>(Arrays.asList(
-        "    Master Address                   State    Version                         ",
-        "    hostname1:10000                  Primary  " + versionStr,
-        "    hostname2:10001                  Standby  " + versionStr,
-        "    hostname3:10002                  Standby  " + versionStr,
-        "    Live Workers: 12",
-        "    Lost Workers: 4",
-        "    Total Capacity: 1309.92KB",
-        "        Tier: MEM  Size: 1309.92KB",
-        "        Tier: DOM  Size: 230.96KB",
-        "        Tier: RAM  Size: 22.57KB",
-        "    Used Capacity: 60.97KB",
-        "        Tier: MEM  Size: 60.97KB",
-        "        Tier: DOM  Size: 72.50KB",
-        "        Tier: RAM  Size: 6.10KB",
-        "    Free Capacity: 1248.94KB")));
-    List<String> testOutput = Arrays.asList(output.split("\n"));
-    Assert.assertThat(testOutput, IsIterableContainingInOrder.contains(expectedOutput.toArray()));
+    assertEquals("1231", jsonNode.get("webPort").asText());
+    assertEquals("8462", jsonNode.get("rpcPort").asText());
+    assertEquals("testVersion", jsonNode.get("version").asText());
+    assertEquals("1131242343122", jsonNode.get("startTime").asText());
+    assertEquals("12412412312", jsonNode.get("uptimeDuration").asText());
+    assertEquals("false", jsonNode.get("safeMode").asText());
+
+    // check zookeeper and raft
+    if (Objects.equals(HAPattern, "zk")) {
+      assertEquals("true", jsonNode.get("useZookeeper").asText());
+      assertEquals("false", jsonNode.get("useRaftJournal").asText());
+      assertEquals("[zookeeper_hostname1]:2181",
+          jsonNode.get("zookeeperAddress").get(0).asText());
+      assertEquals("[zookeeper_hostname2]:2181",
+          jsonNode.get("zookeeperAddress").get(1).asText());
+      assertEquals("[zookeeper_hostname3]:2181",
+          jsonNode.get("zookeeperAddress").get(2).asText());
+    } else if (Objects.equals(HAPattern, "raft")) {
+      assertEquals("false", jsonNode.get("useZookeeper").asText());
+      assertEquals("true", jsonNode.get("useRaftJournal").asText());
+      assertEquals("[raftJournal_hostname1]:19200",
+          jsonNode.get("raftJournalAddress").get(0).asText());
+      assertEquals("[raftJournal_hostname2]:19200",
+          jsonNode.get("raftJournalAddress").get(1).asText());
+      assertEquals("[raftJournal_hostname3]:19200",
+          jsonNode.get("raftJournalAddress").get(2).asText());
+    } else {
+      fail("HAPattern is neither zk nor raft");
+    }
+
+    // check worker
+    assertEquals("12", jsonNode.get("liveWorkers").asText());
+    assertEquals("4", jsonNode.get("lostWorkers").asText());
+    assertEquals("1278919", jsonNode.get("freeCapacityBytes").asText());
+    assertEquals("236501", jsonNode.get("totalCapacityOnTiers").get("DOMBytes").asText());
+    assertEquals("1341353", jsonNode.get("totalCapacityOnTiers").get("MEMBytes").asText());
+    assertEquals("23112", jsonNode.get("totalCapacityOnTiers").get("RAMBytes").asText());
+    assertEquals("74235", jsonNode.get("usedCapacityOnTiers").get("DOMBytes").asText());
+    assertEquals("62434", jsonNode.get("usedCapacityOnTiers").get("MEMBytes").asText());
+    assertEquals("6243", jsonNode.get("usedCapacityOnTiers").get("RAMBytes").asText());
   }
 }

@@ -23,7 +23,6 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -45,9 +44,7 @@ public class WorkerMetadataSyncIntegrationTest {
                   .build(),
           Configuration.modifiableGlobal());
 
-  /* Not applied as registration is not going thru master any more */
   @Test
-  @Ignore
   public void reRegisterWorker() throws Exception {
     mLocalAlluxioClusterResource.start();
 
@@ -64,9 +61,7 @@ public class WorkerMetadataSyncIntegrationTest {
             () -> master.getWorkerCount() == 1, WaitForOptions.defaults().setTimeoutMs(2000));
   }
 
-  /* Not applied as registration is not going thru master any more */
   @Test
-  @Ignore
   public void acquireLeaseNoStreaming() throws Exception {
     // test that registration works when lease is enabled and streaming is disabled
     mConfigurationRule.set(PropertyKey.WORKER_REGISTER_LEASE_ENABLED, true);

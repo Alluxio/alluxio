@@ -22,7 +22,10 @@ type StopProcessCommand struct {
 func (c *StopProcessCommand) ToCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   StopProcessName,
-		Short: "Stops one or more processes",
+		Short: "Stops a process locally or a group of similar processes across the cluster",
+		Long: `Stops a single process locally or a group of similar processes across the cluster.
+For stopping a group, it is assumed the local host has passwordless SSH access to other nodes in the cluster.
+The command will parse the hostnames to run on by reading the conf/masters and conf/workers files, depending on the process type.`,
 	}
 	cmd.PersistentFlags().BoolVarP(&c.SoftKill, "soft", "s", false, "Soft kill only, don't forcibly kill the process")
 

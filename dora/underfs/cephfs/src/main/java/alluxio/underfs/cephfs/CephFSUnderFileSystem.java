@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -604,6 +605,16 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
   public void setMode(String path, short mode) throws IOException {
     path = stripPath(path);
     mMount.chmod(path, mode);
+  }
+
+  @Override
+  public void setAttribute(String path, String name, byte[] value) throws IOException {
+    throw new UnimplementedRuntimeException("setAttribute is not implemented");
+  }
+
+  @Override
+  public Map<String, String> getAttributes(String path) throws IOException {
+    throw new UnimplementedRuntimeException("getAttributes is not implemented");
   }
 
   @Override

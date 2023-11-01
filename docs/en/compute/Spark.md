@@ -62,7 +62,7 @@ Copy local data to the Alluxio file system. Put the `LICENSE` file into Alluxio,
 assuming you are in the Alluxio installation directory:
 
 ```shell
-$ ./bin/alluxio fs copyFromLocal LICENSE /Input
+$ ./bin/alluxio fs cp file://LICENSE /Input
 ```
 
 Run the following commands from `spark-shell`, assuming the Alluxio Master is

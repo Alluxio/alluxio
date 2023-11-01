@@ -12,6 +12,7 @@
 package cmd
 
 import (
+	"bytes"
 	"io/ioutil"
 	"log"
 	"os"
@@ -29,7 +30,7 @@ type AssemblyJar struct {
 
 type AssemblyJars map[string]*AssemblyJar
 
-func loadAssemblyJars(assemblyYml string) (AssemblyJars, error) {
+func LoadAssemblyJars(assemblyYml string) (AssemblyJars, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "error getting current working directory")
@@ -45,4 +46,26 @@ func loadAssemblyJars(assemblyYml string) (AssemblyJars, error) {
 		return nil, stacktrace.Propagate(err, "error unmarshalling assembly jars from:\n%v", string(content))
 	}
 	return assemblyJars, nil
+}
+
+func (a *AssemblyJar) ReplaceFiles(dstDir string) error {
+	// replace corresponding reference in scripts
+	for filePath, replacements := range a.FileReplacements {
+		replacementFile := filepath.Join(dstDir, filePath)
+		stat, err := os.Stat(replacementFile)
+		if err != nil {
+			return stacktrace.Propagate(err, "error listing file at %v", replacementFile)
+		}
+		contents, err := ioutil.ReadFile(replacementFile)
+		if err != nil {
+			return stacktrace.Propagate(err, "error reading file at %v", replacementFile)
+		}
+		for find, replace := range replacements {
+			contents = bytes.ReplaceAll(contents, []byte(find), []byte(replace))
+		}
+		if err := ioutil.WriteFile(replacementFile, contents, stat.Mode()); err != nil {
+			return stacktrace.Propagate(err, "error overwriting file at %v", replacementFile)
+		}
+	}
+	return nil
 }

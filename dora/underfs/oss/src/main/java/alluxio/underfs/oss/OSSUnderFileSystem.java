@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
@@ -29,6 +30,7 @@ import com.aliyun.oss.ClientBuilderConfiguration;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.ServiceException;
+import com.aliyun.oss.common.comm.Protocol;
 import com.aliyun.oss.model.AbortMultipartUploadRequest;
 import com.aliyun.oss.model.DeleteObjectsRequest;
 import com.aliyun.oss.model.DeleteObjectsResult;
@@ -39,6 +41,8 @@ import com.aliyun.oss.model.MultipartUploadListing;
 import com.aliyun.oss.model.OSSObjectSummary;
 import com.aliyun.oss.model.ObjectListing;
 import com.aliyun.oss.model.ObjectMetadata;
+import com.aliyun.oss.model.SetObjectTaggingRequest;
+import com.aliyun.oss.model.TagSet;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -50,8 +54,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
@@ -189,6 +195,24 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public void setOwner(String path, String user, String group) {}
 
+  @Override
+  public void setObjectTagging(String path, String name, String value) throws IOException {
+    // It's a read-and-update race condition. When there is a competitive conflict scenario,
+    // it may lead to inconsistent final results. The final conflict occurs in UFS,
+    // UFS will determine the final result.
+    TagSet taggingResult = mClient.getObjectTagging(mBucketName, path);
+    taggingResult.setTag(name, value);
+    SetObjectTaggingRequest request =
+        new SetObjectTaggingRequest(mBucketName, path).withTagSet(taggingResult);
+    mClient.setObjectTagging(request);
+  }
+
+  @Override
+  public Map<String, String> getObjectTags(String path) throws IOException {
+    TagSet taggingResult = mClient.getObjectTagging(mBucketName, path);
+    return Collections.unmodifiableMap(taggingResult.getAllTags());
+  }
+
   // No ACL integration currently, no-op
   @Override
   public void setMode(String path, short mode) throws IOException {}
@@ -280,7 +304,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   // Get next chunk of listing result
-  private ObjectListing getObjectListingChunk(ListObjectsRequest request) {
+  protected ObjectListing getObjectListingChunk(ListObjectsRequest request) {
     ObjectListing result;
     try {
       result = mClient.listObjects(request);
@@ -380,7 +404,78 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     ossClientConf.setConnectionTTL(alluxioConf.getMs(PropertyKey.UNDERFS_OSS_CONNECT_TTL));
     ossClientConf.setMaxConnections(alluxioConf.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
     ossClientConf.setMaxErrorRetry(alluxioConf.getInt(PropertyKey.UNDERFS_OSS_RETRY_MAX));
+    if (isProxyEnabled(alluxioConf)) {
+      String proxyHost = getProxyHost(alluxioConf);
+      int proxyPort = getProxyPort(alluxioConf);
+      ossClientConf.setProxyHost(proxyHost);
+      ossClientConf.setProxyPort(proxyPort);
+      ossClientConf.setProtocol(getProtocol());
+      LOG.info("the proxy for OSS is enabled, the proxy endpoint is: {}:{}", proxyHost, proxyPort);
+    }
     return ossClientConf;
+  }
+
+  private static boolean isProxyEnabled(AlluxioConfiguration alluxioConf) {
+    return getProxyHost(alluxioConf) != null && getProxyPort(alluxioConf) > 0;
+  }
+
+  private static int getProxyPort(AlluxioConfiguration alluxioConf) {
+    int proxyPort = alluxioConf.getInt(PropertyKey.UNDERFS_OSS_PROXY_PORT);
+    if (proxyPort >= 0) {
+      return proxyPort;
+    } else {
+      try {
+        return getProxyPortFromSystemProperty();
+      } catch (NumberFormatException e) {
+        return proxyPort;
+      }
+    }
+  }
+
+  private static String getProxyHost(AlluxioConfiguration alluxioConf) {
+    String proxyHost = alluxioConf.getOrDefault(PropertyKey.UNDERFS_OSS_PROXY_HOST, null);
+    if (proxyHost != null) {
+      return proxyHost;
+    } else {
+      return getProxyHostFromSystemProperty();
+    }
+  }
+
+  private static Protocol getProtocol() {
+    String protocol = Configuration.getString(PropertyKey.UNDERFS_OSS_PROTOCOL);
+    return protocol.equals(Protocol.HTTPS.toString()) ? Protocol.HTTPS : Protocol.HTTP;
+  }
+
+  /**
+   * Returns the Java system property for proxy port depending on
+   * {@link #getProtocol()}: i.e. if protocol is https, returns
+   * the value of the system property https.proxyPort, otherwise
+   * returns value of http.proxyPort.  Defaults to {@link this.proxyPort}
+   * if the system property is not set with a valid port number.
+   */
+  private static int getProxyPortFromSystemProperty() {
+    return getProtocol() == Protocol.HTTPS
+        ? Integer.parseInt(getSystemProperty("https.proxyPort"))
+        : Integer.parseInt(getSystemProperty("http.proxyPort"));
+  }
+
+  /**
+   * Returns the Java system property for proxy host depending on
+   * {@link #getProtocol()}: i.e. if protocol is https, returns
+   * the value of the system property https.proxyHost, otherwise
+   * returns value of http.proxyHost.
+   */
+  private static String getProxyHostFromSystemProperty() {
+    return getProtocol() == Protocol.HTTPS
+        ? getSystemProperty("https.proxyHost")
+        : getSystemProperty("http.proxyHost");
+  }
+
+  /**
+   * Returns the value for the given system property.
+   */
+  private static String getSystemProperty(String property) {
+    return System.getProperty(property);
   }
 
   @Override

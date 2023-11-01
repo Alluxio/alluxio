@@ -13,12 +13,13 @@ package env
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/viper"
 )
 
 const (
-	JavaOptFormat = " -D%v=%v"
+	JavaOptFormat = "-D%v=%v"
 )
 
 // alluxioEnvVarsTemplate lists the environment variables to include in conf/alluxio-env.sh.template
@@ -29,6 +30,7 @@ type AlluxioConfigEnvVar struct {
 	description string // describes the environment variable in conf/alluxio-env.sh.template file
 
 	// optional
+	IsJavaOpts                bool              // true if environment variable's value is a java opts string
 	configKey                 string            // corresponding property key as defined in java
 	additionalAlluxioJavaOpts map[string]string // additional java opts to append if non-empty java opt is added
 }
@@ -78,16 +80,19 @@ var (
 		EnvVar:    "ALLUXIO_USER_LOGS_DIR",
 	})
 	ConfAlluxioJavaOpts = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_JAVA_OPTS",
+		EnvVar:     "ALLUXIO_JAVA_OPTS",
+		IsJavaOpts: true,
 	})
 	confAlluxioClasspath = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
 		EnvVar: "ALLUXIO_CLASSPATH",
 	})
 	ConfAlluxioUserJavaOpts = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_USER_JAVA_OPTS",
+		EnvVar:     "ALLUXIO_USER_JAVA_OPTS",
+		IsJavaOpts: true,
 	})
 	ConfAlluxioUserAttachOpts = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_USER_ATTACH_OPTS",
+		EnvVar:     "ALLUXIO_USER_ATTACH_OPTS",
+		IsJavaOpts: true,
 	})
 )
 
@@ -118,17 +123,28 @@ var (
 	}
 )
 
-func (a *AlluxioConfigEnvVar) ToJavaOpt(env *viper.Viper, required bool) string {
+func (a *AlluxioConfigEnvVar) ConfigToJavaOpts(env *viper.Viper, required bool) []string {
 	v := env.Get(a.EnvVar)
 	if v == nil {
 		if required {
 			panic("No value set for required environment variable: " + a.EnvVar)
 		}
-		return ""
+		return nil
 	}
-	ret := fmt.Sprintf(JavaOptFormat, a.configKey, v)
+	ret := []string{fmt.Sprintf(JavaOptFormat, a.configKey, v)}
 	for k2, v2 := range a.additionalAlluxioJavaOpts {
-		ret += fmt.Sprintf(JavaOptFormat, k2, v2)
+		ret = append(ret, fmt.Sprintf(JavaOptFormat, k2, v2))
 	}
 	return ret
+}
+
+func (a *AlluxioConfigEnvVar) JavaOptsToArgs(env *viper.Viper) []string {
+	if !a.IsJavaOpts {
+		panic(fmt.Sprintf("cannot convert to args because %v is not declared to be a JAVA_OPT environment variable", a.EnvVar))
+	}
+	v := strings.TrimSpace(env.GetString(a.EnvVar))
+	if v == "" {
+		return nil
+	}
+	return strings.Split(v, " ")
 }

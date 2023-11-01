@@ -34,15 +34,17 @@ func InitServiceCommandTree(rootCmd *cobra.Command) {
 }
 
 type Service struct {
-	Name        string
-	Description string
-	Commands    []Command
+	Name          string
+	Description   string
+	Documentation string
+	Commands      []Command
 }
 
 func (s *Service) InitCommandTree(rootCmd *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:   s.Name,
 		Short: s.Description,
+		Long:  s.Documentation,
 	}
 	rootCmd.AddCommand(cmd)
 

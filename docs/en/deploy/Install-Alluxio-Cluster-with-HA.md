@@ -17,17 +17,12 @@ During the failover to a standby master, clients may experience brief delays or 
 
 The major challenges to achieving high-availability are maintaining a shared file system
 state across service restarts and maintaining consensus among masters about the identity of the 
-**leading master** after failover. In Alluxio 2.0, there are two different ways to achieve these two goals:
+**leading master** after failover. 
+[Raft-based Journal](#raft-based-embedded-journal): Uses an internal replicated state
+machine based on the [Raft protocol](https://raft.github.io/) to both store the file system journal and run
+leader elections.
+This approach is introduced in Alluxio 2.0 and requires no dependency on external services.
 
-1. [Raft-based Journal](#raft-based-embedded-journal): Uses an internal replicated state
-  machine based on the [Raft protocol](https://raft.github.io/) to both store the file system journal and run
-  leader elections.
-  This approach is introduced in Alluxio 2.0 and requires no dependency on external services.
-2. [Zookeeper with a shared Journal](#zookeeper-and-shared-journal-storage):
-  Uses an external Zookeeper service for leader elections in conjunction with a shared
-  storage (e.g. HDFS) for the shared journal.
-  See [journal management documentation]({{ '/en/operation/Journal.html' | relativize_url }}) for
-  more information about choosing and configuring Alluxio journal system.
 
 ## Prerequisites
 
@@ -78,87 +73,9 @@ Explanation:
 
 Note that embedded journal feature relies on [Ratis](https://github.com/apache/ratis) which uses
 leader election based on the Raft protocol and has its own format for storing journal entries.
-The built-in leader election cannot work with Zookeeper since the journal formats between these
-configurations may not match.
 Enabling embedded journal enables Alluxio's internal leader election.
 See [embedded journal configuration documentation]({{ '/en/operation/Journal.html' | relativize_url }}#configuring-embedded-journal)
 for more details and alternative ways to set up HA cluster with internal leader election.
-
-### Zookeeper and Shared Journal Storage
-
-When using Zookeeper for HA there are additional prerequisites:
-1. A [ZooKeeper](http://zookeeper.apache.org/) cluster. Alluxio masters use ZooKeeper for leader election,
-and Alluxio clients and workers use ZooKeeper to inquire about the identity of the current leading master.
-1. A shared storage system on which to place the journal (accessible by all Alluxio masters). The leading
-master writes to the journal on this shared storage system, while the standby masters continually
-replay the journal entries to stay up-to-date.
-The journal storage system is recommended to be:
-  - Highly available. All metadata modifications on the master requires writing to the journal, so any
-  downtime of the journal storage system will directly impact the Alluxio master availability.
-  - A filesystem, not an object store. The Alluxio master writes to journal files to this storage
-  system, and utilizes filesystem operations such as rename and flush. Object stores do not support
-  these operations, and/or perform them slowly, so when the journal is stored on an object store,
-  the Alluxio master operation throughput is significantly reduced.
-
-The minimal configuration parameters which must be set are:
-
-```properties
-alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
-alluxio.master.journal.type=UFS
-alluxio.master.journal.folder=<JOURNAL_URI>
-```
-
-Explanation:
-- `alluxio.zookeeper.enabled=true` enables the HA mode for the masters, and informs
-workers that HA mode is enabled.
-- `alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>` sets the ZooKeeper address when
-  `alluxio.zookeeper.enabled` is enabled.
-  The HA masters use ZooKeeper for leader election, and the workers use ZooKeeper to discover the
-  leading master.
-  Multiple ZooKeeper addresses can be specified by delimiting with commas.
-  Examples include `alluxio.zookeeper.address=1.2.3.4:2181`, `alluxio.zookeeper.address=zk1:2181,
-  zk2:2181,zk3:2181`
-- `alluxio.master.journal.type=UFS` indicates UFS is used as the journal place.
-  Note that Zookeeper cannot work with journal type `EMBEDDED` (use a journal embedded in the
-  masters).
-- `alluxio.master.journal.folder=<JOURNAL_URI>` sets the URI of the shared journal location for the
-  Alluxio leading master to write the journal to, and for standby masters to replay journal entries
-  from.
-  This shared shared storage system must be accessible by all master nodes.
-  Examples include `alluxio.master.journal.folder=hdfs://1.2.3.4:9000/alluxio/journal/` or
-  `alluxio.master.journal.folder=/mnt/nfs/journal/`.
-
-Make sure all master nodes and all worker nodes have configured their respective
-`conf/alluxio-site.properties` configuration file appropriately.
-
-Once all the Alluxio masters and workers are configured in this way, Alluxio is ready to
-be formatted and started.
-
-#### Advanced Zookeeper setup
-
-For clusters with large namespaces, increased CPU overhead on leader could cause delays on Zookeeper
-client heartbeats. For this reason, we recommend setting Zookeeper client session timeout to at
-least 2 minutes on large clusters with namespace size more than several hundred million of files.
-- `alluxio.zookeeper.session.timeout=120s`
-  - The Zookeeper server's min/max session timeout values must also be configured as such to allow
-    this timeout.
-    The defaults requires that the timeout be a minimum of 2 times the `tickTime` (as set in the
-    server configuration) and a maximum of 20 times the `tickTime`.
-    You could also manually configure `minSessionTimeout` and `maxSessionTimeout`.
-
-Alluxio supports pluggable error handling policy on Zookeeper leader election.
-- `alluxio.zookeeper.leader.connection.error.policy` specifies how connection errors are handled.
-It can be either `SESSION` or `STANDARD`. It is set `SESSION` as default.
- 
-- The `SESSION` policy makes use of Zookeeper sessions to determine whether leader state is dirty. 
-  This means suspended connections won't trigger stepping down of a current leader as long as it was
-  able to reestablish the zookeeper connection with the same session.
-  It provides more stability in maintaining the leadership state.
-- The `STANDARD` policy treats any interruption to zookeeper server as an error. 
-  Thus leader will step down upon missing a heartbeat, even though its internal zookeeper session
-  was still intact with the zookeeper server.
-  It provides more security against bugs and issues in zookeeper setup.
 
 ## Start an Alluxio Cluster with HA
 
@@ -172,10 +89,10 @@ Before Alluxio can be started for the first time, the Alluxio master journal and
 
 On all the Alluxio master nodes, list all the worker hostnames in the `conf/workers` file, and list all the masters in the `conf/masters` file. 
 This will allow alluxio scripts to run operations on the cluster nodes.
-`format` Alluxio cluster with the following command in one of the master nodes:
+`init format` Alluxio cluster with the following command in one of the master nodes:
 
 ```shell
-$ ./bin/alluxio format
+$ ./bin/alluxio init format
 ```
 
 ### Launch Alluxio
@@ -183,14 +100,11 @@ $ ./bin/alluxio format
 In one of the master nodes, start the Alluxio cluster with the following command:
 
 ```shell
-$ ./bin/alluxio-start.sh all SudoMount
+$ ./bin/alluxio process start all
 ```
 
 This will start Alluxio masters on all the nodes specified in `conf/masters`, and start the workers
 on all the nodes specified in `conf/workers`.
-Argument `SudoMount` indicates to mount the RamFS on each worker using `sudo` privilege, if it is
-not already mounted.
-On MacOS, make sure your terminal has full disk access (tutorial [here](https://osxdaily.com/2018/10/09/fix-operation-not-permitted-terminal-error-macos/)).
 
 ### Verify Alluxio Cluster
 
@@ -198,7 +112,7 @@ To verify that Alluxio is running, you can visit the web UI of the leading maste
 leading master, run:
 
 ```shell
-$ ./bin/alluxio fs masterInfo
+$ ./bin/alluxio info report
 ```
 
 Then, visit `http://<LEADER_HOSTNAME>:19999` to see the status page of the Alluxio leading master.
@@ -207,7 +121,7 @@ Alluxio comes with a simple program that writes and reads sample files in Alluxi
 program with:
 
 ```shell
-$ ./bin/alluxio runTests
+$ ./bin/alluxio exec basicIOTest
 ```
 
 ## Access an Alluxio Cluster with HA
@@ -242,16 +156,6 @@ Or specify the properties in Java option. For example, for Spark applications, a
 -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
-If using Zookeeper, set the following Zookeeper related properties  
-```properties
-alluxio.zookeeper.enabled=true
-alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
-```
-
-Note that, the ZooKeeper address (`alluxio.zookeeper.address`) must be specified when
-`alluxio.zookeeper.enabled` is enabled and vise versa.
-Multiple ZooKeeper addresses can be specified by delimiting with commas.
-
 ### Specify Alluxio Service with URL Authority {#ha-authority}
 
 Users can also fully specify the HA cluster information in the URI to connect to an Alluxio HA cluster.
@@ -260,17 +164,14 @@ e.g. site properties or environment variables.
 
 - When using embedded journal, use `alluxio://master_hostname_1:19998,
 master_hostname_2:19998,master_hostname_3:19998/path`
-- When using Zookeeper leader election, use `alluxio://zk@<ZOOKEEPER_ADDRESS>/path`.
 
 For many applications (e.g., Hadoop, Hive and Flink), you can use a comma as the
 delimiter for multiple addresses in the URI, like
-`alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path`
-and `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`.
+`alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path`.
 
 For some other applications (e.g., Spark) where comma is not accepted inside a URL authority, you
 need to use semicolons as the delimiter for multiple addresses,
-like `alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998`
-and `alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/path`.
+like `alluxio://master_hostname_1:19998;master_hostname_2:19998;master_hostname_3:19998`.
 
 ### Specify Alluxio Service with logical URL Authority 
 
@@ -279,7 +180,7 @@ so Alluxio also supports connecting to an Alluxio HA cluster via a logical name.
 names, the following configuration options need to be set in your environment variables or site properties.
 
 #### Use logical name when using embedded journal
-
+ 
 If you are using embedded journal, you need to configure the following configuration options and connect
 to the highly available alluxio node via `alluxio://ebj@[logical-name]` , for example
 `alluxio://ebj@my-alluxio-cluster`.
@@ -304,32 +205,6 @@ alluxio.master.rpc.address.my-alluxio-cluster.master2=master2:19998
 alluxio.master.rpc.address.my-alluxio-cluster.master3=master3:19998
 ```
 
-#### Use logical name when using Zookeeper
-
-If you are using zookeeper for leader election, you need to configure the following values and connect to
-the highly available alluxio node via `alluxio://zk@[logical-name]` , for example `alluxio://zk@my-alluxio-cluster`.
-
-* alluxio.master.zookeeper.nameservices.[logical-name] unique identifier for each Zookeeper node
-
-A comma-separated zookeeper node ID that determine all the Zookeeper nodes in the cluster. For example,
-if you previously used `my-alluxio-cluster` as the logical name and wanted to use `node1,node2,node3` as individual
-IDs for each Zookeeper, you would configure this as such:
-
-```properties
-alluxio.master.zookeeper.nameservices.my-alluxio-cluster=node1,node2,node3
-```
-
-* alluxio.master.zookeeper.address.[logical-domain]. [Zookeeper node ID] Address foreach Zookeeper node
-  
-
-For each Zookeeper node previously configured, set the full address of each Zookeeper node, for example:
-
-```properties
-alluxio.master.zookeeper.address.my-alluxio-cluster.node1=host1:2181
-alluxio.master.zookeeper.address.my-alluxio-cluster.node2=host2:2181
-alluxio.master.zookeeper.address.my-alluxio-cluster.node3=host3:2181
-```
-
 ## Common Operations
 
 Below are common operations to perform on an Alluxio cluster.
@@ -339,7 +214,7 @@ Below are common operations to perform on an Alluxio cluster.
 To stop an Alluxio service, run:
 
 ```shell
-$ ./bin/alluxio-stop.sh all
+$ ./bin/alluxio process stop all
 ```
 
 This will stop all the processes on all nodes listed in `conf/workers` and `conf/masters`.
@@ -347,8 +222,8 @@ This will stop all the processes on all nodes listed in `conf/workers` and `conf
 You can stop just the masters and just the workers with the following commands:
 
 ```shell
-$ ./bin/alluxio-stop.sh masters # stops all masters in conf/masters
-$ ./bin/alluxio-stop.sh workers # stops all workers in conf/workers
+$ ./bin/alluxio process stop masters # stops all masters in conf/masters
+$ ./bin/alluxio process stop workers # stops all workers in conf/workers
 ```
 
 If you do not want to use `ssh` to login to all the nodes and stop all the processes, you can run
@@ -356,8 +231,8 @@ commands on each node individually to stop each component.
 For any node, you can stop a master or worker with:
 
 ```shell
-$ ./bin/alluxio-stop.sh master # stops the local master
-$ ./bin/alluxio-stop.sh worker # stops the local worker
+$ ./bin/alluxio process stop master # stops the local master
+$ ./bin/alluxio process stop worker # stops the local worker
 ```
 
 ### Restart Alluxio
@@ -366,14 +241,14 @@ Starting Alluxio is similar. If `conf/workers` and `conf/masters` are both popul
 the cluster with:
 
 ```shell
-$ ./bin/alluxio-start.sh all
+$ ./bin/alluxio process start all
 ```
 
 You can start just the masters and just the workers with the following commands:
 
 ```shell
-$ ./bin/alluxio-start.sh masters # starts all masters in conf/masters
-$ ./bin/alluxio-start.sh workers # starts all workers in conf/workers
+$ ./bin/alluxio process start masters # starts all masters in conf/masters
+$ ./bin/alluxio process start workers # starts all workers in conf/workers
 ```
 
 If you do not want to use `ssh` to login to all the nodes and start all the processes, you can run
@@ -381,8 +256,8 @@ commands on each node individually to start each component. For any node, you ca
 worker with:
 
 ```shell
-$ ./bin/alluxio-start.sh master # starts the local master
-$ ./bin/alluxio-start.sh worker # starts the local worker
+$ ./bin/alluxio process start master # starts the local master
+$ ./bin/alluxio process start worker # starts the local worker
 ```
 
 ### Add/Remove Workers Dynamically
@@ -393,7 +268,7 @@ In most cases, the new worker's configuration should be the same as all the othe
 Run the following command on the new worker to add
 
 ```shell
-$ ./bin/alluxio-start.sh worker SudoMount # starts the local worker
+$ ./bin/alluxio process start worker # starts the local worker
 ```
 
 Once the worker is started, it will register itself with the Alluxio leading master and become part of the Alluxio cluster.
@@ -401,7 +276,7 @@ Once the worker is started, it will register itself with the Alluxio leading mas
 Removing a worker is as simple as stopping the worker process.
 
 ```shell
-$ ./bin/alluxio-stop.sh worker # stops the local worker
+$ ./bin/alluxio process stop worker # stops the local worker
 ```
 
 Once the worker is stopped, and after
