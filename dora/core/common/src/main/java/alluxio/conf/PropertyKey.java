@@ -4009,13 +4009,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
-  public static final PropertyKey WORKER_FUSE_ENABLED =
-      booleanBuilder(Name.WORKER_FUSE_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("If true, launch worker embedded Fuse application.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
   public static final PropertyKey WORKER_STARTUP_TIMEOUT =
       durationBuilder(Name.WORKER_STARTUP_TIMEOUT)
           .setDefaultValue("10min")
@@ -6355,10 +6348,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       stringBuilder(Name.FUSE_MOUNT_ALLUXIO_PATH)
           .setAlias(Name.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
           .setDefaultValue("/")
+          // TODO(Yichuan): fix the description
           .setDescription(format("The Alluxio path to mount to the given "
-              + "Fuse mount point configured by %s in the worker when %s is enabled "
+              + "Fuse mount point configured by %s in the worker "
               + "or in the standalone Fuse process.",
-              Name.FUSE_MOUNT_POINT, Name.WORKER_FUSE_ENABLED))
+              Name.FUSE_MOUNT_POINT))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
@@ -6376,8 +6370,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       stringBuilder(Name.FUSE_MOUNT_POINT)
           .setAlias(Name.WORKER_FUSE_MOUNT_POINT)
           .setDefaultValue("/mnt/alluxio-fuse")
-          .setDescription(format("The absolute local filesystem path that worker (if %s is enabled)"
-              + "or standalone Fuse will mount Alluxio path to.", Name.WORKER_FUSE_ENABLED))
+          // TODO(Yichuan): Please fix the description
+          .setDescription("The absolute local filesystem path that worker "
+              + "or standalone Fuse will mount Alluxio path to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
@@ -7923,8 +7918,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.data.server.domain.socket.address";
     public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID =
         "alluxio.worker.data.server.domain.socket.as.uuid";
-    public static final String WORKER_FUSE_ENABLED =
-        "alluxio.worker.fuse.enabled";
     public static final String WORKER_FUSE_MOUNT_ALLUXIO_PATH =
         "alluxio.worker.fuse.mount.alluxio.path";
     public static final String WORKER_FUSE_MOUNT_OPTIONS =
