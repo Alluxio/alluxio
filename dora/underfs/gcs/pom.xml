@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>AI-3.0-1.0.0</version>
+    <version>AI-3.0-1.1.0-RC1</version>
   </parent>
   <artifactId>alluxio-underfs-gcs</artifactId>
   <name>Alluxio Under File System - GCS</name>
