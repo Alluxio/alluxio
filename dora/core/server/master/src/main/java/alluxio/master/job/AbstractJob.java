@@ -154,6 +154,11 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
   }
 
   @Override
+  public void onWorkerUnavailable(T task) {
+    LOG.warn("Worker became unavailable: {}", task.getMyRunningWorker());
+  }
+
+  @Override
   public boolean isRunning() {
     return mState == JobState.RUNNING || mState == JobState.VERIFYING;
   }

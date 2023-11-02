@@ -527,15 +527,16 @@ public final class Scheduler {
             tasksQ.size());
         CloseableResource<BlockWorkerClient> blkWorkerClientResource
             = mActiveWorkers.get(workerInfo);
-        if (blkWorkerClientResource == null) {
-          LOG.warn("Didn't find corresponding BlockWorkerClient for workerInfo:{}",
-              workerInfo);
-          return;
-        }
         Task task = tasksQ.peek();
         // only make sure 1 task is running at the time
         if (task == null || task.getResponseFuture() != null) {
           LOG.debug("head task is {}", (task == null) ? "NULL" : "already running");
+          return;
+        }
+        if (blkWorkerClientResource == null) {
+          LOG.warn("Didn't find corresponding BlockWorkerClient for workerInfo:{}",
+              workerInfo);
+          task.getJob().onWorkerUnavailable(task);
           return;
         }
         task.execute(blkWorkerClientResource.get(), workerInfo.mWorkerInfo);

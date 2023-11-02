@@ -25,6 +25,7 @@
 /conf/metrics.properties
 /conf/rocks-*.ini
 /data/
+/distributed_load/
 /docs/_site/
 /docs/api/
 /docs/serve/
