@@ -59,24 +59,17 @@ public final class MultiDimensionalMetricsSystem {
       .labelNames("method")
       .build();
 
-  public static final Histogram UFS_DATA_ACCESS = Histogram.builder()
-      .name("alluxio_ufs_data_access")
-      .help("aggregated throughput of ufs access")
-      .unit(Unit.BYTES)
-      .labelNames("method")
-      .build();
-
-  public static final Summary UFS_DATA_ACCESS_LATENCY = Summary.builder()
-      .name("alluxio_ufs_data_access_latency")
-      .help("aggregated latency of ufs access")
-      .unit(Unit.SECONDS)
-      .labelNames("method")
-      .build();
-
   public static final Counter META_OPERATION = Counter.builder()
       .name("alluxio_meta_operation")
       .help("counter of rpc calls of the meta operations")
       .labelNames("op")
+      .build();
+
+  public static final Counter UFS_DATA_ACCESS = Counter.builder()
+      .name("alluxio_ufs_data_access")
+      .help("amount of the ufs access")
+      .unit(Unit.BYTES)
+      .labelNames("method")
       .build();
 
   public static final Counter CACHED_DATA_READ = Counter.builder()
@@ -129,19 +122,10 @@ public final class MultiDimensionalMetricsSystem {
         // No essential metrics for the master for now.
         break;
       case WORKER:
-        PrometheusRegistry.defaultRegistry.register(DATA_ACCESS);
-        PrometheusRegistry.defaultRegistry.register(DATA_ACCESS_LATENCY);
-        PrometheusRegistry.defaultRegistry.register(UFS_DATA_ACCESS);
-        PrometheusRegistry.defaultRegistry.register(UFS_DATA_ACCESS_LATENCY);
-        PrometheusRegistry.defaultRegistry.register(META_OPERATION);
-        PrometheusRegistry.defaultRegistry.register(CACHED_DATA_READ);
-        PrometheusRegistry.defaultRegistry.register(CACHED_EVICTED_DATA);
-        PrometheusRegistry.defaultRegistry.register(CACHED_STORAGE);
-        PrometheusRegistry.defaultRegistry.register(CACHED_CAPACITY);
-        break;
       case CLIENT:
         PrometheusRegistry.defaultRegistry.register(DATA_ACCESS);
         PrometheusRegistry.defaultRegistry.register(DATA_ACCESS_LATENCY);
+        PrometheusRegistry.defaultRegistry.register(UFS_DATA_ACCESS);
         PrometheusRegistry.defaultRegistry.register(META_OPERATION);
         PrometheusRegistry.defaultRegistry.register(CACHED_DATA_READ);
         PrometheusRegistry.defaultRegistry.register(CACHED_EVICTED_DATA);

@@ -15,7 +15,6 @@ import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
 import alluxio.grpc.WritePType;
-import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.worker.block.io.BlockWriter;
 

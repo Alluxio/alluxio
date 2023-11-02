@@ -215,8 +215,8 @@ public class LocalCachePositionReader implements PositionReader {
       totalBytesRead += bytesRead;
     }
     // Bytes read from external, may be larger than requests due to reading complete pages
+    MultiDimensionalMetricsSystem.UFS_DATA_ACCESS.labelValues("read").inc(totalBytesRead);
     MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).mark(totalBytesRead);
-    MultiDimensionalMetricsSystem.UFS_DATA_ACCESS.labelValues("read").observe(totalBytesRead);
     if (totalBytesRead != pageSize) {
       throw new FailedPreconditionRuntimeException(
           "Failed to read complete page from external storage. Bytes read: "

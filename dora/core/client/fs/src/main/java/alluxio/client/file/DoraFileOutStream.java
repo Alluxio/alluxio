@@ -23,6 +23,7 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.util.CommonUtils;
 
 import com.codahale.metrics.Counter;
@@ -268,6 +269,7 @@ public class DoraFileOutStream extends FileOutStream {
     if (mUnderStorageType.isSyncPersist()) {
       if (mUnderStorageOutputStream != null) {
         mUnderStorageOutputStream.write(b, off, len);
+        MultiDimensionalMetricsSystem.UFS_DATA_ACCESS.labelValues("write").inc(len);
         Metrics.BYTES_WRITTEN_TO_UFS.inc(len);
       }
     }

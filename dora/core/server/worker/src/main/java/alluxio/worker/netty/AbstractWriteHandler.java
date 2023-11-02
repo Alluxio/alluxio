@@ -287,8 +287,8 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
           int readableBytes = buf.readableBytes();
           mContext.setPosToWrite(mContext.getPosToWrite() + readableBytes);
           writeBuf(mContext, mChannel, buf, mContext.getPosToWrite());
-          incrementMetrics(readableBytes);
           mContext.recordAccessMetric(readableBytes);
+          incrementMetrics(readableBytes);
         } catch (Exception e) {
           LOG.error("Failed to write packet for request {}", mContext.getRequest(), e);
           Throwables.propagateIfPossible(e);

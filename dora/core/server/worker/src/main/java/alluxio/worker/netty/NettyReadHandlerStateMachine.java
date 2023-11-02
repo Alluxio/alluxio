@@ -695,7 +695,6 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
             mChannelEventQueue.add(WriteFutureResolved.failure(future.cause()));
             return;
           }
-          //TODO(bowen): add num bytes read metrics
           mChannelEventQueue.put(WriteFutureResolved.success(length));
         });
     if (requestContext.bytesPending()
