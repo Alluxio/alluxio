@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A policy where a client will ONLY talk to a local worker.
+ * An implementation of WorkerLocationPolicy, where a client will ONLY talk to a local worker.
  *
  * This policy can probably only be used in testing. If client on node A reads path /a,
  * it will only talk to the worker on node A and produce a cache there. If a client on

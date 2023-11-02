@@ -200,6 +200,10 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
             "alluxio.client.file.dora.LocalWorkerPolicy");
         break;
+      case REMOTE_ONLY:
+        hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
+            "alluxio.client.file.dora.RemoteOnlyPolicy");
+        break;
       default:
         throw new IllegalArgumentException("Unrecognized mode" + mParameters.mMode);
     }
