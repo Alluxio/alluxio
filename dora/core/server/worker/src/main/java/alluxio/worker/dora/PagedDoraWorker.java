@@ -1179,10 +1179,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         infoBuilder.putXattr(entry.getKey(), ByteString.copyFromUtf8(entry.getValue()));
       }
     }
+    if (status.getLastModifiedTime() != null) {
+      infoBuilder.setLastModificationTimeMs(status.getLastModifiedTime());
+    }
     if (status instanceof UfsFileStatus) {
       UfsFileStatus fileStatus = (UfsFileStatus) status;
       infoBuilder.setLength(fileStatus.getContentLength())
-          .setLastModificationTimeMs(status.getLastModifiedTime())
           .setBlockSizeBytes(fileStatus.getBlockSize());
       String contentHash = ((UfsFileStatus) status).getContentHash();
       if (contentHash != null) {
