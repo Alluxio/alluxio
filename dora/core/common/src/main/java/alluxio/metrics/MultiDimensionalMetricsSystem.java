@@ -91,7 +91,8 @@ public final class MultiDimensionalMetricsSystem {
       .unit(Unit.BYTES)
       .build();
 
-  private static DoubleSupplier sCacheStorageSupplier = () -> 0;
+  public static final DoubleSupplier NULL_SUPPLIER = () -> 0;
+  private static DoubleSupplier sCacheStorageSupplier = NULL_SUPPLIER;
 
   public static final GaugeWithCallback CACHED_STORAGE = GaugeWithCallback.builder()
       .name("alluxio_cached_storage")

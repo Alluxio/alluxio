@@ -153,6 +153,8 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
         CacheManager manager = CACHE_MANAGER.getAndSet(null);
         if (manager != null) {
           manager.close();
+          MultiDimensionalMetricsSystem.setCacheStorageSupplier(
+              MultiDimensionalMetricsSystem.NULL_SUPPLIER);
         }
       } catch (Exception e) {
         LOG.warn("Failed to close CacheManager: {}", e.toString());

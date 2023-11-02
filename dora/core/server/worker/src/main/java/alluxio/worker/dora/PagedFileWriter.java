@@ -108,7 +108,6 @@ public class PagedFileWriter extends BlockWriter {
       bytesWritten += bytesLeftInPage;
     }
 
-    MultiDimensionalMetricsSystem.UFS_DATA_ACCESS.labelValues("write").observe(bytesWritten);
     // data is written to local cache and UFS. Update Position.
     mPosition += bytesWritten;
     LOG.debug("after write {} bytes. New pos = {}", bytesWritten, mPosition);

@@ -14,6 +14,7 @@ package alluxio.worker.netty;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.dora.DoraWorker;
@@ -144,6 +145,7 @@ public class FileWriteHandler extends AbstractWriteHandler<BlockWriteRequestCont
             mWorker.createFileWriter(request.getFileId(), request.getUfsPath()));
         context.setCounter(MetricsSystem.counter(metricName));
       }
+      context.setAccessMetric(MultiDimensionalMetricsSystem.DATA_ACCESS.labelValues("write"));
       Preconditions.checkState(context.getBlockWriter() != null);
       int sz = buf.readableBytes();
       Preconditions.checkState(context.getBlockWriter().append(buf) == sz);
