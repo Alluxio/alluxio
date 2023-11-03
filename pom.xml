@@ -154,7 +154,7 @@
     <kerby.version>1.0.1</kerby.version>
     <libcephfs.version>0.0.1</libcephfs.version>
     <log4j.version>2.17.1</log4j.version>
-    <maven.version>3.6.0</maven.version>
+    <maven.version>3.8.6</maven.version>
     <metrics.version>4.1.11</metrics.version>
     <mockito.version>3.4.4</mockito.version>
     <netty.version>4.1.87.Final</netty.version>
@@ -254,7 +254,7 @@
       <dependency>
         <groupId>com.github.ben-manes.caffeine</groupId>
         <artifactId>caffeine</artifactId>
-        <version>3.1.6</version>
+        <version>2.9.3</version>
       </dependency>
       <dependency>
         <groupId>com.github.serceman</groupId>
@@ -1030,10 +1030,6 @@
             <maxmem>1024m</maxmem>
             <compilerArgs>
               <arg>-Xlint:none</arg>
-              <arg>--add-exports=java.base/jdk.internal.access=ALL-UNNAMED</arg>
-              <arg>--add-exports=java.base/jdk.internal=ALL-UNNAMED</arg>
-              <arg>--add-exports=java.base/jdk.internal.misc=ALL-UNNAMED</arg>
-              <arg>--add-exports=java.management/sun.management=ALL-UNNAMED</arg>
             </compilerArgs>
             <forceJavacCompilerUse>true</forceJavacCompilerUse>
           </configuration>
@@ -1094,7 +1090,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.0.0</version>
           <configuration>
-            <argLine>@{argLine} -Djava.net.preferIPv4Stack=true --add-opens java.base/jdk.internal.loader=ALL-UNNAMED --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED</argLine>
+            <argLine>@{argLine} -Djava.net.preferIPv4Stack=true</argLine>
             <excludesFile>${build.path}/surefire/${surefire.excludesFile}</excludesFile>
             <forkCount>${surefire.forkCount}</forkCount>
             <rerunFailingTestsCount>${surefire.rerunFailingTestsCount}</rerunFailingTestsCount>
