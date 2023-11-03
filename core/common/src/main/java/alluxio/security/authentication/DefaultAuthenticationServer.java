@@ -13,6 +13,7 @@ package alluxio.security.authentication;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ReconfigurableRegistry;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.ChannelAuthenticationScheme;
 import alluxio.grpc.SaslAuthenticationServiceGrpc;
@@ -81,6 +82,7 @@ public class DefaultAuthenticationServer
     mScheduler.scheduleAtFixedRate(this::cleanupStaleClients, mCleanupIntervalMs,
         mCleanupIntervalMs, TimeUnit.MILLISECONDS);
     mImpersonationAuthenticator = new ImpersonationAuthenticator(conf);
+    ReconfigurableRegistry.register(mImpersonationAuthenticator);
   }
 
   @Override
@@ -146,6 +148,7 @@ public class DefaultAuthenticationServer
             exc);
       }
     }
+    ReconfigurableRegistry.unregister(mImpersonationAuthenticator);
   }
 
   /**
