@@ -11,6 +11,7 @@
 
 package alluxio.client.fs;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -18,6 +19,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import com.google.common.io.ByteStreams;
@@ -31,9 +33,9 @@ import org.junit.Test;
 import java.io.File;
 
 /**
- * Integration tests for path level configurations.
+ * Integration tests for direct access configurations.
  */
-public class DirectAccessIntegrationTest {
+public class DirectAccessIntegrationTest extends BaseIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private static final String DIRECT_DIR = "/mnt/direct/";
@@ -47,7 +49,8 @@ public class DirectAccessIntegrationTest {
           .build();
   private FileSystem mFileSystem;
 
-  private final String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
+  private final String mLocalUfsPath = AlluxioTestDirectory
+      .createTemporaryDirectory("DirectAccessIntegrationTest").getAbsolutePath();
 
   @Before
   public void before() throws Exception {
@@ -96,6 +99,10 @@ public class DirectAccessIntegrationTest {
     try (FileInStream is = mFileSystem.openFile(uri)) {
       IOUtils.copy(is, ByteStreams.nullOutputStream());
     }
+    // Find the block location directly from block info to determine
+    // if the file has been cached
+    Assert.assertTrue(shouldCache ^ mFileSystem.getBlockLocations(uri)
+        .get(0).getBlockInfo().getBlockInfo().getLocations().isEmpty());
     FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, shouldCache ? 100 : 0);
     Assert.assertEquals(shouldCache ? 100 : 0, mFileSystem.getStatus(uri).getInMemoryPercentage());
   }

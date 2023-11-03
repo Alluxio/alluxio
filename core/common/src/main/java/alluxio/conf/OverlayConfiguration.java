@@ -14,6 +14,7 @@ package alluxio.conf;
 import com.google.common.collect.ImmutableMap;
 
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,11 +23,12 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Configuration that wraps around another configuration
  * Priority for the value of a property follows:
- * 1. outer configuration
- * 2. inner configuration
+ * if a property has been set by user on the outer configuration, it takes priority
+ * if it is not set explicitly on the outer configuration, the inner configuration
+ * determines the value.
  */
 @ThreadSafe
-public class NestedAlluxioConfiguration implements AlluxioConfiguration {
+public class OverlayConfiguration implements AlluxioConfiguration {
   /**
    * Runtime level configuration.
    */
@@ -35,6 +37,8 @@ public class NestedAlluxioConfiguration implements AlluxioConfiguration {
    * Default configuration.
    */
   private final AlluxioConfiguration mInnerConf;
+  private final Set<PropertyKey> mKeySet;
+  private final Set<PropertyKey> mUserKeySet;
 
   /**
    * Constructs a new instance with the specified references without copying the underlying
@@ -43,14 +47,20 @@ public class NestedAlluxioConfiguration implements AlluxioConfiguration {
    * @param outerConf the runtime level configuration to override
    * @param innerConf the default configuration
    */
-  public NestedAlluxioConfiguration(AlluxioConfiguration outerConf,
+  public OverlayConfiguration(AlluxioConfiguration outerConf,
       AlluxioConfiguration innerConf) {
     mOuterConf = outerConf;
     mInnerConf = innerConf;
+    mUserKeySet = new HashSet<>();
+    mUserKeySet.addAll(outerConf.userKeySet());
+    mUserKeySet.addAll(innerConf.userKeySet());
+    mKeySet = new HashSet<>();
+    mKeySet.addAll(innerConf.keySet());
+    mKeySet.addAll(outerConf.keySet());
   }
 
   private AlluxioConfiguration conf(PropertyKey key) {
-    return mOuterConf.isSet(key) ? mOuterConf : mInnerConf;
+    return mOuterConf.isSetByUser(key) ? mOuterConf : mInnerConf;
   }
 
   @Override
@@ -75,12 +85,12 @@ public class NestedAlluxioConfiguration implements AlluxioConfiguration {
 
   @Override
   public Set<PropertyKey> keySet() {
-    return mInnerConf.keySet();
+    return mKeySet;
   }
 
   @Override
   public Set<PropertyKey> userKeySet() {
-    return mOuterConf.keySet();
+    return mUserKeySet;
   }
 
   @Override
@@ -146,7 +156,7 @@ public class NestedAlluxioConfiguration implements AlluxioConfiguration {
   @Override
   public AlluxioProperties copyProperties() {
     AlluxioProperties properties = mInnerConf.copyProperties();
-    for (PropertyKey key : keySet()) {
+    for (PropertyKey key : mOuterConf.userKeySet()) {
       properties.put(key, mOuterConf.get(key), Source.RUNTIME);
     }
     return properties;

@@ -25,7 +25,7 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ConfigurationBuilder;
-import alluxio.conf.NestedAlluxioConfiguration;
+import alluxio.conf.OverlayConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -114,6 +114,7 @@ public class BaseFileSystem implements FileSystem {
   private final Closer mCloser = Closer.create();
   protected final FileSystemContext mFsContext;
   protected final BlockStoreClient mBlockStore;
+  protected List<String> mPathList;
 
   protected volatile boolean mClosed = false;
 
@@ -171,8 +172,10 @@ public class BaseFileSystem implements FileSystem {
     if (!getConf().isSet(PropertyKey.USER_FILE_DIRECT_ACCESS)) {
       return false;
     }
-    List<String> pathList = getConf().getList(PropertyKey.USER_FILE_DIRECT_ACCESS);
-    return pathList.stream().anyMatch(x -> {
+    if (mPathList == null) {
+      mPathList = getConf().getList(PropertyKey.USER_FILE_DIRECT_ACCESS);
+    }
+    return mPathList.stream().anyMatch(x -> {
       try {
         return PathUtils.hasPrefix(uri.getPath(), x);
       } catch (InvalidPathException e) {
@@ -184,7 +187,7 @@ public class BaseFileSystem implements FileSystem {
   private AlluxioConfiguration getDirectAccessConf(AlluxioURI uri) {
     AlluxioConfiguration inner = mFsContext.getPathConf(uri);
     if (checkDirectAccess(uri)) {
-      return new NestedAlluxioConfiguration(DIRECT_ACCESS_CONF, inner);
+      return new OverlayConfiguration(DIRECT_ACCESS_CONF, inner);
     } else {
       return inner;
     }
