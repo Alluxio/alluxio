@@ -711,11 +711,20 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       return false;
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
-    } catch (AlluxioRuntimeException e) {
-      LOG.warn("rename failed: {}", toHdfsIOException(e));
-      return renameInternal(src, dst, srcPath, dstPath);
-    } catch (AlluxioException e) {
-      return renameInternal(src, dst, srcPath, dstPath);
+    } catch (AlluxioRuntimeException | AlluxioException e) {
+      Exception exToLog = e;
+      if (e instanceof  AlluxioRuntimeException) {
+        exToLog = toHdfsIOException((AlluxioRuntimeException) e);
+      }
+      try {
+        boolean res = tryMoveIntoDirectory(src, dst, srcPath, dstPath);
+        if (!res) {
+          LOG.warn("Failed to rename file and dst {} is not a directory", dst, exToLog);
+        }
+      } catch (IOException | AlluxioException | AlluxioRuntimeException e2) {
+        LOG.error("Failed to rename file {} and failed to move into dst directory {}", src, dst, exToLog, e2);
+        return false;
+      }
     } catch (IOException e) {
       LOG.error("Failed to rename {} to {}", src, dst, e);
       return false;
@@ -734,37 +743,17 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
    * @param dstPath srcPath
    * @return true in success, false if fail
    */
-  public boolean renameInternal(Path src, Path dst, AlluxioURI srcPath, AlluxioURI dstPath) {
-    try {
-      ensureExists(srcPath);
-    } catch (IOException e) {
-      LOG.warn("rename failed: {}", e.toString());
-      return false;
-    }
+  public boolean tryMoveIntoDirectory(Path src, Path dst, AlluxioURI srcPath, AlluxioURI dstPath) throws IOException, AlluxioException {
+    ensureExists(srcPath);
     URIStatus dstStatus;
-    try {
-      dstStatus = mFileSystem.getStatus(dstPath);
-    } catch (IOException | AlluxioException e) {
-      LOG.warn("rename failed: {}", e.toString());
-      return false;
-    }
+    dstStatus = mFileSystem.getStatus(dstPath);
     // If the destination is an existing folder, try to move the src into the folder
     if (dstStatus != null && dstStatus.isFolder()) {
       dstPath = dstPath.joinUnsafe(srcPath.getName());
     } else {
-      LOG.error("Failed to rename {} to {}", src, dst);
       return false;
     }
-    // this try catch used to catch IOException and AlluxioException,
-    //  AlluxioRuntimeException would leak from here
-    // however, due to this is renameinternal, I think no exception should get out of here
-    // thus all kinds of exception will be caught here
-    try {
-      mFileSystem.rename(srcPath, dstPath);
-    } catch (Exception e) {
-      LOG.error("Failed to rename {} to {}", src, dst, e);
-      return false;
-    }
+    mFileSystem.rename(srcPath, dstPath);
     return true;
   }
 
