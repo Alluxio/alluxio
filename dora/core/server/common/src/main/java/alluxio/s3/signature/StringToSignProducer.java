@@ -27,11 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
@@ -336,7 +332,7 @@ public final class StringToSignProducer {
    */
   private static String urlEncode(String str) {
     try {
-      return URLEncoder.encode(str, "UTF-8")
+      return URLEncoder.encode(URLDecoder.decode(str, "UTF-8"), "UTF-8")
               .replaceAll("\\+", "%20")
               .replaceAll("%7E", "~");
     } catch (UnsupportedEncodingException e) {
