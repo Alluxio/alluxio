@@ -17,7 +17,6 @@ import static org.junit.Assert.assertThrows;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -42,7 +41,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.apache.commons.io.IOUtils;
 import org.gaul.s3proxy.junit.S3ProxyRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -52,20 +50,15 @@ import java.io.IOException;
 /**
  * Integration tests for Alluxio Client (reuse the {@link LocalAlluxioCluster}).
  */
-@Ignore
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "yichuan",
-    comment = "Bring back but not passed, need to fix.")
 public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   @Rule
-  public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
-      .withBlobStoreProvider("transient")
-      .withPort(8001)
-      .withCredentials("_", "_")
-      .build();
+  public S3ProxyRule mS3Proxy =
+      S3ProxyRule.builder().withBlobStoreProvider("transient").withPort(8001)
+          .withCredentials("_", "_").build();
 
   LocalAlluxioClusterResource.Builder mLocalAlluxioClusterResourceBuilder =
-      new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "10ms")
+      new LocalAlluxioClusterResource.Builder().setProperty(
+              PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "10ms")
           .setProperty(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "10ms")
           .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "200ms")
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Constants.MB * 16)
@@ -87,8 +80,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
           .setProperty(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED, false)
           // current s3 ufs mock don't support setXattr, disable the flag to bypass it
-          .setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false)
-          .setNumWorkers(2)
+          .setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false).setNumWorkers(2)
           .setStartCluster(false);
 
   private static final String TEST_BUCKET = "test-bucket";
@@ -107,16 +99,12 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
     mFileSystem = cluster.get().getClient();
 
     if (mS3Client == null) {
-      mS3Client = AmazonS3ClientBuilder
-          .standard()
-          .withPathStyleAccessEnabled(true)
-          .withCredentials(
+      mS3Client = AmazonS3ClientBuilder.standard().withPathStyleAccessEnabled(true).withCredentials(
               new AWSStaticCredentialsProvider(
                   new BasicAWSCredentials(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
           .withEndpointConfiguration(
               new AwsClientBuilder.EndpointConfiguration(mS3Proxy.getUri().toString(),
-                  Regions.US_WEST_2.getName()))
-          .build();
+                  Regions.US_WEST_2.getName())).build();
       mS3Client.createBucket(TEST_BUCKET);
     }
   }
@@ -144,22 +132,19 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
     fos.close();
 
     mS3Client.deleteObject(TEST_BUCKET, TEST_FILE);
-    assertNotNull(mFileSystem.getStatus(TEST_FILE_URI, GetStatusPOptions.newBuilder()
-        .setCommonOptions(optionNoSync())
-        .build()));
+    assertNotNull(mFileSystem.getStatus(TEST_FILE_URI,
+        GetStatusPOptions.newBuilder().setCommonOptions(optionNoSync()).build()));
     try (FileInStream fis = mFileSystem.openFile(TEST_FILE_URI,
         OpenFilePOptions.newBuilder().setCommonOptions(optionNoSync()).build())) {
       String content = IOUtils.toString(fis);
       assertEquals(TEST_CONTENT, content);
     }
 
-    assertThrows(FileDoesNotExistException.class, () ->
-        mFileSystem.getStatus(TEST_FILE_URI, GetStatusPOptions.newBuilder()
-            .setCommonOptions(optionSync()).build()));
+    assertThrows(FileDoesNotExistException.class, () -> mFileSystem.getStatus(TEST_FILE_URI,
+        GetStatusPOptions.newBuilder().setCommonOptions(optionSync()).build()));
 
-    assertThrows(FileDoesNotExistException.class, () ->
-        mFileSystem.getStatus(TEST_FILE_URI, GetStatusPOptions.newBuilder()
-            .setCommonOptions(optionNoSync()).build()));
+    assertThrows(FileDoesNotExistException.class, () -> mFileSystem.getStatus(TEST_FILE_URI,
+        GetStatusPOptions.newBuilder().setCommonOptions(optionNoSync()).build()));
 
     stopCluster(clusterResource);
   }
@@ -182,9 +167,8 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
     fos.close();
 
     mS3Client.putObject(TEST_BUCKET, TEST_FILE, UPDATED_TEST_CONTENT);
-    assertNotNull(mFileSystem.getStatus(TEST_FILE_URI, GetStatusPOptions.newBuilder()
-        .setCommonOptions(optionNoSync())
-        .build()));
+    assertNotNull(mFileSystem.getStatus(TEST_FILE_URI,
+        GetStatusPOptions.newBuilder().setCommonOptions(optionNoSync()).build()));
 
     try (FileInStream fis = mFileSystem.openFile(TEST_FILE_URI,
         OpenFilePOptions.newBuilder().setCommonOptions(optionNoSync()).build())) {
@@ -193,8 +177,8 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
     }
 
     // This will update/sync metadata from UFS
-    mFileSystem.getStatus(TEST_FILE_URI, GetStatusPOptions.newBuilder()
-        .setCommonOptions(optionSync()).build());
+    mFileSystem.getStatus(TEST_FILE_URI,
+        GetStatusPOptions.newBuilder().setCommonOptions(optionSync()).build());
 
     // metadata is already updated. Even though we are not going to sync metadata in Read(),
     // it should get the latest content.
@@ -208,13 +192,11 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   }
 
   private FileSystemMasterCommonPOptions optionNoSync() {
-    return FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1)
-        .build();
+    return FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build();
   }
 
   private FileSystemMasterCommonPOptions optionSync() {
-    return FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0)
-        .build();
+    return FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build();
   }
 
   /**

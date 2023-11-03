@@ -11,14 +11,20 @@
 
 package alluxio.master;
 
+import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.GetStatusPRequest;
+import alluxio.grpc.GetStatusPResponse;
+import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.wire.WorkerInfo;
@@ -36,7 +42,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Local Alluxio cluster for integration tests.
- *
+ * <p>
  * Example to use
  * <pre>
  * // Create a cluster instance
@@ -64,7 +70,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   /**
-   * @param numWorkers the number of workers to run
+   * @param numWorkers   the number of workers to run
    * @param includeProxy weather to include the proxy
    */
   public LocalAlluxioCluster(int numWorkers, boolean includeProxy) {
@@ -185,8 +191,29 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     CommonUtils.waitFor("worker starts serving RPCs", () -> {
       try (FileSystemContext fsContext = FileSystemContext.create()) {
         List<BlockWorkerInfo> workerInfoList = fsContext.getCachedWorkers();
+        if (mNumWorkers != workerInfoList.size()) {
+          return false;
+        }
         LOG.info("Observed {} workers in the cluster", workerInfoList.size());
-        return workerInfoList.size() == mNumWorkers;
+        for (BlockWorkerInfo workerInfo : workerInfoList) {
+          try (CloseableResource<BlockWorkerClient> blockWorkerClient =
+                   fsContext.acquireBlockWorkerClient(workerInfo.getNetAddress())) {
+            AlluxioURI rootUri = new AlluxioURI("/");
+            FileSystem masterFs = mMaster.getClient();
+            DoraCacheFileSystem doraCacheFs = masterFs.getDoraCacheFileSystem();
+            assert doraCacheFs != null;
+            AlluxioURI uri = doraCacheFs.convertToUfsPath(rootUri);
+            GetStatusPResponse getStatusPResponse = blockWorkerClient.get()
+                .getStatus(GetStatusPRequest.newBuilder().setPath(uri.toString()).build());
+            if (getStatusPResponse == null) {
+              return false;
+            }
+          } catch (IOException ioe) {
+            LOG.error("Failed to connect to worker {}: {}", workerInfo.getNetAddress(), ioe);
+            return false;
+          }
+        }
+        return true;
       } catch (IOException ioe) {
         LOG.error(ioe.getMessage());
         return false;
