@@ -144,7 +144,7 @@
     <hive-metastore.version>3.1.2</hive-metastore.version>
     <jackson.version>2.13.5</jackson.version>
     <jacoco.version>0.8.5</jacoco.version>
-    <java.version>1.8</java.version>
+    <java.version>11</java.version>
     <jaxb.version>2.3.3</jaxb.version>
     <jersey.version>2.34</jersey.version>
     <jetty.version>9.4.46.v20220331</jetty.version>
@@ -154,7 +154,7 @@
     <kerby.version>1.0.1</kerby.version>
     <libcephfs.version>0.0.1</libcephfs.version>
     <log4j.version>2.17.1</log4j.version>
-    <maven.version>3.8.6</maven.version>
+    <maven.version>3.6.0</maven.version>
     <metrics.version>4.1.11</metrics.version>
     <mockito.version>3.4.4</mockito.version>
     <netty.version>4.1.87.Final</netty.version>
@@ -254,7 +254,7 @@
       <dependency>
         <groupId>com.github.ben-manes.caffeine</groupId>
         <artifactId>caffeine</artifactId>
-        <version>2.9.3</version>
+        <version>3.1.6</version>
       </dependency>
       <dependency>
         <groupId>com.github.serceman</groupId>
@@ -505,9 +505,19 @@
         <version>2.1.6</version>
       </dependency>
       <dependency>
+        <groupId>javax.annotation</groupId>
+        <artifactId>javax.annotation-api</artifactId>
+        <version>1.3.2</version>
+      </dependency>
+      <dependency>
         <groupId>javax.servlet</groupId>
         <artifactId>javax.servlet-api</artifactId>
         <version>3.1.0</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.xml.bind</groupId>
+        <artifactId>jaxb-api</artifactId>
+        <version>2.3.1</version>
       </dependency>
       <dependency>
         <groupId>net.java.dev.jets3t</groupId>
@@ -1030,6 +1040,10 @@
             <maxmem>1024m</maxmem>
             <compilerArgs>
               <arg>-Xlint:none</arg>
+              <arg>--add-exports=java.base/jdk.internal.access=ALL-UNNAMED</arg>
+              <arg>--add-exports=java.base/jdk.internal=ALL-UNNAMED</arg>
+              <arg>--add-exports=java.base/jdk.internal.misc=ALL-UNNAMED</arg>
+              <arg>--add-exports=java.management/sun.management=ALL-UNNAMED</arg>
             </compilerArgs>
             <forceJavacCompilerUse>true</forceJavacCompilerUse>
           </configuration>
@@ -1090,7 +1104,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.0.0</version>
           <configuration>
-            <argLine>@{argLine} -Djava.net.preferIPv4Stack=true</argLine>
+            <argLine>@{argLine} -Djava.net.preferIPv4Stack=true --add-opens java.base/jdk.internal.loader=ALL-UNNAMED --add-opens java.xml/jdk.xml.internal=ALL-UNNAMED</argLine>
             <excludesFile>${build.path}/surefire/${surefire.excludesFile}</excludesFile>
             <forkCount>${surefire.forkCount}</forkCount>
             <rerunFailingTestsCount>${surefire.rerunFailingTestsCount}</rerunFailingTestsCount>
@@ -1234,22 +1248,6 @@
         <!-- hardcode the version here because maven failed to pick up the dependency-managed version of maven-enforcer-plugin -->
         <version>3.3.0</version>
         <executions>
-          <execution>
-            <id>enforce-versions</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireMavenVersion>
-                  <version>${maven.version}</version>
-                </requireMavenVersion>
-                <requireJavaVersion>
-                  <version>[1.8, 1.9)</version>
-                </requireJavaVersion>
-              </rules>
-            </configuration>
-          </execution>
           <execution>
             <id>no-duplicate-dependencies</id>
             <goals>
@@ -1582,7 +1580,7 @@
         <jdk>11</jdk>
       </activation>
       <properties>
-        <java.version>1.8</java.version>
+        <java.version>11</java.version>
       </properties>
       <dependencyManagement>
         <dependencies>
