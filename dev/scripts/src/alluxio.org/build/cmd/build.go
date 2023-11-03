@@ -138,8 +138,11 @@ func buildTarball(opts *buildOpts) error {
 
 	} else {
 		log.Printf("Running maven command from %v:\n%v", repoBuildDir, baseMvnCmd)
-		skipWebUIMvnComd := baseMvnCmd + " " + "-pl '!webui'"
-		cmd := command.New(skipWebUIMvnComd).WithDir(repoBuildDir)
+		commandToRun := baseMvnCmd
+		if opts.skipWebUi {
+			commandToRun = baseMvnCmd + " " + "-pl '!webui'"
+		}
+		cmd := command.New(commandToRun).WithDir(repoBuildDir)
 		if !opts.suppressMavenOutput {
 			cmd = cmd.SetStdout(os.Stdout)
 			cmd = cmd.SetStderr(os.Stderr)

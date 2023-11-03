@@ -58,6 +58,7 @@ type buildOpts struct {
 	outputDir           string
 	profilesFile        string
 	skipRepoCopy        bool
+	skipWebUi           bool
 	suppressMavenOutput bool
 
 	assemblyJars  AssemblyJars
@@ -80,6 +81,7 @@ func parseTarballFlags(cmd *flag.FlagSet, args []string) (*buildOpts, error) {
 	cmd.StringVar(&opts.profilesFile, "profilesFile", defaultProfilesFilePath, "Path to profiles.yml file")
 	cmd.BoolVar(&opts.skipRepoCopy, "skipRepoCopy", false, "Set true to build tarball from local repository instead of making a copy and running git clean")
 	cmd.BoolVar(&opts.suppressMavenOutput, "suppressMavenOutput", false, "Set true to avoid printing maven command stdout to console")
+	cmd.BoolVar(&opts.skipWebUi, "skipWebUi", false, "Set true to skip building web UI modules")
 
 	// profile specific flags
 	// all default values are set to empty strings to be able to check if the user provided any input, which would override the profile's corresponding predefined value
@@ -113,7 +115,7 @@ func parseTarballFlags(cmd *flag.FlagSet, args []string) (*buildOpts, error) {
 		}
 		return nil, stacktrace.NewError("unknown profile value %v among possible profiles %v", flagProfile, names)
 	}
-	prof.updateFromFlags(flagTargetName, flagMvnArgs, flagLibModules, flagPluginModules)
+	prof.updateFromFlags(flagTargetName, flagMvnArgs, flagLibModules, flagPluginModules, opts.skipWebUi)
 
 	// process flag strings and store in opts
 	if err := opts.processProfileValues(prof); err != nil {
