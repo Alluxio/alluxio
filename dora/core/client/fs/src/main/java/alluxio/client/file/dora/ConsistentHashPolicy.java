@@ -20,7 +20,7 @@ import alluxio.exception.status.ResourceExhaustedException;
 import java.util.List;
 
 /**
- * An impl of WorkerLocationPolicy.
+ * An implementation of WorkerLocationPolicy.
  *
  * A policy where a file path is matched to worker(s) by a consistenct hashing algorithm.
  * The hash algorithm makes sure the same path maps to the same worker sequence.
@@ -61,7 +61,7 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
     List<BlockWorkerInfo> workers = HASH_PROVIDER.getMultiple(fileId, count);
     if (workers.size() != count) {
       throw new ResourceExhaustedException(String.format(
-          "Found %d workers from the hash ring but %d required", blockWorkerInfos.size(), count));
+          "Found %d workers from the hash ring but %d required", workers.size(), count));
     }
     return workers;
   }

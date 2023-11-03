@@ -36,13 +36,17 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.job.JobDescription;
+import alluxio.job.JobRequest;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.CloseableResource;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
@@ -569,5 +573,30 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   @Override
   public DoraCacheFileSystem getDoraCacheFileSystem() {
     return this;
+  }
+
+  @Override
+  public Optional<String> submitJob(JobRequest jobRequest) {
+    try (CloseableResource<FileSystemMasterClient> client =
+             mFsContext.acquireMasterClientResource()) {
+      return client.get().submitJob(jobRequest);
+    }
+  }
+
+  @Override
+  public boolean stopJob(JobDescription jobDescription) {
+    try (CloseableResource<FileSystemMasterClient> client =
+             mFsContext.acquireMasterClientResource()) {
+      return client.get().stopJob(jobDescription);
+    }
+  }
+
+  @Override
+  public String getJobProgress(
+      JobDescription jobDescription, JobProgressReportFormat format, boolean verbose) {
+    try (CloseableResource<FileSystemMasterClient> client =
+             mFsContext.acquireMasterClientResource()) {
+      return client.get().getJobProgress(jobDescription, format, verbose);
+    }
   }
 }

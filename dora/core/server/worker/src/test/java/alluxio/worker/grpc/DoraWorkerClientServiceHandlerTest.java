@@ -14,6 +14,7 @@ package alluxio.worker.grpc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.PageMetaStore;
@@ -25,6 +26,8 @@ import alluxio.membership.MembershipManager;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerIdentity;
 import alluxio.worker.block.BlockMasterClientPool;
+import alluxio.worker.dora.DoraMetaManager;
+import alluxio.worker.dora.DoraUfsManager;
 import alluxio.worker.dora.PagedDoraWorker;
 
 import io.grpc.stub.StreamObserver;
@@ -67,9 +70,13 @@ public class DoraWorkerClientServiceHandlerTest {
         CacheManager.Factory.create(Configuration.global(), cacheManagerOptions, pageMetaStore);
     mMembershipManager =
         MembershipManager.Factory.create(Configuration.global());
-    mWorker = new PagedDoraWorker(
-        new AtomicReference<>(WorkerIdentity.ParserV0.INSTANCE.fromLong(1L)),
-        Configuration.global(), mCacheManager, mMembershipManager, new BlockMasterClientPool());
+    DoraUfsManager ufsManager = new DoraUfsManager();
+    DoraMetaManager metaManager = new DoraMetaManager(Configuration.global(),
+        mCacheManager, ufsManager);
+    mWorker = new PagedDoraWorker(new AtomicReference<>(
+            WorkerIdentity.ParserV0.INSTANCE.fromLong(1L)),
+            Configuration.global(), mCacheManager, mMembershipManager, new BlockMasterClientPool(),
+            ufsManager, metaManager, FileSystemContext.create());
     mServiceHandler = new DoraWorkerClientServiceHandler(mWorker);
   }
 

@@ -61,6 +61,7 @@ public class LoadJobFactory implements JobFactory {
     Optional<String> user = Optional
         .ofNullable(AuthenticatedClientUser.getOrNull())
         .map(User::getName);
+    int replicas = options.hasReplicas() ? options.getReplicas() : 1;
 
     Predicate<UfsStatus> predicate = Predicates.alwaysTrue();
     Optional<String> fileFilterRegx = Optional.empty();
@@ -83,7 +84,7 @@ public class LoadJobFactory implements JobFactory {
         predicate);
     return new DoraLoadJob(path, user, UUID.randomUUID().toString(), bandwidth, partialListing,
         verificationEnabled, options.getLoadMetadataOnly(), options.getSkipIfExists(),
-        fileFilterRegx, iterable.iterator(), ufs);
+        fileFilterRegx, iterable.iterator(), ufs, 1);
   }
 }
 

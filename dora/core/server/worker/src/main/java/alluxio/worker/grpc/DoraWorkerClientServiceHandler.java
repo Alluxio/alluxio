@@ -55,7 +55,6 @@ import alluxio.grpc.SetAttributePResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.OpenFileHandle;
 import alluxio.worker.dora.PagedDoraWorker;
 
@@ -88,14 +87,14 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       Configuration.getInt(PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE);
 
   private final ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
-  private final DoraWorker mWorker;
+  private final PagedDoraWorker mWorker;
 
   /**
    * Creates a new implementation of gRPC BlockWorker interface.
    * @param doraWorker the DoraWorker object
    */
   @Inject
-  public DoraWorkerClientServiceHandler(DoraWorker doraWorker) {
+  public DoraWorkerClientServiceHandler(PagedDoraWorker doraWorker) {
     mWorker = requireNonNull(doraWorker);
   }
 
@@ -233,7 +232,9 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
         // the list status do not include xattr now. GetAttr will cause some additional overhead.
         // And not every request requires the Xattr. Now only get file xattr in GetStatus.
         alluxio.grpc.FileInfo fi =
-            ((PagedDoraWorker) mWorker).buildFileInfoFromUfsStatus(status, ufsFullPath, null);
+            PagedDoraWorker.buildFileInfoFromUfsStatus(mWorker.getCacheUsage(),
+                    mWorker.getUfsInstance(ufsFullPath).getUnderFSType(),
+                    status, ufsFullPath, null);
 
         builder.addFileInfos(fi);
         if (builder.getFileInfosCount() == LIST_STATUS_BATCH_SIZE) {

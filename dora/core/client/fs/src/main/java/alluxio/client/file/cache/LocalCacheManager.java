@@ -32,6 +32,7 @@ import alluxio.file.ByteArrayTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.resource.LockResource;
 
@@ -209,6 +210,7 @@ public class LocalCacheManager implements CacheManager {
         DataFileChannel dataFileChannel = pageInfo.getLocalCacheDir().getPageStore()
             .getDataFileChannel(pageInfo.getPageId(), pageOffset, bytesToRead,
                 cacheContext.isTemporary());
+        MultiDimensionalMetricsSystem.CACHED_DATA_READ.inc(bytesToRead);
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).inc();
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesToRead);
         cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
@@ -501,6 +503,7 @@ public class LocalCacheManager implements CacheManager {
       try {
         pageStoreDir.getPageStore().delete(victim);
         // Bytes evicted from the cache
+        MultiDimensionalMetricsSystem.CACHED_EVICTED_DATA.inc(victimPageInfo.getPageSize());
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_EVICTED.getName())
             .mark(victimPageInfo.getPageSize());
         // Errors when adding pages
@@ -620,6 +623,7 @@ public class LocalCacheManager implements CacheManager {
         }
         return -1;
       }
+      MultiDimensionalMetricsSystem.CACHED_DATA_READ.inc(bytesRead);
       MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
       cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
           bytesRead);
