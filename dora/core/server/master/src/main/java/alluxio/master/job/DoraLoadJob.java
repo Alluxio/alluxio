@@ -269,6 +269,9 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     int workerNum = workers.size();
     ImmutableList.Builder<LoadSubTask> batchBuilder = ImmutableList.builder();
 
+    // TODO(elega) Instead of immediate retry & retry in the end of the loading process,
+    // we should attach a timestamp to each retrying subtask and only retry those that
+    // have failed for a while to better handle worker downtime.
     for (int numSubTasks = 0; numSubTasks < BATCH_SIZE * workerNum; ++numSubTasks) {
       if (mLoadSubTaskIterator.hasNext()) {
         batchBuilder.add(mLoadSubTaskIterator.next());
