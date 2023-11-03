@@ -25,13 +25,13 @@
 /conf/metrics.properties
 /conf/rocks-*.ini
 /data/
-/distributed_load/
 /docs/_site/
 /docs/api/
 /docs/serve/
 /extensions/
 /generated/
 /integration/docker/*.tar.gz
+/job_results/
 /journal/
 /lib/*.jar
 /libexec/version.sh

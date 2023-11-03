@@ -2329,19 +2329,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_DORA_LOAD_JOB_FAILED_FILE_LIST_DIR =
       stringBuilder(Name.MASTER_DORA_LOAD_JOB_FAILED_FILE_LIST_DIR)
-          .setDefaultValue(format("${%s}/distributed_load", Name.WORK_DIR))
+          .setDefaultValue(format("${%s}/job_results/load", Name.WORK_DIR))
           .setDescription("The directory to store failed file list of a distributed load job.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
-          .setScope(Scope.SERVER)
-          .build();
-  public static final PropertyKey MASTER_DORA_LOAD_JOB_GET_LATEST_UFS_STATUS_ON_RETRY =
-      booleanBuilder(Name.MASTER_DORA_LOAD_JOB_GET_LATEST_UFS_STATUS_ON_RETRY)
-          .setDefaultValue(false)
-          .setDescription(
-            "If set true, distributed load will get the latest ufs status on retried job, "
-              + "at the cost of slower file loading on retry. Turn this on if files will be "
-              + "often updated during the loading process, or files are large."
-          )
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.SERVER)
           .build();
@@ -7567,8 +7556,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.dora.load.job.total.failure.ratio.threshold";
     public static final String MASTER_DORA_LOAD_JOB_FAILED_FILE_LIST_DIR =
         "alluxio.master.dora.load.job.failed.file.list.dir";
-    public static final String MASTER_DORA_LOAD_JOB_GET_LATEST_UFS_STATUS_ON_RETRY =
-        "alluxio.master.dora.load.job.get.latest.ufs.status.on.retry";
     public static final String MASTER_DAILY_BACKUP_ENABLED =
         "alluxio.master.daily.backup.enabled";
     public static final String MASTER_DAILY_BACKUP_FILES_RETAINED =

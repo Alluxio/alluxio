@@ -22,7 +22,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
-import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.LoadFailure;
 import alluxio.grpc.LoadFileRequest;
@@ -63,9 +62,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -76,6 +73,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Queue;
@@ -130,9 +128,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       PropertyKey.MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_RATIO_THRESHOLD);
   private static final int FAILURE_COUNT_THRESHOLD = Configuration.getInt(
       PropertyKey.MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD);
-  private static final boolean GET_LATEST_UFS_ON_RETRY = Configuration.getBoolean(
-      PropertyKey.MASTER_DORA_LOAD_JOB_GET_LATEST_UFS_STATUS_ON_RETRY
-  );
   private final boolean mSkipIfExists;
 
   private final Optional<String> mFileFilterRegx;
@@ -141,15 +136,15 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private final LoadSubTaskIterator mLoadSubTaskIterator;
   private final int mNumReplica;
   private final long mJobStartTimestamp;
-  private long mJobFinishTimestamp = -1;
-  @Nullable private volatile String mFailedFileSavedPath = null;
+  private volatile OptionalLong mJobFinishTimestamp = OptionalLong.empty();
+  private volatile Optional<String> mFailedFileSavedPath = Optional.empty();
 
   class LoadSubTaskIterator implements Iterator<LoadSubTask> {
     private LoadSubTaskIterator(Iterator<UfsStatus> ufsStatusIterator) {
       mUfsStatusIterator = ufsStatusIterator;
     }
 
-    volatile Set<WorkerInfo> mWorkers = null;
+    volatile Set<WorkerInfo> mWorkers = Collections.emptySet();
     Iterator<LoadSubTask> mCurrentUfsStatusSubTaskIterator = Collections.emptyIterator();
     Iterator<UfsStatus> mUfsStatusIterator;
 
@@ -210,6 +205,9 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     public LoadSubTask next() {
       if (mCurrentUfsStatusSubTaskIterator.hasNext()) {
         return mCurrentUfsStatusSubTaskIterator.next();
+      }
+      if (!mUfsStatusIterator.hasNext()) {
+        throw new NoSuchElementException("No more load subtask");
       }
       UfsStatus ufsStatus = mUfsStatusIterator.next();
       mScannedInodesCount.incrementAndGet();
@@ -274,27 +272,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     for (int numSubTasks = 0; numSubTasks < BATCH_SIZE * workerNum; ++numSubTasks) {
       if (mLoadSubTaskIterator.hasNext()) {
         batchBuilder.add(mLoadSubTaskIterator.next());
-        numSubTasks++;
       } else if (!mRetrySubTasksDLQ.isEmpty()) {
-        LoadSubTask subTaskToRetry = mRetrySubTasksDLQ.poll();
-        String path = subTaskToRetry.getUfsPath();
-        try {
-          if (GET_LATEST_UFS_ON_RETRY) {
-            mUfs.getStatus(path);
-          }
-          batchBuilder.add(subTaskToRetry);
-          ++numSubTasks;
-        } catch (IOException | AlluxioRuntimeException e) {
-          // The previous list or get might contain stale file metadata.
-          // For example, if a file gets removed before the worker actually loads it,
-          // the load will fail and the scheduler will retry.
-          // In such case, a FileNotFoundException might be thrown when we attempt to
-          // get the file status again, and we simply ignore that file.
-          if (!(e instanceof FileNotFoundException || e instanceof NotFoundRuntimeException)) {
-            addFileFailure(subTaskToRetry, FailureReason.MEMBERSHIP_CHANGED,
-                "Failed to get UfsStatus on retry");
-          }
-        }
+        batchBuilder.add(mRetrySubTasksDLQ.poll());
       } else {
         break;
       }
@@ -354,7 +333,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
    */
   @Override
   public void failJob(AlluxioRuntimeException reason) {
-    mJobFinishTimestamp = CommonUtils.getCurrentMs();
+    mJobFinishTimestamp = OptionalLong.of(CommonUtils.getCurrentMs());
     setJobState(JobState.FAILED, true);
     mFailedReason = Optional.of(reason);
     // Move all pending retry subtask to failed subtask set
@@ -389,7 +368,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         writer.newLine();
       }
       LOG.info("Persisted the failed file list to {} successfully", output.getAbsolutePath());
-      mFailedFileSavedPath = output.getAbsolutePath();
+      mFailedFileSavedPath = Optional.of(output.getAbsolutePath());
     } catch (Exception e) {
       LOG.warn("Failed to persist the failed file list to {}", fileName, e);
     }
@@ -397,7 +376,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
   @Override
   public void setJobSuccess() {
-    mJobFinishTimestamp = CommonUtils.getCurrentMs();
+    mJobFinishTimestamp = OptionalLong.of(CommonUtils.getCurrentMs());
     setJobState(JobState.SUCCEEDED, true);
     JOB_LOAD_SUCCESS.inc();
     LOG.info("Load Job {} succeeds with status {}", mJobId, this);
@@ -749,8 +728,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
     private final AlluxioRuntimeException mFailureReason;
     private final long mFailedFileCount;
-    private List<Pair<LoadSubTask, String>> mRecentFailedSubtasksWithReasons = null;
-    private List<Pair<LoadSubTask, String>> mRecentRetryingSubtasksWithReasons = null;
+    private final List<Pair<LoadSubTask, String>> mRecentFailedSubtasksWithReasons;
+    private final List<Pair<LoadSubTask, String>> mRecentRetryingSubtasksWithReasons;
     private final boolean mSkipIfExists;
     private final boolean mMetadataOnly;
     private String mRunningStage;
@@ -796,23 +775,29 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       if (verbose) {
         if (!job.mRecentFailures.isEmpty()) {
           mRecentFailedSubtasksWithReasons = new ArrayList<>(job.mRecentFailures);
+        } else {
+          mRecentFailedSubtasksWithReasons = Collections.emptyList();
         }
         if (!job.mRecentRetries.isEmpty()) {
           mRecentRetryingSubtasksWithReasons = new ArrayList<>(job.mRecentRetries);
+        } else {
+          mRecentRetryingSubtasksWithReasons = Collections.emptyList();
         }
+      } else {
+        mRecentFailedSubtasksWithReasons = Collections.emptyList();
+        mRecentRetryingSubtasksWithReasons = Collections.emptyList();
       }
       mSkippedByteCount = job.mSkippedByteCount.get();
       mSkipIfExists = job.mSkipIfExists;
       mMetadataOnly = job.mLoadMetadataOnly;
       mRunningStage = "";
-      if (mJobState == JobState.RUNNING) {
+      if (mJobState == JobState.RUNNING && verbose) {
         mRunningStage = job.mLoadSubTaskIterator.hasNext() ? "LOADING" : "RETRYING";
       }
       mRetryDeadLetterQueueSize = job.mRetrySubTasksDLQ.size();
       mTimeElapsed =
-          (job.mJobFinishTimestamp == -1 ? CommonUtils.getCurrentMs() : job.mJobFinishTimestamp)
-              - job.mJobStartTimestamp;
-      mFailedFileSavedPath = job.mFailedFileSavedPath;
+          job.mJobFinishTimestamp.orElse(CommonUtils.getCurrentMs()) - job.mJobStartTimestamp;
+      mFailedFileSavedPath = job.mFailedFileSavedPath.orElse(null);
     }
 
     public String getReport(JobProgressReportFormat format)
@@ -842,7 +827,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
               " (%s: %s)",
               mFailureReason.getClass().getName(),
               mFailureReason.getMessage())));
-      if (mJobState == JobState.RUNNING) {
+      if (mJobState == JobState.RUNNING && mVerbose) {
         progress.append(format("\tStage: %s%n", mRunningStage));
       }
       if (mVerbose && mFailureReason != null) {
