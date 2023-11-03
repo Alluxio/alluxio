@@ -99,6 +99,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /** Regex to find ${key} for variable substitution. */
   public static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
 
+  public static final String UNSET_VALUE = "<UNSET_VALUE>";
+
   private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.class);
 
   // The following two maps must be the first to initialize within this file.

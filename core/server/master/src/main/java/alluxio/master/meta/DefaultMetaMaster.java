@@ -740,10 +740,16 @@ public class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           } catch (RuntimeException e) {
             LOG.warn("Cannot get old value for the given key {}", key.getName());
           }
-          Object value = key.parseValue(entry.getValue());
-          Configuration.set(key, value, Source.RUNTIME);
-          LOG.info("Property {} has been updated to \"{}\" from \"{}\"",
-              key.getName(), entry.getValue(), oldValue);
+          if (PropertyKey.UNSET_VALUE.equals(entry.getValue())) {
+            Configuration.unset(key);
+            LOG.info("Property {} has been unset from \"{}\"",
+                key.getName(), oldValue);
+          } else {
+            Object value = key.parseValue(entry.getValue());
+            Configuration.set(key, value, Source.RUNTIME);
+            LOG.info("Property {} has been updated to \"{}\" from \"{}\"",
+                key.getName(), entry.getValue(), oldValue);
+          }
           result.put(entry.getKey(), true);
           successCount++;
         } else {
