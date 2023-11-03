@@ -6348,10 +6348,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       stringBuilder(Name.FUSE_MOUNT_ALLUXIO_PATH)
           .setAlias(Name.WORKER_FUSE_MOUNT_ALLUXIO_PATH)
           .setDefaultValue("/")
-          // TODO(Yichuan): fix the description
           .setDescription(format("The Alluxio path to mount to the given "
-              + "Fuse mount point configured by %s in the worker "
-              + "or in the standalone Fuse process.",
+              + "Fuse mount point configured by %s.",
               Name.FUSE_MOUNT_POINT))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
@@ -6370,9 +6368,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       stringBuilder(Name.FUSE_MOUNT_POINT)
           .setAlias(Name.WORKER_FUSE_MOUNT_POINT)
           .setDefaultValue("/mnt/alluxio-fuse")
-          // TODO(Yichuan): Please fix the description
-          .setDescription("The absolute local filesystem path that worker "
-              + "or standalone Fuse will mount Alluxio path to.")
+          .setDescription("The absolute local filesystem path that mount Alluxio path to.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
