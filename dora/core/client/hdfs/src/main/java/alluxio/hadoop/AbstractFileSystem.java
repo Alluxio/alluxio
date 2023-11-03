@@ -700,6 +700,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       mStatistics.incrementWriteOps(1);
     }
     if (src == dst) {
+      LOG.debug("Renaming {} to the same location", src);
       return true;
     }
     AlluxioURI srcPath = getAlluxioPath(src);
