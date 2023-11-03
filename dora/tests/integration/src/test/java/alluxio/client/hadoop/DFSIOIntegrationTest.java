@@ -45,7 +45,6 @@ import org.junit.AfterClass;
 import org.junit.AssumptionViolatedException;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -293,7 +292,6 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   @Test(timeout = 50000)
   @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
       comment = "fix the test case")
-  @Ignore
   public void read() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, HadoopConfigurationUtils
@@ -307,7 +305,6 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   @Test(timeout = 50000)
   @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
       comment = "fix the test case")
-  @Ignore
   public void readRandom() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, HadoopConfigurationUtils
@@ -322,7 +319,6 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   @Test(timeout = 50000)
   @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
       comment = "fix the test case")
-  @Ignore
   public void readBackward() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, HadoopConfigurationUtils
@@ -337,7 +333,6 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   @Test(timeout = 50000)
   @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
       comment = "fix the test case")
-  @Ignore
   public void readSkip() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, HadoopConfigurationUtils
@@ -352,7 +347,6 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   @Test(timeout = 50000)
   @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
       comment = "fix the test case")
-  @Ignore
   public void readLargeSkip() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, HadoopConfigurationUtils
