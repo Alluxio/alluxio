@@ -133,7 +133,7 @@
     <cephfs-hadoop.version>0.0.1</cephfs-hadoop.version>
     <cos_api.version>5.6.19</cos_api.version>
     <create.dependency.reduced.pom>false</create.dependency.reduced.pom>
-    <enforce.versions>true</enforce.versions>
+    <enforce.versions.skip>false</enforce.versions.skip>
     <fastutil.version>8.5.9</fastutil.version>
     <findbugs.skip>false</findbugs.skip>
     <grpc.version>1.54.1</grpc.version>
@@ -1241,7 +1241,7 @@
               <goal>enforce</goal>
             </goals>
             <configuration>
-              <skip>${enforce.versions}</skip>
+              <skip>${enforce.versions.skip}</skip>
               <rules>
                 <requireMavenVersion>
                   <version>${maven.version}</version>
@@ -1584,7 +1584,7 @@
         <jdk>11</jdk>
       </activation>
       <properties>
-        <enforce.versions>false</enforce.versions>
+        <enforce.versions.skip>true</enforce.versions.skip>
         <java.version>11</java.version>
       </properties>
       <dependencyManagement>
