@@ -723,7 +723,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
           LOG.warn("Failed to rename file and dst {} is not a directory", dst, exToLog);
         }
       } catch (IOException | AlluxioException | AlluxioRuntimeException e2) {
-        LOG.error("Failed to rename file {} and failed to move into dst directory {}", src, dst, exToLog, e2);
+        LOG.error("Failed to rename file {} and failed to move into dst directory {}",
+            src, dst, exToLog, e2);
         return false;
       }
     } catch (IOException e) {
@@ -744,7 +745,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
    * @param dstPath srcPath
    * @return true in success, false if fail
    */
-  public boolean tryMoveIntoDirectory(Path src, Path dst, AlluxioURI srcPath, AlluxioURI dstPath) throws IOException, AlluxioException {
+  public boolean tryMoveIntoDirectory(Path src, Path dst, AlluxioURI srcPath, AlluxioURI dstPath)
+      throws IOException, AlluxioException {
     ensureExists(srcPath);
     URIStatus dstStatus;
     dstStatus = mFileSystem.getStatus(dstPath);
