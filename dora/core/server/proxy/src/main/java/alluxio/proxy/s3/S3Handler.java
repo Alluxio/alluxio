@@ -374,7 +374,7 @@ public class S3Handler {
                                            @Nullable String object) {
     // Audit log may be enabled during runtime
     AsyncUserAccessAuditLogWriter auditLogWriter = null;
-    if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
+    if (Configuration.getBoolean(PropertyKey.PROXY_AUDIT_LOGGING_ENABLED)) {
       auditLogWriter = mAsyncAuditLogWriter;
     }
     S3AuditContext auditContext = new S3AuditContext(auditLogWriter);
