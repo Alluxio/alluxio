@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.Assert;
@@ -68,8 +69,6 @@ public class ListPrefixIteratorTest {
   }
 
   public List<String> createRandomTmpFile(String root) throws IOException {
-    // clear
-    mTestFolder.delete();
     // create 100 dirs
     int depths = mRandom.nextInt(3) + 1;
     Set<String> files = new HashSet<>();
@@ -89,7 +88,7 @@ public class ListPrefixIteratorTest {
   @Test
   public void testUriStatusIteratorWithoutPrefix() throws IOException {
     for (int i = 0; i < 100; i++) {
-      String rootDir = "root" + i;
+      String rootDir = "root" + UUID.randomUUID();
       createRandomTmpFile(rootDir);
       AlluxioURI path = new AlluxioURI(mTestFolder.getRoot().getPath() + File.separator + rootDir);
       ListPrefixIterator listPrefixIterator = new ListPrefixIterator(path, mLocalFileChildrenSupplier,
@@ -105,7 +104,7 @@ public class ListPrefixIteratorTest {
   @Test
   public void testUriStatusIteratorWithPrefix() throws IOException {
     for (int i = 0; i < 100; i++) {
-      String rootDir = "root" + i;
+      String rootDir = "root" + UUID.randomUUID();
       createRandomTmpFile(rootDir);
       AlluxioURI path = new AlluxioURI(mTestFolder.getRoot().getPath() + File.separator + rootDir);
       List<String> local = listLocalDir(
@@ -113,8 +112,8 @@ public class ListPrefixIteratorTest {
       // test 100 times: random select prefix
       for (int j = 0; j < 100; j++) {
         String prefix = local.get(mRandom.nextInt(local.size()));
-        ListPrefixIterator listPrefixIterator = new ListPrefixIterator(path,
-            mLocalFileChildrenSupplier, prefix);
+        ListPrefixIterator listPrefixIterator = new ListPrefixIterator(
+            new AlluxioURI(prefix).getParent(), mLocalFileChildrenSupplier, prefix);
         List<String> actual = Streams.stream(listPrefixIterator).map(URIStatus::getPath)
             .collect(Collectors.toList());
         List<String> expect = local.stream().filter(s -> s.startsWith(prefix))

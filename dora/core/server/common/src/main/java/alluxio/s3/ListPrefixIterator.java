@@ -21,6 +21,7 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import javax.annotation.Nullable;
 
 /**
@@ -47,9 +48,21 @@ public class ListPrefixIterator implements Iterator<URIStatus> {
       @Nullable String prefix) {
     mPath = path;
     mChildrenSupplier = childrenSupplier;
-    mPrefix = prefix == null ? "" : prefix;
+    mPrefix = prefix == null ? path.getPath() : prefix;
     mStack = new ArrayDeque<>();
+    checkPrefix();
     mChildren = listSortedChildren(mPath);
+  }
+
+  private void checkPrefix() {
+    if (mPath.getPath().equals(mPrefix)) {
+      return;
+    }
+    if (Objects.equals(new AlluxioURI(mPrefix).getParent(), mPath)) {
+      return;
+    }
+    throw new ListPrefixException(new AlluxioException(
+        "The prefix must be equal to the path or a subdirectory of the path."));
   }
 
   @Override

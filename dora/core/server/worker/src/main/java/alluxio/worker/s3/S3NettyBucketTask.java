@@ -235,8 +235,8 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
               if (prefixParam != null) {
                 path = parsePathWithDelimiter(path, prefixParam, AlluxioURI.SEPARATOR);
               }
-              String absolutePrefix =  ListBucketResult.getBucketPrefix(mHandler.getBucket())
-                  + listBucketOptions.getPrefix();
+              String absolutePrefix = ListBucketResult.getBucketPrefix(mHandler.getBucket())
+                  + (listBucketOptions.getPrefix() == null ? "" : listBucketOptions.getPrefix());
               uriStatusIterator = new ListPrefixIterator(new AlluxioURI(path),
                   userFs::listStatus, absolutePrefix);
             }
