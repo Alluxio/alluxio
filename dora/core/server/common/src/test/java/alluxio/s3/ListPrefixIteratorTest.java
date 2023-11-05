@@ -9,14 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3;
+package alluxio.s3;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
-import alluxio.s3.ListPrefixIterator;
 import alluxio.s3.ListPrefixIterator.ChildrenSupplier;
 import alluxio.wire.FileInfo;
+
 import com.google.common.collect.Streams;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitOption;
@@ -32,10 +37,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 public class ListPrefixIteratorTest {
 
@@ -75,7 +76,9 @@ public class ListPrefixIteratorTest {
     for (int i = 0; i < 100; i++) {
       files.add(getRandomFilePath(depths));
     }
-    return files.stream().sorted(Comparator.naturalOrder()).map(s -> {
+    return files.stream()
+        .sorted(Comparator.naturalOrder())
+        .map(s -> {
           try {
             return mTestFolder.newFolder(root + File.separator + s).getPath();
           } catch (IOException e) {
@@ -91,8 +94,8 @@ public class ListPrefixIteratorTest {
       String rootDir = "root" + UUID.randomUUID();
       createRandomTmpFile(rootDir);
       AlluxioURI path = new AlluxioURI(mTestFolder.getRoot().getPath() + File.separator + rootDir);
-      ListPrefixIterator listPrefixIterator = new ListPrefixIterator(path, mLocalFileChildrenSupplier,
-          null);
+      ListPrefixIterator listPrefixIterator = new ListPrefixIterator(path,
+          mLocalFileChildrenSupplier, null);
       List<String> actual = Streams.stream(listPrefixIterator).map(URIStatus::getPath)
           .collect(Collectors.toList());
       List<String> expect = listLocalDir(
@@ -135,5 +138,4 @@ public class ListPrefixIteratorTest {
         .skip(1)
         .collect(Collectors.toList());
   }
-
 }
