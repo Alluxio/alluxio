@@ -21,6 +21,7 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import javax.annotation.Nullable;
 
@@ -72,6 +73,9 @@ public class ListPrefixIterator implements Iterator<URIStatus> {
 
   @Override
   public URIStatus next() {
+    if (!hasNext()) {
+      throw new NoSuchElementException();
+    }
     if (mIndex < mChildren.length) {
       URIStatus status = mChildren[mIndex];
       if (status.isFolder()) {
