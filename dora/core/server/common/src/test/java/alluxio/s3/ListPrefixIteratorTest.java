@@ -16,7 +16,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.s3.ListPrefixIterator.ChildrenSupplier;
 import alluxio.wire.FileInfo;
 
-import com.google.common.collect.Streams;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -96,7 +95,7 @@ public class ListPrefixIteratorTest {
       AlluxioURI path = new AlluxioURI(mTestFolder.getRoot().getPath() + File.separator + rootDir);
       ListPrefixIterator listPrefixIterator = new ListPrefixIterator(path,
           mLocalFileChildrenSupplier, null);
-      List<String> actual = Streams.stream(listPrefixIterator).map(URIStatus::getPath)
+      List<String> actual = ListPrefixIterator.createStream(listPrefixIterator).map(URIStatus::getPath)
           .collect(Collectors.toList());
       List<String> expect = listLocalDir(
           new AlluxioURI(mTestFolder.getRoot().getPath() + File.separator + rootDir));
@@ -117,7 +116,8 @@ public class ListPrefixIteratorTest {
         String prefix = local.get(mRandom.nextInt(local.size()));
         ListPrefixIterator listPrefixIterator = new ListPrefixIterator(
             new AlluxioURI(prefix).getParent(), mLocalFileChildrenSupplier, prefix);
-        List<String> actual = Streams.stream(listPrefixIterator).map(URIStatus::getPath)
+        List<String> actual = ListPrefixIterator.createStream(listPrefixIterator)
+            .map(URIStatus::getPath)
             .collect(Collectors.toList());
         List<String> expect = local.stream().filter(s -> s.startsWith(prefix))
             .collect(Collectors.toList());

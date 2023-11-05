@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Streams;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -215,7 +214,7 @@ public class ListBucketResult {
     // used when handling truncating
     int[] keyCount = {0}; // must use an array to have a mutable variable during sequential stream
 
-    mContents = Streams.stream(iterator)
+    mContents = ListPrefixIterator.createStream(iterator)
         //marker filter
         .filter(status -> {
           String path = status.getPath().substring(bucketPrefix.length());

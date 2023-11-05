@@ -23,6 +23,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 
 /**
@@ -107,6 +111,42 @@ public class ListPrefixIterator implements Iterator<URIStatus> {
     } catch (IOException | AlluxioException e) {
       throw new ListPrefixException(e);
     }
+  }
+
+  /**
+   *
+   * @param iterator
+   * @return a Stream base on given iterator
+   */
+  public static Stream<URIStatus> createStream(Iterator<URIStatus> iterator) {
+    return StreamSupport.stream(new Spliterator<URIStatus>() {
+      @Override
+      public boolean tryAdvance(Consumer<? super URIStatus> action) {
+        if (iterator.hasNext()) {
+          action.accept(iterator.next());
+          return true;
+        }
+        return false;
+      }
+
+      @Override
+      public Spliterator<URIStatus> trySplit() {
+        return null;
+      }
+
+      @Override
+      public long estimateSize() {
+        if (iterator.hasNext()) {
+          return Long.MAX_VALUE;
+        }
+        return 0;
+      }
+
+      @Override
+      public int characteristics() {
+        return 0;
+      }
+    }, false);
   }
 
   /**
