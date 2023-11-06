@@ -31,15 +31,6 @@ public class FuseUpdateCheckerTest {
   private final InstancedConfiguration mConf = Configuration.copyGlobal();
 
   @Test
-  public void UnderFileSystemAlluxio() {
-    try (FuseUpdateChecker checker = new FuseUpdateChecker(
-        FuseOptions.Builder.fromConfig(Configuration.global()).build())) {
-      Assert.assertTrue(containsTargetInfo(checker.getFuseInfo(),
-          FuseUpdateChecker.ALLUXIO_FS));
-    }
-  }
-
-  @Test
   public void UnderFileSystemLocal() {
     try (FuseUpdateChecker checker = getUpdateCheckerWithUfs("/home/ec2-user/testFolder")) {
       Assert.assertTrue(containsTargetInfo(checker.getFuseInfo(),

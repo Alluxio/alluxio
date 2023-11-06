@@ -36,7 +36,6 @@ public final class FuseUpdateChecker implements HeartbeatExecutor {
   static final String LOCAL_ALLUXIO_DATA_CACHE = "localAlluxioDataCache";
   static final String LOCAL_ALLUXIO_METADATA_CACHE = "localAlluxioMetadataCache";
   static final String LOCAL_KERNEL_DATA_CACHE = "localKernelDataCache";
-  static final String ALLUXIO_FS = "alluxio";
   static final String LOCAL_FS = "local";
   private final String mInstanceId = UUID.randomUUID().toString();
   private final List<String> mFuseInfo = new ArrayList<>();
@@ -84,9 +83,6 @@ public final class FuseUpdateChecker implements HeartbeatExecutor {
    * @return the underlying file system type
    */
   private static String getUnderlyingFileSystem(FuseOptions fuseOptions) {
-    if (!fuseOptions.getFileSystemOptions().getUfsFileSystemOptions().isPresent()) {
-      return ALLUXIO_FS;
-    }
     String ufsAddress = fuseOptions.getFileSystemOptions()
         .getUfsFileSystemOptions().get().getUfsAddress();
     if (URIUtils.isLocalFilesystem(ufsAddress)) {
