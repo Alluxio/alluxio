@@ -26,8 +26,15 @@ if [ -n "${ALLUXIO_GIT_CLEAN}" ]; then
 fi
 
 mvn_args=""
-if [ -n "${ALLUXIO_MVN_PROJECT_LIST}" ]; then
-  mvn_args+="-am -pl ${ALLUXIO_MVN_PROJECT_LIST}"
+
+mvn_compile_args=""
+if [ -n "${ALLUXIO_MVN_PROJECT_LIST_COMPILE}" ]; then
+  mvn_compile_args+="-am -pl ${ALLUXIO_MVN_PROJECT_LIST_COMPILE}"
+fi
+
+mvn_test_args=""
+if [ -n "${ALLUXIO_MVN_PROJECT_LIST_TEST}" ]; then
+  mvn_test_args+="-am -pl ${ALLUXIO_MVN_PROJECT_LIST_TEST}"
 fi
 
 export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
@@ -38,7 +45,7 @@ PATH_BACKUP=${PATH}
 JAVA_HOME=/usr/local/openjdk-8
 PATH=$JAVA_HOME/bin:$PATH
 mvn -Duser.home=/home/jenkins -T 4C clean install -Dfindbugs.skip -Dcheckstyle.skip -DskipTests -Dmaven.javadoc.skip \
--Dlicense.skip -Dsort.skip ${mvn_args}
+-Dlicense.skip -Dsort.skip ${mvn_args} ${mvn_compile_args}
 
 # Set things up so that the current user has a real name and can authenticate.
 myuid=$(id -u)
@@ -56,4 +63,5 @@ fi
 
 # Run tests
 mvn -Duser.home=/home/jenkins test -Dmaven.main.skip -Dskip.protoc=true -Dmaven.javadoc.skip -Dlicense.skip=true \
--Dcheckstyle.skip=true -Dfindbugs.skip=true -Dsort.skip -Dsurefire.forkCount=${ALLUXIO_FORK_COUNT} ${mvn_args}
+-Dcheckstyle.skip=true -Dfindbugs.skip=true -Dsort.skip -Dsurefire.forkCount=${ALLUXIO_FORK_COUNT} \
+${mvn_args} ${mvn_test_args}

@@ -59,6 +59,8 @@ jobs:
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_TESTS=${{ matrix.modules }} \
+          ALLUXIO_DOCKER_MVN_PROJECT_LIST_COMPILE=\!assembly/client,\!assembly/server,\!webui \
+          ALLUXIO_DOCKER_MVN_PROJECT_LIST_TEST=dora/tests/integration \
           dev/github/run_docker.sh
         timeout-minutes: 60
 
