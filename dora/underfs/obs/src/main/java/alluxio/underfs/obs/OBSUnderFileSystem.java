@@ -392,6 +392,11 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
       }
       return null;
     }
+
+    @Override
+    public Boolean hasNextChunk() {
+      return mResult.isTruncated();
+    }
   }
 
   @Override
