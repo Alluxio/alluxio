@@ -23,7 +23,6 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import com.google.common.io.ByteStreams;
-import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
