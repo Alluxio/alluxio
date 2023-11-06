@@ -22,6 +22,7 @@ import alluxio.grpc.FileInfo;
 import alluxio.proto.meta.DoraMeta;
 import alluxio.proto.meta.DoraMeta.FileStatus;
 import alluxio.underfs.Fingerprint;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -33,6 +34,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,8 +56,7 @@ public class DoraMetaManager implements Closeable {
   private final AlluxioConfiguration mConf;
   private final DoraMetaStore mMetaStore;
   private final CacheManager mCacheManager;
-  private final PagedDoraWorker mDoraWorker;
-  protected final DoraUfsManager mUfsManager;
+  protected final UfsManager mUfsManager;
 
   private static final Logger SAMPLING_LOG = new SamplingLogger(
       LoggerFactory.getLogger(DoraMetaManager.class), 1L * Constants.MINUTE_MS);
@@ -77,20 +78,19 @@ public class DoraMetaManager implements Closeable {
   /**
    * Creates a dora meta manager.
    * @param conf configuration
-   * @param doraWorker the dora worker instance
    * @param cacheManger the cache manager to manage the page cache
    * @param ufsManager the ufs Manager
    */
+  @Inject
   public DoraMetaManager(AlluxioConfiguration conf,
-      PagedDoraWorker doraWorker, CacheManager cacheManger,
-      DoraUfsManager ufsManager) {
+      CacheManager cacheManger,
+      UfsManager ufsManager) {
     mConf = conf;
     String dbDir = mConf.getString(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR);
     Duration duration = mConf.getDuration(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_TTL);
     long ttl = (duration.isNegative() || duration.isZero()) ? -1 : duration.getSeconds();
     mMetaStore = new RocksDBDoraMetaStore(dbDir, ttl);
     mCacheManager = cacheManger;
-    mDoraWorker = doraWorker;
     mUfsManager = ufsManager;
   }
 
@@ -120,7 +120,8 @@ public class DoraMetaManager implements Closeable {
       if (mXAttrWriteToUFSEnabled) {
         xattrMap = ufs.getAttributes(path);
       }
-      DoraMeta.FileStatus fs = mDoraWorker.buildFileStatusFromUfsStatus(status, path, xattrMap);
+      DoraMeta.FileStatus fs = PagedDoraWorker.buildFileStatusFromUfsStatus(
+          mCacheManager.getUsage(), ufs.getUnderFSType(), status, path, xattrMap);
       return Optional.ofNullable(fs);
     } catch (FileNotFoundException e) {
       return Optional.empty();
