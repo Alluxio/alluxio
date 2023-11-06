@@ -14,6 +14,7 @@ package alluxio.stress.cli.worker;
 import static alluxio.Constants.MB;
 import static alluxio.Constants.SECOND_NANO;
 import static alluxio.stress.BaseParameters.DEFAULT_TASK_ID;
+import static alluxio.stress.worker.WorkerBenchMode.LOCAL_ONLY;
 
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
@@ -26,6 +27,7 @@ import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.common.FileSystemParameters;
 import alluxio.stress.worker.WorkerBenchCoarseDataPoint;
 import alluxio.stress.worker.WorkerBenchDataPoint;
+import alluxio.stress.worker.WorkerBenchMode;
 import alluxio.stress.worker.WorkerBenchParameters;
 import alluxio.stress.worker.WorkerBenchTaskResult;
 import alluxio.util.CommonUtils;
@@ -190,7 +192,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         "true");
 
     // default mode value: hash, using consistent hash
-    // TODO(jiacheng): we may need a policy to only IO to remote worker
     switch (mParameters.mMode) {
       case HASH:
         hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
@@ -201,6 +202,12 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
             "alluxio.client.file.dora.LocalWorkerPolicy");
         break;
       case REMOTE_ONLY:
+        // if is cluster run and cluster size = 1, REMOTE_ONLY is not supported.
+        if (mBaseParameters.mClusterLimit == 1) {
+          LOG.warn("Cluster size is 1. REMOTE_ONLY mode not supported. Using LOCAL_ONLY mode.");
+          hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
+              "alluxio.client.file.dora.LocalWorkerPolicy");
+        }
         hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
             "alluxio.client.file.dora.RemoteOnlyPolicy");
         break;
