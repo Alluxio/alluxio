@@ -202,7 +202,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * @return true if there is, no if there isn't, NULL if it cannot tell
      */
     default @Nullable Boolean hasNextChunk() {
-      return null;
+      throw new UnsupportedOperationException(
+          "HasNextChunk not implemented for " + getClass().getName());
     }
   }
 

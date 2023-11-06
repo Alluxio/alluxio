@@ -328,6 +328,11 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
       }
       return null;
     }
+
+    @Override
+    public Boolean hasNextChunk() {
+      return mResult.isTruncated();
+    }
   }
 
   @Override
