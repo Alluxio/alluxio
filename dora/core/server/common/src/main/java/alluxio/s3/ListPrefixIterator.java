@@ -61,10 +61,12 @@ public class ListPrefixIterator implements Iterator<URIStatus> {
   }
 
   private void checkPrefix() {
-    if (mPath.getPath().equals(mPrefix)) {
+    AlluxioURI prefixUri = new AlluxioURI(mPrefix);
+    String prefix = prefixUri.getPath();
+    if (mPath.getPath().equals(prefix)) {
       return;
     }
-    if (Objects.equals(new AlluxioURI(mPrefix).getParent(), mPath)) {
+    if (Objects.equals(prefixUri.getParent(), mPath)) {
       return;
     }
     throw new ListPrefixException(new AlluxioException(
