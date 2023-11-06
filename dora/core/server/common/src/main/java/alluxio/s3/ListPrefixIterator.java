@@ -118,14 +118,15 @@ public class ListPrefixIterator implements Iterator<URIStatus> {
    *
    * @param iterator
    * @param whileTake whether taking elements continue
-   * @return
+   * @return a stream base on given iterator
+   * @param <T> the element type
    */
-  public static Stream<URIStatus> createStream(Iterator<URIStatus> iterator,
+  public static <T> Stream<T> createStream(Iterator<T> iterator,
       Supplier<Boolean> whileTake) {
-    return StreamSupport.stream(new Spliterator<URIStatus>() {
+    return StreamSupport.stream(new Spliterator<T>() {
 
       @Override
-      public boolean tryAdvance(Consumer<? super URIStatus> action) {
+      public boolean tryAdvance(Consumer<? super T> action) {
         if (!whileTake.get()) {
           return false;
         }
@@ -137,7 +138,7 @@ public class ListPrefixIterator implements Iterator<URIStatus> {
       }
 
       @Override
-      public Spliterator<URIStatus> trySplit() {
+      public Spliterator<T> trySplit() {
         return null;
       }
 

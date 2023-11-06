@@ -30,10 +30,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -125,6 +127,20 @@ public class ListPrefixIteratorTest {
         Assert.assertEquals(expect, actual);
       }
     }
+  }
+
+  @Test
+  public void testWhileTake() {
+    AtomicInteger counter = new AtomicInteger(0);
+    Iterator<Integer> iterator = IntStream.range(0, 100).iterator();
+    List<Integer> actual = ListPrefixIterator.createStream(iterator, () -> counter.get() < 50)
+        .peek(i -> counter.incrementAndGet())
+        .collect(Collectors.toList());
+    List<Integer> expect = IntStream.range(0, 50)
+        .boxed()
+        .collect(Collectors.toList());
+    Assert.assertEquals(expect, actual);
+    Assert.assertEquals(50, counter.get());
   }
 
   private URIStatus fromFile(File file) {
