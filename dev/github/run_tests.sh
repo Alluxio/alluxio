@@ -26,6 +26,9 @@ if [ -n "${ALLUXIO_GIT_CLEAN}" ]; then
 fi
 
 mvn_args=""
+if [ -n "${ALLUXIO_MVN_PROJECT_LIST}" ]; then
+  mvn_args+="-am -pl ${ALLUXIO_MVN_PROJECT_LIST}"
+fi
 
 mvn_compile_args=""
 if [ -n "${ALLUXIO_MVN_PROJECT_LIST_COMPILE}" ]; then
