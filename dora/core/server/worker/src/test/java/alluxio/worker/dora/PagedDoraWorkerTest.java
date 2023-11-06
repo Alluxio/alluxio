@@ -96,6 +96,7 @@ public class PagedDoraWorkerTest {
     Configuration.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR,
         mTestFolder.newFolder("rocks"));
     Configuration.set(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, 10);
+    Configuration.set(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false);
     CacheManagerOptions cacheManagerOptions =
         CacheManagerOptions.createForWorker(Configuration.global());
     mPageSize = Configuration.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
