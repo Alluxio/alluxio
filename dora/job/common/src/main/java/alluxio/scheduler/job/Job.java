@@ -127,6 +127,12 @@ public interface Job<T extends Task<?>> {
   void onTaskSubmitFailure(Task<?> task);
 
   /**
+   * Triggers when a worker is not available caused by membership changes.
+   * @param task the task to execute on the worker
+   */
+  void onWorkerUnavailable(T task);
+
+  /**
    * @return job journal entry
    */
   Journal.JournalEntry toJournalEntry();

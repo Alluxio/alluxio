@@ -98,6 +98,13 @@ public final class MultiDimensionalMetricsSystem {
       .unit(Unit.BYTES)
       .register();
 
+  // Distributed load related
+  public static final Counter DISTRIBUTED_LOAD_FAILURE = Counter.builder()
+      .name("alluxio_distributed_load_failure")
+      .help("counter of rpc calls of the meta operations")
+      .labelNames("reason", "final_attempt")
+      .register();
+
   /**
    * Initialize all the metrics.
    */
