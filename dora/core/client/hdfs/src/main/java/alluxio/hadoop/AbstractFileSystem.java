@@ -699,7 +699,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
-    if (src == dst) {
+    if (src.equals(dst)) {
       LOG.debug("Renaming {} to the same location", src);
       return true;
     }
@@ -720,17 +720,17 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       try {
         boolean res = tryMoveIntoDirectory(src, dst, srcPath, dstPath);
         if (!res) {
-          LOG.warn("Failed to rename file and dst {} is not a directory", dst, exToLog);
+          LOG.warn("Failed to rename src {} to dst {}"
+              + "because the dst is not a directory", src,  dst, exToLog);
         }
       } catch (IOException | AlluxioException | AlluxioRuntimeException e2) {
-        LOG.error("Failed to rename file {} and failed to move into dst directory {}",
+        LOG.error("Failed to rename src {} to dst {} with exception {},"
+                + "and fail to move src to dst as a folder with exception",
             src, dst, exToLog, e2);
         return false;
       }
-    } catch (IOException e) {
+    } catch (IOException | RuntimeException e) {
       LOG.error("Failed to rename {} to {}", src, dst, e);
-      return false;
-    } catch (RuntimeException e) {
       return false;
     }
     return true;
@@ -739,6 +739,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   /**
    * rename when previous rename fail, reconstruct path and check status.
    * In order to support hdfs rename interface
+   *
    * @param src src
    * @param dst dst
    * @param srcPath srcPath
