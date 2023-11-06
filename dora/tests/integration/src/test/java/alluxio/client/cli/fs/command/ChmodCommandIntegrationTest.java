@@ -40,7 +40,7 @@ public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTe
   /**
    * Tests -R option for chmod recursively.
    */
-  @Ignore("Rewrite the LocalUnderFileSystem.setMode(), for it calls a not recursive function.")
+  @Ignore("Before supporting recursively setAttribute() in PagedDoraWorker, it cannot fix.")
   @Test
   public void chmodRecursively() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/testFile", 10);
