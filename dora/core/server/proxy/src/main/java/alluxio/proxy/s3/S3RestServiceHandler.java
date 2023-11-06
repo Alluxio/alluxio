@@ -225,7 +225,7 @@ public final class S3RestServiceHandler {
     return S3RestUtils.call("", () -> {
       final String user = getUser();
 
-      List<URIStatus> objects = new ArrayList<>();
+      List<URIStatus> objects;
       try (S3AuditContext auditContext = createAuditContext("listBuckets", user, null, null)) {
         try {
           objects = mMetaFS.listStatus(new AlluxioURI("/"));
