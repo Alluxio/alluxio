@@ -25,6 +25,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
@@ -116,12 +117,18 @@ public class ListPrefixIterator implements Iterator<URIStatus> {
   /**
    *
    * @param iterator
-   * @return a Stream base on given iterator
+   * @param whileTake whether taking elements continue
+   * @return
    */
-  public static Stream<URIStatus> createStream(Iterator<URIStatus> iterator) {
+  public static Stream<URIStatus> createStream(Iterator<URIStatus> iterator,
+      Supplier<Boolean> whileTake) {
     return StreamSupport.stream(new Spliterator<URIStatus>() {
+
       @Override
       public boolean tryAdvance(Consumer<? super URIStatus> action) {
+        if (!whileTake.get()) {
+          return false;
+        }
         if (iterator.hasNext()) {
           action.accept(iterator.next());
           return true;
@@ -136,6 +143,9 @@ public class ListPrefixIterator implements Iterator<URIStatus> {
 
       @Override
       public long estimateSize() {
+        if (!whileTake.get()) {
+          return 0;
+        }
         if (iterator.hasNext()) {
           return Long.MAX_VALUE;
         }

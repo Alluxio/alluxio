@@ -214,7 +214,8 @@ public class ListBucketResult {
     // used when handling truncating
     int[] keyCount = {0}; // must use an array to have a mutable variable during sequential stream
 
-    mContents = ListPrefixIterator.createStream(iterator)
+    mContents = ListPrefixIterator.createStream(iterator,
+            () -> keyCount[0] <= mMaxKeys && !mIsTruncated)
         //marker filter
         .filter(status -> {
           String path = status.getPath().substring(bucketPrefix.length());

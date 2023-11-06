@@ -95,7 +95,8 @@ public class ListPrefixIteratorTest {
       AlluxioURI path = new AlluxioURI(mTestFolder.getRoot().getPath() + File.separator + rootDir);
       ListPrefixIterator listPrefixIterator = new ListPrefixIterator(path,
           mLocalFileChildrenSupplier, null);
-      List<String> actual = ListPrefixIterator.createStream(listPrefixIterator).map(URIStatus::getPath)
+      List<String> actual = ListPrefixIterator.createStream(listPrefixIterator, () -> true)
+          .map(URIStatus::getPath)
           .collect(Collectors.toList());
       List<String> expect = listLocalDir(
           new AlluxioURI(mTestFolder.getRoot().getPath() + File.separator + rootDir));
@@ -116,7 +117,7 @@ public class ListPrefixIteratorTest {
         String prefix = local.get(mRandom.nextInt(local.size()));
         ListPrefixIterator listPrefixIterator = new ListPrefixIterator(
             new AlluxioURI(prefix).getParent(), mLocalFileChildrenSupplier, prefix);
-        List<String> actual = ListPrefixIterator.createStream(listPrefixIterator)
+        List<String> actual = ListPrefixIterator.createStream(listPrefixIterator, () -> true)
             .map(URIStatus::getPath)
             .collect(Collectors.toList());
         List<String> expect = local.stream().filter(s -> s.startsWith(prefix))
