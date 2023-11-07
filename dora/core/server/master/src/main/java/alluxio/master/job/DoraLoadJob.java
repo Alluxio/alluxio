@@ -128,6 +128,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       PropertyKey.MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_RATIO_THRESHOLD);
   private static final int FAILURE_COUNT_THRESHOLD = Configuration.getInt(
       PropertyKey.MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD);
+  private static final int RETRY_DLQ_CAPACITY = Configuration.getInt(
+      PropertyKey.MASTER_DORA_LOAD_JOB_RETRY_DLQ_CAPACITY);
   private final boolean mSkipIfExists;
 
   private final Optional<String> mFileFilterRegx;
@@ -404,7 +406,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
   private void addSubTaskToRetryOrFail(LoadSubTask subTask, FailureReason reason, String message) {
     LOG.debug("Retry file {}", subTask);
-    if (subTask.isRetry() || !isHealthy()) {
+    if (subTask.isRetry() || !isHealthy() || mRetrySubTasksDLQ.size() >= RETRY_DLQ_CAPACITY) {
       addFileFailure(subTask, reason, message);
       return;
     }
@@ -460,8 +462,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
   @Override
   public boolean isHealthy() {
-    // Tasks to retry are considered as "failed" tasks when calculating if the job is healthy.
-    long totalFailureCount = mTotalFinalFailureCount.get() + mRetrySubTasksDLQ.size();
+    long totalFailureCount = mTotalFinalFailureCount.get();
     if (FAILURE_RATIO_THRESHOLD >= 1.0 || FAILURE_COUNT_THRESHOLD < 0) {
       return true;
     }
