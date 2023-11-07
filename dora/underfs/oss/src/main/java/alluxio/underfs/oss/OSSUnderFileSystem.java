@@ -29,6 +29,7 @@ import alluxio.util.io.PathUtils;
 import com.aliyun.oss.ClientBuilderConfiguration;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
+import com.aliyun.oss.OSSException;
 import com.aliyun.oss.ServiceException;
 import com.aliyun.oss.common.comm.Protocol;
 import com.aliyun.oss.model.AbortMultipartUploadRequest;
@@ -72,6 +73,8 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
   /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = "_$folder$";
+
+  private static final String NO_SUCH_KEY = "NoSuchKey";
 
   /** Aliyun OSS client. */
   private final OSS mClient;
@@ -209,8 +212,18 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public Map<String, String> getObjectTags(String path) throws IOException {
-    TagSet taggingResult = mClient.getObjectTagging(mBucketName, path);
-    return Collections.unmodifiableMap(taggingResult.getAllTags());
+    try {
+      TagSet taggingResult = mClient.getObjectTagging(mBucketName, path);
+      return Collections.unmodifiableMap(taggingResult.getAllTags());
+    } catch (ServiceException e) {
+      if (e instanceof OSSException) {
+        OSSException ossException = (OSSException) e;
+        if (NO_SUCH_KEY.equals(ossException.getErrorCode())) {
+          return null;
+        }
+      }
+      throw new IOException("Failed to get object tagging", e);
+    }
   }
 
   // No ACL integration currently, no-op
