@@ -164,7 +164,7 @@ public class COSUnderFileSystemTest {
     try {
       mCOSUnderFileSystem.deleteObjects(keys);
     } catch (Exception e) {
-      Assert.assertTrue(e instanceof IOException);
+      Assert.assertTrue(e instanceof AlluxioCosException);
     }
   }
 
