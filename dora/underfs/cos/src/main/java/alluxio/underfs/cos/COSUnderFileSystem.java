@@ -46,6 +46,7 @@ import com.qcloud.cos.model.ObjectTagging;
 import com.qcloud.cos.model.SetObjectTaggingRequest;
 import com.qcloud.cos.model.Tag.Tag;
 import com.qcloud.cos.region.Region;
+import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -177,12 +178,21 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public Map<String, String> getObjectTags(String path) throws IOException {
-    GetObjectTaggingRequest getTaggingReq = new GetObjectTaggingRequest(mBucketNameInternal, path);
-    GetObjectTaggingResult taggingResult = mClient.getObjectTagging(getTaggingReq);
-    List<Tag> tagList = taggingResult.getTagSet();
-    return Collections.unmodifiableMap(tagList.stream()
-        .collect(HashMap::new, (map, tag) -> map.put(tag.getKey(), tag.getValue()),
-            HashMap::putAll));
+    try {
+      GetObjectTaggingRequest getTaggingReq =
+          new GetObjectTaggingRequest(mBucketNameInternal, path);
+      GetObjectTaggingResult taggingResult = mClient.getObjectTagging(getTaggingReq);
+      List<Tag> tagList = taggingResult.getTagSet();
+      return Collections.unmodifiableMap(tagList.stream()
+          .collect(HashMap::new, (map, tag) -> map.put(tag.getKey(), tag.getValue()),
+              HashMap::putAll));
+    } catch (CosClientException e) {
+      AlluxioCosException exception = AlluxioCosException.from(e);
+      if (exception.getStatus().equals(Status.NOT_FOUND)) {
+        return null;
+      }
+      throw exception;
+    }
   }
 
   @Override
@@ -245,7 +255,8 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
           .map(DeleteObjectsResult.DeletedObject::getKey)
           .collect(Collectors.toList());
     } catch (CosClientException e) {
-      throw new IOException("failed to delete objects", e);
+      LOG.warn("failed to delete objects");
+      throw AlluxioCosException.from(e);
     }
   }
 
@@ -395,7 +406,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
       return new COSInputStream(mBucketNameInternal, key, mClient, options.getOffset(), retryPolicy,
           mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (CosClientException e) {
-      throw new IOException(e.getMessage());
+      throw AlluxioCosException.from(e);
     }
   }
 }
