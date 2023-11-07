@@ -57,7 +57,7 @@ if [ -n "${ALLUXIO_MVN_TESTS}" ]; then
 fi
 
 if [ -n "${ALLUXIO_MVN_PROJECT_LIST_TEST}" ]; then
-  mvn_test_args+="-pl ${ALLUXIO_MVN_PROJECT_LIST_TEST}"
+  mvn_test_args+=" -pl ${ALLUXIO_MVN_PROJECT_LIST_TEST}"
 fi
 
 # Run tests
