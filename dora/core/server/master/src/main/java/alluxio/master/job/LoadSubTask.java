@@ -106,10 +106,11 @@ public abstract class LoadSubTask implements ShardKey {
 
   @Override
   public String toString() {
+    WorkerInfo workerInfo = getWorkerInfo();
     return MoreObjects.toStringHelper(this)
         .add("UfsPath", getUfsPath())
-        .add("ShardingKey", mHashKey.asString())
-        .add("Worker", getWorkerInfo().getAddress().toString())
+        .add("ShardingKey", mHashKey == null ? null : mHashKey.asString())
+        .add("Worker", workerInfo == null ? null : workerInfo.getAddress().toString())
         .toString();
   }
 }
