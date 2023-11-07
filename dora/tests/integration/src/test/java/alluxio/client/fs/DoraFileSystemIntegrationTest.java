@@ -11,6 +11,7 @@
 
 package alluxio.client.fs;
 
+import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
@@ -126,6 +127,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
     LocalAlluxioClusterResource clusterResource = mLocalAlluxioClusterResourceBuilder.build();
     startCluster(clusterResource);
 
+//    sleep(1000);
     FileOutStream fos = mFileSystem.createFile(TEST_FILE_URI,
         CreateFilePOptions.newBuilder().setOverwrite(true).build());
     fos.write(TEST_CONTENT.getBytes());
@@ -161,6 +163,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
     LocalAlluxioClusterResource clusterResource = mLocalAlluxioClusterResourceBuilder.build();
     startCluster(clusterResource);
 
+    sleep(1000);
     FileOutStream fos = mFileSystem.createFile(TEST_FILE_URI,
         CreateFilePOptions.newBuilder().setOverwrite(true).build());
     fos.write(TEST_CONTENT.getBytes());
@@ -227,6 +230,10 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   @Test
   public void testWriteThenUpdateFromUfs() throws Exception {
     writeThenUpdateFromUfs(true);
+  }
+
+  @Test
+  public void testWriteThenUpdateFromUfsNotThrough() throws Exception {
     writeThenUpdateFromUfs(false);
   }
 
