@@ -50,13 +50,14 @@ JAVA_HOME=${JAVA_HOME_BACKUP}
 PATH=${PATH_BACKUP}
 
 mvn_test_args=""
-if [ -n "${ALLUXIO_MVN_PROJECT_LIST_TEST}" ]; then
-  mvn_test_args+="-am -pl ${ALLUXIO_MVN_PROJECT_LIST_TEST}"
-fi
 
 mvn_test_args+=" -fn -DfailIfNoTests=false -Dsurefire.failIfNoSpecifiedTests=false --fail-at-end"
 if [ -n "${ALLUXIO_MVN_TESTS}" ]; then
   mvn_test_args+=" -Dtest=${ALLUXIO_MVN_TESTS}"
+fi
+
+if [ -n "${ALLUXIO_MVN_PROJECT_LIST_TEST}" ]; then
+  mvn_test_args+="-pl ${ALLUXIO_MVN_PROJECT_LIST_TEST}"
 fi
 
 # Run tests
