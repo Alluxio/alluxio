@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.PositionReader;
+import alluxio.client.file.dora.DoraCacheClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
@@ -20,13 +21,14 @@ import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import com.amazonaws.annotation.NotThreadSafe;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.EvictingQueue;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Objects;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * Implementation of {@link FileInStream} that reads from a dora cache if possible.
@@ -38,38 +40,35 @@ public class PositionReadFileInStream extends FileInStream {
   private boolean mClosed;
   private final PositionReader mPositionReader;
   private final PrefetchCache mCache;
+  private final URIStatus mURIStatus;
+  private final DoraCacheClient mClient;
+  private final Executor mPreloadThreadPool = Executors.newCachedThreadPool();
+  private boolean mDataPreloadEnabled =
+      Configuration.getBoolean(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_ENABLED);
+  private long mDataPreloadFileSizeThreshold =
+      Configuration.getBytes(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD);
+  private long mNumPreloadedDataSize =
+      Configuration.getBytes(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_SIZE);
 
-  private static class PrefetchCache implements AutoCloseable {
+  private class PrefetchCache implements AutoCloseable {
     private final long mFileLength;
-    private final EvictingQueue<CallTrace> mCallHistory;
+    private final int mMaxPrefetchSize;
     private int mPrefetchSize = 0;
 
     private ByteBuf mCache = Unpooled.wrappedBuffer(new byte[0]);
     private long mCacheStartPos = 0;
+    private long mLastCallEndPos = -1;
 
-    PrefetchCache(int prefetchMultiplier, long fileLength) {
-      mCallHistory = EvictingQueue.create(prefetchMultiplier);
+    PrefetchCache(int maxPrefetchSize, long fileLength) {
       mFileLength = fileLength;
-    }
-
-    private void update() {
-      int consecutiveReadLength = 0;
-      long lastReadEnd = -1;
-      for (CallTrace trace : mCallHistory) {
-        if (trace.mPosition == lastReadEnd) {
-          lastReadEnd += trace.mLength;
-          consecutiveReadLength += trace.mLength;
-        } else {
-          lastReadEnd = trace.mPosition + trace.mLength;
-          consecutiveReadLength = trace.mLength;
-        }
-      }
-      mPrefetchSize = consecutiveReadLength;
+      mMaxPrefetchSize = maxPrefetchSize;
     }
 
     private void addTrace(long pos, int size) {
-      mCallHistory.add(new CallTrace(pos, size));
-      update();
+      if (pos == mLastCallEndPos) {
+        mPrefetchSize = Math.min(mMaxPrefetchSize, mPrefetchSize + size);
+      }
+      mLastCallEndPos = pos + size;
     }
 
     /**
@@ -91,11 +90,21 @@ public class PositionReadFileInStream extends FileInStream {
           outBuffer.position(outBuffer.position() + size);
           return size;
         } else {
-          // the position is beyond the cache end position
+          if (targetStartPos > mCacheStartPos + mCache.readableBytes()) {
+            // the target position is beyond the end position of the cache,
+            // meaning it's not a sequential read
+            // halve the prefetch size to be conservative
+            mPrefetchSize /= 2;
+          }
+          // else, the target position is the same as the end of the cache, meaning the cache is
+          // exhausted normally so the read remains sequential.
+          // no need to adjust the prefetch size at this point
           return 0;
         }
       } else {
-        // the position is behind the cache start position
+        // the position is behind the cache start position, this is a rewind
+        // halve the prefetch size
+        mPrefetchSize /= 2;
         return 0;
       }
     }
@@ -109,13 +118,27 @@ public class PositionReadFileInStream extends FileInStream {
      * @return number of bytes that's been prefetched, 0 if exception occurs
      */
     private int prefetch(PositionReader reader, long pos, int minBytesToRead) {
+
+      if (mDataPreloadEnabled && mURIStatus.getLength() > mDataPreloadFileSizeThreshold
+          && mURIStatus.getInAlluxioPercentage() != 100) {
+        mPreloadThreadPool.execute(() -> {
+          mClient.loadDataAsync(
+              mURIStatus.getUfsPath(), pos,
+              Math.min(mURIStatus.getLength() - pos, mNumPreloadedDataSize));
+        });
+      }
+
       int prefetchSize = Math.max(mPrefetchSize, minBytesToRead);
       // cap to remaining file length
       prefetchSize = (int) Math.min(mFileLength - pos, prefetchSize);
 
       if (mCache.capacity() < prefetchSize) {
         mCache.release();
-        mCache = PooledDirectNioByteBuf.allocate(prefetchSize);
+        try {
+          mCache = PooledDirectNioByteBuf.allocate(prefetchSize);
+        } catch (OutOfMemoryError oom) {
+          mCache = Unpooled.wrappedBuffer(new byte[0]);
+        }
         mCacheStartPos = 0;
       }
       mCache.clear();
@@ -153,15 +176,24 @@ public class PositionReadFileInStream extends FileInStream {
 
   /**
    * Constructor.
+   *
    * @param reader
-   * @param length
+   * @param uriStatus
+   * @param client
    */
-  public PositionReadFileInStream(PositionReader reader,
-      long length) {
+  public PositionReadFileInStream(
+      PositionReader reader,
+      URIStatus uriStatus,
+      DoraCacheClient client
+  ) {
+    mURIStatus = uriStatus;
     mPositionReader = reader;
-    mLength = length;
-    mCache = new PrefetchCache(
-        Configuration.getInt(PropertyKey.USER_POSITION_READER_STREAMING_MULTIPLIER), mLength);
+    mLength = uriStatus.getLength();
+    long size =
+        Configuration.getBytes(PropertyKey.USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE);
+    Preconditions.checkArgument(size > 0 && size < Integer.MAX_VALUE, "size");
+    mCache = new PrefetchCache((int) size, mLength);
+    mClient = client;
   }
 
   @Override

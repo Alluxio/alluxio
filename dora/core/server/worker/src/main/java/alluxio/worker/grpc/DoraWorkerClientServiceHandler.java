@@ -21,6 +21,8 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.CacheDataRequest;
+import alluxio.grpc.CacheDataResponse;
 import alluxio.grpc.CompleteFilePRequest;
 import alluxio.grpc.CompleteFilePResponse;
 import alluxio.grpc.CopyRequest;
@@ -147,6 +149,20 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
     } catch (Exception e) {
       LOG.debug(String.format("Failed to load file %s: ", request.getUfsStatusList()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
+    }
+  }
+
+  @Override
+  public void cacheData(
+      CacheDataRequest request,
+      StreamObserver<CacheDataResponse> responseObserver) {
+    try {
+      ((PagedDoraWorker) mWorker).cacheData(request);
+    } catch (Exception e) {
+      LOG.error("CacheData failed, {}", e);
+    } finally {
+      responseObserver.onNext(CacheDataResponse.getDefaultInstance());
+      responseObserver.onCompleted();
     }
   }
 

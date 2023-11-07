@@ -5774,6 +5774,43 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .build();
+  public static final PropertyKey USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE =
+      dataSizeBuilder(Name.USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue("16MB")
+          .setDescription("The max size of the prefetch of dynamic buffering")
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey USER_POSITION_READER_PRELOAD_DATA_ENABLED =
+      booleanBuilder("user.position.reader.preload.data.enabled")
+          .setScope(Scope.CLIENT)
+          .setDefaultValue(false)
+          .setDescription("")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD =
+      dataSizeBuilder("user.position.reader.preload.data.file.size.threshold")
+          .setScope(Scope.CLIENT)
+          .setDefaultValue("2GB")
+          .setDescription("")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey USER_POSITION_READER_PRELOAD_DATA_SIZE =
+      dataSizeBuilder("user.position.reader.preload.data.size")
+          .setScope(Scope.CLIENT)
+          .setDefaultValue("320MB")
+          .setDescription("")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+  public static final PropertyKey WORKER_PRELOAD_DATA_CONCURRENCY =
+      intBuilder("alluxio.worker.preload.data.concurrency")
+          .setScope(Scope.WORKER)
+          .setDefaultValue(20)
+          .setDescription("")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
+
   public static final PropertyKey USER_STREAMING_DATA_READ_TIMEOUT =
       durationBuilder(Name.USER_STREAMING_DATA_READ_TIMEOUT)
           .setAlias("alluxio.user.network.data.timeout.ms", Name.USER_NETWORK_DATA_TIMEOUT,
@@ -8264,6 +8301,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_APP_ID = "alluxio.user.app.id";
     public static final String USER_POSITION_READER_STREAMING_MULTIPLIER =
         "alluxio.user.position.reader.streaming.multiplier";
+    public static final String USER_POSITION_READER_STREAMING_PREFETCH_MAX_SIZE =
+        "alluxio.user.position.reader.streaming.prefetch.max.size";
     public static final String USER_NETWORK_DATA_TIMEOUT =
         "alluxio.user.network.data.timeout";
     public static final String USER_NETWORK_READER_BUFFER_SIZE_MESSAGES =

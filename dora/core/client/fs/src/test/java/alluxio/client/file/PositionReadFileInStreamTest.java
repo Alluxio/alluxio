@@ -78,7 +78,7 @@ public class PositionReadFileInStreamTest {
 
   private void testSequentialRead(double smallBufProb) throws Exception {
     PositionReader spy = Mockito.spy(mPositionReader);
-    PositionReadFileInStream stream = new PositionReadFileInStream(spy, mDataLength);
+    PositionReadFileInStream stream = new PositionReadFileInStream(spy, null, null);
     int readLength;
     int totalBytesRead = 0;
     int bytesRead;
@@ -104,7 +104,7 @@ public class PositionReadFileInStreamTest {
   @Test
   public void positionedReadWithRandomBufferSize() throws Exception {
     PositionReader spy = Mockito.spy(mPositionReader);
-    PositionReadFileInStream stream = new PositionReadFileInStream(spy, mDataLength);
+    PositionReadFileInStream stream = new PositionReadFileInStream(spy, null, null);
     int readLength;
     int bytesRead;
     int numUnbufferedCalls = 0;
