@@ -30,11 +30,6 @@ if [ -n "${ALLUXIO_MVN_PROJECT_LIST_COMPILE}" ]; then
   mvn_compile_args+="-am -pl ${ALLUXIO_MVN_PROJECT_LIST_COMPILE}"
 fi
 
-mvn_test_args=""
-if [ -n "${ALLUXIO_MVN_PROJECT_LIST_TEST}" ]; then
-  mvn_test_args+="-am -pl ${ALLUXIO_MVN_PROJECT_LIST_TEST}"
-fi
-
 export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
 
 # Always use java 8 to compile the source code
@@ -53,6 +48,11 @@ echo "$myuid:x:$myuid:$mygid:anonymous uid:/home/jenkins:/bin/false" >> /etc/pas
 # Revert back to the image default java version to run the test
 JAVA_HOME=${JAVA_HOME_BACKUP}
 PATH=${PATH_BACKUP}
+
+mvn_test_args=""
+if [ -n "${ALLUXIO_MVN_PROJECT_LIST_TEST}" ]; then
+  mvn_test_args+="-am -pl ${ALLUXIO_MVN_PROJECT_LIST_TEST}"
+fi
 
 mvn_test_args+=" -fn -DfailIfNoTests=false -Dsurefire.failIfNoSpecifiedTests=false --fail-at-end"
 if [ -n "${ALLUXIO_MVN_TESTS}" ]; then
