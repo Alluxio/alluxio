@@ -78,8 +78,6 @@
                 <filter>
                   <artifact>org.alluxio:alluxio-underfs-hdfs</artifact>
                   <excludes>
-                    <!-- Because this module depends on alluxio-underfs-hdfs, eliminate HDFS factory implementation -->
-                    <exclude>alluxio/underfs/hdfs/HdfsUnderFileSystemFactory.*</exclude>
                     <exclude>META-INF/services/alluxio.underfs.UnderFileSystemFactory</exclude>
                   </excludes>
                 </filter>
