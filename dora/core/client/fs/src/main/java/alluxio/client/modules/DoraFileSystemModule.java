@@ -15,6 +15,8 @@ import alluxio.client.file.dora.DefaultDoraCacheClientFactory;
 import alluxio.client.file.dora.DoraCacheClientFactory;
 import alluxio.client.file.options.FileSystemOptions;
 import alluxio.conf.Configuration;
+import alluxio.namespace.MountTableFactory;
+import alluxio.namespace.MountTableManager;
 
 import com.google.inject.AbstractModule;
 
@@ -27,5 +29,6 @@ public class DoraFileSystemModule extends AbstractModule {
     bind(DoraCacheClientFactory.class).to(DefaultDoraCacheClientFactory.class);
     bind(FileSystemOptions.class)
         .toInstance(FileSystemOptions.Builder.fromConf(Configuration.global()).build());
+    bind(MountTableManager.class).toInstance(MountTableFactory.create(Configuration.global()));
   }
 }

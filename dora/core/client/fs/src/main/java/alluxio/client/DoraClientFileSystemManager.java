@@ -16,6 +16,7 @@ import static java.util.Objects.requireNonNull;
 import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemContextConverter;
 import alluxio.client.file.dora.DoraCacheClientFactory;
 import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.options.UfsFileSystemOptions;
@@ -24,6 +25,7 @@ import alluxio.client.modules.DoraFileSystemModule;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
+import alluxio.namespace.MountTableManager;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -32,6 +34,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.name.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +55,24 @@ public class DoraClientFileSystemManager {
 
   private final FileSystemOptions mFileSystemOptions;
   private final DoraCacheClientFactory mDoraClientFactory;
+  private final MountTableManager mMountTableManager;
+
+  /**
+   * Constructor.
+   * @param fileSystemOptions
+   * @param doraCacheClientFactory
+   * @param mountTableManagerOpt
+   */
+  @Inject
+  public DoraClientFileSystemManager(
+      FileSystemOptions fileSystemOptions,
+      DoraCacheClientFactory doraCacheClientFactory,
+      MountTableManager mountTableManagerOpt) {
+    mFileSystemOptions = fileSystemOptions;
+    mDoraClientFactory = requireNonNull(doraCacheClientFactory,
+        "doraCacheClientFactory is null");
+    mMountTableManager = requireNonNull(mountTableManagerOpt, "mountTableManagerOpt is null");
+  }
 
   /**
    * @param conf
@@ -86,26 +107,11 @@ public class DoraClientFileSystemManager {
     }
     injector = Guice.createInjector(modules);
     if (conf.isSet(PropertyKey.USER_CLIENT_OVERRIDE_INSTANCE_CLASS)) {
-      Class<? extends DoraClientFileSystemManager> overrideInstance =
+      Class<? extends DoraClientFileSystemManager> instanceClass =
           conf.getClass(PropertyKey.USER_CLIENT_OVERRIDE_INSTANCE_CLASS);
-      return injector.getInstance(overrideInstance);
-    } else {
-      return injector.getInstance(DoraClientFileSystemManager.class);
+      return injector.getInstance(instanceClass);
     }
-  }
-
-  /**
-   * Constructor.
-   * @param fileSystemOptions
-   * @param doraCacheClientFactory
-   */
-  @Inject
-  public DoraClientFileSystemManager(
-      FileSystemOptions fileSystemOptions,
-      DoraCacheClientFactory doraCacheClientFactory) {
-    mFileSystemOptions = requireNonNull(fileSystemOptions, "fileSystemOptions is null");
-    mDoraClientFactory = requireNonNull(doraCacheClientFactory,
-        "doraCacheClientFactory is null");
+    return injector.getInstance(DoraClientFileSystemManager.class);
   }
 
   /**
@@ -127,8 +133,7 @@ public class DoraClientFileSystemManager {
     Optional<UfsFileSystemOptions> ufsOptions = options.getUfsFileSystemOptions();
     Preconditions.checkArgument(ufsOptions.isPresent(),
         "Missing UfsFileSystemOptions in FileSystemOptions");
-    FileSystem fs = new UfsBaseFileSystem(context,
-        options.getUfsFileSystemOptions().get());
+    FileSystem fs = new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get());
 
     if (options.isDoraCacheEnabled()) {
       LOG.debug("Dora cache enabled");
