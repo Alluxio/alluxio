@@ -2311,11 +2311,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD =
       intBuilder(Name.MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD)
           .setDefaultValue(-1)
-          .setDescription(
-              "The load job total load failure count threshold. -1 means never fail. "
-              + "Note that we persist failed tasks in memory for retrying purpose and "
-              + "on average one subtask takes up 0.5KB in memory. Properly set this property "
-              + "to avoid OOM.")
+          .setDescription("The load job total load failure count threshold. -1 means never fail. ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -2324,6 +2320,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(1.00)
           .setDescription("The load job total load failure ratio threshold (0,1)."
               + " 1.00 means never fail.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey MASTER_DORA_LOAD_JOB_RETRY_DLQ_CAPACITY =
+      intBuilder(Name.MASTER_DORA_LOAD_JOB_RETRY_DLQ_CAPACITY)
+          .setDefaultValue(1_000_000)
+          .setDescription(
+              "The capacity of the dead letter queue we persist failed tasks in memory "
+                  + "for retrying purpose. Once the queue is full, failed subtasks will not retry"
+                  + "and will just fail. On average one subtask takes up 0.5KB in memory. "
+                  + " Properly set this property to avoid OOM.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -7554,6 +7561,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.dora.load.job.total.failure.count.threshold";
     public static final String MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_RATIO_THRESHOLD =
         "alluxio.master.dora.load.job.total.failure.ratio.threshold";
+    public static final String MASTER_DORA_LOAD_JOB_RETRY_DLQ_CAPACITY =
+        "alluxio.master.dora.load.job.retry.dlq.capacity";
     public static final String MASTER_DORA_LOAD_JOB_FAILED_FILE_LIST_DIR =
         "alluxio.master.dora.load.job.failed.file.list.dir";
     public static final String MASTER_DAILY_BACKUP_ENABLED =
