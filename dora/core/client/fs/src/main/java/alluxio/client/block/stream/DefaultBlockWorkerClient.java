@@ -314,9 +314,9 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
-  public ListenableFuture<CacheDataResponse> cacheData(CacheDataRequest request) {
+  public CacheDataResponse cacheData(CacheDataRequest request) {
     try {
-      return mRpcFutureStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+      return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
           .cacheData(request);
     } catch (Exception e) {
       LOG.warn("Error sending cache data request {} to worker {}.", request, mAddress, e);

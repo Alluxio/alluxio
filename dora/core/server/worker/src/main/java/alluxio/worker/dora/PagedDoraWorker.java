@@ -540,9 +540,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       // TODO(yimin) As an optimization, data does not need to load on a page basis.
       // Can implement a bulk load mechanism and load a couple of pages at the same time,
       // to improve the performance.
-      if (mLoadingPages.contains(pageId)) {
-        continue;
-      }
       if (mCacheManager.hasPageUnsafe(pageId)) {
         continue;
       }
@@ -551,16 +548,20 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       if (loadLength == 0) {
         continue;
       }
-      mLoadingPages.add(pageId);
+      if (!mLoadingPages.addIfAbsent(pageId)) {
+        continue;
+      }
+
       futures.add(CompletableFuture.runAsync(() -> {
         try {
           if (mCacheManager.hasPageUnsafe(pageId)) {
             return;
           }
-          LOG.debug("Preloading {} pos: {} length: {}", ufsPath, loadPos, loadLength);
+          LOG.debug("Preloading {} pos: {} length: {} started", ufsPath, loadPos, loadLength);
           loadData(ufsPath, 0, loadPos, loadLength, fi.getLength());
+          LOG.debug("Preloading {} pos: {} length: {} finished", ufsPath, loadPos, loadLength);
         } catch (Exception e) {
-          LOG.debug("Preloading failed for {} page: {}", ufsPath, pageId, e);
+          LOG.info("Preloading failed for {} page: {}", ufsPath, pageId, e);
         } finally {
           mLoadingPages.remove(pageId);
         }
