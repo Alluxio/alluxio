@@ -47,10 +47,6 @@ function main {
     run_args+=" -e ALLUXIO_MVN_PROJECT_LIST_TEST=${ALLUXIO_DOCKER_MVN_PROJECT_LIST_TEST}"
   fi
 
-  if [ -n "${ALLUXIO_DOCKER_MVN_PROJECT_LIST}" ]; then
-    run_args+=" -e ALLUXIO_MVN_PROJECT_LIST=${ALLUXIO_DOCKER_MVN_PROJECT_LIST}"
-  fi
-
   if [ -n "${ALLUXIO_DOCKER_MVN_TESTS}" ]; then
     run_args+=" -e ALLUXIO_MVN_TESTS=${ALLUXIO_DOCKER_MVN_TESTS}"
   fi
