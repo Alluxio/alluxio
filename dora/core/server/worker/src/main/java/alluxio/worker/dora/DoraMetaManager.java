@@ -117,7 +117,7 @@ public class DoraMetaManager implements Closeable {
       UfsStatus status = ufs.getStatus(path,
           GetStatusOptions.defaults().setIncludeRealContentHash(mGetRealContentHash));
       Map<String, String> xattrMap = null;
-      if (mXAttrWriteToUFSEnabled) {
+      if (status != null && mXAttrWriteToUFSEnabled) {
         xattrMap = ufs.getAttributes(path);
       }
       DoraMeta.FileStatus fs = PagedDoraWorker.buildFileStatusFromUfsStatus(
