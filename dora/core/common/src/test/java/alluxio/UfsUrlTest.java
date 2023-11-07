@@ -435,8 +435,6 @@ public class UfsUrlTest {
   public void normalize() {
     assertEquals("xyz:///", UfsUrl.createInstance("xyz://").toString());
     assertEquals("xyz:///foo", UfsUrl.createInstance("xyz:/foo/").toString());
-    assertEquals("xyz:///foo", UfsUrl.createInstance("xyz:/foo/").toString());
-    assertEquals("xyz:///foo", UfsUrl.createInstance("xyz:/foo/").toString());
     assertEquals("xyz:///foo", UfsUrl.createInstance("xyz:/foo//").toString());
     assertEquals("xyz:///foo/bar", UfsUrl.createInstance("xyz:/foo//bar").toString());
 
