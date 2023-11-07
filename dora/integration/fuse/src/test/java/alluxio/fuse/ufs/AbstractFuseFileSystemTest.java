@@ -47,7 +47,6 @@ public abstract class AbstractFuseFileSystemTest extends AbstractTest {
         .setFileSystemOptions(FileSystemOptions.Builder.fromConf(mConf)
             .setUfsFileSystemOptions(mUfsOptions)
             .build())
-        .setUpdateCheckEnabled(false)
         .build();
     mFuseFs = new AlluxioJniFuseFileSystem(mContext, mFileSystem, fuseOptions);
     mFileStat = FileStat.of(ByteBuffer.allocateDirect(256));

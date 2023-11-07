@@ -30,12 +30,6 @@ import java.util.Set;
  */
 public class FuseOptions {
   private static final Logger LOG = LoggerFactory.getLogger(FuseOptions.class);
-  public static final PropertyKey FUSE_UPDATE_CHECK_ENABLED =
-      PropertyKey.Builder.booleanBuilder("fuse.update.check.enabled")
-          .setIsBuiltIn(false)
-          .setDefaultValue(false)
-          .buildUnregistered();
-
   /**
    * The UFS root that Fuse mounts.
    * In standalone Fuse SDK, this is different from {@link PropertyKey#DORA_CLIENT_UFS_ROOT}.
@@ -47,7 +41,6 @@ public class FuseOptions {
 
   private final FileSystemOptions mFileSystemOptions;
   private final Set<String> mFuseMountOptions;
-  private final boolean mUpdateCheckEnabled;
   private final boolean mSpecialCommandEnabled;
 
   /**
@@ -55,14 +48,12 @@ public class FuseOptions {
    *
    * @param fileSystemOptions the file system options
    * @param fuseMountOptions the FUSE mount options
-   * @param updateCheckEnabled whether to enable update check
    * @param specialCommandEnabled whether fuse special commands are enabled
    */
   protected FuseOptions(FileSystemOptions fileSystemOptions,
-      Set<String> fuseMountOptions, boolean updateCheckEnabled, boolean specialCommandEnabled) {
+      Set<String> fuseMountOptions, boolean specialCommandEnabled) {
     mFileSystemOptions = Preconditions.checkNotNull(fileSystemOptions);
     mFuseMountOptions = Preconditions.checkNotNull(fuseMountOptions);
-    mUpdateCheckEnabled = updateCheckEnabled;
     mSpecialCommandEnabled = specialCommandEnabled;
   }
 
@@ -81,13 +72,6 @@ public class FuseOptions {
   }
 
   /**
-   * @return true if update check is enabled
-   */
-  public boolean updateCheckEnabled() {
-    return mUpdateCheckEnabled;
-  }
-
-  /**
    * @return true if fuse special command is enabled
    */
   public boolean specialCommandEnabled() {
@@ -100,7 +84,6 @@ public class FuseOptions {
   public static class Builder {
     private FileSystemOptions mFileSystemOptions;
     private Set<String> mFuseMountOptions;
-    private boolean mUpdateCheckEnabled;
     private boolean mSpecialCommandEnabled;
 
     /**
@@ -116,17 +99,6 @@ public class FuseOptions {
      */
     public static Builder fromConfig(AlluxioConfiguration conf) {
       FuseOptions.Builder builder = new FuseOptions.Builder();
-
-      // Set update check
-      final boolean updateCheckEnabled;
-      if (!conf.isSetByUser(FUSE_UPDATE_CHECK_ENABLED)) {
-        // Standalone FUSE SDK without dora distributed cache
-        updateCheckEnabled = !conf.getBoolean(PropertyKey.DORA_ENABLED)
-            && conf.isSetByUser(PropertyKey.DORA_CLIENT_UFS_ROOT);
-      } else {
-        updateCheckEnabled = conf.getBoolean(FUSE_UPDATE_CHECK_ENABLED);
-      }
-      builder.setUpdateCheckEnabled(updateCheckEnabled);
 
       // Set mount options
       HashSet<String> mountOptions = new HashSet<>(conf.getList(PropertyKey.FUSE_MOUNT_OPTIONS));
@@ -213,24 +185,6 @@ public class FuseOptions {
     }
 
     /**
-     * @return if update check is enabled
-     */
-    public boolean isUpdateCheckEnabled() {
-      return mUpdateCheckEnabled;
-    }
-
-    /**
-     * Enables or disables update check.
-     *
-     * @param updateCheckEnabled
-     * @return this builder
-     */
-    public Builder setUpdateCheckEnabled(boolean updateCheckEnabled) {
-      mUpdateCheckEnabled = updateCheckEnabled;
-      return this;
-    }
-
-    /**
      * @return if fuse special commands are enabled
      */
     public boolean isSpecialCommandEnabled() {
@@ -254,7 +208,7 @@ public class FuseOptions {
      * @return fuse options
      */
     public FuseOptions build() {
-      return new FuseOptions(mFileSystemOptions, mFuseMountOptions, mUpdateCheckEnabled,
+      return new FuseOptions(mFileSystemOptions, mFuseMountOptions,
           mSpecialCommandEnabled);
     }
   }

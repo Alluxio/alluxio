@@ -9,13 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.check;
+package alluxio.util;
 
 import alluxio.ProjectConstants;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
-import alluxio.util.EnvironmentUtils;
-import alluxio.util.FeatureUtils;
-import alluxio.util.OSUtils;
 
 import com.amazonaws.util.EC2MetadataUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -39,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Check for updates.
  */
 @ThreadSafe
-public final class UpdateCheck {
+public final class UpdateCheckUtils {
   public static final String USER_AGENT_SEPARATOR = ";";
 
   static final String PRODUCT_CODE_FORMAT = "ProductCode:%s";
@@ -49,51 +46,36 @@ public final class UpdateCheck {
   static final String CFT_KEY = "cft";
   static final String DOCKER_KEY = "docker";
   static final String EC2_KEY = "ec2";
-  static final String EMBEDDED_KEY = "embedded";
   static final String EMR_KEY = "emr";
   static final String GCE_KEY = "gce";
   static final String KUBERNETES_KEY = "kubernetes";
 
-  // Feature
-  static final String BACKUP_DELEGATION_KEY = "backupDelegation";
-  static final String DAILY_BACKUP_KEY = "dailyBackup";
-  static final String MASTER_AUDIT_LOG_KEY = "masterAuditLog";
-  static final String PERSIST_BLACK_LIST_KEY = "persistBlackList";
-  static final String PAGE_STORE_KEY = "pageStore";
-  static final String INODE_METASTORE_ROCKS_KEY = "inodeRocks";
-  static final String BLOCK_METASTORE_ROCKS_KEY = "blockRocks";
-  static final String UNSAFE_PERSIST_KEY = "unsafePersist";
-  static final String ZOOKEEPER_KEY = "zookeeper";
-
   /**
    * @param id the id of the current Alluxio identity (e.g. cluster id, instance id)
+   * @param processType process type
    * @param additionalInfo additional information to send
-   * @param connectionRequestTimeout the connection request timeout for the HTTP request in ms
-   * @param connectTimeout the connection timeout for the HTTP request in ms
-   * @param socketTimeout the socket timeout for the HTTP request in ms
    * @return the latest Alluxio version string
    */
-  public static String getLatestVersion(String id, List<String> additionalInfo,
-      long connectionRequestTimeout, long connectTimeout, long socketTimeout)
-      throws IOException {
+  public static String getLatestVersion(String id, CommonUtils.ProcessType processType,
+      List<String> additionalInfo) throws IOException {
     Preconditions.checkState(id != null && !id.isEmpty(), "id should not be null or empty");
     Preconditions.checkNotNull(additionalInfo);
     // Create the GET request.
     Joiner joiner = Joiner.on("/");
-    String path = joiner.join("v0", "version");
+    String path = joiner.join("v1", "version");
     String url = new URL(new URL(ProjectConstants.UPDATE_CHECK_HOST), path).toString();
 
     HttpGet post = new HttpGet(url);
-    post.setHeader("User-Agent", getUserAgentString(id, additionalInfo));
+    post.setHeader("User-Agent", getUserAgentString(id, processType, additionalInfo));
     post.setHeader("Authorization", "Basic " + ProjectConstants.UPDATE_CHECK_MAGIC_NUMBER);
 
     // Fire off the version check request.
     HttpClient client = HttpClientBuilder.create()
         .setDefaultRequestConfig(
             RequestConfig.custom()
-                .setConnectionRequestTimeout((int) connectionRequestTimeout)
-                .setConnectTimeout((int) connectTimeout)
-                .setSocketTimeout((int) socketTimeout)
+                .setConnectionRequestTimeout(3000)
+                .setConnectTimeout(3000)
+                .setSocketTimeout(3000)
                 .build())
         .build();
     HttpResponse response = client.execute(post);
@@ -110,17 +92,19 @@ public final class UpdateCheck {
 
   /**
    * @param id the id of the current Alluxio identity (e.g. cluster id, instance id)
+   * @param processType process type
    * @param additionalInfo additional information to add to result string
    * @return a string representation of the user's environment in the format
    *         "Alluxio/{ALLUXIO_VERSION} (valueA; valueB)"
    */
   @VisibleForTesting
-  public static String getUserAgentString(String id, List<String> additionalInfo) {
+  public static String getUserAgentString(String id, CommonUtils.ProcessType processType,
+      List<String> additionalInfo) {
     List<String> info = new ArrayList<>();
     info.add(id);
     addUserAgentEnvironments(info);
-    addUserAgentFeatures(info);
     info.addAll(additionalInfo);
+    info.add(String.format("processType:%s", processType.toString()));
     return String.format("Alluxio/%s (%s)", ProjectConstants.VERSION,
         Joiner.on(USER_AGENT_SEPARATOR + " ").skipNulls().join(info));
   }
@@ -143,38 +127,6 @@ public final class UpdateCheck {
       info.add(GCE_KEY);
     } else {
       addEC2Info(info);
-    }
-  }
-
-  /**
-   * Get the feature's information.
-   *
-   * @param info the list to add info to
-   */
-  @VisibleForTesting
-  public static void addUserAgentFeatures(List<String> info) {
-    addIfTrue(FeatureUtils.isEmbeddedJournal(), info, EMBEDDED_KEY);
-    addIfTrue(FeatureUtils.isInodeStoreRocks(), info, INODE_METASTORE_ROCKS_KEY);
-    addIfTrue(FeatureUtils.isBlockStoreRocks(), info, BLOCK_METASTORE_ROCKS_KEY);
-    addIfTrue(FeatureUtils.isZookeeperEnabled(), info, ZOOKEEPER_KEY);
-    addIfTrue(FeatureUtils.isBackupDelegationEnabled(), info, BACKUP_DELEGATION_KEY);
-    addIfTrue(FeatureUtils.isDailyBackupEnabled(), info, DAILY_BACKUP_KEY);
-    addIfTrue(!FeatureUtils.isPersistenceBlacklistEmpty(), info, PERSIST_BLACK_LIST_KEY);
-    addIfTrue(FeatureUtils.isUnsafeDirectPersistEnabled(), info, UNSAFE_PERSIST_KEY);
-    addIfTrue(FeatureUtils.isMasterAuditLoggingEnabled(), info, MASTER_AUDIT_LOG_KEY);
-    addIfTrue(FeatureUtils.isPageStoreEnabled(), info, PAGE_STORE_KEY);
-  }
-
-  /**
-   * Add feature name if condition is true.
-   *
-   * @param valid true, if condition is valid
-   * @param features feature list
-   * @param featureName feature name
-   */
-  public static void addIfTrue(boolean valid, List<String> features, String featureName) {
-    if (valid) {
-      features.add(featureName);
     }
   }
 
@@ -214,5 +166,5 @@ public final class UpdateCheck {
     }
   }
 
-  private UpdateCheck() {} // prevent instantiation
+  private UpdateCheckUtils() {} // prevent instantiation
 }
