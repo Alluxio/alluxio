@@ -47,8 +47,8 @@ main() {
     exit 1
   fi
   go_version=$(go version)
-  if [[ ! ${go_version} =~ ^go\ version\ go1\.(18|19|[2-9][0-9]) ]]; then
-    echo "Go version must be 1.18 or later, but got ${go_version}"
+  if [[ ! ${go_version} =~ ^go\ version\ go1\.(1[5-9]|[2-9][0-9]) ]]; then
+    echo "Go version must be 1.15 or later, but got ${go_version}"
     exit 1
   fi
 

@@ -83,7 +83,8 @@ public class EtcdMembershipManager implements MembershipManager {
   @Override
   public void join(WorkerInfo workerInfo) throws IOException {
     LOG.info("Try joining on etcd for worker:{} ", workerInfo);
-    WorkerServiceEntity entity = new WorkerServiceEntity(workerInfo.getAddress());
+    WorkerServiceEntity entity =
+        new WorkerServiceEntity(workerInfo.getIdentity(), workerInfo.getAddress());
     // 1) register to the ring, check if there's existing entry
     String pathOnRing = new StringBuffer()
         .append(getRingPathPrefix())
@@ -112,7 +113,8 @@ public class EtcdMembershipManager implements MembershipManager {
   public List<WorkerInfo> getAllMembers() throws IOException {
     List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
     return registeredWorkers.stream()
-        .map(e -> new WorkerInfo().setAddress(e.getWorkerNetAddress()))
+        .map(e -> new WorkerInfo().setIdentity(e.getIdentity())
+            .setAddress(e.getWorkerNetAddress()))
         .collect(Collectors.toList());
   }
 
@@ -151,7 +153,8 @@ public class EtcdMembershipManager implements MembershipManager {
   public List<WorkerInfo> getLiveMembers() throws IOException {
     List<WorkerServiceEntity> liveWorkers = retrieveLiveMembers();
     return liveWorkers.stream()
-        .map(e -> new WorkerInfo().setAddress(e.getWorkerNetAddress()))
+        .map(e -> new WorkerInfo().setIdentity(e.getIdentity())
+            .setAddress(e.getWorkerNetAddress()))
         .collect(Collectors.toList());
   }
 
@@ -164,7 +167,8 @@ public class EtcdMembershipManager implements MembershipManager {
         .collect(Collectors.toList());
     registeredWorkers.removeIf(e -> liveWorkers.contains(e.getServiceEntityName()));
     return registeredWorkers.stream()
-        .map(e -> new WorkerInfo().setAddress(e.getWorkerNetAddress()))
+        .map(e -> new WorkerInfo().setIdentity(e.getIdentity())
+            .setAddress(e.getWorkerNetAddress()))
         .collect(Collectors.toList());
   }
 
@@ -194,7 +198,7 @@ public class EtcdMembershipManager implements MembershipManager {
 
   @Override
   public void stopHeartBeat(WorkerInfo worker) throws IOException {
-    WorkerServiceEntity entity = new WorkerServiceEntity(worker.getAddress());
+    WorkerServiceEntity entity = new WorkerServiceEntity(worker.getIdentity(), worker.getAddress());
     mAlluxioEtcdClient.mServiceDiscovery.unregisterService(entity.getServiceEntityName());
   }
 

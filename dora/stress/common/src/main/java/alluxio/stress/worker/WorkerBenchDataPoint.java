@@ -37,30 +37,10 @@ public class WorkerBenchDataPoint {
   }
 
   /**
-   * @return number of files read
+   * A constructor without parameters.
    */
-  public long getCount() {
-    return mCount;
-  }
-
-  /**
-   * @return total bytes read
-   */
-  public long getIOBytes() {
-    return mIOBytes;
-  }
-
-  /**
-   * @param count number of files read
-   */
-  public void setCount(long count) {
-    mCount = count;
-  }
-
-  /**
-   * @param ioBytes bytes read
-   */
-  public void setIOBytes(long ioBytes) {
-    mIOBytes = ioBytes;
+  public WorkerBenchDataPoint() {
+    mCount = 0;
+    mIOBytes = 0;
   }
 }

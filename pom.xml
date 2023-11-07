@@ -494,6 +494,11 @@
         <version>0.8.1</version>
       </dependency>
       <dependency>
+        <groupId>net.java.dev.jna</groupId>
+        <artifactId>jna-jpms</artifactId>
+        <version>5.13.0</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-collections4</artifactId>
         <version>4.4</version>
@@ -976,6 +981,11 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-archetype-plugin</artifactId>
+          <version>3.2.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-antrun-plugin</artifactId>
           <version>3.0.0</version>
         </plugin>
@@ -1139,6 +1149,11 @@
               <phase>compile</phase>
             </execution>
           </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.questdb</groupId>
+          <artifactId>rust-maven-plugin</artifactId>
+          <version>1.1.1</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -1481,6 +1496,14 @@
         </executions>
       </plugin>
     </plugins>
+
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.archetype</groupId>
+        <artifactId>archetype-packaging</artifactId>
+        <version>3.2.1</version>
+      </extension>
+    </extensions>
   </build>
 
   <reporting>
@@ -1714,6 +1737,13 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+
+    <profile>
+      <id>native-components</id>
+      <modules>
+        <module>native</module>
+      </modules>
     </profile>
   </profiles>
 </project>

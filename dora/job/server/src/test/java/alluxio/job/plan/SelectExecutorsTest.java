@@ -16,6 +16,7 @@ import static org.mockito.Mockito.mock;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.underfs.UfsManager;
+import alluxio.wire.WorkerIdentityTestUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -27,13 +28,21 @@ import java.util.List;
 public abstract class SelectExecutorsTest {
 
   public static final WorkerInfo JOB_WORKER_0 =
-      new WorkerInfo().setAddress(new WorkerNetAddress().setHost("host0"));
+      new WorkerInfo()
+          .setIdentity(WorkerIdentityTestUtils.randomLegacyId())
+          .setAddress(new WorkerNetAddress().setHost("host0"));
   public static final WorkerInfo JOB_WORKER_1 =
-      new WorkerInfo().setAddress(new WorkerNetAddress().setHost("host1"));
+      new WorkerInfo()
+          .setIdentity(WorkerIdentityTestUtils.randomLegacyId())
+          .setAddress(new WorkerNetAddress().setHost("host1"));
   public static final WorkerInfo JOB_WORKER_2 =
-      new WorkerInfo().setAddress(new WorkerNetAddress().setHost("host2"));
+      new WorkerInfo()
+          .setIdentity(WorkerIdentityTestUtils.randomLegacyId())
+          .setAddress(new WorkerNetAddress().setHost("host2"));
   public static final WorkerInfo JOB_WORKER_3 =
-      new WorkerInfo().setAddress(new WorkerNetAddress().setHost("host3"));
+      new WorkerInfo()
+          .setIdentity(WorkerIdentityTestUtils.randomLegacyId())
+          .setAddress(new WorkerNetAddress().setHost("host3"));
   public static final List<WorkerInfo> JOB_WORKERS =
       ImmutableList.of(JOB_WORKER_0, JOB_WORKER_1, JOB_WORKER_2, JOB_WORKER_3);
 
