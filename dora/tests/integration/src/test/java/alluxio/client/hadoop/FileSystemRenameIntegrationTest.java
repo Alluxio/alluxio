@@ -48,7 +48,6 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
           .setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false)
           .setProperty(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, 0)
-          .setProperty(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, 0)
           .setProperty(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_TTL, 0)
           .setProperty(PropertyKey.DORA_UFS_LIST_STATUS_CACHE_TTL, 0)
           .setProperty(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED, false)

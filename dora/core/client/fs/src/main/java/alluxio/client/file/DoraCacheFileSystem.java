@@ -382,11 +382,12 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
         Status.Code code = ((StatusRuntimeException) ex).getStatus().getCode();
-        if (code == Status.FAILED_PRECONDITION.getCode()) {
-          // throw new RuntimeException(ex.getMessage());
-        } else if (code == Status.NOT_FOUND.getCode()) {
+        if (Status.FAILED_PRECONDITION.getCode().equals(code)) {
+          LOG.error(String.format(
+              "Precondition failed: cannot rename %s to %s",src.toString(), dst.toString()));
+        } else if (Status.NOT_FOUND.getCode().equals(code)) {
           throw new FileNotFoundException(ex.getMessage());
-        } else if (code == Status.ALREADY_EXISTS.getCode()) {
+        } else if (Status.ALREADY_EXISTS.getCode().equals(code)) {
           // throw exception here, no fallback even the fallback is open
           // which means even ufs support overwrite, alluxio won't allow doing it
           throw new FileAlreadyExistsException(ex.getMessage());
