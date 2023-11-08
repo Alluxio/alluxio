@@ -862,15 +862,22 @@ public class LocalCacheManager implements CacheManager {
   public void invalidate(Predicate<PageInfo> predicate) {
     mPageStoreDirs.forEach(dir -> {
       try {
-        dir.scanPages(pageInfo -> {
-          if (pageInfo.isPresent() && predicate.test(pageInfo.get())) {
-            MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_INVALIDATED.getName()).mark();
-            MetricsSystem.histogram(MetricKey.CLIENT_CACHE_PAGES_AGES.getName())
-                .update(System.currentTimeMillis() - pageInfo.get().getCreatedTimestamp());
-            delete(pageInfo.get().getPageId());
+        dir.scanPages(pageInfoOpt -> {
+          if (pageInfoOpt.isPresent()) {
+            PageInfo pageInfo = pageInfoOpt.get();
+            boolean isPageDeleted = false;
+            if (predicate.test(pageInfo)) {
+              isPageDeleted = delete(pageInfo.getPageId());
+            }
+            if (!isPageDeleted) {
+              MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_INVALIDATED.getName()).mark();
+              MetricsSystem.histogram(MetricKey.CLIENT_CACHE_PAGES_AGES.getName())
+                  .update(System.currentTimeMillis() - pageInfo.getCreatedTimestamp());
+            }
           }
         });
       } catch (IOException e) {
+        LOG.error("IOException occurs in page scan", e);
         throw new RuntimeException(e);
       }
     });
