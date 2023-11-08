@@ -22,7 +22,9 @@ public enum PageStoreType {
   /**
    * A simple store with pages on the memory (HeapByteBuffer).
    */
-  MEM(PageStoreType.MEMORY_OVERHEAD_RATIO);
+  MEM(PageStoreType.MEMORY_OVERHEAD_RATIO),
+
+  RAWDEVICE(PageStoreType.RAWDEVICE_OVERHEAD_RATIO);
 
   // We assume there will be some overhead using ByteBuffer as a page store,
   // i.e., with 1GB space allocated, we
@@ -32,6 +34,8 @@ public enum PageStoreType {
   // i.e., with 1GB space allocated, we
   // expect no more than 1024MB / (1 + LOCAL_OVERHEAD_RATIO) logical data stored
   private static final double LOCAL_OVERHEAD_RATIO = 0.05;
+
+  private static final double RAWDEVICE_OVERHEAD_RATIO = 0.05;
   private final double mOverheadRatio;
 
   /**
