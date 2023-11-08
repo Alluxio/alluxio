@@ -66,6 +66,18 @@ public class StandardURI implements URI {
   }
 
   /**
+   * @param ufsUrl the UfsUrl object
+   */
+  public StandardURI(UfsUrl ufsUrl) {
+    mScheme = ufsUrl.getScheme();
+    mAuthority = ufsUrl.getAuthority().isPresent() ? ufsUrl.getAuthority().get() : null;
+    mPath = ufsUrl.getFullPath();
+    mSchemeSpecificPart = UfsUrl.DOUBLE_SLASH_SEPARATOR
+        + (mAuthority == null ? "" : mAuthority.toString()) + mPath;
+    mQuery = null;
+  }
+
+  /**
    * Constructs a new URI from a base URI, but with a new path component.
    *
    * @param baseUri the base uri

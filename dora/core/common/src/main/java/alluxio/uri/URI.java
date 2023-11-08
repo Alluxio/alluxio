@@ -184,6 +184,14 @@ public interface URI extends Comparable<URI>, Serializable {
     }
 
     /**
+     * @param ufsUrl the UfsUrl object
+     * @return the created {@link URI}
+     */
+    public static URI create(UfsUrl ufsUrl) {
+      return new StandardURI(ufsUrl);
+    }
+
+    /**
      * Returns a {@link Pair} of components of the given scheme. A given scheme may have have two
      * components if it has the ':' character to specify a sub-protocol of the scheme. If the
      * scheme does not have multiple components, the first component will be the empty string, and

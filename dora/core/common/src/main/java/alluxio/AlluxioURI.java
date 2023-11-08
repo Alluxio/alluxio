@@ -16,6 +16,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.uri.Authority;
 import alluxio.uri.NoAuthority;
 import alluxio.uri.URI;
+import alluxio.uri.UfsUrl;
 import alluxio.util.URIUtils;
 import alluxio.util.io.PathUtils;
 
@@ -86,6 +87,14 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   public AlluxioURI(String scheme, Authority authority, String path) {
     mUri = URI.Factory.create(scheme,
         authority == null ? NoAuthority.INSTANCE : authority, path, null);
+  }
+
+  /**
+   * Constructs an {@link AlluxioURI} from components.
+   * @param ufsUrl the UfsUrl object
+   */
+  public AlluxioURI(UfsUrl ufsUrl) {
+    mUri = URI.Factory.create(ufsUrl);
   }
 
   /**
