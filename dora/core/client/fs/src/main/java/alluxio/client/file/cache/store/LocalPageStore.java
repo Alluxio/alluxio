@@ -95,6 +95,10 @@ public class LocalPageStore implements PageStore {
   public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
       boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
+    Preconditions.checkArgument(bytesToRead >= 0, "bytes to read should be non-negative");
+    if (target.remaining() == 0 || bytesToRead == 0) {
+      return 0;
+    }
     Path pagePath = getPagePath(pageId, isTemporary);
     try (RandomAccessFile localFile = new RandomAccessFile(pagePath.toString(), "r")) {
       int bytesSkipped = localFile.skipBytes(pageOffset);
@@ -115,6 +119,11 @@ public class LocalPageStore implements PageStore {
         }
         bytesRead += bytes;
         bytesLeft -= bytes;
+      }
+      if (bytesRead == 0) {
+        // no bytes have been read at all, but the requested length > 0
+        // this means the file is empty
+        return -1;
       }
       return bytesRead;
     } catch (FileNotFoundException e) {
@@ -205,6 +214,8 @@ public class LocalPageStore implements PageStore {
       throws PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0,
         "page offset should be non-negative");
+    Preconditions.checkArgument(!isTemporary,
+        "cannot acquire a data file channel to a temporary page");
     Path pagePath = getPagePath(pageId, isTemporary);
     File pageFile = pagePath.toFile();
     if (!pageFile.exists()) {
@@ -212,6 +223,20 @@ public class LocalPageStore implements PageStore {
     }
 
     long fileLength = pageFile.length();
+    if (fileLength == 0 && pageId.getPageIndex() > 0) {
+      // pages other than the first page should always be non-empty
+      // remove this malformed page
+      try {
+        Files.deleteIfExists(pagePath);
+      } catch (IOException ignored) {
+        // do nothing
+      }
+      throw new PageNotFoundException(pagePath.toString());
+    }
+    if (fileLength < pageOffset) {
+      throw new IllegalArgumentException(
+          String.format("offset %s exceeds length of page %s", pageOffset, fileLength));
+    }
     if (pageOffset + bytesToRead > fileLength) {
       bytesToRead = (int) (fileLength - (long) pageOffset);
     }
