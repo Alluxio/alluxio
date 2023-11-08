@@ -53,6 +53,7 @@ jobs:
           ALLUXIO_DOCKER_FORK_COUNT=1 \
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
+          ALLUXIO_DOCKER_MVN_PROJECT_LIST=dora/tests/integration \
           ALLUXIO_DOCKER_MVN_TESTS=${{ matrix.modules }} \
           dev/github/run_docker.sh
         timeout-minutes: 60
