@@ -72,7 +72,6 @@ public class StandardURI implements URI {
     mScheme = ufsUrl.getScheme();
     mAuthority = ufsUrl.getAuthority().isPresent() ? ufsUrl.getAuthority().get() : null;
     mPath = ufsUrl.getFullPath();
-    // TODO(Yichuan Sun): review correctness
     mSchemeSpecificPart = UfsUrl.DOUBLE_SLASH_SEPARATOR
         + (mAuthority == null ? "" : mAuthority.toString()) + mPath;
     mQuery = null;
