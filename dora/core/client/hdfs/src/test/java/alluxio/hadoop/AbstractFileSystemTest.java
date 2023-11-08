@@ -54,6 +54,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsCreateModes;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.After;
 import org.junit.Before;
@@ -732,7 +734,9 @@ public class AbstractFileSystemTest {
             ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage(path.toString())));
 
     try (FileSystem alluxioHadoopFs = new FileSystem(alluxioFs)) {
-      alluxioHadoopFs.create(path, false, 100, (short) 1, 1000);
+      alluxioHadoopFs.create(path,
+          FsCreateModes.applyUMask(FsPermission.getFileDefault(), FsPermission.getUMask(getConf())),
+          false, 100, (short) 1, 1000, null);
       fail("create() of existing file is expected to fail");
     } catch (IOException e) {
       assertEquals("alluxio.exception.FileAlreadyExistsException: "
