@@ -203,7 +203,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
               .build();
       responseObserver.onNext(response);
       responseObserver.onCompleted();
-    } catch (IOException | AccessControlException e) {
+    } catch (Exception e) {
       LOG.debug(String.format("Failed to get status of %s: ", request.getPath()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
