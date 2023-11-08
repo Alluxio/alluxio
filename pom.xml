@@ -36,7 +36,7 @@
   <scm>
     <connection>scm:git:git@github.com:alluxio/alluxio.git</connection>
     <developerConnection>scm:git:git@github.com:alluxio/alluxio.git</developerConnection>
-    <tag>alluxio-parent-305-SNAPSHOT</tag>
+    <tag>alluxio-parent-305</tag>
     <url>scm:git:git@github.com:alluxio/alluxio.git</url>
   </scm>
   <issueManagement>
