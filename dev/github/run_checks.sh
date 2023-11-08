@@ -27,7 +27,13 @@ export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simple
 # Always use java 8 to compile the source code
 JAVA_HOME=/usr/local/openjdk-8
 PATH=$JAVA_HOME/bin:$PATH
-mvn -Duser.home=/home/jenkins -T 4C clean install -DskipTests
+
+profiles=""
+if [ -n "${ALLUXIO_MVN_PROFILES}" ]; then
+  profiles+=" -P ${ALLUXIO_MVN_PROFILES}"
+fi
+
+mvn -Duser.home=/home/jenkins -T 4C clean install -DskipTests ${profiles}
 
 # compile go cli
 ./build/cli/build-cli.sh

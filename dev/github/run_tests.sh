@@ -26,8 +26,12 @@ if [ -n "${ALLUXIO_GIT_CLEAN}" ]; then
 fi
 
 mvn_args=""
+if [ -n "${ALLUXIO_MVN_PROFILES}" ]; then
+  mvn_args+=" -P ${ALLUXIO_MVN_PROFILES}"
+fi
+
 if [ -n "${ALLUXIO_MVN_PROJECT_LIST}" ]; then
-  mvn_args+="-am -pl ${ALLUXIO_MVN_PROJECT_LIST}"
+  mvn_args+=" -am -pl ${ALLUXIO_MVN_PROJECT_LIST}"
 fi
 
 export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"

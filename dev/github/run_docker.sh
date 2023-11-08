@@ -22,7 +22,7 @@ function main {
   fi
 
   if [ -z "${ALLUXIO_DOCKER_IMAGE}" ]; then
-    ALLUXIO_DOCKER_IMAGE="alluxio/alluxio-maven:0.1.3-jdk8"
+    ALLUXIO_DOCKER_IMAGE="alluxio/alluxio-maven:0.1.4-jdk8"
   fi
 
   local run_args="--rm"
@@ -45,6 +45,10 @@ function main {
 
   if [ -n "${ALLUXIO_DOCKER_MVN_TESTS}" ]; then
     run_args+=" -e ALLUXIO_MVN_TESTS=${ALLUXIO_DOCKER_MVN_TESTS}"
+  fi
+
+  if [ -n "${ALLUXIO_DOCKER_MVN_PROFILES}" ]; then
+    run_args+=" -e ALLUXIO_MVN_PROFILES=${ALLUXIO_DOCKER_MVN_PROFILES}"
   fi
 
   local home="/home/jenkins"
