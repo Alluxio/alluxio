@@ -199,17 +199,23 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
     mWorkerId = workerId;
     mConf = conf;
+    // TODO(jiacheng): close those resources in worker, more docs/comments on the life cycle
+    //  mgmt of those closeable resources
     mUfsManager = mResourceCloser.register(ufsManager);
     String rootUFS = mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
+    // TODO(jiacheng): do not add this root ufs because there may be a mount table
     mUfsManager.getOrAdd(new AlluxioURI(rootUFS),
         () -> UnderFileSystemConfiguration.defaults(mConf));
     mFsContext = mResourceCloser.register(fileSystemContext);
+    // TODO(jiacheng): inject this too
     mUfsStreamCache = new UfsInputStreamCache();
     mPageSize = mConf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
+    // TODO(jiacheng): close this?
     mBlockMasterClientPool = blockMasterClientPool;
     mCacheManager = cacheManager;
     mMetaManager = mResourceCloser.register(metaManager);
     mMembershipManager = membershipManager;
+    // TODO(jiacheng): inject this too
     mOpenFileHandleContainer = new DoraOpenFileHandleContainer();
     mMkdirsRecursive = MkdirsOptions.defaults(mConf).setCreateParent(true);
     mMkdirsNonRecursive = MkdirsOptions.defaults(mConf).setCreateParent(false);
@@ -238,16 +244,19 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
+  // TODO(jiacheng): this is probably not useful anymore
   public Set<Class<? extends Server>> getDependencies() {
     return Collections.emptySet();
   }
 
   @Override
+  // TODO(jiacheng): change the name here?
   public String getName() {
     return Constants.BLOCK_WORKER_NAME;
   }
 
   @Override
+  // TODO(jiacheng): separate into services?
   public Map<ServiceType, GrpcService> getServices() {
     return Collections.emptyMap();
   }
@@ -257,6 +266,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     super.start(address);
     mAddress = address;
     register();
+    // TODO(jiacheng): where is this stopped/closed?
     mOpenFileHandleContainer.start();
 
     // setup worker-master heartbeat
@@ -345,7 +355,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
+  // TODO(jiacheng): create a context, and the context can be reused by ufs/fuse/proxy
   public void close() throws IOException {
+    // TODO(jiacheng): use the Closer?
     try (AutoCloseable ignoredCloser = mResourceCloser;
          AutoCloseable ignoredCacheManager = mCacheManager;
          AutoCloseable ignoredMembershipManager = mMembershipManager;
@@ -367,6 +379,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Nullable
   public UfsStatus[] listStatus(String path, ListStatusPOptions options)
       throws IOException, AccessControlException {
+    // TODO(jiacheng): improve the test coverage here and refactor
     final long syncIntervalMs = options.hasCommonOptions()
         ? (options.getCommonOptions().hasSyncIntervalMs()
         ? options.getCommonOptions().getSyncIntervalMs() : -1) :
@@ -391,6 +404,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Override
   public FileInfo getFileInfo(String ufsFullPath, GetStatusPOptions options)
       throws IOException, AccessControlException {
+    // TODO(jiacheng): this part is extremely repetitive
     long syncIntervalMs = options.hasCommonOptions()
         ? (options.getCommonOptions().hasSyncIntervalMs()
         ? options.getCommonOptions().getSyncIntervalMs() : -1) :
@@ -1073,6 +1087,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   public void cleanupSession(long sessionId) {
   }
 
+  // TODO(jiacheng): split
   private class BlockMasterSync implements HeartbeatExecutor {
     @Override
     public void heartbeat(long timeLimitMs) throws InterruptedException {
@@ -1158,6 +1173,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @param xattrMap extra attributes
    * @return a FileInfo
    */
+  // TODO(jiacheng): move to another utility class
   public static alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(
       Optional<CacheUsage> cacheUsage, String ufsType, UfsStatus status, String ufsFullPath,
       @Nullable Map<String, String> xattrMap) {
