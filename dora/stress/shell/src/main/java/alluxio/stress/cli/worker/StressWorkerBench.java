@@ -190,7 +190,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         "true");
 
     // default mode value: hash, using consistent hash
-    // TODO(jiacheng): we may need a policy to only IO to remote worker
     switch (mParameters.mMode) {
       case HASH:
         hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
@@ -201,8 +200,10 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
             "alluxio.client.file.dora.LocalWorkerPolicy");
         break;
       case REMOTE_ONLY:
-        hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
-            "alluxio.client.file.dora.RemoteOnlyPolicy");
+        // if is cluster run and cluster size = 1, REMOTE_ONLY is not supported.
+        if (mBaseParameters.mClusterLimit == 1) {
+          throw new IllegalArgumentException("Cluster size is 1. REMOTE_ONLY mode not supported.");
+        }
         break;
       default:
         throw new IllegalArgumentException("Unrecognized mode" + mParameters.mMode);
