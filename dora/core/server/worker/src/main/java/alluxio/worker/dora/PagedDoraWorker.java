@@ -558,7 +558,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             return;
           }
           LOG.debug("Preloading {} pos: {} length: {} started", ufsPath, loadPos, loadLength);
-          loadData(ufsPath, 0, loadPos, loadLength, fi.getLength());
+          loadDataV2(ufsPath, pageId, loadPos, loadLength, fi.getLength());
           LOG.debug("Preloading {} pos: {} length: {} finished", ufsPath, loadPos, loadLength);
         } catch (Exception e) {
           LOG.info("Preloading failed for {} page: {}", ufsPath, pageId, e);
@@ -658,6 +658,25 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                                                    .build()))
                             .setCode(t.getStatus().getCode().value()).setRetryable(true)
                             .setMessage(t.getMessage()).build());
+    }
+  }
+
+  protected void loadDataV2(String ufsPath, PageId pageId, long offset, long lengthToLoad,
+                          long fileLength) throws AccessControlException, IOException {
+    Optional<UnderFileSystem> ufs = mUfsManager.get(new AlluxioURI(ufsPath));
+    if (!ufs.isPresent()) {
+      throw new RuntimeException("Ufs not found for " + ufsPath);
+    }
+    ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer((int) lengthToLoad);
+    try (PositionReader reader = ufs.get().openPositionRead(ufsPath, fileLength)) {
+      int bytesRead = reader.read(offset, buf, (int) lengthToLoad);
+      if (lengthToLoad != bytesRead) {
+        throw new RuntimeException(
+            "Page load failed, expected: " + lengthToLoad + " actual " + bytesRead);
+      }
+      mCacheManager.put(pageId, buf.nioBuffer());
+    } finally {
+      buf.release();
     }
   }
 

@@ -75,13 +75,13 @@ public class LocalPageStore implements PageStore {
         Path parent = Preconditions.checkNotNull(pagePath.getParent(),
             "parent of cache file should not be null");
         Files.createDirectories(parent);
-        Files.createFile(pagePath);
+        //Files.createFile(pagePath);
       }
       // extra try to ensure output stream is closed
       try (FileOutputStream fos = new FileOutputStream(pagePath.toFile(), false)) {
         fos.getChannel().write(page);
       }
-    } catch (Exception e) {
+    } catch (Throwable e) {
       Files.deleteIfExists(pagePath);
       if (e.getMessage() != null && e.getMessage().contains(ERROR_NO_SPACE_LEFT)) {
         throw new ResourceExhaustedException(
