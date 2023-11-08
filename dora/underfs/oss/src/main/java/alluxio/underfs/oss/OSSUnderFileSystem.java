@@ -45,13 +45,9 @@ import com.aliyun.oss.model.MultipartUploadListing;
 import com.aliyun.oss.model.OSSObjectSummary;
 import com.aliyun.oss.model.ObjectListing;
 import com.aliyun.oss.model.ObjectMetadata;
-<<<<<<< HEAD:dora/underfs/oss/src/main/java/alluxio/underfs/oss/OSSUnderFileSystem.java
 import com.aliyun.oss.model.SetObjectTaggingRequest;
 import com.aliyun.oss.model.TagSet;
-||||||| parent of 15a333a5e8 (Get User/Group/Permission of existed objects in OSS ufs):underfs/oss/src/main/java/alluxio/underfs/oss/OSSUnderFileSystem.java
-=======
 import com.aliyun.oss.model.Owner;
->>>>>>> 15a333a5e8 (Get User/Group/Permission of existed objects in OSS ufs):underfs/oss/src/main/java/alluxio/underfs/oss/OSSUnderFileSystem.java
 import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -82,15 +78,11 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = "_$folder$";
 
-<<<<<<< HEAD:dora/underfs/oss/src/main/java/alluxio/underfs/oss/OSSUnderFileSystem.java
   private static final String NO_SUCH_KEY = "NoSuchKey";
 
-||||||| parent of 15a333a5e8 (Get User/Group/Permission of existed objects in OSS ufs):underfs/oss/src/main/java/alluxio/underfs/oss/OSSUnderFileSystem.java
-=======
   /** Default owner of objects if owner cannot be determined. */
   private static final String DEFAULT_OWNER = "";
 
->>>>>>> 15a333a5e8 (Get User/Group/Permission of existed objects in OSS ufs):underfs/oss/src/main/java/alluxio/underfs/oss/OSSUnderFileSystem.java
   /** Aliyun OSS client. */
   private final OSS mClient;
 

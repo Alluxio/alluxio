@@ -1895,7 +1895,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-<<<<<<< HEAD:dora/core/common/src/main/java/alluxio/conf/PropertyKey.java
   public static final PropertyKey UNDERFS_OSS_MULTIPART_UPLOAD_ENABLED =
       booleanBuilder(Name.UNDERFS_OSS_MULTIPART_UPLOAD_ENABLED)
           .setDefaultValue(false)
@@ -1920,8 +1919,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-||||||| parent of 15a333a5e8 (Get User/Group/Permission of existed objects in OSS ufs):core/common/src/main/java/alluxio/conf/PropertyKey.java
-=======
   public static final PropertyKey UNDERFS_OSS_DEFAULT_MODE =
       stringBuilder(Name.UNDERFS_OSS_DEFAULT_MODE)
           .setAlias("alluxio.underfs.oss.default.mode")
@@ -1937,7 +1934,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
->>>>>>> 15a333a5e8 (Get User/Group/Permission of existed objects in OSS ufs):core/common/src/main/java/alluxio/conf/PropertyKey.java
   public static final PropertyKey S3A_ACCESS_KEY = stringBuilder(Name.S3A_ACCESS_KEY)
       .setAlias(Name.AWS_ACCESS_KEY)
       .setDescription("The access key of S3 bucket.")
@@ -7415,20 +7411,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.oss.streaming.upload.partition.size";
     public static final String UNDERFS_OSS_STREAMING_UPLOAD_THREADS =
         "alluxio.underfs.oss.streaming.upload.threads";
-<<<<<<< HEAD:dora/core/common/src/main/java/alluxio/conf/PropertyKey.java
     public static final String UNDERFS_OSS_MULTIPART_UPLOAD_ENABLED =
         "alluxio.underfs.oss.multipart.upload.enabled";
     public static final String UNDERFS_OSS_MULTIPART_UPLOAD_THREADS =
         "alluxio.underfs.oss.multipart.upload.threads";
     public static final String UNDERFS_OSS_MULTIPART_UPLOAD_PARTITION_SIZE =
         "alluxio.underfs.oss.multipart.upload.part.size";
-||||||| parent of 15a333a5e8 (Get User/Group/Permission of existed objects in OSS ufs):core/common/src/main/java/alluxio/conf/PropertyKey.java
-=======
     public static final String UNDERFS_OSS_DEFAULT_MODE =
         "alluxio.underfs.oss.default.mode";
     public static final String UNDERFS_OSS_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.oss.owner.id.to.username.mapping";
->>>>>>> 15a333a5e8 (Get User/Group/Permission of existed objects in OSS ufs):core/common/src/main/java/alluxio/conf/PropertyKey.java
     public static final String UNDERFS_S3_BULK_DELETE_ENABLED =
         "alluxio.underfs.s3.bulk.delete.enabled";
     public static final String UNDERFS_S3_DEFAULT_MODE = "alluxio.underfs.s3.default.mode";
