@@ -384,7 +384,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         Status.Code code = ((StatusRuntimeException) ex).getStatus().getCode();
         if (Status.FAILED_PRECONDITION.getCode().equals(code)) {
           LOG.error(String.format(
-              "Precondition failed: cannot rename %s to %s",src.toString(), dst.toString()));
+              "Precondition failed: cannot rename %s to %s", src.toString(), dst.toString()));
         } else if (Status.NOT_FOUND.getCode().equals(code)) {
           throw new FileNotFoundException(ex.getMessage());
         } else if (Status.ALREADY_EXISTS.getCode().equals(code)) {
