@@ -20,7 +20,6 @@ import io.prometheus.metrics.config.PrometheusProperties;
 import io.prometheus.metrics.core.metrics.Counter;
 import io.prometheus.metrics.core.metrics.GaugeWithCallback;
 import io.prometheus.metrics.core.metrics.Histogram;
-import io.prometheus.metrics.core.metrics.Summary;
 import io.prometheus.metrics.exporter.common.PrometheusHttpRequest;
 import io.prometheus.metrics.exporter.common.PrometheusHttpResponse;
 import io.prometheus.metrics.exporter.common.PrometheusScrapeHandler;
@@ -52,13 +51,6 @@ public final class MultiDimensionalMetricsSystem {
       .labelNames("method")
       .build();
 
-  public static final Summary DATA_ACCESS_LATENCY = Summary.builder()
-      .name("alluxio_data_access_latency")
-      .help("aggregated latency of all the data access")
-      .unit(Unit.SECONDS)
-      .labelNames("method")
-      .build();
-
   public static final Counter META_OPERATION = Counter.builder()
       .name("alluxio_meta_operation")
       .help("counter of rpc calls of the meta operations")
@@ -75,6 +67,12 @@ public final class MultiDimensionalMetricsSystem {
   public static final Counter CACHED_DATA_READ = Counter.builder()
       .name("alluxio_cached_data_read")
       .help("amount of the read cached data")
+      .unit(Unit.BYTES)
+      .build();
+
+  public static final Counter EXTERNAL_DATA_READ = Counter.builder()
+      .name("alluxio_external_data_read")
+      .help("amount of the read data when cache missed on client")
       .unit(Unit.BYTES)
       .build();
 
@@ -117,24 +115,20 @@ public final class MultiDimensionalMetricsSystem {
    */
   public static void initMetrics() {
     JvmMetrics.builder().register();
-    switch (CommonUtils.PROCESS_TYPE.get()) {
-      case MASTER:
-        // No essential metrics for the master for now.
-        break;
-      case WORKER:
-      case CLIENT:
-        PrometheusRegistry.defaultRegistry.register(DATA_ACCESS);
-        PrometheusRegistry.defaultRegistry.register(DATA_ACCESS_LATENCY);
-        PrometheusRegistry.defaultRegistry.register(UFS_DATA_ACCESS);
-        PrometheusRegistry.defaultRegistry.register(META_OPERATION);
-        PrometheusRegistry.defaultRegistry.register(CACHED_DATA_READ);
-        PrometheusRegistry.defaultRegistry.register(CACHED_EVICTED_DATA);
-        PrometheusRegistry.defaultRegistry.register(CACHED_STORAGE);
-        PrometheusRegistry.defaultRegistry.register(CACHED_CAPACITY);
-        break;
-      default:
-        // Ignore and only expose JVM-related metrics
+    if (CommonUtils.PROCESS_TYPE.get() != CommonUtils.ProcessType.WORKER
+        && CommonUtils.PROCESS_TYPE.get() != CommonUtils.ProcessType.CLIENT) {
+      return;
     }
+    if (CommonUtils.PROCESS_TYPE.get() == CommonUtils.ProcessType.CLIENT) {
+      PrometheusRegistry.defaultRegistry.register(EXTERNAL_DATA_READ);
+    }
+    PrometheusRegistry.defaultRegistry.register(DATA_ACCESS);
+    PrometheusRegistry.defaultRegistry.register(UFS_DATA_ACCESS);
+    PrometheusRegistry.defaultRegistry.register(META_OPERATION);
+    PrometheusRegistry.defaultRegistry.register(CACHED_DATA_READ);
+    PrometheusRegistry.defaultRegistry.register(CACHED_EVICTED_DATA);
+    PrometheusRegistry.defaultRegistry.register(CACHED_STORAGE);
+    PrometheusRegistry.defaultRegistry.register(CACHED_CAPACITY);
   }
 
   /**

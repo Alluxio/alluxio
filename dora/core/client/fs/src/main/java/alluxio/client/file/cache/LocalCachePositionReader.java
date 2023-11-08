@@ -32,6 +32,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
+import io.prometheus.metrics.core.datapoints.CounterDataPoint;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -62,6 +63,7 @@ public class LocalCachePositionReader implements PositionReader {
   private final FileId mFileId;
   private final long mFileSize;
   private volatile boolean mClosed;
+  private final CounterDataPoint mExternalMetric;
 
   /**
    * @param conf
@@ -82,8 +84,10 @@ public class LocalCachePositionReader implements PositionReader {
     String fileId = conf.getBoolean(PropertyKey.DORA_ENABLED)
         ? new AlluxioURI(status.getUfsPath()).hash() :
         Long.toString(status.getFileId());
-    return LocalCachePositionReader.create(cacheManager, fallbackReader,
-        FileId.of(fileId), status.getLength(), pageSize, cacheContext);
+    // Used in client, set the external metric to EXTERNAL
+    return new LocalCachePositionReader(cacheManager, fallbackReader,
+        FileId.of(fileId), status.getLength(), pageSize, cacheContext,
+        MultiDimensionalMetricsSystem.EXTERNAL_DATA_READ);
   }
 
   /**
@@ -99,19 +103,23 @@ public class LocalCachePositionReader implements PositionReader {
                                                 CloseableSupplier<PositionReader> fallbackReader,
                                                 FileId fileId, long fileSize, long pageSize,
                                                 CacheContext cacheContext) {
+    // Used in worker, set the external metric to UFS
     return new LocalCachePositionReader(cacheManager, fallbackReader,
-        fileId, fileSize, pageSize, cacheContext);
+        fileId, fileSize, pageSize, cacheContext,
+        MultiDimensionalMetricsSystem.UFS_DATA_ACCESS.labelValues("read"));
   }
 
   private LocalCachePositionReader(CacheManager cacheManager,
                                    CloseableSupplier<PositionReader> fallbackReader, FileId fileId,
-                                   long fileSize, long pageSize, CacheContext context) {
+                                   long fileSize, long pageSize, CacheContext context,
+                                   CounterDataPoint externalMetric) {
     mCacheManager = Preconditions.checkNotNull(cacheManager);
     mFallbackReader = Preconditions.checkNotNull(fallbackReader);
     mFileId = fileId;
     mFileSize = fileSize;
     mPageSize = pageSize;
     mCacheContext = Preconditions.checkNotNull(context);
+    mExternalMetric = externalMetric;
   }
 
   @Override
@@ -215,7 +223,7 @@ public class LocalCachePositionReader implements PositionReader {
       totalBytesRead += bytesRead;
     }
     // Bytes read from external, may be larger than requests due to reading complete pages
-    MultiDimensionalMetricsSystem.UFS_DATA_ACCESS.labelValues("read").inc(totalBytesRead);
+    mExternalMetric.inc(totalBytesRead);
     MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).mark(totalBytesRead);
     if (totalBytesRead != pageSize) {
       throw new FailedPreconditionRuntimeException(
