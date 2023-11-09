@@ -1,14 +1,30 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.underfs.oss;
 
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
+
+import com.aliyun.oss.ServiceException;
+import io.grpc.Status;
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import com.aliyun.oss.OSSException;
-import com.aliyun.oss.ServiceException;
-import io.grpc.Status;
 
+/**
+ * Alluxio exception for oss.
+ */
 public class AlluxioOSSException extends AlluxioRuntimeException {
   private static final ErrorType ERROR_TYPE = ErrorType.External;
   private static final String[] INVALID_ARGUMENT_ERROR_CODE =
@@ -20,19 +36,19 @@ public class AlluxioOSSException extends AlluxioRuntimeException {
       new HashSet<>(Arrays.asList(INVALID_ARGUMENT_ERROR_CODE));
 
   /**
-   * Converts an AmazonClientException to a corresponding AlluxioS3Exception.
-   * @param cause aws s3 exception
-   * @return alluxio s3 exception
+   * Converts an OSS ServiceException to a corresponding AlluxioOSSException.
+   * @param cause oss exception
+   * @return alluxio oss exception
    */
   public static AlluxioOSSException from(ServiceException cause) {
     return from(null, cause);
   }
 
   /**
-   * Converts an AmazonClientException with errormessage to a corresponding AlluxioS3Exception.
+   * Converts an OSS ServiceException with errormessage to a corresponding AlluxioOSSException.
    * @param errorMessage error message
-   * @param cause aws s3 exception
-   * @return alluxio s3 exception
+   * @param cause oss exception
+   * @return alluxio oss exception
    */
   public static AlluxioOSSException from(String errorMessage, ServiceException cause) {
     Status status = httpStatusToGrpcStatus(cause.getErrorCode());
@@ -51,6 +67,9 @@ public class AlluxioOSSException extends AlluxioRuntimeException {
     if (INVALID_ARGUMENT_ERROR_CODE_SET.contains(errorCode)) {
       // http status code is 400
       return Status.INVALID_ARGUMENT;
+    }
+    if (StringUtils.isBlank(errorCode)) {
+      return Status.UNKNOWN;
     }
     switch (errorCode) {
       case "InvalidAccessKeyId":  // 403

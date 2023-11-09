@@ -156,7 +156,7 @@ public class OSSUnderFileSystemTest {
     try {
       mOSSUnderFileSystem.deleteObjects(keys);
     } catch (Exception e) {
-      Assert.assertTrue(e instanceof IOException);
+      Assert.assertTrue(e instanceof AlluxioOSSException);
     }
   }
 
