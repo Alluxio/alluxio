@@ -103,18 +103,6 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-      <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-emon-integration</artifactId>
-          <version>305-SNAPSHOT</version>
-          <scope>compile</scope>
-      </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-emon-integration</artifactId>
-      <version>305-SNAPSHOT</version>
-      <scope>compile</scope>
-    </dependency>
   </dependencies>
 
   <build>
