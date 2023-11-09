@@ -21,7 +21,7 @@ import sun.misc.SignalHandler;
  * If it does not respond, the subsequent shutdown hook will not be triggered.
  *
  * Fuse will have its own signal handler installed as part of fuse_main_real
- * with fuse_set_signal_handlers for SIGHUP/SIGINT/SIGTERM, but it will not replace
+ * with fuse_set_signal_handlers for SIGINT/SIGTERM, but it will not replace
  * any existing signal handlers installed up front. Since jvm always install
  * signal handlers therefore libfuse is never able to do so.
  * But disabling JVM's signal handlers by flag -Xrs, fuse acts differently
@@ -53,8 +53,7 @@ public class FuseSignalHandler implements SignalHandler {
     int number = signal.getNumber();
     // SIGTERM - 15
     // SIGINT - 2
-    // SIGHUP - 1
-    if (number == 15 || number == 2 || number == 1) {
+    if (number == 15 || number == 2) {
       try {
         mFuseUmountable.destroy();
       } catch (Throwable t) {
