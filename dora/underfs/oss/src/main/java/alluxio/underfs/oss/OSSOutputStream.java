@@ -162,7 +162,7 @@ public final class OSSOutputStream extends OutputStream implements ContentHashab
       mContentHash = mOssClient.putObject(mBucketName, mKey, in, objMeta).getETag();
     } catch (ServiceException e) {
       LOG.error("Failed to upload {}.", mKey);
-      throw new IOException(e);
+      throw AlluxioOSSException.from(e);
     } finally {
       // Delete the temporary file on the local machine if the OSS client completed the
       // upload or if the upload failed.
