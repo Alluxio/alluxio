@@ -203,7 +203,7 @@ public class LocalCacheManager implements CacheManager {
       } catch (PageNotFoundException e) {
         LOG.debug("getDataChannel({},pageOffset={}) fails due to page not found in metastore",
             pageId, pageOffset);
-        throw e;
+        return Optional.empty();
       }
 
       try {
@@ -225,11 +225,11 @@ public class LocalCacheManager implements CacheManager {
         // something is wrong to read this page, let's remove it from meta store
         try (LockResource r2 = new LockResource(mPageMetaStore.getLock().writeLock())) {
           mPageMetaStore.removePage(pageId);
-          throw e;
+          return Optional.empty();
         } catch (PageNotFoundException ex) {
           // best effort to remove this page from meta store and ignore the exception
           Metrics.CLEANUP_GET_ERRORS.inc();
-          throw ex;
+          return Optional.empty();
         }
       }
     } finally {
@@ -418,6 +418,11 @@ public class LocalCacheManager implements CacheManager {
   private PutResult putAttempt(PageId pageId, ByteBuffer page, CacheContext cacheContext,
                                boolean forcedToEvict) {
     LOG.debug("putInternal({},{} bytes) enters", pageId, page.remaining());
+    if (pageId.getPageIndex() > 0 && page.remaining() == 0) {
+      LOG.error("cannot put an empty page except for the first page."
+          + "pageId={}, isTemporary={}", pageId, cacheContext.isTemporary());
+      return PutResult.OTHER;
+    }
     PageInfo victimPageInfo = null;
     CacheScope scopeToEvict;
     ReadWriteLock pageLock = getPageLock(pageId);
