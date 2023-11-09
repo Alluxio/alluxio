@@ -4008,6 +4008,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_FAST_DATA_LOAD_ENABLED =
+      booleanBuilder(Name.WORKER_FAST_DATA_LOAD_ENABLED)
+          .setDescription("If enabled, instead of creating a reader to load the data, "
+              + "we just get the data from UFS and put it into the page store. This is an "
+              + "experimental feature.")
+          .setIsHidden(true)
+          .setDefaultValue(false)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID =
       booleanBuilder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)
           .setDefaultValue(false)
@@ -7934,6 +7944,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.data.server.domain.socket.address";
     public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID =
         "alluxio.worker.data.server.domain.socket.as.uuid";
+    public static final String WORKER_FAST_DATA_LOAD_ENABLED =
+        "alluxio.worker.fast.data.load.enabled";
     public static final String WORKER_FUSE_ENABLED =
         "alluxio.worker.fuse.enabled";
     public static final String WORKER_FUSE_MOUNT_ALLUXIO_PATH =

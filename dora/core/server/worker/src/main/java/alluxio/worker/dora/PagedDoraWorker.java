@@ -172,6 +172,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final ConcurrentHashSet<PageId> mLoadingPages = new ConcurrentHashSet<>();
   private final ExecutorService mCacheDataExecutor = Executors.newFixedThreadPool(
       Configuration.getInt(PropertyKey.WORKER_PRELOAD_DATA_THREAD_POOL_SIZE));
+  private final boolean mFastDataLoadEnabled;
 
   /**
    * Constructor.
@@ -216,6 +217,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mClientWriteToUFSEnabled = mConf
         .getBoolean(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED);
     mXAttrWriteToUFSEnabled = mConf.getBoolean(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED);
+    mFastDataLoadEnabled = mConf.getBoolean(PropertyKey.WORKER_FAST_DATA_LOAD_ENABLED);
   }
 
   /**
@@ -558,7 +560,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             return;
           }
           LOG.debug("Preloading {} pos: {} length: {} started", ufsPath, loadPos, loadLength);
-          loadDataV2(ufsPath, pageId, loadPos, loadLength, fi.getLength());
+          loadPages(ufsPath, Collections.singletonList(pageId), fi.getLength());
           LOG.debug("Preloading {} pos: {} length: {} finished", ufsPath, loadPos, loadLength);
         } catch (Exception e) {
           LOG.info("Preloading failed for {} page: {}", ufsPath, pageId, e);
@@ -605,8 +607,15 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               }
             }
             else {
-              loadData(subTask.getUfsPath(), 0, subTask.getOffsetInFile(), subTask.getLength(),
-                  fileLength);
+              if (mFastDataLoadEnabled) {
+                loadPages(
+                    subTask.getUfsPath(), 0, subTask.getOffsetInFile(), subTask.getLength(),
+                    fileLength);
+              } else {
+                loadData(
+                    subTask.getUfsPath(), 0, subTask.getOffsetInFile(), subTask.getLength(),
+                    fileLength);
+              }
             }
           } catch (Throwable e) {
             LOG.error("Loading {} failed", subTask, e);
@@ -661,23 +670,45 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
   }
 
-  protected void loadDataV2(String ufsPath, PageId pageId, long offset, long lengthToLoad,
-                          long fileLength) throws AccessControlException, IOException {
+  private void loadPages(String ufsPath, List<PageId> pageIds, long fileLength)
+      throws AccessControlException, IOException {
     Optional<UnderFileSystem> ufs = mUfsManager.get(new AlluxioURI(ufsPath));
     if (!ufs.isPresent()) {
       throw new RuntimeException("Ufs not found for " + ufsPath);
     }
-    ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer((int) lengthToLoad);
-    try (PositionReader reader = ufs.get().openPositionRead(ufsPath, fileLength)) {
-      int bytesRead = reader.read(offset, buf, (int) lengthToLoad);
-      if (lengthToLoad != bytesRead) {
-        throw new RuntimeException(
-            "Page load failed, expected: " + lengthToLoad + " actual " + bytesRead);
+    long lastPageId = fileLength / mPageSize;
+    // TODO(elega) can batch multiple pages together ot speed up the loading.
+    for (PageId pageId : pageIds) {
+      int lengthToLoad = (int)
+          (pageId.getPageIndex() == lastPageId ? fileLength % mPageSize : mPageSize);
+      long offset = pageId.getPageIndex() * mPageSize;
+      ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer(lengthToLoad);
+      try (PositionReader reader = ufs.get().openPositionRead(ufsPath, fileLength)) {
+        int bytesRead = reader.read(offset, buf, lengthToLoad);
+        if (lengthToLoad != bytesRead) {
+          throw new RuntimeException(
+              "Page load failed, expected: " + lengthToLoad + " actual " + bytesRead);
+        }
+        mCacheManager.put(pageId, buf.nioBuffer());
+      } finally {
+        buf.release();
       }
-      mCacheManager.put(pageId, buf.nioBuffer());
-    } finally {
-      buf.release();
     }
+  }
+
+  private void loadPages(
+      String ufsPath, long mountId, long offset, long lengthToLoad, long fileLength)
+      throws AccessControlException, IOException {
+    if (lengthToLoad == 0) {
+      return;
+    }
+    lengthToLoad = Math.min(lengthToLoad, fileLength - offset);
+    List<PageId> pagesToLoad = new ArrayList<>();
+    String fileId = new AlluxioURI(ufsPath).hash();
+    for (long current = offset; current < offset + lengthToLoad; current += mPageSize) {
+      pagesToLoad.add(new PageId(fileId, current / mPageSize));
+    }
+    loadPages(ufsPath, pagesToLoad, fileLength);
   }
 
   protected void loadData(String ufsPath, long mountId, long offset, long lengthToLoad,

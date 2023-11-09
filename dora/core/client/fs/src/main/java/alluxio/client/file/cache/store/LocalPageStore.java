@@ -75,19 +75,18 @@ public class LocalPageStore implements PageStore {
         Path parent = Preconditions.checkNotNull(pagePath.getParent(),
             "parent of cache file should not be null");
         Files.createDirectories(parent);
-        //Files.createFile(pagePath);
       }
       // extra try to ensure output stream is closed
       try (FileOutputStream fos = new FileOutputStream(pagePath.toFile(), false)) {
         fos.getChannel().write(page);
       }
-    } catch (Throwable e) {
+    } catch (Throwable t) {
       Files.deleteIfExists(pagePath);
-      if (e.getMessage() != null && e.getMessage().contains(ERROR_NO_SPACE_LEFT)) {
+      if (t.getMessage() != null && t.getMessage().contains(ERROR_NO_SPACE_LEFT)) {
         throw new ResourceExhaustedException(
-            String.format("%s is full, configured with %d bytes", mRoot, mCapacity), e);
+            String.format("%s is full, configured with %d bytes", mRoot, mCapacity), t);
       }
-      throw new IOException("Failed to write file " + pagePath + " for page " + pageId, e);
+      throw new IOException("Failed to write file " + pagePath + " for page " + pageId, t);
     }
   }
 
