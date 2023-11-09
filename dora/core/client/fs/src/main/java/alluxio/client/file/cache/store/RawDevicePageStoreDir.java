@@ -10,6 +10,8 @@ import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.client.quota.CacheScope;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -39,6 +41,11 @@ public class RawDevicePageStoreDir extends QuotaManagedPageStoreDir {
   @Override
   public void reset() throws IOException {
     // noop
+  }
+
+  @Override
+  public Path getRootPath() {
+    return Paths.get("/");
   }
 
   @Override
