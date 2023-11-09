@@ -121,6 +121,7 @@ public class LocalPageStore implements PageStore {
         bytesLeft -= bytes;
       }
       if (bytesRead == 0) {
+        SAMPLING_LOG.warn("Read 0 bytes from page {}, the page is probably empty", pageId);
         // no bytes have been read at all, but the requested length > 0
         // this means the file is empty
         return -1;
@@ -226,6 +227,7 @@ public class LocalPageStore implements PageStore {
     if (fileLength == 0 && pageId.getPageIndex() > 0) {
       // pages other than the first page should always be non-empty
       // remove this malformed page
+      SAMPLING_LOG.warn("Length of page {} is 0, removing this malformed page", pageId);
       try {
         Files.deleteIfExists(pagePath);
       } catch (IOException ignored) {
