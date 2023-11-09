@@ -1093,7 +1093,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         throw new AlreadyExistsException(String.format("%s already exists", path));
       }
     } catch (IOException e) {
-      // why wrap a IOE in to a RuntimeException??? no way AlluxioRuntimeException can catch it
       // IOE would be caught by AlluxioRuntimeException
       throw e;
     }

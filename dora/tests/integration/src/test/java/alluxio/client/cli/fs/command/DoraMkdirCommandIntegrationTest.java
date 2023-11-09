@@ -72,7 +72,6 @@ public class DoraMkdirCommandIntegrationTest extends AbstractDoraFileSystemShell
     }
   }
 
-  // TODO(xinyu): should test a invalid path, maybe redesign this test case XD
   @Test
   public void testMkdirInvalidPath() {
     assertEquals(-1, mFsShell.run("mkdir", ""));
