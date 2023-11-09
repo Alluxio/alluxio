@@ -204,6 +204,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         if (mBaseParameters.mClusterLimit == 1) {
           throw new IllegalArgumentException("Cluster size is 1. REMOTE_ONLY mode not supported.");
         }
+        hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
+            "alluxio.client.file.dora.RemoteOnlyPolicy");
         break;
       default:
         throw new IllegalArgumentException("Unrecognized mode" + mParameters.mMode);
