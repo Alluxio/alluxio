@@ -51,10 +51,11 @@ public class RawDevicePageStoreDir extends QuotaManagedPageStoreDir {
   @Override
   public void scanPages(Consumer<Optional<PageInfo>> pageInfoConsumer) throws IOException {
     String startFileId = "";
+    boolean firstTime = true;
     long pageIdx = 0;
     LibRawDeviceStore.JniPageInfo [] jniPageInfos = mRawDeviceStore
         .listPages(new PageId(startFileId, pageIdx), 100);
-    while (jniPageInfos != null) {
+    while (jniPageInfos != null && (firstTime || jniPageInfos.length > 1)) {
       for (LibRawDeviceStore.JniPageInfo jniPageInfo : jniPageInfos) {
         startFileId = jniPageInfo.getFileId();
         pageIdx = jniPageInfo.getPageId();
@@ -66,6 +67,7 @@ public class RawDevicePageStoreDir extends QuotaManagedPageStoreDir {
       }
       LOG.debug("List next batch {}, {}.", startFileId, pageIdx);
 
+      firstTime = false;
       jniPageInfos = mRawDeviceStore
           .listPages(new PageId(startFileId, pageIdx + 1), 100);
     }
