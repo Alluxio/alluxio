@@ -14,14 +14,18 @@ package alluxio.cachestore;
 import alluxio.cachestore.utils.NativeLibraryLoader;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
+import alluxio.client.file.cache.store.LocalPageStoreDir;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.file.ReadTargetBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RawDeviceStore implements PageStore {
+  private static final Logger LOG = LoggerFactory.getLogger(RawDeviceStore.class);
 
   static {
     LibRawDeviceStore.loadLibrary(NativeLibraryLoader.LibCacheStoreVersion.VERSION_1);
@@ -53,6 +57,7 @@ public class RawDeviceStore implements PageStore {
     }
     final String configPath = System.getenv("CACHE_STORE_CONFIG_PATH");
     mMounted = LIB_RAW_DEVICE_STORE.openCacheStore(configPath);
+    LOG.info("Mount status {}", mMounted);
   }
 
   public void put(PageId pageId, ByteBuffer page, boolean isTemporary)
