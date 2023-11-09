@@ -30,6 +30,7 @@ import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -383,7 +384,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       if (ex instanceof StatusRuntimeException) {
         Status.Code code = ((StatusRuntimeException) ex).getStatus().getCode();
         if (Status.FAILED_PRECONDITION.getCode().equals(code)) {
-          LOG.error(String.format(
+          throw new FailedPreconditionException(String.format(
               "Precondition failed: cannot rename %s to %s", src.toString(), dst.toString()));
         } else if (Status.NOT_FOUND.getCode().equals(code)) {
           throw new FileNotFoundException(ex.getMessage());
