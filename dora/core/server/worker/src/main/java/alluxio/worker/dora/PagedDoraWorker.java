@@ -32,10 +32,10 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
-import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
+import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
@@ -879,9 +879,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       boolean overWrite = options.hasOverwrite() ? options.getOverwrite() : false;
       boolean exists = ufs.exists(path);
       if (!overWrite && exists) {
-        throw new RuntimeException(
-            new FileAlreadyExistsException(
-                String.format("File %s already exists but no overwrite flag", path)));
+        throw new AlreadyExistsException(String.format("File %s already exists"
+            + "but no overwrite flag", path));
       } else if (overWrite) {
         // client is going to overwrite this file. We need to invalidate the cached meta and data.
         mMetaManager.removeFromMetaStore(path);
@@ -1010,11 +1009,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       mMetaManager.loadFromUfs(path);
       mMetaManager.invalidateListingCacheOfParent(path);
       if (!success) {
-        throw new RuntimeException(
-            new FileAlreadyExistsException(String.format("%s already exists", path)));
+        throw new AlreadyExistsException(String.format("%s already exists", path));
       }
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      // IOE would be caught by AlluxioRuntimeException
+      throw e;
     }
   }
 
