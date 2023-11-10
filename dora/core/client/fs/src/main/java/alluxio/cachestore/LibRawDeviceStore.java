@@ -71,6 +71,8 @@ public class LibRawDeviceStore {
   public native boolean closeCacheStore();
   public native ReturnStatus putPage(String fileId, long pageId, ByteBuffer page, int size, boolean isTemporary);
 
+  public native ReturnStatus putPageByteArray(String fileId, long pageId, byte [] page, int size, boolean isTemporary);
+
   public native int getPage(String fileId, long pageId, int pageOffset, int bytesToRead,
       ByteBuffer buffer, boolean isTemporary);
   public native boolean deletePage(String fileId, long pageId);

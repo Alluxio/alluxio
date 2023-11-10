@@ -47,5 +47,15 @@ public class TestLibRawDeviceStore {
       System.out.println(String.format("Found %s %d %d %d", pageInfo.getFileId(),
           pageInfo.getPageId(), pageInfo.getFileSize(), pageInfo.getCreationTime()));
     }
+
+
+    ByteBuffer nonDirectBuffer = ByteBuffer.allocate(1024);
+    nonDirectBuffer.putChar('f');
+    nonDirectBuffer.putChar('b');
+    nonDirectBuffer.putChar('c');
+    nonDirectBuffer.putChar('d');
+    LibRawDeviceStore.ReturnStatus ret
+        = libRawDeviceStore.putPageByteArray("efg", 0, nonDirectBuffer.array(),
+        4, false);
   }
 }
