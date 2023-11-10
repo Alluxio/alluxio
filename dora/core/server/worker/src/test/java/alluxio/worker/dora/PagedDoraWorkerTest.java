@@ -93,6 +93,7 @@ public class PagedDoraWorkerTest {
 
   @Before
   public void before() throws Exception {
+    Configuration.set(PropertyKey.WORKER_FAST_DATA_LOAD_ENABLED, true);
     Configuration.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR,
         mTestFolder.newFolder("rocks"));
     Configuration.set(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, 10);
@@ -212,6 +213,28 @@ public class PagedDoraWorkerTest {
       byte[] buff = new byte[(int) mPageSize];
       mCacheManager.get(pageId, (int) mPageSize, buff, 0);
       assertTrue(BufferUtils.equalIncreasingByteArray(start, (int) mPageSize, buff));
+      start += mPageSize;
+    }
+  }
+
+  @Test
+  public void testCacheDataNotPageAligned() throws Exception {
+    int numPages = 10;
+    long length = mPageSize * numPages - 1;
+    String ufsPath = mTestFolder.newFile("test").getAbsolutePath();
+    byte[] buffer = BufferUtils.getIncreasingByteArray((int) length);
+    BufferUtils.writeBufferToFile(ufsPath, buffer);
+
+    mWorker.cacheData(ufsPath, length, 0, false);
+    List<PageId> cachedPages =
+        mCacheManager.getCachedPageIdsByFileId(new AlluxioURI(ufsPath).hash(), length);
+    assertEquals(numPages, cachedPages.size());
+    int start = 0;
+    for (PageId pageId : cachedPages) {
+      long size = numPages == pageId.getPageIndex() + 1 ? length % mPageSize : mPageSize;
+      byte[] buff = new byte[(int) size];
+      mCacheManager.get(pageId, (int) size, buff, 0);
+      assertTrue(BufferUtils.equalIncreasingByteArray(start, (int) size, buff));
       start += mPageSize;
     }
   }
