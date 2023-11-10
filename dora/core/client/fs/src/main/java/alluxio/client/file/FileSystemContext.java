@@ -65,6 +65,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -866,6 +867,8 @@ public class FileSystemContext implements Closeable {
    */
   public List<BlockWorkerInfo> getCachedWorkers(GetWorkerListType type) throws IOException {
     synchronized (mWorkerInfoList) {
+      return new LinkedList<BlockWorkerInfo>();
+      /*
       if (mWorkerInfoList.get() == null || mWorkerInfoList.get().isEmpty()
           || mWorkerRefreshPolicy.attempt()) {
         switch (type) {
@@ -881,7 +884,7 @@ public class FileSystemContext implements Closeable {
           default:
         }
       }
-      return mWorkerInfoList.get();
+      return mWorkerInfoList.get(); */
     }
   }
 
