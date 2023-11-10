@@ -274,7 +274,6 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
     Assert.assertFalse(sUfs.isDirectory(PathUtils.concatPath(sUfsRoot, "dirB")));
   }
 
-  @Ignore("Rename fileA to an existing fileB is successful now. Fix or remove this test.")
   @Test
   public void errorRenameTest2() throws Exception {
     // Rename /fileA to /fileB should fail if /fileB exists
