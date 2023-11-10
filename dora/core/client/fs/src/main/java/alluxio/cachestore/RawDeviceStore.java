@@ -89,6 +89,11 @@ public class RawDeviceStore implements PageStore {
         batchSize);
   }
 
+  public void delete(PageId pageId, boolean isTemporary)
+      throws IOException, PageNotFoundException {
+    LIB_RAW_DEVICE_STORE.deletePage(pageId.getFileId(), pageId.getPageIndex());
+  }
+
   public void close() throws Exception {
     LIB_RAW_DEVICE_STORE.closeCacheStore();
   }
