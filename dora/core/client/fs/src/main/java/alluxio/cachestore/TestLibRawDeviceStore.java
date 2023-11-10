@@ -28,7 +28,8 @@ public class TestLibRawDeviceStore {
     byteBuffer.putChar('c');
     byteBuffer.putChar('d');
     LibRawDeviceStore.ReturnStatus returnStatus
-        = libRawDeviceStore.putPage("abcd", 0, byteBuffer, 4, false);
+        = LibRawDeviceStore.ReturnStatus.fromInt(libRawDeviceStore
+        .putPage("abcd", 0, byteBuffer, 4, false));
     System.out.println(String.format("Return value is : %d", returnStatus));
     byteBuffer.clear();
     int size = libRawDeviceStore.getPage("abcd", 0, 0, 3,
@@ -55,7 +56,7 @@ public class TestLibRawDeviceStore {
     nonDirectBuffer.putChar('c');
     nonDirectBuffer.putChar('d');
     LibRawDeviceStore.ReturnStatus ret
-        = libRawDeviceStore.putPageByteArray("efg", 0, nonDirectBuffer.array(),
-        4, false);
+        = LibRawDeviceStore.ReturnStatus.fromInt(libRawDeviceStore.putPageByteArray(
+            "efg", 0, nonDirectBuffer.array(), 4, false));
   }
 }

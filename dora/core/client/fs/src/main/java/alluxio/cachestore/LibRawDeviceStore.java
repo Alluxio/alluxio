@@ -33,7 +33,24 @@ public class LibRawDeviceStore {
     BENIGN_RACING,
     INSUFFICIENT_SPACE_EVICTED,
     NO_SPACE_LEFT,
-    OTHER,
+    OTHER;
+
+    public static ReturnStatus fromInt(int i) {
+      switch (i) {
+        case 0:
+          return OK;
+        case 1:
+          return BENIGN_RACING;
+        case 2:
+          return INSUFFICIENT_SPACE_EVICTED;
+        case 3:
+          return NO_SPACE_LEFT;
+        case 4:
+          return OTHER;
+        default:
+          return OTHER;
+      }
+    }
   };
 
   public static class JniPageInfo {
@@ -69,9 +86,9 @@ public class LibRawDeviceStore {
   }
   public native boolean openCacheStore(String storePath);
   public native boolean closeCacheStore();
-  public native ReturnStatus putPage(String fileId, long pageId, ByteBuffer page, int size, boolean isTemporary);
+  public native int putPage(String fileId, long pageId, ByteBuffer page, int size, boolean isTemporary);
 
-  public native ReturnStatus putPageByteArray(String fileId, long pageId, byte [] page, int size, boolean isTemporary);
+  public native int putPageByteArray(String fileId, long pageId, byte [] page, int size, boolean isTemporary);
 
   public native int getPage(String fileId, long pageId, int pageOffset, int bytesToRead,
       ByteBuffer buffer, boolean isTemporary);

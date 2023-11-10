@@ -63,11 +63,12 @@ public class RawDeviceStore implements PageStore {
       throws ResourceExhaustedException, IOException {
     LibRawDeviceStore.ReturnStatus returnStatus = LibRawDeviceStore.ReturnStatus.OK;
     if (page.isDirect()) {
-      returnStatus= LIB_RAW_DEVICE_STORE.putPage(
-          pageId.getFileId(), pageId.getPageIndex(), page, page.limit(), false);
+      returnStatus= LibRawDeviceStore.ReturnStatus.fromInt(LIB_RAW_DEVICE_STORE.putPage(
+          pageId.getFileId(), pageId.getPageIndex(), page, page.limit(), false));
     } else {
-      returnStatus = LIB_RAW_DEVICE_STORE.putPageByteArray(pageId.getFileId(),
-          pageId.getPageIndex(), page.array(), page.limit(), false);
+      returnStatus = LibRawDeviceStore.ReturnStatus.fromInt(LIB_RAW_DEVICE_STORE.putPageByteArray(
+          pageId.getFileId(), pageId.getPageIndex(), page.array(), page.limit(),
+          false));
     }
     LOG.debug("The buffer is direct:{}, put result {}", page.isDirect(), returnStatus);
     if (returnStatus != LibRawDeviceStore.ReturnStatus.OK) {
