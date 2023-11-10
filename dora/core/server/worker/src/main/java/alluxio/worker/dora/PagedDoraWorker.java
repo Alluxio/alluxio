@@ -33,6 +33,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.AlreadyExistsException;
@@ -1022,6 +1023,20 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     // except by UFS type
     if (srcUfs != dstUfs) {
       throw new FailedPreconditionException("Cannot rename a file in one UFS to another UFS");
+    }
+
+    try {
+      // Check if the target file already exists. If yes, return by throwing error.
+      boolean overWrite = options.hasOverwrite() ? options.getOverwrite() : false;
+      boolean exists = srcUfs.exists(dst);
+      if (!overWrite && exists) {
+        throw new AlreadyExistsRuntimeException(String.format("File %s already exists but"
+            + "no overwrite flag", dst));
+      } else if (overWrite) {
+        mMetaManager.removeFromMetaStore(dst);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
 
     boolean rc;

@@ -735,7 +735,10 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
-
+    if (src.equals(dst)) {
+      LOG.debug("Renaming {} to the same location", src);
+      return true;
+    }
     AlluxioURI srcPath = getAlluxioPath(src);
     AlluxioURI dstPath = getAlluxioPath(dst);
     try {
@@ -745,34 +748,53 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       return false;
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
-    } catch (AlluxioRuntimeException e) {
-      throw toHdfsIOException(e);
-    } catch (AlluxioException e) {
-      ensureExists(srcPath);
-      URIStatus dstStatus;
-      try {
-        dstStatus = mFileSystem.getStatus(dstPath);
-      } catch (IOException | AlluxioException e2) {
-        LOG.warn("rename failed: {}", e.toString());
-        return false;
-      }
-      // If the destination is an existing folder, try to move the src into the folder
-      if (dstStatus != null && dstStatus.isFolder()) {
-        dstPath = dstPath.joinUnsafe(srcPath.getName());
-      } else {
-        LOG.warn("rename failed: {}", e.toString());
-        return false;
+    } catch (AlluxioRuntimeException | AlluxioException e) {
+      Exception exToLog = e;
+      if (e instanceof  AlluxioRuntimeException) {
+        exToLog = toHdfsIOException((AlluxioRuntimeException) e);
       }
       try {
-        mFileSystem.rename(srcPath, dstPath);
-      } catch (IOException | AlluxioException e2) {
-        LOG.error("Failed to rename {} to {}", src, dst, e2);
+        boolean res = tryMoveIntoDirectory(src, dst, srcPath, dstPath);
+        if (!res) {
+          LOG.warn("Failed to rename src {} to dst {}"
+              + "because the dst is not a directory", src,  dst, exToLog);
+          return false;
+        }
+      } catch (IOException | AlluxioException | AlluxioRuntimeException e2) {
+        LOG.warn("Failed to rename src {} to dst {} with exception {},"
+                + "and fail to move src to dst as a folder with exception",
+            src, dst, exToLog, e2);
         return false;
       }
-    } catch (IOException e) {
-      LOG.error("Failed to rename {} to {}", src, dst, e);
+    } catch (IOException | RuntimeException e) {
+      LOG.warn("Failed to rename {} to {}", src, dst, e);
       return false;
     }
+    return true;
+  }
+
+  /**
+   * rename when previous rename fail, reconstruct path and check status.
+   * In order to support hdfs rename interface
+   *
+   * @param src src
+   * @param dst dst
+   * @param srcPath srcPath
+   * @param dstPath srcPath
+   * @return true in success, false if fail
+   */
+  public boolean tryMoveIntoDirectory(Path src, Path dst, AlluxioURI srcPath, AlluxioURI dstPath)
+      throws IOException, AlluxioException {
+    ensureExists(srcPath);
+    URIStatus dstStatus;
+    dstStatus = mFileSystem.getStatus(dstPath);
+    // If the destination is an existing folder, try to move the src into the folder
+    if (dstStatus != null && dstStatus.isFolder()) {
+      dstPath = dstPath.joinUnsafe(srcPath.getName());
+    } else {
+      return false;
+    }
+    mFileSystem.rename(srcPath, dstPath);
     return true;
   }
 
