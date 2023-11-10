@@ -722,15 +722,16 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
         if (!res) {
           LOG.warn("Failed to rename src {} to dst {}"
               + "because the dst is not a directory", src,  dst, exToLog);
+          return false;
         }
       } catch (IOException | AlluxioException | AlluxioRuntimeException e2) {
-        LOG.error("Failed to rename src {} to dst {} with exception {},"
+        LOG.warn("Failed to rename src {} to dst {} with exception {},"
                 + "and fail to move src to dst as a folder with exception",
             src, dst, exToLog, e2);
         return false;
       }
     } catch (IOException | RuntimeException e) {
-      LOG.error("Failed to rename {} to {}", src, dst, e);
+      LOG.warn("Failed to rename {} to {}", src, dst, e);
       return false;
     }
     return true;
