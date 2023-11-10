@@ -11,7 +11,6 @@
 
 package alluxio.client.hadoop;
 
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
