@@ -64,6 +64,7 @@ public class RawDevicePageStoreDir extends QuotaManagedPageStoreDir {
             jniPageInfo.getFileSize(), CacheScope.GLOBAL, this,
             jniPageInfo.getCreationTime());
         pageInfoConsumer.accept(Optional.of(pageInfo));
+        LOG.debug("Load page: {} {}", startFileId, pageIdx);
       }
       LOG.debug("List next batch {}, {}.", startFileId, pageIdx);
 
