@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.PositionReader;
 import alluxio.client.file.dora.DoraCacheClient;
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
@@ -47,6 +48,10 @@ public class PositionReadFileInStream extends FileInStream {
   private final boolean mDataPreloadEnabled;
   private final long mNumPreloadedDataSize =
       Configuration.getBytes(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_SIZE);
+  private final ConcurrentHashSet<Long> mPreloadingPages = new ConcurrentHashSet<>();
+  // TODO(elega) this should be retrieved from the uri status.
+  private final long mWorkerPageSize =
+      Configuration.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
 
   private class PrefetchCache implements AutoCloseable {
     private final long mFileLength;
@@ -104,13 +109,15 @@ public class PositionReadFileInStream extends FileInStream {
      * @return number of bytes that's been prefetched, 0 if exception occurs
      */
     private int prefetch(PositionReader reader, long pos, int minBytesToRead) {
-      if (mDataPreloadEnabled) {
+      if (mDataPreloadEnabled
+          && mPreloadingPages.addIfAbsent(pos / mWorkerPageSize)) {
         try {
           mClient.cacheData(
               mURIStatus.getUfsPath(), pos,
               Math.min(mURIStatus.getLength() - pos, mNumPreloadedDataSize));
         } catch (Throwable t) {
           LOG.warn("Preload data failed for {}", mURIStatus.getUfsPath(), t);
+          mPreloadingPages.remove(pos / mWorkerPageSize);
         }
       }
 
