@@ -14,7 +14,6 @@ package alluxio.cachestore;
 import alluxio.cachestore.utils.NativeLibraryLoader;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
-import alluxio.client.file.cache.store.LocalPageStoreDir;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.file.ReadTargetBuffer;
@@ -62,7 +61,6 @@ public class RawDeviceStore implements PageStore {
 
   public void put(PageId pageId, ByteBuffer page, boolean isTemporary)
       throws ResourceExhaustedException, IOException {
-    LOG.debug("The buffer is direct:{}", page.isDirect());
     LibRawDeviceStore.ReturnStatus returnStatus = LibRawDeviceStore.ReturnStatus.OK;
     if (page.isDirect()) {
       returnStatus= LIB_RAW_DEVICE_STORE.putPage(
@@ -71,6 +69,7 @@ public class RawDeviceStore implements PageStore {
       returnStatus = LIB_RAW_DEVICE_STORE.putPageByteArray(pageId.getFileId(),
           pageId.getPageIndex(), page.array(), page.limit(), false);
     }
+    LOG.debug("The buffer is direct:{}, put result {}", page.isDirect(), returnStatus);
     if (returnStatus != LibRawDeviceStore.ReturnStatus.OK) {
       throw new IOException(String.format("Failed to put %s, %d",
           pageId.getFileId(), pageId.getPageIndex()));
