@@ -79,9 +79,11 @@ public class RawDeviceStore implements PageStore {
 
   public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
                  boolean isTemporary) throws IOException, PageNotFoundException {
-    LOG.debug("Read {} from raw device store", pageId);
-    return LIB_RAW_DEVICE_STORE.getPage(pageId.getFileId(), pageId.getPageIndex(),
+    int ret = LIB_RAW_DEVICE_STORE.getPage(pageId.getFileId(), pageId.getPageIndex(),
         pageOffset, bytesToRead, buffer.byteBuffer(), false);
+    LOG.debug("Read {} from raw device store, pageOffset {}, bytesToRead {}, return size is {}",
+        pageId, pageOffset, bytesToRead, ret);
+    return ret;
   }
 
   public LibRawDeviceStore.JniPageInfo [] listPages(PageId startPageId, int batchSize) {
