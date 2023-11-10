@@ -19,6 +19,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.fuse.dora.FuseUtils;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
@@ -39,7 +40,7 @@ import java.util.HashSet;
 public class AbstractFuseHdfsIntegrationTest {
   @Rule
   public TemporaryFolder mTemp = new TemporaryFolder();
-  protected static final String MOUNT_POINT = AlluxioTestDirectory
+  protected static String MOUNT_POINT = AlluxioTestDirectory
       .createTemporaryDirectory("fuse_mount").toString();
 
   private static final String PAGING_STORE_DIR = AlluxioTestDirectory
@@ -108,6 +109,9 @@ public class AbstractFuseHdfsIntegrationTest {
   }
 
   private void mountFuse() throws IOException {
+    MOUNT_POINT = AlluxioTestDirectory
+        .createTemporaryDirectory("fuse_mount").toString();
+    Configuration.set(PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT);
     UfsFileSystemOptions ufsOptions = new UfsFileSystemOptions("/");
     FileSystemContext fsContext = FileSystemContext.create(Configuration.global());
     final FileSystemOptions fileSystemOptions =
