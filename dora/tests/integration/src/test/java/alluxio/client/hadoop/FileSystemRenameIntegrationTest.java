@@ -34,13 +34,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.net.URI;
 
-/**
- * Integration tests for {@link FileSystem#rename(Path, Path)}.
- */
-// TODO(jiri): Test persisting rename operations to UFS.
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiaming",
-    comment = "adapt rename to the new arch")
-@Ignore
 public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
