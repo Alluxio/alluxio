@@ -23,6 +23,8 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
+import alluxio.shell.CommandReturn;
+import alluxio.shell.ShellCommand;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.apache.hadoop.fs.FileSystem;
@@ -39,7 +41,7 @@ import java.util.HashSet;
 public class AbstractFuseHdfsIntegrationTest {
   @Rule
   public TemporaryFolder mTemp = new TemporaryFolder();
-  protected static final String MOUNT_POINT = AlluxioTestDirectory
+  protected static String sMountPoint = AlluxioTestDirectory
       .createTemporaryDirectory("fuse_mount").toString();
 
   private static final String PAGING_STORE_DIR = AlluxioTestDirectory
@@ -59,7 +61,7 @@ public class AbstractFuseHdfsIntegrationTest {
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true)
           .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
-          .setProperty(PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT)
+          .setProperty(PropertyKey.FUSE_MOUNT_POINT, sMountPoint)
           .setProperty(PropertyKey.WORKER_PAGE_STORE_DIRS, PAGING_STORE_DIR)
           .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
               "hdfs://localhost:" + HDFS_NAMENODE_PORT + "/")
@@ -86,7 +88,13 @@ public class AbstractFuseHdfsIntegrationTest {
 
   @After
   public void after() throws Exception {
-    mFuseFileSystem.umount(true);
+    String[] args = new String[]{"umount", sMountPoint};
+    ShellCommand shellCmd = new ShellCommand(args);
+    CommandReturn ret = shellCmd.runWithOutput();
+    if (ret.getExitCode() != 0) {
+      System.out.println("Non-zero umount ret code:" + ret.getExitCode()
+          + " retout:" + ret.getOutput());
+    }
     if (mHdfsCluster != null) {
       mHdfsCluster.shutdown();
     }
@@ -108,6 +116,8 @@ public class AbstractFuseHdfsIntegrationTest {
   }
 
   private void mountFuse() throws IOException {
+    sMountPoint = AlluxioTestDirectory.createTemporaryDirectory("fuse_mount").toString();
+    Configuration.set(PropertyKey.FUSE_MOUNT_POINT, sMountPoint);
     UfsFileSystemOptions ufsOptions = new UfsFileSystemOptions("/");
     FileSystemContext fsContext = FileSystemContext.create(Configuration.global());
     final FileSystemOptions fileSystemOptions =
@@ -121,8 +131,8 @@ public class AbstractFuseHdfsIntegrationTest {
             .setFileSystemOptions(fileSystemOptions)
             .build());
     mFuseFileSystem.mount(false, false, new HashSet<>());
-    if (!FuseUtils.waitForFuseMounted(MOUNT_POINT)) {
-      FuseUtils.umountFromShellIfMounted(MOUNT_POINT);
+    if (!FuseUtils.waitForFuseMounted(sMountPoint)) {
+      FuseUtils.umountFromShellIfMounted(sMountPoint);
       fail("Could not setup FUSE mount point");
     }
   }
