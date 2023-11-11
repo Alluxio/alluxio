@@ -1919,6 +1919,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_OSS_DEFAULT_MODE =
+      stringBuilder(Name.UNDERFS_OSS_DEFAULT_MODE)
+          .setAlias("alluxio.underfs.oss.default.mode")
+          .setDefaultValue("0700")
+          .setDescription("Mode (in octal notation) for OSS objects if mode cannot be discovered.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_OWNER_ID_TO_USERNAME_MAPPING =
+      stringBuilder(Name.UNDERFS_OSS_OWNER_ID_TO_USERNAME_MAPPING)
+          .setDescription("Optionally, specify a preset oss canonical id to Alluxio username "
+              + "static mapping, in the format \"id1=user1;id2=user2\". ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey S3A_ACCESS_KEY = stringBuilder(Name.S3A_ACCESS_KEY)
       .setAlias(Name.AWS_ACCESS_KEY)
       .setDescription("The access key of S3 bucket.")
@@ -2311,7 +2326,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD =
       intBuilder(Name.MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD)
           .setDefaultValue(-1)
-          .setDescription("The load job total load failure count threshold. -1 means never fail.")
+          .setDescription("The load job total load failure count threshold. -1 means never fail. ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -2323,15 +2338,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey MASTER_DORA_LOAD_JOB_RETRIES =
-      intBuilder(Name.MASTER_DORA_LOAD_JOB_RETRIES)
-          .setDefaultValue(3)
-          .setDescription("The number of retry attempts before a load of file "
-              + "is considered as failure")
+  public static final PropertyKey MASTER_DORA_LOAD_JOB_RETRY_DLQ_CAPACITY =
+      intBuilder(Name.MASTER_DORA_LOAD_JOB_RETRY_DLQ_CAPACITY)
+          .setDefaultValue(1_000_000)
+          .setDescription(
+              "The capacity of the dead letter queue we persist failed tasks in memory "
+                  + "for retrying purpose. Once the queue is full, failed subtasks will not retry"
+                  + "and will just fail. On average one subtask takes up 0.5KB in memory. "
+                  + " Properly set this property to avoid OOM.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
-
+  public static final PropertyKey MASTER_DORA_LOAD_JOB_FAILED_FILE_LIST_DIR =
+      stringBuilder(Name.MASTER_DORA_LOAD_JOB_FAILED_FILE_LIST_DIR)
+          .setDefaultValue(format("${%s}/job_results/load", Name.WORK_DIR))
+          .setDescription("The directory to store failed file list of a distributed load job.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
       enumBuilder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE, GraceMode.class)
           .setDefaultValue(GraceMode.FORCED)
@@ -3999,6 +4023,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_FAST_DATA_LOAD_ENABLED =
+      booleanBuilder(Name.WORKER_FAST_DATA_LOAD_ENABLED)
+          .setDescription("If enabled, instead of creating a reader to load the data, "
+              + "we just get the data from UFS and put it into the page store. This is an "
+              + "experimental feature.")
+          .setIsHidden(true)
+          .setDefaultValue(false)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID =
       booleanBuilder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)
           .setDefaultValue(false)
@@ -5614,6 +5648,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_IDENTIFIER_INCLUDE_MTIME =
+      booleanBuilder(Name.USER_CLIENT_CACHE_IDENTIFIER_INCLUDE_MTIME)
+          .setDefaultValue(false)
+          .setDescription("If this is enabled, client-side cache will include modification time "
+              + "while calculating the identifier of a file.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
 
   public static final PropertyKey USER_CLIENT_REPORT_VERSION_ENABLED =
       booleanBuilder(Name.USER_CLIENT_REPORT_VERSION_ENABLED)
@@ -6404,6 +6446,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "A value smaller than or equal to zero means no umount wait time. ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_UPDATE_CHECK_ENABLED =
+      booleanBuilder(Name.FUSE_UPDATE_CHECK_ENABLED)
+          .setDefaultValue(Boolean.parseBoolean(ProjectConstants.UPDATE_CHECK_ENABLED))
+          .setDescription("Whether to check for update availability for alluxio-fuse")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey FUSE_USER_GROUP_TRANSLATION_ENABLED =
       booleanBuilder(Name.FUSE_USER_GROUP_TRANSLATION_ENABLED)
@@ -7369,6 +7418,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.oss.multipart.upload.threads";
     public static final String UNDERFS_OSS_MULTIPART_UPLOAD_PARTITION_SIZE =
         "alluxio.underfs.oss.multipart.upload.part.size";
+    public static final String UNDERFS_OSS_DEFAULT_MODE =
+        "alluxio.underfs.oss.default.mode";
+    public static final String UNDERFS_OSS_OWNER_ID_TO_USERNAME_MAPPING =
+        "alluxio.underfs.oss.owner.id.to.username.mapping";
     public static final String UNDERFS_S3_BULK_DELETE_ENABLED =
         "alluxio.underfs.s3.bulk.delete.enabled";
     public static final String UNDERFS_S3_DEFAULT_MODE = "alluxio.underfs.s3.default.mode";
@@ -7543,8 +7596,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.dora.load.job.total.failure.count.threshold";
     public static final String MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_RATIO_THRESHOLD =
         "alluxio.master.dora.load.job.total.failure.ratio.threshold";
-    public static final String MASTER_DORA_LOAD_JOB_RETRIES =
-        "alluxio.master.dora.load.job.retries";
+    public static final String MASTER_DORA_LOAD_JOB_RETRY_DLQ_CAPACITY =
+        "alluxio.master.dora.load.job.retry.dlq.capacity";
+    public static final String MASTER_DORA_LOAD_JOB_FAILED_FILE_LIST_DIR =
+        "alluxio.master.dora.load.job.failed.file.list.dir";
     public static final String MASTER_DAILY_BACKUP_ENABLED =
         "alluxio.master.daily.backup.enabled";
     public static final String MASTER_DAILY_BACKUP_FILES_RETAINED =
@@ -7914,6 +7969,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.data.server.domain.socket.address";
     public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID =
         "alluxio.worker.data.server.domain.socket.as.uuid";
+    public static final String WORKER_FAST_DATA_LOAD_ENABLED =
+        "alluxio.worker.fast.data.load.enabled";
     public static final String WORKER_FUSE_MOUNT_ALLUXIO_PATH =
         "alluxio.worker.fuse.mount.alluxio.path";
     public static final String WORKER_FUSE_MOUNT_OPTIONS =
@@ -8262,6 +8319,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.timeout.duration";
     public static final String USER_CLIENT_CACHE_TIMEOUT_THREADS =
         "alluxio.user.client.cache.timeout.threads";
+    public static final String USER_CLIENT_CACHE_IDENTIFIER_INCLUDE_MTIME =
+        "alluxio.user.client.cache.include.mtime";
     public static final String USER_CLIENT_REPORT_VERSION_ENABLED =
         "alluxio.user.client.report.version.enabled";
     public static final String USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER =
@@ -8468,6 +8527,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.stat.cache.refresh.interval";
     public static final String FUSE_UMOUNT_TIMEOUT =
         "alluxio.fuse.umount.timeout";
+    public static final String FUSE_UPDATE_CHECK_ENABLED =
+        "alluxio.fuse.update.check.enabled";
     public static final String FUSE_USER_GROUP_TRANSLATION_ENABLED =
         "alluxio.fuse.user.group.translation.enabled";
     public static final String FUSE_SPECIAL_COMMAND_ENABLED =

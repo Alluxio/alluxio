@@ -12,7 +12,6 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
@@ -26,9 +25,6 @@ import java.io.IOException;
 /**
  * Tests for chmod command.
  */
-@Ignore
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Jiacheng",
-    comment = "need to check if this command will still exist in Dora")
 public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void chmod() throws IOException, AlluxioException {
@@ -44,6 +40,7 @@ public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTe
   /**
    * Tests -R option for chmod recursively.
    */
+  @Ignore("Before supporting recursively setAttribute() in PagedDoraWorker, it cannot fix.")
   @Test
   public void chmodRecursively() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(sFileSystem, "/testDir/testFile", 10);
@@ -59,12 +56,12 @@ public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTe
 
   @Test
   public void chmodSymbolic() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile", 10);
-    sFsShell.run("chmod", "a=rwx", "/testFile");
-    int permission = sFileSystem.getStatus(new AlluxioURI("/testFile")).getMode();
+    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile1", 10);
+    sFsShell.run("chmod", "a=rwx", "/testFile1");
+    int permission = sFileSystem.getStatus(new AlluxioURI("/testFile1")).getMode();
     Assert.assertEquals((short) 0777, permission);
-    sFsShell.run("chmod", "u=rwx,go=rx", "/testFile");
-    permission = sFileSystem.getStatus(new AlluxioURI("/testFile")).getMode();
+    sFsShell.run("chmod", "u=rwx,go=rx", "/testFile1");
+    permission = sFileSystem.getStatus(new AlluxioURI("/testFile1")).getMode();
     Assert.assertEquals((short) 0755, permission);
   }
 

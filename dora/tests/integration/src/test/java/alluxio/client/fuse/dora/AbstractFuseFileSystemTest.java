@@ -41,7 +41,6 @@ public abstract class AbstractFuseFileSystemTest extends AbstractFuseDoraTest {
     mFuseFs = new AlluxioJniFuseFileSystem(mContext, mFileSystem,
         FuseOptions.Builder.fromConfig(Configuration.global())
             .setFileSystemOptions(fileSystemOptions)
-            .setUpdateCheckEnabled(false)
             .build());
     mFileStat = FileStat.of(ByteBuffer.allocateDirect(256));
     mFileInfo = new AlluxioFuseUtils.CloseableFuseFileInfo();

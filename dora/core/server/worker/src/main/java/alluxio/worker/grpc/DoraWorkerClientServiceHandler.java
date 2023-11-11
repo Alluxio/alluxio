@@ -17,7 +17,6 @@ import alluxio.RpcUtils;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AccessControlException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.BlockWorkerGrpc;
@@ -55,7 +54,6 @@ import alluxio.grpc.SetAttributePResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.OpenFileHandle;
 import alluxio.worker.dora.PagedDoraWorker;
 
@@ -69,7 +67,6 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -88,14 +85,14 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       Configuration.getInt(PropertyKey.MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE);
 
   private final ReadResponseMarshaller mReadResponseMarshaller = new ReadResponseMarshaller();
-  private final DoraWorker mWorker;
+  private final PagedDoraWorker mWorker;
 
   /**
    * Creates a new implementation of gRPC BlockWorker interface.
    * @param doraWorker the DoraWorker object
    */
   @Inject
-  public DoraWorkerClientServiceHandler(DoraWorker doraWorker) {
+  public DoraWorkerClientServiceHandler(PagedDoraWorker doraWorker) {
     mWorker = requireNonNull(doraWorker);
   }
 
@@ -204,7 +201,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
               .build();
       responseObserver.onNext(response);
       responseObserver.onCompleted();
-    } catch (IOException | AccessControlException e) {
+    } catch (Exception e) {
       LOG.debug(String.format("Failed to get status of %s: ", request.getPath()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
@@ -233,7 +230,9 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
         // the list status do not include xattr now. GetAttr will cause some additional overhead.
         // And not every request requires the Xattr. Now only get file xattr in GetStatus.
         alluxio.grpc.FileInfo fi =
-            ((PagedDoraWorker) mWorker).buildFileInfoFromUfsStatus(status, ufsFullPath, null);
+            PagedDoraWorker.buildFileInfoFromUfsStatus(mWorker.getCacheUsage(),
+                    mWorker.getUfsInstance(ufsFullPath).getUnderFSType(),
+                    status, ufsFullPath, null);
 
         builder.addFileInfos(fi);
         if (builder.getFileInfosCount() == LIST_STATUS_BATCH_SIZE) {

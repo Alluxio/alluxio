@@ -74,7 +74,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
 
   @Override
   protected void closeResource(Channel channel) {
-    LOG.info("Channel closed");
+    LOG.debug("Channel closed");
     CommonUtils.closeChannel(channel);
   }
 
@@ -90,7 +90,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
     try {
       ChannelFuture channelFuture = bs.connect().sync();
       if (channelFuture.isSuccess()) {
-        LOG.info("Created netty channel with netty bootstrap {}.", mBootstrap);
+        LOG.debug("Created netty channel with netty bootstrap {}.", mBootstrap);
         return channelFuture.channel();
       } else {
         LOG.error("Failed to create netty channel with netty bootstrap {} and error {}.",

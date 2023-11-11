@@ -160,7 +160,7 @@ public interface BlockWorkerClient extends Closeable {
    * @param request the cache request
    * @return listenable future of CacheDataResponse
    */
-  ListenableFuture<CacheDataResponse> cacheData(CacheDataRequest request);
+  CacheDataResponse cacheData(CacheDataRequest request);
 
   /**
    * Free this worker.

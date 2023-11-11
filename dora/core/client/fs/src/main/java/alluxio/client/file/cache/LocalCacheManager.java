@@ -32,6 +32,7 @@ import alluxio.file.ByteArrayTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.resource.LockResource;
 
@@ -202,13 +203,14 @@ public class LocalCacheManager implements CacheManager {
       } catch (PageNotFoundException e) {
         LOG.debug("getDataChannel({},pageOffset={}) fails due to page not found in metastore",
             pageId, pageOffset);
-        throw e;
+        return Optional.empty();
       }
 
       try {
         DataFileChannel dataFileChannel = pageInfo.getLocalCacheDir().getPageStore()
             .getDataFileChannel(pageInfo.getPageId(), pageOffset, bytesToRead,
                 cacheContext.isTemporary());
+        MultiDimensionalMetricsSystem.CACHED_DATA_READ.inc(bytesToRead);
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).inc();
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesToRead);
         cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
@@ -223,11 +225,11 @@ public class LocalCacheManager implements CacheManager {
         // something is wrong to read this page, let's remove it from meta store
         try (LockResource r2 = new LockResource(mPageMetaStore.getLock().writeLock())) {
           mPageMetaStore.removePage(pageId);
-          throw e;
+          return Optional.empty();
         } catch (PageNotFoundException ex) {
           // best effort to remove this page from meta store and ignore the exception
           Metrics.CLEANUP_GET_ERRORS.inc();
-          throw ex;
+          return Optional.empty();
         }
       }
     } finally {
@@ -416,6 +418,11 @@ public class LocalCacheManager implements CacheManager {
   private PutResult putAttempt(PageId pageId, ByteBuffer page, CacheContext cacheContext,
                                boolean forcedToEvict) {
     LOG.debug("putInternal({},{} bytes) enters", pageId, page.remaining());
+    if (pageId.getPageIndex() > 0 && page.remaining() == 0) {
+      LOG.error("cannot put an empty page except for the first page."
+          + "pageId={}, isTemporary={}", pageId, cacheContext.isTemporary());
+      return PutResult.OTHER;
+    }
     PageInfo victimPageInfo = null;
     CacheScope scopeToEvict;
     ReadWriteLock pageLock = getPageLock(pageId);
@@ -501,6 +508,7 @@ public class LocalCacheManager implements CacheManager {
       try {
         pageStoreDir.getPageStore().delete(victim);
         // Bytes evicted from the cache
+        MultiDimensionalMetricsSystem.CACHED_EVICTED_DATA.inc(victimPageInfo.getPageSize());
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_EVICTED.getName())
             .mark(victimPageInfo.getPageSize());
         // Errors when adding pages
@@ -620,6 +628,7 @@ public class LocalCacheManager implements CacheManager {
         }
         return -1;
       }
+      MultiDimensionalMetricsSystem.CACHED_DATA_READ.inc(bytesRead);
       MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
       cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
           bytesRead);
@@ -858,15 +867,22 @@ public class LocalCacheManager implements CacheManager {
   public void invalidate(Predicate<PageInfo> predicate) {
     mPageStoreDirs.forEach(dir -> {
       try {
-        dir.scanPages(pageInfo -> {
-          if (pageInfo.isPresent() && predicate.test(pageInfo.get())) {
-            MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_INVALIDATED.getName()).mark();
-            MetricsSystem.histogram(MetricKey.CLIENT_CACHE_PAGES_AGES.getName())
-                .update(System.currentTimeMillis() - pageInfo.get().getCreatedTimestamp());
-            delete(pageInfo.get().getPageId());
+        dir.scanPages(pageInfoOpt -> {
+          if (pageInfoOpt.isPresent()) {
+            PageInfo pageInfo = pageInfoOpt.get();
+            boolean isPageDeleted = false;
+            if (predicate.test(pageInfo)) {
+              isPageDeleted = delete(pageInfo.getPageId());
+            }
+            if (!isPageDeleted) {
+              MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_INVALIDATED.getName()).mark();
+              MetricsSystem.histogram(MetricKey.CLIENT_CACHE_PAGES_AGES.getName())
+                  .update(System.currentTimeMillis() - pageInfo.getCreatedTimestamp());
+            }
           }
         });
       } catch (IOException e) {
+        LOG.error("IOException occurs in page scan", e);
         throw new RuntimeException(e);
       }
     });

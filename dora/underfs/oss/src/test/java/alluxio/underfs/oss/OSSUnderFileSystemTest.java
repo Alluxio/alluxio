@@ -215,7 +215,7 @@ public class OSSUnderFileSystemTest {
    */
   @Test
   public void testGetFolderSuffix() {
-    Assert.assertEquals("_$folder$", mOSSUnderFileSystem.getFolderSuffix());
+    Assert.assertEquals("/", mOSSUnderFileSystem.getFolderSuffix());
   }
 
   /**

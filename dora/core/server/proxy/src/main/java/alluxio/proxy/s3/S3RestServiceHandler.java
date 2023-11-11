@@ -225,7 +225,7 @@ public final class S3RestServiceHandler {
     return S3RestUtils.call("", () -> {
       final String user = getUser();
 
-      List<URIStatus> objects = new ArrayList<>();
+      List<URIStatus> objects;
       try (S3AuditContext auditContext = createAuditContext("listBuckets", user, null, null)) {
         try {
           objects = mMetaFS.listStatus(new AlluxioURI("/"));
@@ -1532,7 +1532,7 @@ public final class S3RestServiceHandler {
       @Nullable String bucket, @Nullable String object) {
     // Audit log may be enabled during runtime
     AsyncUserAccessAuditLogWriter auditLogWriter = null;
-    if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
+    if (Configuration.getBoolean(PropertyKey.PROXY_AUDIT_LOGGING_ENABLED)) {
       auditLogWriter = mAsyncAuditLogWriter;
     }
     S3AuditContext auditContext = new S3AuditContext(auditLogWriter);

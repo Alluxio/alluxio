@@ -20,6 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.PositionReader;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.PageId;
@@ -92,9 +93,11 @@ public class PagedDoraWorkerTest {
 
   @Before
   public void before() throws Exception {
+    Configuration.set(PropertyKey.WORKER_FAST_DATA_LOAD_ENABLED, true);
     Configuration.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR,
         mTestFolder.newFolder("rocks"));
     Configuration.set(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, 10);
+    Configuration.set(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false);
     CacheManagerOptions cacheManagerOptions =
         CacheManagerOptions.createForWorker(Configuration.global());
     mPageSize = Configuration.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
@@ -104,9 +107,13 @@ public class PagedDoraWorkerTest {
         CacheManager.Factory.create(Configuration.global(), cacheManagerOptions, pageMetaStore);
     mMembershipManager =
         MembershipManager.Factory.create(Configuration.global());
-    mWorker = new PagedDoraWorker(
-        new AtomicReference<>(WorkerIdentity.ParserV0.INSTANCE.fromLong(1L)),
-        Configuration.global(), mCacheManager, mMembershipManager, new BlockMasterClientPool());
+    DoraUfsManager ufsManager = new DoraUfsManager();
+    DoraMetaManager metaManager = new DoraMetaManager(Configuration.global(),
+        mCacheManager, ufsManager);
+    mWorker = new PagedDoraWorker(new AtomicReference<>(
+            WorkerIdentity.ParserV0.INSTANCE.fromLong(1L)),
+        Configuration.global(), mCacheManager, mMembershipManager,
+        new BlockMasterClientPool(), ufsManager, metaManager, FileSystemContext.create());
   }
 
   @After
@@ -207,6 +214,28 @@ public class PagedDoraWorkerTest {
       byte[] buff = new byte[(int) mPageSize];
       mCacheManager.get(pageId, (int) mPageSize, buff, 0);
       assertTrue(BufferUtils.equalIncreasingByteArray(start, (int) mPageSize, buff));
+      start += mPageSize;
+    }
+  }
+
+  @Test
+  public void testCacheDataNotPageAligned() throws Exception {
+    int numPages = 10;
+    long length = mPageSize * numPages - 1;
+    String ufsPath = mTestFolder.newFile("test").getAbsolutePath();
+    byte[] buffer = BufferUtils.getIncreasingByteArray((int) length);
+    BufferUtils.writeBufferToFile(ufsPath, buffer);
+
+    mWorker.cacheData(ufsPath, length, 0, false);
+    List<PageId> cachedPages =
+        mCacheManager.getCachedPageIdsByFileId(new AlluxioURI(ufsPath).hash(), length);
+    assertEquals(numPages, cachedPages.size());
+    int start = 0;
+    for (PageId pageId : cachedPages) {
+      long size = numPages == pageId.getPageIndex() + 1 ? length % mPageSize : mPageSize;
+      byte[] buff = new byte[(int) size];
+      mCacheManager.get(pageId, (int) size, buff, 0);
+      assertTrue(BufferUtils.equalIncreasingByteArray(start, (int) size, buff));
       start += mPageSize;
     }
   }

@@ -92,6 +92,7 @@ func (c *BaseJavaCommand) RunJavaClassCmd(args []string) *exec.Cmd {
 	cmdArgs = append(cmdArgs, args...)
 
 	ret := exec.Command(Env.EnvVar.GetString(ConfJava.EnvVar), cmdArgs...)
+	ret.Env = os.Environ()
 	for _, k := range Env.EnvVar.AllKeys() {
 		ret.Env = append(ret.Env, fmt.Sprintf("%s=%v", k, Env.EnvVar.Get(k)))
 	}

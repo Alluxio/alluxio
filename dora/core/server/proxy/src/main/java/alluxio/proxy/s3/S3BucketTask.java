@@ -136,7 +136,7 @@ public class S3BucketTask extends S3BaseTask {
       return S3RestUtils.call(S3Constants.EMPTY, () -> {
         final String user = mHandler.getUser();
 
-        List<URIStatus> objects = new ArrayList<>();
+        List<URIStatus> objects;
         try (S3AuditContext auditContext = mHandler.createAuditContext(
                 mOPType.name(), user, null, null)) {
           try {

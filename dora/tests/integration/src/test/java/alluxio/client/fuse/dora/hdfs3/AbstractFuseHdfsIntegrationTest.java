@@ -119,7 +119,6 @@ public class AbstractFuseHdfsIntegrationTest {
         mAlluxioClusterResource.get().getClient(),
         FuseOptions.Builder.fromConfig(Configuration.global())
             .setFileSystemOptions(fileSystemOptions)
-            .setUpdateCheckEnabled(false)
             .build());
     mFuseFileSystem.mount(false, false, new HashSet<>());
     if (!FuseUtils.waitForFuseMounted(MOUNT_POINT)) {

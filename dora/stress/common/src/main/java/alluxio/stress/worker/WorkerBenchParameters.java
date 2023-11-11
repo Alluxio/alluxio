@@ -99,9 +99,10 @@ public final class WorkerBenchParameters extends FileSystemParameters {
 
   @Parameter(names = {"--mode"},
       description = "Specifies which worker the test process reads from."
-          + "Possible values are: [HASH, LOCAL_ONLY]"
+          + "Possible values are: [HASH, LOCAL_ONLY, REMOTE_ONLY]"
           + "HASH -> alluxio.client.file.dora.ConsistentHashPolicy"
           + "LOCAL_ONLY -> alluxio.client.file.dora.LocalWorkerPolicy"
+          + "REMOTE_ONLY -> alluxio.client.file.dora.RemoteOnlyPolicy"
           + "The default is HASH.")
   public WorkerBenchMode mMode = WorkerBenchMode.HASH;
 

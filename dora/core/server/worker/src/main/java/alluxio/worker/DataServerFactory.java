@@ -20,7 +20,7 @@ import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.underfs.UfsManager;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.dora.DoraWorker;
+import alluxio.worker.dora.PagedDoraWorker;
 import alluxio.worker.grpc.DoraWorkerClientServiceHandler;
 import alluxio.worker.grpc.GrpcDataServer;
 
@@ -59,9 +59,9 @@ public class DataServerFactory {
    */
   public DataServer createRemoteGrpcDataServer(DataWorker dataWorker) {
     BlockWorkerGrpc.BlockWorkerImplBase blockWorkerService;
-    if (dataWorker instanceof DoraWorker) {
+    if (dataWorker instanceof PagedDoraWorker) {
       blockWorkerService =
-          new DoraWorkerClientServiceHandler((DoraWorker) dataWorker);
+          new DoraWorkerClientServiceHandler((PagedDoraWorker) dataWorker);
     } else {
       throw new UnsupportedOperationException(dataWorker.getClass().getCanonicalName()
           + " is no longer supported in Alluxio 3.x");
@@ -83,9 +83,9 @@ public class DataServerFactory {
     }
     LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
     BlockWorkerGrpc.BlockWorkerImplBase blockWorkerService;
-    if (worker instanceof DoraWorker) {
+    if (worker instanceof PagedDoraWorker) {
       blockWorkerService =
-          new DoraWorkerClientServiceHandler((DoraWorker) worker);
+          new DoraWorkerClientServiceHandler((PagedDoraWorker) worker);
     } else {
       throw new UnsupportedOperationException(worker.getClass().getCanonicalName()
           + " is no longer supported in Alluxio 3.x");

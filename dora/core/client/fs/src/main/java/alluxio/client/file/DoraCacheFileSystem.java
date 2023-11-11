@@ -30,19 +30,24 @@ import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.job.JobDescription;
+import alluxio.job.JobRequest;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.CloseableResource;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
@@ -60,6 +65,7 @@ import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -163,8 +169,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         throw ex;
       }
       UFS_FALLBACK_COUNTER.inc();
-      LOG.error("Dora client get status error ({} times). Fall back to UFS.",
-          UFS_FALLBACK_COUNTER.getCount(), ex);
+      LOG.error("Dora client get status of '{}' error ({} times). Fall back to UFS.",
+          ufsFullPath, UFS_FALLBACK_COUNTER.getCount(), ex);
       return mDelegatedFileSystem.getStatus(ufsFullPath, options).setFromUFSFallBack();
     }
   }
@@ -379,6 +385,19 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
       mDoraClient.rename(srcUfsFullPath.toString(), dstUfsFullPath.toString(), mergedOptions);
     } catch (RuntimeException ex) {
+      if (ex instanceof StatusRuntimeException) {
+        Status.Code code = ((StatusRuntimeException) ex).getStatus().getCode();
+        if (Status.FAILED_PRECONDITION.getCode().equals(code)) {
+          throw new FailedPreconditionException(String.format(
+              "Precondition failed: cannot rename %s to %s", src.toString(), dst.toString()));
+        } else if (Status.NOT_FOUND.getCode().equals(code)) {
+          throw new FileNotFoundException(ex.getMessage());
+        } else if (Status.ALREADY_EXISTS.getCode().equals(code)) {
+          // throw exception here, no fallback even the fallback is open
+          // which means even ufs support overwrite, alluxio won't allow doing it
+          throw new FileAlreadyExistsException(ex.getMessage());
+        }
+      }
       if (!mUfsFallbackEnabled) {
         throw ex;
       }
@@ -569,5 +588,30 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   @Override
   public DoraCacheFileSystem getDoraCacheFileSystem() {
     return this;
+  }
+
+  @Override
+  public Optional<String> submitJob(JobRequest jobRequest) {
+    try (CloseableResource<FileSystemMasterClient> client =
+             mFsContext.acquireMasterClientResource()) {
+      return client.get().submitJob(jobRequest);
+    }
+  }
+
+  @Override
+  public boolean stopJob(JobDescription jobDescription) {
+    try (CloseableResource<FileSystemMasterClient> client =
+             mFsContext.acquireMasterClientResource()) {
+      return client.get().stopJob(jobDescription);
+    }
+  }
+
+  @Override
+  public String getJobProgress(
+      JobDescription jobDescription, JobProgressReportFormat format, boolean verbose) {
+    try (CloseableResource<FileSystemMasterClient> client =
+             mFsContext.acquireMasterClientResource()) {
+      return client.get().getJobProgress(jobDescription, format, verbose);
+    }
   }
 }
