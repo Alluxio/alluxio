@@ -8,7 +8,6 @@ import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.client.quota.CacheScope;
-import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -51,12 +50,6 @@ public class RawDevicePageStoreDir extends QuotaManagedPageStoreDir {
   @Override
   public Path getRootPath() {
     return Paths.get("/");
-  }
-
-  public void delete(PageId pageId, boolean isTemporary)
-      throws IOException, PageNotFoundException {
-    LOG.debug("deletes page {}", pageId);
-    mRawDeviceStore.delete(pageId);
   }
 
   @Override

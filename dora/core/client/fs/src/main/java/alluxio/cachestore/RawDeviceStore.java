@@ -93,10 +93,12 @@ public class RawDeviceStore implements PageStore {
 
   public void delete(PageId pageId, boolean isTemporary)
       throws IOException, PageNotFoundException {
+    LOG.debug("Deletes {}", pageId);
     LIB_RAW_DEVICE_STORE.deletePage(pageId.getFileId(), pageId.getPageIndex());
   }
 
   public void close() throws Exception {
+    LOG.debug("close the CacheStore");
     LIB_RAW_DEVICE_STORE.closeCacheStore();
   }
 }
