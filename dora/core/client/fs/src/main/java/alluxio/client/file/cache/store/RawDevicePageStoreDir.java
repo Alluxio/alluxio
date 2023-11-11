@@ -8,6 +8,7 @@ import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.client.quota.CacheScope;
+import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -15,7 +16,11 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class RawDevicePageStoreDir extends QuotaManagedPageStoreDir {
+  Logger LOG = LoggerFactory.getLogger(RawDevicePageStoreDir.class);
 
   private final RawDeviceStore mRawDeviceStore;
   public RawDevicePageStoreDir(PageStoreOptions pageStoreOptions,
@@ -46,6 +51,12 @@ public class RawDevicePageStoreDir extends QuotaManagedPageStoreDir {
   @Override
   public Path getRootPath() {
     return Paths.get("/");
+  }
+
+  public void delete(PageId pageId, boolean isTemporary)
+      throws IOException, PageNotFoundException {
+    LOG.debug("deletes page {}", pageId);
+    mRawDeviceStore.delete(pageId);
   }
 
   @Override
