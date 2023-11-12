@@ -368,7 +368,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Nullable
   public UfsStatus[] listStatus(String path, ListStatusPOptions options)
       throws IOException, AccessControlException {
-    final long syncIntervalMs = getSyncIntervalFromOptions(options);
+    long syncIntervalMs = -1;
+    if (options.hasCommonOptions()) {
+      syncIntervalMs = getSyncIntervalMs(options.getCommonOptions());
+    }
     boolean isRecursive = options.getRecursive();
     final Optional<ListStatusResult> resultFromCache = mMetaManager.listCached(path, isRecursive);
     if (resultFromCache.isPresent()
@@ -386,31 +389,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return ufsStatuses.orElse(null);
   }
 
-  private long getSyncIntervalFromOptions(Object obj) {
-    if (obj instanceof ListStatusPOptions) {
-      if (((ListStatusPOptions) obj).hasCommonOptions()) {
-        return getSyncIntervalMs(((ListStatusPOptions) obj).getCommonOptions());
-      } else {
-        return -1;
-      }
-    } else if (obj instanceof GetStatusPOptions) {
-      if (((GetStatusPOptions) obj).hasCommonOptions()) {
-        return getSyncIntervalMs(((GetStatusPOptions) obj).getCommonOptions());
-      } else {
-        return -1;
-      }
-    } else if (obj instanceof ExistsPOptions) {
-      if (((ExistsPOptions) obj).hasCommonOptions()) {
-        return getSyncIntervalMs(((ExistsPOptions) obj).getCommonOptions());
-      } else {
-        return -1;
-      }
-    } else {
-      throw new UnsupportedOperationException(
-          String.format("Unsupported extraction: %s", obj.toString()));
-    }
-  }
-
   private long getSyncIntervalMs(FileSystemMasterCommonPOptions options) {
     if (options.hasSyncIntervalMs()) {
       return options.getSyncIntervalMs();
@@ -422,7 +400,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Override
   public FileInfo getFileInfo(String ufsFullPath, GetStatusPOptions options)
       throws IOException, AccessControlException {
-    long syncIntervalMs = getSyncIntervalFromOptions(options);
+    long syncIntervalMs = -1;
+    if (options.hasCommonOptions()) {
+      syncIntervalMs = getSyncIntervalMs(options.getCommonOptions());
+    }
     alluxio.grpc.FileInfo fi = getGrpcFileInfo(ufsFullPath, syncIntervalMs);
     int cachedPercentage = getCachedPercentage(fi, ufsFullPath);
 
@@ -1048,7 +1029,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public boolean exists(String path, ExistsPOptions options) throws IOException {
-    long syncIntervalMs = getSyncIntervalFromOptions(options);
+    long syncIntervalMs = -1;
+    if (options.hasCommonOptions()) {
+      syncIntervalMs = getSyncIntervalMs(options.getCommonOptions());
+    }
     try {
       return getGrpcFileInfo(path, syncIntervalMs) != null;
     } catch (FileNotFoundException e) {
