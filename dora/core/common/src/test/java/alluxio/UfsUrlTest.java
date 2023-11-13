@@ -118,7 +118,7 @@ public class UfsUrlTest {
   }
 
   @Test
-  public void hashCodeTestOfUfsUrl() {
+  public void hashCodeIdentity() {
     String scheme = "xyz";
     String authority = "192.168.0.1:9527";
     String path = "a/b/c/d";
@@ -203,7 +203,7 @@ public class UfsUrlTest {
    * Tests the {@link UfsUrl#equals(Object)} method.
    */
   @Test
-  public void equals() {
+  public void equality() {
     assertNotEquals(UfsUrl.createInstance("xyz://127.0.0.1:8080/a/b/c.txt"),
         UfsUrl.createInstance("xyz://localhost:8080/a/b/c.txt"));
 
@@ -456,26 +456,32 @@ public class UfsUrlTest {
    * Tests the {@link UfsUrl#UfsUrl(String, String, String)} constructor to throw an
    * exception in case an empty path was provided.
    */
-  @Test(expected = NullPointerException.class)
+  @Test
   public void constructFromEmptyPathTest2() {
-    new UfsUrl(null, null, null);
+    assertThrows(NullPointerException.class, () -> {
+      new UfsUrl(null, null, null);
+    });
   }
 
   /**
    * Tests the {@link UfsUrl#UfsUrl(String, String, String)} constructor to throw an
    * exception in case an empty path was provided.
    */
-  @Test(expected = NullPointerException.class)
+  @Test
   public void constructFromEmptyPathTest3() {
-    new UfsUrl("file", null, "");
+    assertThrows(NullPointerException.class, () -> {
+      new UfsUrl("file", null, "");
+    });
   }
 
   /**
    * Tests the {@link UfsUrl#createInstance(String)} constructor to throw an exception in case an
    * invalid URI was provided.
    */
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void invalidURISyntax() {
-    UfsUrl.createInstance("://localhost:8080/a");
+    assertThrows(IllegalArgumentException.class, () -> {
+      UfsUrl.createInstance("://localhost:8080/a");
+    });
   }
 }
