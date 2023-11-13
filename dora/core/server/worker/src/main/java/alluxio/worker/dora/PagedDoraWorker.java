@@ -370,7 +370,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       throws IOException, AccessControlException {
     long syncIntervalMs = -1;
     if (options.hasCommonOptions()) {
-      syncIntervalMs = getSyncIntervalMs(options.getCommonOptions());
+      syncIntervalMs = getSyncIntervalMsFromOptions(options.getCommonOptions());
     }
     boolean isRecursive = options.getRecursive();
     final Optional<ListStatusResult> resultFromCache = mMetaManager.listCached(path, isRecursive);
@@ -389,7 +389,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return ufsStatuses.orElse(null);
   }
 
-  private long getSyncIntervalMs(FileSystemMasterCommonPOptions options) {
+  private long getSyncIntervalMsFromOptions(FileSystemMasterCommonPOptions options) {
     if (options.hasSyncIntervalMs()) {
       return options.getSyncIntervalMs();
     } else {
@@ -402,7 +402,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       throws IOException, AccessControlException {
     long syncIntervalMs = -1;
     if (options.hasCommonOptions()) {
-      syncIntervalMs = getSyncIntervalMs(options.getCommonOptions());
+      syncIntervalMs = getSyncIntervalMsFromOptions(options.getCommonOptions());
     }
     alluxio.grpc.FileInfo fi = getGrpcFileInfo(ufsFullPath, syncIntervalMs);
     int cachedPercentage = getCachedPercentage(fi, ufsFullPath);
@@ -1031,7 +1031,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   public boolean exists(String path, ExistsPOptions options) throws IOException {
     long syncIntervalMs = -1;
     if (options.hasCommonOptions()) {
-      syncIntervalMs = getSyncIntervalMs(options.getCommonOptions());
+      syncIntervalMs = getSyncIntervalMsFromOptions(options.getCommonOptions());
     }
     try {
       return getGrpcFileInfo(path, syncIntervalMs) != null;
