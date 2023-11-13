@@ -206,9 +206,6 @@ public class UfsUrlTest {
 
     UfsUrl ufsUrl1 = UfsUrl.createInstance("xyz://127.0.0.1:8080/a/b/c.txt");
 
-    assertNotEquals(ufsUrl1, ufsUrl1.toProto());
-    assertEquals(ufsUrl1, ufsUrl1);
-
     UfsUrl ufsUrl2 = UfsUrl.createInstance("xyz://127.0.0.1:8080/a/b/c.txt");
     UfsUrl ufsUrl3 = new UfsUrl("xyz", "127.0.0.1:8080", "/a/b/c.txt");
     assertEquals(ufsUrl1, ufsUrl2);
@@ -303,6 +300,9 @@ public class UfsUrlTest {
         .build();
     UfsUrl ufsUrl = new UfsUrl(scheme, authority, path);
     assertEquals(ufsUrl, UfsUrl.fromProto(ufsUrlMessage));
+
+    UfsUrl url = UfsUrl.createInstance(ufsUrlMessage);
+    assertEquals(url, UfsUrl.fromProto(url.toProto()));
   }
 
   /**
@@ -393,7 +393,7 @@ public class UfsUrlTest {
   }
 
   /**
-   * Tests the {@link AlluxioURI#join(String)} and {@link AlluxioURI#join(AlluxioURI)} methods.
+   * Tests the {@link UfsUrl#join(String)}.
    */
   @Test
   public void join() {
@@ -401,6 +401,15 @@ public class UfsUrlTest {
     assertEquals(UfsUrl.createInstance("abc:/a/b.txt"),
         UfsUrl.createInstance("abc:/a").join("/b.txt"));
 
+    // join empty string
+    assertEquals(UfsUrl.createInstance("abc:/a"), UfsUrl.createInstance("abc:/a").join(""));
+  }
+
+  /**
+   * Tests the {@link UfsUrl#join(String)} with special character.
+   */
+  @Test
+  public void joinSpecialChar() {
     final String pathWithSpecialChar = "根目录";
     assertEquals(UfsUrl.createInstance("abc:/" + pathWithSpecialChar),
         UfsUrl.createInstance("abc:/").join(pathWithSpecialChar));
@@ -408,9 +417,6 @@ public class UfsUrlTest {
     final String pathWithSpecialCharAndColon = "根目录";
     assertEquals(UfsUrl.createInstance("abc:/" + pathWithSpecialCharAndColon),
         UfsUrl.createInstance("abc:/").join(pathWithSpecialCharAndColon));
-
-    // join empty string
-    assertEquals(UfsUrl.createInstance("abc:/a"), UfsUrl.createInstance("abc:/a").join(""));
   }
 
   /**
@@ -418,7 +424,7 @@ public class UfsUrlTest {
    * appropriately.
    */
   @Test
-  public void fileUrl() {
+  public void localFileUrl() {
     UfsUrl url = UfsUrl.createInstance("file:///foo/bar");
     assertTrue(url.getAuthority().toString().isEmpty());
     assertEquals("/foo/bar", url.getFullPath());
@@ -440,8 +446,6 @@ public class UfsUrlTest {
     assertEquals("xyz:///foo/bar/boo", UfsUrl.createInstance("xyz:/foo/bar/boo").toString());
     assertEquals("xyz:///foo/boo/baz",
         UfsUrl.createInstance("xyz:/foo/////boo/baz").toString());
-    // TODO(Yichuan Sun): Is this case needed?
-//    assertEquals("xyz:///foo/boo", UfsUrl.createInstance("xyz:./foo/boo").toString());
 
     assertEquals("foo://bar boo:8080/abc/c",
         UfsUrl.createInstance("foo://bar boo:8080/abc///c").toString());
