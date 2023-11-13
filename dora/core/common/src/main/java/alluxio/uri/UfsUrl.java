@@ -45,6 +45,7 @@ import java.util.Optional;
  *   <li>s3a://bucket1/file</li>
  *   <li>hdfs://namenode:9083/</li>
  *   <li>file:///home/user/file</li>
+ *   <li>foo://bar boo:8080/abc/c</li>
  * </ul>
  * Examples of invalid UFS URL's:
  * <ul>
