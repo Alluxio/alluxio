@@ -18,10 +18,8 @@ import alluxio.util.FormatUtils;
 
 import io.prometheus.metrics.config.PrometheusProperties;
 import io.prometheus.metrics.core.metrics.Counter;
-import io.prometheus.metrics.core.metrics.Gauge;
 import io.prometheus.metrics.core.metrics.GaugeWithCallback;
 import io.prometheus.metrics.core.metrics.Histogram;
-import io.prometheus.metrics.core.metrics.Summary;
 import io.prometheus.metrics.exporter.common.PrometheusHttpRequest;
 import io.prometheus.metrics.exporter.common.PrometheusHttpResponse;
 import io.prometheus.metrics.exporter.common.PrometheusScrapeHandler;
@@ -36,6 +34,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.function.DoubleSupplier;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -52,36 +51,28 @@ public final class MultiDimensionalMetricsSystem {
       .labelNames("method")
       .build();
 
-  public static final Summary DATA_ACCESS_LATENCY = Summary.builder()
-      .name("alluxio_data_access_latency")
-      .help("aggregated latency of all the data access")
-      .unit(Unit.SECONDS)
-      .labelNames("method")
-      .build();
-
-  public static final Histogram UFS_DATA_ACCESS = Histogram.builder()
-      .name("alluxio_ufs_data_access")
-      .help("aggregated throughput of ufs access")
-      .unit(Unit.BYTES)
-      .labelNames("method")
-      .build();
-
-  public static final Summary UFS_DATA_ACCESS_LATENCY = Summary.builder()
-      .name("alluxio_ufs_data_access_latency")
-      .help("aggregated latency of ufs access")
-      .unit(Unit.SECONDS)
-      .labelNames("method")
-      .build();
-
   public static final Counter META_OPERATION = Counter.builder()
       .name("alluxio_meta_operation")
       .help("counter of rpc calls of the meta operations")
       .labelNames("op")
       .build();
 
+  public static final Counter UFS_DATA_ACCESS = Counter.builder()
+      .name("alluxio_ufs_data_access")
+      .help("amount of the ufs access")
+      .unit(Unit.BYTES)
+      .labelNames("method")
+      .build();
+
   public static final Counter CACHED_DATA_READ = Counter.builder()
       .name("alluxio_cached_data_read")
       .help("amount of the read cached data")
+      .unit(Unit.BYTES)
+      .build();
+
+  public static final Counter EXTERNAL_DATA_READ = Counter.builder()
+      .name("alluxio_external_data_read")
+      .help("amount of the read data when cache missed on client")
       .unit(Unit.BYTES)
       .build();
 
@@ -91,10 +82,14 @@ public final class MultiDimensionalMetricsSystem {
       .unit(Unit.BYTES)
       .build();
 
-  public static final Gauge CACHED_STORAGE = Gauge.builder()
+  public static final DoubleSupplier NULL_SUPPLIER = () -> 0;
+  private static DoubleSupplier sCacheStorageSupplier = NULL_SUPPLIER;
+
+  public static final GaugeWithCallback CACHED_STORAGE = GaugeWithCallback.builder()
       .name("alluxio_cached_storage")
       .help("amount of the cached data")
       .unit(Unit.BYTES)
+      .callback(callback -> callback.call(sCacheStorageSupplier.getAsDouble()))
       .build();
 
   public static final GaugeWithCallback CACHED_CAPACITY = GaugeWithCallback.builder()
@@ -120,33 +115,29 @@ public final class MultiDimensionalMetricsSystem {
    */
   public static void initMetrics() {
     JvmMetrics.builder().register();
-    switch (CommonUtils.PROCESS_TYPE.get()) {
-      case MASTER:
-        // No essential metrics for the master for now.
-        break;
-      case WORKER:
-        PrometheusRegistry.defaultRegistry.register(DATA_ACCESS);
-        PrometheusRegistry.defaultRegistry.register(DATA_ACCESS_LATENCY);
-        PrometheusRegistry.defaultRegistry.register(UFS_DATA_ACCESS);
-        PrometheusRegistry.defaultRegistry.register(UFS_DATA_ACCESS_LATENCY);
-        PrometheusRegistry.defaultRegistry.register(META_OPERATION);
-        PrometheusRegistry.defaultRegistry.register(CACHED_DATA_READ);
-        PrometheusRegistry.defaultRegistry.register(CACHED_EVICTED_DATA);
-        PrometheusRegistry.defaultRegistry.register(CACHED_STORAGE);
-        PrometheusRegistry.defaultRegistry.register(CACHED_CAPACITY);
-        break;
-      case CLIENT:
-        PrometheusRegistry.defaultRegistry.register(DATA_ACCESS);
-        PrometheusRegistry.defaultRegistry.register(DATA_ACCESS_LATENCY);
-        PrometheusRegistry.defaultRegistry.register(META_OPERATION);
-        PrometheusRegistry.defaultRegistry.register(CACHED_DATA_READ);
-        PrometheusRegistry.defaultRegistry.register(CACHED_EVICTED_DATA);
-        PrometheusRegistry.defaultRegistry.register(CACHED_STORAGE);
-        PrometheusRegistry.defaultRegistry.register(CACHED_CAPACITY);
-        break;
-      default:
-        // Ignore and only expose JVM-related metrics
+    if (CommonUtils.PROCESS_TYPE.get() != CommonUtils.ProcessType.WORKER
+        && CommonUtils.PROCESS_TYPE.get() != CommonUtils.ProcessType.CLIENT) {
+      return;
     }
+    if (CommonUtils.PROCESS_TYPE.get() == CommonUtils.ProcessType.CLIENT) {
+      PrometheusRegistry.defaultRegistry.register(EXTERNAL_DATA_READ);
+    }
+    PrometheusRegistry.defaultRegistry.register(DATA_ACCESS);
+    PrometheusRegistry.defaultRegistry.register(UFS_DATA_ACCESS);
+    PrometheusRegistry.defaultRegistry.register(META_OPERATION);
+    PrometheusRegistry.defaultRegistry.register(CACHED_DATA_READ);
+    PrometheusRegistry.defaultRegistry.register(CACHED_EVICTED_DATA);
+    PrometheusRegistry.defaultRegistry.register(CACHED_STORAGE);
+    PrometheusRegistry.defaultRegistry.register(CACHED_CAPACITY);
+  }
+
+  /**
+   * Set the supplier for CACHE_STORAGE metrics.
+   *
+   * @param supplier supplier for cache storage
+   */
+  public static void setCacheStorageSupplier(DoubleSupplier supplier) {
+    sCacheStorageSupplier = supplier;
   }
 
   /**
