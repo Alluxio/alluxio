@@ -106,7 +106,7 @@ Alluxio project provides several different client artifacts for external project
   [HDFS-Compatible file system API](https://docs.alluxio.io/os/user/stable/en/api/Java-API.html#hadoop-compatible-java-client).
   This artifact is included in `alluxio-shaded-client`.
 
-Here are examples to declare the dependecies on  `alluxio-shaded-client` using Maven:
+Here are examples to declare the dependencies on  `alluxio-shaded-client` using Maven:
 
   ```xml
   <dependency>
