@@ -2440,7 +2440,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
 
       if (mSyncManager.isSyncPoint(inodePath.getUri())) {
-        mSyncManager.stopSyncAndJournal(RpcContext.NOOP, inodePath.getUri());
+        mSyncManager.stopSyncAndJournal(rpcContext, inodePath.getUri());
       }
 
       // Delete Inodes from children to parents
@@ -3719,7 +3719,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
           + " the path is an existing mount point.");
     }
-    mSyncManager.stopSyncForMount(mountInfo.getMountId());
+    mSyncManager.stopSyncForMount(rpcContext, mountInfo.getMountId());
 
     if (!mMountTable.delete(rpcContext, inodePath.getUri(), true)) {
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
