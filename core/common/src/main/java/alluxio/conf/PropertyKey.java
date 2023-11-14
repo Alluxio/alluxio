@@ -5833,6 +5833,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "before attempting to delete persisted directories recursively.")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILE_DIRECT_ACCESS =
+      listBuilder(Name.USER_FILE_DIRECT_ACCESS)
+          .setDescription("A list of Alluxio paths that are not read or write cached and "
+              + "always fetches from the ufs for the latest listing")
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN =
       intBuilder(Name.USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN)
           .setDefaultValue(0)
@@ -8897,6 +8903,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.copyfromlocal.block.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
         "alluxio.user.file.delete.unchecked";
+    public static final String USER_FILE_DIRECT_ACCESS =
+        "alluxio.user.file.direct.access";
     public static final String USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN =
         "alluxio.user.file.master.client.pool.size.min";
     public static final String USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX =
