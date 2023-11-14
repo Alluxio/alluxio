@@ -110,9 +110,9 @@ public class AlluxioFuse {
     try (FileSystem fs = createBaseFileSystem(fsContext, fuseOptions)) {
       AlluxioJniFuseFileSystem fuseFileSystem = createFuseFileSystem(fsContext, fs, fuseOptions);
       setupFuseFileSystem(fuseFileSystem);
-      launchFuse(fuseFileSystem, fsContext, fuseOptions, true); // This will block until umount
+      // This will block on serving until fuse gets destroyed
+      launchFuse(fuseFileSystem, fsContext, fuseOptions, true);
     } catch (Throwable t) {
-      // TODO(lu) FUSE unmount gracefully
       LOG.error("Failed to launch FUSE", t);
       System.exit(-1);
     } finally {
@@ -157,7 +157,6 @@ public class AlluxioFuse {
       }
 
       startCommon(conf, fuseOptions, fsContext); // This will be blocked until quitting
-
       stopCommon();
       // Explicitly exit() so non daemon threads will be terminated
       System.exit(0);
@@ -276,8 +275,12 @@ public class AlluxioFuse {
 
     String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
     final boolean debugEnabled = conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
+    LOG.info("Installing signal handler for SIGTERM/SIGINT/SIGHUP to handle "
+        + "possible irresponsive umount/fusermount");
     FuseSignalHandler fuseSignalHandler = new FuseSignalHandler(fuseFs);
     Signal.handle(new Signal("TERM"), fuseSignalHandler);
+    Signal.handle(new Signal("INT"), fuseSignalHandler);
+    Signal.handle(new Signal("HUP"), fuseSignalHandler);
     try {
       LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
           mountPoint, String.join(",", fuseOptions.getFuseMountOptions()));

@@ -18,6 +18,7 @@
 
 extern struct fuse_conn_info_opts *conn_info_opts;
 void *init_wrapper(struct fuse_conn_info *conn, struct fuse_config *cfg);
+void destroy_wrapper(void *private_data);
 int chmod_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi);
 int chown_wrapper(const char *path, uid_t uid, gid_t gid, struct fuse_file_info *fi);
 int create_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi);
@@ -54,6 +55,7 @@ int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
 #else
 
 void* init_wrapper(struct fuse_conn_info* conn);
+void destroy_wrapper(void * private_data);
 int chmod_wrapper(const char *path, mode_t mode);
 int chown_wrapper(const char *path, uid_t uid, gid_t gid);
 int create_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi);

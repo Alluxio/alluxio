@@ -41,6 +41,7 @@ class UnlinkOperation;
 class UtimensOperation;
 class WriteOperation;
 class SymlinkOperation;
+class DestroyOperation;
 
 class JniFuseFileSystem {
  private:
@@ -79,6 +80,7 @@ class JniFuseFileSystem {
   UnlinkOperation *unlinkOper;
   UtimensOperation *utimensOper;
   WriteOperation *writeOper;
+  DestroyOperation *destroyOper;
 };
 
 }  // namespace jnifuse
