@@ -377,8 +377,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     if (resultFromCache.isPresent()
         && options.getLoadMetadataType() != LoadMetadataPType.ALWAYS
         && (syncIntervalMs < 0
-        || System.nanoTime() - resultFromCache.get().mTimeStamp
-        <= syncIntervalMs * Constants.MS_NANO)) {
+        || cacheIsValid(resultFromCache.get().mTimeStamp, syncIntervalMs))) {
       MetricsSystem.counter(MetricKey.WORKER_LIST_STATUS_HIT_REQUESTS.getName()).inc();
       return resultFromCache.get().mUfsStatuses;
     }
@@ -395,6 +394,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     } else {
       return -1;
     }
+  }
+
+  private boolean cacheIsValid(long cacheStatusTime, long syncInterval) {
+    return System.nanoTime() - cacheStatusTime <= syncInterval * Constants.MS_NANO;
   }
 
   @Override
@@ -418,7 +421,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     boolean shouldLoad = !status.isPresent();
     if (syncIntervalMs >= 0 && status.isPresent()) {
       // Check if the metadata is still valid.
-      if (System.nanoTime() - status.get().getTs() > syncIntervalMs * Constants.MS_NANO) {
+      if (!cacheIsValid(status.get().getTs(), syncIntervalMs)) {
         shouldLoad = true;
       }
     }
