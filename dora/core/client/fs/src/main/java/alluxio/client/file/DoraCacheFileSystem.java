@@ -61,6 +61,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -505,7 +506,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public List<BlockLocationInfo> getBlockLocations(URIStatus status)
       throws IOException, AlluxioException {
     AlluxioURI ufsPath = convertAlluxioPathToUFSPath(new AlluxioURI(status.getUfsPath()));
-    WorkerNetAddress workerNetAddress = mDoraClient.getWorkerNetAddress(ufsPath.toString());
+    List<WorkerNetAddress> workerNetAddress = mDoraClient.getMultiWorkerNetAddress(ufsPath.toString());
+    List<BlockLocation> locationList = new ArrayList<>();
+    workerNetAddress.forEach(worker -> locationList.add(new BlockLocation().setWorkerAddress(worker)));
     // Dora does not have blocks; to apps who need block location info, we split multiple virtual
     // blocks from a file according to a fixed size
     long blockSize = mDefaultVirtualBlockSize;
@@ -515,12 +518,11 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     ImmutableList.Builder<BlockLocationInfo> listBuilder = ImmutableList.builder();
     for (int i = 0; i < blockNum; i++) {
       long offset = i * blockSize;
-      BlockLocation blockLocation = new BlockLocation().setWorkerAddress(workerNetAddress);
       BlockInfo bi = new BlockInfo()
           // a dummy block ID which shouldn't be used to identify the block
           .setBlockId(i + 1)
           .setLength(Math.min(blockSize, status.getLength() - offset))
-          .setLocations(ImmutableList.of(blockLocation));
+          .setLocations(locationList);
 
       FileBlockInfo fbi = new FileBlockInfo()
           .setUfsLocations(ImmutableList.of(ufsPath.toString()))
@@ -528,7 +530,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
           .setOffset(offset);
 
       BlockLocationInfo blockLocationInfo =
-          new BlockLocationInfo(fbi, ImmutableList.of(workerNetAddress));
+          new BlockLocationInfo(fbi, workerNetAddress);
       listBuilder.add(blockLocationInfo);
     }
     return listBuilder.build();

@@ -403,6 +403,28 @@ public class DoraCacheClient {
   }
 
   /**
+   * Get the worker net address of the specific file path.
+   * @param path the file path
+   * @return the related worker net address where file locates
+   */
+  public List<WorkerNetAddress> getMultiWorkerNetAddress(String path) {
+    try {
+      List<BlockWorkerInfo> workers = mContext.getCachedWorkers();
+      List<BlockWorkerInfo> preferredWorkers =
+          mWorkerLocationPolicy.getPreferredWorkers(workers,
+              path, mPreferredWorkerCount);
+      checkState(preferredWorkers.size() > 0);
+      List<WorkerNetAddress> workerAddresses = new ArrayList<>();
+      preferredWorkers.forEach(worker -> workerAddresses.add(worker.getNetAddress()));
+      return workerAddresses;
+    } catch (IOException e) {
+      // If failed to find workers in the cluster or failed to find the specified number of
+      // workers, throw an exception to the application
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
    * Chooses a client preferred worker from multiple workers which hold multiple replicas.
    *
    * @param workers a list of workers
