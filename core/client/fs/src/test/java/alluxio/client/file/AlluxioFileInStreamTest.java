@@ -766,8 +766,15 @@ public final class AlluxioFileInStreamTest {
     when(mBlockStore
         .getInStream(eq(0L), any(InStreamOptions.class), any()))
         .thenReturn(brokenStream).thenReturn(workingStream);
+    when(mBlockStore
+        .getInStream(eq(new BlockInfo().setBlockId(0)), any(InStreamOptions.class), any()))
+        .thenReturn(brokenStream).thenReturn(workingStream);
     when(brokenStream.positionedRead(anyLong(), any(byte[].class), anyInt(), anyInt()))
         .thenThrow(new UnavailableException("test exception"));
+    when(mBlockStore.getInfo(anyLong())).thenAnswer(invocation -> {
+      long blockId = invocation.getArgument(0);
+      return mStatus.getBlockInfo(blockId);
+    });
 
     byte[] b = new byte[(int) BLOCK_LENGTH * 2];
     mTestStream.positionedRead(BLOCK_LENGTH / 2, b, 0, b.length);
