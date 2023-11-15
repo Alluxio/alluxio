@@ -48,8 +48,8 @@ public class UfsUrlTest {
     UfsUrl ufsUrl = UfsUrl.createInstance("abc://localhost:19998/xy z/a b c");
 
     assertNotNull(ufsUrl.getAuthority());
-    assertEquals("localhost:19998", ufsUrl.getAuthority().toString());
-    SingleMasterAuthority authority = (SingleMasterAuthority) ufsUrl.getAuthority();
+    assertEquals("localhost:19998", ufsUrl.getAuthority().get().toString());
+    SingleMasterAuthority authority = (SingleMasterAuthority) ufsUrl.getAuthority().get();
     assertEquals("localhost", authority.getHost());
     assertEquals(19998, authority.getPort());
 
@@ -71,7 +71,7 @@ public class UfsUrlTest {
     String path1 = "/";
     UfsUrl ufsUrl1 = new UfsUrl(scheme1, authority1, path1);
     assertEquals(scheme1, ufsUrl1.getScheme());
-    assertEquals(authority1, ufsUrl1.getAuthority().toString());
+    assertEquals(authority1, ufsUrl1.getAuthority().get().toString());
     assertEquals(path1, ufsUrl1.getFullPath());
 
     String scheme2 = "file";
@@ -79,7 +79,7 @@ public class UfsUrlTest {
     String path2 = "/testDir/testFile";
     UfsUrl ufsUrl2 = new UfsUrl(scheme2, authority2, path2);
     assertEquals(scheme2, ufsUrl2.getScheme());
-    assertEquals(authority2, ufsUrl2.getAuthority().toString());
+    assertEquals(authority2, ufsUrl2.getAuthority().get().toString());
     assertEquals(path2, ufsUrl2.getFullPath());
     assertEquals(scheme2 + "://" + authority2 + path2, ufsUrl2.toString());
 
@@ -89,7 +89,7 @@ public class UfsUrlTest {
 
     String ufsUrlString4 = "xyz://localhost:9999";
     UfsUrl ufsUrl4 = UfsUrl.createInstance(ufsUrlString4);
-    assertEquals("localhost:9999", ufsUrl4.getAuthority().toString());
+    assertEquals("localhost:9999", ufsUrl4.getAuthority().get().toString());
   }
 
   /**
@@ -100,9 +100,9 @@ public class UfsUrlTest {
     UfsUrl ufsUrl = UfsUrl.createInstance("hdfs://localhost:8020/xy z/a b c");
 
     assertNotNull(ufsUrl.getAuthority());
-    assertEquals("localhost:8020", ufsUrl.getAuthority().toString());
-    assertTrue(ufsUrl.getAuthority() instanceof SingleMasterAuthority);
-    SingleMasterAuthority authority = (SingleMasterAuthority) ufsUrl.getAuthority();
+    assertEquals("localhost:8020", ufsUrl.getAuthority().get().toString());
+    assertTrue(ufsUrl.getAuthority().get() instanceof SingleMasterAuthority);
+    SingleMasterAuthority authority = (SingleMasterAuthority) ufsUrl.getAuthority().get();
     assertEquals("localhost", authority.getHost());
     assertEquals(8020, authority.getPort());
 
@@ -225,37 +225,37 @@ public class UfsUrlTest {
     for (String authority : authorities) {
       UfsUrl uri = new UfsUrl("file", authority, "/a/b");
       assertNotNull(uri.getAuthority());
-      assertEquals(authority, uri.getAuthority().toString());
+      assertEquals(authority, uri.getAuthority().get().toString());
     }
 
     assertEquals("",
-        new UfsUrl("file", "", "/b/c").getAuthority().toString());
-    assertEquals("", UfsUrl.createInstance("file:///b/c").getAuthority().toString());
+        new UfsUrl("file", "", "/b/c").getAuthority().get().toString());
+    assertEquals("", UfsUrl.createInstance("file:///b/c").getAuthority().get().toString());
   }
 
   @Test
   public void authorityTypes() {
     assertTrue(new UfsUrl("file", "localhost:8080", "/b/c")
-        .getAuthority() instanceof SingleMasterAuthority);
+        .getAuthority().get() instanceof SingleMasterAuthority);
 
     assertTrue(new UfsUrl("file", "zk@host:2181", "/b/c")
-        .getAuthority() instanceof ZookeeperAuthority);
-    assertTrue(UfsUrl.createInstance("xxx://zk@host1:2181,host2:2181,host3:2181/b/c").getAuthority()
-        instanceof ZookeeperAuthority);
-    assertTrue(UfsUrl.createInstance("xxx://zk@host1:2181;host2:2181;host3:2181/b/c").getAuthority()
-        instanceof ZookeeperAuthority);
+        .getAuthority().get() instanceof ZookeeperAuthority);
+    assertTrue(UfsUrl.createInstance("xxx://zk@host1:2181,host2:2181,host3:2181/b/c")
+        .getAuthority().get() instanceof ZookeeperAuthority);
+    assertTrue(UfsUrl.createInstance("xxx://zk@host1:2181;host2:2181;host3:2181/b/c")
+        .getAuthority().get() instanceof ZookeeperAuthority);
 
-    assertTrue(new UfsUrl("file", "", "/b/c").getAuthority()
+    assertTrue(new UfsUrl("file", "", "/b/c").getAuthority().get()
         instanceof NoAuthority);
-    assertTrue(UfsUrl.createInstance("file:///b/c").getAuthority() instanceof NoAuthority);
+    assertTrue(UfsUrl.createInstance("file:///b/c").getAuthority().get() instanceof NoAuthority);
 
-    assertTrue(new UfsUrl("file", "ebj@logical", "/b/c").getAuthority()
+    assertTrue(new UfsUrl("file", "ebj@logical", "/b/c").getAuthority().get()
         instanceof EmbeddedLogicalAuthority);
 
-    assertTrue(new UfsUrl("file", "zk@logical", "/b/c").getAuthority()
+    assertTrue(new UfsUrl("file", "zk@logical", "/b/c").getAuthority().get()
         instanceof ZookeeperLogicalAuthority);
 
-    assertTrue(new UfsUrl("file", "localhost", "/b/c").getAuthority()
+    assertTrue(new UfsUrl("file", "localhost", "/b/c").getAuthority().get()
         instanceof UnknownAuthority);
   }
 
@@ -429,7 +429,7 @@ public class UfsUrlTest {
   @Test
   public void localFileUrl() {
     UfsUrl url = UfsUrl.createInstance("file:///foo/bar");
-    assertTrue(url.getAuthority().toString().isEmpty());
+    assertTrue(url.getAuthority().get().toString().isEmpty());
     assertEquals("/foo/bar", url.getFullPath());
     assertEquals("file:///foo/bar", url.toString());
   }

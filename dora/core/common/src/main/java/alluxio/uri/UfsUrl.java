@@ -224,8 +224,11 @@ public class UfsUrl {
   /**
    * @return the authority of the {@link UfsUrl}
    */
-  public Authority getAuthority() {
-    return Authority.fromString(mProto.getAuthority());
+  public Optional<Authority> getAuthority() {
+    if (!mProto.hasAuthority()) {
+      return Optional.empty();
+    }
+    return Optional.of(Authority.fromString(mProto.getAuthority()));
   }
 
   /**
