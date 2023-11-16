@@ -287,6 +287,7 @@ public final class S3RestServiceHandler {
    * @param acl query string to indicate if this is for GetBucketAcl
    * @param policy query string to indicate if this is for GetBucketPolicy
    * @param policyStatus query string to indicate if this is for GetBucketPolicyStatus
+   * @param location query parameter to indicate if this is for GetBucketLocation
    * @param uploads query string to indicate if this is for ListMultipartUploads
    * @return the response object
    */
@@ -306,6 +307,7 @@ public final class S3RestServiceHandler {
                             @QueryParam("acl") final String acl,
                             @QueryParam("policy") final String policy,
                             @QueryParam("policyStatus") final String policyStatus,
+                            @QueryParam("location") final String location,
                             @QueryParam("uploads") final String uploads) {
     return S3RestUtils.call(bucket, () -> {
       Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
@@ -326,6 +328,12 @@ public final class S3RestServiceHandler {
             S3ErrorCode.INTERNAL_ERROR.getCode(),
             "GetBucketpolicyStatus is not currently supported.",
             S3ErrorCode.INTERNAL_ERROR.getStatus()));
+      }
+      if (location != null) {
+        throw new S3Exception(bucket, new S3ErrorCode(
+            S3ErrorCode.NOT_IMPLEMENTED.getCode(),
+            "GetBucketLocation is not currently supported.",
+            S3ErrorCode.NOT_IMPLEMENTED.getStatus()));
       }
 
       String path = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
