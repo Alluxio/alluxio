@@ -360,6 +360,7 @@ public class UfsUrl {
    */
   public String getName() {
     List<String> pathComponents = getPathComponents();
+    // handle the special case "/"
     if (pathComponents.isEmpty()) {
       return "";
     }
