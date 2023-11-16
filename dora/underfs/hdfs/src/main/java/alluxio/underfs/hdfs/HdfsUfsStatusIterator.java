@@ -97,21 +97,24 @@ public class HdfsUfsStatusIterator implements Iterator<UfsStatus> {
       FileStatus fileStatus = mHdfsRemoteIterator.next();
       UfsStatus ufsStatus;
       Path path = fileStatus.getPath();
+
       AlluxioURI alluxioUri = new AlluxioURI(path.toString());
+      AlluxioURI rootUri = new AlluxioURI(alluxioUri.getRootPath());
       if (fileStatus.isDirectory()) {
-        ufsStatus = new UfsDirectoryStatus(path.getName(), fileStatus.getOwner(),
+        ufsStatus = new UfsDirectoryStatus(path.toUri().getPath(), fileStatus.getOwner(),
             fileStatus.getGroup(), fileStatus.getPermission().toShort(),
             fileStatus.getModificationTime());
+        ufsStatus.setUfsFullPath(rootUri.join(ufsStatus.getName()));
         mDirPathsToProcess.addLast(new Pair<>(path.toString(), ufsStatus));
       } else {
         String contentHash =
             UnderFileSystemUtils.approximateContentHash(
                 fileStatus.getLen(), fileStatus.getModificationTime());
-        ufsStatus = new UfsFileStatus(path.getName(), contentHash, fileStatus.getLen(),
+        ufsStatus = new UfsFileStatus(path.toUri().getPath(), contentHash, fileStatus.getLen(),
             fileStatus.getModificationTime(), fileStatus.getOwner(), fileStatus.getGroup(),
             fileStatus.getPermission().toShort(), fileStatus.getBlockSize());
+        ufsStatus.setUfsFullPath(rootUri.join(ufsStatus.getName()));
       }
-      ufsStatus.setUfsFullPath(alluxioUri);
       return ufsStatus;
     } catch (IOException e) {
       throw new RuntimeException(e);

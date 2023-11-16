@@ -131,13 +131,13 @@ public class HdfsUnderFileSystemIntegrationTest extends HdfsUnderFileSystemInteg
       listResult.add(ufsStatus);
     }
     assertEquals(8, listResult.size());
-    assertEquals("testDirectory1", listResult.get(0).getName());
-    assertEquals("testDirectory2", listResult.get(1).getName());
-    assertEquals("testFileA", listResult.get(2).getName());
-    assertEquals("testFileC", listResult.get(3).getName());
-    assertEquals("testFileB", listResult.get(4).getName());
-    assertEquals("testDirectory3", listResult.get(5).getName());
-    assertEquals("testFileD", listResult.get(6).getName());
-    assertEquals("testFileE", listResult.get(7).getName());
+    assertEquals("/testRoot/testDirectory1", listResult.get(0).getName());
+    assertEquals("/testRoot/testDirectory2", listResult.get(1).getName());
+    assertEquals("/testRoot/testFileA", listResult.get(2).getName());
+    assertEquals("/testRoot/testFileC", listResult.get(3).getName());
+    assertEquals("/testRoot/testDirectory1/testFileB", listResult.get(4).getName());
+    assertEquals("/testRoot/testDirectory2/testDirectory3", listResult.get(5).getName());
+    assertEquals("/testRoot/testDirectory2/testFileD", listResult.get(6).getName());
+    assertEquals("/testRoot/testDirectory2/testDirectory3/testFileE", listResult.get(7).getName());
   }
 }
