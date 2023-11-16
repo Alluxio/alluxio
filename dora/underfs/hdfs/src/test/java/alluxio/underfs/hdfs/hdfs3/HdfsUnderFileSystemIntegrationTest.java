@@ -22,6 +22,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -122,22 +124,71 @@ public class HdfsUnderFileSystemIntegrationTest extends HdfsUnderFileSystemInteg
     writeMultiBlockFileTest("/testRoot/testDirectory2/testFileD");
     writeMultiBlockFileTest("/testRoot/testDirectory2/testDirectory3/testFileE");
 
+    String ufsSchema = mUfs.getFs().getUri().toString();
+
+    testListPath(ufsSchema + "/testRoot");
+    testListPath(ufsSchema + "/testRoot/");
+    testListPath(ufsSchema + "/testRoot/testDirectory2");
+    testListPath(ufsSchema + "/testRoot/testDirectory2/");
+    testListPath(ufsSchema + "/testRoot/testDirectory2/testFileB");
+    testListPath(ufsSchema + "/");
+
+    testListPath("/testRoot");
+    testListPath("/testRoot/");
+    testListPath("/testRoot/testDirectory2");
+    testListPath("/testRoot/testDirectory2/");
+    testListPath("/testRoot/testDirectory2/testFileB");
+    testListPath("/");
+
     Iterator<UfsStatus> iterator = mUfs.listStatusIterable("/testRoot",
         ListOptions.defaults(), null, 1000);
 
-    List<UfsStatus> listResult = new ArrayList<>();
+    List<UfsStatus> iteratorListRes = new ArrayList<>();
     while (iterator.hasNext()) {
       UfsStatus ufsStatus = iterator.next();
-      listResult.add(ufsStatus);
+      iteratorListRes.add(ufsStatus);
     }
-    assertEquals(8, listResult.size());
-    assertEquals("testDirectory1", listResult.get(0).getName());
-    assertEquals("testDirectory2", listResult.get(1).getName());
-    assertEquals("testFileA", listResult.get(2).getName());
-    assertEquals("testFileC", listResult.get(3).getName());
-    assertEquals("testFileB", listResult.get(4).getName());
-    assertEquals("testDirectory3", listResult.get(5).getName());
-    assertEquals("testFileD", listResult.get(6).getName());
-    assertEquals("testFileE", listResult.get(7).getName());
+
+    assertEquals(8, iteratorListRes.size());
+    assertEquals("testDirectory1", iteratorListRes.get(0).getName());
+    assertEquals("testDirectory2", iteratorListRes.get(1).getName());
+    assertEquals("testFileA", iteratorListRes.get(2).getName());
+    assertEquals("testFileC", iteratorListRes.get(3).getName());
+    assertEquals("testDirectory1/testFileB", iteratorListRes.get(4).getName());
+    assertEquals("testDirectory2/testDirectory3", iteratorListRes.get(5).getName());
+    assertEquals("testDirectory2/testFileD", iteratorListRes.get(6).getName());
+    assertEquals("testDirectory2/testDirectory3/testFileE", iteratorListRes.get(7).getName());
+  }
+
+  private void testListPath(String path) throws IOException {
+    Iterator<UfsStatus> iterator = mUfs.listStatusIterable(path,
+        ListOptions.defaults(), null, 1000);
+
+    List<UfsStatus> fullListRes = null;
+    UfsStatus[] fullListResArray = mUfs.listStatus(path,
+        ListOptions.defaults().setRecursive(true));
+    if (fullListResArray == null) {
+      fullListRes = Collections.emptyList();
+    } else {
+      fullListRes = Arrays.asList(fullListResArray);
+    }
+
+    List<UfsStatus> iteratorListRes = new ArrayList<>();
+    while (iterator.hasNext()) {
+      UfsStatus ufsStatus = iterator.next();
+      iteratorListRes.add(ufsStatus);
+    }
+
+    assertEquals(fullListRes.size(), iteratorListRes.size());
+    for (int i = 0; i < fullListRes.size(); i++) {
+      UfsStatus fullListUfsStatus = fullListRes.get(i);
+      UfsStatus iteratorListUfsStatus = iteratorListRes.get(i);
+      assertEquals(fullListUfsStatus.getName(), iteratorListUfsStatus.getName());
+      assertEquals(fullListUfsStatus.getGroup(), iteratorListUfsStatus.getGroup());
+      assertEquals(fullListUfsStatus.getOwner(), iteratorListUfsStatus.getOwner());
+      assertEquals(fullListUfsStatus.getMode(), iteratorListUfsStatus.getMode());
+      assertEquals(fullListUfsStatus.isDirectory(), iteratorListUfsStatus.isDirectory());
+      assertEquals(fullListUfsStatus.isFile(), iteratorListUfsStatus.isFile());
+    }
   }
 }
