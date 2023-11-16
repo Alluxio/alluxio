@@ -581,32 +581,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     return retryOnException(() -> isDirectory(path),
         () -> "check if " + path + " is a directory");
   }
-//  @Override
-//  public void setAttribute(String path, String name, byte[] value) throws IOException {
-//    path = stripPrefixIfPresent(path);
-//    if (isDirectory(path)) {
-//      setObjectTagging(convertToFolderName(path), name, new String(value));
-//    } else {
-//      setObjectTagging(path, name, new String(value));
-//    }
-//  }
-//
-//  @Override
-//  public Map<String, String> getAttributes(String path) throws IOException {
-//    path = stripPrefixIfPresent(path);
-//    try {
-//      if (isDirectory(path)) {
-//        return getObjectTags(convertToFolderName(path));
-//      } else {
-//        return getObjectTags(path);
-//      }
-//    } catch (AlluxioRuntimeException e) {
-//      if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {
-//        return null;
-//      }
-//      throw e;
-//    }
-//  }
 
   /**
    * Sets a tag to an object in the ObjectUnderFilesystem.
