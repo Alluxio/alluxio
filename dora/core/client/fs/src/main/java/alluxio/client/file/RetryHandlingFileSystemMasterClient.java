@@ -240,13 +240,6 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized List<SyncPointInfo> getSyncPathList() throws AlluxioStatusException {
-    return retryRPC(() -> mClient.getSyncPathList(GetSyncPathListPRequest.getDefaultInstance())
-        .getSyncPathsList().stream().map(x -> alluxio.wire.SyncPointInfo.fromProto(x))
-        .collect(Collectors.toList()), RPC_LOG, "GetSyncPathList", "");
-  }
-
-  @Override
   public long getNewBlockIdForFile(final AlluxioURI path)
       throws AlluxioStatusException {
     return retryRPC(
