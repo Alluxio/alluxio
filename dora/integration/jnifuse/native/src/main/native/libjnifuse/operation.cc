@@ -520,4 +520,18 @@ int UtimensOperation::call(const char *path, const struct timespec ts[2]) {
 
   return ret;
 }
+
+DestroyOperation::DestroyOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "()V";
+  this->methodID = env->GetMethodID(this->clazz, "destroyCallback", signature);
+}
+
+void DestroyOperation::call() {
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
+  env->CallVoidMethod(this->obj, this->methodID);
+}
 }  // namespace jnifuse

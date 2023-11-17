@@ -52,6 +52,7 @@ import alluxio.grpc.RouteFailure;
 import alluxio.grpc.SetAttributePRequest;
 import alluxio.grpc.SetAttributePResponse;
 import alluxio.grpc.TaskStatus;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.underfs.UfsStatus;
 import alluxio.uri.UfsUrl;
 import alluxio.util.io.PathUtils;
@@ -128,6 +129,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   @Override
   public void loadFile(LoadFileRequest request, StreamObserver<LoadFileResponse> responseObserver) {
     try {
+      MultiDimensionalMetricsSystem.META_OPERATION.labelValues("load").inc();
       ListenableFuture<LoadFileResponse> response =
           mWorker.load(request.getSubtasksList(), request.getSkipIfExists(), request.getOptions());
       ListenableFuture<LoadFileResponse> future = Futures.transform(response, resp -> {
@@ -149,6 +151,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   @Override
   public void copy(CopyRequest request, StreamObserver<CopyResponse> responseObserver) {
     try {
+      MultiDimensionalMetricsSystem.META_OPERATION.labelValues("copy").inc();
       ListenableFuture<List<RouteFailure>> failures =
           mWorker.copy(request.getRoutesList(), request.getUfsReadOptions(),
               request.getWriteOptions());
@@ -171,6 +174,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   @Override
   public void move(MoveRequest request, StreamObserver<MoveResponse> responseObserver) {
     try {
+      MultiDimensionalMetricsSystem.META_OPERATION.labelValues("move").inc();
       ListenableFuture<List<RouteFailure>> failures =
               mWorker.move(request.getRoutesList(), request.getUfsReadOptions(),
                       request.getWriteOptions());
@@ -194,6 +198,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   public void getStatus(GetStatusPRequest request,
       StreamObserver<GetStatusPResponse> responseObserver) {
     try {
+      MultiDimensionalMetricsSystem.META_OPERATION.labelValues("getStatus").inc();
       alluxio.wire.FileInfo fileInfo = mWorker.getFileInfo(request.getPath(),
           request.getOptions());
       GetStatusPResponse response =
@@ -214,6 +219,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
     UfsUrl ufsPath = UfsUrl.fromProto(request.getUfsPath());
     LOG.debug("listStatus is called for {}", ufsPath.toString());
     try {
+      MultiDimensionalMetricsSystem.META_OPERATION.labelValues("listStatus").inc();
       UfsStatus[] statuses;
       if (ufsPath.getScheme().equalsIgnoreCase("file")) {
         statuses = mWorker.listStatus(ufsPath.getFullPath(), request.getOptions());
@@ -269,6 +275,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
                          StreamObserver<CreateFilePResponse> responseObserver) {
     LOG.debug("Got createFile: {}", request);
     try {
+      MultiDimensionalMetricsSystem.META_OPERATION.labelValues("createFile").inc();
       String ufsFullPath = request.getPath();
 
       OpenFileHandle handle = mWorker.createFile(ufsFullPath, request.getOptions());
@@ -309,6 +316,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   public void remove(DeletePRequest request, StreamObserver<DeletePResponse> responseObserver) {
     LOG.debug("Got Remove: {}", request);
     try {
+      MultiDimensionalMetricsSystem.META_OPERATION.labelValues("remove").inc();
       String ufsFullPath = request.getPath();
 
       mWorker.delete(ufsFullPath, request.getOptions());
@@ -327,6 +335,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
     String src = request.getPath();
     String dst = request.getDstPath();
     try {
+      MultiDimensionalMetricsSystem.META_OPERATION.labelValues("rename").inc();
       mWorker.rename(src, dst, request.getOptions());
       RenamePResponse response = RenamePResponse.newBuilder().build();
       responseObserver.onNext(response);
@@ -342,6 +351,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
                               StreamObserver<CreateDirectoryPResponse> responseObserver) {
     LOG.debug("Got CreateDirectory: {}", request);
     try {
+      MultiDimensionalMetricsSystem.META_OPERATION.labelValues("createDir").inc();
       String ufsFullPath = request.getPath();
 
       mWorker.createDirectory(ufsFullPath, request.getOptions());
@@ -358,6 +368,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   public void exists(ExistsPRequest request, StreamObserver<ExistsPResponse> responseObserver) {
     LOG.debug("Got exists request: {}", request);
     try {
+      MultiDimensionalMetricsSystem.META_OPERATION.labelValues("exists").inc();
       String ufsFullPath = request.getPath();
 
       boolean exists = mWorker.exists(ufsFullPath, request.getOptions());
@@ -375,6 +386,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
                            StreamObserver<SetAttributePResponse> responseObserver) {
     LOG.debug("Got setAttribute request: {}", request);
     try {
+      MultiDimensionalMetricsSystem.META_OPERATION.labelValues("setAttr").inc();
       String ufsFullPath = request.getPath();
 
       mWorker.setAttribute(ufsFullPath, request.getOptions());

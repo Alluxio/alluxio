@@ -22,6 +22,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
 import alluxio.membership.MembershipManager;
 import alluxio.membership.MembershipType;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerIdentity;
 import alluxio.worker.Worker;
@@ -89,6 +90,7 @@ public class DoraWorkerModule extends AbstractModule {
       PageMetaStore pageMetaStore = PageMetaStore.create(
           CacheManagerOptions.createForWorker(Configuration.global()));
       bind(PageMetaStore.class).toInstance(pageMetaStore);
+      MultiDimensionalMetricsSystem.setCacheStorageSupplier(pageMetaStore::bytes);
       bind(CacheManager.class).toProvider(() ->
       {
         try {

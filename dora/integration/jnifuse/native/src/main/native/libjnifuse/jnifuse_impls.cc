@@ -33,6 +33,10 @@ void *init_wrapper(struct fuse_conn_info *conn, struct fuse_config *cfg) {
   return NULL;
 }
 
+void destroy_wrapper(void *private_data) {
+  jnifuse::JniFuseFileSystem::getInstance()->destroyOper->call();
+}
+
 int chmod_wrapper(const char *path, mode_t mode, struct fuse_file_info *fi) {
   return jnifuse::JniFuseFileSystem::getInstance()->chmodOper->call(path, mode);
 }
@@ -176,6 +180,10 @@ void* init_wrapper(struct fuse_conn_info* conn) {
     conn->want |= FUSE_CAP_BIG_WRITES;
   }
   return NULL;
+}
+
+void destroy_wrapper(void *private_data) {
+  jnifuse::JniFuseFileSystem::getInstance()->destroyOper->call();
 }
 
 int chmod_wrapper(const char *path, mode_t mode) {

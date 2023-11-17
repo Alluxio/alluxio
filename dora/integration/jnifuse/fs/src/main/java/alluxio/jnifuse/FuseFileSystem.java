@@ -21,6 +21,10 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public interface FuseFileSystem {
 
+  default void destroy() {
+    throw new UnsupportedOperationException("destroy");
+  }
+
   default int getattr(String path, FileStat stat) {
     throw new UnsupportedOperationException("getattr");
   }

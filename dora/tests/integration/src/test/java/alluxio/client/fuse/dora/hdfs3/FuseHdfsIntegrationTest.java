@@ -38,7 +38,7 @@ public class FuseHdfsIntegrationTest extends AbstractFuseHdfsIntegrationTest {
 
   @Test
   public void createDeleteEmptyFile() throws Exception {
-    String testFile = Paths.get(MOUNT_POINT, "/createDeleteEmptyFile").toString();
+    String testFile = Paths.get(sMountPoint, "/createDeleteEmptyFile").toString();
     File file = new File(testFile);
     assertFalse(file.exists());
     new FileOutputStream(testFile).close();
@@ -52,7 +52,7 @@ public class FuseHdfsIntegrationTest extends AbstractFuseHdfsIntegrationTest {
 
   @Test
   public void writeThenRead() throws Exception {
-    String testFile = Paths.get(MOUNT_POINT, "/writeThenRead").toString();
+    String testFile = Paths.get(sMountPoint, "/writeThenRead").toString();
     byte[] content = "Alluxio Fuse Test File Content".getBytes();
     File file = new File(testFile);
     assertFalse(file.exists());

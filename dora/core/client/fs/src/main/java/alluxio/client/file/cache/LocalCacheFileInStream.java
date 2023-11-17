@@ -27,6 +27,7 @@ import alluxio.file.ByteBufferTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -301,7 +302,9 @@ public class LocalCacheFileInStream extends FileInStream {
       MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
           .mark(len);
       MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).inc();
-      return getExternalFileInStream().positionedRead(pos, b, off, len);
+      len = getExternalFileInStream().positionedRead(pos, b, off, len);
+      MultiDimensionalMetricsSystem.EXTERNAL_DATA_READ.inc(len);
+      return len;
     }
     try {
       return readInternal(new ByteArrayTargetBuffer(b, off), off, len,
@@ -310,7 +313,9 @@ public class LocalCacheFileInStream extends FileInStream {
       LOG.warn("Failed to read from Alluxio's page cache.", e);
       if (mFallbackEnabled) {
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_POSITION_READ_FALLBACK.getName()).inc();
-        return getExternalFileInStream().positionedRead(pos, b, off, len);
+        len = getExternalFileInStream().positionedRead(pos, b, off, len);
+        MultiDimensionalMetricsSystem.EXTERNAL_DATA_READ.inc(len);
+        return len;
       }
       throw e;
     }
@@ -419,6 +424,7 @@ public class LocalCacheFileInStream extends FileInStream {
       }
       totalBytesRead += bytesRead;
     }
+    MultiDimensionalMetricsSystem.EXTERNAL_DATA_READ.inc(totalBytesRead);
     // Bytes read from external, may be larger than requests due to reading complete pages
     MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).mark(totalBytesRead);
     if (totalBytesRead != pageSize) {
