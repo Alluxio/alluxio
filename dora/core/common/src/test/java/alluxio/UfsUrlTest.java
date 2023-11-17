@@ -41,6 +41,7 @@ public class UfsUrlTest {
 
     assertTrue(ufsUrl.getAuthority().isPresent());
     assertEquals("localhost:19998", ufsUrl.getAuthority().get().toString());
+
     SingleMasterAuthority authority = (SingleMasterAuthority) ufsUrl.getAuthority().get();
     assertEquals("localhost", authority.getHost());
     assertEquals(19998, authority.getPort());
