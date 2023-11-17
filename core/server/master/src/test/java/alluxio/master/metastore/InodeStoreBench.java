@@ -53,7 +53,9 @@ public class InodeStoreBench {
   public static void main(String[] args) throws Exception {
     // Enable logging to stdout.
     Layout layout = new PatternLayout("%d [%t] %-5p %c %x - %m%n");
-    Logger.getRootLogger().addAppender(new ConsoleAppender(layout));
+    ConsoleAppender consoleAppender = new ConsoleAppender();
+    consoleAppender.setLayout(layout);
+    Logger.getRootLogger().addAppender(consoleAppender);
 
     System.out.printf("Running benchmarks for rocks inode store%n");
     sStore = new RocksInodeStore(Configuration.getString(PropertyKey.MASTER_METASTORE_DIR));
