@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.nio.ch.DirectBuffer;
 
 public class RawDeviceStore implements PageStore {
   private static final Logger LOG = LoggerFactory.getLogger(RawDeviceStore.class);
@@ -83,13 +84,24 @@ public class RawDeviceStore implements PageStore {
                  boolean isTemporary) throws IOException, PageNotFoundException {
     int ret = 0;
     if (buffer instanceof NettyBufTargetBuffer) {
+      ByteBuffer byteBuffer = ByteBuffer.allocateDirect(
+          (int)((NettyBufTargetBuffer) buffer).remaining());
       ret = LIB_RAW_DEVICE_STORE.getPage(pageId.getFileId(), pageId.getPageIndex(),
-        pageOffset, bytesToRead, ((NettyBufTargetBuffer) buffer).getTargetBuffer().nioBuffer(),
+        pageOffset, bytesToRead, byteBuffer,
           false);
-
+      if (ret >= 0) {
+        byteBuffer.flip();
+        byteBuffer.limit(ret);
+        buffer.writeBytes(byteBuffer.array(), 0, ret);
+      }
+      ((DirectBuffer) byteBuffer).cleaner().clean();
     } else {
       ret = LIB_RAW_DEVICE_STORE.getPage(pageId.getFileId(), pageId.getPageIndex(),
           pageOffset, bytesToRead, buffer.byteBuffer(), false);
+      if (ret >= 0) {
+        buffer.byteBuffer().flip();
+        buffer.byteBuffer().limit(ret);
+      }
     }
     LOG.debug("Read {} from raw device store, pageOffset {}, bytesToRead {}, return size is {}",
         pageId, pageOffset, bytesToRead, ret);
