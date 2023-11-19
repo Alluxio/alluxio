@@ -16,10 +16,12 @@ import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.file.NettyBufTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,8 +81,16 @@ public class RawDeviceStore implements PageStore {
 
   public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
                  boolean isTemporary) throws IOException, PageNotFoundException {
-    int ret = LIB_RAW_DEVICE_STORE.getPage(pageId.getFileId(), pageId.getPageIndex(),
-        pageOffset, bytesToRead, buffer.byteBuffer(), false);
+    int ret = 0;
+    if (buffer instanceof NettyBufTargetBuffer) {
+      ret = LIB_RAW_DEVICE_STORE.getPage(pageId.getFileId(), pageId.getPageIndex(),
+        pageOffset, bytesToRead, ((NettyBufTargetBuffer) buffer).getTargetBuffer().nioBuffer(),
+          false);
+
+    } else {
+      ret = LIB_RAW_DEVICE_STORE.getPage(pageId.getFileId(), pageId.getPageIndex(),
+          pageOffset, bytesToRead, buffer.byteBuffer(), false);
+    }
     LOG.debug("Read {} from raw device store, pageOffset {}, bytesToRead {}, return size is {}",
         pageId, pageOffset, bytesToRead, ret);
     return ret;
