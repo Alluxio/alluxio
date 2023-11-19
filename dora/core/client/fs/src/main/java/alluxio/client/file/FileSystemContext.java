@@ -867,8 +867,6 @@ public class FileSystemContext implements Closeable {
    */
   public List<BlockWorkerInfo> getCachedWorkers(GetWorkerListType type) throws IOException {
     synchronized (mWorkerInfoList) {
-      return new LinkedList<BlockWorkerInfo>();
-      /*
       if (mWorkerInfoList.get() == null || mWorkerInfoList.get().isEmpty()
           || mWorkerRefreshPolicy.attempt()) {
         switch (type) {
@@ -884,7 +882,7 @@ public class FileSystemContext implements Closeable {
           default:
         }
       }
-      return mWorkerInfoList.get(); */
+      return mWorkerInfoList.get();
     }
   }
 
