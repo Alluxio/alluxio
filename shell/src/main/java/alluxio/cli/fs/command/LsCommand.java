@@ -277,7 +277,10 @@ public final class LsCommand extends AbstractFileSystemCommand {
       optionsBuilder.setLoadMetadataType(LoadMetadataPType.ALWAYS);
     }
     optionsBuilder.setRecursive(recursive);
-    optionsBuilder.setExcludeMountInfo(excludeMountInfo);
+
+    if (excludeMountInfo) {
+      optionsBuilder.setExcludeMountInfo(true);
+    }
 
     if (sortField == null) {
       mFileSystem.iterateStatus(path, optionsBuilder.build(),
