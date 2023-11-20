@@ -41,7 +41,7 @@ public class HdfsUfsStatusIterator implements Iterator<UfsStatus> {
 
   private final String mUfsSchemaUri;
 
-  private final String mPathToList;
+  private final AlluxioURI mPathToList;
 
   /**
    * Each element is a pair of (full path, UfsStatus).
@@ -58,7 +58,7 @@ public class HdfsUfsStatusIterator implements Iterator<UfsStatus> {
   public HdfsUfsStatusIterator(String pathToList, FileSystem fs) {
     mFs = fs;
     mUfsSchemaUri = mFs.getUri().toString();
-    mPathToList = pathToList;
+    mPathToList = new AlluxioURI(pathToList);
     initQueue(pathToList);
   }
 
@@ -107,13 +107,12 @@ public class HdfsUfsStatusIterator implements Iterator<UfsStatus> {
       UfsStatus ufsStatus;
       Path path = fileStatus.getPath();
 
-      AlluxioURI rootUri = new AlluxioURI(mUfsSchemaUri);
       if (fileStatus.isDirectory()) {
         String relativePath = extractRelativePath(path.toUri().getPath());
         ufsStatus = new UfsDirectoryStatus(relativePath, fileStatus.getOwner(),
             fileStatus.getGroup(), fileStatus.getPermission().toShort(),
             fileStatus.getModificationTime());
-        ufsStatus.setUfsFullPath(rootUri.join(ufsStatus.getName()));
+        ufsStatus.setUfsFullPath(mPathToList.join(ufsStatus.getName()));
         mDirPathsToProcess.addLast(new Pair<>(path.toString(), ufsStatus));
       } else {
         String contentHash =
@@ -123,7 +122,7 @@ public class HdfsUfsStatusIterator implements Iterator<UfsStatus> {
         ufsStatus = new UfsFileStatus(relativePath, contentHash, fileStatus.getLen(),
             fileStatus.getModificationTime(), fileStatus.getOwner(), fileStatus.getGroup(),
             fileStatus.getPermission().toShort(), fileStatus.getBlockSize());
-        ufsStatus.setUfsFullPath(rootUri.join(ufsStatus.getName()));
+        ufsStatus.setUfsFullPath(mPathToList.join(ufsStatus.getName()));
       }
       return ufsStatus;
     } catch (IOException e) {
@@ -133,7 +132,7 @@ public class HdfsUfsStatusIterator implements Iterator<UfsStatus> {
 
   private String extractRelativePath(String fullPath) {
     String fullPathWithoutSchema = trimPathPrefix(mUfsSchemaUri, fullPath);
-    String pathToListWithoutSchema = trimPathPrefix(mUfsSchemaUri, mPathToList);
+    String pathToListWithoutSchema = trimPathPrefix(mUfsSchemaUri, mPathToList.toString());
     if (!pathToListWithoutSchema.startsWith("/")) {
       pathToListWithoutSchema = "/" + pathToListWithoutSchema;
     }
