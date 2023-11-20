@@ -58,7 +58,7 @@ public class RawDevicePageStoreDir extends QuotaManagedPageStoreDir {
     boolean firstTime = true;
     long pageIdx = 0;
     LibRawDeviceStore.JniPageInfo [] jniPageInfos = mRawDeviceStore
-        .listPages(new PageId(startFileId, pageIdx), 1000);
+        .listPages(new PageId(startFileId, pageIdx), 1024);
     while (jniPageInfos != null && (firstTime || jniPageInfos.length > 1)) {
       for (LibRawDeviceStore.JniPageInfo jniPageInfo : jniPageInfos) {
         startFileId = jniPageInfo.getFileId();
@@ -74,7 +74,7 @@ public class RawDevicePageStoreDir extends QuotaManagedPageStoreDir {
 
       firstTime = false;
       jniPageInfos = mRawDeviceStore
-          .listPages(new PageId(startFileId, pageIdx + 1), 1000);
+          .listPages(new PageId(startFileId, pageIdx + 1), 1024);
     }
   }
 }
