@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
@@ -47,6 +48,7 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -372,5 +374,15 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       throws IOException {
     return new SwiftInputStream(mAccount, mContainerName, key, options.getOffset(), retryPolicy,
         mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
+  }
+
+  @Override
+  public void setObjectTagging(String path, String name, String value) throws IOException {
+    throw new UnimplementedRuntimeException("setObjectTagging is not implemented");
+  }
+
+  @Override
+  public Map<String, String> getObjectTags(String path) throws IOException {
+    throw new UnimplementedRuntimeException("getObjectTags is not implemented");
   }
 }

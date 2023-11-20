@@ -14,6 +14,7 @@ package alluxio.underfs.gcs.v2;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
@@ -46,6 +47,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -310,5 +312,15 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
         : blob.getCreateTime() != null ? blob.getCreateTime() : null;
     return new ObjectStatus(blob.getName(), blob.getMd5() == null ? DIR_HASH : blob.getMd5(),
         blob.getSize(), time);
+  }
+
+  @Override
+  public void setObjectTagging(String path, String name, String value) throws IOException {
+    throw new UnimplementedRuntimeException("setObjectTagging is not implemented");
+  }
+
+  @Override
+  public Map<String, String> getObjectTags(String path) throws IOException {
+    throw new UnimplementedRuntimeException("getObjectTags is not implemented");
   }
 }

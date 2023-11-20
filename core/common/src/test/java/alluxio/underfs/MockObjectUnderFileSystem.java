@@ -18,6 +18,7 @@ import alluxio.underfs.options.OpenOptions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 import javax.annotation.Nullable;
 
 public class MockObjectUnderFileSystem extends ObjectUnderFileSystem {
@@ -98,5 +99,15 @@ public class MockObjectUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public void setOwner(String path, String owner, String group) throws IOException {
     //do nothing
+  }
+
+  @Override
+  public void setObjectTagging(String path, String name, String value) throws IOException {
+    //do nothing
+  }
+
+  @Override
+  public Map<String, String> getObjectTags(String path) throws IOException {
+    return null;
   }
 }
