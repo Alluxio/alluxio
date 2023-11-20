@@ -82,6 +82,7 @@ public class AlluxioFileInStream extends FileInStream {
   private final BlockStoreClient mBlockStore;
   private final FileSystemContext mContext;
   private final boolean mPassiveCachingEnabled;
+  private final long mForgiveWorkerErrorTimeoutMs;
 
   /* Convenience values derived from mStatus, use these instead of querying mStatus. */
   /** Length of the file in bytes. */
@@ -138,6 +139,8 @@ public class AlluxioFileInStream extends FileInStream {
       mBlockInStream = null;
       mCachedPositionedReadStream = null;
       mLastBlockIdCached = 0;
+      mForgiveWorkerErrorTimeoutMs = conf.getMs(PropertyKey.USER_FORGIVE_WORKER_ERROR_TIMEOUT);
+      LOG.info("Stream created with worker error timeout {}", mForgiveWorkerErrorTimeoutMs);
     } catch (Throwable t) {
       // If there is any exception, including RuntimeException such as thrown by conf.getBoolean,
       // release the acquired resource, otherwise, FileSystemContext reinitialization will be
@@ -303,8 +306,10 @@ public class AlluxioFileInStream extends FileInStream {
         // Positioned read may be called multiple times for the same block. Caching the in-stream
         // allows us to avoid the block store rpc to open a new stream for each call.
         if (mCachedPositionedReadStream == null) {
+          maybeForgiveFailedWorkers();
           mCachedPositionedReadStream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
         } else if (mCachedPositionedReadStream.getId() != blockId) {
+          maybeForgiveFailedWorkers();
           closeBlockInStream(mCachedPositionedReadStream);
           mCachedPositionedReadStream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
         }
@@ -393,6 +398,7 @@ public class AlluxioFileInStream extends FileInStream {
 
     // Create stream
     boolean isBlockInfoOutdated = true;
+    maybeForgiveFailedWorkers();
     // blockInfo is "outdated" when all the locations in that blockInfo are failed workers,
     // if there is at least one location that is not a failed worker, then it's not outdated.
     if (mFailedWorkers.isEmpty() || mFailedWorkers.size() < blockInfo.getLocations().size()) {
@@ -407,6 +413,8 @@ public class AlluxioFileInStream extends FileInStream {
       }
     }
     if (isBlockInfoOutdated) {
+      LOG.warn("All known locations for block {} are failed workers. Re-create the BlockStream "
+          + "from the start. Failed workers are {}", blockId, mFailedWorkers.keySet());
       mBlockInStream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
     } else {
       mBlockInStream = mBlockStore.getInStream(blockInfo, mOptions, mFailedWorkers);
@@ -414,6 +422,22 @@ public class AlluxioFileInStream extends FileInStream {
     // Set the stream to the correct position.
     long offset = mPosition % mBlockSize;
     mBlockInStream.seek(offset);
+  }
+
+  /**
+   * An I/O like read() or positionedRead() will retry for USER_BLOCK_READ_RETRY_MAX_DURATION.
+   * So USER_FORGIVE_WORKER_ERROR_TIMEOUT should be shorter than it to take effect.
+   */
+  private void maybeForgiveFailedWorkers() {
+    long now = CommonUtils.getCurrentMs();
+    mFailedWorkers.entrySet().removeIf(entry -> {
+      if (now - entry.getValue() >= mForgiveWorkerErrorTimeoutMs) {
+        LOG.info("I/O to worker {} failed more than {}ms ago, try this worker again", entry.getKey(),
+            mForgiveWorkerErrorTimeoutMs);
+        return true;
+      }
+      return false;
+    });
   }
 
   private void closeBlockInStream(BlockInStream stream) throws IOException {

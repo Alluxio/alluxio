@@ -5789,6 +5789,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("5min")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FORGIVE_WORKER_ERROR_TIMEOUT =
+      durationBuilder(Name.USER_FORGIVE_WORKER_ERROR_TIMEOUT)
+          .setDescription("When a worker fails a request, a stream will not to reuse that worker "
+              + "within this timeout. After this timeout, the stream will give that worker another "
+              + "chance and try to read/write it again.")
+          .setDefaultValue("1min")
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_CONF_CLUSTER_DEFAULT_ENABLED =
       booleanBuilder(Name.USER_CONF_CLUSTER_DEFAULT_ENABLED)
           .setDefaultValue(true)
@@ -8836,6 +8844,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.read.retry.sleep.max";
     public static final String USER_BLOCK_READ_RETRY_MAX_DURATION =
         "alluxio.user.block.read.retry.max.duration";
+    public static final String USER_FORGIVE_WORKER_ERROR_TIMEOUT =
+            "alluxio.user.forgive.worker.error.timeout";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
         "alluxio.user.block.worker.client.pool.gc.threshold";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_MIN =
