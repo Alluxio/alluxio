@@ -91,7 +91,7 @@ public class LibRawDeviceStore {
   public native int putPageByteArray(String fileId, long pageId, byte [] page, int size, boolean isTemporary);
 
   public native int getPage(String fileId, long pageId, int pageOffset, int bytesToRead,
-      ByteBuffer buffer, boolean isTemporary);
+      ByteBuffer buffer, int bufStartPos, boolean isTemporary);
   public native boolean deletePage(String fileId, long pageId);
 
   public native boolean commitPage(String fileId, String newFileId);

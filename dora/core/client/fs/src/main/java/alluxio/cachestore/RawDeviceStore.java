@@ -87,7 +87,7 @@ public class RawDeviceStore implements PageStore {
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(
             (int) ((NettyBufTargetBuffer) buffer).remaining());
         ret = LIB_RAW_DEVICE_STORE.getPage(pageId.getFileId(), pageId.getPageIndex(),
-            pageOffset, bytesToRead, byteBuffer,
+            pageOffset, bytesToRead, byteBuffer, 0,
             false);
         if (ret >= 0) {
           byteBuffer.flip();
@@ -99,11 +99,12 @@ public class RawDeviceStore implements PageStore {
         }
         ((DirectBuffer) byteBuffer).cleaner().clean();
     } else {
+      int cur = buffer.byteBuffer().position();
       ret = LIB_RAW_DEVICE_STORE.getPage(pageId.getFileId(), pageId.getPageIndex(),
-          pageOffset, bytesToRead, buffer.byteBuffer(), false);
+          pageOffset, bytesToRead, buffer.byteBuffer(), cur, false);
       if (ret >= 0) {
         buffer.byteBuffer().flip();
-        buffer.byteBuffer().limit(ret);
+        buffer.byteBuffer().limit(ret + cur);
       }
     }
     LOG.debug("Read {} from raw device store, pageOffset {}, bytesToRead {}, return size is {}",
