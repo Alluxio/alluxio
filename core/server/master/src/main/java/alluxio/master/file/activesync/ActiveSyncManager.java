@@ -349,14 +349,15 @@ public class ActiveSyncManager implements Journaled {
   /**
    * Stop active sync on a mount id.
    *
+   * @param rpcContext rpc context
    * @param mountId mountId to stop active sync
    */
-  public void stopSyncForMount(long mountId) throws InvalidPathException {
+  public void stopSyncForMount(RpcContext rpcContext, long mountId) throws InvalidPathException {
     LOG.info("Stop sync for mount id {}", mountId);
     if (mFilterMap.containsKey(mountId)) {
       List<AlluxioURI> toBeDeleted = new ArrayList<>(mFilterMap.get(mountId));
       for (AlluxioURI uri : toBeDeleted) {
-        stopSyncAndJournal(RpcContext.NOOP, uri);
+        stopSyncAndJournal(rpcContext, uri);
       }
     }
   }
@@ -761,8 +762,9 @@ public class ActiveSyncManager implements Journaled {
     for (long mountId : new HashSet<>(mFilterMap.keySet())) {
       try {
         // stops sync point under this mount point. Note this clears the sync point and
-        // stops associated polling threads.
-        stopSyncForMount(mountId);
+        // stops associated polling threads. call this when DefaultFileSystemMaster init
+        // and don't need RpcContext
+        stopSyncForMount(RpcContext.NOOP, mountId);
       } catch (InvalidPathException e) {
         LOG.info("Exception resetting mountId {}, exception: {}", mountId, e);
       }
