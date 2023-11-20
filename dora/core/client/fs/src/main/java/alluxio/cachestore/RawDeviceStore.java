@@ -103,7 +103,6 @@ public class RawDeviceStore implements PageStore {
       ret = LIB_RAW_DEVICE_STORE.getPage(pageId.getFileId(), pageId.getPageIndex(),
           pageOffset, bytesToRead, buffer.byteBuffer(), cur, false);
       if (ret >= 0) {
-        buffer.byteBuffer().flip();
         buffer.byteBuffer().limit(ret + cur);
       }
     }
