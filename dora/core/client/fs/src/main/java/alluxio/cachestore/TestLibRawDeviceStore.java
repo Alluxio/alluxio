@@ -33,7 +33,7 @@ public class TestLibRawDeviceStore {
     System.out.println(String.format("Return value is : %d", returnStatus));
     byteBuffer.clear();
     int size = libRawDeviceStore.getPage("abcd", 0, 0, 3,
-        byteBuffer,false);
+        byteBuffer, 0, false);
 
     String str = new String();
     for (int i = 0; i < 1; i++) {
