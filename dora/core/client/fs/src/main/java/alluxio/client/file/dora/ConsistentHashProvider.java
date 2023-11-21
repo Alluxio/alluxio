@@ -143,15 +143,13 @@ public class ConsistentHashProvider {
       // thread safety is valid provided that build() takes less than
       // WORKER_INFO_UPDATE_INTERVAL_NS, so that before next update the current update has been
       // finished
-      if (workers != mLastWorkers.get()) {
-        List<WorkerIdentity> lastWorkerIds = mLastWorkers.get();
-        if (!workers.equals(lastWorkerIds)) {
-          Set<WorkerIdentity> newWorkerIds = ImmutableSet.copyOf(workers);
-          NavigableMap<Integer, WorkerIdentity> nodes = build(newWorkerIds, numVirtualNodes);
-          mActiveNodesByConsistentHashing = nodes;
-          mLastWorkers.set(workers);
-          mUpdateCount.increment();
-        }
+      List<WorkerIdentity> lastWorkerIds = mLastWorkers.get();
+      if (!workers.equals(lastWorkerIds)) {
+        Set<WorkerIdentity> newWorkerIds = ImmutableSet.copyOf(workers);
+        NavigableMap<Integer, WorkerIdentity> nodes = build(newWorkerIds, numVirtualNodes);
+        mActiveNodesByConsistentHashing = nodes;
+        mLastWorkers.set(workers);
+        mUpdateCount.increment();
       }
     }
     // otherwise, do nothing and proceed with stale worker list. on next access, the worker list

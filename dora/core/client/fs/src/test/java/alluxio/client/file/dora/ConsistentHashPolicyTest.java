@@ -30,6 +30,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ConsistentHashPolicyTest {
   InstancedConfiguration mConf;
@@ -94,6 +95,45 @@ public class ConsistentHashPolicyTest {
           ImmutableList.of(new BlockWorkerInfo(identity, workerAddr1, 1024, 0)),
           "hdfs://a/b/c", 2);
     });
+  }
+
+  /**
+   * Tests that the policy returns latest worker address even though the worker's ID
+   * has stayed the same during the refresh interval.
+   */
+  @Test
+  public void workerAddrUpdateWithIdUnchanged() throws Exception {
+    ConsistentHashPolicy policy = new ConsistentHashPolicy(mConf);
+    List<BlockWorkerInfo> workers = new ArrayList<>();
+    workers.add(new BlockWorkerInfo(WorkerIdentityTestUtils.ofLegacyId(1L),
+        new WorkerNetAddress().setHost("host1"), 0, 0));
+    workers.add(new BlockWorkerInfo(WorkerIdentityTestUtils.ofLegacyId(2L),
+        new WorkerNetAddress().setHost("host2"), 0, 0));
+    List<BlockWorkerInfo> selectedWorkers =
+        policy.getPreferredWorkers(ImmutableList.copyOf(workers), "fileId", 2);
+    assertEquals("host1",
+        selectedWorkers.stream()
+            .filter(w -> w.getIdentity().equals(WorkerIdentityTestUtils.ofLegacyId(1L)))
+            .findFirst()
+            .get()
+            .getNetAddress()
+            .getHost());
+
+    // now the worker 1 has migrated to host 3
+    workers.set(0, new BlockWorkerInfo(WorkerIdentityTestUtils.ofLegacyId(1L),
+        new WorkerNetAddress().setHost("host3"), 0, 0));
+    List<BlockWorkerInfo> updatedWorkers =
+        policy.getPreferredWorkers(ImmutableList.copyOf(workers), "fileId", 2);
+    assertEquals(
+        selectedWorkers.stream().map(BlockWorkerInfo::getIdentity).collect(Collectors.toList()),
+        updatedWorkers.stream().map(BlockWorkerInfo::getIdentity).collect(Collectors.toList()));
+    assertEquals("host3",
+        updatedWorkers.stream()
+            .filter(w -> w.getIdentity().equals(WorkerIdentityTestUtils.ofLegacyId(1L)))
+            .findFirst()
+            .get()
+            .getNetAddress()
+            .getHost());
   }
 
   private boolean contains(List<BlockWorkerInfo> workers, BlockWorkerInfo targetWorker) {
