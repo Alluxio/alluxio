@@ -145,10 +145,10 @@ public class ConsistentHashProvider {
       // finished
       List<WorkerIdentity> lastWorkerIds = mLastWorkers.get();
       if (!workers.equals(lastWorkerIds)) {
-        Set<WorkerIdentity> newWorkerIds = ImmutableSet.copyOf(workers);
+        List<WorkerIdentity> newWorkerIds = ImmutableList.copyOf(workers);
         NavigableMap<Integer, WorkerIdentity> nodes = build(newWorkerIds, numVirtualNodes);
         mActiveNodesByConsistentHashing = nodes;
-        mLastWorkers.set(workers);
+        mLastWorkers.set(newWorkerIds);
         mUpdateCount.increment();
       }
     }
