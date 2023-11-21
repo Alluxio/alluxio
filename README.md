@@ -112,7 +112,7 @@ Here are examples to declare the dependencies on  `alluxio-shaded-client` using 
   <dependency>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-shaded-client</artifactId>
-    <version>2.6.0</version>
+    <version>2.9.0</version>
   </dependency>
   ```
 
