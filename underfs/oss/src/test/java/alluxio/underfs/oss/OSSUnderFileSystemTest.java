@@ -89,4 +89,9 @@ public class OSSUnderFileSystemTest {
     boolean result = mOSSUnderFileSystem.renameFile(SRC, DST);
     Assert.assertFalse(result);
   }
+
+  @Test
+  public void testGetFolderSuffix() {
+    Assert.assertEquals("/", mOSSUnderFileSystem.getFolderSuffix());
+  }
 }
