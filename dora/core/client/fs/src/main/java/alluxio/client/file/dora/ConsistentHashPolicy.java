@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 public class ConsistentHashPolicy implements WorkerLocationPolicy {
   private static final Logger LOG = LoggerFactory.getLogger(ConsistentHashPolicy.class);
 
-  private static final ConsistentHashProvider HASH_PROVIDER =
+  private final ConsistentHashProvider mHashProvider =
       new ConsistentHashProvider(100, Constants.SECOND_MS);
   /**
    * This is the number of virtual nodes in the consistent hashing algorithm.
@@ -68,8 +68,8 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
     List<WorkerIdentity> workerIdentities = blockWorkerInfos.stream()
         .map(BlockWorkerInfo::getIdentity)
         .collect(Collectors.toList());
-    HASH_PROVIDER.refresh(workerIdentities, mNumVirtualNodes);
-    List<WorkerIdentity> workers = HASH_PROVIDER.getMultiple(fileId, count);
+    mHashProvider.refresh(workerIdentities, mNumVirtualNodes);
+    List<WorkerIdentity> workers = mHashProvider.getMultiple(fileId, count);
     if (workers.size() != count) {
       throw new ResourceExhaustedException(String.format(
           "Found %d workers from the hash ring but %d required", workers.size(), count));
