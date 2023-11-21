@@ -180,14 +180,14 @@ public class DoraLsCommandIntegrationTest extends AbstractDoraFileSystemShellTes
   }
 
   @Test
-  public void testLsWithSortByCreationTime() throws IOException, AlluxioException {
+  public void testLsWithSortByLastModificationTimeTime() throws IOException, AlluxioException {
     String oldFile = "/testRoot/oldFile";
     String newFile = "/testRoot/newFile";
     createByteFileInAlluxio(oldFile, BufferUtils.getIncreasingByteArray(Constants.MB),
         WritePType.CACHE_THROUGH);
     createByteFileInAlluxio(newFile, BufferUtils.getIncreasingByteArray(Constants.MB),
         WritePType.CACHE_THROUGH);
-    assertEquals(0, mFsShell.run("ls", "--sort", "creationTime", "/testRoot"));
+    assertEquals(0, mFsShell.run("ls", "--sort", "lastModificationTime", "/testRoot"));
     checkOutput(
         ".*FILE " + oldFile,
         ".*FILE " + newFile
