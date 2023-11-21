@@ -19,8 +19,6 @@ import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.wire.WorkerIdentity;
 
 import com.google.common.collect.ImmutableList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,8 +32,6 @@ import java.util.stream.Collectors;
  * hash changes.
  */
 public class ConsistentHashPolicy implements WorkerLocationPolicy {
-  private static final Logger LOG = LoggerFactory.getLogger(ConsistentHashPolicy.class);
-
   private final ConsistentHashProvider mHashProvider =
       new ConsistentHashProvider(100, Constants.SECOND_MS);
   /**
@@ -74,8 +70,6 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
       throw new ResourceExhaustedException(String.format(
           "Found %d workers from the hash ring but %d required", workers.size(), count));
     }
-    LOG.error("worker IDs returned by hash provider: {}", workers);
-    LOG.error("worker infos given by callers: {}", blockWorkerInfos);
     ImmutableList.Builder<BlockWorkerInfo> builder = ImmutableList.builder();
     // todo(bowen): this is quadratic complexity. examine if it's worthwhile to replace
     //  with an indexed map if #workers is huge
@@ -88,7 +82,6 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
       }
     }
     List<BlockWorkerInfo> infos = builder.build();
-    LOG.error("worker infos to return: {}", infos);
     return infos;
   }
 }
