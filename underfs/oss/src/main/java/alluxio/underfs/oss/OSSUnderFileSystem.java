@@ -327,6 +327,10 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected ObjectStatus getObjectStatus(String key) {
     try {
+      if (isRoot(key)) {
+        // return a virtual root object
+        return new ObjectStatus(key, null, 0, null);
+      }
       ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
       if (meta == null) {
         return null;
