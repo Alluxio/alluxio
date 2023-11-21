@@ -180,7 +180,8 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
           .map(DeleteObjectsResult.DeletedObject::getKey)
           .collect(Collectors.toList());
     } catch (CosClientException e) {
-      throw new IOException("failed to delete objects", e);
+      LOG.warn("failed to delete objects");
+      throw AlluxioCosException.from(e);
     }
   }
 
@@ -324,7 +325,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
       return new COSInputStream(mBucketNameInternal, key, mClient, options.getOffset(), retryPolicy,
           mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (CosClientException e) {
-      throw new IOException(e.getMessage());
+      throw AlluxioCosException.from(e);
     }
   }
 }
