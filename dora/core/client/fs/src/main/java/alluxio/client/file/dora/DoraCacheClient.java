@@ -442,10 +442,13 @@ public class DoraCacheClient {
       List<BlockWorkerInfo> workers = mEnableDynamicHashRing ? mContext.getCachedWorkers(
           FileSystemContext.GetWorkerListType.LIVE) : mContext.getCachedWorkers(
           FileSystemContext.GetWorkerListType.ALL);
+      checkState(!workers.isEmpty(), "No workers available in the cluster. Lost workers %s",
+          mEnableDynamicHashRing ? "excluded" : "included");
       List<BlockWorkerInfo> preferredWorkers =
           mWorkerLocationPolicy.getPreferredWorkers(workers,
               path, mPreferredWorkerCount);
-      checkState(preferredWorkers.size() > 0);
+      checkState(!preferredWorkers.isEmpty(),
+          "Worker location policy returned no usable worker. Workers available are %s", workers);
       BlockWorkerInfo worker = choosePreferredWorker(preferredWorkers);
       if (!worker.isActive()) {
         throw new RuntimeException("The preferred worker is not active.");
