@@ -16,8 +16,13 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.wire.WorkerIdentity;
+
+import com.google.common.collect.ImmutableList;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * An implementation of WorkerLocationPolicy.
@@ -40,6 +45,9 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
    */
   private final int mNumVirtualNodes;
 
+  private final AtomicReference<List<BlockWorkerInfo>> mLastWorkerInfos =
+      new AtomicReference<>(ImmutableList.of());
+
   /**
    * Constructs a new {@link ConsistentHashPolicy}.
    *
@@ -57,12 +65,31 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
           "Not enough workers in the cluster %d workers in the cluster but %d required",
           blockWorkerInfos.size(), count));
     }
-    HASH_PROVIDER.refresh(blockWorkerInfos, mNumVirtualNodes);
-    List<BlockWorkerInfo> workers = HASH_PROVIDER.getMultiple(fileId, count);
+    List<BlockWorkerInfo> lastWorkerInfos = mLastWorkerInfos.get();
+    // check identity equality to avoid cost of comparing each element
+    if (lastWorkerInfos != blockWorkerInfos
+        && mLastWorkerInfos.compareAndSet(lastWorkerInfos, blockWorkerInfos)) {
+      // only refresh the hash provider when there is update to the worker list since last call
+      List<WorkerIdentity> workerIdentities = blockWorkerInfos.stream()
+          .map(BlockWorkerInfo::getIdentity)
+          .collect(Collectors.toList());
+      HASH_PROVIDER.refresh(workerIdentities, mNumVirtualNodes);
+    }
+    List<WorkerIdentity> workers = HASH_PROVIDER.getMultiple(fileId, count);
     if (workers.size() != count) {
       throw new ResourceExhaustedException(String.format(
           "Found %d workers from the hash ring but %d required", workers.size(), count));
     }
-    return workers;
+    ImmutableList.Builder<BlockWorkerInfo> builder = ImmutableList.builder();
+    // todo(bowen): this is quadratic complexity. examine if it's worthwhile to replace
+    //  with an indexed map if #workers is huge
+    for (WorkerIdentity worker : workers) {
+      for (BlockWorkerInfo info : blockWorkerInfos) {
+        if (info.getIdentity().equals(worker)) {
+          builder.add(info);
+        }
+      }
+    }
+    return builder.build();
   }
 }
