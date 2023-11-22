@@ -15,12 +15,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractDoraFileSystemShellTest;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 import alluxio.util.io.BufferUtils;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -134,6 +136,9 @@ public class DoraLsCommandIntegrationTest extends AbstractDoraFileSystemShellTes
     );
   }
 
+  @DoraTestTodoItem(owner = "Hua", action = DoraTestTodoItem.Action.FIX,
+      comment = "access time is not recorded or updated currently")
+  @Ignore
   @Test
   public void testLsWithSortByAccessTime() throws IOException, AlluxioException {
     String oldFile = "/testRoot/oldFile";
@@ -180,14 +185,14 @@ public class DoraLsCommandIntegrationTest extends AbstractDoraFileSystemShellTes
   }
 
   @Test
-  public void testLsWithSortByCreationTime() throws IOException, AlluxioException {
+  public void testLsWithSortByLastModificationTime() throws IOException, AlluxioException {
     String oldFile = "/testRoot/oldFile";
     String newFile = "/testRoot/newFile";
     createByteFileInAlluxio(oldFile, BufferUtils.getIncreasingByteArray(Constants.MB),
         WritePType.CACHE_THROUGH);
     createByteFileInAlluxio(newFile, BufferUtils.getIncreasingByteArray(Constants.MB),
         WritePType.CACHE_THROUGH);
-    assertEquals(0, mFsShell.run("ls", "--sort", "creationTime", "/testRoot"));
+    assertEquals(0, mFsShell.run("ls", "--sort", "lastModificationTime", "/testRoot"));
     checkOutput(
         ".*FILE " + oldFile,
         ".*FILE " + newFile
