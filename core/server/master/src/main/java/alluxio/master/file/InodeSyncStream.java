@@ -1216,6 +1216,12 @@ public class InodeSyncStream {
     createFileContext.setOwner(context.getUfsStatus().getOwner());
     createFileContext.setGroup(context.getUfsStatus().getGroup());
     createFileContext.setXAttr(context.getUfsStatus().getXAttr());
+    if (createFileContext.getXAttr() == null) {
+      createFileContext.setXAttr(new HashMap<String, byte[]>());
+    }
+    createFileContext.getXAttr()
+        .put("s3_etag", ((UfsFileStatus) context.getUfsStatus()).getContentHash().getBytes());
+
     short ufsMode = context.getUfsStatus().getMode();
     Mode mode = new Mode(ufsMode);
     Long ufsLastModified = context.getUfsStatus().getLastModifiedTime();

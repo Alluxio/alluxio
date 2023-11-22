@@ -80,6 +80,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -476,6 +477,10 @@ public class UfsBaseFileSystem implements FileSystem {
       info.setUfsFingerprint(
           Fingerprint.create(mUfs.get().getUnderFSType(), ufsStatus, fileStatus.getContentHash())
                      .serialize());
+      if (info.getXAttr() == null) {
+        info.setXAttr(new HashMap<String, byte[]>());
+      }
+      info.getXAttr().put("s3_etag", fileStatus.getContentHash().getBytes());
     }
     else {
       info.setLength(0);
