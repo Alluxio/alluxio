@@ -16,7 +16,9 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.collections.Pair;
 import alluxio.wire.WorkerIdentity;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -191,10 +193,13 @@ public class ConsistentHashProvider {
     if (workerInfoList == anotherWorkerInfoList) {
       return false;
     }
-    Set<WorkerIdentity> workerAddressSet = workerInfoList.stream()
-        .map(BlockWorkerInfo::getIdentity).collect(Collectors.toSet());
-    Set<WorkerIdentity> anotherWorkerAddressSet = anotherWorkerInfoList.stream()
-        .map(BlockWorkerInfo::getIdentity).collect(Collectors.toSet());
+    Set<Pair<WorkerIdentity, WorkerNetAddress>> workerAddressSet = workerInfoList.stream()
+        .map(info -> new Pair<>(info.getIdentity(), info.getNetAddress()))
+        .collect(Collectors.toSet());
+    Set<Pair<WorkerIdentity, WorkerNetAddress>> anotherWorkerAddressSet =
+        anotherWorkerInfoList.stream()
+            .map(info -> new Pair<>(info.getIdentity(), info.getNetAddress()))
+            .collect(Collectors.toSet());
     return !workerAddressSet.equals(anotherWorkerAddressSet);
   }
 
