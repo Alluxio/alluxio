@@ -12,6 +12,7 @@
 package alluxio.master.file.mdsync;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
@@ -77,6 +78,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -775,6 +777,11 @@ public class DefaultSyncProcess implements SyncProcess {
     createFileContext.setOwner(ufsStatus.getOwner());
     createFileContext.setGroup(ufsStatus.getGroup());
     createFileContext.setXAttr(ufsStatus.getXAttr());
+    if (createFileContext.getXAttr() == null) {
+      createFileContext.setXAttr(new HashMap<String, byte[]>());
+    }
+    createFileContext.getXAttr()
+        .put(Constants.ETAG_XATTR_KEY, ((UfsFileStatus) ufsStatus).getContentHash().getBytes());
     short ufsMode = ufsStatus.getMode();
     Mode mode = new Mode(ufsMode);
     Long ufsLastModified = ufsStatus.getLastModifiedTime();

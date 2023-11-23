@@ -12,6 +12,7 @@
 package alluxio.client.file.ufs;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -480,7 +481,7 @@ public class UfsBaseFileSystem implements FileSystem {
       if (info.getXAttr() == null) {
         info.setXAttr(new HashMap<String, byte[]>());
       }
-      info.getXAttr().put("s3_etag", fileStatus.getContentHash().getBytes());
+      info.getXAttr().put(Constants.ETAG_XATTR_KEY, fileStatus.getContentHash().getBytes());
     }
     else {
       info.setLength(0);

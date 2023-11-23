@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
@@ -1219,8 +1220,8 @@ public class InodeSyncStream {
     if (createFileContext.getXAttr() == null) {
       createFileContext.setXAttr(new HashMap<String, byte[]>());
     }
-    createFileContext.getXAttr()
-        .put("s3_etag", ((UfsFileStatus) context.getUfsStatus()).getContentHash().getBytes());
+    createFileContext.getXAttr().put(Constants.ETAG_XATTR_KEY,
+        ((UfsFileStatus) context.getUfsStatus()).getContentHash().getBytes());
 
     short ufsMode = context.getUfsStatus().getMode();
     Mode mode = new Mode(ufsMode);
