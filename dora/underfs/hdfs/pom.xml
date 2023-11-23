@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>AI-3.0-1.1.0-RC3</version>
+    <version>AI-3.0-1.1.0-RC4</version>
   </parent>
   <artifactId>alluxio-underfs-hdfs</artifactId>
   <name>Alluxio Under File System - HDFS</name>
