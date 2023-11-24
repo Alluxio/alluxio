@@ -11,13 +11,15 @@
 
 package alluxio.membership;
 
+import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerInfo;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
+import java.util.Iterator;
+import java.util.Optional;
 
 /**
  * A bypass no-op membership manager to disable MembershipManager module
@@ -39,18 +41,35 @@ public class MasterMembershipManager implements MembershipManager {
   }
 
   @Override
-  public List<WorkerInfo> getAllMembers() throws IOException {
-    return Collections.emptyList();
+  public WorkerClusterView getClusterView() throws IOException {
+    return new MasterClusterView();
   }
 
-  @Override
-  public List<WorkerInfo> getLiveMembers() throws IOException {
-    return Collections.emptyList();
-  }
+  class MasterClusterView implements WorkerClusterView {
+    private final Optional<ClusterViewFilter> mFilter;
 
-  @Override
-  public List<WorkerInfo> getFailedMembers() throws IOException {
-    return Collections.emptyList();
+    MasterClusterView() {
+      mFilter = Optional.empty();
+    }
+
+    MasterClusterView(ClusterViewFilter filter) {
+      mFilter = Optional.ofNullable(filter);
+    }
+
+    @Override
+    public Optional<WorkerInfo> getWorkerById(WorkerIdentity workerIdentity) {
+      return Optional.empty();
+    }
+
+    @Override
+    public WorkerClusterView filter(ClusterViewFilter filter) {
+      return new MasterClusterView(filter);
+    }
+
+    @Override
+    public Iterator<WorkerInfo> iterator() {
+      return Collections.<WorkerInfo>emptyList().iterator();
+    }
   }
 
   @Override

@@ -14,24 +14,23 @@ package alluxio.membership;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
+import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonSyntaxException;
 import io.etcd.jetcd.KeyValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.Iterator;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * MembershipManager backed by configured etcd cluster.
@@ -116,84 +115,120 @@ public class EtcdMembershipManager implements MembershipManager {
   }
 
   @Override
-  public List<WorkerInfo> getAllMembers() throws IOException {
-    List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
-    return registeredWorkers.stream()
-        .map(e -> new WorkerInfo().setIdentity(e.getIdentity())
-            .setAddress(e.getWorkerNetAddress()))
-        .collect(Collectors.toList());
+  public WorkerClusterView getClusterView() throws IOException {
+    return new EtcdWorkerClusterView();
   }
 
-  private List<WorkerServiceEntity> retrieveFullMembers() throws IOException {
-    List<WorkerServiceEntity> fullMembers = new ArrayList<>();
-    List<KeyValue> childrenKvs = mAlluxioEtcdClient.getChildren(getRingPathPrefix());
-    for (KeyValue kv : childrenKvs) {
+  class EtcdWorkerClusterView implements WorkerClusterView {
+    private final Optional<ClusterViewFilter> mFilter;
+
+    private EtcdWorkerClusterView() {
+      mFilter = Optional.empty();
+    }
+
+    private EtcdWorkerClusterView(ClusterViewFilter filter) {
+      mFilter = Optional.ofNullable(filter);
+    }
+
+    @Override
+    public Optional<WorkerInfo> getWorkerById(WorkerIdentity toFind) {
+      return getFilteredWorkers()
+          .filter(w -> toFind.equals(w.getIdentity()))
+          .findAny()
+          .map(w -> new WorkerInfo()
+              .setIdentity(w.getIdentity())
+              .setAddress(w.getWorkerNetAddress()));
+    }
+
+    @Override
+    public WorkerClusterView filter(ClusterViewFilter filter) {
+      if (mFilter.isPresent()) {
+        throw new UnsupportedOperationException("Cannot filter an already filtered view." +
+            "Filter applied is " + mFilter.get());
+      }
+      return new EtcdWorkerClusterView(filter);
+    }
+
+    @Override
+    public Iterator<WorkerInfo> iterator() {
+      return getFilteredWorkers()
+          .map(w -> new WorkerInfo()
+              .setIdentity(w.getIdentity())
+              .setAddress(w.getWorkerNetAddress()))
+          .iterator();
+    }
+
+    private Stream<WorkerServiceEntity> retrieveFullMembers() {
+      return mAlluxioEtcdClient.getChildren(getRingPathPrefix())
+          .stream()
+          .map(this::decode)
+          .filter(Optional::isPresent)
+          .map(Optional::get);
+    }
+
+    private Stream<WorkerServiceEntity> retrieveLiveMembers() {
+      return mAlluxioEtcdClient.mServiceDiscovery
+          .getAllLiveServices()
+          .stream()
+          .map(this::decode)
+          .filter(Optional::isPresent)
+          .map(Optional::get);
+    }
+
+    private Stream<WorkerServiceEntity> retrieveLostMembers(
+        Stream<WorkerServiceEntity> liveMembers,
+        Stream<WorkerServiceEntity> allMembers
+    ) {
+      Set<WorkerIdentity> liveWorkerIds = liveMembers
+          .map(WorkerServiceEntity::getIdentity)
+          .collect(Collectors.toSet());
+      return allMembers
+          .filter(w -> !liveWorkerIds.contains(w.getIdentity()));
+    }
+
+    private Stream<WorkerServiceEntity> getFilteredWorkers() {
+      if (!mFilter.isPresent()) {
+        return retrieveFullMembers();
+      }
+      Stream<WorkerServiceEntity> liveWorkers = retrieveLiveMembers();
+      switch (mFilter.get()) {
+        case LIVE:
+          return liveWorkers;
+        case LOST:
+          return retrieveLostMembers(liveWorkers, retrieveFullMembers());
+        default:
+          throw new UnsupportedOperationException("Unknown filter: " + mFilter.get());
+      }
+    }
+
+    private Optional<WorkerServiceEntity> decode(KeyValue etcdKvPair) {
       try {
         WorkerServiceEntity entity = new WorkerServiceEntity();
-        entity.deserialize(kv.getValue().getBytes());
-        fullMembers.add(entity);
+        entity.deserialize(etcdKvPair.getValue().getBytes());
+        return Optional.of(entity);
       } catch (JsonParseException ex) {
-        // Ignore
+        return Optional.empty();
       }
     }
-    return fullMembers;
-  }
-
-  private List<WorkerServiceEntity> retrieveLiveMembers() throws IOException {
-    List<WorkerServiceEntity> liveMembers = new ArrayList<>();
-    for (Map.Entry<String, ByteBuffer> entry : mAlluxioEtcdClient.mServiceDiscovery
-        .getAllLiveServices().entrySet()) {
-      try {
-        WorkerServiceEntity entity = new WorkerServiceEntity();
-        entity.deserialize(entry.getValue().array());
-        liveMembers.add(entity);
-      } catch (JsonSyntaxException ex) {
-        // Ignore
-      }
-    }
-    return liveMembers;
-  }
-
-  @Override
-  @VisibleForTesting
-  public List<WorkerInfo> getLiveMembers() throws IOException {
-    List<WorkerServiceEntity> liveWorkers = retrieveLiveMembers();
-    return liveWorkers.stream()
-        .map(e -> new WorkerInfo().setIdentity(e.getIdentity())
-            .setAddress(e.getWorkerNetAddress()))
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  @VisibleForTesting
-  public List<WorkerInfo> getFailedMembers() throws IOException {
-    List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
-    List<String> liveWorkers = retrieveLiveMembers()
-        .stream().map(e -> e.getServiceEntityName())
-        .collect(Collectors.toList());
-    registeredWorkers.removeIf(e -> liveWorkers.contains(e.getServiceEntityName()));
-    return registeredWorkers.stream()
-        .map(e -> new WorkerInfo().setIdentity(e.getIdentity())
-            .setAddress(e.getWorkerNetAddress()))
-        .collect(Collectors.toList());
   }
 
   @Override
   @VisibleForTesting
   public String showAllMembers() {
     try {
-      List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
-      List<String> liveWorkers = retrieveLiveMembers().stream().map(
-          w -> w.getServiceEntityName()).collect(Collectors.toList());
+      WorkerClusterView registeredWorkers = getClusterView().snapshot();
+      WorkerClusterView liveWorkers = getClusterView()
+          .filter(ClusterViewFilter.LIVE)
+          .snapshot();
       String printFormat = "%s\t%s\t%s%n";
       StringBuilder sb = new StringBuilder(
           String.format(printFormat, "WorkerId", "Address", "Status"));
-      for (WorkerServiceEntity entity : registeredWorkers) {
+      for (WorkerInfo entity : registeredWorkers) {
         String entryLine = String.format(printFormat,
-            entity.getServiceEntityName(),
-            entity.getWorkerNetAddress().getHost() + ":"
-                + entity.getWorkerNetAddress().getRpcPort(),
-            liveWorkers.contains(entity.getServiceEntityName()) ? "ONLINE" : "OFFLINE");
+            entity.getIdentity(),
+            entity.getAddress().getHost() + ":"
+                + entity.getAddress().getRpcPort(),
+            liveWorkers.getWorkerById(entity.getIdentity()).isPresent() ? "ONLINE" : "OFFLINE");
         sb.append(entryLine);
       }
       return sb.toString();

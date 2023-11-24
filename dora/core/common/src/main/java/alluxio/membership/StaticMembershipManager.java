@@ -28,10 +28,12 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 /**
  * MembershipManager configured by a static file.
@@ -130,20 +132,49 @@ public class StaticMembershipManager implements MembershipManager {
   }
 
   @Override
-  public List<WorkerInfo> getAllMembers() throws IOException {
-    return mMembers;
+  public WorkerClusterView getClusterView() throws IOException {
+    return new StaticClusterView();
   }
 
-  @Override
-  public List<WorkerInfo> getLiveMembers() throws IOException {
-    // No op for static type membership manager
-    return mMembers;
-  }
+  class StaticClusterView implements WorkerClusterView {
+    private final Optional<ClusterViewFilter> mFilter;
 
-  @Override
-  public List<WorkerInfo> getFailedMembers() throws IOException {
-    // No op for static type membership manager
-    return Collections.emptyList();
+    StaticClusterView() {
+      mFilter = Optional.empty();
+    }
+
+    StaticClusterView(ClusterViewFilter filter) {
+      mFilter = Optional.ofNullable(filter);
+    }
+
+    @Override
+    public Optional<WorkerInfo> getWorkerById(WorkerIdentity workerIdentity) {
+      return getFilteredWorkers()
+          .filter(w -> workerIdentity.equals(w.getIdentity()))
+          .findAny();
+    }
+
+    @Override
+    public WorkerClusterView filter(ClusterViewFilter filter) {
+      if (mFilter.isPresent()) {
+        throw new UnsupportedOperationException("Cannot filter an already filtered view. " +
+            "Filter applied is " + mFilter.get());
+      }
+      return new StaticClusterView(filter);
+    }
+
+    @Override
+    public Iterator<WorkerInfo> iterator() {
+      return getFilteredWorkers().iterator();
+    }
+
+    private Stream<WorkerInfo> getFilteredWorkers() {
+      // all workers are considered live by static membership manager
+      if (mFilter.isPresent() && mFilter.get() == ClusterViewFilter.LOST) {
+        return Stream.of();
+      }
+      return mMembers.stream();
+    }
   }
 
   @Override
@@ -152,7 +183,7 @@ public class StaticMembershipManager implements MembershipManager {
     StringBuilder sb = new StringBuilder(
         String.format(printFormat, "WorkerId", "Address", "Status"));
     try {
-      for (WorkerInfo worker : getAllMembers()) {
+      for (WorkerInfo worker : getClusterView().snapshot()) {
         String entryLine = String.format(printFormat,
             HashUtils.hashAsStringMD5(worker.getAddress().dumpMainInfo()),
             worker.getAddress().getHost() + ":" + worker.getAddress().getRpcPort(),
