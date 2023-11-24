@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>AI-3.0-1.1.0-RC4</version>
+    <version>AI-3.0-1.1.0</version>
   </parent>
   <artifactId>alluxio-examples</artifactId>
   <packaging>jar</packaging>
