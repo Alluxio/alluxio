@@ -12,6 +12,7 @@
 package alluxio.client.file.ufs;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -78,6 +79,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -469,7 +471,12 @@ public class UfsBaseFileSystem implements FileSystem {
       UfsFileStatus fileStatus = (UfsFileStatus) ufsStatus;
       info.setLength(fileStatus.getContentLength());
       info.setBlockSizeBytes(fileStatus.getBlockSize());
-    } else {
+      if (info.getXAttr() == null) {
+        info.setXAttr(new HashMap<String, byte[]>());
+      }
+      info.getXAttr().put(Constants.ETAG_XATTR_KEY, fileStatus.getContentHash().getBytes());
+    }
+    else {
       info.setLength(0);
     }
     return new URIStatus(info);
