@@ -118,5 +118,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
   }
 
   @Override
-  public void close() {}
+  public void close() {
+    mMasterClient.close();
+  }
 }

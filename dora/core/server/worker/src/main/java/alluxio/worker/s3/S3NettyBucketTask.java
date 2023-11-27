@@ -128,7 +128,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
       return NettyRestUtils.call(S3Constants.EMPTY, () -> {
         final String user = mHandler.getUser();
 
-        List<URIStatus> objects = new ArrayList<>();
+        List<URIStatus> objects;
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, null, null)) {
           try {

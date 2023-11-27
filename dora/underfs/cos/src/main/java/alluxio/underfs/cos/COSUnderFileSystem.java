@@ -46,6 +46,7 @@ import com.qcloud.cos.model.ObjectTagging;
 import com.qcloud.cos.model.SetObjectTaggingRequest;
 import com.qcloud.cos.model.Tag.Tag;
 import com.qcloud.cos.region.Region;
+import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +55,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -177,12 +179,21 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public Map<String, String> getObjectTags(String path) throws IOException {
-    GetObjectTaggingRequest getTaggingReq = new GetObjectTaggingRequest(mBucketNameInternal, path);
-    GetObjectTaggingResult taggingResult = mClient.getObjectTagging(getTaggingReq);
-    List<Tag> tagList = taggingResult.getTagSet();
-    return Collections.unmodifiableMap(tagList.stream()
-        .collect(HashMap::new, (map, tag) -> map.put(tag.getKey(), tag.getValue()),
-            HashMap::putAll));
+    try {
+      GetObjectTaggingRequest getTaggingReq =
+          new GetObjectTaggingRequest(mBucketNameInternal, path);
+      GetObjectTaggingResult taggingResult = mClient.getObjectTagging(getTaggingReq);
+      List<Tag> tagList = taggingResult.getTagSet();
+      return Collections.unmodifiableMap(tagList.stream()
+          .collect(HashMap::new, (map, tag) -> map.put(tag.getKey(), tag.getValue()),
+              HashMap::putAll));
+    } catch (CosClientException e) {
+      AlluxioCosException exception = AlluxioCosException.from(e);
+      if (exception.getStatus().equals(Status.NOT_FOUND)) {
+        return null;
+      }
+      throw exception;
+    }
   }
 
   @Override
@@ -245,7 +256,8 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
           .map(DeleteObjectsResult.DeletedObject::getKey)
           .collect(Collectors.toList());
     } catch (CosClientException e) {
-      throw new IOException("failed to delete objects", e);
+      LOG.warn("failed to delete objects");
+      throw AlluxioCosException.from(e);
     }
   }
 
@@ -328,6 +340,11 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
       }
       return null;
     }
+
+    @Override
+    public Boolean hasNextChunk() {
+      return mResult.isTruncated();
+    }
   }
 
   @Override
@@ -356,8 +373,9 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
       if (meta == null) {
         return null;
       }
+      Date lastModifiedDate = meta.getLastModified();
       return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
-          meta.getLastModified().getTime());
+          lastModifiedDate != null ? lastModifiedDate.getTime() : null);
     } catch (CosClientException e) {
       return null;
     }
@@ -395,7 +413,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
       return new COSInputStream(mBucketNameInternal, key, mClient, options.getOffset(), retryPolicy,
           mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (CosClientException e) {
-      throw new IOException(e.getMessage());
+      throw AlluxioCosException.from(e);
     }
   }
 }

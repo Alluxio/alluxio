@@ -115,6 +115,12 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
       comment = "Bring back but not passed, need to fix.")
   @Test
   public void createFileWithPermission() throws Exception {
+    Path defaultFile = new Path("/createfile-default");
+    FSDataOutputStream stream = sTFS.create(defaultFile, false /* ignored */, 10 /* ignored */,
+        (short) 1 /* ignored */, 512 /* ignored */, null /* ignored */);
+    stream.close();
+    FileStatus fileStatus = sTFS.getFileStatus(defaultFile);
+    Assert.assertEquals((short) 0644, fileStatus.getPermission().toShort());
     List<Integer> permissionValues =
         Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
     for (int value : permissionValues) {
@@ -132,6 +138,10 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   @Test
   @Ignore
   public void mkdirsWithPermission() throws Exception {
+    Path defaultDir = new Path("/createDir-default");
+    sTFS.mkdirs(defaultDir);
+    FileStatus fileStatus = sTFS.getFileStatus(defaultDir);
+    Assert.assertEquals((short) 0755, fileStatus.getPermission().toShort());
     List<Integer> permissionValues =
         Lists.newArrayList(0111, 0222, 0333, 0444, 0555, 0666, 0777, 0755, 0733, 0644, 0533, 0511);
     for (int value : permissionValues) {

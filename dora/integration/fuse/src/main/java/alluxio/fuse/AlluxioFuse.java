@@ -11,8 +11,6 @@
 
 package alluxio.fuse;
 
-import static alluxio.fuse.options.FuseOptions.FUSE_UPDATE_CHECK_ENABLED;
-
 import alluxio.Constants;
 import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
@@ -26,7 +24,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
-import alluxio.fuse.meta.UpdateChecker;
+import alluxio.fuse.meta.FuseUpdateChecker;
 import alluxio.fuse.options.FuseCliOptions;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.fuse.options.MountOptions;
@@ -98,18 +96,23 @@ public class AlluxioFuse {
     }
     startJvmMonitorProcess();
     ExecutorService executor = null;
-    if (fuseOptions.updateCheckEnabled()) {
+    // updateCheck is false only if configurable and not enabled
+    boolean updateCheck = true;
+    if (Boolean.parseBoolean(ProjectConstants.UPDATE_CHECK_CONFIGURABLE)) {
+      updateCheck = Configuration.getBoolean(PropertyKey.FUSE_UPDATE_CHECK_ENABLED);
+    }
+    if (updateCheck && !Configuration.getBoolean(PropertyKey.TEST_MODE)) {
       executor = Executors.newSingleThreadExecutor();
       executor.submit(new HeartbeatThread(HeartbeatContext.FUSE_UPDATE_CHECK,
-          UpdateChecker.create(fuseOptions), () -> new FixedIntervalSupplier(Constants.DAY_MS),
+          new FuseUpdateChecker(fuseOptions), () -> new FixedIntervalSupplier(Constants.DAY_MS),
           Configuration.global(), UserState.Factory.create(conf)));
     }
     try (FileSystem fs = createBaseFileSystem(fsContext, fuseOptions)) {
       AlluxioJniFuseFileSystem fuseFileSystem = createFuseFileSystem(fsContext, fs, fuseOptions);
       setupFuseFileSystem(fuseFileSystem);
-      launchFuse(fuseFileSystem, fsContext, fuseOptions, true); // This will block until umount
+      // This will block on serving until fuse gets destroyed
+      launchFuse(fuseFileSystem, fsContext, fuseOptions, true);
     } catch (Throwable t) {
-      // TODO(lu) FUSE unmount gracefully
       LOG.error("Failed to launch FUSE", t);
       System.exit(-1);
     } finally {
@@ -154,7 +157,6 @@ public class AlluxioFuse {
       }
 
       startCommon(conf, fuseOptions, fsContext); // This will be blocked until quitting
-
       stopCommon();
       // Explicitly exit() so non daemon threads will be terminated
       System.exit(0);
@@ -273,8 +275,12 @@ public class AlluxioFuse {
 
     String mountPoint = conf.getString(PropertyKey.FUSE_MOUNT_POINT);
     final boolean debugEnabled = conf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
+    LOG.info("Installing signal handler for SIGTERM/SIGINT/SIGHUP to handle "
+        + "possible irresponsive umount/fusermount");
     FuseSignalHandler fuseSignalHandler = new FuseSignalHandler(fuseFs);
     Signal.handle(new Signal("TERM"), fuseSignalHandler);
+    Signal.handle(new Signal("INT"), fuseSignalHandler);
+    Signal.handle(new Signal("HUP"), fuseSignalHandler);
     try {
       LOG.info("Mounting AlluxioJniFuseFileSystem: mount point=\"{}\", OPTIONS=\"{}\"",
           mountPoint, String.join(",", fuseOptions.getFuseMountOptions()));
@@ -296,10 +302,6 @@ public class AlluxioFuse {
     InstancedConfiguration conf = new InstancedConfiguration(new AlluxioProperties());
     cli.getMountPoint()
         .ifPresent(mp -> conf.set(PropertyKey.FUSE_MOUNT_POINT, mp, Source.RUNTIME));
-    cli.getUpdateCheck()
-        .ifPresent(updateCheckEnabled -> {
-          conf.set(FUSE_UPDATE_CHECK_ENABLED, updateCheckEnabled, Source.RUNTIME);
-        });
     cli.getRootUfsUri()
         .ifPresent(ufsRootUri -> {
           conf.set(FuseOptions.FUSE_UFS_ROOT, ufsRootUri.toString(), Source.RUNTIME);

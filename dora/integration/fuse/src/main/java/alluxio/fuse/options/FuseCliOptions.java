@@ -58,18 +58,6 @@ public class FuseCliOptions {
   protected MountCliOptions mMountCliOptions = new MountCliOptions();
 
   @Parameter(
-      names = {"--update-check"},
-      description = "Enables or disables the FUSE version update check. "
-          + "Disabled by default when connecting to Alluxio system cache or Dora cache. "
-          + "Enabled by default when connecting an under storage directly.",
-      arity = 0,
-      required = false,
-      hidden = true
-  )
-  @Nullable
-  protected Boolean mUpdateCheck = null;
-
-  @Parameter(
       names = {"-h", "--help"},
       description = "Display this help message",
       help = true,
@@ -113,13 +101,6 @@ public class FuseCliOptions {
   }
 
   /**
-   * @return if update check is enabled
-   */
-  public Optional<Boolean> getUpdateCheck() {
-    return Optional.ofNullable(mUpdateCheck);
-  }
-
-  /**
    * @return if user specified {@code --help}
    */
   public Optional<Boolean> getHelp() {
@@ -156,12 +137,11 @@ public class FuseCliOptions {
     return mHelp == that.mHelp
         && Objects.equals(mMountPoint, that.mMountPoint)
         && Objects.equals(mRootUfsUri, that.mRootUfsUri)
-        && Objects.equals(mMountCliOptions, that.mMountCliOptions)
-        && Objects.equals(mUpdateCheck, that.mUpdateCheck);
+        && Objects.equals(mMountCliOptions, that.mMountCliOptions);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mMountPoint, mRootUfsUri, mMountCliOptions, mUpdateCheck, mHelp);
+    return Objects.hash(mMountPoint, mRootUfsUri, mMountCliOptions, mHelp);
   }
 }

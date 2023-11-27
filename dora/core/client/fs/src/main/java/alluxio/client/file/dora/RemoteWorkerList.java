@@ -76,7 +76,7 @@ public class RemoteWorkerList {
    *
    * @return the next worker
    */
-  public BlockWorkerInfo findNextWorker() {
+  public synchronized BlockWorkerInfo findNextWorker() {
     BlockWorkerInfo nextWorker = mRemoteWorkers.get(mNextIndex);
     mNextIndex++;
     if (mNextIndex >= mRemoteWorkers.size()) {

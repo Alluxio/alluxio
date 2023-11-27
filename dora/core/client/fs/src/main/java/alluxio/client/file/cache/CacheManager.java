@@ -19,6 +19,7 @@ import alluxio.file.ByteArrayTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.resource.LockResource;
 
@@ -130,6 +131,7 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
         if (isNettyDataTransmissionEnable) {
           options.setIsAsyncWriteEnabled(false);
         }
+        MultiDimensionalMetricsSystem.setCacheStorageSupplier(pageMetaStore::bytes);
         if (isShadowCacheEnabled) {
           return new NoExceptionCacheManager(
               new CacheManagerWithShadowCache(LocalCacheManager.create(options, pageMetaStore),
@@ -151,6 +153,8 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
         CacheManager manager = CACHE_MANAGER.getAndSet(null);
         if (manager != null) {
           manager.close();
+          MultiDimensionalMetricsSystem.setCacheStorageSupplier(
+              MultiDimensionalMetricsSystem.NULL_SUPPLIER);
         }
       } catch (Exception e) {
         LOG.warn("Failed to close CacheManager: {}", e.toString());

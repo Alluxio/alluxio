@@ -27,7 +27,7 @@ fi
 
 mvn_args=""
 if [ -n "${ALLUXIO_MVN_PROJECT_LIST}" ]; then
-  mvn_args+="-am -pl ${ALLUXIO_MVN_PROJECT_LIST}"
+  mvn_args+="-pl ${ALLUXIO_MVN_PROJECT_LIST}"
 fi
 
 export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
@@ -38,7 +38,7 @@ PATH_BACKUP=${PATH}
 JAVA_HOME=/usr/local/openjdk-8
 PATH=$JAVA_HOME/bin:$PATH
 mvn -Duser.home=/home/jenkins -T 4C clean install -Dfindbugs.skip -Dcheckstyle.skip -DskipTests -Dmaven.javadoc.skip \
--Dlicense.skip -Dsort.skip ${mvn_args}
+-Dlicense.skip -Dsort.skip -am ${mvn_args}
 
 # Set things up so that the current user has a real name and can authenticate.
 myuid=$(id -u)

@@ -192,7 +192,7 @@ public abstract class AbstractUfsManager implements UfsManager {
    * @param ufsPath the UFS path
    * @throws Exception
    */
-  private void tryUseFileSystem(UnderFileSystem fs, String ufsPath) throws Exception {
+  protected void tryUseFileSystem(UnderFileSystem fs, String ufsPath) throws Exception {
     fs.exists(ufsPath);
   }
 

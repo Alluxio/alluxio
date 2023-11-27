@@ -75,19 +75,18 @@ public class LocalPageStore implements PageStore {
         Path parent = Preconditions.checkNotNull(pagePath.getParent(),
             "parent of cache file should not be null");
         Files.createDirectories(parent);
-        Files.createFile(pagePath);
       }
       // extra try to ensure output stream is closed
       try (FileOutputStream fos = new FileOutputStream(pagePath.toFile(), false)) {
         fos.getChannel().write(page);
       }
-    } catch (Exception e) {
+    } catch (Throwable t) {
       Files.deleteIfExists(pagePath);
-      if (e.getMessage() != null && e.getMessage().contains(ERROR_NO_SPACE_LEFT)) {
+      if (t.getMessage() != null && t.getMessage().contains(ERROR_NO_SPACE_LEFT)) {
         throw new ResourceExhaustedException(
-            String.format("%s is full, configured with %d bytes", mRoot, mCapacity), e);
+            String.format("%s is full, configured with %d bytes", mRoot, mCapacity), t);
       }
-      throw new IOException("Failed to write file " + pagePath + " for page " + pageId, e);
+      throw new IOException("Failed to write file " + pagePath + " for page " + pageId, t);
     }
   }
 
@@ -95,6 +94,10 @@ public class LocalPageStore implements PageStore {
   public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
       boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
+    Preconditions.checkArgument(bytesToRead >= 0, "bytes to read should be non-negative");
+    if (target.remaining() == 0 || bytesToRead == 0) {
+      return 0;
+    }
     Path pagePath = getPagePath(pageId, isTemporary);
     try (RandomAccessFile localFile = new RandomAccessFile(pagePath.toString(), "r")) {
       int bytesSkipped = localFile.skipBytes(pageOffset);
@@ -115,6 +118,12 @@ public class LocalPageStore implements PageStore {
         }
         bytesRead += bytes;
         bytesLeft -= bytes;
+      }
+      if (bytesRead == 0) {
+        SAMPLING_LOG.warn("Read 0 bytes from page {}, the page is probably empty", pageId);
+        // no bytes have been read at all, but the requested length > 0
+        // this means the file is empty
+        return -1;
       }
       return bytesRead;
     } catch (FileNotFoundException e) {
@@ -205,6 +214,8 @@ public class LocalPageStore implements PageStore {
       throws PageNotFoundException {
     Preconditions.checkArgument(pageOffset >= 0,
         "page offset should be non-negative");
+    Preconditions.checkArgument(!isTemporary,
+        "cannot acquire a data file channel to a temporary page");
     Path pagePath = getPagePath(pageId, isTemporary);
     File pageFile = pagePath.toFile();
     if (!pageFile.exists()) {
@@ -212,6 +223,21 @@ public class LocalPageStore implements PageStore {
     }
 
     long fileLength = pageFile.length();
+    if (fileLength == 0 && pageId.getPageIndex() > 0) {
+      // pages other than the first page should always be non-empty
+      // remove this malformed page
+      SAMPLING_LOG.warn("Length of page {} is 0, removing this malformed page", pageId);
+      try {
+        Files.deleteIfExists(pagePath);
+      } catch (IOException ignored) {
+        // do nothing
+      }
+      throw new PageNotFoundException(pagePath.toString());
+    }
+    if (fileLength < pageOffset) {
+      throw new IllegalArgumentException(
+          String.format("offset %s exceeds length of page %s", pageOffset, fileLength));
+    }
     if (pageOffset + bytesToRead > fileLength) {
       bytesToRead = (int) (fileLength - (long) pageOffset);
     }

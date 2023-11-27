@@ -32,10 +32,11 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
-import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
+import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
@@ -172,6 +173,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final ConcurrentHashSet<PageId> mLoadingPages = new ConcurrentHashSet<>();
   private final ExecutorService mCacheDataExecutor = Executors.newFixedThreadPool(
       Configuration.getInt(PropertyKey.WORKER_PRELOAD_DATA_THREAD_POOL_SIZE));
+  private final boolean mFastDataLoadEnabled;
 
   /**
    * Constructor.
@@ -216,6 +218,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mClientWriteToUFSEnabled = mConf
         .getBoolean(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED);
     mXAttrWriteToUFSEnabled = mConf.getBoolean(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED);
+    mFastDataLoadEnabled = mConf.getBoolean(PropertyKey.WORKER_FAST_DATA_LOAD_ENABLED);
   }
 
   /**
@@ -540,9 +543,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       // TODO(yimin) As an optimization, data does not need to load on a page basis.
       // Can implement a bulk load mechanism and load a couple of pages at the same time,
       // to improve the performance.
-      if (mLoadingPages.contains(pageId)) {
-        continue;
-      }
       if (mCacheManager.hasPageUnsafe(pageId)) {
         continue;
       }
@@ -551,16 +551,20 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       if (loadLength == 0) {
         continue;
       }
-      mLoadingPages.add(pageId);
+      if (!mLoadingPages.addIfAbsent(pageId)) {
+        continue;
+      }
+
       futures.add(CompletableFuture.runAsync(() -> {
         try {
           if (mCacheManager.hasPageUnsafe(pageId)) {
             return;
           }
-          LOG.debug("Preloading {} pos: {} length: {}", ufsPath, loadPos, loadLength);
-          loadData(ufsPath, 0, loadPos, loadLength, fi.getLength());
+          LOG.debug("Preloading {} pos: {} length: {} started", ufsPath, loadPos, loadLength);
+          loadPages(ufsPath, Collections.singletonList(pageId), fi.getLength());
+          LOG.debug("Preloading {} pos: {} length: {} finished", ufsPath, loadPos, loadLength);
         } catch (Exception e) {
-          LOG.debug("Preloading failed for {} page: {}", ufsPath, pageId, e);
+          LOG.info("Preloading failed for {} page: {}", ufsPath, pageId, e);
         } finally {
           mLoadingPages.remove(pageId);
         }
@@ -604,8 +608,15 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               }
             }
             else {
-              loadData(subTask.getUfsPath(), 0, subTask.getOffsetInFile(), subTask.getLength(),
-                  fileLength);
+              if (mFastDataLoadEnabled) {
+                loadPages(
+                    subTask.getUfsPath(), 0, subTask.getOffsetInFile(), subTask.getLength(),
+                    fileLength);
+              } else {
+                loadData(
+                    subTask.getUfsPath(), 0, subTask.getOffsetInFile(), subTask.getLength(),
+                    fileLength);
+              }
             }
           } catch (Throwable e) {
             LOG.error("Loading {} failed", subTask, e);
@@ -658,6 +669,47 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                             .setCode(t.getStatus().getCode().value()).setRetryable(true)
                             .setMessage(t.getMessage()).build());
     }
+  }
+
+  private void loadPages(String ufsPath, List<PageId> pageIds, long fileLength)
+      throws AccessControlException, IOException {
+    Optional<UnderFileSystem> ufs = mUfsManager.get(new AlluxioURI(ufsPath));
+    if (!ufs.isPresent()) {
+      throw new RuntimeException("Ufs not found for " + ufsPath);
+    }
+    long lastPageId = fileLength / mPageSize;
+    // TODO(elega) can batch multiple pages together ot speed up the loading.
+    for (PageId pageId : pageIds) {
+      int lengthToLoad = (int)
+          (pageId.getPageIndex() == lastPageId ? fileLength % mPageSize : mPageSize);
+      long offset = pageId.getPageIndex() * mPageSize;
+      ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer(lengthToLoad);
+      try (PositionReader reader = ufs.get().openPositionRead(ufsPath, fileLength)) {
+        int bytesRead = reader.read(offset, buf, lengthToLoad);
+        if (lengthToLoad != bytesRead) {
+          throw new RuntimeException(
+              "Page load failed, expected: " + lengthToLoad + " actual " + bytesRead);
+        }
+        mCacheManager.put(pageId, buf.nioBuffer());
+      } finally {
+        buf.release();
+      }
+    }
+  }
+
+  private void loadPages(
+      String ufsPath, long mountId, long offset, long lengthToLoad, long fileLength)
+      throws AccessControlException, IOException {
+    if (lengthToLoad == 0) {
+      return;
+    }
+    lengthToLoad = Math.min(lengthToLoad, fileLength - offset);
+    List<PageId> pagesToLoad = new ArrayList<>();
+    String fileId = new AlluxioURI(ufsPath).hash();
+    for (long current = offset; current < offset + lengthToLoad; current += mPageSize) {
+      pagesToLoad.add(new PageId(fileId, current / mPageSize));
+    }
+    loadPages(ufsPath, pagesToLoad, fileLength);
   }
 
   protected void loadData(String ufsPath, long mountId, long offset, long lengthToLoad,
@@ -858,7 +910,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
           path, existingHandle);
       // If want to enable this checking and throw exception, we need to handle such abnormal cases:
       // 1. If client disconnects without sending CompleteFile request, we must have a way to
-      //    clean up the stale handle.
+      //    clean up the stale handle. Please see DoraOpenFileHandleContainer::run().
       // 2. some other abnormal case ...
       //throw new RuntimeException(new FileAlreadyExistsException("File is already opened"));
       mOpenFileHandleContainer.remove(path);
@@ -879,9 +931,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       boolean overWrite = options.hasOverwrite() ? options.getOverwrite() : false;
       boolean exists = ufs.exists(path);
       if (!overWrite && exists) {
-        throw new RuntimeException(
-            new FileAlreadyExistsException(
-                String.format("File %s already exists but no overwrite flag", path)));
+        throw new AlreadyExistsException(String.format("File %s already exists"
+            + "but no overwrite flag", path));
       } else if (overWrite) {
         // client is going to overwrite this file. We need to invalidate the cached meta and data.
         mMetaManager.removeFromMetaStore(path);
@@ -974,6 +1025,20 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       throw new FailedPreconditionException("Cannot rename a file in one UFS to another UFS");
     }
 
+    try {
+      // Check if the target file already exists. If yes, return by throwing error.
+      boolean overWrite = options.hasOverwrite() ? options.getOverwrite() : false;
+      boolean exists = srcUfs.exists(dst);
+      if (!overWrite && exists) {
+        throw new AlreadyExistsRuntimeException(String.format("File %s already exists but"
+            + "no overwrite flag", dst));
+      } else if (overWrite) {
+        mMetaManager.removeFromMetaStore(dst);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
     boolean rc;
     try {
       UfsStatus status = srcUfs.getStatus(src);
@@ -1010,11 +1075,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       mMetaManager.loadFromUfs(path);
       mMetaManager.invalidateListingCacheOfParent(path);
       if (!success) {
-        throw new RuntimeException(
-            new FileAlreadyExistsException(String.format("%s already exists", path)));
+        throw new AlreadyExistsException(String.format("%s already exists", path));
       }
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      // IOE would be caught by AlluxioRuntimeException
+      throw e;
     }
   }
 
@@ -1179,10 +1244,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         infoBuilder.putXattr(entry.getKey(), ByteString.copyFromUtf8(entry.getValue()));
       }
     }
+    if (status.getLastModifiedTime() != null) {
+      infoBuilder.setLastModificationTimeMs(status.getLastModifiedTime());
+    }
     if (status instanceof UfsFileStatus) {
       UfsFileStatus fileStatus = (UfsFileStatus) status;
       infoBuilder.setLength(fileStatus.getContentLength())
-          .setLastModificationTimeMs(status.getLastModifiedTime())
           .setBlockSizeBytes(fileStatus.getBlockSize());
       String contentHash = ((UfsFileStatus) status).getContentHash();
       if (contentHash != null) {

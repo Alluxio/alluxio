@@ -15,7 +15,6 @@ import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
-import alluxio.jnifuse.utils.SecurityUtils;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
@@ -92,12 +91,6 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
     final String[] argsArray = args.toArray(new String[0]);
     try {
-      if (SecurityUtils.canHandleShutdownHooks()) {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-          LOG.info("Unmounting Fuse through shutdown hook");
-          umount(true);
-        }));
-      }
       int res;
       if (blocking) {
         res = execMount(argsArray);
@@ -150,18 +143,17 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     if (!mMounted.get()) {
       return;
     }
-    LOG.info("Umounting {}", mMountPoint);
-    try {
-      umountInternal();
-    } catch (FuseException e) {
-      LOG.error("Failed to umount {}", mMountPoint, e);
-      throw e;
-    }
     mMounted.set(false);
   }
 
+  /*
+   Deprecating this as we shouldn't call the umount/fusermount ourselves, it should come from
+   user and stop the fuse_main_real from serving and then we exit from main thread
+   */
+  @Deprecated
   private void umountInternal() {
     int exitCode;
+    String outputStr = "";
     String mountPath = mMountPoint.toString();
     if (SystemUtils.IS_OS_WINDOWS) {
       throw new FuseException("Unable to umount FS in a windows system.");
@@ -198,6 +190,10 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     if (exitCode != 0) {
       throw new FuseException("Unable to umount FS with exit code " + exitCode);
     }
+  }
+
+  public void destroyCallback() {
+    destroy();
   }
 
   public int openCallback(String path, ByteBuffer buf) {

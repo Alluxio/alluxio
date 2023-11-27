@@ -39,6 +39,10 @@ public class HdfsUfsStatusIterator implements Iterator<UfsStatus> {
 
   private final FileSystem mFs;
 
+  private final String mUfsSchemaUri;
+
+  private final AlluxioURI mPathToList;
+
   /**
    * Each element is a pair of (full path, UfsStatus).
    */
@@ -48,12 +52,14 @@ public class HdfsUfsStatusIterator implements Iterator<UfsStatus> {
 
   /**
    * HDFS under file system status iterator.
-   * @param path the path for listing
+   * @param pathToList the path for listing
    * @param fs the hdfs file system
    */
-  public HdfsUfsStatusIterator(String path, FileSystem fs) {
+  public HdfsUfsStatusIterator(String pathToList, FileSystem fs) {
     mFs = fs;
-    initQueue(path);
+    mUfsSchemaUri = mFs.getUri().toString();
+    mPathToList = new AlluxioURI(pathToList);
+    initQueue(pathToList);
   }
 
   private void initQueue(String path) {
@@ -68,6 +74,9 @@ public class HdfsUfsStatusIterator implements Iterator<UfsStatus> {
   @Override
   public boolean hasNext() {
     try {
+      if (mHdfsRemoteIterator == null) {
+        return false;
+      }
       if (mHdfsRemoteIterator.hasNext()) {
         return true;
       }
@@ -97,24 +106,48 @@ public class HdfsUfsStatusIterator implements Iterator<UfsStatus> {
       FileStatus fileStatus = mHdfsRemoteIterator.next();
       UfsStatus ufsStatus;
       Path path = fileStatus.getPath();
-      AlluxioURI alluxioUri = new AlluxioURI(path.toString());
+
       if (fileStatus.isDirectory()) {
-        ufsStatus = new UfsDirectoryStatus(path.getName(), fileStatus.getOwner(),
+        String relativePath = extractRelativePath(path.toUri().getPath());
+        ufsStatus = new UfsDirectoryStatus(relativePath, fileStatus.getOwner(),
             fileStatus.getGroup(), fileStatus.getPermission().toShort(),
             fileStatus.getModificationTime());
+        ufsStatus.setUfsFullPath(mPathToList.join(ufsStatus.getName()));
         mDirPathsToProcess.addLast(new Pair<>(path.toString(), ufsStatus));
       } else {
         String contentHash =
             UnderFileSystemUtils.approximateContentHash(
                 fileStatus.getLen(), fileStatus.getModificationTime());
-        ufsStatus = new UfsFileStatus(path.getName(), contentHash, fileStatus.getLen(),
+        String relativePath = extractRelativePath(path.toUri().getPath());
+        ufsStatus = new UfsFileStatus(relativePath, contentHash, fileStatus.getLen(),
             fileStatus.getModificationTime(), fileStatus.getOwner(), fileStatus.getGroup(),
             fileStatus.getPermission().toShort(), fileStatus.getBlockSize());
+        ufsStatus.setUfsFullPath(mPathToList.join(ufsStatus.getName()));
       }
-      ufsStatus.setUfsFullPath(alluxioUri);
       return ufsStatus;
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  private String extractRelativePath(String fullPath) {
+    String fullPathWithoutSchema = trimPathPrefix(mUfsSchemaUri, fullPath);
+    String pathToListWithoutSchema = trimPathPrefix(mUfsSchemaUri, mPathToList.toString());
+    if (!pathToListWithoutSchema.startsWith("/")) {
+      pathToListWithoutSchema = "/" + pathToListWithoutSchema;
+    }
+    return trimPathPrefix(pathToListWithoutSchema, fullPathWithoutSchema);
+  }
+
+  private String trimPathPrefix(String prefix, String path) {
+    if (path.startsWith(prefix)) {
+      if (prefix.endsWith("/")) {
+        return path.substring(prefix.length());
+      } else {
+        return path.substring(prefix.length() + 1);
+      }
+    } else {
+      return path;
     }
   }
 }

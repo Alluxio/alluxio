@@ -16,6 +16,8 @@ import alluxio.grpc.LoadFailure;
 import alluxio.underfs.UfsStatus;
 import alluxio.wire.WorkerInfo;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * Load sub task. It's either load metadata or load data.
  */
@@ -23,6 +25,8 @@ public abstract class LoadSubTask implements ShardKey {
   protected UfsStatus mUfsStatus;
   protected ShardKey mHashKey;
   private WorkerInfo mWorkerInfo;
+
+  private boolean mIsRetry;
 
   LoadSubTask(UfsStatus ufsStatus) {
     mUfsStatus = ufsStatus;
@@ -69,6 +73,20 @@ public abstract class LoadSubTask implements ShardKey {
   }
 
   /**
+   * @return if the subtask is a retry task (not being executed first time)
+   */
+  public boolean isRetry() {
+    return mIsRetry;
+  }
+
+  /**
+   * @param retry true if this is a retry task
+   */
+  public void setRetry(boolean retry) {
+    mIsRetry = retry;
+  }
+
+  /**
    * @param loadFailure      the subtask failure from worker
    * @param virtualBlockSize the virtual block size
    * @return the subtask
@@ -84,5 +102,15 @@ public abstract class LoadSubTask implements ShardKey {
       return new LoadDataSubTask(status, virtualBlockSize,
           failure.getLoadDataSubtask().getOffsetInFile(), failure.getLoadDataSubtask().getLength());
     }
+  }
+
+  @Override
+  public String toString() {
+    WorkerInfo workerInfo = getWorkerInfo();
+    return MoreObjects.toStringHelper(this)
+        .add("UfsPath", getUfsPath())
+        .add("ShardingKey", mHashKey == null ? null : mHashKey.asString())
+        .add("Worker", workerInfo == null ? null : workerInfo.getAddress().toString())
+        .toString();
   }
 }

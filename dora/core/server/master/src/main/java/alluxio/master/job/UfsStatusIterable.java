@@ -62,7 +62,9 @@ public class UfsStatusIterable implements Iterable<UfsStatus> {
       AuthenticatedClientUser.set(mUser.orElse(null));
       UfsStatus rootUfsStatus = mUfs.getStatus(mPath);
       if (rootUfsStatus != null && rootUfsStatus.isFile()) {
-        rootUfsStatus.setUfsFullPath(mRootUri);
+        if (rootUfsStatus.getUfsFullPath() == null) {
+          rootUfsStatus.setUfsFullPath(mRootUri);
+        }
         return Iterators.filter(Iterators.singletonIterator(rootUfsStatus), mFilter::test);
       }
       Iterator<UfsStatus> statuses =
@@ -72,7 +74,9 @@ public class UfsStatusIterable implements Iterable<UfsStatus> {
       }
       else {
         return Iterators.transform(Iterators.filter(statuses, mFilter::test), (it) -> {
-          it.setUfsFullPath(mRootUri.join(it.getName()));
+          if (it.getUfsFullPath() == null) {
+            it.setUfsFullPath(mRootUri.join(it.getName()));
+          }
           return it;
         });
       }

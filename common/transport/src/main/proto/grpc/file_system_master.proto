@@ -463,6 +463,7 @@ message RenamePOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
   optional bool persist = 2;
   optional S3SyntaxOptions s3SyntaxOptions = 3;
+  optional bool overwrite = 4;
 }
 message RenamePRequest {
   /** the source path of the file or directory */

@@ -16,7 +16,6 @@ import static org.junit.Assert.fail;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -74,7 +73,6 @@ import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -507,8 +505,6 @@ public class LocalCacheFileInStreamTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen")
-  @Ignore("check whether this needs to be fixed or not")
   public void readMultipleFiles() throws Exception {
     Random random = new Random();
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
@@ -689,6 +685,7 @@ public class LocalCacheFileInStreamTest {
     FileInfo info = new FileInfo();
     info.setFileId(path.hashCode());
     info.setPath(path);
+    info.setUfsPath(path);
     info.setLength(len);
     return new URIStatus(info);
   }
