@@ -18,6 +18,7 @@ import alluxio.wire.WorkerInfo;
 
 import com.google.common.collect.Iterators;
 
+import java.time.Instant;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,7 +29,7 @@ import javax.annotation.concurrent.Immutable;
  */
 @Immutable
 public final class WorkerClusterSnapshot implements WorkerClusterView {
-
+  private final Instant mInstantCreated;
   private final IndexedSet<WorkerInfo> mWorkers;
 
   private static final IndexDefinition<WorkerInfo, WorkerIdentity> INDEX_WORKER_ID =
@@ -39,6 +40,9 @@ public final class WorkerClusterSnapshot implements WorkerClusterView {
     for (WorkerInfo workerInfo : workers) {
       mWorkers.add(workerInfo);
     }
+    // Note Instant.now() uses the system clock and is NOT monotonic
+    // which is fine because we want to invalidate stale snapshots based on wall clock time
+    mInstantCreated = Instant.now();
   }
 
   @Override
@@ -57,6 +61,18 @@ public final class WorkerClusterSnapshot implements WorkerClusterView {
     return this;
   }
 
+  /**
+   * @return the time when this snapshot was created.
+   */
+  public Instant getSnapshotTime() {
+    return mInstantCreated;
+  }
+
+  /**
+   * Note that the equals implementation considers the creation timestamp to be part of the
+   * snapshot's identity. To compare two snapshots only by the contained workers,
+   * use {@link com.google.common.collect.Iterables#elementsEqual(Iterable, Iterable)}.
+   */
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -66,11 +82,12 @@ public final class WorkerClusterSnapshot implements WorkerClusterView {
       return false;
     }
     WorkerClusterSnapshot that = (WorkerClusterSnapshot) o;
-    return Objects.equals(mWorkers, that.mWorkers);
+    return Objects.equals(mInstantCreated, that.mInstantCreated)
+        && Objects.equals(mWorkers, that.mWorkers);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mWorkers);
+    return Objects.hash(mInstantCreated, mWorkers);
   }
 }
