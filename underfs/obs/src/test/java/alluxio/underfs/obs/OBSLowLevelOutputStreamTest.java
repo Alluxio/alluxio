@@ -18,9 +18,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
-import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -62,7 +62,8 @@ public class OBSLowLevelOutputStreamTest {
   private static final String PARTITION_SIZE = "8MB";
   private static final String KEY = "testKey";
   private static final String UPLOAD_ID = "testUploadId";
-  private static InstancedConfiguration sConf = Configuration.modifiableGlobal();
+  private static InstancedConfiguration sConf = new InstancedConfiguration(
+      ConfigurationUtils.defaults());
 
   private IObsClient mMockObsClient;
   private ListeningExecutorService mMockExecutor;

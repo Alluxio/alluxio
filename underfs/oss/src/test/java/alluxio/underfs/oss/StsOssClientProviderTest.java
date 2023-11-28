@@ -15,10 +15,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
-import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.HttpUtils;
 
 import com.aliyun.oss.OSSClient;
@@ -48,7 +48,7 @@ public class StsOssClientProviderTest {
 
   @Before
   public void before() {
-    mConf = Configuration.copyGlobal();
+    mConf = new InstancedConfiguration(ConfigurationUtils.defaults());
     mEcsMetadataService = mConf.getString(
         PropertyKey.UNDERFS_OSS_STS_ECS_METADATA_SERVICE_ENDPOINT) + ECS_RAM_ROLE;
   }
