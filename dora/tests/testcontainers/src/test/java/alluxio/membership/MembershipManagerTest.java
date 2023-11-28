@@ -227,9 +227,7 @@ public class MembershipManagerTest {
     CommonUtils.waitFor("Service's lease close and service key got deleted.",
         () -> {
           try {
-            return membershipManager.getFailedMembers()
-                .iterator()
-                .hasNext();
+            return !membershipManager.getFailedMembers().isEmpty();
           } catch (IOException e) {
             throw new RuntimeException(
                 String.format("Unexpected error while getting failed members: %s", e));
@@ -272,10 +270,7 @@ public class MembershipManagerTest {
     CommonUtils.waitFor("Workers joined",
         () -> {
           try {
-            return membershipManager
-                .getLiveMembers()
-                .iterator()
-                .hasNext();
+            return !membershipManager.getLiveMembers().isEmpty();
           } catch (IOException e) {
             throw new RuntimeException(
                 String.format("Unexpected error while getting live members: %s", e));
@@ -290,7 +285,7 @@ public class MembershipManagerTest {
     CommonUtils.waitFor("Workers network errored",
         () -> {
           try {
-            return healthyMgr.getFailedMembers().iterator().hasNext();
+            return !healthyMgr.getFailedMembers().isEmpty();
           } catch (IOException e) {
             throw new RuntimeException(
                 String.format("Unexpected error while getting failed members: %s", e));
@@ -302,7 +297,7 @@ public class MembershipManagerTest {
     CommonUtils.waitFor("Workers network recovered",
         () -> {
           try {
-            return !healthyMgr.getFailedMembers().iterator().hasNext();
+            return healthyMgr.getFailedMembers().isEmpty();
           } catch (IOException e) {
             throw new RuntimeException(
                 String.format("Unexpected error while getting failed members: %s", e));

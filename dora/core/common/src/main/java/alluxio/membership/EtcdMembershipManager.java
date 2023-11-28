@@ -193,6 +193,16 @@ public class EtcdMembershipManager implements MembershipManager {
           .iterator();
     }
 
+    @Override
+    public int size() {
+      return (int) getWorkersInView().count();
+    }
+
+    @Override
+    public boolean isEmpty() {
+      return !getWorkersInView().findAny().isPresent();
+    }
+
     private Optional<WorkerServiceEntity> decode(KeyValue etcdKvPair) {
       try {
         WorkerServiceEntity entity = new WorkerServiceEntity();

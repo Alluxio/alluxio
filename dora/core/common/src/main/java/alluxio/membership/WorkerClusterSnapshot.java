@@ -61,6 +61,16 @@ public final class WorkerClusterSnapshot implements WorkerClusterView {
     return this;
   }
 
+  @Override
+  public int size() {
+    return mWorkers.size();
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return mWorkers.isEmpty();
+  }
+
   /**
    * @return the time when this snapshot was created.
    */

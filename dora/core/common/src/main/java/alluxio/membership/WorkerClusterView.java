@@ -30,6 +30,21 @@ public interface WorkerClusterView extends Iterable<WorkerInfo> {
   Optional<WorkerInfo> getWorkerById(WorkerIdentity workerIdentity);
 
   /**
+   * Gets the number of workers contained in this view.
+   *
+   * @return number of workers
+   */
+  int size();
+
+  /**
+   * Checks if the view contain no workers.
+   *
+   * @return if the view is empty
+   * @implSpec this should return {@code true} iff {@code size() == 0}.
+   */
+  boolean isEmpty();
+
+  /**
    * Creates a snapshot of a live view.
    *
    * @return snapshot
