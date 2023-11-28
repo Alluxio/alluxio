@@ -288,8 +288,14 @@ public class BaseFileSystem implements FileSystem {
         if (locations.isEmpty() && mFsContext.getPathConf(new AlluxioURI(status.getPath()))
             .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
           // Case 2: Fallback to add all workers to locations so some apps (Impala) won't panic.
-          locations.addAll(getHostWorkerMap().values());
-          Collections.shuffle(locations);
+          List<WorkerNetAddress> addresses = new ArrayList<>(getHostWorkerMap().values());
+          Collections.shuffle(addresses);
+
+          int count = mFsContext.getClusterConf().getInt(
+              PropertyKey.USER_UFS_BLOCK_LOCATION_RETURN_COUNT);
+          count = count >= 0 ? count : Integer.MAX_VALUE;
+          addresses = addresses.subList(0, Math.min(addresses.size(), count));
+          locations.addAll(addresses);
         }
       }
       blockLocations.add(new BlockLocationInfo(fileBlockInfo, locations));
