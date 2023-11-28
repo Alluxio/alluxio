@@ -232,5 +232,8 @@ public final class Constants {
   public static final String MEDIUM_HDD = "HDD";
   public static final String MEDIUM_SSD = "SSD";
 
+  /* xAttr keys */
+  public static final String ETAG_XATTR_KEY = "s3_etag";
+
   private Constants() {} // prevent instantiation
 }
