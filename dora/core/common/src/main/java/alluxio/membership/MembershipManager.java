@@ -42,15 +42,32 @@ public interface MembershipManager extends AutoCloseable {
   public void join(WorkerInfo worker) throws IOException;
 
   /**
-   * Gets a live view on the current cluster members.
+   * Gets a view for all registered worker members.
    *
-   * @return view of cluster members
+   * @return all registered workers
    * @throws IOException
    */
-  public WorkerClusterView getClusterView() throws IOException;
+  public WorkerClusterView getAllMembers() throws IOException;
+
+  /**
+   * Gets a view for healthy workers.
+   *
+   * @return healthy worker list
+   * @throws IOException
+   */
+  public WorkerClusterView getLiveMembers() throws IOException;
+
+  /**
+   * Gets a view for all failed workers.
+   *
+   * @return failed worker list
+   * @throws IOException
+   */
+  public WorkerClusterView getFailedMembers() throws IOException;
 
   /**
    * Pretty printed members and its liveness status.
+   *
    * @return pretty-printed status string
    */
   public String showAllMembers();

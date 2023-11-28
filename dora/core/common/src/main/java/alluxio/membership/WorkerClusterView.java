@@ -21,23 +21,20 @@ import java.util.Optional;
  * Cluster view. A view may be live or a snapshot.
  */
 public interface WorkerClusterView extends Iterable<WorkerInfo> {
-  Optional<WorkerInfo> getWorkerById(WorkerIdentity workerIdentity);
-
   /**
-   * Narrows the view with a filter.
+   * Gets the information about a worker from this cluster view given its identity.
    *
-   * @param filter the filter to filter the view
-   * @return filtered view
-   * @throws UnsupportedOperationException if the view cannot be filtered with the given filter
+   * @param workerIdentity the worker's ID to query
+   * @return worker info or none if the cluster view does not contain the specified worker.
    */
-  WorkerClusterView filter(ClusterViewFilter filter);
+  Optional<WorkerInfo> getWorkerById(WorkerIdentity workerIdentity);
 
   /**
    * Creates a snapshot of a live view.
    *
    * @return snapshot
    */
-  default WorkerClusterView snapshot() {
+  default WorkerClusterSnapshot snapshot() {
     return new WorkerClusterSnapshot(this);
   }
 
@@ -49,5 +46,15 @@ public interface WorkerClusterView extends Iterable<WorkerInfo> {
    */
   static WorkerClusterView ofWorkers(WorkerInfo... workers) {
     return new WorkerClusterSnapshot(Arrays.stream(workers)::iterator);
+  }
+
+  /**
+   * Creates a static view of the given workers.
+   *
+   * @param workers worker in the cluster
+   * @return a view of the given workers
+   */
+  static WorkerClusterView ofWorkers(Iterable<WorkerInfo> workers) {
+    return new WorkerClusterSnapshot(workers);
   }
 }

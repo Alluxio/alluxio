@@ -21,21 +21,21 @@ import com.google.common.collect.Iterators;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
+import javax.annotation.concurrent.Immutable;
 
 /**
  * Snapshot for a cluster view.
  */
+@Immutable
 public final class WorkerClusterSnapshot implements WorkerClusterView {
 
   private final IndexedSet<WorkerInfo> mWorkers;
 
   private static final IndexDefinition<WorkerInfo, WorkerIdentity> INDEX_WORKER_ID =
       IndexDefinition.ofUnique(WorkerInfo::getIdentity);
-  private static final IndexDefinition<WorkerInfo, String> INDEX_STATE =
-      IndexDefinition.ofNonUnique(WorkerInfo::getState);
 
   WorkerClusterSnapshot(Iterable<WorkerInfo> workers) {
-    mWorkers = new IndexedSet<>(INDEX_WORKER_ID, INDEX_STATE);
+    mWorkers = new IndexedSet<>(INDEX_WORKER_ID);
     for (WorkerInfo workerInfo : workers) {
       mWorkers.add(workerInfo);
     }
@@ -53,12 +53,7 @@ public final class WorkerClusterSnapshot implements WorkerClusterView {
   }
 
   @Override
-  public WorkerClusterView filter(ClusterViewFilter filter) {
-    throw new UnsupportedOperationException("Snapshot view cannot be filtered");
-  }
-
-  @Override
-  public WorkerClusterView snapshot() {
+  public WorkerClusterSnapshot snapshot() {
     return this;
   }
 

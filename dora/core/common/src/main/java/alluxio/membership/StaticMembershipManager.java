@@ -28,12 +28,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 /**
  * MembershipManager configured by a static file.
@@ -132,49 +129,19 @@ public class StaticMembershipManager implements MembershipManager {
   }
 
   @Override
-  public WorkerClusterView getClusterView() throws IOException {
-    return new StaticClusterView();
+  public WorkerClusterView getAllMembers() throws IOException {
+    return WorkerClusterView.ofWorkers(mMembers);
   }
 
-  class StaticClusterView implements WorkerClusterView {
-    private final Optional<ClusterViewFilter> mFilter;
+  @Override
+  public WorkerClusterView getLiveMembers() throws IOException {
+    // all workers are considered by the static membership manager to be always live
+    return WorkerClusterView.ofWorkers(mMembers);
+  }
 
-    StaticClusterView() {
-      mFilter = Optional.empty();
-    }
-
-    StaticClusterView(ClusterViewFilter filter) {
-      mFilter = Optional.ofNullable(filter);
-    }
-
-    @Override
-    public Optional<WorkerInfo> getWorkerById(WorkerIdentity workerIdentity) {
-      return getFilteredWorkers()
-          .filter(w -> workerIdentity.equals(w.getIdentity()))
-          .findAny();
-    }
-
-    @Override
-    public WorkerClusterView filter(ClusterViewFilter filter) {
-      if (mFilter.isPresent()) {
-        throw new UnsupportedOperationException("Cannot filter an already filtered view. " +
-            "Filter applied is " + mFilter.get());
-      }
-      return new StaticClusterView(filter);
-    }
-
-    @Override
-    public Iterator<WorkerInfo> iterator() {
-      return getFilteredWorkers().iterator();
-    }
-
-    private Stream<WorkerInfo> getFilteredWorkers() {
-      // all workers are considered live by static membership manager
-      if (mFilter.isPresent() && mFilter.get() == ClusterViewFilter.LOST) {
-        return Stream.of();
-      }
-      return mMembers.stream();
-    }
+  @Override
+  public WorkerClusterView getFailedMembers() throws IOException {
+    return WorkerClusterView.ofWorkers();
   }
 
   @Override
@@ -183,7 +150,7 @@ public class StaticMembershipManager implements MembershipManager {
     StringBuilder sb = new StringBuilder(
         String.format(printFormat, "WorkerId", "Address", "Status"));
     try {
-      for (WorkerInfo worker : getClusterView().snapshot()) {
+      for (WorkerInfo worker : getAllMembers().snapshot()) {
         String entryLine = String.format(printFormat,
             HashUtils.hashAsStringMD5(worker.getAddress().dumpMainInfo()),
             worker.getAddress().getHost() + ":" + worker.getAddress().getRpcPort(),

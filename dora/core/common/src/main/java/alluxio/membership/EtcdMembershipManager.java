@@ -115,24 +115,68 @@ public class EtcdMembershipManager implements MembershipManager {
   }
 
   @Override
-  public WorkerClusterView getClusterView() throws IOException {
-    return new EtcdWorkerClusterView();
+  public WorkerClusterView getAllMembers() throws IOException {
+    return new AllWorkersClusterView();
   }
 
-  class EtcdWorkerClusterView implements WorkerClusterView {
-    private final Optional<ClusterViewFilter> mFilter;
+  @Override
+  public WorkerClusterView getLiveMembers() throws IOException {
+    return new LiveWorkersClusterView();
+  }
 
-    private EtcdWorkerClusterView() {
-      mFilter = Optional.empty();
+  @Override
+  public WorkerClusterView getFailedMembers() throws IOException {
+    return new FailedWorkersClusterView(new AllWorkersClusterView(), new LiveWorkersClusterView());
+  }
+
+  class AllWorkersClusterView extends EtcdWorkerClusterView {
+    @Override
+    protected Stream<WorkerServiceEntity> getWorkerStream() {
+      return mAlluxioEtcdClient.getChildren(getRingPathPrefix())
+          .stream()
+          .map(super::decode)
+          .filter(Optional::isPresent)
+          .map(Optional::get);
     }
+  }
 
-    private EtcdWorkerClusterView(ClusterViewFilter filter) {
-      mFilter = Optional.ofNullable(filter);
+  class LiveWorkersClusterView extends EtcdWorkerClusterView {
+    @Override
+    protected Stream<WorkerServiceEntity> getWorkerStream() {
+      return mAlluxioEtcdClient.mServiceDiscovery
+          .getAllLiveServices()
+          .stream()
+          .map(super::decode)
+          .filter(Optional::isPresent)
+          .map(Optional::get);
+    }
+  }
+
+  static class FailedWorkersClusterView extends EtcdWorkerClusterView {
+    private final AllWorkersClusterView mAllWorkers;
+    private final LiveWorkersClusterView mLiveWorkers;
+
+    private FailedWorkersClusterView(
+        AllWorkersClusterView allWorkers,
+        LiveWorkersClusterView liveWorkers) {
+      mAllWorkers = allWorkers;
+      mLiveWorkers = liveWorkers;
     }
 
     @Override
+    protected Stream<WorkerServiceEntity> getWorkerStream() {
+      Set<WorkerIdentity> liveWorkerIds = mLiveWorkers.getWorkerStream()
+          .map(WorkerServiceEntity::getIdentity)
+          .collect(Collectors.toSet());
+      return mAllWorkers.getWorkerStream()
+          .filter(w -> !liveWorkerIds.contains(w.getIdentity()));
+    }
+  }
+
+  abstract static class EtcdWorkerClusterView implements WorkerClusterView {
+    @Override
     public Optional<WorkerInfo> getWorkerById(WorkerIdentity toFind) {
-      return getFilteredWorkers()
+      return getWorkerStream()
           .filter(w -> toFind.equals(w.getIdentity()))
           .findAny()
           .map(w -> new WorkerInfo()
@@ -141,64 +185,12 @@ public class EtcdMembershipManager implements MembershipManager {
     }
 
     @Override
-    public WorkerClusterView filter(ClusterViewFilter filter) {
-      if (mFilter.isPresent()) {
-        throw new UnsupportedOperationException("Cannot filter an already filtered view." +
-            "Filter applied is " + mFilter.get());
-      }
-      return new EtcdWorkerClusterView(filter);
-    }
-
-    @Override
     public Iterator<WorkerInfo> iterator() {
-      return getFilteredWorkers()
+      return getWorkerStream()
           .map(w -> new WorkerInfo()
               .setIdentity(w.getIdentity())
               .setAddress(w.getWorkerNetAddress()))
           .iterator();
-    }
-
-    private Stream<WorkerServiceEntity> retrieveFullMembers() {
-      return mAlluxioEtcdClient.getChildren(getRingPathPrefix())
-          .stream()
-          .map(this::decode)
-          .filter(Optional::isPresent)
-          .map(Optional::get);
-    }
-
-    private Stream<WorkerServiceEntity> retrieveLiveMembers() {
-      return mAlluxioEtcdClient.mServiceDiscovery
-          .getAllLiveServices()
-          .stream()
-          .map(this::decode)
-          .filter(Optional::isPresent)
-          .map(Optional::get);
-    }
-
-    private Stream<WorkerServiceEntity> retrieveLostMembers(
-        Stream<WorkerServiceEntity> liveMembers,
-        Stream<WorkerServiceEntity> allMembers
-    ) {
-      Set<WorkerIdentity> liveWorkerIds = liveMembers
-          .map(WorkerServiceEntity::getIdentity)
-          .collect(Collectors.toSet());
-      return allMembers
-          .filter(w -> !liveWorkerIds.contains(w.getIdentity()));
-    }
-
-    private Stream<WorkerServiceEntity> getFilteredWorkers() {
-      if (!mFilter.isPresent()) {
-        return retrieveFullMembers();
-      }
-      Stream<WorkerServiceEntity> liveWorkers = retrieveLiveMembers();
-      switch (mFilter.get()) {
-        case LIVE:
-          return liveWorkers;
-        case LOST:
-          return retrieveLostMembers(liveWorkers, retrieveFullMembers());
-        default:
-          throw new UnsupportedOperationException("Unknown filter: " + mFilter.get());
-      }
     }
 
     private Optional<WorkerServiceEntity> decode(KeyValue etcdKvPair) {
@@ -210,16 +202,16 @@ public class EtcdMembershipManager implements MembershipManager {
         return Optional.empty();
       }
     }
+
+    protected abstract Stream<WorkerServiceEntity> getWorkerStream();
   }
 
   @Override
   @VisibleForTesting
   public String showAllMembers() {
     try {
-      WorkerClusterView registeredWorkers = getClusterView().snapshot();
-      WorkerClusterView liveWorkers = getClusterView()
-          .filter(ClusterViewFilter.LIVE)
-          .snapshot();
+      WorkerClusterView registeredWorkers = getAllMembers().snapshot();
+      WorkerClusterView liveWorkers = getLiveMembers().snapshot();
       String printFormat = "%s\t%s\t%s%n";
       StringBuilder sb = new StringBuilder(
           String.format(printFormat, "WorkerId", "Address", "Status"));
