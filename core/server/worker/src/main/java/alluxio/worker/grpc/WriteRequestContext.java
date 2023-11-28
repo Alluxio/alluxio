@@ -14,6 +14,7 @@ package alluxio.worker.grpc;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -43,6 +44,8 @@ public class WriteRequestContext<T extends WriteRequest> {
    */
   private long mPos;
 
+  private String mContentHash = null;
+
   private Counter mCounter;
   private Meter mMeter;
 
@@ -63,6 +66,20 @@ public class WriteRequestContext<T extends WriteRequest> {
    */
   public T getRequest() {
     return mRequest;
+  }
+
+  /**
+   * @return the content hash
+   */
+  public Optional<String> getContentHash() {
+    return Optional.ofNullable(mContentHash);
+  }
+
+  /**
+   * @param contentHash the content hash of the written file
+   */
+  public void setContentHash(String contentHash) {
+    mContentHash = contentHash;
   }
 
   /**

@@ -37,6 +37,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * Forwarder for {@link UnderFileSystem} objects that works through with ForkJoinPool's
@@ -286,6 +287,11 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   @Override
   public Fingerprint getParsedFingerprint(String path) {
     return mUfs.getParsedFingerprint(path);
+  }
+
+  @Override
+  public Fingerprint getParsedFingerprint(String path, @Nullable String contentHash) {
+    return mUfs.getParsedFingerprint(path, contentHash);
   }
 
   @Override

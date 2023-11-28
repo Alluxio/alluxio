@@ -26,6 +26,7 @@ import io.netty.buffer.Unpooled;
 
 import java.io.IOException;
 import java.io.InputStream;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -83,7 +84,7 @@ public class ReadResponseMarshaller extends DataMessageMarshaller<ReadResponse> 
   }
 
   @Override
-  public ReadResponse combineData(DataMessage<ReadResponse, DataBuffer> message) {
+  public ReadResponse combineData(@Nullable DataMessage<ReadResponse, DataBuffer> message) {
     if (message == null) {
       return null;
     }

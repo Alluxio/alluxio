@@ -18,6 +18,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
 import alluxio.underfs.ConsistentUnderFileSystem;
+import alluxio.underfs.ContentHashable;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
@@ -54,6 +55,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Stack;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -114,7 +116,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
         throw new IOException(ExceptionMessage.PARENT_CREATION_FAILED.getMessage(path));
       }
     }
-    OutputStream stream = new BufferedOutputStream(new FileOutputStream(path));
+    OutputStream stream = new LocalOutputStream(new FileOutputStream(path), path);
     try {
       setMode(path, options.getMode().toShort());
     } catch (IOException e) {
@@ -122,6 +124,24 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
       throw e;
     }
     return stream;
+  }
+
+  static class LocalOutputStream extends BufferedOutputStream
+      implements ContentHashable {
+
+    private final String mPath;
+
+    LocalOutputStream(OutputStream out, String path) {
+      super(out);
+      mPath = path;
+    }
+
+    @Override
+    public Optional<String> getContentHash() {
+      File file = new File(mPath);
+      return Optional.of(UnderFileSystemUtils.approximateContentHash(
+          file.length(), file.lastModified()));
+    }
   }
 
   @Override
