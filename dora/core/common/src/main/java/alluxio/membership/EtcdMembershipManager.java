@@ -131,7 +131,7 @@ public class EtcdMembershipManager implements MembershipManager {
 
   class AllWorkersClusterView extends EtcdWorkerClusterView {
     @Override
-    protected Stream<WorkerServiceEntity> getWorkerStream() {
+    protected Stream<WorkerServiceEntity> getWorkersInView() {
       return mAlluxioEtcdClient.getChildren(getRingPathPrefix())
           .stream()
           .map(super::decode)
@@ -142,7 +142,7 @@ public class EtcdMembershipManager implements MembershipManager {
 
   class LiveWorkersClusterView extends EtcdWorkerClusterView {
     @Override
-    protected Stream<WorkerServiceEntity> getWorkerStream() {
+    protected Stream<WorkerServiceEntity> getWorkersInView() {
       return mAlluxioEtcdClient.mServiceDiscovery
           .getAllLiveServices()
           .stream()
@@ -164,11 +164,11 @@ public class EtcdMembershipManager implements MembershipManager {
     }
 
     @Override
-    protected Stream<WorkerServiceEntity> getWorkerStream() {
-      Set<WorkerIdentity> liveWorkerIds = mLiveWorkers.getWorkerStream()
+    protected Stream<WorkerServiceEntity> getWorkersInView() {
+      Set<WorkerIdentity> liveWorkerIds = mLiveWorkers.getWorkersInView()
           .map(WorkerServiceEntity::getIdentity)
           .collect(Collectors.toSet());
-      return mAllWorkers.getWorkerStream()
+      return mAllWorkers.getWorkersInView()
           .filter(w -> !liveWorkerIds.contains(w.getIdentity()));
     }
   }
@@ -176,7 +176,7 @@ public class EtcdMembershipManager implements MembershipManager {
   abstract static class EtcdWorkerClusterView implements WorkerClusterView {
     @Override
     public Optional<WorkerInfo> getWorkerById(WorkerIdentity toFind) {
-      return getWorkerStream()
+      return getWorkersInView()
           .filter(w -> toFind.equals(w.getIdentity()))
           .findAny()
           .map(w -> new WorkerInfo()
@@ -186,7 +186,7 @@ public class EtcdMembershipManager implements MembershipManager {
 
     @Override
     public Iterator<WorkerInfo> iterator() {
-      return getWorkerStream()
+      return getWorkersInView()
           .map(w -> new WorkerInfo()
               .setIdentity(w.getIdentity())
               .setAddress(w.getWorkerNetAddress()))
@@ -203,7 +203,11 @@ public class EtcdMembershipManager implements MembershipManager {
       }
     }
 
-    protected abstract Stream<WorkerServiceEntity> getWorkerStream();
+    /**
+     * @implSpec implementations should provide a stream of workers that's contained in the
+     * view they want to represent.
+     */
+    protected abstract Stream<WorkerServiceEntity> getWorkersInView();
   }
 
   @Override
