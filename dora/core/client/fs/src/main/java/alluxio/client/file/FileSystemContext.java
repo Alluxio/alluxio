@@ -58,6 +58,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import org.apache.curator.shaded.com.google.common.collect.Streams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -901,7 +902,7 @@ public class FileSystemContext implements Closeable {
     try (ReinitBlockerResource r = blockReinit()) {
       // Use membership mgr
       if (mMembershipManager != null && !(mMembershipManager instanceof MasterMembershipManager)) {
-        return mMembershipManager.getLiveMembers().stream()
+        return Streams.stream(mMembershipManager.getLiveMembers())
             .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
                 w.getUsedBytes(), true)).collect(toList());
       }
@@ -926,7 +927,7 @@ public class FileSystemContext implements Closeable {
     try (ReinitBlockerResource r = blockReinit()) {
       // Use membership mgr
       if (mMembershipManager != null && !(mMembershipManager instanceof MasterMembershipManager)) {
-        return mMembershipManager.getFailedMembers().stream()
+        return Streams.stream(mMembershipManager.getFailedMembers())
             .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
                 w.getUsedBytes(), false)).collect(toList());
       }
@@ -953,10 +954,10 @@ public class FileSystemContext implements Closeable {
     try (ReinitBlockerResource r = blockReinit()) {
       // Use membership mgr
       if (mMembershipManager != null && !(mMembershipManager instanceof MasterMembershipManager)) {
-        List<BlockWorkerInfo> liveWorkers = mMembershipManager.getLiveMembers().stream()
+        List<BlockWorkerInfo> liveWorkers = Streams.stream(mMembershipManager.getLiveMembers())
             .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
                 w.getUsedBytes(), true)).collect(toList());
-        List<BlockWorkerInfo> lostWorkers = mMembershipManager.getFailedMembers().stream()
+        List<BlockWorkerInfo> lostWorkers = Streams.stream(mMembershipManager.getFailedMembers())
             .map(w -> new BlockWorkerInfo(
                 w.getIdentity(), w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),
                 false)).collect(toList());
