@@ -25,6 +25,28 @@ public enum WorkerState {
     mState = s;
   }
 
+  /**
+   * Converts from string to worker state.
+   *
+   * @param workerState string representation of worker state
+   * @return worker state
+   * @throws IllegalArgumentException if the state is unknown
+   */
+  public static WorkerState of(String workerState) throws IllegalArgumentException {
+    switch (workerState) {
+      case "LIVE":
+        return LIVE;
+      case "LOST":
+        return LOST;
+      case "Decommissioned":
+        return DECOMMISSIONED;
+      case "Disabled":
+        return DISABLED;
+      default:
+        throw new IllegalArgumentException("Unknown worker state: " + workerState);
+    }
+  }
+
   @Override
   public String toString() {
     return mState;

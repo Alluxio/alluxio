@@ -33,7 +33,7 @@ public final class WorkerInfo implements Serializable {
   private WorkerIdentity mIdentity;
   private WorkerNetAddress mAddress = new WorkerNetAddress();
   private int mLastContactSec;
-  private String mState = "";
+  private WorkerState mState = WorkerState.LIVE;
   private long mCapacityBytes;
   private long mUsedBytes;
   private long mStartTimeMs;
@@ -83,7 +83,7 @@ public final class WorkerInfo implements Serializable {
    * @return the worker state
    */
   @ApiModelProperty(value = "Operation state of the worker", example = "In Service")
-  public String getState() {
+  public WorkerState getState() {
     return mState;
   }
 
@@ -184,7 +184,7 @@ public final class WorkerInfo implements Serializable {
    * @param state the worker state to use
    * @return the worker information
    */
-  public WorkerInfo setState(String state) {
+  public WorkerInfo setState(WorkerState state) {
     Preconditions.checkNotNull(state, "state");
     mState = state;
     return this;
