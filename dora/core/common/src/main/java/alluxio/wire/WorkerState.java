@@ -15,7 +15,7 @@ package alluxio.wire;
  * The worker state maintained by master.
  */
 public enum WorkerState {
-  LIVE("ACTIVE"),
+  LIVE("LIVE"),
   LOST("LOST"),
   DECOMMISSIONED("Decommissioned"),
   DISABLED("Disabled");
