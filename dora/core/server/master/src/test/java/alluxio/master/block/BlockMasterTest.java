@@ -41,7 +41,7 @@ import alluxio.master.AlwaysPrimaryPrimarySelector;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
-import alluxio.master.WorkerState;
+import alluxio.wire.WorkerState;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;

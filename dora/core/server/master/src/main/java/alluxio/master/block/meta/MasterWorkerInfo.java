@@ -17,7 +17,7 @@ import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.grpc.BuildVersion;
 import alluxio.grpc.StorageList;
-import alluxio.master.WorkerState;
+import alluxio.wire.WorkerState;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
