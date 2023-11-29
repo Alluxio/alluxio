@@ -51,6 +51,12 @@ public final class WorkerClusterView implements Iterable<WorkerInfo> {
     mInstantCreated = Instant.now();
   }
 
+  /**
+   * Finds a worker by its ID.
+   *
+   * @param workerIdentity the ID of the worker to find
+   * @return the worker info of the given worker, or none if the worker is not found
+   */
   public Optional<WorkerInfo> getWorkerById(WorkerIdentity workerIdentity) {
     return Optional.ofNullable(
         mWorkers.getFirstByField(INDEX_WORKER_ID, workerIdentity));
