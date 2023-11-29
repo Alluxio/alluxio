@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-native-rust</artifactId>
-    <version>306</version>
+    <version>307-SNAPSHOT</version>
   </parent>
 
   <artifactId>rspdk</artifactId>
