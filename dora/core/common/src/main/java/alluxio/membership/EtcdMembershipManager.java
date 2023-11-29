@@ -16,6 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerState;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.JsonParseException;
@@ -28,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -116,11 +118,17 @@ public class EtcdMembershipManager implements MembershipManager {
 
   @Override
   public WorkerClusterView getAllMembers() throws IOException {
+    Set<WorkerIdentity> liveWorkerIds = parseWorkersFromEtcdKvPairs(
+        mAlluxioEtcdClient.mServiceDiscovery.getAllLiveServices())
+        .map(WorkerServiceEntity::getIdentity)
+        .collect(Collectors.toSet());
+    Predicate<WorkerInfo> isLive = w -> liveWorkerIds.contains(w.getIdentity());
     Iterable<WorkerInfo> workerInfoIterable = parseWorkersFromEtcdKvPairs(
         mAlluxioEtcdClient.getChildren(getRingPathPrefix()))
         .map(w -> new WorkerInfo()
             .setIdentity(w.getIdentity())
             .setAddress(w.getWorkerNetAddress()))
+        .map(w -> w.setState(isLive.test(w) ? WorkerState.LIVE : WorkerState.LOST))
         ::iterator;
     return new WorkerClusterView(workerInfoIterable);
   }
@@ -131,7 +139,8 @@ public class EtcdMembershipManager implements MembershipManager {
         mAlluxioEtcdClient.mServiceDiscovery.getAllLiveServices())
         .map(w -> new WorkerInfo()
             .setIdentity(w.getIdentity())
-            .setAddress(w.getWorkerNetAddress()))
+            .setAddress(w.getWorkerNetAddress())
+            .setState(WorkerState.LIVE))
         ::iterator;
     return new WorkerClusterView(workerInfoIterable);
   }
@@ -147,7 +156,8 @@ public class EtcdMembershipManager implements MembershipManager {
         .filter(w -> !liveWorkerIds.contains(w.getIdentity()))
         .map(w -> new WorkerInfo()
             .setIdentity(w.getIdentity())
-            .setAddress(w.getWorkerNetAddress()))
+            .setAddress(w.getWorkerNetAddress())
+            .setState(WorkerState.LOST))
         ::iterator;
     return new WorkerClusterView(failedWorkerIterable);
   }

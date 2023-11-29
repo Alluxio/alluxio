@@ -15,7 +15,6 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.exception.ExceptionMessage;
@@ -23,6 +22,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.SelectExecutorsTest;
+import alluxio.membership.WorkerClusterView;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
@@ -37,6 +37,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -46,16 +47,8 @@ import java.util.Set;
  * No matter whether to delete source, selectExecutors should have the same behavior.
  */
 public final class MigrateDefinitionSelectExecutorsTest extends SelectExecutorsTest {
-  private static final List<BlockWorkerInfo> BLOCK_WORKERS =
-      new ImmutableList.Builder<BlockWorkerInfo>()
-          .add(new BlockWorkerInfo(JOB_WORKER_0.getIdentity(),
-              new WorkerNetAddress().setHost("host0"), 0, 0))
-          .add(new BlockWorkerInfo(JOB_WORKER_1.getIdentity(),
-              new WorkerNetAddress().setHost("host1"), 0, 0))
-          .add(new BlockWorkerInfo(JOB_WORKER_2.getIdentity(),
-              new WorkerNetAddress().setHost("host2"), 0, 0))
-          .add(new BlockWorkerInfo(JOB_WORKER_3.getIdentity(),
-              new WorkerNetAddress().setHost("host3"), 0, 0)).build();
+  private static final WorkerClusterView BLOCK_WORKERS = new WorkerClusterView(
+      Arrays.asList(JOB_WORKER_0, JOB_WORKER_1, JOB_WORKER_2, JOB_WORKER_3));
 
   @Before
   @Override

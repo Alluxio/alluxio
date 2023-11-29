@@ -32,7 +32,6 @@ import alluxio.Constants;
 import alluxio.SystemPropertyRule;
 import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.block.BlockStoreClient;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
@@ -41,11 +40,13 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.membership.WorkerClusterView;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerIdentityTestUtils;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
@@ -793,10 +794,15 @@ public class AbstractFileSystemTest {
     when(fsContext.getClusterConf()).thenReturn(mConfiguration);
     alluxio.client.file.FileSystem spyFs = spy(fs);
     doReturn(new URIStatus(fileInfo)).when(spyFs).getStatus(uri);
-    List<BlockWorkerInfo> eligibleWorkerInfos = allWorkers.stream().map(worker ->
-        new BlockWorkerInfo(WorkerIdentityTestUtils.randomLegacyId(),
-            worker, 0, 0)).collect(toList());
-    when(fsContext.getCachedWorkers()).thenReturn(eligibleWorkerInfos);
+    WorkerClusterView eligibleWorkers = new WorkerClusterView(
+        allWorkers.stream()
+            .map(worker -> new WorkerInfo()
+                .setIdentity(WorkerIdentityTestUtils.randomLegacyId())
+                .setAddress(worker)
+                .setCapacityBytes(0)
+                .setUsedBytes(0))
+            ::iterator);
+    when(fsContext.getCachedWorkers()).thenReturn(eligibleWorkers);
     List<HostAndPort> expectedWorkerNames = expectedWorkers.stream()
         .map(addr -> HostAndPort.fromParts(addr.getHost(), addr.getDataPort())).collect(toList());
     FileSystem alluxioHadoopFs = new FileSystem(spyFs);
