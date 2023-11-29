@@ -88,7 +88,7 @@ public class WorkerInfoTest {
     capacityBytesOnTiers.put(Constants.MEDIUM_MEM, capacityBytes);
     Map<String, Long> usedBytesOnTiers = new HashMap<>();
     usedBytesOnTiers.put(Constants.MEDIUM_MEM, usedBytes);
-    String state = random.nextInt(2) == 1 ? "In Service" : "Out of Service";
+    WorkerState state = random.nextInt(2) == 1 ? WorkerState.LIVE : WorkerState.LOST;
     String version = String.format("%d.%d.%d", random.nextInt(10),
         random.nextInt(20), random.nextInt(10));
     String revision = DigestUtils.sha1Hex(RandomStringUtils.random(10));

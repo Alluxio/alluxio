@@ -143,7 +143,7 @@ public final class MasterWorkerInfoTest {
         WorkerState.LIVE);
     assertEquals(mInfo.getId(), workerInfo.getId());
     assertEquals(mInfo.getWorkerAddress(), workerInfo.getAddress());
-    assertEquals(WorkerState.LIVE.toString(), workerInfo.getState());
+    assertEquals(WorkerState.LIVE, workerInfo.getState());
     assertEquals(mInfo.getCapacityBytes(), workerInfo.getCapacityBytes());
     assertEquals(mInfo.getUsedBytes(), workerInfo.getUsedBytes());
     assertEquals(mInfo.getStartTime(), workerInfo.getStartTimeMs());
