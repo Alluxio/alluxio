@@ -16,6 +16,7 @@ import alluxio.collections.IndexedSet;
 import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerInfo;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Iterators;
 
 import java.time.Instant;
@@ -118,5 +119,13 @@ public final class WorkerClusterView implements Iterable<WorkerInfo> {
   @Override
   public int hashCode() {
     return Objects.hash(mInstantCreated, mWorkers);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("InstantCreated", mInstantCreated)
+        .add("Workers", mWorkers)
+        .toString();
   }
 }
