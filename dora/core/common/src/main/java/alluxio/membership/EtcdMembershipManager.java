@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -116,116 +116,66 @@ public class EtcdMembershipManager implements MembershipManager {
 
   @Override
   public WorkerClusterView getAllMembers() throws IOException {
-    return new AllWorkersClusterView();
+    Iterable<WorkerInfo> workerInfoIterable = parseWorkersFromEtcdKvPairs(
+        mAlluxioEtcdClient.getChildren(getRingPathPrefix()))
+        .map(w -> new WorkerInfo()
+            .setIdentity(w.getIdentity())
+            .setAddress(w.getWorkerNetAddress()))
+        ::iterator;
+    return new WorkerClusterView(workerInfoIterable);
   }
 
   @Override
   public WorkerClusterView getLiveMembers() throws IOException {
-    return new LiveWorkersClusterView();
+    Iterable<WorkerInfo> workerInfoIterable = parseWorkersFromEtcdKvPairs(
+        mAlluxioEtcdClient.mServiceDiscovery.getAllLiveServices())
+        .map(w -> new WorkerInfo()
+            .setIdentity(w.getIdentity())
+            .setAddress(w.getWorkerNetAddress()))
+        ::iterator;
+    return new WorkerClusterView(workerInfoIterable);
   }
 
   @Override
   public WorkerClusterView getFailedMembers() throws IOException {
-    return new FailedWorkersClusterView(new AllWorkersClusterView(), new LiveWorkersClusterView());
+    Set<WorkerIdentity> liveWorkerIds = parseWorkersFromEtcdKvPairs(
+        mAlluxioEtcdClient.mServiceDiscovery.getAllLiveServices())
+        .map(WorkerServiceEntity::getIdentity)
+        .collect(Collectors.toSet());
+    Iterable<WorkerInfo> failedWorkerIterable = parseWorkersFromEtcdKvPairs(
+        mAlluxioEtcdClient.getChildren(getRingPathPrefix()))
+        .filter(w -> !liveWorkerIds.contains(w.getIdentity()))
+        .map(w -> new WorkerInfo()
+            .setIdentity(w.getIdentity())
+            .setAddress(w.getWorkerNetAddress()))
+        ::iterator;
+    return new WorkerClusterView(failedWorkerIterable);
   }
 
-  class AllWorkersClusterView extends EtcdWorkerClusterView {
-    @Override
-    protected Stream<WorkerServiceEntity> getWorkersInView() {
-      return mAlluxioEtcdClient.getChildren(getRingPathPrefix())
-          .stream()
-          .map(super::decode)
-          .filter(Optional::isPresent)
-          .map(Optional::get);
-    }
+  private Stream<WorkerServiceEntity> parseWorkersFromEtcdKvPairs(List<KeyValue> workerKvs) {
+    return workerKvs
+        .stream()
+        .map(this::parseWorkerServiceEntity)
+        .filter(Optional::isPresent)
+        .map(Optional::get);
   }
 
-  class LiveWorkersClusterView extends EtcdWorkerClusterView {
-    @Override
-    protected Stream<WorkerServiceEntity> getWorkersInView() {
-      return mAlluxioEtcdClient.mServiceDiscovery
-          .getAllLiveServices()
-          .stream()
-          .map(super::decode)
-          .filter(Optional::isPresent)
-          .map(Optional::get);
+  private Optional<WorkerServiceEntity> parseWorkerServiceEntity(KeyValue etcdKvPair) {
+    try {
+      WorkerServiceEntity entity = new WorkerServiceEntity();
+      entity.deserialize(etcdKvPair.getValue().getBytes());
+      return Optional.of(entity);
+    } catch (JsonParseException ex) {
+      return Optional.empty();
     }
-  }
-
-  static class FailedWorkersClusterView extends EtcdWorkerClusterView {
-    private final AllWorkersClusterView mAllWorkers;
-    private final LiveWorkersClusterView mLiveWorkers;
-
-    private FailedWorkersClusterView(
-        AllWorkersClusterView allWorkers,
-        LiveWorkersClusterView liveWorkers) {
-      mAllWorkers = allWorkers;
-      mLiveWorkers = liveWorkers;
-    }
-
-    @Override
-    protected Stream<WorkerServiceEntity> getWorkersInView() {
-      Set<WorkerIdentity> liveWorkerIds = mLiveWorkers.getWorkersInView()
-          .map(WorkerServiceEntity::getIdentity)
-          .collect(Collectors.toSet());
-      return mAllWorkers.getWorkersInView()
-          .filter(w -> !liveWorkerIds.contains(w.getIdentity()));
-    }
-  }
-
-  abstract static class EtcdWorkerClusterView implements WorkerClusterView {
-    @Override
-    public Optional<WorkerInfo> getWorkerById(WorkerIdentity toFind) {
-      return getWorkersInView()
-          .filter(w -> toFind.equals(w.getIdentity()))
-          .findAny()
-          .map(w -> new WorkerInfo()
-              .setIdentity(w.getIdentity())
-              .setAddress(w.getWorkerNetAddress()));
-    }
-
-    @Override
-    public Iterator<WorkerInfo> iterator() {
-      return getWorkersInView()
-          .map(w -> new WorkerInfo()
-              .setIdentity(w.getIdentity())
-              .setAddress(w.getWorkerNetAddress()))
-          .iterator();
-    }
-
-    @Override
-    public int size() {
-      return (int) getWorkersInView().count();
-    }
-
-    @Override
-    public boolean isEmpty() {
-      return !getWorkersInView().findAny().isPresent();
-    }
-
-    private Optional<WorkerServiceEntity> decode(KeyValue etcdKvPair) {
-      try {
-        WorkerServiceEntity entity = new WorkerServiceEntity();
-        entity.deserialize(etcdKvPair.getValue().getBytes());
-        return Optional.of(entity);
-      } catch (JsonParseException ex) {
-        return Optional.empty();
-      }
-    }
-
-    /**
-     * @implSpec implementations should provide a stream of workers that's contained in the
-     * view they want to represent.
-     */
-    protected abstract Stream<WorkerServiceEntity> getWorkersInView();
   }
 
   @Override
   @VisibleForTesting
   public String showAllMembers() {
     try {
-      WorkerClusterView registeredWorkers = getAllMembers().snapshot();
-      WorkerClusterView liveWorkers = getLiveMembers().snapshot();
+      WorkerClusterView registeredWorkers = getAllMembers();
+      WorkerClusterView liveWorkers = getLiveMembers();
       String printFormat = "%s\t%s\t%s%n";
       StringBuilder sb = new StringBuilder(
           String.format(printFormat, "WorkerId", "Address", "Status"));

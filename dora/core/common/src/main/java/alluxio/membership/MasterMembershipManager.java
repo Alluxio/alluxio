@@ -16,6 +16,7 @@ import alluxio.wire.WorkerInfo;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
+import java.util.Collections;
 
 /**
  * A bypass no-op membership manager to disable MembershipManager module
@@ -38,17 +39,17 @@ public class MasterMembershipManager implements MembershipManager {
 
   @Override
   public WorkerClusterView getAllMembers() throws IOException {
-    return WorkerClusterView.ofWorkers();
+    return new WorkerClusterView(Collections.emptyList());
   }
 
   @Override
   public WorkerClusterView getLiveMembers() throws IOException {
-    return WorkerClusterView.ofWorkers();
+    return new WorkerClusterView(Collections.emptyList());
   }
 
   @Override
   public WorkerClusterView getFailedMembers() throws IOException {
-    return WorkerClusterView.ofWorkers();
+    return new WorkerClusterView(Collections.emptyList());
   }
 
   @Override

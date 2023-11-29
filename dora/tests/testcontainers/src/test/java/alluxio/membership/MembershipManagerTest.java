@@ -20,7 +20,6 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Streams;
 import eu.rekawek.toxiproxy.model.ToxicDirection;
 import io.etcd.jetcd.Auth;
 import io.etcd.jetcd.ByteSequence;
@@ -217,7 +216,7 @@ public class MembershipManagerTest {
     wkrs.add(wkr1);
     wkrs.add(wkr2);
     wkrs.add(wkr3);
-    List<WorkerInfo> allMembers = Streams.stream(membershipManager.getAllMembers().snapshot())
+    List<WorkerInfo> allMembers = membershipManager.getAllMembers().stream()
         .sorted(Comparator.comparing(w -> w.getAddress().getHost()))
         .collect(Collectors.toList());
     Assert.assertEquals(wkrs, allMembers);
@@ -236,9 +235,8 @@ public class MembershipManagerTest {
     List<WorkerInfo> expectedFailedList = new ArrayList<>();
     expectedFailedList.add(wkr2);
     Assert.assertEquals(expectedFailedList,
-        Lists.newArrayList(membershipManager.getFailedMembers().snapshot()));
-    List<WorkerInfo> actualLiveMembers = Streams.stream(membershipManager
-            .getLiveMembers().snapshot())
+        Lists.newArrayList(membershipManager.getFailedMembers()));
+    List<WorkerInfo> actualLiveMembers = membershipManager.getLiveMembers().stream()
         .sorted(Comparator.comparing(w -> w.getAddress().getHost()))
         .collect(Collectors.toList());
     List<WorkerInfo> expectedLiveMembers = new ArrayList<>();
@@ -345,7 +343,7 @@ public class MembershipManagerTest {
     wkrHosts.add(wkr2.getAddress().getHost());
     wkrHosts.add(wkr3.getAddress().getHost());
     // As for static membership mgr, only hostnames are provided in the static file
-    List<String> allMemberHosts = Streams.stream(membershipManager.getAllMembers().snapshot())
+    List<String> allMemberHosts = membershipManager.getAllMembers().stream()
         .map(w -> w.getAddress().getHost())
         .sorted()
         .collect(Collectors.toList());

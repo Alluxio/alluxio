@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -130,18 +131,18 @@ public class StaticMembershipManager implements MembershipManager {
 
   @Override
   public WorkerClusterView getAllMembers() throws IOException {
-    return WorkerClusterView.ofWorkers(mMembers);
+    return new WorkerClusterView(mMembers);
   }
 
   @Override
   public WorkerClusterView getLiveMembers() throws IOException {
     // all workers are considered by the static membership manager to be always live
-    return WorkerClusterView.ofWorkers(mMembers);
+    return new WorkerClusterView(mMembers);
   }
 
   @Override
   public WorkerClusterView getFailedMembers() throws IOException {
-    return WorkerClusterView.ofWorkers();
+    return new WorkerClusterView(Collections.emptyList());
   }
 
   @Override
@@ -150,7 +151,7 @@ public class StaticMembershipManager implements MembershipManager {
     StringBuilder sb = new StringBuilder(
         String.format(printFormat, "WorkerId", "Address", "Status"));
     try {
-      for (WorkerInfo worker : getAllMembers().snapshot()) {
+      for (WorkerInfo worker : getAllMembers()) {
         String entryLine = String.format(printFormat,
             HashUtils.hashAsStringMD5(worker.getAddress().dumpMainInfo()),
             worker.getAddress().getHost() + ":" + worker.getAddress().getRpcPort(),

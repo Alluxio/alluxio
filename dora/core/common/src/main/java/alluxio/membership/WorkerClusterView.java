@@ -11,65 +11,106 @@
 
 package alluxio.membership;
 
+import alluxio.collections.IndexDefinition;
+import alluxio.collections.IndexedSet;
 import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerInfo;
 
-import java.util.Arrays;
+import com.google.common.collect.Iterators;
+
+import java.time.Instant;
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
+import javax.annotation.concurrent.Immutable;
 
 /**
- * Cluster view. A view may be live or a snapshot.
+ * Snapshot for a cluster view.
  */
-public interface WorkerClusterView extends Iterable<WorkerInfo> {
-  /**
-   * Gets the information about a worker from this cluster view given its identity.
-   *
-   * @param workerIdentity the worker's ID to query
-   * @return worker info or none if the cluster view does not contain the specified worker.
-   */
-  Optional<WorkerInfo> getWorkerById(WorkerIdentity workerIdentity);
+@Immutable
+public final class WorkerClusterView implements Iterable<WorkerInfo> {
+  private final Instant mInstantCreated;
+  private final IndexedSet<WorkerInfo> mWorkers;
+
+  private static final IndexDefinition<WorkerInfo, WorkerIdentity> INDEX_WORKER_ID =
+      IndexDefinition.ofUnique(WorkerInfo::getIdentity);
 
   /**
-   * Gets the number of workers contained in this view.
+   * Creates a cluster view with the give workers.
    *
-   * @return number of workers
+   * @param workers workers in this view
    */
-  int size();
+  public WorkerClusterView(Iterable<WorkerInfo> workers) {
+    mWorkers = new IndexedSet<>(INDEX_WORKER_ID);
+    for (WorkerInfo workerInfo : workers) {
+      mWorkers.add(workerInfo);
+    }
+    // Note Instant.now() uses the system clock and is NOT monotonic
+    // which is fine because we want to invalidate stale snapshots based on wall clock time
+    mInstantCreated = Instant.now();
+  }
 
-  /**
-   * Checks if the view contain no workers.
-   *
-   * @return if the view is empty
-   * @implSpec this should return {@code true} iff {@code size() == 0}.
-   */
-  boolean isEmpty();
+  public Optional<WorkerInfo> getWorkerById(WorkerIdentity workerIdentity) {
+    return Optional.ofNullable(
+        mWorkers.getFirstByField(INDEX_WORKER_ID, workerIdentity));
+  }
 
-  /**
-   * Creates a snapshot of a live view.
-   *
-   * @return snapshot
-   */
-  default WorkerClusterSnapshot snapshot() {
-    return new WorkerClusterSnapshot(this);
+  @Override
+  public Iterator<WorkerInfo> iterator() {
+    return Iterators.unmodifiableIterator(mWorkers.iterator());
   }
 
   /**
-   * Creates a static view of the given workers.
+   * Converts to a stream of {@link WorkerInfo}.
    *
-   * @param workers worker in the cluster
-   * @return a view of the given workers
+   * @return stream of workers
    */
-  static WorkerClusterView ofWorkers(WorkerInfo... workers) {
-    return new WorkerClusterSnapshot(Arrays.stream(workers)::iterator);
+  public Stream<WorkerInfo> stream() {
+    return mWorkers.stream();
   }
 
   /**
-   * Creates a static view of the given workers.
-   *
-   * @param workers worker in the cluster
-   * @return a view of the given workers
+   * @return number of workers contained in the cluster view
    */
-  static WorkerClusterView ofWorkers(Iterable<WorkerInfo> workers) {
-    return new WorkerClusterSnapshot(workers);
+  public int size() {
+    return mWorkers.size();
+  }
+
+  /**
+   * @return if the cluster contains no worker
+   */
+  public boolean isEmpty() {
+    return mWorkers.isEmpty();
+  }
+
+  /**
+   * @return the time when this snapshot was created.
+   */
+  public Instant getSnapshotTime() {
+    return mInstantCreated;
+  }
+
+  /**
+   * Note that the equals implementation considers the creation timestamp to be part of the
+   * snapshot's identity. To compare two snapshots only by the contained workers,
+   * use {@link com.google.common.collect.Iterables#elementsEqual(Iterable, Iterable)}.
+   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    WorkerClusterView that = (WorkerClusterView) o;
+    return Objects.equals(mInstantCreated, that.mInstantCreated)
+        && Objects.equals(mWorkers, that.mWorkers);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(mInstantCreated, mWorkers);
   }
 }
