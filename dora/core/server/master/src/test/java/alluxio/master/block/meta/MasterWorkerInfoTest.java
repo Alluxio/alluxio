@@ -19,7 +19,7 @@ import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions;
-import alluxio.master.WorkerState;
+import alluxio.wire.WorkerState;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
