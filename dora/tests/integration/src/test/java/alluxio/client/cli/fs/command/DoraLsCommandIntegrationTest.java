@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractDoraFileSystemShellTest;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -136,9 +135,7 @@ public class DoraLsCommandIntegrationTest extends AbstractDoraFileSystemShellTes
     );
   }
 
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Hua",
-      comment = "access time is not supported by Dora worker")
-  @Ignore
+  @Ignore("Ignore broken test for now")
   @Test
   public void testLsWithSortByAccessTime() throws IOException, AlluxioException {
     String oldFile = "/testRoot/oldFile";
@@ -184,9 +181,7 @@ public class DoraLsCommandIntegrationTest extends AbstractDoraFileSystemShellTes
     );
   }
 
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Hua",
-      comment = "creation time is yet to be supported by Dora worker")
-  @Ignore
+  @Ignore("Ignore broken test for now")
   @Test
   public void testLsWithSortByCreationTime() throws IOException, AlluxioException {
     String oldFile = "/testRoot/oldFile";
