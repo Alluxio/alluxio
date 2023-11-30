@@ -11,16 +11,16 @@
 
 package alluxio.membership;
 
-import alluxio.collections.IndexDefinition;
-import alluxio.collections.IndexedSet;
 import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
 
 import java.time.Instant;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -32,10 +32,7 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public final class WorkerClusterView implements Iterable<WorkerInfo> {
   private final Instant mInstantCreated;
-  private final IndexedSet<WorkerInfo> mWorkers;
-
-  private static final IndexDefinition<WorkerInfo, WorkerIdentity> INDEX_WORKER_ID =
-      IndexDefinition.ofUnique(WorkerInfo::getIdentity);
+  private final Map<WorkerIdentity, WorkerInfo> mWorkers;
 
   /**
    * Creates a cluster view with the give workers.
@@ -43,10 +40,9 @@ public final class WorkerClusterView implements Iterable<WorkerInfo> {
    * @param workers workers in this view
    */
   public WorkerClusterView(Iterable<WorkerInfo> workers) {
-    mWorkers = new IndexedSet<>(INDEX_WORKER_ID);
-    for (WorkerInfo workerInfo : workers) {
-      mWorkers.add(workerInfo);
-    }
+    ImmutableMap.Builder<WorkerIdentity, WorkerInfo> mapBuilder = ImmutableMap.builder();
+    workers.forEach(w -> mapBuilder.put(w.getIdentity(), w));
+    mWorkers = mapBuilder.build();
     // Note Instant.now() uses the system clock and is NOT monotonic
     // which is fine because we want to invalidate stale snapshots based on wall clock time
     mInstantCreated = Instant.now();
@@ -59,13 +55,12 @@ public final class WorkerClusterView implements Iterable<WorkerInfo> {
    * @return the worker info of the given worker, or none if the worker is not found
    */
   public Optional<WorkerInfo> getWorkerById(WorkerIdentity workerIdentity) {
-    return Optional.ofNullable(
-        mWorkers.getFirstByField(INDEX_WORKER_ID, workerIdentity));
+    return Optional.ofNullable(mWorkers.get(workerIdentity));
   }
 
   @Override
   public Iterator<WorkerInfo> iterator() {
-    return Iterators.unmodifiableIterator(mWorkers.iterator());
+    return Iterators.unmodifiableIterator(mWorkers.values().iterator());
   }
 
   /**
@@ -74,7 +69,7 @@ public final class WorkerClusterView implements Iterable<WorkerInfo> {
    * @return stream of workers
    */
   public Stream<WorkerInfo> stream() {
-    return mWorkers.stream();
+    return mWorkers.values().stream();
   }
 
   /**
