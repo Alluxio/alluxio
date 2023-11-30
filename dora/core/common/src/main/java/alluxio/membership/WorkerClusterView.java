@@ -93,7 +93,7 @@ public final class WorkerClusterView implements Iterable<WorkerInfo> {
   }
 
   /**
-   * @return the time when this snapshot was created.
+   * @return the time when this snapshot was created
    */
   public Instant getSnapshotTime() {
     return mInstantCreated;
