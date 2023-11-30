@@ -14,6 +14,7 @@ package alluxio.membership;
 import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerInfo;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
@@ -40,12 +41,17 @@ public final class WorkerClusterView implements Iterable<WorkerInfo> {
    * @param workers workers in this view
    */
   public WorkerClusterView(Iterable<WorkerInfo> workers) {
+    this(workers, Instant.now());
+  }
+
+  @VisibleForTesting
+  WorkerClusterView(Iterable<WorkerInfo> workers, Instant createdTime) {
     ImmutableMap.Builder<WorkerIdentity, WorkerInfo> mapBuilder = ImmutableMap.builder();
     workers.forEach(w -> mapBuilder.put(w.getIdentity(), w));
     mWorkers = mapBuilder.build();
     // Note Instant.now() uses the system clock and is NOT monotonic
     // which is fine because we want to invalidate stale snapshots based on wall clock time
-    mInstantCreated = Instant.now();
+    mInstantCreated = createdTime;
   }
 
   /**
