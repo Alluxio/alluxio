@@ -18,12 +18,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
+import org.apache.curator.shaded.com.google.common.collect.Streams;
 
 import java.time.Instant;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.concurrent.Immutable;
 
@@ -46,9 +48,9 @@ public final class WorkerClusterView implements Iterable<WorkerInfo> {
 
   @VisibleForTesting
   WorkerClusterView(Iterable<WorkerInfo> workers, Instant createdTime) {
-    ImmutableMap.Builder<WorkerIdentity, WorkerInfo> mapBuilder = ImmutableMap.builder();
-    workers.forEach(w -> mapBuilder.put(w.getIdentity(), w));
-    mWorkers = mapBuilder.build();
+    mWorkers = Streams.stream(workers)
+        .collect(ImmutableMap.toImmutableMap(
+            WorkerInfo::getIdentity, Function.identity(), (first, second) -> second));
     // Note Instant.now() uses the system clock and is NOT monotonic
     // which is fine because we want to invalidate stale snapshots based on wall clock time
     mInstantCreated = createdTime;
