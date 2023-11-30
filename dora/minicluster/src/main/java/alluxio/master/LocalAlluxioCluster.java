@@ -191,13 +191,11 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     CommonUtils.waitFor("worker starts serving RPCs", () -> {
       try (FileSystemContext fsContext = FileSystemContext.create()) {
         List<BlockWorkerInfo> workerInfoList = fsContext.getCachedWorkers();
-        System.out.println(workerInfoList.size());
         if (mNumWorkers != workerInfoList.size()) {
           return false;
         }
         LOG.info("Observed {} workers in the cluster", workerInfoList.size());
         for (BlockWorkerInfo workerInfo : workerInfoList) {
-          System.out.println(workerInfo.getNetAddress());
           try (CloseableResource<BlockWorkerClient> blockWorkerClient =
                    fsContext.acquireBlockWorkerClient(workerInfo.getNetAddress())) {
             AlluxioURI rootUri = new AlluxioURI("/");

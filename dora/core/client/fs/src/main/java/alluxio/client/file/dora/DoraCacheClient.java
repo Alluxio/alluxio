@@ -247,8 +247,6 @@ public class DoraCacheClient {
    */
   public Pair<URIStatus, String> createFile(String path, CreateFilePOptions options)
       throws PermissionDeniedException {
-    System.out.println("---");
-    System.out.println(getWorkerNetAddress(path));
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       CreateFilePRequest request = CreateFilePRequest.newBuilder()
