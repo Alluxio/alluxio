@@ -21,7 +21,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 import alluxio.util.io.BufferUtils;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -135,7 +134,6 @@ public class DoraLsCommandIntegrationTest extends AbstractDoraFileSystemShellTes
     );
   }
 
-  @Ignore("Ignore broken test for now")
   @Test
   public void testLsWithSortByAccessTime() throws IOException, AlluxioException {
     String oldFile = "/testRoot/oldFile";
@@ -181,7 +179,6 @@ public class DoraLsCommandIntegrationTest extends AbstractDoraFileSystemShellTes
     );
   }
 
-  @Ignore("Ignore broken test for now")
   @Test
   public void testLsWithSortByCreationTime() throws IOException, AlluxioException {
     String oldFile = "/testRoot/oldFile";
