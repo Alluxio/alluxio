@@ -147,7 +147,7 @@
     <java.version>1.8</java.version>
     <jaxb.version>2.3.3</jaxb.version>
     <jersey.version>2.34</jersey.version>
-    <jetty.version>9.4.46.v20220331</jetty.version>
+    <jetty.version>9.4.53.v20231009</jetty.version>
     <jnr-fuse.version>0.5.5</jnr-fuse.version>
     <junit.version>4.13.1</junit.version>
     <jupiter.version>5.9.2</jupiter.version>
