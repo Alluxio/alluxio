@@ -50,7 +50,13 @@ public final class WorkerClusterView implements Iterable<WorkerInfo> {
   WorkerClusterView(Iterable<WorkerInfo> workers, Instant createdTime) {
     mWorkers = Streams.stream(workers)
         .collect(ImmutableMap.toImmutableMap(
-            WorkerInfo::getIdentity, Function.identity(), (first, second) -> second));
+            WorkerInfo::getIdentity,
+            Function.identity(),
+            (first, second) -> {
+              throw new IllegalArgumentException(
+                  String.format("duplicate workers with the same ID: first: %s, second: %s",
+                      first, second));
+            }));
     // Note Instant.now() uses the system clock and is NOT monotonic
     // which is fine because we want to invalidate stale snapshots based on wall clock time
     mInstantCreated = createdTime;

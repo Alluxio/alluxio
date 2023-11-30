@@ -65,9 +65,9 @@ public class WorkerClusterViewTest {
         .setAddress(new WorkerNetAddress().setHost("host2"));
     WorkerInfo worker3 = new WorkerInfo().setIdentity(id)
         .setAddress(new WorkerNetAddress().setHost("host3"));
-    WorkerClusterView view = new WorkerClusterView(ImmutableList.of(worker1, worker2, worker3));
-    assertEquals(1, view.size());
-    assertEquals(Optional.of(id), view.getWorkerById(id).map(WorkerInfo::getIdentity));
+    List<WorkerInfo> workers = ImmutableList.of(worker1, worker2, worker3);
+    assertThrows("duplicate workers not allowed", IllegalArgumentException.class,
+        () -> new WorkerClusterView(workers));
   }
 
   @Test
