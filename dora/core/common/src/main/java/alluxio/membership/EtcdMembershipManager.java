@@ -13,6 +13,7 @@ package alluxio.membership;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.AlreadyExistsException;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerInfo;
@@ -93,16 +94,25 @@ public class EtcdMembershipManager implements MembershipManager {
     if (existingEntityBytes != null) {
       // It's not me, or not the same me.
       if (!Arrays.equals(existingEntityBytes, serializedEntity)) {
-        // In k8s this might be bcos worker pod restarting with the same worker identity
-        // but certain fields such as hostname has been changed. Register to ring path anyway.
-        WorkerServiceEntity existingEntity = new WorkerServiceEntity();
-        existingEntity.deserialize(existingEntityBytes);
-        LOG.warn("Same worker entity found bearing same workerid:{},"
-            + "existing WorkerServiceEntity to be overwritten:{},"
-            + "maybe benign if pod restart in k8s env or same worker"
-            + " scheduled to restart on another machine in baremetal env.",
-            workerInfo.getIdentity().toString(), existingEntity);
-        mAlluxioEtcdClient.createForPath(pathOnRing, Optional.of(serializedEntity));
+        if (mConf.isSet(PropertyKey.WORKER_IN_K8S_ENV)
+            && mConf.getBoolean(PropertyKey.WORKER_IN_K8S_ENV)) {
+          // In k8s this might be bcos worker pod restarting with the same worker identity
+          // but certain fields such as hostname has been changed. Register to ring path anyway.
+          WorkerServiceEntity existingEntity = new WorkerServiceEntity();
+          existingEntity.deserialize(existingEntityBytes);
+          LOG.warn("Same worker entity found bearing same workerid:{},"
+                  + "existing WorkerServiceEntity to be overwritten:{},"
+                  + "maybe benign if pod restart in k8s env or same worker"
+                  + " scheduled to restart on another machine in baremetal env.",
+              workerInfo.getIdentity().toString(), existingEntity);
+          mAlluxioEtcdClient.createForPath(pathOnRing, Optional.of(serializedEntity));
+        } else {
+          //
+          throw new AlreadyExistsException(
+              "Some other member with same id registered on the ring, bail."
+              + "Different workers can't assume same worker identity in non-k8s env."
+                  + "Clean local worker identity settings to continue.");
+        }
       }
       // It's me, go ahead to start heartbeating.
     } else {

@@ -13,8 +13,10 @@ package alluxio.membership;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.AlreadyExistsException;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerIdentityTestUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -348,5 +350,48 @@ public class MembershipManagerTest {
         .sorted()
         .collect(Collectors.toList());
     Assert.assertEquals(wkrHosts, allMemberHosts);
+  }
+
+  @Test
+  public void testSameWorkerIdentityConflict() throws Exception {
+    final MembershipManager membershipManager = getHealthyEtcdMemberMgr();
+    // in non-k8s env, no two workers can assume same identity, unless
+    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.ETCD);
+    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getClientEndpoints());
+    Assert.assertTrue(membershipManager instanceof EtcdMembershipManager);
+    WorkerIdentity workerIdentity1 = WorkerIdentityTestUtils.randomUuidBasedId();
+    WorkerInfo wkr1 = new WorkerInfo()
+        .setIdentity(workerIdentity1)
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker1").setContainerHost("containerhostname1")
+            .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
+            .setDomainSocketPath("/var/lib/domain.sock"));
+    WorkerInfo wkr2 = new WorkerInfo()
+        .setIdentity(workerIdentity1)
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker2").setContainerHost("containerhostname2")
+            .setRpcPort(2000).setDataPort(2001).setWebPort(2011)
+            .setDomainSocketPath("/var/lib/domain.sock"));
+    membershipManager.join(wkr1);
+    // bring wrk1 down and join wrk2 with a same worker identity.
+    membershipManager.stopHeartBeat(wkr1);
+    CommonUtils.waitFor("wkr1 is not alive.", () -> {
+      try {
+        return membershipManager.getFailedMembers().getWorkerById(workerIdentity1).isPresent();
+      } catch (IOException e) {
+        // IGNORE
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(5000));
+    try {
+      membershipManager.join(wkr2);
+    } catch (IOException ex) {
+      Assert.assertTrue(ex instanceof AlreadyExistsException);
+    }
+
+    // only in k8s env, it should allow same worker identity assumption.
+    Configuration.set(PropertyKey.WORKER_IN_K8S_ENV, true);
+    final MembershipManager membershipManager1 = getHealthyEtcdMemberMgr();
+    membershipManager1.join(wkr2);
   }
 }

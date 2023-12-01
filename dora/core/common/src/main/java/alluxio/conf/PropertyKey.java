@@ -4087,6 +4087,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_IN_K8S_ENV =
+      booleanBuilder(Name.WORKER_IN_K8S_ENV)
+          .setDefaultValue(false)
+          .setDescription("Indicate if worker deployed in K8s environment.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .setIsHidden(true)
+          .build();
   public static final PropertyKey WORKER_KEYTAB_FILE = stringBuilder(Name.WORKER_KEYTAB_FILE)
       .setDescription("Kerberos keytab file for Alluxio worker.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -7989,6 +7997,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_IDENTITY_UUID = "alluxio.worker.identity.uuid";
     public static final String WORKER_IDENTITY_UUID_FILE_PATH =
         "alluxio.worker.identity.uuid.file.path";
+    public static final String WORKER_IN_K8S_ENV =
+        "alluxio.worker.in.k8s.env";
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
     public static final String WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
         "alluxio.worker.master.connect.retry.timeout";
