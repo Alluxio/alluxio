@@ -133,7 +133,8 @@ public class WorkerClusterViewTest {
     );
     Instant instant = Instant.now();
     WorkerClusterView view1 = new WorkerClusterView(workers, instant);
-    WorkerClusterView view2 = new WorkerClusterView(new ArrayList<>(Lists.reverse(workers)), instant);
+    WorkerClusterView view2 = new WorkerClusterView(
+        new ArrayList<>(Lists.reverse(workers)), instant);
     assertEquals(view1, view2);
   }
 
