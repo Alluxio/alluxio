@@ -130,20 +130,19 @@ public class StaticMembershipManager implements MembershipManager {
   }
 
   @Override
-  public List<WorkerInfo> getAllMembers() throws IOException {
-    return mMembers;
+  public WorkerClusterView getAllMembers() throws IOException {
+    return new WorkerClusterView(mMembers);
   }
 
   @Override
-  public List<WorkerInfo> getLiveMembers() throws IOException {
-    // No op for static type membership manager
-    return mMembers;
+  public WorkerClusterView getLiveMembers() throws IOException {
+    // all workers are considered by the static membership manager to be always live
+    return new WorkerClusterView(mMembers);
   }
 
   @Override
-  public List<WorkerInfo> getFailedMembers() throws IOException {
-    // No op for static type membership manager
-    return Collections.emptyList();
+  public WorkerClusterView getFailedMembers() throws IOException {
+    return new WorkerClusterView(Collections.emptyList());
   }
 
   @Override

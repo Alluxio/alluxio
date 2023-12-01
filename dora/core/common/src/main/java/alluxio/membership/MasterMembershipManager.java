@@ -17,7 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * A bypass no-op membership manager to disable MembershipManager module
@@ -39,18 +38,18 @@ public class MasterMembershipManager implements MembershipManager {
   }
 
   @Override
-  public List<WorkerInfo> getAllMembers() throws IOException {
-    return Collections.emptyList();
+  public WorkerClusterView getAllMembers() throws IOException {
+    return new WorkerClusterView(Collections.emptyList());
   }
 
   @Override
-  public List<WorkerInfo> getLiveMembers() throws IOException {
-    return Collections.emptyList();
+  public WorkerClusterView getLiveMembers() throws IOException {
+    return new WorkerClusterView(Collections.emptyList());
   }
 
   @Override
-  public List<WorkerInfo> getFailedMembers() throws IOException {
-    return Collections.emptyList();
+  public WorkerClusterView getFailedMembers() throws IOException {
+    return new WorkerClusterView(Collections.emptyList());
   }
 
   @Override
