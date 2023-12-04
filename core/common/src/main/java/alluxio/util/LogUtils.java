@@ -21,7 +21,7 @@ import org.apache.commons.logging.impl.Log4JLogger;
 import org.apache.log4j.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.impl.Log4jLoggerAdapter;
+import org.slf4j.impl.Reload4jLoggerAdapter;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -57,9 +57,9 @@ public final class LogUtils {
         process(((Log4JLogger) log).getLogger(), level, result);
       } else if (log instanceof Jdk14Logger) {
         process(((Jdk14Logger) log).getLogger(), level, result);
-      } else if (logger instanceof Log4jLoggerAdapter) {
+      } else if (logger instanceof Reload4jLoggerAdapter) {
         try {
-          Field field = Log4jLoggerAdapter.class.getDeclaredField("logger");
+          Field field = Reload4jLoggerAdapter.class.getDeclaredField("logger");
           field.setAccessible(true);
           org.apache.log4j.Logger log4jLogger = (org.apache.log4j.Logger) field.get(logger);
           process(log4jLogger, level, result);

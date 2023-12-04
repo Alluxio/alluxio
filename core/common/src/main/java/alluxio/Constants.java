@@ -237,5 +237,8 @@ public final class Constants {
   public static final Pattern LOG_FILE_PATTERN =
       Pattern.compile(".*(\\.log|\\.out)(\\.[0-9-]+)?$|.*.txt|.*.json");
 
+  /* xAttr keys */
+  public static final String ETAG_XATTR_KEY = "s3_etag";
+
   private Constants() {} // prevent instantiation
 }

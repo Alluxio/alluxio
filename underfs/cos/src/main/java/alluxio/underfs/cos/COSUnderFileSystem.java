@@ -42,6 +42,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
@@ -180,7 +181,8 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
           .map(DeleteObjectsResult.DeletedObject::getKey)
           .collect(Collectors.toList());
     } catch (CosClientException e) {
-      throw new IOException("failed to delete objects", e);
+      LOG.warn("failed to delete objects");
+      throw AlluxioCosException.from(e);
     }
   }
 
@@ -285,8 +287,9 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
       if (meta == null) {
         return null;
       }
+      Date lastModifiedDate = meta.getLastModified();
       return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
-          meta.getLastModified().getTime());
+              lastModifiedDate != null ? lastModifiedDate.getTime() : null);
     } catch (CosClientException e) {
       return null;
     }
@@ -324,7 +327,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
       return new COSInputStream(mBucketNameInternal, key, mClient, options.getOffset(), retryPolicy,
           mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (CosClientException e) {
-      throw new IOException(e.getMessage());
+      throw AlluxioCosException.from(e);
     }
   }
 }

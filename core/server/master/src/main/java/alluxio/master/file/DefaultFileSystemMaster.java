@@ -205,6 +205,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
+import com.google.protobuf.ByteString;
 import io.grpc.ServerInterceptors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -212,6 +213,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.time.Clock;
 import java.util.ArrayList;
@@ -1806,14 +1808,15 @@ public class DefaultFileSystemMaster extends CoreMaster
     long length = fileInode.isPersisted() ? context.getOptions().getUfsLength() : inAlluxioLength;
 
     String ufsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
+    String contentHash = null;
     if (fileInode.isPersisted()) {
-      String contentHash = context.getOptions().hasContentHash()
+      contentHash = context.getOptions().hasContentHash()
           ? context.getOptions().getContentHash() : null;
       ufsFingerprint = getUfsFingerprint(inodePath.getUri(), context.getUfsStatus(), contentHash);
     }
 
     completeFileInternal(rpcContext, inodePath, length, context.getOperationTimeMs(),
-        ufsFingerprint);
+        ufsFingerprint, contentHash);
   }
 
   /**
@@ -1824,7 +1827,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param ufsFingerprint the ufs fingerprint
    */
   private void completeFileInternal(RpcContext rpcContext, LockedInodePath inodePath, long length,
-      long opTimeMs, String ufsFingerprint)
+      long opTimeMs, String ufsFingerprint, String contentHash)
       throws FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
       FileAlreadyCompletedException, UnavailableException {
     Preconditions.checkState(inodePath.getLockPattern().isWrite());
@@ -1865,15 +1868,19 @@ public class DefaultFileSystemMaster extends CoreMaster
       mUfsAbsentPathCache.processExisting(inodePath.getUri());
     }
 
-    // We could introduce a concept of composite entries, so that these two entries could
-    // be applied in a single call to applyAndJournal.
-    mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder()
-        .setId(inode.getId())
-        .setUfsFingerprint(ufsFingerprint)
+    UpdateInodeEntry.Builder updateEntry = UpdateInodeEntry.newBuilder().setId(inode.getId());
+    updateEntry.setUfsFingerprint(ufsFingerprint)
         .setLastModificationTimeMs(opTimeMs)
         .setLastAccessTimeMs(opTimeMs)
-        .setOverwriteModificationTime(true)
-        .build());
+        .setOverwriteModificationTime(true);
+    if (StringUtils.isNotEmpty(contentHash)) {
+      updateEntry.putXAttr(Constants.ETAG_XATTR_KEY,
+              ByteString.copyFrom(contentHash, StandardCharsets.UTF_8))
+          .setXAttrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE);
+    }
+    // We could introduce a concept of composite entries, so that these two entries could
+    // be applied in a single call to applyAndJournal.
+    mInodeTree.updateInode(rpcContext, updateEntry.build());
     mInodeTree.updateInodeFile(rpcContext, entry.build());
 
     Metrics.FILES_COMPLETED.inc();
@@ -2440,7 +2447,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
 
       if (mSyncManager.isSyncPoint(inodePath.getUri())) {
-        mSyncManager.stopSyncAndJournal(RpcContext.NOOP, inodePath.getUri());
+        mSyncManager.stopSyncAndJournal(rpcContext, inodePath.getUri());
       }
 
       // Delete Inodes from children to parents
@@ -3719,7 +3726,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
           + " the path is an existing mount point.");
     }
-    mSyncManager.stopSyncForMount(mountInfo.getMountId());
+    mSyncManager.stopSyncForMount(rpcContext, mountInfo.getMountId());
 
     if (!mMountTable.delete(rpcContext, inodePath.getUri(), true)) {
       throw new InvalidPathException("Failed to unmount " + inodePath.getUri() + ". Please ensure"
