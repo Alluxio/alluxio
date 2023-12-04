@@ -260,6 +260,8 @@
                   <shadedPattern>${shading.prefix}.javax.</shadedPattern>
                   <excludes>
                     <exclude>**/pom.xml</exclude>
+                    <exclude>javax/security/**/*</exclude>
+                    <exclude>javax/management/**/*</exclude>
                   </excludes>
                 </relocation>
                 <relocation>
