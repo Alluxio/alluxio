@@ -82,6 +82,7 @@ public class AlluxioFileInStream extends FileInStream {
   private final BlockStoreClient mBlockStore;
   private final FileSystemContext mContext;
   private final boolean mPassiveCachingEnabled;
+  private final long mStatusOutdatedTime;
 
   /* Convenience values derived from mStatus, use these instead of querying mStatus. */
   /** Length of the file in bytes. */
@@ -130,6 +131,8 @@ public class AlluxioFileInStream extends FileInStream {
               .withMaxSleep(blockReadRetrySleepMax)
               .withSkipInitialSleep().build();
       mStatus = status;
+      mStatusOutdatedTime = System.currentTimeMillis() +
+          conf.getMs(PropertyKey.USER_FILE_IN_STREAM_STATUS_EXPIRATION_TIME);
       mOptions = options;
       mBlockStore = BlockStoreClient.create(mContext);
       mLength = mStatus.getLength();
@@ -302,8 +305,8 @@ public class AlluxioFileInStream extends FileInStream {
       try {
         // Positioned read may be called multiple times for the same block. Caching the in-stream
         // allows us to avoid the block store rpc to open a new stream for each call.
-        BlockInfo blockInfo = lastException == null
-            ? mStatus.getBlockInfo(blockId) : mBlockStore.getInfo(blockId);
+        BlockInfo blockInfo = isStatusOutdated() || lastException != null
+            ? mBlockStore.getInfo(blockId) : mStatus.getBlockInfo(blockId);
         if (mCachedPositionedReadStream == null) {
           mCachedPositionedReadStream = mBlockStore.getInStream(
               blockInfo, mOptions, mFailedWorkers);
@@ -410,7 +413,7 @@ public class AlluxioFileInStream extends FileInStream {
         }
       }
     }
-    if (isBlockInfoOutdated) {
+    if (isBlockInfoOutdated || isStatusOutdated()) {
       mBlockInStream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
     } else {
       mBlockInStream = mBlockStore.getInStream(blockInfo, mOptions, mFailedWorkers);
@@ -418,6 +421,10 @@ public class AlluxioFileInStream extends FileInStream {
     // Set the stream to the correct position.
     long offset = mPosition % mBlockSize;
     mBlockInStream.seek(offset);
+  }
+
+  private boolean isStatusOutdated() {
+    return System.currentTimeMillis() > mStatusOutdatedTime;
   }
 
   private void closeBlockInStream(BlockInStream stream) throws IOException {
