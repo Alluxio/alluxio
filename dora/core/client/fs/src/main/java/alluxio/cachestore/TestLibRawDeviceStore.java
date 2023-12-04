@@ -18,9 +18,10 @@ import java.nio.ByteBuffer;
 public class TestLibRawDeviceStore {
 
   public static void main(String [] argv) {
+    final String configPath = System.getenv("CACHE_STORE_CONFIG_PATH");
     LibRawDeviceStore.loadLibrary(NativeLibraryLoader.LibCacheStoreVersion.VERSION_1);
     LibRawDeviceStore libRawDeviceStore = new LibRawDeviceStore();
-    libRawDeviceStore.openCacheStore("/home/ec2-user/SourceCode/ceph/src/test/fio/ceph-bluestore.conf");
+    libRawDeviceStore.openCacheStore(configPath);
     System.out.println(String.format("Successfully open the cachestore"));
     ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
     byteBuffer.putChar('f');
