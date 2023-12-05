@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-assembly</artifactId>
-    <version>307-SNAPSHOT</version>
+    <version>307</version>
   </parent>
   <artifactId>alluxio-assembly-client</artifactId>
   <packaging>jar</packaging>
@@ -73,9 +73,9 @@
             <configuration>
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheNoticeResourceTransformer" />
               </transformers>
               <artifactSet>
                 <excludes>
