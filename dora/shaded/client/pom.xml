@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-shaded</artifactId>
-    <version>306-SNAPSHOT</version>
+    <version>308-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-shaded-client</artifactId>
   <packaging>jar</packaging>
@@ -194,6 +194,7 @@
                   <artifact>*:*</artifact>
                   <excludes>
                     <exclude>mozilla/public-suffix-list.txt</exclude>
+                    <exclude>jetty-dir.css</exclude>
                   </excludes>
                 </filter>
               </filters>
@@ -255,15 +256,13 @@
                   <shadedPattern>${shading.prefix}.javassist</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>javax/annotation/</pattern>
-                  <shadedPattern>${shading.prefix}.javax.annotation.</shadedPattern>
+                  <pattern>javax/</pattern>
+                  <shadedPattern>${shading.prefix}.javax.</shadedPattern>
                   <excludes>
                     <exclude>**/pom.xml</exclude>
+                    <exclude>javax/security/**/*</exclude>
+                    <exclude>javax/management/**/*</exclude>
                   </excludes>
-                </relocation>
-                <relocation>
-                  <pattern>javax/inject/</pattern>
-                  <shadedPattern>${shading.prefix}.javax.inject.</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org/</pattern>

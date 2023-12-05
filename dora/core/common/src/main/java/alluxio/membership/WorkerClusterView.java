@@ -11,17 +11,21 @@
 
 package alluxio.membership;
 
-import alluxio.collections.IndexDefinition;
-import alluxio.collections.IndexedSet;
 import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerInfo;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
+import org.apache.curator.shaded.com.google.common.collect.Streams;
 
 import java.time.Instant;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.concurrent.Immutable;
 
@@ -31,10 +35,7 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public final class WorkerClusterView implements Iterable<WorkerInfo> {
   private final Instant mInstantCreated;
-  private final IndexedSet<WorkerInfo> mWorkers;
-
-  private static final IndexDefinition<WorkerInfo, WorkerIdentity> INDEX_WORKER_ID =
-      IndexDefinition.ofUnique(WorkerInfo::getIdentity);
+  private final Map<WorkerIdentity, WorkerInfo> mWorkers;
 
   /**
    * Creates a cluster view with the give workers.
@@ -42,13 +43,23 @@ public final class WorkerClusterView implements Iterable<WorkerInfo> {
    * @param workers workers in this view
    */
   public WorkerClusterView(Iterable<WorkerInfo> workers) {
-    mWorkers = new IndexedSet<>(INDEX_WORKER_ID);
-    for (WorkerInfo workerInfo : workers) {
-      mWorkers.add(workerInfo);
-    }
+    this(workers, Instant.now());
+  }
+
+  @VisibleForTesting
+  WorkerClusterView(Iterable<WorkerInfo> workers, Instant createdTime) {
+    mWorkers = Streams.stream(workers)
+        .collect(ImmutableMap.toImmutableMap(
+            WorkerInfo::getIdentity,
+            Function.identity(),
+            (first, second) -> {
+              throw new IllegalArgumentException(
+                  String.format("duplicate workers with the same ID: first: %s, second: %s",
+                      first, second));
+            }));
     // Note Instant.now() uses the system clock and is NOT monotonic
     // which is fine because we want to invalidate stale snapshots based on wall clock time
-    mInstantCreated = Instant.now();
+    mInstantCreated = createdTime;
   }
 
   /**
@@ -58,13 +69,12 @@ public final class WorkerClusterView implements Iterable<WorkerInfo> {
    * @return the worker info of the given worker, or none if the worker is not found
    */
   public Optional<WorkerInfo> getWorkerById(WorkerIdentity workerIdentity) {
-    return Optional.ofNullable(
-        mWorkers.getFirstByField(INDEX_WORKER_ID, workerIdentity));
+    return Optional.ofNullable(mWorkers.get(workerIdentity));
   }
 
   @Override
   public Iterator<WorkerInfo> iterator() {
-    return Iterators.unmodifiableIterator(mWorkers.iterator());
+    return Iterators.unmodifiableIterator(mWorkers.values().iterator());
   }
 
   /**
@@ -73,7 +83,7 @@ public final class WorkerClusterView implements Iterable<WorkerInfo> {
    * @return stream of workers
    */
   public Stream<WorkerInfo> stream() {
-    return mWorkers.stream();
+    return mWorkers.values().stream();
   }
 
   /**
@@ -91,7 +101,7 @@ public final class WorkerClusterView implements Iterable<WorkerInfo> {
   }
 
   /**
-   * @return the time when this snapshot was created.
+   * @return the time when this snapshot was created
    */
   public Instant getSnapshotTime() {
     return mInstantCreated;
@@ -118,5 +128,13 @@ public final class WorkerClusterView implements Iterable<WorkerInfo> {
   @Override
   public int hashCode() {
     return Objects.hash(mInstantCreated, mWorkers);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("InstantCreated", mInstantCreated)
+        .add("Workers", mWorkers)
+        .toString();
   }
 }
