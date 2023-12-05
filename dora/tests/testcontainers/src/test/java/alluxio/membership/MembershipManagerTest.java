@@ -19,6 +19,7 @@ import alluxio.wire.WorkerIdentityTestUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.collect.Lists;
 import eu.rekawek.toxiproxy.model.ToxicDirection;
 import io.etcd.jetcd.Auth;
 import io.etcd.jetcd.ByteSequence;
@@ -225,15 +226,16 @@ public class MembershipManagerTest {
     CommonUtils.waitFor("Service's lease close and service key got deleted.",
         () -> {
           try {
-            return membershipManager.getFailedMembers().size() > 0;
+            return !membershipManager.getFailedMembers().isEmpty();
           } catch (IOException e) {
             throw new RuntimeException(
-            String.format("Unexpected error while getting failed members: %s", e));
+                String.format("Unexpected error while getting failed members: %s", e));
           }
         }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
     List<WorkerInfo> expectedFailedList = new ArrayList<>();
     expectedFailedList.add(wkr2);
-    Assert.assertEquals(expectedFailedList, membershipManager.getFailedMembers());
+    Assert.assertEquals(expectedFailedList,
+        Lists.newArrayList(membershipManager.getFailedMembers()));
     List<WorkerInfo> actualLiveMembers = membershipManager.getLiveMembers().stream()
         .sorted(Comparator.comparing(w -> w.getAddress().getHost()))
         .collect(Collectors.toList());

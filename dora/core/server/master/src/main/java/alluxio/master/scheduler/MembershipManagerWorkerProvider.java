@@ -21,6 +21,8 @@ import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.collect.ImmutableList;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -57,7 +59,7 @@ public class MembershipManagerWorkerProvider implements WorkerProvider {
       if (mEnableDynamicHashRing) {
         return getLiveWorkerInfos();
       }
-      return mMembershipManager.getAllMembers();
+      return ImmutableList.copyOf(mMembershipManager.getAllMembers());
     } catch (IOException ex) {
       throw AlluxioRuntimeException.from(ex);
     }
@@ -66,7 +68,7 @@ public class MembershipManagerWorkerProvider implements WorkerProvider {
   @Override
   public List<WorkerInfo> getLiveWorkerInfos() {
     try {
-      return mMembershipManager.getLiveMembers();
+      return ImmutableList.copyOf(mMembershipManager.getLiveMembers());
     } catch (IOException ex) {
       throw AlluxioRuntimeException.from(ex);
     }

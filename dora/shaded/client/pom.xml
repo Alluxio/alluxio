@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-shaded</artifactId>
-    <version>307-SNAPSHOT</version>
+    <version>308-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-shaded-client</artifactId>
   <packaging>jar</packaging>
@@ -260,6 +260,8 @@
                   <shadedPattern>${shading.prefix}.javax.</shadedPattern>
                   <excludes>
                     <exclude>**/pom.xml</exclude>
+                    <exclude>javax/security/**/*</exclude>
+                    <exclude>javax/management/**/*</exclude>
                   </excludes>
                 </relocation>
                 <relocation>
