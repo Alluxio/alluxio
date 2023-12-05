@@ -47,6 +47,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -393,5 +394,10 @@ public class MembershipManagerTest {
     Configuration.set(PropertyKey.K8S_ENV_DEPLOYMENT, true);
     final MembershipManager membershipManager1 = getHealthyEtcdMemberMgr();
     membershipManager1.join(wkr2);
+    // check if joined with correct info onto etcd
+    Optional<WorkerInfo> curWorkerInfo = membershipManager1.getLiveMembers()
+        .getWorkerById(workerIdentity1);
+    Assert.assertTrue(curWorkerInfo.isPresent());
+    Assert.assertEquals(wkr2.getAddress(), curWorkerInfo.get().getAddress());
   }
 }
