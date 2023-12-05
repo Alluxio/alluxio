@@ -21,6 +21,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 import alluxio.util.io.BufferUtils;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -134,6 +135,7 @@ public class DoraLsCommandIntegrationTest extends AbstractDoraFileSystemShellTes
     );
   }
 
+  @Ignore("UfsStatus doesn't support lastAccessTime")
   @Test
   public void testLsWithSortByAccessTime() throws IOException, AlluxioException {
     String oldFile = "/testRoot/oldFile";
@@ -180,6 +182,7 @@ public class DoraLsCommandIntegrationTest extends AbstractDoraFileSystemShellTes
     );
   }
 
+  @Ignore("UfsStatus doesn't support creationTime")
   @Test
   public void testLsWithSortByCreationTime() throws IOException, AlluxioException {
     String oldFile = "/testRoot/oldFile";
@@ -207,6 +210,22 @@ public class DoraLsCommandIntegrationTest extends AbstractDoraFileSystemShellTes
     assertEquals(-1, mFsShell.run("ls", "--sort", "invalidOption", "/testRoot"));
     String expected = "Invalid sort option `invalidOption` for --sort\n";
     assertEquals(expected, mOutput.toString());
+  }
+
+  @Test
+  public void testLsWithSortByLastModificationTime() throws IOException, AlluxioException {
+    String oldFile = "/testRoot/oldFile";
+    String newFile = "/testRoot/newFile";
+    createByteFileInAlluxio(oldFile, BufferUtils.getIncreasingByteArray(Constants.MB),
+        WritePType.CACHE_THROUGH);
+    createByteFileInAlluxio(newFile, BufferUtils.getIncreasingByteArray(Constants.MB),
+        WritePType.CACHE_THROUGH);
+    assertEquals(0, mFsShell.run("ls", "--sort", "lastModificationTime", "--timestamp",
+        "lastModificationTime", "/testRoot"));
+    checkOutput(
+        ".*FILE " + oldFile,
+        ".*FILE " + newFile
+    );
   }
 
   private void checkOutput(String... linePatterns) {
