@@ -18,7 +18,11 @@ public enum WorkerState {
   LIVE("LIVE"),
   LOST("LOST"),
   DECOMMISSIONED("Decommissioned"),
-  DISABLED("Disabled");
+  DISABLED("Disabled"),
+  // an unknown worker which is not recognized by the cluster membership manager,
+  // e.g. a worker before it registers to the manager
+  UNRECOGNIZED("UNRECOGNIZED");
+
   private final String mState;
 
   WorkerState(String s) {
@@ -42,6 +46,8 @@ public enum WorkerState {
         return DECOMMISSIONED;
       case "Disabled":
         return DISABLED;
+      case "UNRECOGNIZED":
+        return UNRECOGNIZED;
       default:
         throw new IllegalArgumentException("Unknown worker state: " + workerState);
     }

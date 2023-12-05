@@ -33,7 +33,7 @@ public final class WorkerInfo implements Serializable {
   private WorkerIdentity mIdentity;
   private WorkerNetAddress mAddress = new WorkerNetAddress();
   private int mLastContactSec;
-  private WorkerState mState = WorkerState.LIVE;
+  private WorkerState mState = WorkerState.UNRECOGNIZED;
   private long mCapacityBytes;
   private long mUsedBytes;
   private long mStartTimeMs;
