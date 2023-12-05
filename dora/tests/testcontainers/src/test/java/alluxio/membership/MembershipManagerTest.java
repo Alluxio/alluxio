@@ -390,7 +390,7 @@ public class MembershipManagerTest {
     }
 
     // only in k8s env, it should allow same worker identity assumption.
-    Configuration.set(PropertyKey.WORKER_IN_K8S_ENV, true);
+    Configuration.set(PropertyKey.K8S_ENV_DEPLOYMENT, true);
     final MembershipManager membershipManager1 = getHealthyEtcdMemberMgr();
     membershipManager1.join(wkr2);
   }
