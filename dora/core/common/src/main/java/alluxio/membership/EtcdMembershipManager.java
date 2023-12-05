@@ -94,8 +94,8 @@ public class EtcdMembershipManager implements MembershipManager {
     if (existingEntityBytes != null) {
       // It's not me, or not the same me.
       if (!Arrays.equals(existingEntityBytes, serializedEntity)) {
-        if (mConf.isSet(PropertyKey.WORKER_IN_K8S_ENV)
-            && mConf.getBoolean(PropertyKey.WORKER_IN_K8S_ENV)) {
+        if (mConf.isSet(PropertyKey.K8S_ENV_DEPLOYMENT)
+            && mConf.getBoolean(PropertyKey.K8S_ENV_DEPLOYMENT)) {
           // In k8s this might be bcos worker pod restarting with the same worker identity
           // but certain fields such as hostname has been changed. Register to ring path anyway.
           WorkerServiceEntity existingEntity = new WorkerServiceEntity();
