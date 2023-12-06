@@ -18,6 +18,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.wire.WorkerIdentityTestUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerState;
 
 import com.google.common.collect.Lists;
 import eu.rekawek.toxiproxy.model.ToxicDirection;
@@ -233,15 +234,17 @@ public class MembershipManagerTest {
           }
         }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
     List<WorkerInfo> expectedFailedList = new ArrayList<>();
-    expectedFailedList.add(wkr2);
+    WorkerInfo wrk2Copy = new WorkerInfo(wkr2);
+    wrk2Copy.setState(WorkerState.LOST);
+    expectedFailedList.add(wrk2Copy);
     Assert.assertEquals(expectedFailedList,
         Lists.newArrayList(membershipManager.getFailedMembers()));
     List<WorkerInfo> actualLiveMembers = membershipManager.getLiveMembers().stream()
         .sorted(Comparator.comparing(w -> w.getAddress().getHost()))
         .collect(Collectors.toList());
     List<WorkerInfo> expectedLiveMembers = new ArrayList<>();
-    expectedLiveMembers.add(wkr1);
-    expectedLiveMembers.add(wkr3);
+    expectedLiveMembers.add(new WorkerInfo(wkr1).setState(WorkerState.LIVE));
+    expectedLiveMembers.add(new WorkerInfo(wkr3).setState(WorkerState.LIVE));
     Assert.assertEquals(expectedLiveMembers, actualLiveMembers);
   }
 
