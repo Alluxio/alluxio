@@ -93,7 +93,8 @@ public class S3Handler {
       .build();
   private static final Logger LOG = LoggerFactory.getLogger(S3Handler.class);
   private static final ThreadLocal<byte[]> TLS_BYTES =
-          ThreadLocal.withInitial(() -> new byte[8 * 1024]);
+      ThreadLocal.withInitial(
+          () -> new byte[(int) Configuration.getBytes(PropertyKey.PROXY_S3_TRANSFER_BUFFER_SIZE)]);
   private final String mBucket;
   private final String mObject;
   private final HttpServletRequest mServletRequest;
