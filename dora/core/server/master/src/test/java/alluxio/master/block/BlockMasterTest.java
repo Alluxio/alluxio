@@ -41,7 +41,6 @@ import alluxio.master.AlwaysPrimaryPrimarySelector;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
-import alluxio.wire.WorkerState;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
@@ -55,6 +54,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerState;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.RegisterStreamer;
 

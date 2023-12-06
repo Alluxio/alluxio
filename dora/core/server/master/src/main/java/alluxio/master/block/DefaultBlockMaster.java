@@ -49,7 +49,6 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
-import alluxio.wire.WorkerState;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
 import alluxio.master.journal.JournalContext;
@@ -85,6 +84,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.RegisterLease;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerState;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
