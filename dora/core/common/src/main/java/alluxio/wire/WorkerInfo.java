@@ -44,6 +44,33 @@ public final class WorkerInfo implements Serializable {
   private String mRevision = "";
 
   /**
+   * Creates a new, empty instance.
+   */
+  public WorkerInfo() {
+  }
+
+  /**
+   * Copy constructor.
+   *
+   * @param copyFrom instance to copy from
+   */
+  public WorkerInfo(WorkerInfo copyFrom) {
+    mId = copyFrom.mId;
+    mIdentity = copyFrom.mIdentity; // identity is immutable so ok to reuse
+    mAddress = new WorkerNetAddress(copyFrom.mAddress);
+    mLastContactSec = copyFrom.mLastContactSec;
+    mState = copyFrom.mState;
+    mCapacityBytes = copyFrom.mCapacityBytes;
+    mUsedBytes = copyFrom.mUsedBytes;
+    mStartTimeMs = copyFrom.mStartTimeMs;
+    mCapacityBytesOnTiers = new HashMap<>(copyFrom.mCapacityBytesOnTiers);
+    mUsedBytesOnTiers = new HashMap<>(copyFrom.mUsedBytesOnTiers);
+    mBlockCount = copyFrom.mBlockCount;
+    mVersion = copyFrom.mVersion;
+    mRevision = copyFrom.mRevision;
+  }
+
+  /**
    * @return the worker id
    */
   @ApiModelProperty(value = "Worker id, used to identify the worker internally")
