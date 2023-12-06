@@ -57,14 +57,20 @@ public final class WorkerInfo implements Serializable {
   public WorkerInfo(WorkerInfo copyFrom) {
     mId = copyFrom.mId;
     mIdentity = copyFrom.mIdentity; // identity is immutable so ok to reuse
-    mAddress = new WorkerNetAddress(copyFrom.mAddress);
+    mAddress = copyFrom.mAddress != null
+        ? new WorkerNetAddress(copyFrom.mAddress)
+        : null;
     mLastContactSec = copyFrom.mLastContactSec;
     mState = copyFrom.mState;
     mCapacityBytes = copyFrom.mCapacityBytes;
     mUsedBytes = copyFrom.mUsedBytes;
     mStartTimeMs = copyFrom.mStartTimeMs;
-    mCapacityBytesOnTiers = new HashMap<>(copyFrom.mCapacityBytesOnTiers);
-    mUsedBytesOnTiers = new HashMap<>(copyFrom.mUsedBytesOnTiers);
+    mCapacityBytesOnTiers = copyFrom.mCapacityBytesOnTiers != null
+        ? new HashMap<>(copyFrom.mCapacityBytesOnTiers)
+        : null;
+    mUsedBytesOnTiers = copyFrom.mUsedBytesOnTiers != null
+        ? new HashMap<>(copyFrom.mUsedBytesOnTiers)
+        : null;
     mBlockCount = copyFrom.mBlockCount;
     mVersion = copyFrom.mVersion;
     mRevision = copyFrom.mRevision;
