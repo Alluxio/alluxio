@@ -214,9 +214,9 @@ public class MembershipManagerTest {
     membershipManager.join(wkr2);
     membershipManager.join(wkr3);
     List<WorkerInfo> wkrs = new ArrayList<>();
-    wkrs.add(wkr1);
-    wkrs.add(wkr2);
-    wkrs.add(wkr3);
+    wkrs.add(new WorkerInfo(wkr1).setState(WorkerState.LIVE));
+    wkrs.add(new WorkerInfo(wkr2).setState(WorkerState.LIVE));
+    wkrs.add(new WorkerInfo(wkr3).setState(WorkerState.LIVE));
     List<WorkerInfo> allMembers = membershipManager.getAllMembers().stream()
         .sorted(Comparator.comparing(w -> w.getAddress().getHost()))
         .collect(Collectors.toList());
@@ -234,9 +234,7 @@ public class MembershipManagerTest {
           }
         }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
     List<WorkerInfo> expectedFailedList = new ArrayList<>();
-    WorkerInfo wrk2Copy = new WorkerInfo(wkr2);
-    wrk2Copy.setState(WorkerState.LOST);
-    expectedFailedList.add(wrk2Copy);
+    expectedFailedList.add(new WorkerInfo(wkr2).setState(WorkerState.LOST));
     Assert.assertEquals(expectedFailedList,
         Lists.newArrayList(membershipManager.getFailedMembers()));
     List<WorkerInfo> actualLiveMembers = membershipManager.getLiveMembers().stream()
