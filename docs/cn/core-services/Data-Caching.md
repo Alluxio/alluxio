@@ -20,7 +20,6 @@ Alluxio 有助于跨各种平台统一用户数据，同时还有助于提高整
 
 ![Alluxio storage diagram]({{ '/img/stack.png' | relativize_url }})
 
-![Alluxio storage diagram]({{ '/img/stack.png' | relativize_url }})
 Alluxio 存储通过将数据存储在与计算节点位于同一位置的内存中来提高性能。 Alluxio 存储中的数据可以被复制，以使“热”数据更容易供 I/O 操作并行使用。
 
 Alluxio 中的数据副本和 UFS 中可能存在的副本是互相独立存在的。 Alluxio 存储中的数据副本数量由集群活动动态决定。 由于Alluxio依赖于底层文件存储来存储大部分数据，因此Alluxio不需要保留未使用的数据的副本。
