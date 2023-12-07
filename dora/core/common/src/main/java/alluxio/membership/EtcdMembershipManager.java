@@ -112,6 +112,8 @@ public class EtcdMembershipManager implements MembershipManager {
       ByteSequence keyToPut = ByteSequence.from(pathOnRing, StandardCharsets.UTF_8);
       ByteSequence valToPut = ByteSequence.from(serializedEntity);
       CompletableFuture<TxnResponse> txnResponseFut = txn
+          // version of the key indicates number of modification, 0 means
+          // this key does not exist
           .If(new Cmp(keyToPut, Cmp.Op.EQUAL, CmpTarget.version(0L)))
           .Then(Op.put(keyToPut, valToPut, PutOption.newBuilder().build()))
           .Else(isK8s ? Op.put(keyToPut, valToPut, PutOption.newBuilder().build()) :
