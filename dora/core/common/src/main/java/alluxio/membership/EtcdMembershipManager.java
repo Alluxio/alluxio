@@ -102,7 +102,7 @@ public class EtcdMembershipManager implements MembershipManager {
     byte[] serializedEntity = entity.serialize();
     // 1) register to the ring.
     // CompareAndSet if no existing registered entry, if exist such key, two cases:
-    // a) it's k8s env, still register no matter what
+    // a) it's k8s env, still register, overwriting the existing entry
     // b) it's not k8s env, compare the registered entity content, if it's me
     //    then no op, if not, we don't allow overwriting the existing entity.
     try {
