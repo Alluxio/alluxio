@@ -893,6 +893,7 @@ public class S3ObjectTask extends S3BaseTask {
           }
 
           try {
+            S3RestUtils.initMultipartUploadsMetadataDir(mHandler.getMetaFS());
             // Find an unused UUID
             String uploadId;
             do {
