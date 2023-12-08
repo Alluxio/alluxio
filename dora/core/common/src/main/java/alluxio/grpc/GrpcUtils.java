@@ -36,6 +36,7 @@ import alluxio.wire.UfsInfo;
 import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerState;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.HostAndPort;
@@ -317,7 +318,8 @@ public final class GrpcUtils {
         .setCapacityBytes(workerInfo.getCapacityBytes())
         .setCapacityBytesOnTiers(workerInfo.getCapacityBytesOnTiers()).setId(workerInfo.getId())
         .setLastContactSec(workerInfo.getLastContactSec())
-        .setStartTimeMs(workerInfo.getStartTimeMs()).setState(workerInfo.getState())
+        .setStartTimeMs(workerInfo.getStartTimeMs())
+        .setState(WorkerState.of(workerInfo.getState()))
         .setUsedBytes(workerInfo.getUsedBytes())
         .setUsedBytesOnTiers(workerInfo.getUsedBytesOnTiersMap())
         .setVersion(workerInfo.getBuildVersion().getVersion())
@@ -569,7 +571,8 @@ public final class GrpcUtils {
     return alluxio.grpc.WorkerInfo.newBuilder().setId(workerInfo.getId())
         .setIdentity(workerInfo.getIdentity().toProto())
         .setAddress(toProto(workerInfo.getAddress()))
-        .setLastContactSec(workerInfo.getLastContactSec()).setState(workerInfo.getState())
+        .setLastContactSec(workerInfo.getLastContactSec())
+        .setState(workerInfo.getState().toString())
         .setCapacityBytes(workerInfo.getCapacityBytes()).setUsedBytes(workerInfo.getUsedBytes())
         .setStartTimeMs(workerInfo.getStartTimeMs())
         .putAllCapacityBytesOnTiers(workerInfo.getCapacityBytesOnTiers())

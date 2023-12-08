@@ -33,7 +33,7 @@ public final class WorkerInfo implements Serializable {
   private WorkerIdentity mIdentity;
   private WorkerNetAddress mAddress = new WorkerNetAddress();
   private int mLastContactSec;
-  private String mState = "";
+  private WorkerState mState = WorkerState.UNRECOGNIZED;
   private long mCapacityBytes;
   private long mUsedBytes;
   private long mStartTimeMs;
@@ -42,6 +42,39 @@ public final class WorkerInfo implements Serializable {
   private long mBlockCount;
   private String mVersion = "";
   private String mRevision = "";
+
+  /**
+   * Creates a new, empty instance.
+   */
+  public WorkerInfo() {
+  }
+
+  /**
+   * Copy constructor.
+   *
+   * @param copyFrom instance to copy from
+   */
+  public WorkerInfo(WorkerInfo copyFrom) {
+    mId = copyFrom.mId;
+    mIdentity = copyFrom.mIdentity; // identity is immutable so ok to reuse
+    mAddress = copyFrom.mAddress != null
+        ? new WorkerNetAddress(copyFrom.mAddress)
+        : null;
+    mLastContactSec = copyFrom.mLastContactSec;
+    mState = copyFrom.mState;
+    mCapacityBytes = copyFrom.mCapacityBytes;
+    mUsedBytes = copyFrom.mUsedBytes;
+    mStartTimeMs = copyFrom.mStartTimeMs;
+    mCapacityBytesOnTiers = copyFrom.mCapacityBytesOnTiers != null
+        ? new HashMap<>(copyFrom.mCapacityBytesOnTiers)
+        : null;
+    mUsedBytesOnTiers = copyFrom.mUsedBytesOnTiers != null
+        ? new HashMap<>(copyFrom.mUsedBytesOnTiers)
+        : null;
+    mBlockCount = copyFrom.mBlockCount;
+    mVersion = copyFrom.mVersion;
+    mRevision = copyFrom.mRevision;
+  }
 
   /**
    * @return the worker id
@@ -83,7 +116,7 @@ public final class WorkerInfo implements Serializable {
    * @return the worker state
    */
   @ApiModelProperty(value = "Operation state of the worker", example = "In Service")
-  public String getState() {
+  public WorkerState getState() {
     return mState;
   }
 
@@ -184,7 +217,7 @@ public final class WorkerInfo implements Serializable {
    * @param state the worker state to use
    * @return the worker information
    */
-  public WorkerInfo setState(String state) {
+  public WorkerInfo setState(WorkerState state) {
     Preconditions.checkNotNull(state, "state");
     mState = state;
     return this;

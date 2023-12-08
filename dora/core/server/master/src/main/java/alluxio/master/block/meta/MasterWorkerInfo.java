@@ -17,12 +17,12 @@ import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.grpc.BuildVersion;
 import alluxio.grpc.StorageList;
-import alluxio.master.WorkerState;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerState;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
@@ -330,7 +330,7 @@ public final class MasterWorkerInfo {
           info.setStartTimeMs(mMeta.mStartTimeMs);
           break;
         case STATE:
-          info.setState(workerState.toString());
+          info.setState(workerState);
           break;
         case WORKER_USED_BYTES:
           info.setUsedBytes(mUsage.mUsedBytes);

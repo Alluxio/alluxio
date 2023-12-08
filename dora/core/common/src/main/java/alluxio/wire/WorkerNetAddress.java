@@ -60,7 +60,24 @@ public final class WorkerNetAddress implements Serializable {
   /**
    * Creates a new instance of {@link WorkerNetAddress}.
    */
-  public WorkerNetAddress() {}
+  public WorkerNetAddress() {
+  }
+
+  /**
+   * Copy constructor.
+   *
+   * @param copyFrom instance to copy from
+   */
+  public WorkerNetAddress(WorkerNetAddress copyFrom) {
+    mHost = copyFrom.mHost;
+    mContainerHost = copyFrom.mContainerHost;
+    mRpcPort = copyFrom.mRpcPort;
+    mDataPort = copyFrom.mDataPort;
+    mSecureRpcPort = copyFrom.mSecureRpcPort;
+    mNettyDataPort = copyFrom.mNettyDataPort;
+    mWebPort = copyFrom.mWebPort;
+    mDomainSocketPath = copyFrom.mDomainSocketPath;
+  }
 
   /**
    * @return the secure rpc port
