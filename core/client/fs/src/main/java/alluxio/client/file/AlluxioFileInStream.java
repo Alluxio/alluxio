@@ -131,8 +131,8 @@ public class AlluxioFileInStream extends FileInStream {
               .withMaxSleep(blockReadRetrySleepMax)
               .withSkipInitialSleep().build();
       mStatus = status;
-      mStatusOutdatedTime = System.currentTimeMillis() +
-          conf.getMs(PropertyKey.USER_FILE_IN_STREAM_STATUS_EXPIRATION_TIME);
+      mStatusOutdatedTime = System.currentTimeMillis()
+          + conf.getMs(PropertyKey.USER_FILE_IN_STREAM_STATUS_EXPIRATION_TIME);
       mOptions = options;
       mBlockStore = BlockStoreClient.create(mContext);
       mLength = mStatus.getLength();
