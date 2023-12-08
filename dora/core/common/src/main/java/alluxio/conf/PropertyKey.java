@@ -5097,7 +5097,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "Set value less than or equal to 0 to disable rate limits.")
           .setDefaultValue(0)
           .setScope(Scope.SERVER)
-
+          .build();
+  public static final PropertyKey PROXY_S3_TRANSFER_BUFFER_SIZE =
+      dataSizeBuilder(Name.PROXY_S3_TRANSFER_BUFFER_SIZE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setDescription("Buffer size used for proxy data transfer.")
+          .setDefaultValue("8KB")
+          .setScope(Scope.SERVER)
           .build();
 
   //
@@ -8225,6 +8231,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.global.read.rate.limit.mb";
     public static final String PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB =
         "alluxio.proxy.s3.single.connection.read.rate.limit.mb";
+    public static final String PROXY_S3_TRANSFER_BUFFER_SIZE =
+        "alluxio.proxy.transfer.buffer.size";
 
     //
     // User related properties
