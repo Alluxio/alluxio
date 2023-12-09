@@ -1048,6 +1048,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey K8S_ENV_DEPLOYMENT =
+      booleanBuilder(Name.K8S_ENV_DEPLOYMENT)
+          .setDefaultValue(false)
+          .setDescription("If Alluxio is deployed in K8s environment.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .setIsHidden(true)
+          .build();
+
   /**
    * UFS related properties.
    */
@@ -7325,6 +7334,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String ZOOKEEPER_AUTH_ENABLED = "alluxio.zookeeper.auth.enabled";
     public static final String ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY =
         "alluxio.zookeeper.leader.connection.error.policy";
+    public static final String K8S_ENV_DEPLOYMENT =
+        "alluxio.k8s.env.deployment";
     //
     // UFS related properties
     //

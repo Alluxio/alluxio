@@ -301,6 +301,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
          * instance might assume same worker id in k8s pod restart situation. There might
          * be gaps in updating etcd states in the interim of transition.
          */
+        LOG.error("Exception in join membership:", e);
         if (!retry.attempt()) {
           throw e;
         }
