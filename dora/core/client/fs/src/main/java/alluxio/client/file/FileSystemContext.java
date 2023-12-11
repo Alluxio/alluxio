@@ -183,7 +183,7 @@ public class FileSystemContext implements Closeable {
   /**
    * Cached map for workers.
    */
-  @GuardedBy("this")
+  @GuardedBy("itself")
   private final AtomicReference<WorkerClusterView> mCachedWorkerClusterView =
       new AtomicReference<>();
 
