@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 /**
  * A job that migrates a single file from source path to a destination path.
@@ -101,7 +102,14 @@ public final class MigrateDefinition
     for (WorkerInfo workerInfo : jobWorkerInfoList) {
       hostnameToWorker.put(workerInfo.getAddress().getHost(), workerInfo);
     }
-    List<BlockWorkerInfo> alluxioWorkerInfoList = context.getFsContext().getCachedWorkers();
+    List<BlockWorkerInfo> alluxioWorkerInfoList = context.getFsContext().getCachedWorkers()
+        .stream()
+        .map(w -> new BlockWorkerInfo(
+            w.getIdentity(),
+            w.getAddress(),
+            w.getCapacityBytes(),
+            w.getUsedBytes()))
+        .collect(Collectors.toList());
     if (status.isFolder()) {
       throw new RuntimeException("Cannot migrate directory");
     } else {

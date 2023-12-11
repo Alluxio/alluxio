@@ -18,7 +18,6 @@ import static org.junit.Assert.assertThrows;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.dora.DoraTestTodoItem;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -35,6 +34,7 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
+import alluxio.membership.WorkerClusterView;
 import alluxio.security.user.TestUserState;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.SleepUtils;
@@ -378,7 +378,7 @@ public class FileOutStreamDecommissionIntegrationTest {
         // Wait a bit for the worker list to refresh in the FileSystemContext
         SleepUtils.sleepMs(CLIENT_WORKER_LIST_REFRESH_INTERVAL);
         // The client realizes the target worker is decommissioned
-        List<BlockWorkerInfo> usableWorkers = context.getCachedWorkers();
+        WorkerClusterView usableWorkers = context.getCachedWorkers();
         assertEquals(1, usableWorkers.size());
         // Continue the stream, the stream is able to keep going using the decommissioned worker
       }

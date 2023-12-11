@@ -16,7 +16,10 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.membership.WorkerClusterView;
 import alluxio.wire.WorkerIdentity;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerState;
 
 import com.google.common.collect.ImmutableList;
 
@@ -25,7 +28,7 @@ import java.util.stream.Collectors;
 
 /**
  * An implementation of WorkerLocationPolicy.
- * <p>
+ *
  * A policy where a file path is matched to worker(s) by a consistenct hashing algorithm.
  * The hash algorithm makes sure the same path maps to the same worker sequence.
  * On top of that, consistent hashing makes sure worker membership changes incur minimal
@@ -54,14 +57,14 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
   }
 
   @Override
-  public List<BlockWorkerInfo> getPreferredWorkers(List<BlockWorkerInfo> blockWorkerInfos,
+  public List<BlockWorkerInfo> getPreferredWorkers(WorkerClusterView workerClusterView,
       String fileId, int count) throws ResourceExhaustedException {
-    if (blockWorkerInfos.size() < count) {
+    if (workerClusterView.size() < count) {
       throw new ResourceExhaustedException(String.format(
           "Not enough workers in the cluster %d workers in the cluster but %d required",
-          blockWorkerInfos.size(), count));
+          workerClusterView.size(), count));
     }
-    List<WorkerIdentity> workerIdentities = blockWorkerInfos.stream()
+    List<WorkerIdentity> workerIdentities = workerClusterView.stream()
         .map(BlockWorkerInfo::getIdentity)
         .collect(Collectors.toList());
     mHashProvider.refresh(workerIdentities, mNumVirtualNodes);
@@ -74,12 +77,12 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
     // todo(bowen): this is quadratic complexity. examine if it's worthwhile to replace
     //  with an indexed map if #workers is huge
     for (WorkerIdentity worker : workers) {
-      for (BlockWorkerInfo info : blockWorkerInfos) {
-        if (info.getIdentity().equals(worker)) {
-          builder.add(info);
-          break;
-        }
-      }
+      WorkerInfo workerInfo = workerClusterView.getWorkerById(worker);
+      BlockWorkerInfo blockWorkerInfo = new BlockWorkerInfo(
+          worker, workerInfo.getAddress(), workerInfo.getCapacityBytes(),
+          workerInfo.getUsedBytes(), workerInfo.getState() == WorkerState.LIVE
+      );
+      builder.add(blockWorkerInfo);
     }
     List<BlockWorkerInfo> infos = builder.build();
     return infos;

@@ -1048,6 +1048,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey K8S_ENV_DEPLOYMENT =
+      booleanBuilder(Name.K8S_ENV_DEPLOYMENT)
+          .setDefaultValue(false)
+          .setDescription("If Alluxio is deployed in K8s environment.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .setIsHidden(true)
+          .build();
+
   /**
    * UFS related properties.
    */
@@ -5097,7 +5106,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "Set value less than or equal to 0 to disable rate limits.")
           .setDefaultValue(0)
           .setScope(Scope.SERVER)
-
+          .build();
+  public static final PropertyKey PROXY_S3_TRANSFER_BUFFER_SIZE =
+      dataSizeBuilder(Name.PROXY_S3_TRANSFER_BUFFER_SIZE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setDescription("Buffer size used for proxy data transfer.")
+          .setDefaultValue("8KB")
+          .setScope(Scope.SERVER)
           .build();
 
   //
@@ -7319,6 +7334,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String ZOOKEEPER_AUTH_ENABLED = "alluxio.zookeeper.auth.enabled";
     public static final String ZOOKEEPER_LEADER_CONNECTION_ERROR_POLICY =
         "alluxio.zookeeper.leader.connection.error.policy";
+    public static final String K8S_ENV_DEPLOYMENT =
+        "alluxio.k8s.env.deployment";
     //
     // UFS related properties
     //
@@ -8225,6 +8242,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.global.read.rate.limit.mb";
     public static final String PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB =
         "alluxio.proxy.s3.single.connection.read.rate.limit.mb";
+    public static final String PROXY_S3_TRANSFER_BUFFER_SIZE =
+        "alluxio.proxy.transfer.buffer.size";
 
     //
     // User related properties

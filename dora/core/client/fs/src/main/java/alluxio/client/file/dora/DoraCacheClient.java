@@ -58,8 +58,10 @@ import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.RequestType;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.SetAttributePRequest;
+import alluxio.membership.WorkerClusterView;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
@@ -272,10 +274,10 @@ public class DoraCacheClient {
   public Map<String, List<WorkerNetAddress>> checkFileLocation(String path,
       GetStatusPOptions options) throws IOException {
     Map<String, List<WorkerNetAddress>> pathDistributionMap = new HashMap<>();
-    List<BlockWorkerInfo> workers = mContext.getLiveWorkers();
-    for (BlockWorkerInfo worker : workers) {
+    WorkerClusterView workers = mContext.getLiveWorkers();
+    for (WorkerInfo worker : workers) {
       try (CloseableResource<BlockWorkerClient> client =
-               mContext.acquireBlockWorkerClient(worker.getNetAddress())) {
+               mContext.acquireBlockWorkerClient(worker.getAddress())) {
         GetStatusPRequest request = GetStatusPRequest.newBuilder()
             .setPath(path)
             .setOptions(options)
@@ -288,7 +290,7 @@ public class DoraCacheClient {
             if (assignedWorkers == null) {
               assignedWorkers = new ArrayList<>();
             }
-            assignedWorkers.add(worker.getNetAddress());
+            assignedWorkers.add(worker.getAddress());
             pathDistributionMap.put(path, assignedWorkers);
           }
         } catch (Exception e) {
@@ -439,7 +441,7 @@ public class DoraCacheClient {
    */
   public WorkerNetAddress getWorkerNetAddress(String path) {
     try {
-      List<BlockWorkerInfo> workers = mEnableDynamicHashRing ? mContext.getCachedWorkers(
+      WorkerClusterView workers = mEnableDynamicHashRing ? mContext.getCachedWorkers(
           FileSystemContext.GetWorkerListType.LIVE) : mContext.getCachedWorkers(
           FileSystemContext.GetWorkerListType.ALL);
       checkState(!workers.isEmpty(), "No workers available in the cluster. Lost workers %s",

@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -203,12 +202,12 @@ public class ServiceDiscoveryRecipe implements AutoCloseable {
 
   /**
    * Get the registered service value as ByteBuffer.
+   *
    * @param DefaultServiceEntityName
    * @return ByteBuffer container serialized content
    * @throws IOException
    */
-  public ByteBuffer getRegisteredServiceDetail(String DefaultServiceEntityName)
-      throws IOException {
+  public ByteBuffer getRegisteredServiceDetail(String DefaultServiceEntityName) {
     String fullPath = new StringBuffer().append(mRegisterPathPrefix)
         .append(MembershipManager.PATH_SEPARATOR)
         .append(DefaultServiceEntityName).toString();
@@ -316,16 +315,11 @@ public class ServiceDiscoveryRecipe implements AutoCloseable {
 
   /**
    * Get all healthy service list.
+   *
    * @return return service name to service entity serialized value
    */
-  public Map<String, ByteBuffer> getAllLiveServices() throws IOException {
-    Map<String, ByteBuffer> ret = new HashMap<>();
-    List<KeyValue> children = mAlluxioEtcdClient.getChildren(mRegisterPathPrefix);
-    for (KeyValue kv : children) {
-      ret.put(kv.getKey().toString(StandardCharsets.UTF_8),
-          ByteBuffer.wrap(kv.getValue().getBytes()));
-    }
-    return ret;
+  public List<KeyValue> getAllLiveServices() {
+    return mAlluxioEtcdClient.getChildren(mRegisterPathPrefix);
   }
 
   /**

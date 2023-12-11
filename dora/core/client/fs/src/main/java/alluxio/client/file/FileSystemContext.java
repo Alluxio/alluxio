@@ -11,13 +11,10 @@
 
 package alluxio.client.file;
 
-import static java.util.stream.Collectors.toList;
-
 import alluxio.ClientContext;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
@@ -36,6 +33,7 @@ import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.membership.MasterMembershipManager;
 import alluxio.membership.MembershipManager;
+import alluxio.membership.WorkerClusterView;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.NettyChannelPool;
 import alluxio.network.netty.NettyClient;
@@ -56,6 +54,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -66,9 +65,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -178,15 +175,22 @@ public class FileSystemContext implements Closeable {
    */
   private volatile FileSystemContextReinitializer mReinitializer;
 
-  /** Whether to do URI scheme validation for file systems using this context.  */
+  /**
+   * Whether to do URI scheme validation for file systems using this context.
+   */
   private boolean mUriValidationEnabled = true;
 
-  /** Cached map for workers. */
-  @GuardedBy("mWorkerInfoList")
-  private final AtomicReference<List<BlockWorkerInfo>> mWorkerInfoList = new AtomicReference<>();
+  /**
+   * Cached map for workers.
+   */
+  @GuardedBy("itself")
+  private final AtomicReference<WorkerClusterView> mCachedWorkerClusterView =
+      new AtomicReference<>();
 
-  /** The policy to refresh workers list. */
-  @GuardedBy("mWorkerInfoList")
+  /**
+   * The policy to refresh workers list.
+   */
+  @GuardedBy("mCachedWorkerClusterView")
   private final RefreshPolicy mWorkerRefreshPolicy;
 
   private final List<InetSocketAddress> mMasterAddresses;
@@ -853,9 +857,10 @@ public class FileSystemContext implements Closeable {
    * This method is relatively cheap as the result is cached, but may not
    * be up-to-date. If up-to-date worker info list is required,
    * use {@link #getLiveWorkers()} ()} instead.
+   *
    * @return the info of all block workers eligible for reads and writes
    */
-  public List<BlockWorkerInfo> getCachedWorkers() throws IOException {
+  public WorkerClusterView getCachedWorkers() throws IOException {
     return getCachedWorkers(GetWorkerListType.LIVE);
   }
 
@@ -869,24 +874,24 @@ public class FileSystemContext implements Closeable {
    * @param type get worker list type
    * @return the info of all block workers eligible for reads and writes
    */
-  public List<BlockWorkerInfo> getCachedWorkers(GetWorkerListType type) throws IOException {
-    synchronized (mWorkerInfoList) {
-      if (mWorkerInfoList.get() == null || mWorkerInfoList.get().isEmpty()
+  public WorkerClusterView getCachedWorkers(GetWorkerListType type) throws IOException {
+    synchronized (mCachedWorkerClusterView) {
+      if (mCachedWorkerClusterView.get() == null || mCachedWorkerClusterView.get().isEmpty()
           || mWorkerRefreshPolicy.attempt()) {
         switch (type) {
           case ALL:
-            mWorkerInfoList.set(getAllWorkers());
+            mCachedWorkerClusterView.set(getAllWorkers());
             break;
           case LIVE:
-            mWorkerInfoList.set(getLiveWorkers());
+            mCachedWorkerClusterView.set(getLiveWorkers());
             break;
           case LOST:
-            mWorkerInfoList.set(getLostWorkers());
+            mCachedWorkerClusterView.set(getLostWorkers());
             break;
           default:
         }
       }
-      return mWorkerInfoList.get();
+      return mCachedWorkerClusterView.get();
     }
   }
 
@@ -897,21 +902,18 @@ public class FileSystemContext implements Closeable {
    *
    * @return the info of live workers
    */
-  public List<BlockWorkerInfo> getLiveWorkers() throws IOException {
+  public WorkerClusterView getLiveWorkers() throws IOException {
     try (ReinitBlockerResource r = blockReinit()) {
       // Use membership mgr
       if (mMembershipManager != null && !(mMembershipManager instanceof MasterMembershipManager)) {
-        return mMembershipManager.getLiveMembers().stream()
-            .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
-                w.getUsedBytes(), true)).collect(toList());
+        return mMembershipManager.getLiveMembers();
       }
     }
     // Fall back to old way
     try (CloseableResource<BlockMasterClient> masterClientResource =
              acquireBlockMasterClientResource()) {
-      return masterClientResource.get().getWorkerInfoList().stream()
-          .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
-              w.getUsedBytes(), true)).collect(toList());
+      final List<WorkerInfo> liveWorkers = masterClientResource.get().getWorkerInfoList();
+      return new WorkerClusterView(liveWorkers);
     }
   }
 
@@ -922,21 +924,19 @@ public class FileSystemContext implements Closeable {
    *
    * @return the info of lost workers
    */
-  public List<BlockWorkerInfo> getLostWorkers() throws IOException {
+  public WorkerClusterView getLostWorkers() throws IOException {
     try (ReinitBlockerResource r = blockReinit()) {
       // Use membership mgr
       if (mMembershipManager != null && !(mMembershipManager instanceof MasterMembershipManager)) {
-        return mMembershipManager.getFailedMembers().stream()
-            .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
-                w.getUsedBytes(), false)).collect(toList());
+        return mMembershipManager.getFailedMembers();
       }
     }
     // Fall back to old way
     try (CloseableResource<BlockMasterClient> masterClientResource =
              acquireBlockMasterClientResource()) {
-      return masterClientResource.get().getLostWorkerInfoList().stream()
-          .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
-              w.getUsedBytes(), false)).collect(toList());
+      final List<WorkerInfo> lostWorkerInfoList = masterClientResource.get()
+          .getLostWorkerInfoList();
+      return new WorkerClusterView(lostWorkerInfoList);
     }
   }
 
@@ -947,48 +947,24 @@ public class FileSystemContext implements Closeable {
    *
    * @return the info of all workers
    */
-  public List<BlockWorkerInfo> getAllWorkers() throws IOException {
+  public WorkerClusterView getAllWorkers() throws IOException {
     // TODO(lucy) once ConfigHashSync reinit is gotten rid of, will remove the blockReinit
     // guard altogether
     try (ReinitBlockerResource r = blockReinit()) {
       // Use membership mgr
       if (mMembershipManager != null && !(mMembershipManager instanceof MasterMembershipManager)) {
-        List<BlockWorkerInfo> liveWorkers = mMembershipManager.getLiveMembers().stream()
-            .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
-                w.getUsedBytes(), true)).collect(toList());
-        List<BlockWorkerInfo> lostWorkers = mMembershipManager.getFailedMembers().stream()
-            .map(w -> new BlockWorkerInfo(
-                w.getIdentity(), w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),
-                false)).collect(toList());
-        // avoid duplicate elements in list
-        return combineAllWorkers(liveWorkers, lostWorkers);
+        return mMembershipManager.getAllMembers();
       }
     }
 
     // Fall back to old way
     try (CloseableResource<BlockMasterClient> masterClientResource =
              acquireBlockMasterClientResource()) {
-      List<BlockWorkerInfo> liveWorkers = masterClientResource.get().getWorkerInfoList().stream()
-          .map(w -> new BlockWorkerInfo(
-              w.getIdentity(), w.getAddress(), w.getCapacityBytes(), w.getUsedBytes(),
-              true)).collect(toList());
-      List<BlockWorkerInfo> lostWorkers = masterClientResource.get().getLostWorkerInfoList()
-          .stream().map(w -> new BlockWorkerInfo(w.getIdentity(),
-              w.getAddress(), w.getCapacityBytes(),
-              w.getUsedBytes(), false)).collect(toList());
+      List<WorkerInfo> liveWorkers = masterClientResource.get().getWorkerInfoList();
+      List<WorkerInfo> lostWorkers = masterClientResource.get().getLostWorkerInfoList();
       // avoid duplicate elements in list
-      return combineAllWorkers(liveWorkers, lostWorkers);
+      return new WorkerClusterView(Iterables.concat(liveWorkers, lostWorkers));
     }
-  }
-
-  private List<BlockWorkerInfo> combineAllWorkers(List<BlockWorkerInfo> liveWorkers,
-                                                  List<BlockWorkerInfo> lostWorkers) {
-    Map<WorkerNetAddress, BlockWorkerInfo> allWorkersMap = new HashMap();
-    liveWorkers.forEach(liveWorker ->
-        allWorkersMap.put(liveWorker.getNetAddress(), liveWorker));
-    lostWorkers.forEach(lostWorker ->
-        allWorkersMap.put(lostWorker.getNetAddress(), lostWorker));
-    return new ArrayList<>(allWorkersMap.values());
   }
 
   protected ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> getBlockWorkerClientPoolMap() {

@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -88,7 +89,14 @@ public final class MoveDefinition
     long blockId = config.getBlockId();
     String localHostName = NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC,
         Configuration.global());
-    List<BlockWorkerInfo> workerInfoList = context.getFsContext().getCachedWorkers();
+    List<BlockWorkerInfo> workerInfoList = context.getFsContext().getCachedWorkers()
+        .stream()
+        .map(w -> new BlockWorkerInfo(
+            w.getIdentity(),
+            w.getAddress(),
+            w.getCapacityBytes(),
+            w.getUsedBytes()))
+        .collect(Collectors.toList());
     WorkerNetAddress localNetAddress = null;
 
     for (BlockWorkerInfo workerInfo : workerInfoList) {

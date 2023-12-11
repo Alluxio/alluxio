@@ -16,13 +16,13 @@ import alluxio.client.file.dora.ConsistentHashPolicy;
 import alluxio.conf.Configuration;
 import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.membership.WorkerClusterView;
 import alluxio.wire.WorkerInfo;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 /**
@@ -37,19 +37,17 @@ public class HashBasedWorkerAssignPolicy implements WorkerAssignPolicy {
     if (workerInfos == null) {
       return Collections.emptyList();
     }
-    List<BlockWorkerInfo> candidates = workerInfos.stream()
-        .map(w -> new BlockWorkerInfo(w.getIdentity(),
-            w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
-        .collect(Collectors.toList());
+
+    WorkerClusterView candidates = new WorkerClusterView(workerInfos);
     try {
       List<BlockWorkerInfo> blockWorkerInfo = mWorkerLocationPolicy
-              .getPreferredWorkers(candidates, object, count);
+          .getPreferredWorkers(candidates, object, count);
       ArrayList workers = new ArrayList<>();
       for (int i = 0; i < count; i++) {
         int finalI = i;
         WorkerInfo returnWorker = workerInfos.stream().filter(workerInfo ->
-              workerInfo.getIdentity().equals(blockWorkerInfo.get(finalI).getIdentity()))
-                                             .findFirst().get();
+                workerInfo.getIdentity().equals(blockWorkerInfo.get(finalI).getIdentity()))
+            .findFirst().get();
         workers.add(returnWorker);
       }
       return workers;

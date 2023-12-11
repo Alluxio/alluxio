@@ -13,12 +13,16 @@ package alluxio.membership;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.AlreadyExistsException;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerIdentityTestUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerState;
 
+import com.google.common.collect.Lists;
 import eu.rekawek.toxiproxy.model.ToxicDirection;
 import io.etcd.jetcd.Auth;
 import io.etcd.jetcd.ByteSequence;
@@ -44,6 +48,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -212,9 +217,9 @@ public class MembershipManagerTest {
     membershipManager.join(wkr2);
     membershipManager.join(wkr3);
     List<WorkerInfo> wkrs = new ArrayList<>();
-    wkrs.add(wkr1);
-    wkrs.add(wkr2);
-    wkrs.add(wkr3);
+    wkrs.add(new WorkerInfo(wkr1).setState(WorkerState.LIVE));
+    wkrs.add(new WorkerInfo(wkr2).setState(WorkerState.LIVE));
+    wkrs.add(new WorkerInfo(wkr3).setState(WorkerState.LIVE));
     List<WorkerInfo> allMembers = membershipManager.getAllMembers().stream()
         .sorted(Comparator.comparing(w -> w.getAddress().getHost()))
         .collect(Collectors.toList());
@@ -225,21 +230,22 @@ public class MembershipManagerTest {
     CommonUtils.waitFor("Service's lease close and service key got deleted.",
         () -> {
           try {
-            return membershipManager.getFailedMembers().size() > 0;
+            return !membershipManager.getFailedMembers().isEmpty();
           } catch (IOException e) {
             throw new RuntimeException(
-            String.format("Unexpected error while getting failed members: %s", e));
+                String.format("Unexpected error while getting failed members: %s", e));
           }
         }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
     List<WorkerInfo> expectedFailedList = new ArrayList<>();
-    expectedFailedList.add(wkr2);
-    Assert.assertEquals(expectedFailedList, membershipManager.getFailedMembers());
+    expectedFailedList.add(new WorkerInfo(wkr2).setState(WorkerState.LOST));
+    Assert.assertEquals(expectedFailedList,
+        Lists.newArrayList(membershipManager.getFailedMembers()));
     List<WorkerInfo> actualLiveMembers = membershipManager.getLiveMembers().stream()
         .sorted(Comparator.comparing(w -> w.getAddress().getHost()))
         .collect(Collectors.toList());
     List<WorkerInfo> expectedLiveMembers = new ArrayList<>();
-    expectedLiveMembers.add(wkr1);
-    expectedLiveMembers.add(wkr3);
+    expectedLiveMembers.add(new WorkerInfo(wkr1).setState(WorkerState.LIVE));
+    expectedLiveMembers.add(new WorkerInfo(wkr3).setState(WorkerState.LIVE));
     Assert.assertEquals(expectedLiveMembers, actualLiveMembers);
   }
 
@@ -346,5 +352,53 @@ public class MembershipManagerTest {
         .sorted()
         .collect(Collectors.toList());
     Assert.assertEquals(wkrHosts, allMemberHosts);
+  }
+
+  @Test
+  public void testSameWorkerIdentityConflict() throws Exception {
+    final MembershipManager membershipManager = getHealthyEtcdMemberMgr();
+    // in non-k8s env, no two workers can assume same identity, unless
+    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.ETCD);
+    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getClientEndpoints());
+    Assert.assertTrue(membershipManager instanceof EtcdMembershipManager);
+    WorkerIdentity workerIdentity1 = WorkerIdentityTestUtils.randomUuidBasedId();
+    WorkerInfo wkr1 = new WorkerInfo()
+        .setIdentity(workerIdentity1)
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker1").setContainerHost("containerhostname1")
+            .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
+            .setDomainSocketPath("/var/lib/domain.sock"));
+    WorkerInfo wkr2 = new WorkerInfo()
+        .setIdentity(workerIdentity1)
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker2").setContainerHost("containerhostname2")
+            .setRpcPort(2000).setDataPort(2001).setWebPort(2011)
+            .setDomainSocketPath("/var/lib/domain.sock"));
+    membershipManager.join(wkr1);
+    // bring wrk1 down and join wrk2 with a same worker identity.
+    membershipManager.stopHeartBeat(wkr1);
+    CommonUtils.waitFor("wkr1 is not alive.", () -> {
+      try {
+        return membershipManager.getFailedMembers().getWorkerById(workerIdentity1).isPresent();
+      } catch (IOException e) {
+        // IGNORE
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(5000));
+    try {
+      membershipManager.join(wkr2);
+    } catch (IOException ex) {
+      Assert.assertTrue(ex instanceof AlreadyExistsException);
+    }
+
+    // only in k8s env, it should allow same worker identity assumption.
+    Configuration.set(PropertyKey.K8S_ENV_DEPLOYMENT, true);
+    final MembershipManager membershipManager1 = getHealthyEtcdMemberMgr();
+    membershipManager1.join(wkr2);
+    // check if joined with correct info onto etcd
+    Optional<WorkerInfo> curWorkerInfo = membershipManager1.getLiveMembers()
+        .getWorkerById(workerIdentity1);
+    Assert.assertTrue(curWorkerInfo.isPresent());
+    Assert.assertEquals(wkr2.getAddress(), curWorkerInfo.get().getAddress());
   }
 }

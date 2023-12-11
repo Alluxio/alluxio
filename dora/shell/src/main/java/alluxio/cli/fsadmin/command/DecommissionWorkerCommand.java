@@ -12,17 +12,18 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.Constants;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.DecommissionWorkerPOptions;
+import alluxio.membership.WorkerClusterView;
 import alluxio.metrics.MetricKey;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
 import alluxio.util.FormatUtils;
 import alluxio.util.SleepUtils;
 import alluxio.util.network.HttpUtils;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.wire.WorkerWebUIOperations;
 
@@ -105,10 +106,10 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
     mConf = alluxioConf;
   }
 
-  private BlockWorkerInfo findMatchingWorkerAddress(
-      WorkerNetAddress address, List<BlockWorkerInfo> cachedWorkers) {
-    for (BlockWorkerInfo worker : cachedWorkers) {
-      if (worker.getNetAddress().getHost().equals(address.getHost())) {
+  private WorkerInfo findMatchingWorkerAddress(
+      WorkerNetAddress address, WorkerClusterView cachedWorkers) {
+    for (WorkerInfo worker : cachedWorkers) {
+      if (worker.getAddress().getHost().equals(address.getHost())) {
         return worker;
       }
     }
@@ -117,11 +118,11 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
         + "Available workers are: " + printCachedWorkerAddresses(cachedWorkers));
   }
 
-  private String printCachedWorkerAddresses(List<BlockWorkerInfo> cachedWorkers) {
+  private String printCachedWorkerAddresses(WorkerClusterView cachedWorkers) {
     StringBuilder sb = new StringBuilder();
-    for (BlockWorkerInfo blockWorkerInfo : cachedWorkers) {
-      sb.append("\t").append(blockWorkerInfo.getNetAddress().getHost()).append(":")
-          .append(blockWorkerInfo.getNetAddress().getWebPort());
+    for (WorkerInfo blockWorkerInfo : cachedWorkers) {
+      sb.append("\t").append(blockWorkerInfo.getAddress().getHost()).append(":")
+          .append(blockWorkerInfo.getAddress().getWebPort());
     }
     return sb.toString();
   }
@@ -139,7 +140,7 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
   public int run(CommandLine cl) {
     long waitTimeMs = parseWaitTimeMs(cl);
     FileSystemContext context = FileSystemContext.create();
-    List<BlockWorkerInfo> availableWorkers;
+    WorkerClusterView availableWorkers;
     try {
       availableWorkers = context.getCachedWorkers();
     } catch (Exception e) {
@@ -203,7 +204,7 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
     }
   }
 
-  private void sendDecommissionCommand(CommandLine cl, List<BlockWorkerInfo> availableWorkers) {
+  private void sendDecommissionCommand(CommandLine cl, WorkerClusterView availableWorkers) {
     boolean canRegisterAgain = !cl.hasOption(DISABLE_OPTION.getLongOpt());
     String workerAddressesStr = cl.getOptionValue(ADDRESSES_OPTION.getLongOpt());
     if (workerAddressesStr.isEmpty()) {
@@ -215,8 +216,8 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
       System.out.format("Decommissioning worker %s%n",
           WorkerAddressUtils.convertAddressToStringWebPort(a));
 
-      BlockWorkerInfo worker = findMatchingWorkerAddress(a, availableWorkers);
-      WorkerNetAddress workerAddress = worker.getNetAddress();
+      WorkerInfo worker = findMatchingWorkerAddress(a, availableWorkers);
+      WorkerNetAddress workerAddress = worker.getAddress();
       DecommissionWorkerPOptions options =
           DecommissionWorkerPOptions.newBuilder()
               .setWorkerHostname(workerAddress.getHost())
@@ -227,7 +228,7 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
         System.out.format("Set worker %s decommissioned on master%n",
             WorkerAddressUtils.convertAddressToStringWebPort(workerAddress));
         // Start counting for this worker
-        mWaitingWorkers.put(worker.getNetAddress(), new WorkerStatus());
+        mWaitingWorkers.put(worker.getAddress(), new WorkerStatus());
       } catch (IOException ie) {
         System.err.format("Failed to decommission worker %s%n",
             WorkerAddressUtils.convertAddressToStringWebPort(workerAddress));
@@ -327,13 +328,13 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
     System.out.println("Verifying the decommission has taken effect by listing all "
         + "available workers on the master");
     try {
-      Set<BlockWorkerInfo> cachedWorkers = new HashSet<>(context.getCachedWorkers());
+      WorkerClusterView cachedWorkers = context.getCachedWorkers();
       System.out.println("Now on master the available workers are: "
           + WorkerAddressUtils.workerListToString(cachedWorkers));
       cachedWorkers.forEach(w -> {
-        if (removedWorkers.contains(w.getNetAddress())) {
+        if (removedWorkers.contains(w.getAddress())) {
           System.err.format("Worker %s is still showing available on the master. "
-              + "Please check why the decommission did not work.%n", w.getNetAddress());
+              + "Please check why the decommission did not work.%n", w.getAddress());
           System.err.println("This command will still continue, but the admin should manually "
               + "verify the state of this worker afterwards.");
         }

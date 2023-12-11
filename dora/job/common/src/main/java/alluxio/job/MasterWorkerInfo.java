@@ -17,6 +17,7 @@ import alluxio.grpc.BuildVersion;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerState;
 
 import com.google.common.base.Preconditions;
 
@@ -107,8 +108,8 @@ public final class MasterWorkerInfo {
    */
   public synchronized WorkerInfo generateClientWorkerInfo() {
     return new WorkerInfo().setId(mId).setAddress(mWorkerAddress).setLastContactSec(
-        (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS))
-        .setState("In Service").setStartTimeMs(mStartTimeMs);
+            (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS))
+        .setState(WorkerState.LIVE).setStartTimeMs(mStartTimeMs);
   }
 
   @Override
