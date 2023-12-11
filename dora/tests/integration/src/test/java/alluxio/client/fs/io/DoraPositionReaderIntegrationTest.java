@@ -76,7 +76,6 @@ public class DoraPositionReaderIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, Constants.KB)
           .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, "1GB")
           .setProperty(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true)
-          .setProperty(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED, false)
           .build();
 
   @Rule
