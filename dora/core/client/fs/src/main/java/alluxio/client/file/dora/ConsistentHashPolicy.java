@@ -65,7 +65,7 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
           workerClusterView.size(), count));
     }
     List<WorkerIdentity> workerIdentities = workerClusterView.stream()
-        .map(BlockWorkerInfo::getIdentity)
+        .map(WorkerInfo::getIdentity)
         .collect(Collectors.toList());
     mHashProvider.refresh(workerIdentities, mNumVirtualNodes);
     List<WorkerIdentity> workers = mHashProvider.getMultiple(fileId, count);
@@ -74,10 +74,11 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
           "Found %d workers from the hash ring but %d required", workers.size(), count));
     }
     ImmutableList.Builder<BlockWorkerInfo> builder = ImmutableList.builder();
-    // todo(bowen): this is quadratic complexity. examine if it's worthwhile to replace
-    //  with an indexed map if #workers is huge
     for (WorkerIdentity worker : workers) {
-      WorkerInfo workerInfo = workerClusterView.getWorkerById(worker);
+      WorkerInfo workerInfo = workerClusterView.getWorkerById(worker)
+          .orElseThrow(() -> new IllegalStateException(
+              String.format("Hash provider returned a non-existent worker: %s, "
+                  + "workers currently known: %s", worker, workerIdentities)));
       BlockWorkerInfo blockWorkerInfo = new BlockWorkerInfo(
           worker, workerInfo.getAddress(), workerInfo.getCapacityBytes(),
           workerInfo.getUsedBytes(), workerInfo.getState() == WorkerState.LIVE

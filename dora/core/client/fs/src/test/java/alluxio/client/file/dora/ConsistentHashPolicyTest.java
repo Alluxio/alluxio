@@ -24,11 +24,13 @@ import alluxio.membership.WorkerClusterView;
 import alluxio.wire.WorkerIdentityTestUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerState;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -118,13 +120,19 @@ public class ConsistentHashPolicyTest {
   @Test
   public void workerAddrUpdateWithIdUnchanged() throws Exception {
     ConsistentHashPolicy policy = new ConsistentHashPolicy(mConf);
-    List<BlockWorkerInfo> workers = new ArrayList<>();
-    workers.add(new BlockWorkerInfo(WorkerIdentityTestUtils.ofLegacyId(1L),
-        new WorkerNetAddress().setHost("host1"), 0, 0));
-    workers.add(new BlockWorkerInfo(WorkerIdentityTestUtils.ofLegacyId(2L),
-        new WorkerNetAddress().setHost("host2"), 0, 0));
+    List<WorkerInfo> workers = new ArrayList<>();
+    workers.add(new WorkerInfo().setIdentity(WorkerIdentityTestUtils.ofLegacyId(1L))
+        .setAddress(new WorkerNetAddress().setHost("host1"))
+        .setCapacityBytes(0)
+        .setUsedBytes(0)
+        .setState(WorkerState.LIVE));
+    workers.add(new WorkerInfo().setIdentity(WorkerIdentityTestUtils.ofLegacyId(2L))
+        .setAddress(new WorkerNetAddress().setHost("host2"))
+        .setCapacityBytes(0)
+        .setUsedBytes(0)
+        .setState(WorkerState.LIVE));
     List<BlockWorkerInfo> selectedWorkers =
-        policy.getPreferredWorkers(ImmutableList.copyOf(workers), "fileId", 2);
+        policy.getPreferredWorkers(new WorkerClusterView(workers), "fileId", 2);
     assertEquals("host1",
         selectedWorkers.stream()
             .filter(w -> w.getIdentity().equals(WorkerIdentityTestUtils.ofLegacyId(1L)))
@@ -134,10 +142,13 @@ public class ConsistentHashPolicyTest {
             .getHost());
 
     // now the worker 1 has migrated to host 3
-    workers.set(0, new BlockWorkerInfo(WorkerIdentityTestUtils.ofLegacyId(1L),
-        new WorkerNetAddress().setHost("host3"), 0, 0));
+    workers.set(0, new WorkerInfo().setIdentity(WorkerIdentityTestUtils.ofLegacyId(1L))
+        .setAddress(new WorkerNetAddress().setHost("host3"))
+        .setCapacityBytes(0)
+        .setUsedBytes(0)
+        .setState(WorkerState.LIVE));
     List<BlockWorkerInfo> updatedWorkers =
-        policy.getPreferredWorkers(ImmutableList.copyOf(workers), "fileId", 2);
+        policy.getPreferredWorkers(new WorkerClusterView(workers), "fileId", 2);
     assertEquals(
         selectedWorkers.stream().map(BlockWorkerInfo::getIdentity).collect(Collectors.toList()),
         updatedWorkers.stream().map(BlockWorkerInfo::getIdentity).collect(Collectors.toList()));
