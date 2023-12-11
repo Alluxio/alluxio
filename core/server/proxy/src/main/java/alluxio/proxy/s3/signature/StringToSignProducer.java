@@ -103,7 +103,7 @@ public final class StringToSignProducer {
     return createSignatureBase(signatureInfo,
         request.getScheme(),
         request.getMethod(),
-        request.getRequestURI(),
+        URI.create(request.getRequestURI()).getPath(),
         getHeaders(request),
         getParameterMap(request));
   }
