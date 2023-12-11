@@ -8971,7 +8971,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_INCLUDE_OPERATION_ID =
         "alluxio.user.file.include.operation.id";
     public static final String USER_FILE_IN_STREAM_STATUS_EXPIRATION_TIME =
-        "alluxio.user.file.in.stream.expiration.time";
+        "alluxio.user.file.in.stream.status.expiration.time";
     public static final String USER_FILE_WRITE_INIT_SLEEP_MIN =
         "alluxio.user.file.write.init.sleep.min";
     public static final String USER_FILE_WRITE_INIT_SLEEP_MAX =
