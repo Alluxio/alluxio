@@ -144,8 +144,7 @@ public class DoraLsCommandIntegrationTest extends AbstractDoraFileSystemShellTes
         WritePType.CACHE_THROUGH);
     createByteFileInAlluxio(newFile, BufferUtils.getIncreasingByteArray(Constants.MB),
         WritePType.CACHE_THROUGH);
-    assertEquals(0, mFsShell.run("ls", "--sort", "lastAccessTime", "--timestamp", "lastAccessTime",
-        "/testRoot"));
+    assertEquals(0, mFsShell.run("ls", "--sort", "lastAccessTime", "/testRoot"));
     checkOutput(
         ".*FILE " + oldFile,
         ".*FILE " + newFile
@@ -191,8 +190,7 @@ public class DoraLsCommandIntegrationTest extends AbstractDoraFileSystemShellTes
         WritePType.CACHE_THROUGH);
     createByteFileInAlluxio(newFile, BufferUtils.getIncreasingByteArray(Constants.MB),
         WritePType.CACHE_THROUGH);
-    assertEquals(0,
-        mFsShell.run("ls", "--sort", "creationTime", "--timestamp", "creationTime", "/testRoot"));
+    assertEquals(0, mFsShell.run("ls", "--sort", "creationTime", "/testRoot"));
     checkOutput(
         ".*FILE " + oldFile,
         ".*FILE " + newFile
