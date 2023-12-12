@@ -14,11 +14,11 @@ package alluxio.master;
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.membership.WorkerClusterView;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.wire.WorkerInfo;
@@ -184,9 +184,9 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   protected void waitForWorkersServing() throws TimeoutException, InterruptedException {
     CommonUtils.waitFor("worker starts serving RPCs", () -> {
       try (FileSystemContext fsContext = FileSystemContext.create()) {
-        List<BlockWorkerInfo> workerInfoList = fsContext.getCachedWorkers();
-        LOG.info("Observed {} workers in the cluster", workerInfoList.size());
-        return workerInfoList.size() == mNumWorkers;
+        WorkerClusterView workers = fsContext.getCachedWorkers();
+        LOG.info("Observed {} workers in the cluster", workers.size());
+        return workers.size() == mNumWorkers;
       } catch (IOException ioe) {
         LOG.error(ioe.getMessage());
         return false;

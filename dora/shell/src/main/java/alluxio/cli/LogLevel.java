@@ -14,17 +14,18 @@ package alluxio.cli;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.job.wire.JobWorkerHealth;
+import alluxio.membership.WorkerClusterView;
 import alluxio.util.network.HttpUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.LogInfo;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.job.JobMasterClientContext;
 
@@ -211,15 +212,15 @@ public final class LogLevel {
         if (fsContext == null) {
           fsContext = FileSystemContext.create(ClientContext.create(conf));
         }
-        List<BlockWorkerInfo> workerInfoList = fsContext.getCachedWorkers();
-        if (workerInfoList.size() == 0) {
+        WorkerClusterView workers = fsContext.getCachedWorkers();
+        if (workers.size() == 0) {
           System.out.println("No workers found");
           System.exit(1);
         }
-        for (BlockWorkerInfo workerInfo : workerInfoList) {
-          WorkerNetAddress netAddress = workerInfo.getNetAddress();
+        for (WorkerInfo workerInfo : workers) {
+          WorkerNetAddress netAddress = workerInfo.getAddress();
           TargetInfo worker = new TargetInfo(netAddress.getHost(),
-                  netAddress.getWebPort(), ROLE_WORKER);
+              netAddress.getWebPort(), ROLE_WORKER);
           targetInfoList.add(worker);
         }
       } else if (target.equals(ROLE_JOB_WORKERS)) {

@@ -26,6 +26,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.membership.WorkerClusterView;
+import alluxio.wire.WorkerInfo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,7 +56,7 @@ public final class CheckCluster {
   public static final String ANSI_RED = "\u001B[31m";
   public static final String ANSI_GREEN = "\u001B[32m";
   private static final List<BlockWorkerInfo> FAILED_WORKER = new ArrayList<>();
-  private static List<BlockWorkerInfo> sWorkerInfoList;
+  private static WorkerClusterView sWorkerClusterView;
   private static WorkerLocationPolicy sPolicy;
 
   private CheckCluster() {
@@ -70,13 +72,12 @@ public final class CheckCluster {
 
     try (FileSystemContext fsContext = FileSystemContext.create(Configuration.global())) {
       FileSystem fs = FileSystem.Factory.create(fsContext);
-      sWorkerInfoList = fsContext.getCachedWorkers();
-      int numWorkers = sWorkerInfoList.size();
+      sWorkerClusterView = fsContext.getCachedWorkers();
+      int numWorkers = sWorkerClusterView.size();
       if (numWorkers == 0) {
         System.out.println("No workers found.");
         return;
-      }
-      else if (numWorkers <= 100) {
+      } else if (numWorkers <= 100) {
         sNumFiles = 2000;
       } else {
         sNumFiles = numWorkers * 20;
@@ -135,21 +136,21 @@ public final class CheckCluster {
     HashMap<BlockWorkerInfo, AlluxioURI> workerMap = new HashMap<>();
     sPolicy = WorkerLocationPolicy.Factory.create(Configuration.global());
 
-    for (int i = 0; i < sNumFiles && workerMap.size() < sWorkerInfoList.size(); i++) {
+    for (int i = 0; i < sNumFiles && workerMap.size() < sWorkerClusterView.size(); i++) {
       AlluxioURI testFile = new AlluxioURI(testDir.getPath() + "/" + i);
       writeFile(fs, testFile, throughOnly);
       List<BlockWorkerInfo> assignedWorkers =
-          sPolicy.getPreferredWorkers(sWorkerInfoList, testFile.getPath(), 1);
+          sPolicy.getPreferredWorkers(sWorkerClusterView, testFile.getPath(), 1);
       if (workerMap.containsKey(assignedWorkers.get(0))) {
         fs.delete(testFile, DeletePOptions.newBuilder().setRecursive(true).build());
       } else if (!FAILED_WORKER.contains(assignedWorkers.get(0))) {
         workerMap.put(assignedWorkers.get(0), testFile);
       } else {
-        Iterator<BlockWorkerInfo> iterator = sWorkerInfoList.iterator();
+        Iterator<WorkerInfo> iterator = sWorkerClusterView.iterator();
         while (iterator.hasNext()) {
-          BlockWorkerInfo worker = iterator.next();
+          WorkerInfo worker = iterator.next();
           for (BlockWorkerInfo failedWorker : FAILED_WORKER) {
-            if (failedWorker.getNetAddress().getRpcPort() == worker.getNetAddress().getRpcPort()) {
+            if (failedWorker.getNetAddress().getRpcPort() == worker.getAddress().getRpcPort()) {
               iterator.remove();
               break;
             }
@@ -168,7 +169,7 @@ public final class CheckCluster {
       outStream.write(TEST_CONTENT.getBytes());
     } catch (Exception e) {
       List<BlockWorkerInfo> workers =
-          sPolicy.getPreferredWorkers(sWorkerInfoList, testFile.getPath(), 1);
+          sPolicy.getPreferredWorkers(sWorkerClusterView, testFile.getPath(), 1);
       if (!FAILED_WORKER.contains(workers.get(0))) {
         FAILED_WORKER.add(workers.get(0));
       }
@@ -209,7 +210,7 @@ public final class CheckCluster {
   }
 
   private static void printInfo() {
-    int successfulWorkers = sWorkerInfoList.size();
+    int successfulWorkers = sWorkerClusterView.size();
     int failedWorkers = FAILED_WORKER.size();
     int totalWorkers = successfulWorkers + failedWorkers;
     System.out.println("\nTotal workers: " + totalWorkers);
@@ -260,7 +261,7 @@ public final class CheckCluster {
       throws Exception {
     System.out.println("Test with THROUGH write type");
     FAILED_WORKER.clear();
-    sWorkerInfoList = fsContext.getCachedWorkers();
+    sWorkerClusterView = fsContext.getCachedWorkers();
     AlluxioURI testDir = initializeTestDirectory(fs);
     try {
       HashMap<BlockWorkerInfo, AlluxioURI> workerMap = assignToWorkers(fs, testDir, true);

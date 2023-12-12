@@ -16,8 +16,11 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.membership.WorkerClusterView;
+import alluxio.wire.WorkerState;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * An implementation of WorkerLocationPolicy.
@@ -50,14 +53,18 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
   }
 
   @Override
-  public List<BlockWorkerInfo> getPreferredWorkers(List<BlockWorkerInfo> blockWorkerInfos,
+  public List<BlockWorkerInfo> getPreferredWorkers(WorkerClusterView workerClusterView,
       String fileId, int count) throws ResourceExhaustedException {
-    if (blockWorkerInfos.size() < count) {
+    if (workerClusterView.size() < count) {
       throw new ResourceExhaustedException(String.format(
           "Not enough workers in the cluster %d workers in the cluster but %d required",
-          blockWorkerInfos.size(), count));
+          workerClusterView.size(), count));
     }
-    HASH_PROVIDER.refresh(blockWorkerInfos, mNumVirtualNodes);
+    List<BlockWorkerInfo> blockWorkerInfoList = workerClusterView.stream()
+        .map(w -> new BlockWorkerInfo(w.getIdentity(), w.getAddress(), w.getCapacityBytes(),
+            w.getUsedBytes(), w.getState() == WorkerState.LIVE))
+        .collect(Collectors.toList());
+    HASH_PROVIDER.refresh(blockWorkerInfoList, mNumVirtualNodes);
     List<BlockWorkerInfo> workers = HASH_PROVIDER.getMultiple(fileId, count);
     if (workers.size() != count) {
       throw new ResourceExhaustedException(String.format(

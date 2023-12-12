@@ -17,10 +17,10 @@ import static alluxio.stress.BaseParameters.DEFAULT_TASK_ID;
 
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.WritePType;
+import alluxio.membership.WorkerClusterView;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.common.FileSystemParameters;
@@ -32,6 +32,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.logging.SamplingLogger;
+import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -53,6 +54,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Single node stress test.
@@ -232,10 +234,11 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   public void generateTestFilePaths(Path basePath) throws IOException {
     int clusterSize = mBaseParameters.mClusterLimit;
     int threads = mParameters.mThreads;
-    List<BlockWorkerInfo> workers = mFsContext.getCachedWorkers();
+    WorkerClusterView workerClusterView = mFsContext.getCachedWorkers();
+    List<WorkerInfo> workers = workerClusterView.stream().collect(Collectors.toList());
 
     for (int i = 0; i < clusterSize; i++) {
-      BlockWorkerInfo localWorker = workers.get(i);
+      WorkerInfo localWorker = workers.get(i);
       LOG.info("Building file paths for worker {}", localWorker);
       for (int j = 0; j < threads; j++) {
         Path filePath = calculateFilePath(basePath, i, j);
@@ -344,7 +347,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   @Override
   public void validateParams() throws Exception {
     // We assume the worker list does not change after the test starts
-    List<BlockWorkerInfo> workers = mFsContext.getCachedWorkers();
+    WorkerClusterView workers = mFsContext.getCachedWorkers();
     LOG.info("Available workers in the cluster are {}", workers);
     if (mBaseParameters.mClusterLimit < 0) {
       throw new IllegalStateException("--cluster-limit cannot be " + mBaseParameters.mClusterLimit

@@ -11,9 +11,9 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.membership.WorkerClusterView;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -21,7 +21,6 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -70,15 +69,15 @@ public class WorkerAddressUtils {
   /**
    * Converts a set of worker metadata to string.
    *
-   * @param worker a set of workers
+   * @param workers a set of workers
    * @return the converted string format
    */
-  public static String workerListToString(Set<BlockWorkerInfo> worker) {
-    if (worker.isEmpty()) {
+  public static String workerListToString(WorkerClusterView workers) {
+    if (workers.isEmpty()) {
       return "[]";
     }
     // Print on a new line
-    return "\n" + worker.stream().map(w -> convertAddressToStringWebPort(w.getNetAddress()))
+    return "\n" + workers.stream().map(w -> convertAddressToStringWebPort(w.getAddress()))
         .collect(Collectors.toList());
   }
 
