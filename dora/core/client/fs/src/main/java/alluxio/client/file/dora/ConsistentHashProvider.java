@@ -15,7 +15,6 @@ import static com.google.common.hash.Hashing.murmur3_32_fixed;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.Constants;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerIdentity;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -35,7 +34,6 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -191,18 +189,6 @@ public class ConsistentHashProvider {
         }
       }
     }
-  }
-
-  private boolean hasWorkerListChanged(List<BlockWorkerInfo> workerInfoList,
-                                       List<BlockWorkerInfo> anotherWorkerInfoList) {
-    if (workerInfoList == anotherWorkerInfoList) {
-      return false;
-    }
-    Set<WorkerIdentity> workerAddressSet = workerInfoList.stream()
-        .map(BlockWorkerInfo::getIdentity).collect(Collectors.toSet());
-    Set<WorkerIdentity> anotherWorkerAddressSet = anotherWorkerInfoList.stream()
-        .map(BlockWorkerInfo::getIdentity).collect(Collectors.toSet());
-    return !workerAddressSet.equals(anotherWorkerAddressSet);
   }
 
   @VisibleForTesting
