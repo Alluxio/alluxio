@@ -73,18 +73,18 @@ public class ConsistentHashProvider {
   /**
    * Requirements for interacting with this map:
    * 1. This hash ring is lazy initialized (cannot init in the constructor).
-   * Multiple threads may try to enter the init section and it should be only initialized once.
+   *    Multiple threads may try to enter the init section and it should be only initialized once.
    * 2. This hash ring is timestamped. After the TTL expires, we need to compare the worker
-   * list with the current available workers and possibly rebuild the hash ring.
+   *    list with the current available workers and possibly rebuild the hash ring.
    * 3. While the hash ring is being updated, readers should see a stale hash ring
-   * without blocking.
+   *    without blocking.
    * <p>
    * Thread safety guarantees:
    * 1. At lazy-init time, mutual exclusion is provided by `synchronized(mInitLock)`
-   * and double-checking. At this stage it is guarded by `mInitLock`.
+   *    and double-checking. At this stage it is guarded by `mInitLock`.
    * 2. After init, updating the hash ring is guarded by an optimistic lock using CAS(timestamp).
-   * There will be no blocking but a read may see a stale ring.
-   * At this stage it is guarded by `mLastUpdatedTimestamp`.
+   *    There will be no blocking but a read may see a stale ring.
+   *    At this stage it is guarded by `mLastUpdatedTimestamp`.
    */
   @Nullable
   private volatile NavigableMap<Integer, WorkerIdentity> mActiveNodesByConsistentHashing;
@@ -107,7 +107,7 @@ public class ConsistentHashProvider {
   /**
    * Finds multiple workers from the hash ring.
    *
-   * @param key   the key to hash on
+   * @param key the key to hash on
    * @param count the expected number of workers
    * @return a list of workers following the hash ring
    */
@@ -131,7 +131,7 @@ public class ConsistentHashProvider {
    * update the state of the hash provider using the worker list provided by that thread, and all
    * others will not change the internal state of the hash provider.
    *
-   * @param workers         the up-to-date worker list
+   * @param workers the up-to-date worker list
    * @param numVirtualNodes the number of virtual nodes used by consistent hashing
    */
   public void refresh(List<WorkerIdentity> workers, int numVirtualNodes) {
