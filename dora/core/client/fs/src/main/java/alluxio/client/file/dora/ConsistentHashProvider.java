@@ -68,8 +68,8 @@ public class ConsistentHashProvider {
    * Used to compare with incoming worker list to skip the heavy build process if the worker
    * list has not changed.
    */
-  private final AtomicReference<List<WorkerIdentity>> mLastWorkers =
-      new AtomicReference<>(ImmutableList.of());
+  private final AtomicReference<Set<WorkerIdentity>> mLastWorkers =
+      new AtomicReference<>(ImmutableSet.of());
   /**
    * Requirements for interacting with this map:
    * 1. This hash ring is lazy initialized (cannot init in the constructor).
@@ -134,7 +134,7 @@ public class ConsistentHashProvider {
    * @param workers the up-to-date worker list
    * @param numVirtualNodes the number of virtual nodes used by consistent hashing
    */
-  public void refresh(List<WorkerIdentity> workers, int numVirtualNodes) {
+  public void refresh(Set<WorkerIdentity> workers, int numVirtualNodes) {
     Preconditions.checkArgument(!workers.isEmpty(),
         "cannot refresh hash provider with empty worker list");
     maybeInitialize(workers, numVirtualNodes);
@@ -143,9 +143,9 @@ public class ConsistentHashProvider {
       // thread safety is valid provided that build() takes less than
       // WORKER_INFO_UPDATE_INTERVAL_NS, so that before next update the current update has been
       // finished
-      List<WorkerIdentity> lastWorkerIds = mLastWorkers.get();
+      Set<WorkerIdentity> lastWorkerIds = mLastWorkers.get();
       if (!workers.equals(lastWorkerIds)) {
-        List<WorkerIdentity> newWorkerIds = ImmutableList.copyOf(workers);
+        Set<WorkerIdentity> newWorkerIds = ImmutableSet.copyOf(workers);
         NavigableMap<Integer, WorkerIdentity> nodes = build(newWorkerIds, numVirtualNodes);
         mActiveNodesByConsistentHashing = nodes;
         mLastWorkers.set(newWorkerIds);
@@ -178,7 +178,7 @@ public class ConsistentHashProvider {
    * Only one caller gets to initialize the map while all others are blocked.
    * After the initialization, the map must not be null.
    */
-  private void maybeInitialize(List<WorkerIdentity> workers, int numVirtualNodes) {
+  private void maybeInitialize(Set<WorkerIdentity> workers, int numVirtualNodes) {
     if (mActiveNodesByConsistentHashing == null) {
       synchronized (mInitLock) {
         // only one thread should reach here
@@ -186,7 +186,7 @@ public class ConsistentHashProvider {
         if (mActiveNodesByConsistentHashing == null) {
           Set<WorkerIdentity> workerIdentities = ImmutableSet.copyOf(workers);
           mActiveNodesByConsistentHashing = build(workerIdentities, numVirtualNodes);
-          mLastWorkers.set(workers);
+          mLastWorkers.set(workerIdentities);
           mLastUpdatedTimestamp.set(System.nanoTime());
         }
       }
@@ -232,7 +232,7 @@ public class ConsistentHashProvider {
   }
 
   @VisibleForTesting
-  List<WorkerIdentity> getLastWorkers() {
+  Set<WorkerIdentity> getLastWorkers() {
     return mLastWorkers.get();
   }
 

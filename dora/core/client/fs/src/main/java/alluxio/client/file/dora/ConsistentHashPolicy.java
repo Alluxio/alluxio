@@ -24,7 +24,7 @@ import alluxio.wire.WorkerState;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 /**
  * An implementation of WorkerLocationPolicy.
@@ -64,9 +64,7 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
           "Not enough workers in the cluster %d workers in the cluster but %d required",
           workerClusterView.size(), count));
     }
-    List<WorkerIdentity> workerIdentities = workerClusterView.stream()
-        .map(WorkerInfo::getIdentity)
-        .collect(Collectors.toList());
+    Set<WorkerIdentity> workerIdentities = workerClusterView.workerIds();
     mHashProvider.refresh(workerIdentities, mNumVirtualNodes);
     List<WorkerIdentity> workers = mHashProvider.getMultiple(fileId, count);
     if (workers.size() != count) {

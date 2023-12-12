@@ -20,7 +20,7 @@ import static org.junit.Assert.fail;
 import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerIdentityTestUtils;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -61,7 +61,7 @@ public class ConsistentHashProviderTest {
    */
   public void virtualNodeDistribution() {
     ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
-    List<WorkerIdentity> workerList = generateRandomWorkerList(50);
+    Set<WorkerIdentity> workerList = generateRandomWorkerList(50);
     // set initial state
     provider.refresh(workerList, 2000);
     NavigableMap<Integer, WorkerIdentity> map = provider.getActiveNodesMap();
@@ -94,12 +94,12 @@ public class ConsistentHashProviderTest {
     final int numThreads = 16;
     CountDownLatch startSignal = new CountDownLatch(numThreads);
     ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
-    List<List<WorkerIdentity>> lists = IntStream.range(0, numThreads)
+    List<Set<WorkerIdentity>> lists = IntStream.range(0, numThreads)
         .mapToObj(i -> generateRandomWorkerList(5))
         .collect(Collectors.toList());
     List<Future<NavigableMap<Integer, WorkerIdentity>>> futures = IntStream.range(0, numThreads)
         .mapToObj(i -> {
-          List<WorkerIdentity> list = lists.get(i);
+          Set<WorkerIdentity> list = lists.get(i);
           return executorService.submit(() -> {
             startSignal.countDown();
             try {
@@ -124,7 +124,7 @@ public class ConsistentHashProviderTest {
 
     assertEquals(1, mapSet.size());
     // check if the worker list is one of the lists provided by the threads
-    List<WorkerIdentity> workerInfoListUsedByPolicy = provider.getLastWorkers();
+    Set<WorkerIdentity> workerInfoListUsedByPolicy = provider.getLastWorkers();
     assertTrue(lists.contains(workerInfoListUsedByPolicy));
     assertEquals(
         ConsistentHashProvider.build(workerInfoListUsedByPolicy, NUM_VIRTUAL_NODES),
@@ -153,12 +153,12 @@ public class ConsistentHashProviderTest {
       CountDownLatch startSignal = new CountDownLatch(numThreads);
 
       // generate a list of distinct maps for each thread
-      List<List<WorkerIdentity>> listsPerThread = IntStream.range(0, numThreads)
+      List<Set<WorkerIdentity>> listsPerThread = IntStream.range(0, numThreads)
           .mapToObj(i -> generateRandomWorkerList(50))
           .collect(Collectors.toList());
       List<Future<?>> futures = IntStream.range(0, numThreads)
           .mapToObj(i -> {
-            List<WorkerIdentity> list = listsPerThread.get(i);
+            Set<WorkerIdentity> list = listsPerThread.get(i);
             return executorService.submit(() -> {
               startSignal.countDown();
               try {
@@ -182,7 +182,7 @@ public class ConsistentHashProviderTest {
       // only one thread actually updated the map
       assertEquals(1, provider.getUpdateCount() - initialCount);
       // check if the worker list is one of the lists provided by the threads
-      List<WorkerIdentity> workerInfoListUsedByPolicy = provider.getLastWorkers();
+      Set<WorkerIdentity> workerInfoListUsedByPolicy = provider.getLastWorkers();
       assertTrue(listsPerThread.contains(workerInfoListUsedByPolicy));
       assertEquals(
           ConsistentHashProvider.build(workerInfoListUsedByPolicy, NUM_VIRTUAL_NODES),
@@ -193,7 +193,7 @@ public class ConsistentHashProviderTest {
   @Test
   public void workerListTtl() throws Exception {
     ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
-    List<WorkerIdentity> workerList = generateRandomWorkerList(5);
+    Set<WorkerIdentity> workerList = generateRandomWorkerList(5);
     // set initial state
     provider.refresh(workerList, NUM_VIRTUAL_NODES);
     long initialUpdateCount = provider.getUpdateCount();
@@ -203,7 +203,7 @@ public class ConsistentHashProviderTest {
         provider.getActiveNodesMap());
 
     // before TTL is up, refresh does not change the internal states of the provider
-    List<WorkerIdentity> newList = generateRandomWorkerList(5);
+    Set<WorkerIdentity> newList = generateRandomWorkerList(5);
     provider.refresh(newList, NUM_VIRTUAL_NODES);
     assertEquals(0, provider.getUpdateCount() - initialUpdateCount);
     assertNotEquals(newList, workerList);
@@ -222,9 +222,9 @@ public class ConsistentHashProviderTest {
         provider.getActiveNodesMap());
   }
 
-  private List<WorkerIdentity> generateRandomWorkerList(int count) {
+  private Set<WorkerIdentity> generateRandomWorkerList(int count) {
     ThreadLocalRandom rng = ThreadLocalRandom.current();
-    ImmutableList.Builder<WorkerIdentity> builder = ImmutableList.builder();
+    ImmutableSet.Builder<WorkerIdentity> builder = ImmutableSet.builder();
     while (count-- > 0) {
       WorkerIdentity id = WorkerIdentityTestUtils.randomLegacyId();
       builder.add(id);
