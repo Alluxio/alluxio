@@ -17,10 +17,17 @@ import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.LoadJobPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.LoadJobRequest;
+import alluxio.worker.http.vo.LoadJobProgressResponseVO;
+import alluxio.worker.http.vo.LoadJobStopResponseVO;
+import alluxio.worker.http.vo.LoadJobSubmitResponseVO;
 
+import com.google.gson.Gson;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -114,12 +121,24 @@ public class HttpLoadService {
     try {
       Optional<String> jobId = mFileSystem.submitJob(job);
       if (jobId.isPresent()) {
-        return String.format("Load '%s' is successfully submitted. JobId: %s%n", path, jobId.get());
+        LoadJobSubmitResponseVO loadJobSubmitResponseVO =
+            new LoadJobSubmitResponseVO(true, jobId.get(), path.toString(),
+            String.format("Load '%s' is successfully submitted. JobId: %s%n", path, jobId.get()));
+        String respJson = new Gson().toJson(loadJobSubmitResponseVO);
+        return respJson;
       } else {
-        return String.format("Load already running for path '%s' %n", path);
+        LoadJobSubmitResponseVO loadJobSubmitResponseVO =
+            new LoadJobSubmitResponseVO(true, jobId.get(), path.toString(),
+                String.format("Load already running for path '%s' %n", path));
+        String respJson = new Gson().toJson(loadJobSubmitResponseVO);
+        return respJson;
       }
     } catch (StatusRuntimeException e) {
-      return String.format("Failed to submit load job " + path + ": " + e.getMessage());
+      LoadJobSubmitResponseVO loadJobSubmitResponseVO =
+          new LoadJobSubmitResponseVO(false, "NONE", path.toString(),
+              String.format("Failed to submit load job " + path + ": " + e.getMessage()));
+      String respJson = new Gson().toJson(loadJobSubmitResponseVO);
+      return respJson;
     }
   }
 
@@ -130,13 +149,25 @@ public class HttpLoadService {
           .setPath(path.toString())
           .setType(JobType.LOAD.getTypeString())
           .build())) {
-        return String.format("Load '%s' is successfully stopped.%n", path);
+        LoadJobStopResponseVO loadJobStopResponseVO =
+            new LoadJobStopResponseVO(true, path.toString(),
+                String.format("Load '%s' is successfully stopped.%n", path));
+        String respJson = new Gson().toJson(loadJobStopResponseVO);
+        return respJson;
       } else {
-        return String.format("Cannot find load job for path %s, it might have already been "
-            + "stopped or finished%n", path);
+        LoadJobStopResponseVO loadJobStopResponseVO =
+            new LoadJobStopResponseVO(false, path.toString(),
+                String.format("Cannot find load job for path %s, it might have already been "
+                    + "stopped or finished%n", path));
+        String respJson = new Gson().toJson(loadJobStopResponseVO);
+        return respJson;
       }
     } catch (StatusRuntimeException e) {
-      return String.format("Failed to stop load job " + path + ": " + e.getMessage());
+      LoadJobStopResponseVO loadJobStopResponseVO =
+          new LoadJobStopResponseVO(false, path.toString(),
+              String.format("Failed to stop load job " + path + ": " + e.getMessage()));
+      String respJson = new Gson().toJson(loadJobStopResponseVO);
+      return respJson;
     }
   }
 
@@ -151,17 +182,36 @@ public class HttpLoadService {
   private String getProgressInternal(AlluxioURI path, JobProgressReportFormat format,
                                   boolean verbose) {
     try {
-      return "Progress for loading path '" + path + "':\n"
+      String respMsg = "Progress for loading path '" + path + "':\n"
           + (mFileSystem.getJobProgress(JobDescription
-              .newBuilder()
-              .setPath(path.toString())
-              .setType(JobType.LOAD.getTypeString())
-              .build(), format, verbose));
-    } catch (StatusRuntimeException e) {
-      if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {
-        return "Load for path '" + path + "' cannot be found.";
+          .newBuilder()
+          .setPath(path.toString())
+          .setType(JobType.LOAD.getTypeString())
+          .build(), format, verbose));
+      // parse the message
+      Map<String, String> respProperties = new HashMap<>();
+      String[] rows = respMsg.split("\n");
+      for (String row : rows) {
+        String[] keyValue = row.split(":");
+        if (keyValue.length > 1) {
+          respProperties.put(keyValue[0].trim(), keyValue[1].trim());
+        }
       }
-      return "Failed to get progress for load job " + path + ": " + e.getMessage();
+      String jobState = respProperties.get("Job State");
+      LoadJobProgressResponseVO loadJobProgressResponseVO = new LoadJobProgressResponseVO(jobState,
+          path.toString(), respMsg, respProperties);
+      return new Gson().toJson(loadJobProgressResponseVO);
+    } catch (StatusRuntimeException e) {
+      String respMsg;
+      if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {
+        respMsg = "Load for path '" + path + "' cannot be found.";
+      } else {
+        respMsg = "Failed to get progress for load job " + path + ": " + e.getMessage();
+      }
+      LoadJobProgressResponseVO loadJobProgressResponseVO =
+          new LoadJobProgressResponseVO("FAILED", path.toString(), respMsg,
+              Collections.emptyMap());
+      return new Gson().toJson(loadJobProgressResponseVO);
     }
   }
 }
