@@ -22,8 +22,11 @@ import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerState;
 
 import com.google.common.collect.ImmutableList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -35,6 +38,7 @@ import java.util.Set;
  * hash changes.
  */
 public class ConsistentHashPolicy implements WorkerLocationPolicy {
+  private static final Logger LOG = LoggerFactory.getLogger(ConsistentHashPolicy.class);
   private final ConsistentHashProvider mHashProvider =
       new ConsistentHashProvider(100, Constants.SECOND_MS);
   /**
@@ -73,10 +77,23 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
     }
     ImmutableList.Builder<BlockWorkerInfo> builder = ImmutableList.builder();
     for (WorkerIdentity worker : workers) {
-      WorkerInfo workerInfo = workerClusterView.getWorkerById(worker)
-          .orElseThrow(() -> new IllegalStateException(
-              String.format("Hash provider returned a non-existent worker: %s, "
-                  + "workers currently known: %s", worker, workerIdentities)));
+      Optional<WorkerInfo> optionalWorkerInfo = workerClusterView.getWorkerById(worker);
+      final WorkerInfo workerInfo;
+      if (optionalWorkerInfo.isPresent()) {
+        workerInfo = optionalWorkerInfo.get();
+      } else {
+        // the worker returned by the policy does not exist in the cluster view
+        // supplied by the client.
+        // this can happen when the membership changes and some callers fail to update
+        // to the latest worker cluster view.
+        // in this case, just skip this worker
+        LOG.debug("Inconsistency between caller's view of cluster and that of "
+            + "the consistent hash policy's: worker {} selected by policy does not exist in "
+            + "caller's view {}. Skipping this worker.",
+            worker, workerClusterView);
+        continue;
+      }
+
       BlockWorkerInfo blockWorkerInfo = new BlockWorkerInfo(
           worker, workerInfo.getAddress(), workerInfo.getCapacityBytes(),
           workerInfo.getUsedBytes(), workerInfo.getState() == WorkerState.LIVE
