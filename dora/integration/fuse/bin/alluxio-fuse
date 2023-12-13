@@ -329,7 +329,7 @@ unmount_command() {
   readonly force_kill
 
   local fuse_pid
-  fuse_pid=$(ps ax -o pid,args | grep [A]lluxioFuse | grep " ${mount_point} " | awk '{print $1}')
+  fuse_pid=$(ps ax -o pid,args | grep [A]lluxioFuse | grep " ${mount_point}" | awk '{print $1}')
   if [[ -z "${fuse_pid}" ]];then
     err "Cannot find AlluxioFuse Java process for ${mount_point}"
     return 1
