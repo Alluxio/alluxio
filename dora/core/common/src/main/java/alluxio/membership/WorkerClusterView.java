@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.concurrent.Immutable;
@@ -87,6 +88,13 @@ public final class WorkerClusterView implements Iterable<WorkerInfo> {
   }
 
   /**
+   * @return set of IDs of workers contained in this view
+   */
+  public Set<WorkerIdentity> workerIds() {
+    return mWorkers.keySet();
+  }
+
+  /**
    * @return number of workers contained in the cluster view
    */
   public int size() {
@@ -110,7 +118,9 @@ public final class WorkerClusterView implements Iterable<WorkerInfo> {
   /**
    * Note that the equals implementation considers the creation timestamp to be part of the
    * snapshot's identity. To compare two snapshots only by the contained workers,
-   * use {@link com.google.common.collect.Iterables#elementsEqual(Iterable, Iterable)}.
+   * use {@link #workerIds()} to compare only the IDs, or
+   * use {@link com.google.common.collect.Iterables#elementsEqual(Iterable, Iterable)} to compare
+   * all fields in {@link WorkerInfo}.
    */
   @Override
   public boolean equals(Object o) {
