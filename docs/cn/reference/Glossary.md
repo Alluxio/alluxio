@@ -1,6 +1,6 @@
 ---
-layout: global
-title: List of Environment Variables
+布局: 全局
+标题: 环境变量列表
 ---
 
 Alluxio
