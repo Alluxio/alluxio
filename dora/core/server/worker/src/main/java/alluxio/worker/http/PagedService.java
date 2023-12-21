@@ -75,9 +75,24 @@ public class PagedService {
    */
   public FileRegion getPageFileRegion(String fileId, long pageIndex)
       throws PageNotFoundException {
+    return getPageFileRegion(fileId, pageIndex, 0, (int) mPageSize);
+  }
+
+  /**
+   * Get {@link FileRegion} object given fileId, pageIndex, and channel.
+   *
+   * @param fileId    the file ID
+   * @param pageIndex the page index
+   * @param offset offset into the page
+   * @param length number of bytes to read in this page
+   * @return the ByteBuf object that wraps page bytes
+   * @throws PageNotFoundException
+   */
+  public FileRegion getPageFileRegion(String fileId, long pageIndex, long offset, long length)
+      throws PageNotFoundException {
     PageId pageId = new PageId(fileId, pageIndex);
     Optional<DataFileChannel> dataFileChannel = mCacheManager.getDataFileChannel(pageId,
-        0, (int) mPageSize, CacheContext.defaults());
+        (int) offset, (int) length, CacheContext.defaults());
     if (!dataFileChannel.isPresent()) {
       throw new PageNotFoundException("page not found: fileId " + fileId
           + ", pageIndex " + pageIndex);

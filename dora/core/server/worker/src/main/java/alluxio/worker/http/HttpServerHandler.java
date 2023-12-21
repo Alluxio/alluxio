@@ -149,7 +149,17 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
     String fileId = remainingFields.get(0);
     long pageIndex = Long.parseLong(remainingFields.get(2));
 
-    FileRegion fileRegion = mPagedService.getPageFileRegion(fileId, pageIndex);
+    FileRegion fileRegion;
+    String offsetStr = httpRequestUri.getParameters().get("offset");
+    String lengthStr = httpRequestUri.getParameters().get("length");
+    if (offsetStr != null && !offsetStr.isEmpty() && lengthStr != null && !lengthStr.isEmpty()) {
+      long offset = Long.parseLong(offsetStr);
+      long length = Long.parseLong(lengthStr);
+      fileRegion = mPagedService.getPageFileRegion(fileId, pageIndex, offset, length);
+    } else {
+      fileRegion = mPagedService.getPageFileRegion(fileId, pageIndex);
+    }
+
     HttpResponse response = new DefaultHttpResponse(httpRequest.protocolVersion(), OK);
     HttpResponseContext httpResponseContext = new HttpResponseContext(response, fileRegion);
     response.headers()
