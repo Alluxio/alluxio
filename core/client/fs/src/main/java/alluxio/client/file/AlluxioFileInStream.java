@@ -423,7 +423,8 @@ public class AlluxioFileInStream extends FileInStream {
     mBlockInStream.seek(offset);
   }
 
-  private boolean isStatusOutdated() {
+  @VisibleForTesting
+  public boolean isStatusOutdated() {
     return System.currentTimeMillis() > mStatusOutdatedTime;
   }
 

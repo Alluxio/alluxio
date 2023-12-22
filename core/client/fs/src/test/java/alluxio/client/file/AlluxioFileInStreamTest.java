@@ -53,6 +53,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -957,5 +958,18 @@ public final class AlluxioFileInStreamTest {
   // block is sent to the netty channel
   private void validatePartialCaching(int index, int readSize) {
     assertEquals(readSize, mInStreams.get(index).getBytesRead());
+  }
+
+  @Test
+  public void testStatusOutdated() throws IOException {
+    OpenFilePOptions options =
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
+    mTestStream = new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf,
+        mContext), mContext);
+    Assert.assertFalse(mTestStream.isStatusOutdated());
+    mConf.set(PropertyKey.USER_FILE_IN_STREAM_STATUS_EXPIRATION_TIME, 0L);
+    mTestStream = new AlluxioFileInStream(mStatus, new InStreamOptions(mStatus, options, mConf,
+        mContext), mContext);
+    Assert.assertTrue(mTestStream.isStatusOutdated());
   }
 }
