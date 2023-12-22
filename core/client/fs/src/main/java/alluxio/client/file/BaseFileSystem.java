@@ -288,25 +288,26 @@ public class BaseFileSystem implements FileSystem {
         if (locations.isEmpty() && mFsContext.getPathConf(new AlluxioURI(status.getPath()))
             .getBoolean(PropertyKey.USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED)) {
           // Case 2: Fallback to add all workers to locations so some apps (Impala) won't panic.
-          PropertyKey locKey = PropertyKey.USER_UFS_BLOCK_LOCATION_RETURN_LIMIT;
-          int count = mFsContext.getClusterConf().getInt(locKey);
+          PropertyKey locKey = PropertyKey.USER_UFS_BLOCK_LOCATION_FALLBACK_RETURN_LIMIT;
+          int count = mFsContext.getPathConf(new AlluxioURI(status.getPath())).getInt(locKey);
           if (count < 0) {
             throw new IllegalArgumentException("Property" + locKey.getName()
                 + " should not be set to a negative number");
+          } else if (count == Integer.MAX_VALUE) {
+            locations.addAll(getHostWorkerMap().values());
+            Collections.shuffle(locations);
+          } else if (count > 0) {
+            List<WorkerNetAddress> addrs = (List<WorkerNetAddress>) getHostWorkerMap().values();
+            Collections.shuffle(addrs);
+            for (int i = 0; i < Math.min(count, addrs.size()); i++) {
+              locations.add(addrs.get(i));
+            }
           }
-          List<WorkerNetAddress> addresses = getShuffleWorkerAddressList();
-          locations.addAll(addresses.subList(0, Math.min(addresses.size(), count)));
         }
       }
       blockLocations.add(new BlockLocationInfo(fileBlockInfo, locations));
     }
     return blockLocations;
-  }
-
-  private List<WorkerNetAddress> getShuffleWorkerAddressList() throws IOException {
-    List<BlockWorkerInfo> workers = mFsContext.getCachedWorkers();
-    Collections.shuffle(workers);
-    return workers.stream().map(BlockWorkerInfo::getNetAddress).collect(toList());
   }
 
   private Map<String, WorkerNetAddress> getHostWorkerMap() throws IOException {
