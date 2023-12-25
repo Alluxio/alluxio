@@ -29,6 +29,8 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.proto.journal.File;
+import alluxio.s3.DeleteObjectsRequest;
+import alluxio.s3.DeleteObjectsResult;
 import alluxio.s3.ListAllMyBucketsResult;
 import alluxio.s3.ListBucketOptions;
 import alluxio.s3.ListBucketResult;
@@ -134,7 +136,7 @@ public class S3BucketTask extends S3BaseTask {
       return S3RestUtils.call(S3Constants.EMPTY, () -> {
         final String user = mHandler.getUser();
 
-        List<URIStatus> objects = new ArrayList<>();
+        List<URIStatus> objects;
         try (S3AuditContext auditContext = mHandler.createAuditContext(
                 mOPType.name(), user, null, null)) {
           try {
@@ -148,7 +150,7 @@ public class S3BucketTask extends S3BaseTask {
           }
 
           final List<URIStatus> buckets = objects.stream()
-                  .filter((uri) -> uri.getOwner().equals(user))
+                  .filter((uri) -> !uri.getName().equals(S3Constants.S3_METADATA_ROOT_DIR))
                   // debatable (?) potentially breaks backcompat(?)
                   .filter(URIStatus::isFolder)
                   .collect(Collectors.toList());
@@ -212,10 +214,13 @@ public class S3BucketTask extends S3BaseTask {
           try {
             List<URIStatus> children = mHandler.getMetaFS().listStatus(new AlluxioURI(
                     S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR));
-            final List<URIStatus> uploadIds = children.stream()
-                    .filter((uri) -> uri.getOwner().equals(user))
-                    .collect(Collectors.toList());
-            return ListMultipartUploadsResult.buildFromStatuses(bucket, uploadIds);
+            // GetListing doesn't contain the xattr info, so get status for MPU files.
+            List<URIStatus> mpuList = new ArrayList<>(children.size());
+            for (URIStatus status : children) {
+              URIStatus filemeta = mHandler.getMetaFS().getStatus(new AlluxioURI(status.getPath()));
+              mpuList.add(filemeta);
+            }
+            return ListMultipartUploadsResult.buildFromStatuses(bucket, mpuList);
           } catch (Exception e) {
             throw S3RestUtils.toBucketS3Exception(e, bucket, auditContext);
           }

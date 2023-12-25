@@ -24,6 +24,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
+import io.etcd.jetcd.ClientBuilder;
 import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.Watch;
 import io.etcd.jetcd.kv.GetResponse;
@@ -78,6 +79,7 @@ public class AlluxioEtcdClient {
 
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioEtcdClient.class);
   private static final Lock INSTANCE_LOCK = new ReentrantLock();
+  public static final String BASE_PATH = "/ServiceDiscovery";
   public static final long DEFAULT_LEASE_TTL_IN_SEC = 2L;
   public static final long DEFAULT_TIMEOUT_IN_SEC = 2L;
   public static final int RETRY_TIMES = 3;
@@ -102,11 +104,23 @@ public class AlluxioEtcdClient {
     String clusterName = conf.getString(PropertyKey.ALLUXIO_CLUSTER_NAME);
     List<String> endpointsList = conf.getList(PropertyKey.ETCD_ENDPOINTS);
     mEndpoints = endpointsList.toArray(new String[0]);
-    mServiceDiscovery = new ServiceDiscoveryRecipe(this, clusterName);
-    // TODO(lucy) add more options as needed for io.etcd.jetcd.ClientBuidler
+    mServiceDiscovery = new ServiceDiscoveryRecipe(this,
+        String.format("%s%s%s", BASE_PATH, MembershipManager.PATH_SEPARATOR, clusterName));
+    // TODO(lucy) add more options as needed for io.etcd.jetcd.ClientBuilder
     // to control underneath grpc parameters.
-    mClient = Client.builder().endpoints(mEndpoints)
-        .build();
+    ClientBuilder jetcdClientBuilder = Client.builder().endpoints(mEndpoints);
+    Preconditions.checkArgument(
+        !(conf.isSet(PropertyKey.ETCD_USERNAME) ^ conf.isSet(PropertyKey.ETCD_PASSWORD)),
+        "Need to set both username/password for etcd connection, only one is set.");
+    if (conf.isSet(PropertyKey.ETCD_USERNAME) && conf.isSet(PropertyKey.ETCD_PASSWORD)) {
+
+      jetcdClientBuilder
+          .user(ByteSequence.from(
+              conf.getString(PropertyKey.ETCD_USERNAME), StandardCharsets.UTF_8))
+          .password(ByteSequence.from(
+              conf.getString(PropertyKey.ETCD_PASSWORD), StandardCharsets.UTF_8));
+    }
+    mClient = jetcdClientBuilder.build();
   }
 
   /**
@@ -118,7 +132,16 @@ public class AlluxioEtcdClient {
     if (sAlluxioEtcdClient == null) {
       try (LockResource lockResource = new LockResource(INSTANCE_LOCK)) {
         if (sAlluxioEtcdClient == null) {
+          LOG.debug("Creating ETCD client");
           sAlluxioEtcdClient = new AlluxioEtcdClient(conf);
+          Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+              destroy();
+            } catch (Throwable t) {
+              LOG.error("Failed to destroy ETCD client", t);
+            }
+          }, "alluxio-etcd-client-shutdown-hook"));
+          LOG.debug("ETCD client created");
         }
       }
     }
@@ -534,5 +557,28 @@ public class AlluxioEtcdClient {
    */
   public Client getEtcdClient() {
     return mClient;
+  }
+
+  /**
+   * Destroys the client and corresponding resources.
+   *
+   * We don't implement {@link AutoCloseable} because the client is used by client
+   * FileSystemContext. FileSystemContext has reinit() logic which may close and recreate
+   * all resources. We don't want the life cycle of one FileSystemContext to close the global
+   * singleton ETCD client.
+   */
+  public static void destroy() {
+    LOG.debug("Destroying ETCD client {}", sAlluxioEtcdClient);
+    try (LockResource lockResource = new LockResource(INSTANCE_LOCK)) {
+      if (sAlluxioEtcdClient != null) {
+        sAlluxioEtcdClient.mServiceDiscovery.close();
+        Client client = sAlluxioEtcdClient.getEtcdClient();
+        if (client != null) {
+          client.close();
+        }
+        sAlluxioEtcdClient = null;
+      }
+    }
+    LOG.debug("ETCD client destroyed");
   }
 }

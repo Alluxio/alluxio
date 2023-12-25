@@ -21,7 +21,7 @@ import alluxio.s3.signature.utils.AwsAuthV2HeaderParserUtils;
 import alluxio.s3.signature.utils.AwsAuthV4HeaderParserUtils;
 import alluxio.s3.signature.utils.AwsAuthV4QueryParserUtils;
 
-import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class AwsSignatureProcessor {
 
   private ContainerRequestContext mContext;
   private HttpServletRequest mServletRequest;
-  private FullHttpRequest mHttpRequest;
+  private HttpRequest mHttpRequest;
 
   /**
    * Create a new {@link AwsSignatureProcessor}.
@@ -70,11 +70,11 @@ public class AwsSignatureProcessor {
   /**
    * Create a new {@link AwsSignatureProcessor} with HttpRequest
    * as the info marshall source.
-   * Used by the new architecture in {@link FullHttpRequest}
+   * Used by the new architecture in {@link HttpRequest}
    *
    * @param httpRequest
    */
-  public AwsSignatureProcessor(FullHttpRequest httpRequest) {
+  public AwsSignatureProcessor(HttpRequest httpRequest) {
     mHttpRequest = httpRequest;
   }
 

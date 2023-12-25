@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -36,34 +35,39 @@ public interface MembershipManager extends AutoCloseable {
 
   /**
    * An idempotent call to register to join the membership.
+   *
    * @param worker
    * @throws IOException
    */
   public void join(WorkerInfo worker) throws IOException;
 
   /**
-   * Get all registered worker members.
+   * Gets a view for all registered worker members.
+   *
    * @return all registered workers
    * @throws IOException
    */
-  public List<WorkerInfo> getAllMembers() throws IOException;
+  public WorkerClusterView getAllMembers() throws IOException;
 
   /**
-   * Get healthy workers.
+   * Gets a view for healthy workers.
+   *
    * @return healthy worker list
    * @throws IOException
    */
-  public List<WorkerInfo> getLiveMembers() throws IOException;
+  public WorkerClusterView getLiveMembers() throws IOException;
 
   /**
-   * Get all failed workers.
+   * Gets a view for all failed workers.
+   *
    * @return failed worker list
    * @throws IOException
    */
-  public List<WorkerInfo> getFailedMembers() throws IOException;
+  public WorkerClusterView getFailedMembers() throws IOException;
 
   /**
    * Pretty printed members and its liveness status.
+   *
    * @return pretty-printed status string
    */
   public String showAllMembers();
@@ -119,8 +123,8 @@ public interface MembershipManager extends AutoCloseable {
           return StaticMembershipManager.create(conf);
         case ETCD:
           return EtcdMembershipManager.create(conf);
-        case NOOP:
-          return NoOpMembershipManager.create();
+        case MASTER:
+          return MasterMembershipManager.create();
         default:
           throw new IllegalStateException("Unrecognized Membership Type");
       }

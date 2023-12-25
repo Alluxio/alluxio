@@ -13,6 +13,8 @@ package alluxio.wire;
 
 import alluxio.annotation.PublicApi;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
@@ -34,12 +36,15 @@ public class MountPointInfo implements Serializable {
 
   private String mUfsUri = "";
   private String mUfsType = "";
+  @JsonIgnore
   private long mMountId = 0;
+  @JsonProperty("ufsCapacityBytes")
   private long mUfsCapacityBytes = UNKNOWN_CAPACITY_BYTES;
+  @JsonProperty("ufsUsedBytes")
   private long mUfsUsedBytes = UNKNOWN_USED_BYTES;
   private boolean mReadOnly;
-  private HashMap<String, String> mProperties = new HashMap<>();
   private boolean mShared;
+  private HashMap<String, String> mProperties = new HashMap<>();
 
   /**
    * Creates a new instance of {@link MountPointInfo}.

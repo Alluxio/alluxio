@@ -50,7 +50,7 @@ public final class NodeInfo implements Comparable<NodeInfo> {
     }
     mWebPort = workerInfo.getAddress().getWebPort();
     mLastContactSec = Integer.toString(workerInfo.getLastContactSec());
-    mWorkerState = workerInfo.getState();
+    mWorkerState = workerInfo.getState().toString();
     mCapacityBytes = workerInfo.getCapacityBytes();
     mUsedBytes = workerInfo.getUsedBytes();
     if (mCapacityBytes != 0) {

@@ -15,7 +15,6 @@ import alluxio.jnifuse.struct.FileStat;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.jnifuse.struct.FuseFileInfo;
 import alluxio.jnifuse.struct.Statvfs;
-import alluxio.jnifuse.utils.SecurityUtils;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
@@ -31,6 +30,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import io.vertx.core.dns.AddressResolverOptions;
 
 /**
  * Abstract class for other File System to extend and integrate with Fuse.
@@ -90,12 +91,6 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
     final String[] argsArray = args.toArray(new String[0]);
     try {
-      if (SecurityUtils.canHandleShutdownHooks()) {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-          LOG.info("Unmounting Fuse through shutdown hook");
-          umount(true);
-        }));
-      }
       int res;
       if (blocking) {
         res = execMount(argsArray);
@@ -118,7 +113,25 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   }
 
   private int execMount(String[] arg) {
+    loadNecessaryClasses();
     return mLibFuse.fuse_main_real(this, arg.length, arg);
+  }
+
+  private void loadNecessaryClasses() {
+    LOG.info("Loading necessary classes...");
+    try {
+      String[] classesToLoad = {
+          "io.vertx.core.dns.AddressResolverOptions"
+      };
+      for (String classToLoad : classesToLoad) {
+        Class<io.vertx.core.dns.AddressResolverOptions> cls =
+            (Class<AddressResolverOptions>)
+                ClassLoader.getSystemClassLoader().loadClass(classToLoad);
+        cls.newInstance();
+      }
+    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   /**
@@ -130,18 +143,17 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     if (!mMounted.get()) {
       return;
     }
-    LOG.info("Umounting {}", mMountPoint);
-    try {
-      umountInternal();
-    } catch (FuseException e) {
-      LOG.error("Failed to umount {}", mMountPoint, e);
-      throw e;
-    }
     mMounted.set(false);
   }
 
+  /*
+   Deprecating this as we shouldn't call the umount/fusermount ourselves, it should come from
+   user and stop the fuse_main_real from serving and then we exit from main thread
+   */
+  @Deprecated
   private void umountInternal() {
     int exitCode;
+    String outputStr = "";
     String mountPath = mMountPoint.toString();
     if (SystemUtils.IS_OS_WINDOWS) {
       throw new FuseException("Unable to umount FS in a windows system.");
@@ -180,6 +192,10 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
   }
 
+  public void destroyCallback() {
+    destroy();
+  }
+
   public int openCallback(String path, ByteBuffer buf) {
     try {
       return open(path, FuseFileInfo.of(buf));
@@ -208,7 +224,7 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   }
 
   public int readdirCallback(String path, long bufaddr, long filter, long offset,
-      ByteBuffer fi) {
+                             ByteBuffer fi) {
     try {
       return readdir(path, bufaddr, filter, offset, FuseFileInfo.of(fi));
     } catch (Exception e) {

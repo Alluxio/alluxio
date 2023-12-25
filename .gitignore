@@ -31,6 +31,7 @@
 /extensions/
 /generated/
 /integration/docker/*.tar.gz
+/job_results/
 /journal/
 /lib/*.jar
 /libexec/version.sh
@@ -58,3 +59,4 @@
 dependency-reduced-pom.xml
 target/
 tests.log*
+worker_identity

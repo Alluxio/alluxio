@@ -12,7 +12,9 @@
 package alluxio.worker.dora;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.cache.CacheManager;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.file.FileId;
@@ -20,20 +22,27 @@ import alluxio.grpc.FileInfo;
 import alluxio.proto.meta.DoraMeta;
 import alluxio.proto.meta.DoraMeta.FileStatus;
 import alluxio.underfs.Fingerprint;
+import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.ListOptions;
+import alluxio.util.logging.SamplingLogger;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -43,15 +52,20 @@ import java.util.Optional;
  *  also lacks concurrency control. Address this problem in the future.
  */
 public class DoraMetaManager implements Closeable {
+  private static final Logger LOG = LoggerFactory.getLogger(DoraMetaManager.class);
+  private final AlluxioConfiguration mConf;
   private final DoraMetaStore mMetaStore;
   private final CacheManager mCacheManager;
-  private final PagedDoraWorker mDoraWorker;
-  private final UnderFileSystem mUfs;
+  protected final UfsManager mUfsManager;
 
+  private static final Logger SAMPLING_LOG = new SamplingLogger(
+      LoggerFactory.getLogger(DoraMetaManager.class), 1L * Constants.MINUTE_MS);
   private final long mListingCacheCapacity
       = Configuration.getInt(PropertyKey.DORA_UFS_LIST_STATUS_CACHE_NR_FILES);
   private final boolean mGetRealContentHash
       = Configuration.getBoolean(PropertyKey.USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH);
+  private final boolean mXAttrWriteToUFSEnabled =
+      Configuration.getBoolean(PropertyKey.UNDERFS_XATTR_CHANGE_ENABLED);
   private final Cache<String, ListStatusResult> mListStatusCache = mListingCacheCapacity == 0
       ? null
       : Caffeine.newBuilder()
@@ -63,20 +77,33 @@ public class DoraMetaManager implements Closeable {
 
   /**
    * Creates a dora meta manager.
-   * @param doraWorker the dora worker instance
+   * @param conf configuration
    * @param cacheManger the cache manager to manage the page cache
-   * @param ufs the associated ufs
+   * @param ufsManager the ufs Manager
    */
-  public DoraMetaManager(
-      PagedDoraWorker doraWorker, CacheManager cacheManger,
-      UnderFileSystem ufs) {
-    String dbDir = Configuration.getString(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR);
-    Duration duration = Configuration.getDuration(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_TTL);
+  @Inject
+  public DoraMetaManager(AlluxioConfiguration conf,
+      CacheManager cacheManger,
+      UfsManager ufsManager) {
+    mConf = conf;
+    String dbDir = mConf.getString(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR);
+    Duration duration = mConf.getDuration(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_TTL);
     long ttl = (duration.isNegative() || duration.isZero()) ? -1 : duration.getSeconds();
     mMetaStore = new RocksDBDoraMetaStore(dbDir, ttl);
     mCacheManager = cacheManger;
-    mDoraWorker = doraWorker;
-    mUfs = ufs;
+    mUfsManager = ufsManager;
+  }
+
+  protected UnderFileSystem getUfsInstance(String ufsUriStr) {
+    AlluxioURI ufsUriUri = new AlluxioURI(ufsUriStr);
+    try {
+      UnderFileSystem ufs = mUfsManager.getOrAdd(ufsUriUri,
+          () -> UnderFileSystemConfiguration.defaults(mConf));
+      return ufs;
+    } catch (Exception e) {
+      LOG.debug("failed to get UFS instance for URI {}", ufsUriStr, e);
+      throw e;
+    }
   }
 
   /**
@@ -86,9 +113,15 @@ public class DoraMetaManager implements Closeable {
    */
   public Optional<FileStatus> getFromUfs(String path) throws IOException {
     try {
-      UfsStatus status = mUfs.getStatus(path,
+      UnderFileSystem ufs = getUfsInstance(path);
+      UfsStatus status = ufs.getStatus(path,
           GetStatusOptions.defaults().setIncludeRealContentHash(mGetRealContentHash));
-      DoraMeta.FileStatus fs = mDoraWorker.buildFileStatusFromUfsStatus(status, path);
+      Map<String, String> xattrMap = null;
+      if (status != null && mXAttrWriteToUFSEnabled) {
+        xattrMap = ufs.getAttributes(path);
+      }
+      DoraMeta.FileStatus fs = PagedDoraWorker.buildFileStatusFromUfsStatus(
+          mCacheManager.getUsage(), ufs.getUnderFSType(), status, path, xattrMap);
       return Optional.ofNullable(fs);
     } catch (FileNotFoundException e) {
       return Optional.empty();
@@ -254,8 +287,9 @@ public class DoraMetaManager implements Closeable {
   public Optional<UfsStatus[]> listFromUfs(String path, boolean isRecursive)
       throws IOException {
     ListOptions ufsListOptions = ListOptions.defaults().setRecursive(isRecursive);
+    UnderFileSystem ufs = getUfsInstance(path);
     try {
-      UfsStatus[] listResults = mUfs.listStatus(path, ufsListOptions);
+      UfsStatus[] listResults = ufs.listStatus(path, ufsListOptions);
       if (listResults != null) {
         return Optional.of(listResults);
       }
@@ -269,7 +303,7 @@ public class DoraMetaManager implements Closeable {
     // the request path might either be a regular file/object or not exist.
     // Try getStatus() instead.
     try {
-      UfsStatus status = mUfs.getStatus(path);
+      UfsStatus status = ufs.getStatus(path);
       if (status == null) {
         return Optional.empty();
       }
@@ -294,7 +328,8 @@ public class DoraMetaManager implements Closeable {
    * @return true if the page cache (if any) should be invalidated, otherwise false
    */
   private boolean shouldInvalidatePageCache(FileInfo origin, FileInfo updated) {
-    if (!mUfs.getUnderFSType().equals(origin.getUfsType())) {
+    UnderFileSystem ufs = getUfsInstance(origin.getUfsPath());
+    if (!ufs.getUnderFSType().equals(origin.getUfsType())) {
       return true;
     }
     if (origin.getFolder() != updated.getFolder()) {
@@ -308,6 +343,7 @@ public class DoraMetaManager implements Closeable {
   }
 
   private void invalidateCachedFile(String path) {
+    SAMPLING_LOG.info("Invalidating cached file {}", path);
     FileId fileId = FileId.of(AlluxioURI.hash(path));
     mCacheManager.deleteFile(fileId.toString());
   }

@@ -32,6 +32,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class FileSystemTestUtils {
+  public static final WritePType DEFAULT_WRITE_TYPE = WritePType.CACHE_THROUGH;
+
   /**
    * Creates a simple file with {@code len} bytes.
    *
@@ -50,12 +52,34 @@ public final class FileSystemTestUtils {
    *
    * @param fs a {@link FileSystem} handler
    * @param fileName the name of the file to be created
+   * @param len file size
+   */
+  public static void createByteFile(FileSystem fs, String fileName, int len) {
+    createByteFile(fs, new AlluxioURI(fileName), DEFAULT_WRITE_TYPE, len);
+  }
+
+  /**
+   * Creates a simple file with {@code len} bytes.
+   *
+   * @param fs a {@link FileSystem} handler
+   * @param fileName the name of the file to be created
    * @param writeType {@link WritePType} used to create the file
    * @param len file size
    */
   public static void createByteFile(FileSystem fs, String fileName,
       WritePType writeType, int len) {
     createByteFile(fs, new AlluxioURI(fileName), writeType, len);
+  }
+
+  /**
+   * Creates a simple file with {@code len} bytes.
+   *
+   * @param fs a {@link FileSystem} handler
+   * @param fileURI URI of the file
+   * @param len file size
+   */
+  public static void createByteFile(FileSystem fs, AlluxioURI fileURI, int len) {
+    createByteFile(fs, fileURI, DEFAULT_WRITE_TYPE, len);
   }
 
   /**

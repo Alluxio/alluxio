@@ -49,7 +49,6 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
-import alluxio.master.WorkerState;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
 import alluxio.master.journal.JournalContext;
@@ -85,6 +84,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.RegisterLease;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerState;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -150,7 +150,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       PropertyKey.MASTER_CONTAINER_ID_RESERVATION_SIZE);
 
   /** The only valid key for {@link #mWorkerInfoCache}. */
-  private static final String WORKER_INFO_CACHE_KEY = "WorkerInfoKey";
+  private static final String LIVE_WORKER_INFO_CACHE_KEY = "LiveWorkerInfoKey";
+
+  private static final String LOST_WORKER_INFO_CACHE_KEY = "LostWorkerInfoKey";
 
   private final ExecutorService mContainerIdDetector = Executors
       .newSingleThreadExecutor(
@@ -289,7 +291,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   /**
    * A loading cache for worker info list, refresh periodically.
-   * This cache only has a single key {@link  #WORKER_INFO_CACHE_KEY}.
+   * This cache has two keys {@link #LIVE_WORKER_INFO_CACHE_KEY},
+   * {@link #LOST_WORKER_INFO_CACHE_KEY}.
    */
   private final LoadingCache<String, List<WorkerInfo>> mWorkerInfoCache;
 
@@ -328,8 +331,15 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             .getMs(PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME), TimeUnit.MILLISECONDS)
         .build(new CacheLoader<String, List<WorkerInfo>>() {
           @Override
-          public List<WorkerInfo> load(String key) {
-            return constructWorkerInfoList();
+          public List<WorkerInfo> load(String key) throws UnavailableException {
+            switch (key) {
+              case LIVE_WORKER_INFO_CACHE_KEY:
+                return constructWorkerInfoList();
+              case LOST_WORKER_INFO_CACHE_KEY:
+                return getLostWorkersInfoListInternal();
+              default:
+                return constructWorkerInfoList();
+            }
           }
         });
 
@@ -669,7 +679,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     try {
-      return mWorkerInfoCache.get(WORKER_INFO_CACHE_KEY);
+      return mWorkerInfoCache.get(LIVE_WORKER_INFO_CACHE_KEY);
     } catch (ExecutionException e) {
       throw new UnavailableException("Unable to get worker info list from cache", e);
     }
@@ -689,6 +699,17 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public List<WorkerInfo> getLostWorkersInfoList() throws UnavailableException {
+    if (mSafeModeManager.isInSafeMode()) {
+      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
+    }
+    try {
+      return mWorkerInfoCache.get(LOST_WORKER_INFO_CACHE_KEY);
+    } catch (ExecutionException e) {
+      throw new UnavailableException("Unable to get worker info list from cache", e);
+    }
+  }
+
+  private List<WorkerInfo> getLostWorkersInfoListInternal() throws UnavailableException {
     if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
@@ -1395,7 +1416,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     worker.updateLastUpdatedTimeMs();
 
     // Invalidate cache to trigger new build of worker info list
-    mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
+    mWorkerInfoCache.invalidate(LIVE_WORKER_INFO_CACHE_KEY);
+    mWorkerInfoCache.invalidate(LOST_WORKER_INFO_CACHE_KEY);
     LOG.info("registerWorker(): {}", worker);
   }
 
@@ -1447,7 +1469,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     mTempWorkers.remove(worker);
     mLostWorkers.remove(worker);
     // Invalidate cache to trigger new build of worker info list
-    mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
+    mWorkerInfoCache.invalidate(LIVE_WORKER_INFO_CACHE_KEY);
+    mWorkerInfoCache.invalidate(LOST_WORKER_INFO_CACHE_KEY);
 
     WorkerNetAddress workerNetAddress = worker.getWorkerAddress();
     // TODO(bzheng888): Maybe need a new listener such as WorkerDecommissionListener.
@@ -1565,7 +1588,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     workerInfo.updateLastUpdatedTimeMs();
 
     // Invalidate cache to trigger new build of workerInfo info list
-    mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
+    mWorkerInfoCache.invalidate(LIVE_WORKER_INFO_CACHE_KEY);
+    mWorkerInfoCache.invalidate(LOST_WORKER_INFO_CACHE_KEY);
     LOG.info("Worker successfully registered: {}", workerInfo);
     mActiveRegisterContexts.remove(workerInfo.getId());
     mRegisterLeaseManager.releaseLease(workerInfo.getId());
@@ -1981,7 +2005,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     mLostWorkers.add(worker);
     mWorkers.remove(worker);
     // Invalidate cache to trigger new build of worker info list
-    mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
+    mWorkerInfoCache.invalidate(LIVE_WORKER_INFO_CACHE_KEY);
+    mWorkerInfoCache.invalidate(LOST_WORKER_INFO_CACHE_KEY);
     // If a worker is gone before registering, avoid it getting stuck in mTempWorker forever
     mTempWorkers.remove(worker);
     WorkerNetAddress workerAddress = worker.getWorkerAddress();

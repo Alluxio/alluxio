@@ -15,12 +15,15 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.CommonUtils;
+import alluxio.util.ModeUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -28,8 +31,11 @@ import alluxio.util.io.PathUtils;
 import com.aliyun.oss.ClientBuilderConfiguration;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
+import com.aliyun.oss.OSSException;
 import com.aliyun.oss.ServiceException;
+import com.aliyun.oss.common.comm.Protocol;
 import com.aliyun.oss.model.AbortMultipartUploadRequest;
+import com.aliyun.oss.model.BucketInfo;
 import com.aliyun.oss.model.DeleteObjectsRequest;
 import com.aliyun.oss.model.DeleteObjectsResult;
 import com.aliyun.oss.model.ListMultipartUploadsRequest;
@@ -39,6 +45,9 @@ import com.aliyun.oss.model.MultipartUploadListing;
 import com.aliyun.oss.model.OSSObjectSummary;
 import com.aliyun.oss.model.ObjectListing;
 import com.aliyun.oss.model.ObjectMetadata;
+import com.aliyun.oss.model.Owner;
+import com.aliyun.oss.model.SetObjectTaggingRequest;
+import com.aliyun.oss.model.TagSet;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -50,8 +59,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
@@ -65,7 +76,12 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(OSSUnderFileSystem.class);
 
   /** Suffix for an empty file to flag it as a directory. */
-  private static final String FOLDER_SUFFIX = "_$folder$";
+  private static final String FOLDER_SUFFIX = "/";
+
+  private static final String NO_SUCH_KEY = "NoSuchKey";
+
+  /** Default owner of objects if owner cannot be determined. */
+  private static final String DEFAULT_OWNER = "";
 
   /** Aliyun OSS client. */
   private final OSS mClient;
@@ -80,6 +96,10 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   private final Supplier<ListeningExecutorService> mMultipartUploadExecutor;
 
   private StsOssClientProvider mClientProvider;
+
+  /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */
+  private final Supplier<ObjectPermissions> mPermissions
+      = CommonUtils.memoize(this::getPermissionsInternal);
 
   /**
    * Constructs a new instance of {@link OSSUnderFileSystem}.
@@ -189,6 +209,34 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public void setOwner(String path, String user, String group) {}
 
+  @Override
+  public void setObjectTagging(String path, String name, String value) throws IOException {
+    // It's a read-and-update race condition. When there is a competitive conflict scenario,
+    // it may lead to inconsistent final results. The final conflict occurs in UFS,
+    // UFS will determine the final result.
+    TagSet taggingResult = mClient.getObjectTagging(mBucketName, path);
+    taggingResult.setTag(name, value);
+    SetObjectTaggingRequest request =
+        new SetObjectTaggingRequest(mBucketName, path).withTagSet(taggingResult);
+    mClient.setObjectTagging(request);
+  }
+
+  @Override
+  public Map<String, String> getObjectTags(String path) throws IOException {
+    try {
+      TagSet taggingResult = mClient.getObjectTagging(mBucketName, path);
+      return Collections.unmodifiableMap(taggingResult.getAllTags());
+    } catch (ServiceException e) {
+      if (e instanceof OSSException) {
+        OSSException ossException = (OSSException) e;
+        if (NO_SUCH_KEY.equals(ossException.getErrorCode())) {
+          return null;
+        }
+      }
+      throw new IOException("Failed to get object tagging", e);
+    }
+  }
+
   // No ACL integration currently, no-op
   @Override
   public void setMode(String path, short mode) throws IOException {}
@@ -280,7 +328,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   // Get next chunk of listing result
-  private ObjectListing getObjectListingChunk(ListObjectsRequest request) {
+  protected ObjectListing getObjectListingChunk(ListObjectsRequest request) {
     ObjectListing result;
     try {
       result = mClient.listObjects(request);
@@ -337,11 +385,20 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       }
       return null;
     }
+
+    @Override
+    public Boolean hasNextChunk() {
+      return mResult.isTruncated();
+    }
   }
 
   @Override
   protected ObjectStatus getObjectStatus(String key) {
     try {
+      if (isRoot(key)) {
+        // return a virtual root object
+        return new ObjectStatus(key, null, 0, null);
+      }
       ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
       if (meta == null) {
         return null;
@@ -358,7 +415,38 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   // No ACL integration currently, returns default empty value
   @Override
   protected ObjectPermissions getPermissions() {
-    return new ObjectPermissions("", "", Constants.DEFAULT_FILE_SYSTEM_MODE);
+    return mPermissions.get();
+  }
+
+  /**
+   * Since there is no group in OSS, the owner is reused as the group. This method calls the
+   * OSS API and requires additional permissions aside from just read only. This method is best
+   * effort and will continue with default permissions (no owner, no group, 0700).
+   *
+   * @return the permissions associated with this under storage system
+   */
+  private ObjectPermissions getPermissionsInternal() {
+    short bucketMode =
+        ModeUtils.getUMask(mUfsConf.getString(PropertyKey.UNDERFS_OSS_DEFAULT_MODE)).toShort();
+    String accountOwner = DEFAULT_OWNER;
+
+    try {
+      BucketInfo bucketInfo = mClient.getBucketInfo(mBucketName);
+      Owner owner = bucketInfo.getBucket().getOwner();
+      if (mUfsConf.isSet(PropertyKey.UNDERFS_OSS_OWNER_ID_TO_USERNAME_MAPPING)) {
+        // Here accountOwner can be null if there is no mapping set for this owner id
+        accountOwner = CommonUtils.getValueFromStaticMapping(
+            mUfsConf.getString(PropertyKey.UNDERFS_OSS_OWNER_ID_TO_USERNAME_MAPPING),
+            owner.getId());
+      }
+      if (accountOwner == null || accountOwner.equals(DEFAULT_OWNER)) {
+        // If there is no user-defined mapping, use display name or id.
+        accountOwner = owner.getDisplayName() != null ? owner.getDisplayName() : owner.getId();
+      }
+    } catch (ServiceException e) {
+      LOG.warn("Failed to get bucket owner, proceeding with defaults. {}", e.toString());
+    }
+    return new ObjectPermissions(accountOwner, accountOwner, bucketMode);
   }
 
   @Override
@@ -380,7 +468,78 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     ossClientConf.setConnectionTTL(alluxioConf.getMs(PropertyKey.UNDERFS_OSS_CONNECT_TTL));
     ossClientConf.setMaxConnections(alluxioConf.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
     ossClientConf.setMaxErrorRetry(alluxioConf.getInt(PropertyKey.UNDERFS_OSS_RETRY_MAX));
+    if (isProxyEnabled(alluxioConf)) {
+      String proxyHost = getProxyHost(alluxioConf);
+      int proxyPort = getProxyPort(alluxioConf);
+      ossClientConf.setProxyHost(proxyHost);
+      ossClientConf.setProxyPort(proxyPort);
+      ossClientConf.setProtocol(getProtocol());
+      LOG.info("the proxy for OSS is enabled, the proxy endpoint is: {}:{}", proxyHost, proxyPort);
+    }
     return ossClientConf;
+  }
+
+  private static boolean isProxyEnabled(AlluxioConfiguration alluxioConf) {
+    return getProxyHost(alluxioConf) != null && getProxyPort(alluxioConf) > 0;
+  }
+
+  private static int getProxyPort(AlluxioConfiguration alluxioConf) {
+    int proxyPort = alluxioConf.getInt(PropertyKey.UNDERFS_OSS_PROXY_PORT);
+    if (proxyPort >= 0) {
+      return proxyPort;
+    } else {
+      try {
+        return getProxyPortFromSystemProperty();
+      } catch (NumberFormatException e) {
+        return proxyPort;
+      }
+    }
+  }
+
+  private static String getProxyHost(AlluxioConfiguration alluxioConf) {
+    String proxyHost = alluxioConf.getOrDefault(PropertyKey.UNDERFS_OSS_PROXY_HOST, null);
+    if (proxyHost != null) {
+      return proxyHost;
+    } else {
+      return getProxyHostFromSystemProperty();
+    }
+  }
+
+  private static Protocol getProtocol() {
+    String protocol = Configuration.getString(PropertyKey.UNDERFS_OSS_PROTOCOL);
+    return protocol.equals(Protocol.HTTPS.toString()) ? Protocol.HTTPS : Protocol.HTTP;
+  }
+
+  /**
+   * Returns the Java system property for proxy port depending on
+   * {@link #getProtocol()}: i.e. if protocol is https, returns
+   * the value of the system property https.proxyPort, otherwise
+   * returns value of http.proxyPort.  Defaults to {@link this.proxyPort}
+   * if the system property is not set with a valid port number.
+   */
+  private static int getProxyPortFromSystemProperty() {
+    return getProtocol() == Protocol.HTTPS
+        ? Integer.parseInt(getSystemProperty("https.proxyPort"))
+        : Integer.parseInt(getSystemProperty("http.proxyPort"));
+  }
+
+  /**
+   * Returns the Java system property for proxy host depending on
+   * {@link #getProtocol()}: i.e. if protocol is https, returns
+   * the value of the system property https.proxyHost, otherwise
+   * returns value of http.proxyHost.
+   */
+  private static String getProxyHostFromSystemProperty() {
+    return getProtocol() == Protocol.HTTPS
+        ? getSystemProperty("https.proxyHost")
+        : getSystemProperty("http.proxyHost");
+  }
+
+  /**
+   * Returns the value for the given system property.
+   */
+  private static String getSystemProperty(String property) {
+    return System.getProperty(property);
   }
 
   @Override

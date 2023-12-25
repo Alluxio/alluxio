@@ -44,7 +44,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
@@ -55,6 +55,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.Set;
 
 public class MoveJobTest {
   // test MoveJob get next task
@@ -72,7 +73,7 @@ public class MoveJobTest {
     MoveJob move = new MoveJob(srcPath, dstPath, false, user, "1",
         OptionalLong.empty(), false, false, false, files,
         Optional.empty());
-    List<WorkerInfo> workers = ImmutableList.of(
+    Set<WorkerInfo> workers = ImmutableSet.of(
         new WorkerInfo().setId(1).setAddress(
             new WorkerNetAddress().setHost("worker1").setRpcPort(1234)),
         new WorkerInfo().setId(2).setAddress(
@@ -128,37 +129,40 @@ public class MoveJobTest {
         Optional.empty()));
     when(job.getDurationInSec()).thenReturn(0L);
     job.setJobState(JobState.RUNNING, false);
+    job.setStartTime(1690000000000L);
     List<Route> nextRoutes = job.getNextRoutes(25);
     job.addMovedBytes(640 * Constants.MB);
-    String expectedTextReport = "\tSettings:\tcheck-content: false\n"
-        + "\tJob Id: 1\n"
+    String expectedTextReport = "\tJob Id: 1\n"
         + "\tJob State: RUNNING\n"
-        + "\tFiles Processed: 25\n"
-        + "\tBytes Moved: 640.00MB out of 31.25GB\n"
-        + "\tFiles failure rate: 0.00%\n"
-        + "\tFiles Failed: 0\n";
-    assertEquals(expectedTextReport, job.getProgress(JobProgressReportFormat.TEXT, false));
-    assertEquals(expectedTextReport, job.getProgress(JobProgressReportFormat.TEXT, true));
+        + "\tFiles qualified so far: 25, 31.25GB\n"
+        + "\tFiles Failed: 0\n"
+        + "\tFiles Succeeded: 0\n"
+        + "\tBytes Moved: 640.00MB\n"
+        + "\tFiles failure rate: 0.00%\n";
+    assertTrue(job.getProgress(JobProgressReportFormat.TEXT, false)
+                  .contains(expectedTextReport));
+    assertTrue(job.getProgress(JobProgressReportFormat.TEXT, true)
+                  .contains(expectedTextReport));
     String expectedJsonReport = "{\"mVerbose\":false,\"mJobState\":\"RUNNING\","
         + "\"mCheckContent\":false,\"mProcessedFileCount\":25,"
         + "\"mByteCount\":671088640,\"mTotalByteCount\":33554432000,"
-        + "\"mFailurePercentage\":0.0,\"mFailedFileCount\":0,"
-        + "\"mFailedFilesWithReasons\":{},\"mJobId\":\"1\"}";
+        + "\"mFailurePercentage\":0.0,\"mFailedFileCount\":0,\"mSuccessFileCount\":0,"
+        + "\"mFailedFilesWithReasons\":{},\"mJobId\":\"1\",\"mStartTime\":1690000000000,"
+        + "\"mEndTime\":0}";
     assertEquals(expectedJsonReport, job.getProgress(JobProgressReportFormat.JSON, false));
     job.addFailure(nextRoutes.get(0).getSrc(), "Test error 1", 2);
     job.addFailure(nextRoutes.get(4).getSrc(), "Test error 2", 2);
     job.addFailure(nextRoutes.get(10).getSrc(),  "Test error 3", 2);
     job.failJob(new InternalRuntimeException("test"));
+    job.setEndTime(1700000000000L);
     assertEquals(JobState.FAILED, job.getJobState());
-    String expectedTextReportWithError = "\tSettings:\tcheck-content: false\n"
-        + "\tJob Id: 1\n"
-        + "\tJob State: FAILED (alluxio.exception.runtime.InternalRuntimeException: test)\n"
-        + "\tFiles Processed: 25\n"
-        + "\tBytes Moved: 640.00MB out of 31.25GB\n"
-        + "\tFiles failure rate: 12.00%\n"
-        + "\tFiles Failed: 3\n";
-    assertEquals(expectedTextReportWithError,
-        job.getProgress(JobProgressReportFormat.TEXT, false));
+    String expectedTextReportWithError = "\tFiles qualified: 25, 31.25GB\n"
+        + "\tFiles Failed: 3\n"
+        + "\tFiles Succeeded: 0\n"
+        + "\tBytes Moved: 640.00MB\n"
+        + "\tFiles failure rate: 12.00%\n";
+    assertTrue(job.getProgress(JobProgressReportFormat.TEXT, false)
+                  .contains(expectedTextReportWithError));
     String textReport = job.getProgress(JobProgressReportFormat.TEXT, true);
     assertTrue(textReport.contains("Test error 1"));
     assertTrue(textReport.contains("Test error 2"));

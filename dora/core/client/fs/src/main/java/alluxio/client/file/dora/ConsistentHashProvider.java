@@ -12,20 +12,20 @@
 package alluxio.client.file.dora;
 
 import static com.google.common.hash.Hashing.murmur3_32_fixed;
-import static java.lang.Math.ceil;
-import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.Constants;
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerIdentity;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -34,7 +34,6 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -67,8 +66,8 @@ public class ConsistentHashProvider {
    * Used to compare with incoming worker list to skip the heavy build process if the worker
    * list has not changed.
    */
-  private final AtomicReference<List<BlockWorkerInfo>> mLastWorkerInfos =
-          new AtomicReference<>(ImmutableList.of());
+  private final AtomicReference<Set<WorkerIdentity>> mLastWorkers =
+      new AtomicReference<>(ImmutableSet.of());
   /**
    * Requirements for interacting with this map:
    * 1. This hash ring is lazy initialized (cannot init in the constructor).
@@ -77,7 +76,7 @@ public class ConsistentHashProvider {
    *    list with the current available workers and possibly rebuild the hash ring.
    * 3. While the hash ring is being updated, readers should see a stale hash ring
    *    without blocking.
-   *
+   * <p>
    * Thread safety guarantees:
    * 1. At lazy-init time, mutual exclusion is provided by `synchronized(mInitLock)`
    *    and double-checking. At this stage it is guarded by `mInitLock`.
@@ -86,7 +85,7 @@ public class ConsistentHashProvider {
    *    At this stage it is guarded by `mLastUpdatedTimestamp`.
    */
   @Nullable
-  private volatile NavigableMap<Integer, BlockWorkerInfo> mActiveNodesByConsistentHashing;
+  private volatile NavigableMap<Integer, WorkerIdentity> mActiveNodesByConsistentHashing;
   /**
    * Lock to protect the lazy initialization of {@link #mActiveNodesByConsistentHashing}.
    */
@@ -110,12 +109,13 @@ public class ConsistentHashProvider {
    * @param count the expected number of workers
    * @return a list of workers following the hash ring
    */
-  public List<BlockWorkerInfo> getMultiple(String key, int count) {
-    Set<BlockWorkerInfo> workers = new HashSet<>();
+  public List<WorkerIdentity> getMultiple(String key, int count) {
+    Set<WorkerIdentity> workers = new LinkedHashSet<>(); // preserve insertion order
     int attempts = 0;
     while (workers.size() < count && attempts < mMaxAttempts) {
       attempts++;
-      workers.add(get(key, attempts));
+      WorkerIdentity selectedWorker = get(key, attempts);
+      workers.add(selectedWorker);
     }
     return ImmutableList.copyOf(workers);
   }
@@ -129,21 +129,24 @@ public class ConsistentHashProvider {
    * update the state of the hash provider using the worker list provided by that thread, and all
    * others will not change the internal state of the hash provider.
    *
-   * @param workerInfos the up-to-date worker list
+   * @param workers the up-to-date worker list
    * @param numVirtualNodes the number of virtual nodes used by consistent hashing
    */
-  public void refresh(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
-    Preconditions.checkArgument(!workerInfos.isEmpty(),
-            "cannot refresh hash provider with empty worker list");
-    maybeInitialize(workerInfos, numVirtualNodes);
+  public void refresh(Set<WorkerIdentity> workers, int numVirtualNodes) {
+    Preconditions.checkArgument(!workers.isEmpty(),
+        "cannot refresh hash provider with empty worker list");
+    maybeInitialize(workers, numVirtualNodes);
     // check if the worker list has expired
     if (shouldRebuildActiveNodesMapExclusively()) {
       // thread safety is valid provided that build() takes less than
       // WORKER_INFO_UPDATE_INTERVAL_NS, so that before next update the current update has been
       // finished
-      if (hasWorkerListChanged(workerInfos, mLastWorkerInfos.get())) {
-        mActiveNodesByConsistentHashing = build(workerInfos, numVirtualNodes);
-        mLastWorkerInfos.set(workerInfos);
+      Set<WorkerIdentity> lastWorkerIds = mLastWorkers.get();
+      if (!workers.equals(lastWorkerIds)) {
+        Set<WorkerIdentity> newWorkerIds = ImmutableSet.copyOf(workers);
+        NavigableMap<Integer, WorkerIdentity> nodes = build(newWorkerIds, numVirtualNodes);
+        mActiveNodesByConsistentHashing = nodes;
+        mLastWorkers.set(newWorkerIds);
         mUpdateCount.increment();
       }
     }
@@ -173,47 +176,40 @@ public class ConsistentHashProvider {
    * Only one caller gets to initialize the map while all others are blocked.
    * After the initialization, the map must not be null.
    */
-  private void maybeInitialize(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
+  private void maybeInitialize(Set<WorkerIdentity> workers, int numVirtualNodes) {
     if (mActiveNodesByConsistentHashing == null) {
       synchronized (mInitLock) {
         // only one thread should reach here
         // test again to skip re-initialization
         if (mActiveNodesByConsistentHashing == null) {
-          mActiveNodesByConsistentHashing = build(workerInfos, numVirtualNodes);
-          mLastWorkerInfos.set(workerInfos);
+          Set<WorkerIdentity> workerIdentities = ImmutableSet.copyOf(workers);
+          mActiveNodesByConsistentHashing = build(workerIdentities, numVirtualNodes);
+          mLastWorkers.set(workerIdentities);
           mLastUpdatedTimestamp.set(System.nanoTime());
         }
       }
     }
   }
 
-  private boolean hasWorkerListChanged(List<BlockWorkerInfo> workerInfoList,
-                                       List<BlockWorkerInfo> anotherWorkerInfoList) {
-    if (workerInfoList == anotherWorkerInfoList) {
-      return false;
-    }
-    Set<WorkerNetAddress> workerAddressSet = workerInfoList.stream()
-            .map(info -> info.getNetAddress()).collect(Collectors.toSet());
-    Set<WorkerNetAddress> anotherWorkerAddressSet = anotherWorkerInfoList.stream()
-            .map(info -> info.getNetAddress()).collect(Collectors.toSet());
-    return !workerAddressSet.equals(anotherWorkerAddressSet);
-  }
-
   @VisibleForTesting
-  BlockWorkerInfo get(String key, int index) {
-    NavigableMap<Integer, BlockWorkerInfo> map = mActiveNodesByConsistentHashing;
+  WorkerIdentity get(String key, int index) {
+    NavigableMap<Integer, WorkerIdentity> map = mActiveNodesByConsistentHashing;
     Preconditions.checkState(map != null, "Hash provider is not properly initialized");
     return get(map, key, index);
   }
 
   @VisibleForTesting
-  static BlockWorkerInfo get(NavigableMap<Integer, BlockWorkerInfo> map, String key, int index) {
-    int hashKey = HASH_FUNCTION.hashString(format("%s%d", key, index), UTF_8).asInt();
-    Map.Entry<Integer, BlockWorkerInfo> entry = map.ceilingEntry(hashKey);
+  static WorkerIdentity get(NavigableMap<Integer, WorkerIdentity> map, String key, int index) {
+    HashCode hashCode = HASH_FUNCTION.newHasher()
+        .putString(key, UTF_8)
+        .putInt(index)
+        .hash();
+    int hashKey = hashCode.asInt();
+    Map.Entry<Integer, WorkerIdentity> entry = map.ceilingEntry(hashKey);
     if (entry != null) {
       return entry.getValue();
     } else {
-      Map.Entry<Integer, BlockWorkerInfo> firstEntry = map.firstEntry();
+      Map.Entry<Integer, WorkerIdentity> firstEntry = map.firstEntry();
       if (firstEntry == null) {
         throw new IllegalStateException("Hash provider is empty");
       }
@@ -222,12 +218,12 @@ public class ConsistentHashProvider {
   }
 
   @VisibleForTesting
-  List<BlockWorkerInfo> getLastWorkerInfos() {
-    return mLastWorkerInfos.get();
+  Set<WorkerIdentity> getLastWorkers() {
+    return mLastWorkers.get();
   }
 
   @VisibleForTesting
-  NavigableMap<Integer, BlockWorkerInfo> getActiveNodesMap() {
+  NavigableMap<Integer, WorkerIdentity> getActiveNodesMap() {
     return mActiveNodesByConsistentHashing;
   }
 
@@ -237,17 +233,17 @@ public class ConsistentHashProvider {
   }
 
   @VisibleForTesting
-  static NavigableMap<Integer, BlockWorkerInfo> build(
-          List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
-    Preconditions.checkArgument(!workerInfos.isEmpty(), "worker list is empty");
-    NavigableMap<Integer, BlockWorkerInfo> activeNodesByConsistentHashing = new TreeMap<>();
-    int weight = (int) ceil(1.0 * numVirtualNodes / workerInfos.size());
-    for (BlockWorkerInfo workerInfo : workerInfos) {
-      for (int i = 0; i < weight; i++) {
-        activeNodesByConsistentHashing.put(
-            HASH_FUNCTION.hashString(format("%s%d", workerInfo.getNetAddress().dumpMainInfo(), i),
-                UTF_8).asInt(),
-            workerInfo);
+  static NavigableMap<Integer, WorkerIdentity> build(
+      Collection<WorkerIdentity> workers, int numVirtualNodes) {
+    Preconditions.checkArgument(!workers.isEmpty(), "worker list is empty");
+    NavigableMap<Integer, WorkerIdentity> activeNodesByConsistentHashing = new TreeMap<>();
+    for (WorkerIdentity worker : workers) {
+      for (int i = 0; i < numVirtualNodes; i++) {
+        final HashCode hashCode = HASH_FUNCTION.newHasher()
+            .putObject(worker, WorkerIdentity.HashFunnel.INSTANCE)
+            .putInt(i)
+            .hash();
+        activeNodesByConsistentHashing.put(hashCode.asInt(), worker);
       }
     }
     return activeNodesByConsistentHashing;

@@ -10,8 +10,20 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+set -eu
 
-BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+BIN_DIR=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+ROOT_PATH="${BIN_DIR}/.."
+# run the compiled go binary according to the system OS and arch
+CLI_PATH="${ROOT_PATH}/cli/src/alluxio.org/cli/bin/alluxioCli-$(uname)-$(uname -m)"
 
-# temporary placeholder that redirects to alluxio-bash to prepare for golangCli branch merge
-"${BIN}/alluxio-bash" "$@"
+# if pom.xml exists, assume development environment and compile before running
+if [[ -f "${ROOT_PATH}/pom.xml" ]]; then
+  "${ROOT_PATH}/build/cli/build-cli.sh"
+  "${CLI_PATH}" --rootPath="${ROOT_PATH}" "$@"
+  exit
+fi
+
+# otherwise, assume deployed environment which will have binaries precompiled
+# run with the flag to point to assembly jars in their deployed locations
+"${CLI_PATH}" --rootPath="${ROOT_PATH}" --deployed-env "$@"

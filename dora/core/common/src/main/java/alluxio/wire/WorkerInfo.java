@@ -30,9 +30,10 @@ public final class WorkerInfo implements Serializable {
   private static final long serialVersionUID = -454711814438216780L;
 
   private long mId;
+  private WorkerIdentity mIdentity;
   private WorkerNetAddress mAddress = new WorkerNetAddress();
   private int mLastContactSec;
-  private String mState = "";
+  private WorkerState mState = WorkerState.UNRECOGNIZED;
   private long mCapacityBytes;
   private long mUsedBytes;
   private long mStartTimeMs;
@@ -43,11 +44,56 @@ public final class WorkerInfo implements Serializable {
   private String mRevision = "";
 
   /**
+   * Creates a new, empty instance.
+   */
+  public WorkerInfo() {
+  }
+
+  /**
+   * Copy constructor.
+   *
+   * @param copyFrom instance to copy from
+   */
+  public WorkerInfo(WorkerInfo copyFrom) {
+    mId = copyFrom.mId;
+    mIdentity = copyFrom.mIdentity; // identity is immutable so ok to reuse
+    mAddress = copyFrom.mAddress != null
+        ? new WorkerNetAddress(copyFrom.mAddress)
+        : null;
+    mLastContactSec = copyFrom.mLastContactSec;
+    mState = copyFrom.mState;
+    mCapacityBytes = copyFrom.mCapacityBytes;
+    mUsedBytes = copyFrom.mUsedBytes;
+    mStartTimeMs = copyFrom.mStartTimeMs;
+    mCapacityBytesOnTiers = copyFrom.mCapacityBytesOnTiers != null
+        ? new HashMap<>(copyFrom.mCapacityBytesOnTiers)
+        : null;
+    mUsedBytesOnTiers = copyFrom.mUsedBytesOnTiers != null
+        ? new HashMap<>(copyFrom.mUsedBytesOnTiers)
+        : null;
+    mBlockCount = copyFrom.mBlockCount;
+    mVersion = copyFrom.mVersion;
+    mRevision = copyFrom.mRevision;
+  }
+
+  /**
    * @return the worker id
    */
   @ApiModelProperty(value = "Worker id, used to identify the worker internally")
   public long getId() {
     return mId;
+  }
+
+  /**
+   * @return the worker identity
+   */
+  public WorkerIdentity getIdentity() {
+    // compatibility with legacy code where identity is not set explicitly
+    // FIXME: remove this when the legacy id is removed
+    if (mIdentity == null) {
+      return WorkerIdentity.ParserV0.INSTANCE.fromLong(mId);
+    }
+    return mIdentity;
   }
 
   /**
@@ -70,7 +116,7 @@ public final class WorkerInfo implements Serializable {
    * @return the worker state
    */
   @ApiModelProperty(value = "Operation state of the worker", example = "In Service")
-  public String getState() {
+  public WorkerState getState() {
     return mState;
   }
 
@@ -140,6 +186,15 @@ public final class WorkerInfo implements Serializable {
   }
 
   /**
+   * @param identity the worker identity
+   * @return this worker info
+   */
+  public WorkerInfo setIdentity(WorkerIdentity identity) {
+    mIdentity = identity;
+    return this;
+  }
+
+  /**
    * @param address the worker address to use
    * @return the worker information
    */
@@ -162,7 +217,7 @@ public final class WorkerInfo implements Serializable {
    * @param state the worker state to use
    * @return the worker information
    */
-  public WorkerInfo setState(String state) {
+  public WorkerInfo setState(WorkerState state) {
     Preconditions.checkNotNull(state, "state");
     mState = state;
     return this;
@@ -240,7 +295,9 @@ public final class WorkerInfo implements Serializable {
       return false;
     }
     WorkerInfo that = (WorkerInfo) o;
-    return mId == that.mId && Objects.equal(mAddress, that.mAddress)
+    return mId == that.mId
+        && Objects.equal(mIdentity, that.mIdentity)
+        && Objects.equal(mAddress, that.mAddress)
         && mLastContactSec == that.mLastContactSec && Objects.equal(mState, that.mState)
         && mCapacityBytes == that.mCapacityBytes && mUsedBytes == that.mUsedBytes
         && mStartTimeMs == that.mStartTimeMs
@@ -286,13 +343,15 @@ public final class WorkerInfo implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mId, mAddress, mLastContactSec, mState, mCapacityBytes, mUsedBytes,
-        mStartTimeMs, mCapacityBytesOnTiers, mUsedBytesOnTiers, mVersion, mRevision);
+    return Objects.hashCode(mId, mIdentity, mAddress, mLastContactSec, mState, mCapacityBytes,
+        mUsedBytes, mStartTimeMs, mCapacityBytesOnTiers, mUsedBytesOnTiers, mVersion, mRevision);
   }
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
+    return MoreObjects.toStringHelper(this).add("id", mId)
+        .add("identity", mIdentity)
+        .add("address", mAddress)
         .add("lastContactSec", mLastContactSec).add("state", mState)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("startTimeMs", mStartTimeMs).add("capacityBytesOnTiers", mCapacityBytesOnTiers)

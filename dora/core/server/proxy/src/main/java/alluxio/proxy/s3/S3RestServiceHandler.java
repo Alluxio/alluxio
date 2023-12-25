@@ -39,6 +39,8 @@ import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.proto.journal.File;
 import alluxio.s3.ChunkedEncodingInputStream;
 import alluxio.s3.CopyObjectResult;
+import alluxio.s3.DeleteObjectsRequest;
+import alluxio.s3.DeleteObjectsResult;
 import alluxio.s3.ListAllMyBucketsResult;
 import alluxio.s3.ListBucketOptions;
 import alluxio.s3.ListBucketResult;
@@ -223,7 +225,7 @@ public final class S3RestServiceHandler {
     return S3RestUtils.call("", () -> {
       final String user = getUser();
 
-      List<URIStatus> objects = new ArrayList<>();
+      List<URIStatus> objects;
       try (S3AuditContext auditContext = createAuditContext("listBuckets", user, null, null)) {
         try {
           objects = mMetaFS.listStatus(new AlluxioURI("/"));
@@ -236,7 +238,7 @@ public final class S3RestServiceHandler {
         }
 
         final List<URIStatus> buckets = objects.stream()
-            .filter((uri) -> uri.getOwner().equals(user))
+            .filter((uri) -> !uri.getName().equals(S3Constants.S3_METADATA_ROOT_DIR))
             // debatable (?) potentially breaks backcompat(?)
             .filter(URIStatus::isFolder)
             .collect(Collectors.toList());
@@ -1122,6 +1124,7 @@ public final class S3RestServiceHandler {
           ).close();
           SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
               .setOwner(user)
+              .putAllXattr(xattrMap)
               .build();
           mMetaFS.setAttribute(new AlluxioURI(
               S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)), attrPOptions);
@@ -1529,7 +1532,7 @@ public final class S3RestServiceHandler {
       @Nullable String bucket, @Nullable String object) {
     // Audit log may be enabled during runtime
     AsyncUserAccessAuditLogWriter auditLogWriter = null;
-    if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
+    if (Configuration.getBoolean(PropertyKey.PROXY_AUDIT_LOGGING_ENABLED)) {
       auditLogWriter = mAsyncAuditLogWriter;
     }
     S3AuditContext auditContext = new S3AuditContext(auditLogWriter);

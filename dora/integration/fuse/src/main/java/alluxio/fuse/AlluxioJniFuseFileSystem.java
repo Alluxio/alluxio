@@ -87,8 +87,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Implements the FUSE callbacks defined by jni-fuse.
  */
 @ThreadSafe
-public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
-    implements FuseUmountable {
+public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioJniFuseFileSystem.class);
 
   private final AlluxioConfiguration mConf;
@@ -97,22 +96,24 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   // Caches the filesystem statistics for Fuse.statfs
   private final Supplier<BlockMasterInfo> mFsStatCache;
   // Keeps a cache of the most recently translated paths from String to Alluxio URI
-  private final LoadingCache<String, AlluxioURI> mPathResolverCache;
+  protected final LoadingCache<String, AlluxioURI> mPathResolverCache;
   private final AtomicLong mNextOpenFileId = new AtomicLong(0);
   private final FuseShell mFuseShell;
-  private static final IndexDefinition<FuseFileEntry<FuseFileStream>, Long>
+  public static final IndexDefinition<FuseFileEntry<FuseFileStream>, Long>
       ID_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getId);
   // Add a PATH_INDEX to know getattr() been called when writing this file
-  private static final IndexDefinition<FuseFileEntry<FuseFileStream>, String>
+  public static final IndexDefinition<FuseFileEntry<FuseFileStream>, String>
       PATH_INDEX = IndexDefinition.ofUnique(FuseFileEntry::getPath);
 
-  private final IndexedSet<FuseFileEntry<FuseFileStream>> mFileEntries
+  protected final IndexedSet<FuseFileEntry<FuseFileStream>> mFileEntries
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final AuthPolicy mAuthPolicy;
   private FuseStreamFactory mFuseStreamFactory;
 
   private final boolean mUfsEnabled;
   private final FuseOptions mFuseOptions;
+
+  private static final BlockMasterInfo ZERO_BLOCK_MASTER_INFO = new BlockMasterInfo();
 
   /** df command will treat -1 as an unknown value. */
   @VisibleForTesting
@@ -165,6 +166,16 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   @Override
+  public void destroy() {
+    AlluxioFuseUtils.call(LOG,
+        () -> {
+          umount(true);
+          return 0;
+        } ,
+        "Fuse.Destroy", "fuse_destroy file system");
+  }
+
+  @Override
   public int open(String path, FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG,
         () -> createOrOpenInternal(path, fi, AlluxioFuseUtils.MODE_NOT_SET_VALUE),
@@ -180,7 +191,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     try {
       FuseFileStream stream = mFuseStreamFactory.create(uri, fi.flags.get(), mode);
       long fd = mNextOpenFileId.getAndIncrement();
-      mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
+      mFileEntries.add(new FuseFileEntry<>(fd, path, stream, fi.flags.get()));
       fi.fh.set(fd);
     } catch (NotFoundRuntimeException e) {
       LOG.error("Failed to read {}: path does not exist or is invalid", path, e);
@@ -217,6 +228,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       if (mFuseOptions.specialCommandEnabled()
           && mFuseShell.isSpecialCommand(uri)) {
         // TODO(lu) add cache for isFuseSpecialCommand if needed
+        LOG.debug("Special commmand = {}", uri);
         AlluxioFuseUtils.fillStat(mAuthPolicy, stat, mFuseShell.runCommand(uri));
         return 0;
       }
@@ -326,7 +338,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         path, fd, size, offset);
   }
 
-  private int writeInternal(
+  protected int writeInternal(
       String path, ByteBuffer buf, long size, long offset, long fd) {
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (entry == null) {
@@ -352,7 +364,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         path, fd);
   }
 
-  private int flushInternal(String path, long fd) {
+  protected int flushInternal(String path, long fd) {
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (entry == null) {
       LOG.error("Failed to flush {}: Cannot find fd {}", path, fd);
@@ -374,7 +386,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         "Fuse.Release", "path=%s,fd=%s", path, fd);
   }
 
-  private int releaseInternal(String path, long fd) {
+  protected int releaseInternal(String path, long fd) {
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (entry == null) {
       LOG.error("Failed to release {}: Cannot find fd {}", path, fd);
@@ -652,7 +664,9 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     if (res != 0) {
       return res;
     }
-    BlockMasterInfo info = mFsStatCache.get();
+
+    // Alluxio does not keep valid nor useful block info at this moment.
+    BlockMasterInfo info = ZERO_BLOCK_MASTER_INFO;
     if (info == null) {
       LOG.error("Failed to statfs {}: cannot get block master info", path);
       return -ErrorCodes.EIO();

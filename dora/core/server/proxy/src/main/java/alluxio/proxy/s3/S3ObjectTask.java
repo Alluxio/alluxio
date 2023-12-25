@@ -55,7 +55,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
-import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.RateLimiter;
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
@@ -282,7 +281,9 @@ public class S3ObjectTask extends S3BaseTask {
           Map<String, ByteString> xattrMap = new HashMap<>();
           if (tagData != null) {
             try {
-              xattrMap.put(S3Constants.TAGGING_XATTR_KEY, TaggingData.serialize(tagData));
+              for (Map.Entry<String, String> tag : tagData.getTagMap().entrySet()) {
+                xattrMap.put(tag.getKey(), ByteString.copyFromUtf8(tag.getValue()));
+              }
             } catch (Exception e) {
               throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
             }
@@ -921,8 +922,8 @@ public class S3ObjectTask extends S3BaseTask {
                 ByteString.copyFrom(mHandler.getBucket(), S3Constants.XATTR_STR_CHARSET));
             xattrMap.put(S3Constants.UPLOADS_OBJECT_XATTR_KEY,
                 ByteString.copyFrom(mHandler.getObject(), S3Constants.XATTR_STR_CHARSET));
-            xattrMap.put(S3Constants.UPLOADS_FILE_ID_XATTR_KEY, ByteString.copyFrom(
-                Longs.toByteArray(userFs.getStatus(multipartTemporaryDir).getFileId())));
+            xattrMap.put(S3Constants.UPLOADS_FILE_ID_XATTR_KEY, ByteString.copyFromUtf8(
+                Long.toString(userFs.getStatus(multipartTemporaryDir).getFileId())));
             try (FileOutStream fos = mHandler.getMetaFS().createFile(
                 new AlluxioURI(S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)),
                 CreateFilePOptions.newBuilder()
@@ -940,6 +941,7 @@ public class S3ObjectTask extends S3BaseTask {
             }
             SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
                 .setOwner(user)
+                .putAllXattr(xattrMap)
                 .build();
             mHandler.getMetaFS().setAttribute(new AlluxioURI(
                 S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)), attrPOptions);
@@ -1234,27 +1236,42 @@ public class S3ObjectTask extends S3BaseTask {
                                          String objectPath,
                                          AlluxioURI multipartTemporaryDir)
         throws S3Exception, IOException, AlluxioException {
-      List<URIStatus> uploadedParts = mUserFs.listStatus(multipartTemporaryDir);
-      uploadedParts.sort(new S3RestUtils.URIStatusNameComparator());
-      if (uploadedParts.size() < request.getParts().size()) {
+      final List<URIStatus> uploadedParts = mUserFs.listStatus(multipartTemporaryDir);
+      final List<CompleteMultipartUploadRequest.Part> requestParts = request.getParts();
+      final Map<Integer, URIStatus> uploadedPartsMap =
+          uploadedParts.stream().collect(Collectors.toMap(
+              status -> Integer.parseInt(status.getName()),
+              status -> status
+          ));
+
+      if (requestParts == null || requestParts.isEmpty()) {
+        throw new S3Exception(objectPath, S3ErrorCode.MALFORMED_XML);
+      }
+      if (uploadedParts.size() < requestParts.size()) {
         throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
       }
-      Map<Integer, URIStatus> uploadedPartsMap = uploadedParts.stream().collect(Collectors.toMap(
-          status -> Integer.parseInt(status.getName()),
-          status -> status
-      ));
-      int lastPartNum = request.getParts().get(request.getParts().size() - 1).getPartNumber();
-      for (CompleteMultipartUploadRequest.Part part : request.getParts()) {
+      for (CompleteMultipartUploadRequest.Part part : requestParts) {
         if (!uploadedPartsMap.containsKey(part.getPartNumber())) {
           throw new S3Exception(objectPath, S3ErrorCode.INVALID_PART);
         }
-        if (part.getPartNumber() != lastPartNum // size requirement not applicable to last part
-            && uploadedPartsMap.get(part.getPartNumber()).getLength() < Configuration.getBytes(
+      }
+      int prevPartNum = requestParts.get(0).getPartNumber();
+      for (CompleteMultipartUploadRequest.Part part :
+          requestParts.subList(1, requestParts.size())) {
+        if (prevPartNum >= part.getPartNumber()) {
+          throw new S3Exception(S3ErrorCode.INVALID_PART_ORDER);
+        }
+        if (uploadedPartsMap.get(prevPartNum).getLength() < Configuration.getBytes(
             PropertyKey.PROXY_S3_COMPLETE_MULTIPART_UPLOAD_MIN_PART_SIZE)) {
           throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
         }
+        prevPartNum = part.getPartNumber();
       }
-      return uploadedParts;
+
+      List<URIStatus> validParts =
+          requestParts.stream().map(part -> uploadedPartsMap.get(part.getPartNumber()))
+              .collect(Collectors.toList());
+      return validParts;
     }
 
     /**

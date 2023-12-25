@@ -13,11 +13,11 @@ package alluxio.client.file.ufs;
 
 import alluxio.AlluxioURI;
 import alluxio.PositionReader;
+import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.UfsFileSystemOptions;
@@ -80,6 +80,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -158,7 +159,7 @@ public class UfsBaseFileSystem implements FileSystem {
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options) {
     call(() -> {
       // TODO(lu) deal with other options e.g. owner/group
-      MkdirsOptions ufsOptions = MkdirsOptions.defaults(mFsContext.getPathConf(path));
+      MkdirsOptions ufsOptions = MkdirsOptions.defaults(mFsContext.getClusterConf());
       if (options.hasMode()) {
         ufsOptions.setMode(Mode.fromProto(options.getMode()));
       }
@@ -173,7 +174,7 @@ public class UfsBaseFileSystem implements FileSystem {
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options) {
     return callWithReturn(() -> {
       // TODO(lu) deal with other options e.g. owner/group/acl/ensureAtomic
-      CreateOptions ufsOptions = CreateOptions.defaults(mFsContext.getPathConf(path));
+      CreateOptions ufsOptions = CreateOptions.defaults(mFsContext.getClusterConf());
       if (options.hasMode()) {
         ufsOptions.setMode(Mode.fromProto(options.getMode()));
       }
@@ -420,27 +421,18 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public Optional<String> submitJob(JobRequest jobRequest) {
-    try (CloseableResource<FileSystemMasterClient> client =
-        mFsContext.acquireMasterClientResource()) {
-      return client.get().submitJob(jobRequest);
-    }
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public boolean stopJob(JobDescription jobDescription) {
-    try (CloseableResource<FileSystemMasterClient> client =
-        mFsContext.acquireMasterClientResource()) {
-      return client.get().stopJob(jobDescription);
-    }
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose) {
-    try (CloseableResource<FileSystemMasterClient> client =
-        mFsContext.acquireMasterClientResource()) {
-      return client.get().getJobProgress(jobDescription, format, verbose);
-    }
+    throw new UnsupportedOperationException();
   }
 
   /**
@@ -516,5 +508,17 @@ public class UfsBaseFileSystem implements FileSystem {
 
   interface UfsCallableWithReturn<V> {
     V call() throws IOException;
+  }
+
+  @Nullable
+  @Override
+  public DoraCacheFileSystem getDoraCacheFileSystem() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public UfsBaseFileSystem getUfsBaseFileSystem() {
+    return this;
   }
 }

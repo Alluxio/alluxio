@@ -18,6 +18,7 @@ import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,7 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
   protected final AtomicInteger mTaskIdGenerator = new AtomicInteger(0);
   protected JobState mState; // TODO(lucy) make it thread safe state update
   protected OptionalLong mEndTime = OptionalLong.empty();
-  protected final long mStartTime;
+  protected long mStartTime;
   protected final Optional<String> mUser;
   // not making it thread safe as currently scheduler has been single-threaded
   protected final LinkedHashSet<T> mRetryTaskList = new LinkedHashSet<>();
@@ -108,6 +109,17 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
   }
 
   /**
+   * Update start time.
+   * This is for internal tests.
+   *
+   * @param time time in ms
+   */
+  @VisibleForTesting
+  public void setStartTime(long time) {
+    mStartTime = time;
+  }
+
+  /**
    * Get load status.
    *
    * @return the load job's status
@@ -139,6 +151,11 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
   public void onTaskSubmitFailure(Task<?> task) {
     mRetryTaskList.add((T) task);
     LOG.debug("OnTaskSubmitFailure, retry task size:{}", mRetryTaskList.size());
+  }
+
+  @Override
+  public void onWorkerUnavailable(T task) {
+    LOG.warn("Worker became unavailable: {}", task.getMyRunningWorker());
   }
 
   @Override

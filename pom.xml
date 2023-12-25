@@ -21,7 +21,7 @@
   </parent>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>303-SNAPSHOT</version>
+  <version>308-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -36,7 +36,7 @@
   <scm>
     <connection>scm:git:git@github.com:alluxio/alluxio.git</connection>
     <developerConnection>scm:git:git@github.com:alluxio/alluxio.git</developerConnection>
-    <tag>alluxio-parent-303-SNAPSHOT</tag>
+    <tag>alluxio-parent-308-SNAPSHOT</tag>
     <url>scm:git:git@github.com:alluxio/alluxio.git</url>
   </scm>
   <issueManagement>
@@ -164,6 +164,7 @@
     <powermock.version>2.0.7</powermock.version>
     <project.build.outputTimestamp>${git.commit.time}</project.build.outputTimestamp>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <prometheus.client.version>1.0.0</prometheus.client.version>
     <prometheus.version>0.8.0</prometheus.version>
     <protobuf.version>3.19.6</protobuf.version>
     <ratis.version>2.5.1</ratis.version>
@@ -176,6 +177,7 @@
     <surefire.rerunFailingTestsCount>1</surefire.rerunFailingTestsCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <test.output.redirect>true</test.output.redirect>
+    <testcontainers.version>1.18.3</testcontainers.version>
     <update.check.auth.string>YWxsdXhpbzp0YWNoeW9u</update.check.auth.string>
     <update.check.configurable>true</update.check.configurable>
     <update.check.enabled>true</update.check.enabled>
@@ -454,6 +456,21 @@
       </dependency>
       <dependency>
         <groupId>io.prometheus</groupId>
+        <artifactId>prometheus-metrics-core</artifactId>
+        <version>${prometheus.client.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>prometheus-metrics-exporter-servlet-jakarta</artifactId>
+        <version>${prometheus.client.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>prometheus-metrics-instrumentation-jvm</artifactId>
+        <version>${prometheus.client.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
         <artifactId>simpleclient</artifactId>
         <version>${prometheus.version}</version>
       </dependency>
@@ -478,6 +495,11 @@
         <version>${fastutil.version}</version>
       </dependency>
       <dependency>
+        <groupId>jakarta.servlet</groupId>
+        <artifactId>jakarta.servlet-api</artifactId>
+        <version>5.0.0</version>
+      </dependency>
+      <dependency>
         <groupId>jakarta.ws.rs</groupId>
         <artifactId>jakarta.ws.rs-api</artifactId>
         <version>2.1.6</version>
@@ -491,6 +513,11 @@
         <groupId>net.java.dev.jets3t</groupId>
         <artifactId>jets3t</artifactId>
         <version>0.8.1</version>
+      </dependency>
+      <dependency>
+        <groupId>net.java.dev.jna</groupId>
+        <artifactId>jna-jpms</artifactId>
+        <version>5.13.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -858,7 +885,13 @@
       <dependency>
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers</artifactId>
-        <version>1.14.3</version>
+        <version>${testcontainers.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>toxiproxy</artifactId>
+        <version>${testcontainers.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>
@@ -969,6 +1002,11 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-archetype-plugin</artifactId>
+          <version>3.2.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-antrun-plugin</artifactId>
           <version>3.0.0</version>
         </plugin>
@@ -1052,7 +1090,6 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.0.0</version>
           <configuration>
-            <skipTests>true</skipTests>
             <argLine>@{argLine} -Djava.net.preferIPv4Stack=true</argLine>
             <excludesFile>${build.path}/surefire/${surefire.excludesFile}</excludesFile>
             <forkCount>${surefire.forkCount}</forkCount>
@@ -1133,6 +1170,11 @@
               <phase>compile</phase>
             </execution>
           </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.questdb</groupId>
+          <artifactId>rust-maven-plugin</artifactId>
+          <version>1.1.1</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -1454,7 +1496,7 @@
             </goals>
             <phase>validate</phase>
             <configuration>
-              <verifyFail>warn</verifyFail>
+              <verifyFail>stop</verifyFail>
               <verifyFailOn>strict</verifyFailOn>
               <violationFilename>target/sortpom_reports/violation.xml</violationFilename>
             </configuration>
@@ -1475,6 +1517,14 @@
         </executions>
       </plugin>
     </plugins>
+
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.archetype</groupId>
+        <artifactId>archetype-packaging</artifactId>
+        <version>3.2.1</version>
+      </extension>
+    </extensions>
   </build>
 
   <reporting>
@@ -1684,6 +1734,37 @@
         -->
         <create.dependency.reduced.pom>true</create.dependency.reduced.pom>
       </properties>
+      <build>
+        <plugins>
+          <!-- Precompile golang binaries for CLI -->
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>Build Golang CLI</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <phase>compile</phase>
+                <configuration>
+                  <executable>${build.path}/cli/build-cli.sh</executable>
+                  <arguments>
+                    <argument>-a</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>native-components</id>
+      <modules>
+        <module>native</module>
+      </modules>
     </profile>
   </profiles>
 </project>

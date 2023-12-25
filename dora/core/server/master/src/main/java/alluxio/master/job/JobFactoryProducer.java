@@ -33,7 +33,7 @@ public class JobFactoryProducer {
    */
   public static JobFactory create(JobRequest request, DefaultFileSystemMaster fsMaster) {
     if (request instanceof LoadJobRequest) {
-      return new LoadJobFactory((LoadJobRequest) request);
+      return new LoadJobFactory((LoadJobRequest) request, fsMaster);
     }
     if (request instanceof CopyJobRequest) {
       return new CopyJobFactory((CopyJobRequest) request, fsMaster);

@@ -44,8 +44,9 @@ public class FuseFileInOrOutStream implements FuseFileStream {
 
   // underlying reed-only or write-only stream
   // only one of them should exist
-  private Optional<FuseFileInStream> mInStream = Optional.empty();
+  private volatile Optional<FuseFileInStream> mInStream = Optional.empty();
   private Optional<FuseFileOutStream> mOutStream;
+  private volatile boolean mClosed = false;
 
   /**
    * Creates a {@link FuseFileInOrOutStream}.
@@ -149,10 +150,45 @@ public class FuseFileInOrOutStream implements FuseFileStream {
 
   @Override
   public synchronized void close() {
+    try {
+      closeStream();
+    } finally {
+      releaseLock();
+    }
+  }
+
+  @Override
+  public synchronized void releaseLock() {
     if (mInStream.isPresent()) {
-      mInStream.get().close();
+      mInStream.get().releaseLock();
       return;
     }
-    mOutStream.ifPresent(FuseFileOutStream::close);
+    mOutStream.ifPresent(FuseFileOutStream::releaseLock);
+  }
+
+  @Override
+  public synchronized void closeStream() {
+    if (mClosed) {
+      return;
+    }
+    mClosed = true;
+    if (mInStream.isPresent()) {
+      mInStream.get().closeStream();
+      return;
+    }
+    mOutStream.ifPresent(FuseFileOutStream::closeStream);
+  }
+
+  @Override
+  public boolean isClosed() {
+    return mClosed;
+  }
+
+  @Override
+  public boolean isReadOnly() {
+    // The inner in stream and out stream are mutual exclusive.
+    // Once the stream is used as an in stream, it cannot be
+    // used as an out stream anymore and hence it is read only.
+    return mInStream.isPresent();
   }
 }

@@ -47,7 +47,7 @@ public class NoExceptionCacheManager implements CacheManager {
     try {
       mCacheManager.commitFile(fileId);
     } catch (Exception e) {
-      LOG.error("Failed to commit file {}", fileId);
+      LOG.error("Failed to commit file {}", fileId, e);
     }
   }
 
@@ -76,11 +76,18 @@ public class NoExceptionCacheManager implements CacheManager {
   @Override
   public int get(PageId pageId, int pageOffset, ReadTargetBuffer buffer,
                  CacheContext cacheContext) {
+    int originalOffset = buffer.offset();
     try {
-      return mCacheManager.get(pageId, pageOffset, buffer, cacheContext);
+      int bytesRead =  mCacheManager.get(pageId, pageOffset, buffer, cacheContext);
+      if (bytesRead == -1) {
+        buffer.offset(originalOffset);
+      }
+      return bytesRead;
     } catch (Exception e) {
       LOG.error("Failed to get page {}", pageId, e);
       Metrics.GET_ERRORS.inc();
+      //In case any error in cache manager, revert the offset change in the buffer
+      buffer.offset(originalOffset);
       return -1;
     }
   }
@@ -201,6 +208,11 @@ public class NoExceptionCacheManager implements CacheManager {
   @Override
   public List<PageId> getCachedPageIdsByFileId(String fileId, long fileLength) {
     return mCacheManager.getCachedPageIdsByFileId(fileId, fileLength);
+  }
+
+  @Override
+  public boolean hasPageUnsafe(PageId pageId) {
+    return mCacheManager.hasPageUnsafe(pageId);
   }
 
   @Override

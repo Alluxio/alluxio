@@ -48,7 +48,6 @@ import alluxio.util.ThreadUtils;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
-import com.google.common.primitives.Longs;
 import com.google.common.util.concurrent.RateLimiter;
 import com.google.protobuf.ByteString;
 import org.apache.commons.lang3.StringUtils;
@@ -365,8 +364,9 @@ public final class S3RestUtils {
       throw new RuntimeException(
           "Alluxio is missing multipart-upload metadata for upload ID: " + uploadId);
     }
-    if (Longs.fromByteArray(metaStatus.getXAttr().get(S3Constants.UPLOADS_FILE_ID_XATTR_KEY))
-        != multipartTempDirStatus.getFileId()) {
+    if (Long.parseLong(
+        ByteString.copyFrom(metaStatus.getXAttr().get(S3Constants.UPLOADS_FILE_ID_XATTR_KEY))
+            .toStringUtf8()) != multipartTempDirStatus.getFileId()) {
       throw new RuntimeException(
           "Alluxio mismatched file ID for multipart-upload with upload ID: " + uploadId);
     }
@@ -492,11 +492,11 @@ public final class S3RestUtils {
    */
   public static TaggingData deserializeTags(Map<String, byte[]> xAttr)
       throws IOException {
-    // Fetch the S3 tags from the Inode xAttr
-    if (xAttr == null || !xAttr.containsKey(S3Constants.TAGGING_XATTR_KEY)) {
-      return null;
+    Map<String, String> tagMap = new HashMap<>(xAttr.size());
+    for (Map.Entry<String, byte[]> tags : xAttr.entrySet()) {
+      tagMap.put(tags.getKey(), new String(tags.getValue()));
     }
-    return TaggingData.deserialize(xAttr.get(S3Constants.TAGGING_XATTR_KEY));
+    return new TaggingData().addTags(tagMap);
   }
 
   /**

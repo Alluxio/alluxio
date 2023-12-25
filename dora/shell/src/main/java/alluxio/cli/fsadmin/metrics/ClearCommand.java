@@ -15,7 +15,6 @@ import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
@@ -23,6 +22,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.resource.CloseableResource;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -123,7 +123,7 @@ public final class ClearCommand extends AbstractFsAdminCommand {
       try (FileSystemContext context = FileSystemContext.sFileSystemContextFactory
           .create(mAlluxioConf)) {
         List<WorkerNetAddress> addressList = context.getCachedWorkers().stream()
-            .map(BlockWorkerInfo::getNetAddress).collect(Collectors.toList());
+            .map(WorkerInfo::getAddress).collect(Collectors.toList());
 
         if (cl.hasOption(WORKERS_OPTION_NAME)) {
           String workersValue = cl.getOptionValue(WORKERS_OPTION_NAME);

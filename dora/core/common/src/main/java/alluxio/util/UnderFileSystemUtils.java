@@ -122,14 +122,6 @@ public final class UnderFileSystemUtils {
 
   /**
    * @param ufs the {@link UnderFileSystem} implementation to check
-   * @return true if the implementation is a Swift storage implementation
-   */
-  public static boolean isSwift(UnderFileSystem ufs) {
-    return "swift".equals(ufs.getUnderFSType());
-  }
-
-  /**
-   * @param ufs the {@link UnderFileSystem} implementation to check
    * @return true if the implementation is a Http implementation
    */
   public static boolean isWeb(UnderFileSystem ufs) {

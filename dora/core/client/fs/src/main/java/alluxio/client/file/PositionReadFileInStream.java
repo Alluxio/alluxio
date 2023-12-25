@@ -12,6 +12,8 @@
 package alluxio.client.file;
 
 import alluxio.PositionReader;
+import alluxio.client.file.dora.DoraCacheClient;
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
@@ -20,9 +22,10 @@ import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import com.amazonaws.annotation.NotThreadSafe;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.EvictingQueue;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -33,43 +36,37 @@ import java.util.Objects;
  */
 @NotThreadSafe
 public class PositionReadFileInStream extends FileInStream {
+  private static final Logger LOG = LoggerFactory.getLogger(DoraCacheClient.class);
   private final long mLength;
   private long mPos = 0;
   private boolean mClosed;
   private final PositionReader mPositionReader;
   private final PrefetchCache mCache;
+  private final URIStatus mURIStatus;
+  private final DoraCacheClient mClient;
+  // Preload requests are async so a cached thread pool is used here.
+  private final boolean mDataPreloadEnabled;
+  private final long mNumPreloadedDataSize =
+      Configuration.getBytes(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_SIZE);
+  private final ConcurrentHashSet<Long> mPreloadingPages = new ConcurrentHashSet<>();
+  // TODO(elega) this should be retrieved from the uri status.
+  private final long mWorkerPageSize =
+      Configuration.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
 
-  private static class PrefetchCache implements AutoCloseable {
+  private class PrefetchCache implements AutoCloseable {
     private final long mFileLength;
-    private final EvictingQueue<CallTrace> mCallHistory;
-    private int mPrefetchSize = 0;
 
     private ByteBuf mCache = Unpooled.wrappedBuffer(new byte[0]);
     private long mCacheStartPos = 0;
+    private final PrefetchCachePolicy mPolicy;
 
-    PrefetchCache(int prefetchMultiplier, long fileLength) {
-      mCallHistory = EvictingQueue.create(prefetchMultiplier);
+    PrefetchCache(PrefetchCachePolicy policy, long fileLength) {
+      mPolicy = policy;
       mFileLength = fileLength;
     }
 
-    private void update() {
-      int consecutiveReadLength = 0;
-      long lastReadEnd = -1;
-      for (CallTrace trace : mCallHistory) {
-        if (trace.mPosition == lastReadEnd) {
-          lastReadEnd += trace.mLength;
-          consecutiveReadLength += trace.mLength;
-        } else {
-          lastReadEnd = trace.mPosition + trace.mLength;
-          consecutiveReadLength = trace.mLength;
-        }
-      }
-      mPrefetchSize = consecutiveReadLength;
-    }
-
     private void addTrace(long pos, int size) {
-      mCallHistory.add(new CallTrace(pos, size));
-      update();
+      mPolicy.addTrace(pos, size);
     }
 
     /**
@@ -89,13 +86,16 @@ public class PositionReadFileInStream extends FileInStream {
           slice.limit(size);
           mCache.getBytes(posInCache, slice);
           outBuffer.position(outBuffer.position() + size);
+          mPolicy.onCacheHitRead();
           return size;
         } else {
           // the position is beyond the cache end position
+          mPolicy.onCacheMissRead();
           return 0;
         }
       } else {
         // the position is behind the cache start position
+        mPolicy.onCacheMissRead();
         return 0;
       }
     }
@@ -109,13 +109,29 @@ public class PositionReadFileInStream extends FileInStream {
      * @return number of bytes that's been prefetched, 0 if exception occurs
      */
     private int prefetch(PositionReader reader, long pos, int minBytesToRead) {
-      int prefetchSize = Math.max(mPrefetchSize, minBytesToRead);
+      if (mDataPreloadEnabled
+          && mPreloadingPages.addIfAbsent(pos / mWorkerPageSize)) {
+        try {
+          mClient.cacheData(
+              mURIStatus.getUfsPath(), pos,
+              Math.min(mURIStatus.getLength() - pos, mNumPreloadedDataSize));
+        } catch (Throwable t) {
+          LOG.warn("Preload data failed for {}", mURIStatus.getUfsPath(), t);
+          mPreloadingPages.remove(pos / mWorkerPageSize);
+        }
+      }
+
+      int prefetchSize = Math.max((int) mPolicy.getPrefetchSize(), minBytesToRead);
       // cap to remaining file length
       prefetchSize = (int) Math.min(mFileLength - pos, prefetchSize);
 
       if (mCache.capacity() < prefetchSize) {
         mCache.release();
-        mCache = PooledDirectNioByteBuf.allocate(prefetchSize);
+        try {
+          mCache = PooledDirectNioByteBuf.allocate(prefetchSize);
+        } catch (OutOfMemoryError oom) {
+          mCache = Unpooled.wrappedBuffer(new byte[0]);
+        }
         mCacheStartPos = 0;
       }
       mCache.clear();
@@ -141,27 +157,29 @@ public class PositionReadFileInStream extends FileInStream {
     }
   }
 
-  private static class CallTrace {
-    final long mPosition;
-    final int mLength;
-
-    private CallTrace(long pos, int length) {
-      mPosition = pos;
-      mLength = length;
-    }
-  }
-
   /**
    * Constructor.
-   * @param reader
-   * @param length
+   * @param reader the position reader
+   * @param uriStatus the uri status
+   * @param client the dora client
    */
-  public PositionReadFileInStream(PositionReader reader,
-      long length) {
+  public PositionReadFileInStream(
+      PositionReader reader,
+      URIStatus uriStatus,
+      DoraCacheClient client
+  ) {
+    mClient = client;
+    mURIStatus = uriStatus;
     mPositionReader = reader;
-    mLength = length;
+    mLength = uriStatus.getLength();
     mCache = new PrefetchCache(
-        Configuration.getInt(PropertyKey.USER_POSITION_READER_STREAMING_MULTIPLIER), mLength);
+        PrefetchCachePolicy.Factory.create(), mLength);
+    long dataPreloadFileSizeThreshold =
+        Configuration.getBytes(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_FILE_SIZE_THRESHOLD);
+    mDataPreloadEnabled =
+        Configuration.getBoolean(PropertyKey.USER_POSITION_READER_PRELOAD_DATA_ENABLED)
+            && uriStatus.getLength() > dataPreloadFileSizeThreshold
+            && uriStatus.getInAlluxioPercentage() != 100;
   }
 
   @Override
@@ -181,7 +199,7 @@ public class PositionReadFileInStream extends FileInStream {
 
   @VisibleForTesting
   int getPrefetchSize() {
-    return mCache.mPrefetchSize;
+    return mCache.mPolicy.getPrefetchSize();
   }
 
   @Override

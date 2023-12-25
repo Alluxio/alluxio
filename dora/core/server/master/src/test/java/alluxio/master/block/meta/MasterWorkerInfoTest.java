@@ -19,9 +19,9 @@ import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions;
-import alluxio.master.WorkerState;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerState;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -143,7 +143,7 @@ public final class MasterWorkerInfoTest {
         WorkerState.LIVE);
     assertEquals(mInfo.getId(), workerInfo.getId());
     assertEquals(mInfo.getWorkerAddress(), workerInfo.getAddress());
-    assertEquals(WorkerState.LIVE.toString(), workerInfo.getState());
+    assertEquals(WorkerState.LIVE, workerInfo.getState());
     assertEquals(mInfo.getCapacityBytes(), workerInfo.getCapacityBytes());
     assertEquals(mInfo.getUsedBytes(), workerInfo.getUsedBytes());
     assertEquals(mInfo.getStartTime(), workerInfo.getStartTimeMs());

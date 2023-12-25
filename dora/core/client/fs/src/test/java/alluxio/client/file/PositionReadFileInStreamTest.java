@@ -23,8 +23,11 @@ import alluxio.ByteArrayPositionReader;
 import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.util.io.BufferUtils;
+import alluxio.wire.FileInfo;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,27 +46,39 @@ public class PositionReadFileInStreamTest {
   private final byte[] mBuffer;
   private final int mDataLength;
   private final int mBufferSize;
+  private final URIStatus mUriStatus;
 
-  @Parameterized.Parameters(name = "{index}_DL_{0}_BS_{1}")
+  @Parameterized.Parameters(name = "{index}_DL_{0}_BS_{1}_Adaptive_{2}")
   public static Iterable<Object[]> data() {
     return Arrays.asList(new Object[][] {
-        /* data length,       buffer size */
-        { Constants.KB,       63 },
-        { Constants.KB,       64 },
-        { Constants.KB,       65 },
-        { Constants.KB,       Constants.KB - 1 },
-        { Constants.KB,       Constants.KB },
-        { Constants.MB * 10,  Constants.KB * 10 },
-        { Constants.MB * 10,  Constants.KB * 10 - 1},
-        { Constants.MB * 10,  Constants.KB * 10 + 1},
+        /* data length, buffer size, use adaptive policy */
+        {Constants.KB, 63, false},
+        {Constants.KB, 64, false},
+        {Constants.KB, 65, false},
+        {Constants.KB, Constants.KB - 1, false},
+        {Constants.KB, Constants.KB, false},
+        {Constants.MB * 10, Constants.KB * 10, false},
+        {Constants.MB * 10, Constants.KB * 10 - 1, false},
+        {Constants.MB * 10, Constants.KB * 10 + 1, false},
+        {Constants.KB, 63, true},
+        {Constants.KB, 64, true},
+        {Constants.KB, 65, true},
+        {Constants.KB, Constants.KB - 1, true},
+        {Constants.KB, Constants.KB, true},
+        {Constants.MB * 10, Constants.KB * 10, true},
+        {Constants.MB * 10, Constants.KB * 10 - 1, true},
+        {Constants.MB * 10, Constants.KB * 10 + 1, true},
     });
   }
 
-  public PositionReadFileInStreamTest(int dataLength, int bufferSize) {
+  public PositionReadFileInStreamTest(int dataLength, int bufferSize, boolean useAdaptivePolicy) {
     mDataLength = dataLength;
+    mUriStatus = new URIStatus(new FileInfo().setLength(dataLength).setInAlluxioPercentage(100));
     mBufferSize = bufferSize;
     mPositionReader = new ByteArrayPositionReader(BufferUtils.getIncreasingByteArray(dataLength));
     mBuffer = new byte[bufferSize];
+    Configuration.set(
+        PropertyKey.USER_POSITION_READER_STREAMING_ADAPTIVE_POLICY_ENABLED, useAdaptivePolicy);
   }
 
   @Test
@@ -78,7 +93,7 @@ public class PositionReadFileInStreamTest {
 
   private void testSequentialRead(double smallBufProb) throws Exception {
     PositionReader spy = Mockito.spy(mPositionReader);
-    PositionReadFileInStream stream = new PositionReadFileInStream(spy, mDataLength);
+    PositionReadFileInStream stream = new PositionReadFileInStream(spy, mUriStatus, null);
     int readLength;
     int totalBytesRead = 0;
     int bytesRead;
@@ -104,7 +119,7 @@ public class PositionReadFileInStreamTest {
   @Test
   public void positionedReadWithRandomBufferSize() throws Exception {
     PositionReader spy = Mockito.spy(mPositionReader);
-    PositionReadFileInStream stream = new PositionReadFileInStream(spy, mDataLength);
+    PositionReadFileInStream stream = new PositionReadFileInStream(spy, mUriStatus, null);
     int readLength;
     int bytesRead;
     int numUnbufferedCalls = 0;

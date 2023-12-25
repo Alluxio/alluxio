@@ -16,6 +16,7 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
@@ -32,6 +33,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
+import io.grpc.Status;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -200,7 +202,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * @return true if there is, no if there isn't, NULL if it cannot tell
      */
     default @Nullable Boolean hasNextChunk() {
-      return null;
+      throw new UnsupportedOperationException(
+          "HasNextChunk not implemented for " + getClass().getName());
     }
   }
 
@@ -582,6 +585,51 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     return retryOnException(() -> isDirectory(path),
         () -> "check if " + path + " is a directory");
   }
+
+  @Override
+  public void setAttribute(String path, String name, byte[] value) throws IOException {
+    path = stripPrefixIfPresent(path);
+    if (isDirectory(path)) {
+      setObjectTagging(convertToFolderName(path), name, new String(value));
+    } else {
+      setObjectTagging(path, name, new String(value));
+    }
+  }
+
+  @Override
+  public Map<String, String> getAttributes(String path) throws IOException {
+    path = stripPrefixIfPresent(path);
+    try {
+      if (isDirectory(path)) {
+        return getObjectTags(convertToFolderName(path));
+      } else {
+        return getObjectTags(path);
+      }
+    } catch (AlluxioRuntimeException e) {
+      if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {
+        return null;
+      }
+      throw e;
+    }
+  }
+
+  /**
+   * Sets a tag to an object in the ObjectUnderFilesystem.
+   * @param path file path
+   * @param name the name of the tag
+   * @param value the value of the tag
+   * @throws IOException
+   */
+  protected abstract void setObjectTagging(String path, String name, String value)
+      throws IOException;
+
+  /**
+   * Gets the all tags of an object in ObjectUnderFilesystem.
+   * @param path file path
+   * @return the map contains all tags
+   * @throws IOException
+   */
+  protected abstract Map<String, String> getObjectTags(String path) throws IOException;
 
   @Override
   public boolean isFile(String path) throws IOException {

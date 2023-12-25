@@ -30,11 +30,13 @@ import alluxio.wire.FileSystemCommand;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.PersistFile;
+import alluxio.wire.ProtoParsingException;
 import alluxio.wire.RegisterLease;
-import alluxio.wire.TieredIdentity;
 import alluxio.wire.UfsInfo;
+import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerState;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.HostAndPort;
@@ -280,28 +282,6 @@ public final class GrpcUtils {
   /**
    * Converts a proto type to a wire type.
    *
-   * @param tieredPIdentity the proto type to convert
-   * @return the converted wire type
-   */
-  public static TieredIdentity fromProto(alluxio.grpc.TieredIdentity tieredPIdentity) {
-    return new TieredIdentity(tieredPIdentity.getTiersList().stream().map(GrpcUtils::fromProto)
-        .collect(Collectors.toList()));
-  }
-
-  /**
-   * Converts a proto type to a wire type.
-   *
-   * @param localityPTier the proto type to convert
-   * @return the converted wire type
-   */
-  public static TieredIdentity.LocalityTier fromProto(alluxio.grpc.LocalityTier localityPTier) {
-    return new TieredIdentity.LocalityTier(localityPTier.getTierName(),
-        localityPTier.hasValue() ? localityPTier.getValue() : null);
-  }
-
-  /**
-   * Converts a proto type to a wire type.
-   *
    * @param mountPointPInfo the proto type to convert
    * @return the converted wire type
    */
@@ -323,11 +303,23 @@ public final class GrpcUtils {
    * @return the converted wire type
    */
   public static WorkerInfo fromProto(alluxio.grpc.WorkerInfo workerInfo) {
-    return new WorkerInfo().setAddress(fromProto(workerInfo.getAddress()))
+    WorkerInfo ret = new WorkerInfo();
+    if (workerInfo.hasIdentity()) {
+      final alluxio.grpc.WorkerIdentity identityProto = workerInfo.getIdentity();
+      try {
+        alluxio.wire.WorkerIdentity identity = WorkerIdentity.fromProto(identityProto);
+        ret.setIdentity(identity);
+      } catch (ProtoParsingException e) {
+        throw new IllegalArgumentException("Invalid worker identity in proto message", e);
+      }
+    }
+    return ret
+        .setAddress(fromProto(workerInfo.getAddress()))
         .setCapacityBytes(workerInfo.getCapacityBytes())
         .setCapacityBytesOnTiers(workerInfo.getCapacityBytesOnTiers()).setId(workerInfo.getId())
         .setLastContactSec(workerInfo.getLastContactSec())
-        .setStartTimeMs(workerInfo.getStartTimeMs()).setState(workerInfo.getState())
+        .setStartTimeMs(workerInfo.getStartTimeMs())
+        .setState(WorkerState.of(workerInfo.getState()))
         .setUsedBytes(workerInfo.getUsedBytes())
         .setUsedBytesOnTiers(workerInfo.getUsedBytesOnTiersMap())
         .setVersion(workerInfo.getBuildVersion().getVersion())
@@ -348,7 +340,6 @@ public final class GrpcUtils {
     workerNetAddress.setDataPort(workerNetPAddress.getDataPort());
     workerNetAddress.setWebPort(workerNetPAddress.getWebPort());
     workerNetAddress.setDomainSocketPath(workerNetPAddress.getDomainSocketPath());
-    workerNetAddress.setTieredIdentity(fromProto(workerNetPAddress.getTieredIdentity()));
     return workerNetAddress;
   }
 
@@ -557,21 +548,6 @@ public final class GrpcUtils {
   /**
    * Converts wire type to proto type.
    *
-   * @param localityTier the wire representation to convert
-   * @return converted proto representation
-   */
-  public static alluxio.grpc.LocalityTier toProto(TieredIdentity.LocalityTier localityTier) {
-    alluxio.grpc.LocalityTier.Builder tier =
-        alluxio.grpc.LocalityTier.newBuilder().setTierName(localityTier.getTierName());
-    if (localityTier.getValue() != null) {
-      tier.setValue(localityTier.getValue());
-    }
-    return tier.build();
-  }
-
-  /**
-   * Converts wire type to proto type.
-   *
    * @param info the wire representation to convert
    * @return converted proto representation
    */
@@ -588,26 +564,15 @@ public final class GrpcUtils {
   /**
    * Converts wire type to proto type.
    *
-   * @param tieredIdentity the wire representation to convert
-   * @return the converted proto representation
-   */
-  public static alluxio.grpc.TieredIdentity toProto(TieredIdentity tieredIdentity) {
-    return alluxio.grpc.TieredIdentity.newBuilder()
-        .addAllTiers(
-            tieredIdentity.getTiers().stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
-        .build();
-  }
-
-  /**
-   * Converts wire type to proto type.
-   *
    * @param workerInfo the wire representation to convert
    * @return the converted proto representation
    */
   public static alluxio.grpc.WorkerInfo toProto(WorkerInfo workerInfo) {
     return alluxio.grpc.WorkerInfo.newBuilder().setId(workerInfo.getId())
+        .setIdentity(workerInfo.getIdentity().toProto())
         .setAddress(toProto(workerInfo.getAddress()))
-        .setLastContactSec(workerInfo.getLastContactSec()).setState(workerInfo.getState())
+        .setLastContactSec(workerInfo.getLastContactSec())
+        .setState(workerInfo.getState().toString())
         .setCapacityBytes(workerInfo.getCapacityBytes()).setUsedBytes(workerInfo.getUsedBytes())
         .setStartTimeMs(workerInfo.getStartTimeMs())
         .putAllCapacityBytesOnTiers(workerInfo.getCapacityBytesOnTiers())
@@ -631,9 +596,6 @@ public final class GrpcUtils {
         .setDataPort(workerNetAddress.getDataPort())
         .setWebPort(workerNetAddress.getWebPort())
         .setDomainSocketPath(workerNetAddress.getDomainSocketPath());
-    if (workerNetAddress.getTieredIdentity() != null) {
-      address.setTieredIdentity(toProto(workerNetAddress.getTieredIdentity()));
-    }
     return address.build();
   }
 

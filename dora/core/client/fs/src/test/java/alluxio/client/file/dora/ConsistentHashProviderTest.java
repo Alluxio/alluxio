@@ -17,16 +17,16 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import alluxio.Constants;
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.wire.TieredIdentity;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerIdentity;
+import alluxio.wire.WorkerIdentityTestUtils;
 
-import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang3.RandomStringUtils;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -50,17 +50,56 @@ public class ConsistentHashProviderTest {
   }
 
   @Test
+  /**
+   * This test calculates the standard deviation over mean on the collection of
+   * virtual nodes assigned to physical nodes. It arbitrarily bounds it at 0.25,
+   * but ideally this number should get smaller over time as we improve hashing algorithm
+   * and use better ways to assign virtual nodes to physical nodes.
+   *
+   * This uses 2000 virtual nodes and 50 physical nodes, if these parameters change,
+   * the bound is likely going to change.
+   */
+  public void virtualNodeDistribution() {
+    ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
+    Set<WorkerIdentity> workerList = generateRandomWorkerList(50);
+    // set initial state
+    provider.refresh(workerList, 2000);
+    NavigableMap<Integer, WorkerIdentity> map = provider.getActiveNodesMap();
+    Map<WorkerIdentity, Long> count = new HashMap<>();
+    long last = Integer.MIN_VALUE;
+    for (Map.Entry<Integer, WorkerIdentity> entry : map.entrySet()) {
+      count.put(entry.getValue(), count.getOrDefault(entry.getValue(), 0L)
+          + (entry.getKey() - last));
+      last = entry.getKey().intValue();
+    }
+    assertTrue(calcSDoverMean(count.values()) < 0.25);
+  }
+
+  private double calcSDoverMean(Collection<Long> list) {
+    long sum = 0L;
+    double var = 0;
+    for (long num : list) {
+      sum += num;
+    }
+    double avg = sum * 1.0 / list.size();
+    for (long num : list) {
+      var = var + (num - avg) * (num - avg);
+    }
+    return Math.sqrt(var / list.size()) / avg;
+  }
+
+  @Test
   public void concurrentInitialization() {
     ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
     final int numThreads = 16;
     CountDownLatch startSignal = new CountDownLatch(numThreads);
     ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
-    List<List<BlockWorkerInfo>> lists = IntStream.range(0, numThreads)
+    List<Set<WorkerIdentity>> lists = IntStream.range(0, numThreads)
         .mapToObj(i -> generateRandomWorkerList(5))
         .collect(Collectors.toList());
-    List<Future<NavigableMap<Integer, BlockWorkerInfo>>> futures = IntStream.range(0, numThreads)
+    List<Future<NavigableMap<Integer, WorkerIdentity>>> futures = IntStream.range(0, numThreads)
         .mapToObj(i -> {
-          List<BlockWorkerInfo> list = lists.get(i);
+          Set<WorkerIdentity> list = lists.get(i);
           return executorService.submit(() -> {
             startSignal.countDown();
             try {
@@ -73,7 +112,7 @@ public class ConsistentHashProviderTest {
           });
         })
         .collect(Collectors.toList());
-    Set<NavigableMap<Integer, BlockWorkerInfo>> mapSet = futures.stream().map(future -> {
+    Set<NavigableMap<Integer, WorkerIdentity>> mapSet = futures.stream().map(future -> {
       try {
         return future.get();
       } catch (InterruptedException interruptedException) {
@@ -85,7 +124,7 @@ public class ConsistentHashProviderTest {
 
     assertEquals(1, mapSet.size());
     // check if the worker list is one of the lists provided by the threads
-    List<BlockWorkerInfo> workerInfoListUsedByPolicy = provider.getLastWorkerInfos();
+    Set<WorkerIdentity> workerInfoListUsedByPolicy = provider.getLastWorkers();
     assertTrue(lists.contains(workerInfoListUsedByPolicy));
     assertEquals(
         ConsistentHashProvider.build(workerInfoListUsedByPolicy, NUM_VIRTUAL_NODES),
@@ -114,12 +153,12 @@ public class ConsistentHashProviderTest {
       CountDownLatch startSignal = new CountDownLatch(numThreads);
 
       // generate a list of distinct maps for each thread
-      List<List<BlockWorkerInfo>> listsPerThread = IntStream.range(0, numThreads)
+      List<Set<WorkerIdentity>> listsPerThread = IntStream.range(0, numThreads)
           .mapToObj(i -> generateRandomWorkerList(50))
           .collect(Collectors.toList());
       List<Future<?>> futures = IntStream.range(0, numThreads)
           .mapToObj(i -> {
-            List<BlockWorkerInfo> list = listsPerThread.get(i);
+            Set<WorkerIdentity> list = listsPerThread.get(i);
             return executorService.submit(() -> {
               startSignal.countDown();
               try {
@@ -143,7 +182,7 @@ public class ConsistentHashProviderTest {
       // only one thread actually updated the map
       assertEquals(1, provider.getUpdateCount() - initialCount);
       // check if the worker list is one of the lists provided by the threads
-      List<BlockWorkerInfo> workerInfoListUsedByPolicy = provider.getLastWorkerInfos();
+      Set<WorkerIdentity> workerInfoListUsedByPolicy = provider.getLastWorkers();
       assertTrue(listsPerThread.contains(workerInfoListUsedByPolicy));
       assertEquals(
           ConsistentHashProvider.build(workerInfoListUsedByPolicy, NUM_VIRTUAL_NODES),
@@ -154,21 +193,21 @@ public class ConsistentHashProviderTest {
   @Test
   public void workerListTtl() throws Exception {
     ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
-    List<BlockWorkerInfo> workerList = generateRandomWorkerList(5);
+    Set<WorkerIdentity> workerList = generateRandomWorkerList(5);
     // set initial state
     provider.refresh(workerList, NUM_VIRTUAL_NODES);
     long initialUpdateCount = provider.getUpdateCount();
-    assertEquals(workerList, provider.getLastWorkerInfos());
+    assertEquals(workerList, provider.getLastWorkers());
     assertEquals(
         ConsistentHashProvider.build(workerList, NUM_VIRTUAL_NODES),
         provider.getActiveNodesMap());
 
     // before TTL is up, refresh does not change the internal states of the provider
-    List<BlockWorkerInfo> newList = generateRandomWorkerList(5);
+    Set<WorkerIdentity> newList = generateRandomWorkerList(5);
     provider.refresh(newList, NUM_VIRTUAL_NODES);
     assertEquals(0, provider.getUpdateCount() - initialUpdateCount);
     assertNotEquals(newList, workerList);
-    assertEquals(workerList, provider.getLastWorkerInfos());
+    assertEquals(workerList, provider.getLastWorkers());
     assertEquals(
         ConsistentHashProvider.build(workerList, NUM_VIRTUAL_NODES),
         provider.getActiveNodesMap());
@@ -177,31 +216,18 @@ public class ConsistentHashProviderTest {
     Thread.sleep(WORKER_LIST_TTL_MS);
     provider.refresh(newList, NUM_VIRTUAL_NODES);
     assertEquals(1, provider.getUpdateCount() - initialUpdateCount);
-    assertEquals(newList, provider.getLastWorkerInfos());
+    assertEquals(newList, provider.getLastWorkers());
     assertEquals(
         ConsistentHashProvider.build(newList, NUM_VIRTUAL_NODES),
         provider.getActiveNodesMap());
   }
 
-  private List<BlockWorkerInfo> generateRandomWorkerList(int count) {
+  private Set<WorkerIdentity> generateRandomWorkerList(int count) {
     ThreadLocalRandom rng = ThreadLocalRandom.current();
-    ImmutableList.Builder<BlockWorkerInfo> builder = ImmutableList.builder();
+    ImmutableSet.Builder<WorkerIdentity> builder = ImmutableSet.builder();
     while (count-- > 0) {
-      WorkerNetAddress netAddress = new WorkerNetAddress();
-      netAddress.setHost(RandomStringUtils.randomAlphanumeric(10));
-      netAddress.setContainerHost(RandomStringUtils.randomAlphanumeric(10));
-      netAddress.setDomainSocketPath(RandomStringUtils.randomAlphanumeric(10));
-      netAddress.setRpcPort(rng.nextInt(0, 65536));
-      netAddress.setDataPort(rng.nextInt(0, 65536));
-      netAddress.setNettyDataPort(rng.nextInt(0, 65536));
-      netAddress.setSecureRpcPort(rng.nextInt(0, 65536));
-      netAddress.setWebPort(rng.nextInt(0, 65536));
-      netAddress.setTieredIdentity(
-          new TieredIdentity(ImmutableList.of(new TieredIdentity.LocalityTier("tier", "loc"))));
-
-      BlockWorkerInfo workerInfo = new BlockWorkerInfo(netAddress,
-          rng.nextLong(0, Constants.GB), rng.nextLong(0, Constants.GB));
-      builder.add(workerInfo);
+      WorkerIdentity id = WorkerIdentityTestUtils.randomLegacyId();
+      builder.add(id);
     }
     return builder.build();
   }

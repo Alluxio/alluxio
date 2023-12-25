@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>303-SNAPSHOT</version>
+    <version>308-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs</artifactId>
   <packaging>pom</packaging>
@@ -38,14 +38,11 @@
     <module>cosn</module>
     <module>gcs</module>
     <module>hdfs</module>
-    <module>kodo</module>
     <module>local</module>
     <module>oss</module>
     <module>ozone</module>
     <module>s3a</module>
-    <module>swift</module>
     <module>wasb</module>
-    <module>web</module>
     <module>obs</module>
   </modules>
 
@@ -106,6 +103,10 @@
                     <excludes>
                       <exclude>LICENSE</exclude>
                       <exclude>META-INF/LICENSE</exclude>
+                      <exclude>META-INF/LICENSE.*</exclude>
+                      <exclude>META-INF/license/*</exclude>
+                      <exclude>META-INF/NOTICE</exclude>
+                      <exclude>META-INF/NOTICE.*</exclude>
                       <exclude>META-INF/*.SF</exclude>
                       <exclude>META-INF/*.DSA</exclude>
                       <exclude>META-INF/*.RSA</exclude>

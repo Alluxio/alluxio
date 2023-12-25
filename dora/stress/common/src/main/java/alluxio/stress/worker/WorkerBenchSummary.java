@@ -14,12 +14,15 @@ package alluxio.stress.worker;
 import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.stress.Parameters;
+import alluxio.stress.StressConstants;
 import alluxio.stress.Summary;
 import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.graph.LineGraph;
+import alluxio.util.FormatUtils;
 
 import com.google.common.base.Splitter;
+import org.HdrHistogram.Histogram;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,13 +39,15 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
   private long mDurationMs;
   private long mEndTimeMs;
   private long mIOBytes;
+  private List<Long> mThroughputPercentiles;
 
   /**
    * Creates an instance.
+   * Default constructor required for json deserialization.
    */
   public WorkerBenchSummary() {
-    // Default constructor required for json deserialization
     mNodeResults = new HashMap<>();
+    mThroughputPercentiles = new ArrayList<>();
   }
 
   /**
@@ -59,6 +64,15 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
     mParameters = mergedTaskResults.getParameters();
     mNodeResults = nodes;
     mThroughput = getIOMBps();
+
+    mThroughputPercentiles = new ArrayList<>();
+    Histogram throughputHistogram = new Histogram(
+        FormatUtils.parseSpaceSize(mParameters.mFileSize),
+        StressConstants.TIME_HISTOGRAM_PRECISION);
+    mergedTaskResults.getAllThroughput().forEach(throughputHistogram::recordValue);
+    for (int i = 0; i <= 100; i++) {
+      mThroughputPercentiles.add(throughputHistogram.getValueAtPercentile(i));
+    }
   }
 
   /**
@@ -131,6 +145,20 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
     mIOBytes = IOBytes;
   }
 
+  /**
+   * @return 0~100 percentiles of recorded durations
+   */
+  public List<Long> getThroughputPercentiles() {
+    return mThroughputPercentiles;
+  }
+
+  /**
+   * @param percentiles a list of  calculated percentiles from recorded durations
+   */
+  public void setThroughputPercentiles(List<Long> percentiles) {
+    mThroughputPercentiles = percentiles;
+  }
+
   @Override
   public alluxio.stress.GraphGenerator graphGenerator() {
     return new GraphGenerator();
@@ -155,7 +183,7 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
       Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
           summaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
 
-      // Split up common description into 100 character chunks, for the sub title
+      // Split up common description into 100 character chunks, for the subtitle
       List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
           summaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
 
@@ -164,8 +192,8 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
               "Throughput (MB/s)");
 
       // remove the thread count from series fields, since the x-axis is thread counts.
-      List<String> seriesFields = fieldNames.getSecond().stream().filter(f -> !"mThreads".equals(f))
-          .collect(Collectors.toList());
+      List<String> seriesFields = fieldNames.getSecond().stream()
+          .filter(f -> !"mThreads".equals(f)).collect(Collectors.toList());
 
       // map(series name -> map(total threads -> throughput MB/s))
       Map<String, Map<Integer, Float>> allSeries = new HashMap<>();

@@ -43,11 +43,11 @@ var (
 func UfsVersionCheckF(args []string) error {
 	ret := &buildOpts{}
 	cmd := flag.NewFlagSet(UfsVersionCheck, flag.ExitOnError)
-	cmd.StringVar(&ret.modulesFile, "modulesFile", defaultModulesFilePath, `path to modules.yml file`)
+	cmd.StringVar(&ret.modulesFile, "modulesFile", DefaultModulesFilePath, `path to modules.yml file`)
 	if err := cmd.Parse(args); err != nil {
 		return stacktrace.Propagate(err, "error parsing flags")
 	}
-	modules, err := loadModules(ret.modulesFile)
+	modules, err := LoadModules(ret.modulesFile)
 	if err != nil {
 		return stacktrace.Propagate(err, "error loading plugin modules from file at %v", ret.modulesFile)
 	}

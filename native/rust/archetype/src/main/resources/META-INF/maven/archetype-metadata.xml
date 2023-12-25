@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<archetype-descriptor xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0 http://maven.apache.org/xsd/archetype-descriptor-1.0.0.xsd"
+                      xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      name="alluxio-native-archetype-rust">
+  <requiredProperties>
+    <requiredProperty key="package">
+      <defaultValue>alluxio</defaultValue>
+    </requiredProperty>
+    <requiredProperty key="groupId">
+      <defaultValue>org.alluxio</defaultValue>
+    </requiredProperty>
+    <requiredProperty key="artifactId"/>
+    <requiredProperty key="version">
+      <defaultValue>${project.version}</defaultValue>
+    </requiredProperty>
+    <!-- the crate name in Cargo.toml -->
+    <requiredProperty key="cargo_crate_name"/>
+    <!-- the crate type in Cargo.toml -->
+    <requiredProperty key="cargo_crate_type">
+      <defaultValue>cdylib</defaultValue>
+      <validationRegex>^bin|lib|rlib|dylib|cdylib|staticlib|proc-macro$</validationRegex>
+    </requiredProperty>
+    <!-- the rustc version used in rust-toolchain.toml -->
+    <requiredProperty key="toolchain_version">
+      <defaultValue>${toolchain.version}</defaultValue>
+      <validationRegex>^\d+\.\d+\.\d+$</validationRegex>
+    </requiredProperty>
+  </requiredProperties>
+
+  <fileSets>
+    <fileSet filtered="true" packaged="true" encoding="UTF-8">
+      <directory>src/main/java</directory>
+      <includes>
+        <include>**/*.java</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" packaged="true" encoding="UTF-8">
+      <directory>src/test/java</directory>
+      <includes>
+        <include>**/*.java</include>
+      </includes>
+    </fileSet>
+    <fileSet filtered="true" packaged="false" encoding="UTF-8">
+      <directory>src/main/rust</directory>
+      <includes>
+        <include>**/*</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+</archetype-descriptor>

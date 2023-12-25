@@ -14,14 +14,17 @@ package alluxio.client.file.dora;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.membership.WorkerClusterView;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerState;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A policy where a client will ONLY talk to a local worker.
+ * An implementation of WorkerLocationPolicy, where a client will ONLY talk to a local worker.
  *
  * This policy can probably only be used in testing. If client on node A reads path /a,
  * it will only talk to the worker on node A and produce a cache there. If a client on
@@ -50,22 +53,23 @@ public class LocalWorkerPolicy implements WorkerLocationPolicy {
    * the input order.
    */
   @Override
-  public List<BlockWorkerInfo> getPreferredWorkers(List<BlockWorkerInfo> blockWorkerInfos,
+  public List<BlockWorkerInfo> getPreferredWorkers(WorkerClusterView workerClusterView,
       String fileId, int count) throws ResourceExhaustedException {
     String userHostname = NetworkAddressUtils.getClientHostName(mConf);
     // TODO(jiacheng): domain socket is not considered here
     // Find the worker matching in hostname
     List<BlockWorkerInfo> results = new ArrayList<>();
-    for (BlockWorkerInfo worker : blockWorkerInfos) {
-      WorkerNetAddress workerAddr = worker.getNetAddress();
+    for (WorkerInfo worker : workerClusterView) {
+      WorkerNetAddress workerAddr = worker.getAddress();
       if (workerAddr == null) {
         continue;
       }
       // Only a plain string match is performed on hostname
       // If one is IP and the other is hostname, a false negative will be returned
-      // Consider PropertyKey.LOCALITY_COMPARE_NODE_IP if that becomes a real request
       if (userHostname.equals(workerAddr.getHost())) {
-        results.add(worker);
+        results.add(new BlockWorkerInfo(worker.getIdentity(),
+            workerAddr, worker.getCapacityBytes(), worker.getUsedBytes(),
+            worker.getState() == WorkerState.LIVE));
         if (results.size() >= count) {
           break;
         }

@@ -13,6 +13,8 @@ package alluxio.worker.netty;
 
 import alluxio.proto.dataserver.Protocol;
 
+import com.google.common.base.Preconditions;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -30,9 +32,9 @@ public final class BlockReadRequest extends ReadRequest {
    *
    * @param request the block read request
    */
-  BlockReadRequest(Protocol.ReadRequest request) {
+  public BlockReadRequest(Protocol.ReadRequest request) {
     super(request.getBlockId(), request.getOffset(), request.getOffset() + request.getLength(),
-        request.getChunkSize());
+        downcastChunkSize(request));
 
     if (request.hasOpenUfsBlockOptions()) {
       mOpenUfsBlockOptions = request.getOpenUfsBlockOptions();
@@ -41,6 +43,13 @@ public final class BlockReadRequest extends ReadRequest {
     }
     mPromote = request.getPromote();
     // Note that we do not need to seek to offset since the block worker is created at the offset.
+  }
+
+  private static int downcastChunkSize(Protocol.ReadRequest request) {
+    int chunkSizeInt = (int) request.getChunkSize();
+    Preconditions.checkArgument(request.getChunkSize() == (long) chunkSizeInt,
+        "chunk size does not fit in an int: %s", request.getChunkSize());
+    return chunkSizeInt;
   }
 
   /**

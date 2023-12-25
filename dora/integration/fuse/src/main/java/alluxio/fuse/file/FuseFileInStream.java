@@ -149,6 +149,15 @@ public class FuseFileInStream implements FuseFileStream {
 
   @Override
   public synchronized void close() {
+    try {
+      closeStream();
+    } finally {
+      releaseLock();
+    }
+  }
+
+  @Override
+  public synchronized void closeStream() {
     if (mClosed) {
       return;
     }
@@ -157,8 +166,23 @@ public class FuseFileInStream implements FuseFileStream {
       mInStream.close();
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
-    } finally {
+    }
+  }
+
+  @Override
+  public synchronized void releaseLock() {
+    if (!mLockResource.isClosed()) {
       mLockResource.close();
     }
+  }
+
+  @Override
+  public boolean isClosed() {
+    return mClosed;
+  }
+
+  @Override
+  public boolean isReadOnly() {
+    return true;
   }
 }

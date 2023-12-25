@@ -219,6 +219,11 @@ public class GrpcDataServer implements DataServer {
   }
 
   @Override
+  public SocketAddress getS3BindAddress() {
+    return null;
+  }
+
+  @Override
   public boolean isClosed() {
     return !mServer.isServing();
   }

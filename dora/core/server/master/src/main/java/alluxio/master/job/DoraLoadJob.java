@@ -14,31 +14,30 @@ package alluxio.master.job;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
-import alluxio.AlluxioURI;
 import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.collections.ConcurrentHashSet;
+import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.grpc.JobProgressReportFormat;
-import alluxio.grpc.LoadFileFailure;
+import alluxio.grpc.LoadFailure;
 import alluxio.grpc.LoadFileRequest;
 import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.job.JobDescription;
-import alluxio.master.scheduler.Scheduler;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.proto.journal.Journal;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
-import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.options.ListOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
 
@@ -53,75 +52,173 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.EvictingQueue;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterators;
+import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Load job that loads a file or a directory into Alluxio.
  * This class should only be manipulated from the scheduler thread in Scheduler
  * thus the state changing functions are not thread safe.
- * TODO() as task within this class is running on multithreaded context,
- * make thread unsafe places to be thread safe in future.
  */
 @NotThreadSafe
 public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private static final Logger LOG = LoggerFactory.getLogger(DoraLoadJob.class);
   public static final String TYPE = "load";
-  private static final double FAILURE_RATIO_THRESHOLD = 0.05;
-  private static final int FAILURE_COUNT_THRESHOLD = 100;
-  private static final int RETRY_BLOCK_CAPACITY = 1000;
-  private static final double RETRY_THRESHOLD = 0.8 * RETRY_BLOCK_CAPACITY;
   private static final int BATCH_SIZE = Configuration.getInt(PropertyKey.JOB_BATCH_SIZE);
 
-  /* TODO(lucy) add logic to detect loaded files, as currently each file loaded
-     status is on each dora worker, so the decision to load or not delegates to
-     worker on getting the load req. */
   // Job configurations
-  private final String mLoadRootAlluxioPath;
-  private final AlluxioURI mLoadRootAlluxioUri;
-  private OptionalLong mBandwidth;
-  private boolean mUsePartialListing;
-  private boolean mVerificationEnabled;
+  private final String mLoadPath;
+  private final OptionalLong mBandwidth;
+  private final boolean mUsePartialListing;
+  private final boolean mVerificationEnabled;
 
   // Job states
-  private final Queue<String> mRetryFiles = new ArrayDeque<>();
-  private final Map<String, String> mFailedFiles = new HashMap<>();
-  private final AtomicLong mProcessedFileCount = new AtomicLong();
-  private final AtomicLong mProcessedDirectoryCount = new AtomicLong();
+  private final Queue<LoadSubTask> mRetrySubTasksDLQ = new ArrayDeque<>();
+  // Only the most recent 1k failures are persisted.
+  // If more are needed, can turn on debug LOG for this class.
+  private final Queue<Pair<LoadSubTask, String>> mRecentFailures =
+      Queues.synchronizedQueue(EvictingQueue.create(1_000));
+  private final Queue<Pair<LoadSubTask, String>> mRecentRetries =
+      Queues.synchronizedQueue(EvictingQueue.create(1_000));
+  private final Set<String> mFailedFiles = new ConcurrentHashSet<>();
+  private final AtomicLong mSkippedBlocksCount = new AtomicLong();
+  private final AtomicLong mScannedInodesCount = new AtomicLong();
+  private final AtomicLong mProcessedInodesCount = new AtomicLong();
   private final AtomicLong mLoadedByteCount = new AtomicLong();
   private final AtomicLong mTotalByteCount = new AtomicLong();
-  private final AtomicLong mProcessingFileCount = new AtomicLong();
-  //including retry, do accurate stats later.
-  private final AtomicLong mTotalFailureCount = new AtomicLong();
-  private final AtomicLong mCurrentFailureCount = new AtomicLong();
+  private final AtomicLong mSkippedByteCount = new AtomicLong();
+  private final AtomicLong mProcessingSubTasksCount = new AtomicLong();
+  private final AtomicLong mRetrySubTasksCount = new AtomicLong();
+  private final AtomicLong mTotalFinalFailureCount = new AtomicLong();
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
-  private Iterator<UfsStatus> mUfsStatusIterator;
-  private AtomicBoolean mPreparingTasks = new AtomicBoolean(false);
+  private final AtomicBoolean mPreparingTasks = new AtomicBoolean(false);
   private final UnderFileSystem mUfs;
-  private boolean mLoadMetadataOnly = false;
+  private final boolean mLoadMetadataOnly;
+  private static final double FAILURE_RATIO_THRESHOLD = Configuration.getDouble(
+      PropertyKey.MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_RATIO_THRESHOLD);
+  private static final int FAILURE_COUNT_THRESHOLD = Configuration.getInt(
+      PropertyKey.MASTER_DORA_LOAD_JOB_TOTAL_FAILURE_COUNT_THRESHOLD);
+  private static final int RETRY_DLQ_CAPACITY = Configuration.getInt(
+      PropertyKey.MASTER_DORA_LOAD_JOB_RETRY_DLQ_CAPACITY);
+  private final boolean mSkipIfExists;
+
+  private final Optional<String> mFileFilterRegx;
+  private final long mVirtualBlockSize = Configuration.getBytes(
+      PropertyKey.DORA_READ_VIRTUAL_BLOCK_SIZE);
+  private final LoadSubTaskIterator mLoadSubTaskIterator;
+  private final int mNumReplica;
+  private final long mJobStartTimestamp;
+  private volatile OptionalLong mJobFinishTimestamp = OptionalLong.empty();
+  private volatile Optional<String> mFailedFileSavedPath = Optional.empty();
+
+  class LoadSubTaskIterator implements Iterator<LoadSubTask> {
+    private LoadSubTaskIterator(Iterator<UfsStatus> ufsStatusIterator) {
+      mUfsStatusIterator = ufsStatusIterator;
+    }
+
+    volatile Set<WorkerInfo> mWorkers = Collections.emptySet();
+    Iterator<LoadSubTask> mCurrentUfsStatusSubTaskIterator = Collections.emptyIterator();
+    Iterator<UfsStatus> mUfsStatusIterator;
+
+    private List<LoadSubTask> generateSubTasksForFile(
+        UfsStatus ufsStatus, Set<WorkerInfo> workers) {
+      List<LoadSubTask> subTasks = new ArrayList<>();
+      // add load metadata task
+      LoadMetadataSubTask subTask = new LoadMetadataSubTask(ufsStatus, mVirtualBlockSize);
+      subTasks.add(subTask);
+      if (!mLoadMetadataOnly && ufsStatus.isFile()
+          && ufsStatus.asUfsFileStatus().getContentLength() != 0) {
+        long contentLength = ufsStatus.asUfsFileStatus().getContentLength();
+        if (mVirtualBlockSize > 0) {
+          int numBlocks = (int) (contentLength / mVirtualBlockSize) + 1;
+          for (int i = 0; i < numBlocks; i++) {
+            long offset = mVirtualBlockSize * i;
+            long leftover = contentLength - offset;
+            subTasks.add(new LoadDataSubTask(ufsStatus, mVirtualBlockSize, offset,
+                Math.min(leftover, mVirtualBlockSize)));
+          }
+        }
+        else {
+          subTasks.add(new LoadDataSubTask(ufsStatus, mVirtualBlockSize, 0, contentLength));
+        }
+      }
+      List<LoadSubTask> subTasksWithWorker =
+          assignSubtasksToWorkers(subTasks, workers, mNumReplica);
+      mTotalByteCount.addAndGet(
+          subTasksWithWorker.stream().mapToLong(LoadSubTask::getLength).sum());
+      mProcessingSubTasksCount.addAndGet(subTasksWithWorker.size());
+      return subTasksWithWorker;
+    }
+
+    private List<LoadSubTask> assignSubtasksToWorkers(
+        List<LoadSubTask> subTasks, Set<WorkerInfo> workers, int numReplica) {
+      ImmutableList.Builder<LoadSubTask> replicaSubTasks = new ImmutableList.Builder<>();
+      for (LoadSubTask subTask : subTasks) {
+        List<WorkerInfo> pickedWorkers =
+            mWorkerAssignPolicy.pickWorkers(subTask.asString(), workers, numReplica);
+        for (int i = 0; i < numReplica; i++) {
+          replicaSubTasks.add(subTask.copy().setWorkerInfo(pickedWorkers.get(i)));
+        }
+      }
+      return replicaSubTasks.build();
+    }
+
+    public void updateWorkerList(Set<WorkerInfo> workers) {
+      mWorkers = workers;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return mCurrentUfsStatusSubTaskIterator.hasNext()
+          || mUfsStatusIterator.hasNext();
+    }
+
+    @Override
+    public LoadSubTask next() {
+      if (mCurrentUfsStatusSubTaskIterator.hasNext()) {
+        return mCurrentUfsStatusSubTaskIterator.next();
+      }
+      if (!mUfsStatusIterator.hasNext()) {
+        throw new NoSuchElementException("No more load subtask");
+      }
+      UfsStatus ufsStatus = mUfsStatusIterator.next();
+      mScannedInodesCount.incrementAndGet();
+      List<LoadSubTask> subTasks = generateSubTasksForFile(ufsStatus, mWorkers);
+      mCurrentUfsStatusSubTaskIterator = subTasks.listIterator();
+      // A ufs status generates at least one subtask.
+      return mCurrentUfsStatusSubTaskIterator.next();
+    }
+  }
 
   /**
    * Constructor.
@@ -133,59 +230,33 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
    * @param usePartialListing   whether to use partial listing
    * @param verificationEnabled whether to verify the job after loaded
    * @param loadMetadataOnly    if set to true, only metadata will be loaded without loading
-   *                            file data
+   * @param skipIfExists        skip if exists
+   * @param fileFilterRegx      the regx pattern string for file filter
+   * @param ufsStatusIterator   ufsStatus iterable
+   * @param ufs                 under file system
+   * @param replica             replica
    */
-  public DoraLoadJob(
-      String path,
-      Optional<String> user, String jobId, OptionalLong bandwidth,
-      boolean usePartialListing,
-      boolean verificationEnabled,
-      boolean loadMetadataOnly) {
+  public DoraLoadJob(String path, Optional<String> user, String jobId, OptionalLong bandwidth,
+      boolean usePartialListing, boolean verificationEnabled, boolean loadMetadataOnly,
+      boolean skipIfExists, Optional<String> fileFilterRegx, Iterator<UfsStatus> ufsStatusIterator,
+                     UnderFileSystem ufs, int replica) {
     super(user, jobId, new HashBasedWorkerAssignPolicy());
-    mLoadRootAlluxioPath = requireNonNull(path, "path is null");
-    mLoadRootAlluxioUri = new AlluxioURI(mLoadRootAlluxioPath);
+    mLoadPath = requireNonNull(path, "path is null");
     Preconditions.checkArgument(
         !bandwidth.isPresent() || bandwidth.getAsLong() > 0,
         format("bandwidth should be greater than 0 if provided, get %s", bandwidth));
+    Preconditions.checkArgument(replica >= 1, "numReplica should be at least 1");
     mBandwidth = bandwidth;
     mUsePartialListing = usePartialListing;
     mVerificationEnabled = verificationEnabled;
-    String ufsRoot = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
-    AlluxioURI ufsRootUri = new AlluxioURI(ufsRoot);
-    AlluxioURI ufsSyncRootUri = ufsRootUri.join(path);
-    mUfs = UnderFileSystem.Factory.create(
-        ufsRoot,
-        UnderFileSystemConfiguration.defaults(Configuration.global()));
+    mUfs = ufs;
     mLoadMetadataOnly = loadMetadataOnly;
-    LOG.info(
-        "DoraLoadJob for {} created. {} workers are active",
-        path, Preconditions.checkNotNull(Scheduler.getInstance()).getActiveWorkers().size());
-
-    UfsStatus rootUfsStatus = null;
-    try {
-      try {
-        rootUfsStatus = mUfs.getStatus(ufsSyncRootUri.toString());
-      } catch (FileNotFoundException ignored) {
-        // No-op
-      }
-      if (rootUfsStatus != null && rootUfsStatus.isFile()) {
-        rootUfsStatus.setUfsFullPath(ufsSyncRootUri);
-        mUfsStatusIterator = Iterators.singletonIterator(rootUfsStatus);
-      } else {
-        mUfsStatusIterator = mUfs.listStatusIterable(
-            ufsSyncRootUri.toString(), ListOptions.defaults().setRecursive(true), null, 0);
-        if (mUfsStatusIterator == null) {
-          mUfsStatusIterator = Collections.emptyIterator();
-        } else {
-          mUfsStatusIterator = Iterators.transform(mUfsStatusIterator, (it) -> {
-            it.setUfsFullPath(ufsSyncRootUri.join(it.getName()));
-            return it;
-          });
-        }
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    mSkipIfExists = skipIfExists;
+    mFileFilterRegx = fileFilterRegx;
+    mLoadSubTaskIterator = new LoadSubTaskIterator(ufsStatusIterator);
+    mNumReplica = replica;
+    mJobStartTimestamp = CommonUtils.getCurrentMs();
+    LOG.info("DoraLoadJob for {} created.", path);
   }
 
   /**
@@ -194,57 +265,40 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
    * @param workers
    * @return list of DoraLoadTask
    */
-  private List<DoraLoadTask> prepareNextTasks(Collection<WorkerInfo> workers) {
+  private List<DoraLoadTask> prepareNextTasks(Set<WorkerInfo> workers) {
     LOG.debug("Preparing next set of tasks for jobId:{}", mJobId);
+    mLoadSubTaskIterator.updateWorkerList(workers);
     int workerNum = workers.size();
-    ImmutableList.Builder<UfsStatus> batchBuilder = ImmutableList.builder();
-    int i = 0;
-    int startRetryListSize = mRetryFiles.size();
-    int filesToLoad = 0;
-    while (filesToLoad < RETRY_THRESHOLD
-        && i++ < startRetryListSize && mRetryFiles.peek() != null) {
-      String path = mRetryFiles.poll();
-      try {
-        UfsStatus uriStatus = mUfs.getStatus(path);
-        uriStatus.setUfsFullPath(new AlluxioURI(path));
-        batchBuilder.add(uriStatus);
-        ++filesToLoad;
-      } catch (IOException e) {
-        // The previous list or get might contain stale file metadata.
-        // For example, if a file gets removed before the worker actually loads it,
-        // the load will fail and the scheduler will retry.
-        // In such case, a FileNotFoundException might be thrown when we attempt to
-        // get the file status again, and we simply ignore that file.
-        if (!(e instanceof FileNotFoundException)) {
-          mRetryFiles.offer(path);
-        }
-      }
-    }
-    while (filesToLoad < BATCH_SIZE * workerNum && mUfsStatusIterator.hasNext()) {
-      try {
-        UfsStatus ufsStatus = mUfsStatusIterator.next();
-        batchBuilder.add(ufsStatus);
-        ++filesToLoad;
-      } catch (AlluxioRuntimeException e) {
-        LOG.warn(format("error getting next task for job %s", this), e);
-        if (!e.isRetryable()) {
-          failJob(e);
-        }
+    ImmutableList.Builder<LoadSubTask> batchBuilder = ImmutableList.builder();
+
+    // TODO(elega) Instead of immediate retry & retry in the end of the loading process,
+    // we should attach a timestamp to each retrying subtask and only retry those that
+    // have failed for a while to better handle worker downtime.
+    for (int numSubTasks = 0; numSubTasks < BATCH_SIZE * workerNum; ++numSubTasks) {
+      if (mLoadSubTaskIterator.hasNext()) {
+        batchBuilder.add(mLoadSubTaskIterator.next());
+      } else if (!mRetrySubTasksDLQ.isEmpty()) {
+        batchBuilder.add(mRetrySubTasksDLQ.poll());
+      } else {
+        break;
       }
     }
 
+    ImmutableList<LoadSubTask> subTasks = batchBuilder.build();
+    Map<WorkerInfo, DoraLoadTask> workerToTaskMap = aggregateSubTasks(subTasks);
+    if (workerToTaskMap.isEmpty()) {
+      return Collections.unmodifiableList(new ArrayList<>());
+    }
+    List<DoraLoadTask> tasks = new ArrayList<>(workerToTaskMap.values());
+    LOG.debug("prepared tasks:{}", tasks);
+    return tasks;
+  }
+
+  private Map<WorkerInfo, DoraLoadTask> aggregateSubTasks(List<LoadSubTask> subTasks) {
     Map<WorkerInfo, DoraLoadTask> workerToTaskMap = new HashMap<>();
-    for (UfsStatus ufsStatus : batchBuilder.build()) {
-      // NOTE: active workers may not reflect all workers at start up,
-      // but hash based policy will deterministically pick only among
-      // current recognized active workers -> will change in future
-      // once membership module is ready to tell all registered workers
-      WorkerInfo pickedWorker = mWorkerAssignPolicy.pickAWorker(
-          ufsStatus.getUfsFullPath().toString(), workers);
-      if (pickedWorker == null) {
-        mRetryFiles.offer(ufsStatus.getUfsFullPath().toString());
-        continue;
-      }
+    for (LoadSubTask subtask : subTasks) {
+      WorkerInfo pickedWorker = subtask.getWorkerInfo();
+      Preconditions.checkNotNull(pickedWorker, "pickedWorker is null");
       DoraLoadTask task = workerToTaskMap.computeIfAbsent(pickedWorker,
           w -> {
             DoraLoadTask t = new DoraLoadTask();
@@ -252,21 +306,9 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
             t.setJob(this);
             return t;
           });
-      task.mFilesToLoad.add(ufsStatus);
-      if (ufsStatus.isFile()) {
-        if (!mLoadMetadataOnly) {
-          mTotalByteCount.addAndGet(ufsStatus.asUfsFileStatus().getContentLength());
-        }
-        mProcessingFileCount.addAndGet(1);
-      }
+      task.addSubTask(subtask);
     }
-    if (workerToTaskMap.isEmpty()) {
-      return Collections.unmodifiableList(new ArrayList<>());
-    }
-    List<DoraLoadTask> tasks = workerToTaskMap.values().stream()
-        .collect(Collectors.toList());
-    LOG.debug("prepared tasks:{}", tasks);
-    return tasks;
+    return workerToTaskMap;
   }
 
   /**
@@ -274,12 +316,12 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
    * @return file path
    */
   public String getPath() {
-    return mLoadRootAlluxioPath;
+    return mLoadPath;
   }
 
   @Override
   public JobDescription getDescription() {
-    return JobDescription.newBuilder().setPath(mLoadRootAlluxioPath).setType(TYPE).build();
+    return JobDescription.newBuilder().setPath(mLoadPath).setType(TYPE).build();
   }
 
   /**
@@ -291,27 +333,55 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   }
 
   /**
-   * Update bandwidth.
-   * @param bandwidth new bandwidth
-   */
-  public void updateBandwidth(OptionalLong bandwidth) {
-    mBandwidth = bandwidth;
-  }
-
-  /**
    * Set load state to FAILED with given reason.
    * @param reason failure exception
    */
   @Override
   public void failJob(AlluxioRuntimeException reason) {
+    mJobFinishTimestamp = OptionalLong.of(CommonUtils.getCurrentMs());
     setJobState(JobState.FAILED, true);
     mFailedReason = Optional.of(reason);
+    // Move all pending retry subtask to failed subtask set
+    while (!mRetrySubTasksDLQ.isEmpty()) {
+      addFileFailure(
+          mRetrySubTasksDLQ.poll(),
+          FailureReason.CANCELLED,
+          "Retry cancelled due to job failure");
+    }
     JOB_LOAD_FAIL.inc();
     LOG.info("Load Job {} fails with status: {}", mJobId, this);
+    persistFailedFilesList();
+  }
+
+  private void persistFailedFilesList() {
+    LOG.info("Starting persisting failed files...");
+    String fileListDir =
+        Configuration.getString(PropertyKey.MASTER_DORA_LOAD_JOB_FAILED_FILE_LIST_DIR);
+    String startTime = new SimpleDateFormat("yyyy_MM_dd_HH:mm:ss").format(mStartTime);
+    String fileName =
+        (mLoadPath + "_" + startTime).replaceAll("[^a-zA-Z0-9-_\\.]", "_");
+    try {
+      Files.createDirectories(Paths.get(fileListDir));
+    } catch (Exception e) {
+      LOG.warn("Failed to create directory to store failed file list {}", fileListDir, e);
+      return;
+    }
+    File output = new File(fileListDir, fileName);
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(output))) {
+      for (String path : mFailedFiles) {
+        writer.write(path);
+        writer.newLine();
+      }
+      LOG.info("Persisted the failed file list to {} successfully", output.getAbsolutePath());
+      mFailedFileSavedPath = Optional.of(output.getAbsolutePath());
+    } catch (Exception e) {
+      LOG.warn("Failed to persist the failed file list to {}", fileName, e);
+    }
   }
 
   @Override
   public void setJobSuccess() {
+    mJobFinishTimestamp = OptionalLong.of(CommonUtils.getCurrentMs());
     setJobState(JobState.SUCCEEDED, true);
     JOB_LOAD_SUCCESS.inc();
     LOG.info("Load Job {} succeeds with status {}", mJobId, this);
@@ -328,32 +398,44 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
   /**
    * Add files to retry.
-   * @param path the file path
-   * @return true
+   * @param reason the failure reason
+   * @param message the error message
+   * @param subTask subTask to be retried
    */
   @VisibleForTesting
-  public boolean addFilesToRetry(String path) {
-    LOG.debug("Retry file {}", path);
-    mRetryFiles.offer(path);
-    mTotalFailureCount.incrementAndGet();
-    JOB_LOAD_FILE_FAIL.inc();
-    return true;
+
+  private void addSubTaskToRetryOrFail(LoadSubTask subTask, FailureReason reason, String message) {
+    LOG.debug("Retry file {}", subTask);
+    if (subTask.isRetry() || !isHealthy() || mRetrySubTasksDLQ.size() >= RETRY_DLQ_CAPACITY) {
+      addFileFailure(subTask, reason, message);
+      return;
+    }
+    subTask.setRetry(true);
+    mRetrySubTasksDLQ.offer(subTask);
+    mRetrySubTasksCount.incrementAndGet();
+    mRecentRetries.add(new Pair<>(
+        subTask, format("Reason: %s, message: %s", reason.name(), message)));
+    MultiDimensionalMetricsSystem.DISTRIBUTED_LOAD_FAILURE.labelValues(
+        reason.name(), Boolean.toString(false)).inc();
+    LOAD_FAIL_COUNT.inc();
   }
 
   /**
    * Add failed files.
-   * @param fileUfsPath
-   * @param message
-   * @param code
+   * @param subTask the load subtask
+   * @param reason the failure reason
+   * @param message the error message
    */
-  @VisibleForTesting
-  public void addFileFailure(String fileUfsPath, String message, int code) {
+  private void addFileFailure(LoadSubTask subTask, FailureReason reason, String message) {
     // When multiple blocks of the same file failed to load, from user's perspective,
     // it's not hugely important what are the reasons for each specific failure,
     // if they are different, so we will just keep the first one.
-    mFailedFiles.put(fileUfsPath,
-        format("Status code: %s, message: %s", code, message));
-    JOB_LOAD_FILE_FAIL.inc();
+    mFailedFiles.add(subTask.getUfsPath());
+    mRecentFailures.add(new Pair<>(
+        subTask, format("Reason: %s, message: %s", reason.name(), message)));
+    mTotalFinalFailureCount.incrementAndGet();
+    MultiDimensionalMetricsSystem.DISTRIBUTED_LOAD_FAILURE.labelValues(
+        reason.name(), Boolean.toString(true)).inc();
   }
 
   @Override
@@ -380,15 +462,18 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
   @Override
   public boolean isHealthy() {
-    long totalFailureCount = mTotalFailureCount.get();
+    long totalFailureCount = mTotalFinalFailureCount.get();
+    if (FAILURE_RATIO_THRESHOLD >= 1.0 || FAILURE_COUNT_THRESHOLD < 0) {
+      return true;
+    }
     return mState != JobState.FAILED
         && totalFailureCount <= FAILURE_COUNT_THRESHOLD
-        || (double) totalFailureCount / mProcessingFileCount.get() <= FAILURE_RATIO_THRESHOLD;
+        || (double) totalFailureCount / mProcessingSubTasksCount.get() <= FAILURE_RATIO_THRESHOLD;
   }
 
   @Override
   public boolean isCurrentPassDone() {
-    return !mUfsStatusIterator.hasNext() && mRetryFiles.isEmpty()
+    return !mLoadSubTaskIterator.hasNext() && mRetrySubTasksDLQ.isEmpty()
         && mRetryTaskList.isEmpty();
   }
 
@@ -398,7 +483,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   }
 
   @Override
-  public List<DoraLoadTask> getNextTasks(Collection<WorkerInfo> workers) {
+  public List<DoraLoadTask> getNextTasks(Set<WorkerInfo> workers) {
     /* Both scheduler thread and worker thread will try to call getNextTasks,
     only one of them needs to do the preparation of next set of tasks and whoever
     wins will do the processjob and kick off those tasks.
@@ -428,22 +513,23 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("JobId", mJobId)
-        .add("Path", mLoadRootAlluxioPath)
+        .add("Path", mLoadPath)
         .add("User", mUser)
         .add("Bandwidth", mBandwidth)
         .add("UsePartialListing", mUsePartialListing)
         .add("VerificationEnabled", mVerificationEnabled)
-        .add("RetryFiles", mRetryFiles)
+        .add("RetrySubTasks", mRetrySubTasksDLQ)
         .add("FailedFiles", mFailedFiles)
         .add("StartTime", mStartTime)
-        .add("ProcessedFileCount", mProcessedFileCount)
-        .add("ProcessedFolderCount", mProcessedDirectoryCount)
+        .add("SkippedFileCount", mSkippedBlocksCount)
+        .add("ProcessedInodesCount", mProcessedInodesCount)
+        .add("RetryTaskCount", mRetrySubTasksCount)
         .add("LoadedByteCount", mLoadedByteCount)
-        .add("TotalFailureCount", mTotalFailureCount)
+        .add("TotalFailureCount", mTotalFinalFailureCount)
+        .add("SkippedByteCount", mSkippedByteCount)
         .add("State", mState)
         .add("BatchSize", BATCH_SIZE)
         .add("FailedReason", mFailedReason)
-        .add("FileIterator", mUfsStatusIterator)
         .add("EndTime", mEndTime)
         .toString();
   }
@@ -452,11 +538,14 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   public Journal.JournalEntry toJournalEntry() {
     alluxio.proto.journal.Job.LoadJobEntry.Builder jobEntry = alluxio.proto.journal.Job.LoadJobEntry
         .newBuilder()
-        .setLoadPath(mLoadRootAlluxioPath)
+        .setLoadPath(mLoadPath)
         .setState(JobState.toProto(mState))
         .setPartialListing(mUsePartialListing)
         .setVerify(mVerificationEnabled)
+        .setSkipIfExists(mSkipIfExists)
+        .setReplicas(mNumReplica)
         .setJobId(mJobId);
+    mFileFilterRegx.ifPresent(jobEntry::setFileFilterRegx);
     mUser.ifPresent(jobEntry::setUser);
     mBandwidth.ifPresent(jobEntry::setBandwidth);
     mEndTime.ifPresent(jobEntry::setEndTime);
@@ -478,67 +567,74 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   @Override
   public boolean processResponse(DoraLoadTask doraLoadTask) {
     try {
-      long totalLoadedBytes = doraLoadTask.getFilesToLoad().stream()
-          .map((it) -> (it instanceof UfsFileStatus ? it.asUfsFileStatus().getContentLength() : 0))
-          .reduce(Long::sum)
-          .orElse(0L);
+      long totalLoadedBytes = doraLoadTask.getSubTasks().stream()
+                                          .map(LoadSubTask::getLength)
+                                          .reduce(Long::sum)
+                                          .orElse(0L);
       // what if timeout ? job needs to proactively check or task needs to be aware
       LoadFileResponse response = doraLoadTask.getResponseFuture().get();
       if (response.getStatus() != TaskStatus.SUCCESS) {
-        LOG.debug(format("Get failure from worker:%s, failed files:%s",
+        LOG.warn(format("[DistributedLoad] Get failure from worker:%s, failed files:%s",
             doraLoadTask.getMyRunningWorker(), response.getFailuresList()));
-        for (LoadFileFailure failure : response.getFailuresList()) {
-          totalLoadedBytes -= failure.getUfsStatus().getUfsFileStatus().getContentLength();
-          if (!isHealthy() || !failure.getRetryable() || !addFilesToRetry(
-              failure.getUfsStatus().getUfsFullPath())) {
-            addFileFailure(
-                failure.getUfsStatus().getUfsFullPath(),
-                failure.getMessage(), failure.getCode());
+        for (LoadFailure failure : response.getFailuresList()) {
+          if (failure.getSubtask().hasLoadDataSubtask()) {
+            totalLoadedBytes -= failure.getSubtask().getLoadDataSubtask().getLength();
+          }
+          LoadSubTask subTask = LoadSubTask.from(failure, mVirtualBlockSize);
+          if (!failure.getRetryable()) {
+            addSubTaskToRetryOrFail(subTask, FailureReason.WORKER_FAILED, failure.getMessage());
+          } else {
+            addFileFailure(subTask, FailureReason.WORKER_FAILED, failure.getMessage());
           }
         }
       }
-      int totalLoadedInodes = doraLoadTask.getFilesToLoad().size()
-          - response.getFailuresList().size();
-      int totalLoadedFile =
-          (int) (doraLoadTask.getFilesToLoad().stream().filter(UfsStatus::isFile).count()
-                        - response.getFailuresList().stream()
-              .filter(it -> !it.getUfsStatus().getIsDirectory()).count());
-      int totalLoadedDirectory = totalLoadedInodes - totalLoadedFile;
+      int totalLoadedInodes = (int) doraLoadTask.getSubTasks().stream()
+          .filter(LoadSubTask::isLoadMetadata).count()
+          - (int) response.getFailuresList().stream()
+          .filter(i -> i.getSubtask().hasLoadMetadataSubtask()).count();
       if (!mLoadMetadataOnly) {
-        addLoadedBytes(totalLoadedBytes);
-        JOB_LOAD_FILE_SIZE.inc(totalLoadedBytes);
-        JOB_LOAD_RATE.mark(totalLoadedBytes);
-        JOB_LOAD_RATE.mark(totalLoadedBytes);
+        addLoadedBytes(totalLoadedBytes - response.getBytesSkipped());
+        LOAD_FILE_SIZE.inc(totalLoadedBytes);
+        LOAD_RATE.mark(totalLoadedBytes);
+        LOAD_RATE.mark(totalLoadedBytes);
       }
-      mProcessedFileCount.addAndGet(totalLoadedFile);
-      mProcessedDirectoryCount.addAndGet(totalLoadedDirectory);
-      JOB_LOAD_FILE_COUNT.inc(totalLoadedFile);
+      mProcessedInodesCount.addAndGet(totalLoadedInodes - response.getNumSkipped());
+      LOAD_FILE_COUNT.inc(totalLoadedInodes);
+      mSkippedBlocksCount.addAndGet(response.getNumSkipped());
+      mSkippedByteCount.addAndGet(response.getBytesSkipped());
       return response.getStatus() != TaskStatus.FAILURE;
     }
     catch (ExecutionException e) {
-      LOG.warn("exception when trying to get load response.", e.getCause());
-      for (UfsStatus ufsStatus : doraLoadTask.getFilesToLoad()) {
-        AlluxioRuntimeException exception = AlluxioRuntimeException.from(e.getCause());
-        if (isHealthy()) {
-          addFilesToRetry(ufsStatus.getUfsFullPath().toString());
-        } else {
-          addFileFailure(ufsStatus.getUfsFullPath().toString(),
-              exception.getMessage(), exception.getStatus().getCode()
-              .value());
-        }
+      Throwable cause = e.getCause();
+      LOG.warn("exception when trying to get load response.", cause);
+      for (LoadSubTask subTask : doraLoadTask.getSubTasks()) {
+        AlluxioRuntimeException exception = AlluxioRuntimeException.from(cause);
+        addSubTaskToRetryOrFail(subTask, FailureReason.WORKER_RPC_FAILED,
+            exception.getStatus() + ":" + exception.getMessage());
       }
       return false;
     }
     catch (CancellationException e) {
-      LOG.warn("Task get canceled and will retry.", e);
-      doraLoadTask.getFilesToLoad().forEach(it -> addFilesToRetry(it.getUfsFullPath().toString()));
+      LOG.warn("[DistributedLoad] Task get canceled and will retry.", e);
+      doraLoadTask.getSubTasks().forEach(it -> addSubTaskToRetryOrFail(
+          it, FailureReason.CANCELLED, e.getMessage()));
       return true;
     }
     catch (InterruptedException e) {
-      doraLoadTask.getFilesToLoad().forEach(it -> addFilesToRetry(it.getUfsFullPath().toString()));
+      doraLoadTask.getSubTasks().forEach(it -> addSubTaskToRetryOrFail(
+          it, FailureReason.INTERRUPTED, e.getMessage()));
       Thread.currentThread().interrupt();
       // We don't count InterruptedException as task failure
       return true;
+    }
+  }
+
+  @Override
+  public void onWorkerUnavailable(DoraLoadTask task) {
+    LOG.warn("Worker became unavailable: {}", task.getMyRunningWorker());
+    for (LoadSubTask subTask: task.getSubTasks()) {
+      addSubTaskToRetryOrFail(
+          subTask, FailureReason.MEMBERSHIP_CHANGED, "Worker became unavailable");
     }
   }
 
@@ -558,61 +654,57 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   }
 
   /**
-   * Dora load task.
+   * Dora load task. It contains a list of subtasks. Each subtask would be executed concurrently
+   * on a worker.
    */
   public class DoraLoadTask extends Task<LoadFileResponse> {
-
-    protected List<UfsStatus> mFilesToLoad;
+    protected List<LoadSubTask> mSubTasks;
 
     /**
      * Constructor.
      */
     public DoraLoadTask() {
       super(DoraLoadJob.this, DoraLoadJob.this.mTaskIdGenerator.incrementAndGet());
-      super.setPriority(1);
-      mFilesToLoad = new ArrayList<>();
-    }
-
-    /**
-     * Constructor.
-     * @param filesToLoad the file to load
-     */
-    public DoraLoadTask(List<UfsStatus> filesToLoad) {
-      super(DoraLoadJob.this, DoraLoadJob.this.mTaskIdGenerator.incrementAndGet());
-      super.setPriority(1);
-      mFilesToLoad = filesToLoad;
+      mSubTasks = new ArrayList<>();
     }
 
     /**
      * Get files to load of this task.
      * @return list of UfsStatus
      */
-    public List<UfsStatus> getFilesToLoad() {
-      return mFilesToLoad;
+    public List<LoadSubTask> getSubTasks() {
+      return mSubTasks;
+    }
+
+    private void addSubTask(LoadSubTask subTask) {
+      mSubTasks.add(subTask);
     }
 
     @Override
     protected ListenableFuture<LoadFileResponse> run(BlockWorkerClient workerClient) {
-      LOG.info("Start running task:{} on worker:{}", toString(), getMyRunningWorker());
+      LOG.debug("Start running task:{} on worker:{}", this, getMyRunningWorker());
+      LoadFileRequest loadFileReqBuilder = constructRpcRequest();
+      return workerClient.loadFile(loadFileReqBuilder);
+    }
+
+    private LoadFileRequest constructRpcRequest() {
       LoadFileRequest.Builder loadFileReqBuilder = LoadFileRequest.newBuilder();
-      for (UfsStatus ufsStatus : mFilesToLoad) {
-        loadFileReqBuilder.addUfsStatus(ufsStatus.toProto());
-      }
+      mSubTasks.stream().map(LoadSubTask::toProto).forEach(loadFileReqBuilder::addSubtasks);
       UfsReadOptions.Builder ufsReadOptions = UfsReadOptions
           .newBuilder()
           .setTag(mJobId)
           .setPositionShort(false);
       mUser.ifPresent(ufsReadOptions::setUser);
       loadFileReqBuilder.setOptions(ufsReadOptions);
-      loadFileReqBuilder.setLoadMetadataOnly(mLoadMetadataOnly);
-      return workerClient.loadFile(loadFileReqBuilder.build());
+      loadFileReqBuilder.setSkipIfExists(mSkipIfExists);
+      return loadFileReqBuilder.build();
     }
 
     @Override
     public String toString() {
       final StringBuilder filesBuilder = new StringBuilder();
-      getFilesToLoad().forEach(f -> {
-        filesBuilder.append(f.getUfsFullPath().toString()  + ",");
+      getSubTasks().forEach(f -> {
+        filesBuilder.append(f.asString() + ",");
       });
       return MoreObjects.toStringHelper(this)
           .add("taskJobType", mMyJob.getClass())
@@ -628,55 +720,88 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     private final JobState mJobState;
     private final Long mBandwidth;
     private final boolean mVerificationEnabled;
-    private final long mProcessedFileCount;
-    private final long mProcessedDirectoryCount;
+    private final long mSkippedByteCount;
     private final long mLoadedByteCount;
+    private final long mScannedInodesCount;
+    private final long mProcessedInodesCount;
     private final Long mTotalByteCount;
     private final Long mThroughput;
-    private final double mFailurePercentage;
+    private final double mFailureFilesPercentage;
+    private final double mFailureSubTasksPercentage;
+    private final double mRetrySubTasksPercentage;
+
     private final AlluxioRuntimeException mFailureReason;
     private final long mFailedFileCount;
-    private final Map<String, String> mFailedFilesWithReasons;
-    private final boolean mLoadData;
+    private final List<Pair<LoadSubTask, String>> mRecentFailedSubtasksWithReasons;
+    private final List<Pair<LoadSubTask, String>> mRecentRetryingSubtasksWithReasons;
+    private final boolean mSkipIfExists;
+    private final boolean mMetadataOnly;
+    private String mRunningStage;
+    private final int mRetryDeadLetterQueueSize;
+    private final long mTimeElapsed;
+    @Nullable private final String mFailedFileSavedPath;
 
     /**
      * Constructor.
      * @param job the job
      * @param verbose verbose
      */
-    public LoadProgressReport(DoraLoadJob job, boolean verbose)
-    {
+    public LoadProgressReport(DoraLoadJob job, boolean verbose) {
       mVerbose = verbose;
       mJobState = job.mState;
       mBandwidth = job.mBandwidth.isPresent() ? job.mBandwidth.getAsLong() : null;
       mVerificationEnabled = job.mVerificationEnabled;
-      mProcessedFileCount = job.mProcessedFileCount.get();
-      mProcessedDirectoryCount = job.mProcessedDirectoryCount.get();
+      mProcessedInodesCount = job.mProcessedInodesCount.get();
       mLoadedByteCount = job.mLoadedByteCount.get();
       if (!job.mUsePartialListing) {
         mTotalByteCount = job.mTotalByteCount.get();
-      }
-      else {
+      } else {
         mTotalByteCount = null;
       }
       long duration = job.getDurationInSec();
       if (duration > 0) {
         mThroughput = job.mLoadedByteCount.get() / duration;
-      }
-      else {
+      } else {
         mThroughput = null;
       }
-      mFailurePercentage =
-          ((double) (job.mTotalFailureCount.get())
-              / (mProcessedFileCount + mProcessedDirectoryCount)) * 100;
+      mFailureFilesPercentage =
+          ((double) (job.mFailedFiles.size())
+              / (job.mScannedInodesCount.get())) * 100;
+      mFailureSubTasksPercentage =
+          ((double) (job.mTotalFinalFailureCount.get())
+              / (job.mProcessingSubTasksCount.get())) * 100;
+      mRetrySubTasksPercentage =
+          ((double) (job.mRetrySubTasksCount.get())
+              / (job.mProcessingSubTasksCount.get())) * 100;
+      mScannedInodesCount = job.mScannedInodesCount.get();
       mFailureReason = job.mFailedReason.orElse(null);
       mFailedFileCount = job.mFailedFiles.size();
-      if (verbose && mFailedFileCount > 0) {
-        mFailedFilesWithReasons = job.mFailedFiles;
+      if (verbose) {
+        if (!job.mRecentFailures.isEmpty()) {
+          mRecentFailedSubtasksWithReasons = new ArrayList<>(job.mRecentFailures);
+        } else {
+          mRecentFailedSubtasksWithReasons = Collections.emptyList();
+        }
+        if (!job.mRecentRetries.isEmpty()) {
+          mRecentRetryingSubtasksWithReasons = new ArrayList<>(job.mRecentRetries);
+        } else {
+          mRecentRetryingSubtasksWithReasons = Collections.emptyList();
+        }
       } else {
-        mFailedFilesWithReasons = null;
+        mRecentFailedSubtasksWithReasons = Collections.emptyList();
+        mRecentRetryingSubtasksWithReasons = Collections.emptyList();
       }
-      mLoadData = !job.mLoadMetadataOnly;
+      mSkippedByteCount = job.mSkippedByteCount.get();
+      mSkipIfExists = job.mSkipIfExists;
+      mMetadataOnly = job.mLoadMetadataOnly;
+      mRunningStage = "";
+      if (mJobState == JobState.RUNNING && verbose) {
+        mRunningStage = job.mLoadSubTaskIterator.hasNext() ? "LOADING" : "RETRYING";
+      }
+      mRetryDeadLetterQueueSize = job.mRetrySubTasksDLQ.size();
+      mTimeElapsed =
+          job.mJobFinishTimestamp.orElse(CommonUtils.getCurrentMs()) - job.mJobStartTimestamp;
+      mFailedFileSavedPath = job.mFailedFileSavedPath.orElse(null);
     }
 
     public String getReport(JobProgressReportFormat format)
@@ -695,24 +820,35 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     private String getTextReport() {
       StringBuilder progress = new StringBuilder();
       progress.append(
-          format("\tSettings:\tbandwidth: %s\tverify: %s%n",
+          format("\tSettings:\tbandwidth: %s\tverify: %s\tmetadata-only: %s%n",
               mBandwidth == null ? "unlimited" : mBandwidth,
-              mVerificationEnabled));
+              mVerificationEnabled, mMetadataOnly));
+      progress.append(format("\tTime Elapsed: %s%n",
+          DurationFormatUtils.formatDuration(mTimeElapsed, "HH:mm:ss")));
       progress.append(format("\tJob State: %s%s%n", mJobState,
           mFailureReason == null
               ? "" : format(
               " (%s: %s)",
               mFailureReason.getClass().getName(),
               mFailureReason.getMessage())));
+      if (mJobState == JobState.RUNNING && mVerbose) {
+        progress.append(format("\tStage: %s%n", mRunningStage));
+      }
       if (mVerbose && mFailureReason != null) {
         for (StackTraceElement stack : mFailureReason.getStackTrace()) {
           progress.append(format("\t\t%s%n", stack.toString()));
         }
       }
-      progress.append(format("\tLoad data: %s%n", mLoadData));
-      progress.append(format("\tFiles Processed: %d%n", mProcessedFileCount));
-      progress.append(format("\tDirectories Processed: %d%n", mProcessedDirectoryCount));
-      if (mLoadData) {
+      progress.append(format("\tInodes Scanned: %d%n", mScannedInodesCount));
+      progress.append(format("\tInodes Processed: %d%n", mProcessedInodesCount));
+      if (mSkipIfExists) {
+        progress.append(format("\tBytes Skipped: %s%s%n",
+            FormatUtils.getSizeFromBytes(mSkippedByteCount),
+            mTotalByteCount == null
+                ? "" : format(" out of %s", FormatUtils.getSizeFromBytes(mTotalByteCount))));
+      }
+
+      if (!mMetadataOnly) {
         progress.append(format("\tBytes Loaded: %s%s%n",
             FormatUtils.getSizeFromBytes(mLoadedByteCount),
             mTotalByteCount == null
@@ -721,12 +857,24 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
           progress.append(format("\tThroughput: %s/s%n",
               FormatUtils.getSizeFromBytes(mThroughput)));
         }
-        progress.append(format("\tBlock load failure rate: %.2f%%%n", mFailurePercentage));
       }
+      progress.append(format("\tFile Failure rate: %.2f%%%n", mFailureFilesPercentage));
+      progress.append(format("\tSubtask Failure rate: %.2f%%%n", mFailureSubTasksPercentage));
       progress.append(format("\tFiles Failed: %s%n", mFailedFileCount));
-      if (mVerbose && mFailedFilesWithReasons != null) {
-        mFailedFilesWithReasons.forEach((fileName, reason) ->
-            progress.append(format("\t\t%s: %s%n", fileName, reason)));
+      if (mVerbose && mRecentFailedSubtasksWithReasons != null) {
+        progress.append(format("\tRecent failed subtasks: %n"));
+        mRecentFailedSubtasksWithReasons.forEach(pair ->
+            progress.append(format("\t\t%s: %s%n", pair.getFirst(), pair.getSecond())));
+        progress.append(format("\tRecent retrying subtasks: %n"));
+        mRecentRetryingSubtasksWithReasons.forEach(pair ->
+            progress.append(format("\t\t%s: %s%n", pair.getFirst(), pair.getSecond())));
+      }
+
+      progress.append(format("\tSubtask Retry rate: %.2f%%%n", mRetrySubTasksPercentage));
+      progress.append(
+          format("\tSubtasks on Retry Dead Letter Queue: %s%n", mRetryDeadLetterQueueSize));
+      if (mFailedFileSavedPath != null) {
+        progress.append(format("\tFailed files saved to: %s%n", mFailedFileSavedPath));
       }
       return progress.toString();
     }
@@ -744,19 +892,28 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   }
 
   // metrics
+  enum FailureReason {
+    CANCELLED,
+    INTERRUPTED,
+    MEMBERSHIP_CHANGED,
+    WORKER_FAILED,
+    WORKER_RPC_FAILED,
+    WORKER_NOT_REACHABLE;
+  }
+
   public static final Counter JOB_LOAD_SUCCESS =
       MetricsSystem.counter(MetricKey.MASTER_JOB_LOAD_SUCCESS.getName());
   public static final Counter JOB_LOAD_FAIL =
       MetricsSystem.counter(MetricKey.MASTER_JOB_LOAD_FAIL.getName());
 
-  public static final Counter JOB_LOAD_FILE_COUNT =
-      MetricsSystem.counter(MetricKey.MASTER_JOB_LOAD_BLOCK_COUNT.getName());
+  public static final Counter LOAD_FILE_COUNT =
+      MetricsSystem.counter(MetricKey.MASTER_JOB_LOAD_INODES_COUNT.getName());
 
-  public static final Counter JOB_LOAD_FILE_FAIL =
-      MetricsSystem.counter(MetricKey.MASTER_JOB_LOAD_FILE_FAIL.getName());
+  public static final Counter LOAD_FAIL_COUNT =
+      MetricsSystem.counter(MetricKey.MASTER_JOB_LOAD_FAILURE_COUNT.getName());
 
-  public static final Counter JOB_LOAD_FILE_SIZE =
+  public static final Counter LOAD_FILE_SIZE =
       MetricsSystem.counter(MetricKey.MASTER_JOB_LOAD_FILE_SIZE.getName());
-  public static final Meter JOB_LOAD_RATE =
+  public static final Meter LOAD_RATE =
       MetricsSystem.meter(MetricKey.MASTER_JOB_LOAD_RATE.getName());
 }

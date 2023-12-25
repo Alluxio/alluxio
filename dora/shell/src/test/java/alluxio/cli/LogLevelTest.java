@@ -19,7 +19,6 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import alluxio.ClientContext;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.job.JobMasterClient;
 import alluxio.conf.Configuration;
@@ -27,8 +26,11 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.master.MasterInquireClient;
+import alluxio.membership.WorkerClusterView;
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.ZookeeperAuthority;
+import alluxio.wire.WorkerIdentityTestUtils;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import org.apache.commons.cli.CommandLine;
@@ -206,11 +208,15 @@ public class LogLevelTest {
     when(mockCommandLine.getOptionValue(LogLevel.TARGET_OPTION_NAME)).thenReturn(mockArgs[1]);
 
     // Prepare a list of workers
-    List<BlockWorkerInfo> workers = new ArrayList<>();
-    workers.add(new BlockWorkerInfo(new WorkerNetAddress()
-        .setHost("workers-1").setWebPort(WORKER_WEB_PORT), 0, 0));
-    workers.add(new BlockWorkerInfo(new WorkerNetAddress()
-        .setHost("workers-2").setWebPort(WORKER_WEB_PORT), 0, 0));
+    WorkerClusterView workers = new WorkerClusterView(Arrays.asList(
+        new WorkerInfo().setIdentity(WorkerIdentityTestUtils.randomLegacyId())
+            .setAddress(new WorkerNetAddress().setHost("workers-1").setWebPort(WORKER_WEB_PORT))
+            .setCapacityBytes(0)
+            .setUsedBytes(0),
+        new WorkerInfo().setIdentity(WorkerIdentityTestUtils.randomLegacyId())
+            .setAddress(new WorkerNetAddress().setHost("workers-2").setWebPort(WORKER_WEB_PORT))
+            .setCapacityBytes(0)
+            .setUsedBytes(0)));
     try (MockedStatic<FileSystemContext> mockFactory = mockStatic(FileSystemContext.class)) {
       FileSystemContext mockFsContext = mock(FileSystemContext.class);
       when(mockFsContext.getCachedWorkers()).thenReturn(workers);

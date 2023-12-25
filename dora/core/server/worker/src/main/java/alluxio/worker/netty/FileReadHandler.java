@@ -12,22 +12,19 @@
 package alluxio.worker.netty;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.metrics.MetricsSystem;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.status.PermissionDeniedException;
 import alluxio.network.netty.FileTransferType;
 import alluxio.network.protocol.databuffer.CompositeDataBuffer;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.retry.RetryPolicy;
-import alluxio.retry.TimeoutRetry;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.PagedFileReader;
 
-import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -41,41 +38,31 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Handles file read request.
  */
-public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext> {
+public class FileReadHandler extends AbstractReadHandler<BlockReadRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(FileReadHandler.class);
 
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
-
   private final DoraWorker mWorker;
-
-  /**
-   * The transfer type used by the data server.
-   */
-  private final FileTransferType mTransferType;
 
   /**
    * Creates an instance of {@link FileReadHandler}.
    *
-   * @param executorService  the executor service to run data readers
-   * @param worker           block worker
+   * @param executorService the executor service to run data readers
+   * @param channel the channel to which this handler is attached
+   * @param worker block worker
    * @param fileTransferType the file transfer type
    */
-  public FileReadHandler(ExecutorService executorService,
+  public FileReadHandler(ExecutorService executorService, Channel channel,
                          DoraWorker worker, FileTransferType fileTransferType) {
-    super(executorService);
+    super(executorService, channel, BlockReadRequest.class,
+        new FilePacketReaderFactory(worker, fileTransferType));
     mWorker = worker;
-    mTransferType = fileTransferType;
   }
 
   @Override
-  protected BlockReadRequestContext createRequestContext(Protocol.ReadRequest request) {
-    return new BlockReadRequestContext(request);
-  }
-
-  @Override
-  protected AbstractReadHandler<BlockReadRequestContext>.PacketReader createPacketReader() {
-    return new BlockPacketReader(mWorker);
+  protected BlockReadRequest createReadRequest(Protocol.ReadRequest request) {
+    return new BlockReadRequest(request);
   }
 
   /**
@@ -87,63 +74,94 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
   }
 
   /**
+   * Factory for creating {@link FilePacketReader}s.
+   */
+  public static final class FilePacketReaderFactory
+      implements PacketReader.Factory<BlockReadRequest, FilePacketReader> {
+    private final DoraWorker mWorker;
+    private final FileTransferType mTransferType;
+
+    /**
+     * Constructor.
+     *
+     * @param doraWorker dora worker
+     * @param transferType transfer type
+     */
+    public FilePacketReaderFactory(DoraWorker doraWorker, FileTransferType transferType) {
+      mWorker = doraWorker;
+      mTransferType = transferType;
+    }
+
+    @Override
+    public FilePacketReader create(BlockReadRequest readRequest) throws IOException {
+      try {
+        final String fileId =
+            new AlluxioURI(readRequest.getOpenUfsBlockOptions().getUfsPath()).hash();
+        BlockReader reader =
+            mWorker.createFileReader(fileId, readRequest.getStart(),
+                /* positionShort */ false, readRequest.getOpenUfsBlockOptions());
+        if (reader.getChannel() instanceof FileChannel) {
+          ((FileChannel) reader.getChannel()).position(readRequest.getStart());
+        }
+        return new FilePacketReader(reader, readRequest, mTransferType);
+      } catch (AccessControlException e) {
+        throw new PermissionDeniedException(e);
+      }
+
+      // TODO(bowen): add metrics
+      /*
+      String metricName = "BytesReadAlluxio";
+      context.setCounter(MetricsSystem.counter(metricName));
+      */
+
+      //TODO(JiamingMai): Not sure if this is necessary.
+      /*
+      ProtoMessage heartbeat = new ProtoMessage(Protocol.ReadResponse.newBuilder()
+          .setType(Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT).build());
+      // Sends an empty buffer to the client to make sure that the client does not timeout when
+      // the server is waiting for the UFS block access.
+      channel.writeAndFlush(new RPCProtoMessage(heartbeat));
+      */
+    }
+  }
+
+  /**
    * The packet reader to read from a local block worker.
    */
   @NotThreadSafe
-  public class BlockPacketReader extends PacketReader {
-    /**
-     * The Dora Worker.
-     */
-    private final DoraWorker mWorker;
+  public static final class FilePacketReader implements PacketReader<BlockReadRequest> {
+    private final BlockReader mReader;
+    private final BlockReadRequest mReadRequest;
+    private final FileTransferType mTransferType;
 
-    /**
-     * Creates an instance of {@link BlockPacketReader}.
-     *
-     * @param worker dora worker
-     */
-    public BlockPacketReader(DoraWorker worker) {
-      mWorker = worker;
+    FilePacketReader(BlockReader reader, BlockReadRequest request, FileTransferType transferType) {
+      mReader = reader;
+      mReadRequest = request;
+      mTransferType = transferType;
     }
 
     @Override
-    public void completeRequest(BlockReadRequestContext context) throws Exception {
-      BlockReader reader = context.getBlockReader();
-      if (reader != null) {
-        try {
-          reader.close();
-        } catch (Exception e) {
-          LOG.warn("Failed to close block reader for block {} with error {}.",
-              context.getRequest(), e.getMessage());
-        }
-      }
-    }
-
-    @Override
-    public DataBuffer getDataBuffer(BlockReadRequestContext context, Channel channel,
-                                    long offset, int len) throws Exception {
-      openBlock(context, channel);
-      BlockReader blockReader = context.getBlockReader();
-      Preconditions.checkState(blockReader != null);
+    public DataBuffer createDataBuffer(Channel channel, long offset, int len)
+        throws Exception {
       if (mTransferType == FileTransferType.TRANSFER) {
-        if (blockReader instanceof PagedFileReader) {
-          PagedFileReader pagedFileReader = (PagedFileReader) blockReader;
+        if (mReader instanceof PagedFileReader) {
+          PagedFileReader pagedFileReader = (PagedFileReader) mReader;
           CompositeDataBuffer compositeDataBuffer =
               pagedFileReader.getMultipleDataFileChannel(channel, len);
           return compositeDataBuffer;
         } else {
-          throw new UnsupportedOperationException(blockReader.getClass().getCanonicalName()
+          throw new UnsupportedOperationException(mReader.getClass().getCanonicalName()
               + "is no longer supported in Alluxio 3.x");
         }
       }
-      return getDataBufferByCopying(context, channel, len, blockReader);
+      return createDataBufferByCopying(channel, len);
     }
 
-    private DataBuffer getDataBufferByCopying(
-        BlockReadRequestContext context, Channel channel, int len, BlockReader blockReader)
+    private DataBuffer createDataBufferByCopying(Channel channel, int len)
         throws IOException {
       ByteBuf buf = channel.alloc().buffer(len, len);
       try {
-        while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+        while (buf.writableBytes() > 0 && mReader.transferTo(buf) != -1) {
         }
         return new NettyDataBuffer(buf);
       } catch (Throwable e) {
@@ -152,51 +170,14 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
       }
     }
 
-    /**
-     * Opens the block if it is not open.
-     *
-     * @param channel the netty channel
-     * @throws Exception if it fails to open the block
-     */
-    private void openBlock(BlockReadRequestContext context, Channel channel) throws Exception {
-      if (context.getBlockReader() != null) {
-        return;
+    @Override
+    public void close() throws IOException {
+      try {
+        mReader.close();
+      } catch (Exception e) {
+        LOG.warn("Failed to close reader for file {} with error {}.",
+            mReadRequest.getOpenUfsBlockOptions().getUfsPath(), e.getMessage());
       }
-      ReadRequest readRequest = context.getRequest();
-      if (readRequest instanceof BlockReadRequest == false) {
-        throw new UnsupportedOperationException("Cast exception from " + readRequest.getClass()
-            + " to " + BlockReadRequest.class);
-      }
-      BlockReadRequest blockReadRequest = (BlockReadRequest) readRequest;
-      int retryInterval = Constants.SECOND_MS;
-      RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
-      do {
-        try {
-          BlockReader reader =
-              mWorker.createFileReader(
-                  new AlluxioURI(blockReadRequest.getOpenUfsBlockOptions().getUfsPath()).hash(),
-                  blockReadRequest.getStart(),
-                  false, blockReadRequest.getOpenUfsBlockOptions());
-          String metricName = "BytesReadAlluxio";
-          context.setBlockReader(reader);
-          context.setCounter(MetricsSystem.counter(metricName));
-          if (reader.getChannel() instanceof FileChannel) {
-            ((FileChannel) reader.getChannel()).position(blockReadRequest.getStart());
-          }
-          return;
-        } catch (Exception e) {
-          throw e;
-        }
-
-        //TODO(JiamingMai): Not sure if this is necessary.
-        /*
-        ProtoMessage heartbeat = new ProtoMessage(Protocol.ReadResponse.newBuilder()
-            .setType(Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT).build());
-        // Sends an empty buffer to the client to make sure that the client does not timeout when
-        // the server is waiting for the UFS block access.
-        channel.writeAndFlush(new RPCProtoMessage(heartbeat));
-        */
-      } while (retryPolicy.attempt());
     }
   }
 }

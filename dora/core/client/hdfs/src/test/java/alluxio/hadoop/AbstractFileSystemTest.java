@@ -32,7 +32,6 @@ import alluxio.Constants;
 import alluxio.SystemPropertyRule;
 import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.block.BlockStoreClient;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
@@ -41,10 +40,13 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.membership.WorkerClusterView;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerIdentityTestUtils;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
@@ -53,6 +55,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsCreateModes;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.After;
 import org.junit.Before;
@@ -731,7 +735,9 @@ public class AbstractFileSystemTest {
             ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage(path.toString())));
 
     try (FileSystem alluxioHadoopFs = new FileSystem(alluxioFs)) {
-      alluxioHadoopFs.create(path, false, 100, (short) 1, 1000);
+      alluxioHadoopFs.create(path,
+          FsCreateModes.applyUMask(FsPermission.getFileDefault(), FsPermission.getUMask(getConf())),
+          false, 100, (short) 1, 1000, null);
       fail("create() of existing file is expected to fail");
     } catch (IOException e) {
       assertEquals("alluxio.exception.FileAlreadyExistsException: "
@@ -784,13 +790,19 @@ public class AbstractFileSystemTest {
     FileSystemContext fsContext = mock(FileSystemContext.class);
     when(fsContext.getClientContext()).thenReturn(ClientContext.create(mConfiguration));
     when(fsContext.getClusterConf()).thenReturn(mConfiguration);
-    when(fsContext.getPathConf(any(AlluxioURI.class))).thenReturn(mConfiguration);
     alluxio.client.file.FileSystem fs = alluxio.client.file.FileSystem.Factory.create(fsContext);
+    when(fsContext.getClusterConf()).thenReturn(mConfiguration);
     alluxio.client.file.FileSystem spyFs = spy(fs);
     doReturn(new URIStatus(fileInfo)).when(spyFs).getStatus(uri);
-    List<BlockWorkerInfo> eligibleWorkerInfos = allWorkers.stream().map(worker ->
-        new BlockWorkerInfo(worker, 0, 0)).collect(toList());
-    when(fsContext.getCachedWorkers()).thenReturn(eligibleWorkerInfos);
+    WorkerClusterView eligibleWorkers = new WorkerClusterView(
+        allWorkers.stream()
+            .map(worker -> new WorkerInfo()
+                .setIdentity(WorkerIdentityTestUtils.randomLegacyId())
+                .setAddress(worker)
+                .setCapacityBytes(0)
+                .setUsedBytes(0))
+            ::iterator);
+    when(fsContext.getCachedWorkers()).thenReturn(eligibleWorkers);
     List<HostAndPort> expectedWorkerNames = expectedWorkers.stream()
         .map(addr -> HostAndPort.fromParts(addr.getHost(), addr.getDataPort())).collect(toList());
     FileSystem alluxioHadoopFs = new FileSystem(spyFs);

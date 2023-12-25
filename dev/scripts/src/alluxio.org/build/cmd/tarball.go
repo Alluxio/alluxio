@@ -12,8 +12,6 @@
 package cmd
 
 import (
-	"bytes"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -44,29 +42,15 @@ func collectTarballContents(opts *buildOpts, repoBuildDir, dstDir, alluxioVersio
 		if !ok {
 			return stacktrace.NewError("no assembly jar named %v", n)
 		}
-		src := filepath.Join(repoBuildDir, strings.ReplaceAll(a.GeneratedJarPath, versionPlaceholder, alluxioVersion))
-		dst := filepath.Join(dstDir, strings.ReplaceAll(a.TarballJarPath, versionPlaceholder, alluxioVersion))
+		src := filepath.Join(repoBuildDir, strings.ReplaceAll(a.GeneratedJarPath, VersionPlaceholder, alluxioVersion))
+		dst := filepath.Join(dstDir, strings.ReplaceAll(a.TarballJarPath, VersionPlaceholder, alluxioVersion))
 		if err := copyFileForTarball(src, dst); err != nil {
 			return stacktrace.Propagate(err, "error copying file from %v to %v", src, dst)
 		}
 
 		// replace corresponding reference in scripts
-		for filePath, replacements := range a.FileReplacements {
-			replacementFile := filepath.Join(dstDir, filePath)
-			stat, err := os.Stat(replacementFile)
-			if err != nil {
-				return stacktrace.Propagate(err, "error listing file at %v", replacementFile)
-			}
-			contents, err := ioutil.ReadFile(replacementFile)
-			if err != nil {
-				return stacktrace.Propagate(err, "error reading file at %v", replacementFile)
-			}
-			for find, replace := range replacements {
-				contents = bytes.ReplaceAll(contents, []byte(find), []byte(replace))
-			}
-			if err := ioutil.WriteFile(replacementFile, contents, stat.Mode()); err != nil {
-				return stacktrace.Propagate(err, "error overwriting file at %v", replacementFile)
-			}
+		if err := a.ReplaceFiles(dstDir); err != nil {
+			return stacktrace.Propagate(err, "error handling file replacements")
 		}
 	}
 

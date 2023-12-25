@@ -69,7 +69,7 @@ func PresetsF(args []string) error {
 		return stacktrace.Propagate(err, "error finding preset named %v", flagPresetName)
 	}
 
-	alluxioVersion, err := alluxioVersionFromPom()
+	alluxioVersion, err := AlluxioVersionFromPom()
 	if err != nil {
 		return stacktrace.Propagate(err, "error parsing version string")
 	}
@@ -80,19 +80,19 @@ func PresetsF(args []string) error {
 	}
 	tarball := a.Add(Tarball,
 		opts.outputDir,
-		strings.ReplaceAll(opts.targetName, versionPlaceholder, alluxioVersion),
+		strings.ReplaceAll(opts.targetName, VersionPlaceholder, alluxioVersion),
 		nil,
 	)
 	for _, dArgs := range p.Docker {
-		dOpts, err := newDockerBuildOpts(strings.Split(dArgs, " "))
+		dOpts, err := NewDockerBuildOpts(strings.Split(dArgs, " "))
 		if err != nil {
 			return stacktrace.Propagate(err, "error creating docker build opts")
 		}
-		image, ok := dOpts.dockerImages[dOpts.image]
+		image, ok := dOpts.DockerImages[dOpts.Image]
 		if !ok {
 			return stacktrace.NewError("must provide valid 'image' arg")
 		}
-		a.Add(Docker, dOpts.outputDir, image.TargetName, dOpts.metadata)
+		a.Add(Docker, dOpts.outputDir, image.TargetName, dOpts.Metadata)
 	}
 
 	if opts.artifactOutput != "" {

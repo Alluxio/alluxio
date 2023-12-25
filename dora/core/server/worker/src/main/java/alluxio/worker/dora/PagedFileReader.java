@@ -25,12 +25,11 @@ import alluxio.network.protocol.databuffer.CompositeDataBuffer;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
-import alluxio.resource.CloseableResource;
-import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.worker.block.io.BlockReadableChannel;
 import alluxio.worker.block.io.BlockReader;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -40,6 +39,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,7 +50,6 @@ public class PagedFileReader extends BlockReader implements PositionReader {
   private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocate(0);
   private final long mFileSize;
   private final LocalCachePositionReader mPositionReader;
-  private final CloseableResource<UnderFileSystem> mUfs;
   private long mPos;
   private volatile boolean mClosed = false;
 
@@ -59,7 +58,7 @@ public class PagedFileReader extends BlockReader implements PositionReader {
    *
    * @param conf
    * @param cacheManager
-   * @param ufsClient
+   * @param ufs
    * @param fileId
    * @param ufsPath
    * @param fileSize
@@ -67,40 +66,37 @@ public class PagedFileReader extends BlockReader implements PositionReader {
    * @return a new {@link PagedFileReader}
    */
   public static PagedFileReader create(AlluxioConfiguration conf, CacheManager cacheManager,
-                                       UfsManager.UfsClient ufsClient, String fileId,
+                                       UnderFileSystem ufs, String fileId,
                                        String ufsPath, long fileSize, long startPosition) {
     FileId fileIdField = FileId.of(fileId);
-    CloseableResource<UnderFileSystem> ufs = ufsClient.acquireUfsResource();
-    try {
-      return new PagedFileReader(ufs, LocalCachePositionReader.create(cacheManager,
-          new CloseableSupplier<>(() -> ufs.get().openPositionRead(ufsPath, fileSize)),
-          fileIdField, fileSize, conf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE),
-          CacheContext.defaults()), fileSize, startPosition);
-    } catch (Throwable t) {
-      try {
-        ufs.close();
-      } catch (Throwable t1) {
-        t.addSuppressed(t1);
-      }
-      throw t;
-    }
+    return new PagedFileReader(LocalCachePositionReader.create(cacheManager,
+        new CloseableSupplier<>(() -> ufs.openPositionRead(ufsPath, fileSize)),
+        fileIdField, fileSize, conf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE),
+        CacheContext.defaults()), fileSize, startPosition);
   }
 
   /**
    * Constructor.
    *
-   * @param ufs
    * @param localCachePositionReader
    * @param fileSize
    * @param startPosition
    */
-  public PagedFileReader(CloseableResource<UnderFileSystem> ufs,
-                         LocalCachePositionReader localCachePositionReader,
+  public PagedFileReader(LocalCachePositionReader localCachePositionReader,
                          long fileSize, long startPosition) {
-    mUfs = Preconditions.checkNotNull(ufs);
     mPositionReader = Preconditions.checkNotNull(localCachePositionReader);
     mFileSize = fileSize;
     mPos = startPosition;
+  }
+
+  @VisibleForTesting
+  void setPosition(int pos) {
+    mPos = pos;
+  }
+
+  @VisibleForTesting
+  long getPosition() {
+    return mPos;
   }
 
   /**
@@ -114,7 +110,7 @@ public class PagedFileReader extends BlockReader implements PositionReader {
       throws IOException {
     if (mFileSize <= mPos) {
       // TODO(JiamingMai): consider throwing exception directly
-      return null;
+      return new CompositeDataBuffer(Collections.emptyList());
     }
     List<DataBuffer> dataBufferList = new ArrayList<>();
     long bytesToTransfer = Math.min(length, mFileSize - mPos);
@@ -132,6 +128,8 @@ public class PagedFileReader extends BlockReader implements PositionReader {
         dataBuffer = dataFileChannel.get();
         if (dataBuffer.getLength() > 0) {
           mPos += dataBuffer.getLength();
+        } else {
+          dataBuffer = getDataBufferByCopying(channel, (int) lengthPerOp);
         }
       }
       // update bytesToTransferLeft
@@ -162,7 +160,7 @@ public class PagedFileReader extends BlockReader implements PositionReader {
 
     // cap length to the remaining of block, as the caller may pass in a longer length than what
     // is left in the block, but expect as many bytes as there is
-    length = Math.min(length, mPos - offset);
+    length = Math.min(length, mFileSize - offset);
     ensureReadable(offset, length);
 
     // must not use pooled buffer, see interface implementation note
@@ -178,7 +176,6 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     }
     buffer.position(0);
     buffer.limit(bytesRead);
-    mPos += bytesRead;
     return buffer;
   }
 
@@ -231,7 +228,6 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     }
     mClosed = true;
     mPositionReader.close();
-    mUfs.close();
     super.close();
   }
 

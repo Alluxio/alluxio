@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.JobProgressReportFormat;
@@ -37,22 +36,12 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Loads a file or directory in Alluxio space, making it resident in Alluxio.
- *
- * @deprecated This command no longer works under the new Dora architecture.
  */
 @ThreadSafe
 @PublicApi
-@Deprecated
 public final class LoadCommand extends AbstractFileSystemCommand {
   private static final JobProgressReportFormat DEFAULT_FORMAT = JobProgressReportFormat.TEXT;
   private static final String JOB_TYPE = "load";
-  private static final Option LOCAL_OPTION =
-      Option.builder()
-          .longOpt("local")
-          .required(false)
-          .hasArg(false)
-          .desc("load the file to local worker.")
-          .build();
   private static final Option SUBMIT_OPTION = Option.builder()
       .longOpt("submit")
       .required(false)
@@ -120,6 +109,20 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       .desc("If specified, only the file metadata are loaded")
       .build();
 
+  private static final Option SKIP_IF_EXISTS = Option.builder()
+      .longOpt("skip-if-exists")
+      .required(false)
+      .hasArg(false)
+      .desc("If specified, skip files if they exist and are fully cached in alluxio.")
+      .build();
+
+  private static final Option FILE_FILTER_REGX = Option.builder()
+      .longOpt("file-filter-regx")
+      .required(false)
+      .hasArg(true)
+      .desc("If specified, skip files that doesn't match the regx pattern.")
+      .build();
+
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
@@ -145,21 +148,18 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         .addOption(PROGRESS_OPTION)
         .addOption(PROGRESS_FORMAT)
         .addOption(PROGRESS_VERBOSE)
-        .addOption(LOCAL_OPTION)
-        .addOption(LOAD_METADATA_ONLY);
+        .addOption(LOAD_METADATA_ONLY)
+        .addOption(SKIP_IF_EXISTS)
+        .addOption(FILE_FILTER_REGX);
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    System.out.println("The load command is deprecated under the new  DORA architecture. "
-        + "Please only use it when the cluster has " + PropertyKey.DORA_ENABLED + "=false");
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
-
     if (path.containsWildcard()) {
       throw new UnsupportedOperationException("Load does not support wildcard path");
     }
-    throwIfOldFormat(cl);
 
     if (cl.hasOption(SUBMIT_OPTION.getLongOpt())) {
       OptionalLong bandwidth = OptionalLong.empty();
@@ -167,12 +167,18 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         bandwidth = OptionalLong.of(FormatUtils.parseSpaceSize(
             cl.getOptionValue(BANDWIDTH_OPTION.getLongOpt())));
       }
+      Optional<String> regxPatternStr = Optional.empty();
+      if (cl.hasOption(FILE_FILTER_REGX.getLongOpt())) {
+        regxPatternStr = Optional.of(cl.getOptionValue(FILE_FILTER_REGX.getLongOpt()));
+      }
       return submitLoad(
           path,
           bandwidth,
           cl.hasOption(PARTIAL_LISTING_OPTION.getLongOpt()),
           cl.hasOption(VERIFY_OPTION.getLongOpt()),
-          cl.hasOption(LOAD_METADATA_ONLY.getLongOpt()));
+          cl.hasOption(LOAD_METADATA_ONLY.getLongOpt()),
+          cl.hasOption(SKIP_IF_EXISTS.getLongOpt()),
+          regxPatternStr);
     }
 
     if (cl.hasOption(STOP_OPTION.getLongOpt())) {
@@ -191,10 +197,10 @@ public final class LoadCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "For backward compatibility: load [--local] <path>\n"
-        + "For distributed load:\n"
+    return "For distributed load:\n"
         + "\tload <path> --submit "
-        + "[--bandwidth N] [--verify] [--partial-listing] [--metadata-only]\n"
+        + "[--bandwidth N] [--verify] [--partial-listing] [--metadata-only] [--skip-if-exists] "
+        + "[--file-filter-regx <regx_pattern_string>]\n"
         + "\tload <path> --stop\n"
         + "\tload <path> --progress [--format TEXT|JSON] [--verbose]\n";
   }
@@ -207,7 +213,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
-    throwIfOldFormat(cl);
     int commands = 0;
     if (cl.hasOption(SUBMIT_OPTION.getLongOpt())) {
       commands++;
@@ -224,14 +229,19 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   }
 
   private int submitLoad(AlluxioURI path, OptionalLong bandwidth,
-      boolean usePartialListing, boolean verify, boolean loadMetadataOnly) {
+      boolean usePartialListing, boolean verify, boolean loadMetadataOnly, boolean skipIfExists,
+                         Optional<String> regxPatternStr) {
     LoadJobPOptions.Builder options = alluxio.grpc.LoadJobPOptions
         .newBuilder().setPartialListing(usePartialListing).setVerify(verify)
-        .setLoadMetadataOnly(loadMetadataOnly);
+        .setLoadMetadataOnly(loadMetadataOnly)
+        .setSkipIfExists(skipIfExists);
     if (bandwidth.isPresent()) {
       options.setBandwidth(bandwidth.getAsLong());
     }
-    LoadJobRequest job = new LoadJobRequest(path.getPath(), options.build());
+    if (regxPatternStr.isPresent()) {
+      options.setFileFilterRegx(regxPatternStr.get());
+    }
+    LoadJobRequest job = new LoadJobRequest(path.toString(), options.build());
     try {
       Optional<String> jobId = mFileSystem.submitJob(job);
       if (jobId.isPresent()) {
@@ -250,7 +260,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     try {
       if (mFileSystem.stopJob(JobDescription
           .newBuilder()
-          .setPath(path.getPath())
+          .setPath(path.toString())
           .setType(JOB_TYPE)
           .build())) {
         System.out.printf("Load '%s' is successfully stopped.%n", path);
@@ -272,7 +282,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       System.out.println("Progress for loading path '" + path + "':");
       System.out.println(mFileSystem.getJobProgress(JobDescription
           .newBuilder()
-          .setPath(path.getPath())
+          .setPath(path.toString())
           .setType(JOB_TYPE)
           .build(), format, verbose));
       return 0;
@@ -283,13 +293,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       }
       System.out.println("Failed to get progress for load job " + path + ": " + e.getMessage());
       return -1;
-    }
-  }
-
-  private void throwIfOldFormat(CommandLine cl) {
-    if (cl.getOptions().length == 0
-        || (cl.getOptions().length == 1 && cl.hasOption(LOCAL_OPTION.getLongOpt()))) {
-      throw new IllegalArgumentException("load command no longer supports the old format");
     }
   }
 

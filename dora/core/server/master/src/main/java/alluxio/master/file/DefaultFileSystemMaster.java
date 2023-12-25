@@ -126,7 +126,7 @@ import alluxio.master.scheduler.JournaledJobMetaStore;
 import alluxio.master.scheduler.MembershipManagerWorkerProvider;
 import alluxio.master.scheduler.Scheduler;
 import alluxio.master.scheduler.WorkerProvider;
-import alluxio.membership.EtcdMembershipManager;
+import alluxio.membership.MembershipManager;
 import alluxio.membership.MembershipType;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
@@ -504,9 +504,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       case STATIC:
       case ETCD:
         workerProvider = new MembershipManagerWorkerProvider(
-            EtcdMembershipManager.create(Configuration.global()), schedulerFsContext);
+            MembershipManager.Factory.create(Configuration.global()), schedulerFsContext);
         break;
-      case NOOP:
+      case MASTER:
         workerProvider = new DefaultWorkerProvider(this, schedulerFsContext);
         break;
       default:
@@ -741,13 +741,6 @@ public class DefaultFileSystemMaster extends CoreMaster
             MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
             () -> mAsyncAuditLogWriter != null
                     ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
-      }
-      if (Configuration.getBoolean(PropertyKey.UNDERFS_CLEANUP_ENABLED)) {
-        getExecutorService().submit(
-            new HeartbeatThread(HeartbeatContext.MASTER_UFS_CLEANUP, new UfsCleaner(this),
-                () -> new FixedIntervalSupplier(
-                    Configuration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL)),
-                Configuration.global(), mMasterContext.getUserState()));
       }
       mScheduler.start();
     }
@@ -4152,6 +4145,11 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
     return mBlockMaster.getWorkerInfoList();
+  }
+
+  @Override
+  public List<WorkerInfo> getLostWorkerList() throws UnavailableException {
+    return mBlockMaster.getLostWorkersInfoList();
   }
 
   @Override

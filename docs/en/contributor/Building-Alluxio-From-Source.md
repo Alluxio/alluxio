@@ -8,11 +8,12 @@ This guide describes how to clone the Alluxio repository, compile the source cod
 
 ## Required Software
 
-- [Java 11](https://www.oracle.com/java/technologies/downloads/#java11)
+- [Java 8](https://www.oracle.com/java/technologies/downloads/#java8)
 - [Maven 3.8.6 or later](http://maven.apache.org/download.cgi)
+- [Golang 1.18.1 or later](https://go.dev/doc/install)
 - [Git](https://git-scm.org/downloads)
 
-Alternatively, we have published a docker image [alluxio/alluxio-maven](https://hub.docker.com/r/alluxio/alluxio-maven) with Java, Maven, and Git pre-installed to help build Alluxio source code.
+Alternatively, we have published a docker image [alluxio/alluxio-maven](https://hub.docker.com/r/alluxio/alluxio-maven) with Java, Maven, Golang, and Git pre-installed to help build Alluxio source code.
 
 ## Checkout Source Code
 
@@ -79,7 +80,7 @@ Subsequent builds, however, will be much faster.
 Once Alluxio is built, you can start it with:
 
 ```shell
-$ ./bin/alluxio-start.sh local SudoMount
+$ ./bin/alluxio process start local
 ```
 
 To verify that Alluxio is running, you can visit [`http://localhost:19999`](http://localhost:19999) or
@@ -89,7 +90,7 @@ It may take a few seconds for the web server to start.
 You can run a test command to verify that data can be read and written to Alluxio:
 
 ```shell
-$ ./bin/alluxio runTests
+$ ./bin/alluxio exec basicIOTest
 ```
 
 You should be able to see the result `Passed the test!`
@@ -97,7 +98,7 @@ You should be able to see the result `Passed the test!`
 Stop the local Alluxio system by using:
 
 ```shell
-$ ./bin/alluxio-stop.sh local
+$ ./bin/alluxio process stop local
 ```
 
 ## Troubleshooting

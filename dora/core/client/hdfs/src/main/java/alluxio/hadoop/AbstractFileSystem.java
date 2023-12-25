@@ -42,6 +42,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.CurrentUser;
 import alluxio.security.authorization.Mode;
+import alluxio.util.ModeUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -165,6 +166,27 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     // closing
     super.close();
     mFileSystem.close();
+  }
+
+  /**
+   * Attempts to create a file with default permission.
+   * Overwrite will not succeed if the path exists and is a folder.
+   *
+   * @param path path to create
+   * @param overwrite overwrite if file exists
+   * @param bufferSize the size in bytes of the buffer to be used
+   * @param replication under filesystem replication factor, this is ignored
+   * @param blockSize block size in bytes
+   * @param progress queryable progress
+   * @return an {@link FSDataOutputStream} created at the indicated path of a file
+   */
+  @Override
+  public FSDataOutputStream create(Path path, boolean overwrite, int bufferSize, short replication,
+                                   long blockSize, Progressable progress) throws IOException {
+    String confUmask = mAlluxioConf.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
+    Mode mode = ModeUtils.applyFileUMask(Mode.defaults(), confUmask);
+    return this.create(path, new FsPermission(mode.toShort()), overwrite, bufferSize, replication,
+        blockSize, progress);
   }
 
   /**
@@ -520,12 +542,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   public synchronized void initialize(URI uri, org.apache.hadoop.conf.Configuration conf,
       @Nullable AlluxioConfiguration alluxioConfiguration)
       throws IOException {
-    // Validates scheme and authority of FS Uri.
-    validateFsUri(uri);
-
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
-    HadoopUtils.addSwiftCredentials(conf);
     setConf(conf);
 
     // HDFS doesn't allow the authority to be empty; it must be "/" instead.
@@ -651,6 +669,20 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   }
 
   /**
+   * Attempts to create a folder with the specified path with default permission.
+   * Parent directories will be created.
+   *
+   * @param path path to create
+   * @return true if the indicated folder is created successfully or already exists
+   */
+  @Override
+  public boolean mkdirs(Path path) throws IOException {
+    String confUmask = mAlluxioConf.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
+    Mode mode = ModeUtils.applyDirectoryUMask(Mode.defaults(), confUmask);
+    return mkdirs(path, new FsPermission(mode.toShort()));
+  }
+
+  /**
    * Attempts to create a folder with the specified path. Parent directories will be created.
    *
    * @param path path to create
@@ -703,7 +735,10 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     if (mStatistics != null) {
       mStatistics.incrementWriteOps(1);
     }
-
+    if (src.equals(dst)) {
+      LOG.debug("Renaming {} to the same location", src);
+      return true;
+    }
     AlluxioURI srcPath = getAlluxioPath(src);
     AlluxioURI dstPath = getAlluxioPath(dst);
     try {
@@ -713,34 +748,53 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       return false;
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
-    } catch (AlluxioRuntimeException e) {
-      throw toHdfsIOException(e);
-    } catch (AlluxioException e) {
-      ensureExists(srcPath);
-      URIStatus dstStatus;
-      try {
-        dstStatus = mFileSystem.getStatus(dstPath);
-      } catch (IOException | AlluxioException e2) {
-        LOG.warn("rename failed: {}", e.toString());
-        return false;
-      }
-      // If the destination is an existing folder, try to move the src into the folder
-      if (dstStatus != null && dstStatus.isFolder()) {
-        dstPath = dstPath.joinUnsafe(srcPath.getName());
-      } else {
-        LOG.warn("rename failed: {}", e.toString());
-        return false;
+    } catch (AlluxioRuntimeException | AlluxioException e) {
+      Exception exToLog = e;
+      if (e instanceof  AlluxioRuntimeException) {
+        exToLog = toHdfsIOException((AlluxioRuntimeException) e);
       }
       try {
-        mFileSystem.rename(srcPath, dstPath);
-      } catch (IOException | AlluxioException e2) {
-        LOG.error("Failed to rename {} to {}", src, dst, e2);
+        boolean res = tryMoveIntoDirectory(src, dst, srcPath, dstPath);
+        if (!res) {
+          LOG.warn("Failed to rename src {} to dst {}"
+              + "because the dst is not a directory", src,  dst, exToLog);
+          return false;
+        }
+      } catch (IOException | AlluxioException | AlluxioRuntimeException e2) {
+        LOG.warn("Failed to rename src {} to dst {} with exception {},"
+                + "and fail to move src to dst as a folder with exception",
+            src, dst, exToLog, e2);
         return false;
       }
-    } catch (IOException e) {
-      LOG.error("Failed to rename {} to {}", src, dst, e);
+    } catch (IOException | RuntimeException e) {
+      LOG.warn("Failed to rename {} to {}", src, dst, e);
       return false;
     }
+    return true;
+  }
+
+  /**
+   * rename when previous rename fail, reconstruct path and check status.
+   * In order to support hdfs rename interface
+   *
+   * @param src src
+   * @param dst dst
+   * @param srcPath srcPath
+   * @param dstPath srcPath
+   * @return true in success, false if fail
+   */
+  public boolean tryMoveIntoDirectory(Path src, Path dst, AlluxioURI srcPath, AlluxioURI dstPath)
+      throws IOException, AlluxioException {
+    ensureExists(srcPath);
+    URIStatus dstStatus;
+    dstStatus = mFileSystem.getStatus(dstPath);
+    // If the destination is an existing folder, try to move the src into the folder
+    if (dstStatus != null && dstStatus.isFolder()) {
+      dstPath = dstPath.joinUnsafe(srcPath.getName());
+    } else {
+      return false;
+    }
+    mFileSystem.rename(srcPath, dstPath);
     return true;
   }
 
@@ -800,15 +854,6 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
    * @param uri an Alluxio Uri that may contain connection configuration
    */
   protected abstract Map<String, Object> getConfigurationFromUri(URI uri, Configuration conf);
-
-  /**
-   * Validates given FS base URI for scheme and authority.
-   *
-   * @param fsUri FS Uri
-   * @throws IOException
-   * @throws IllegalArgumentException
-   */
-  protected abstract void validateFsUri(URI fsUri) throws IOException, IllegalArgumentException;
 
   /**
    * Used to get FS scheme.

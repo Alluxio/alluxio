@@ -13,11 +13,15 @@ package alluxio.master.scheduler;
 
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.membership.MembershipManager;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,6 +32,7 @@ import java.util.List;
 public class MembershipManagerWorkerProvider implements WorkerProvider {
   private final MembershipManager mMembershipManager;
   private final FileSystemContext mContext;
+  private final boolean mEnableDynamicHashRing;
 
   /**
    * CTOR for MembershipManagerWorkerProvider.
@@ -38,12 +43,23 @@ public class MembershipManagerWorkerProvider implements WorkerProvider {
                                          FileSystemContext context) {
     mMembershipManager = membershipMgr;
     mContext = context;
+    if (context != null && context.getClusterConf() != null) {
+      mEnableDynamicHashRing =
+          context.getClusterConf()
+              .getBoolean(PropertyKey.USER_DYNAMIC_CONSISTENT_HASH_RING_ENABLED);
+    } else {
+      mEnableDynamicHashRing = Configuration.global()
+          .getBoolean(PropertyKey.USER_DYNAMIC_CONSISTENT_HASH_RING_ENABLED);
+    }
   }
 
   @Override
   public List<WorkerInfo> getWorkerInfos() {
     try {
-      return mMembershipManager.getAllMembers();
+      if (mEnableDynamicHashRing) {
+        return getLiveWorkerInfos();
+      }
+      return ImmutableList.copyOf(mMembershipManager.getAllMembers());
     } catch (IOException ex) {
       throw AlluxioRuntimeException.from(ex);
     }
@@ -52,7 +68,7 @@ public class MembershipManagerWorkerProvider implements WorkerProvider {
   @Override
   public List<WorkerInfo> getLiveWorkerInfos() {
     try {
-      return mMembershipManager.getLiveMembers();
+      return ImmutableList.copyOf(mMembershipManager.getLiveMembers());
     } catch (IOException ex) {
       throw AlluxioRuntimeException.from(ex);
     }

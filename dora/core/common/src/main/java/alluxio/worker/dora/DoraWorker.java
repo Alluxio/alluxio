@@ -19,7 +19,8 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.LoadFileFailure;
+import alluxio.grpc.LoadFileResponse;
+import alluxio.grpc.LoadSubTask;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
@@ -29,6 +30,7 @@ import alluxio.grpc.WriteOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsStatus;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.DataWorker;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
@@ -99,13 +101,13 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
   /**
    * Loads the metadata and data of files from UFS to Alluxio.
    *
-   * @param loadData true if data should also be loaded, otherwise metadata only
-   * @param ufsStatuses the files to load
-   * @param options
+   * @param skipIfExists true if data loading should be skipped if it's already loaded
+   * @param subTasks the subtasks to load
+   * @param options the options for reading
    * @return a list of failed files
    */
-  ListenableFuture<List<LoadFileFailure>> load(
-      boolean loadData, List<UfsStatus> ufsStatuses, UfsReadOptions options)
+  ListenableFuture<LoadFileResponse> load(
+      List<LoadSubTask> subTasks, boolean skipIfExists, UfsReadOptions options)
       throws AccessControlException, IOException;
 
   /**
@@ -187,4 +189,19 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @param options the options of this operation
    */
   void setAttribute(String path, SetAttributePOptions options) throws IOException;
+
+  /**
+   * Load data from UFS and cache it on worker. Will skip if data is already on worker.
+   * @param path the full UFS path
+   * @param length the length of the data to load
+   * @param pos the position of the file where loading starts from
+   * @param isAsync if the load is done in async mode
+   */
+  void cacheData(String path, long length, long pos, boolean isAsync) throws IOException;
+
+  /**
+   * Get the address of the Dora Worker.
+   * @return worker address
+   */
+  WorkerNetAddress getAddress();
 }

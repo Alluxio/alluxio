@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-integration-jnifuse</artifactId>
-    <version>303-SNAPSHOT</version>
+    <version>308-SNAPSHOT</version>
   </parent>
 
   <artifactId>alluxio-integration-jnifuse-fs</artifactId>
@@ -34,6 +34,10 @@
     <dependency>
       <groupId>com.github.serceman</groupId>
       <artifactId>jnr-fuse</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.etcd</groupId>
+      <artifactId>jetcd-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>

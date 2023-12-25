@@ -43,6 +43,7 @@ import com.obs.services.model.MultipartUploadListing;
 import com.obs.services.model.ObjectListing;
 import com.obs.services.model.ObjectMetadata;
 import com.obs.services.model.ObsObject;
+import com.obs.services.model.SetObjectMetadataRequest;
 import com.obs.services.model.fs.RenameRequest;
 import com.obs.services.model.fs.RenameResult;
 import org.slf4j.Logger;
@@ -52,8 +53,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -188,6 +192,33 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   public void setOwner(String path, String user, String group) {
   }
 
+  @Override
+  public void setObjectTagging(String path, String name, String value) throws IOException {
+    ObjectMetadata metadata = mClient.getObjectMetadata(mBucketName, path);
+    SetObjectMetadataRequest request = new SetObjectMetadataRequest(mBucketName, path);
+    // It's a read-and-update race condition. When there is a competitive conflict scenario,
+    // it may lead to inconsistent final results. The final conflict occurs in UFS,
+    // UFS will determine the final result.
+    for (Map.Entry<String, Object> meta : metadata.getMetadata().entrySet()) {
+      request.addUserMetadata(meta.getKey(), String.valueOf(meta.getValue()));
+    }
+    request.addUserMetadata(name, value);
+    mClient.setObjectMetadata(request);
+  }
+
+  @Override
+  public Map<String, String> getObjectTags(String path) throws IOException {
+    try {
+      ObjectMetadata metadata = mClient.getObjectMetadata(mBucketName, path);
+      return Collections.unmodifiableMap(
+          metadata.getMetadata().entrySet().stream().collect(HashMap::new,
+              (map, entry) -> map.put(entry.getKey(), String.valueOf(entry.getValue())),
+              HashMap::putAll));
+    } catch (ObsException e) {
+      throw new IOException("Failed to get attribute of the object", e);
+    }
+  }
+
   // No ACL integration currently, no-op
   @Override
   public void setMode(String path, short mode) throws IOException {
@@ -286,7 +317,7 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   // Get next chunk of listing result
-  private ObjectListing getObjectListingChunk(ListObjectsRequest request) {
+  protected ObjectListing getObjectListingChunk(ListObjectsRequest request) {
     ObjectListing result;
     try {
       result = mClient.listObjects(request);
@@ -360,6 +391,11 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
         }
       }
       return null;
+    }
+
+    @Override
+    public Boolean hasNextChunk() {
+      return mResult.isTruncated();
     }
   }
 

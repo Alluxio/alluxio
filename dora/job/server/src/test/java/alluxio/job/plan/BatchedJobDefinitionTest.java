@@ -11,14 +11,12 @@
 
 package alluxio.job.plan;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.client.block.BlockStoreClient;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -28,12 +26,14 @@ import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.batch.BatchedJobDefinition;
 import alluxio.job.plan.persist.PersistConfig;
+import alluxio.membership.WorkerClusterView;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
-import alluxio.wire.TieredIdentity;
+import alluxio.wire.WorkerIdentity;
+import alluxio.wire.WorkerIdentityTestUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -41,11 +41,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Longs;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -57,39 +58,39 @@ import java.util.Set;
 public class BatchedJobDefinitionTest {
   private static final String TEST_URI = "/test";
   private static final WorkerNetAddress WORKER_ADDR_0 =
-      new WorkerNetAddress().setHost("host0")
-          .setTieredIdentity(
-              new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack1"))));
+      new WorkerNetAddress().setHost("host0");
+  private static final WorkerIdentity WORKER_IDENTITY_0 =
+      WorkerIdentityTestUtils.fromRawParts(Longs.toByteArray(0L), 0);
   private static final WorkerNetAddress WORKER_ADDR_1 =
-      new WorkerNetAddress().setHost("host1")
-          .setTieredIdentity(
-              new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack1"))));
+      new WorkerNetAddress().setHost("host1");
+  private static final WorkerIdentity WORKER_IDENTITY_1 =
+      WorkerIdentityTestUtils.fromRawParts(Longs.toByteArray(1L), 0);
   private static final WorkerNetAddress WORKER_ADDR_2 =
-      new WorkerNetAddress().setHost("host2")
-          .setTieredIdentity(
-              new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack2"))));
+      new WorkerNetAddress().setHost("host2");
+  private static final WorkerIdentity WORKER_IDENTITY_2 =
+      WorkerIdentityTestUtils.fromRawParts(Longs.toByteArray(2L), 0);
   private static final WorkerNetAddress WORKER_ADDR_3 =
-      new WorkerNetAddress().setHost("host3")
-          .setTieredIdentity(
-              new TieredIdentity(Collections.singletonList(
-                  new TieredIdentity.LocalityTier("rack", "rack2"))));
+      new WorkerNetAddress().setHost("host3");
+  private static final WorkerIdentity WORKER_IDENTITY_3 =
+      WorkerIdentityTestUtils.fromRawParts(Longs.toByteArray(3L), 0);
 
   private static final List<WorkerInfo> JOB_WORKERS = new ImmutableList.Builder<WorkerInfo>()
-      .add(new WorkerInfo().setId(0).setAddress(WORKER_ADDR_0))
-      .add(new WorkerInfo().setId(1).setAddress(WORKER_ADDR_1))
-      .add(new WorkerInfo().setId(2).setAddress(WORKER_ADDR_2))
-      .add(new WorkerInfo().setId(3).setAddress(WORKER_ADDR_3))
+      .add(new WorkerInfo().setId(0).setIdentity(WORKER_IDENTITY_0).setAddress(WORKER_ADDR_0))
+      .add(new WorkerInfo().setId(1).setIdentity(WORKER_IDENTITY_1).setAddress(WORKER_ADDR_1))
+      .add(new WorkerInfo().setId(2).setIdentity(WORKER_IDENTITY_2).setAddress(WORKER_ADDR_2))
+      .add(new WorkerInfo().setId(3).setIdentity(WORKER_IDENTITY_3).setAddress(WORKER_ADDR_3))
       .build();
 
-  private static final List<BlockWorkerInfo> BLOCK_WORKERS =
-      new ImmutableList.Builder<BlockWorkerInfo>()
-          .add(new BlockWorkerInfo(WORKER_ADDR_0, 0, 0))
-          .add(new BlockWorkerInfo(WORKER_ADDR_1, 0, 0))
-          .add(new BlockWorkerInfo(WORKER_ADDR_2, 0, 0))
-          .add(new BlockWorkerInfo(WORKER_ADDR_3, 0, 0)).build();
+  private static final WorkerClusterView BLOCK_WORKERS =
+      new WorkerClusterView(Arrays.asList(
+          new WorkerInfo().setIdentity(WORKER_IDENTITY_0).setAddress(WORKER_ADDR_0)
+              .setCapacityBytes(0).setUsedBytes(0),
+          new WorkerInfo().setIdentity(WORKER_IDENTITY_1).setAddress(WORKER_ADDR_1)
+              .setCapacityBytes(0).setUsedBytes(0),
+          new WorkerInfo().setIdentity(WORKER_IDENTITY_2).setAddress(WORKER_ADDR_2)
+              .setCapacityBytes(0).setUsedBytes(0),
+          new WorkerInfo().setIdentity(WORKER_IDENTITY_3).setAddress(WORKER_ADDR_3)
+              .setCapacityBytes(0).setUsedBytes(0)));
 
   private JobServerContext mJobServerContext;
   private FileSystem mMockFileSystem;
@@ -104,8 +105,6 @@ public class BatchedJobDefinitionTest {
     when(mMockFsContext.getClientContext())
         .thenReturn(ClientContext.create(Configuration.global()));
     when(mMockFsContext.getClusterConf()).thenReturn(Configuration.global());
-    when(mMockFsContext.getPathConf(any(AlluxioURI.class)))
-        .thenReturn(Configuration.global());
     mJobServerContext = new JobServerContext(mMockFileSystem, mMockFsContext,
         mock(UfsManager.class));
   }

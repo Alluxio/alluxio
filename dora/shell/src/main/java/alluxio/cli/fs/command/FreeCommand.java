@@ -70,7 +70,7 @@ public final class FreeCommand extends AbstractFileSystemCommand {
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
     int interval =
-        Math.toIntExact(mFsContext.getPathConf(path)
+        Math.toIntExact(mFsContext.getClusterConf()
             .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
     FreePOptions options =
         FreePOptions.newBuilder().setRecursive(true).setForced(cl.hasOption("f")).build();

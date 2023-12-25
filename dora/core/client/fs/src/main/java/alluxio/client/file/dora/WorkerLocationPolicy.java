@@ -15,7 +15,11 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.membership.WorkerClusterView;
 import alluxio.util.CommonUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -36,23 +40,25 @@ public interface WorkerLocationPolicy {
    * This method should return exactly #{count} different workers, no more no less.
    * If the specified number of workers cannot be found, this method will throw
    * a {@link ResourceExhaustedException}.
-   *
+   * <p>
    * We want the semantics here to be explicit when the requirement cannot be satisfied.
    * So the caller should define its own logic handling the exception and finding backups.
    *
-   * @param blockWorkerInfos
+   * @param workers
    * @param fileId
    * @param count
    * @return a list of preferred workers
    * @throws ResourceExhaustedException if unable to return exactly #{count} workers
    */
-  List<BlockWorkerInfo> getPreferredWorkers(List<BlockWorkerInfo> blockWorkerInfos,
+  List<BlockWorkerInfo> getPreferredWorkers(WorkerClusterView workers,
       String fileId, int count) throws ResourceExhaustedException;
 
   /**
    * The factory for the {@link WorkerLocationPolicy}.
    */
   class Factory {
+    private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
+
     private Factory() {} // prevent instantiation
 
     /**
@@ -63,9 +69,12 @@ public interface WorkerLocationPolicy {
      */
     public static WorkerLocationPolicy create(AlluxioConfiguration conf) {
       try {
-        return CommonUtils.createNewClassInstance(
+        WorkerLocationPolicy workerLocationPolicy = CommonUtils.createNewClassInstance(
             conf.getClass(PropertyKey.USER_WORKER_SELECTION_POLICY),
             new Class[] {AlluxioConfiguration.class}, new Object[] {conf});
+        LOG.debug("Using worker location policy: {}",
+            workerLocationPolicy.getClass().getSimpleName());
+        return workerLocationPolicy;
       } catch (ClassCastException e) {
         throw new RuntimeException(e);
       }

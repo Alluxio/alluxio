@@ -12,7 +12,6 @@
 package alluxio.cli.fsadmin.report;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import alluxio.client.job.JobMasterClient;
 import alluxio.grpc.BuildVersion;
@@ -24,8 +23,9 @@ import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.PlanInfo;
 import alluxio.job.wire.Status;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.ArrayUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,8 +62,7 @@ public class JobServiceMetricsCommandTest {
   @Test
   public void testBasic() throws IOException, ParseException {
     long now = Instant.now().toEpochMilli();
-    String startTimeStr = JobServiceMetricsCommand.DATETIME_FORMAT
-        .format(Instant.ofEpochMilli(now));
+    String startTimeStr = String.valueOf(now);
     JobMasterStatus primaryMaster = JobMasterStatus.newBuilder()
         .setMasterAddress(NetAddress.newBuilder()
             .setHost("master-node-1").setRpcPort(19998).build())
@@ -95,79 +93,85 @@ public class JobServiceMetricsCommandTest {
 
     List<JobInfo> jobInfos = new ArrayList<>();
 
-    jobInfos.add(createJobInfo(1, "Test1", Status.RUNNING, "2019-10-17 12:00:00"));
-    jobInfos.add(createJobInfo(2, "Test2", Status.FAILED, "2019-10-17 12:30:15"));
+    jobInfos.add(new PlanInfo(1, "Test1", Status.RUNNING, 1547697600000L, null));
+    jobInfos.add(new PlanInfo(2, "Test2", Status.FAILED, 1547699415000L, null));
 
     Mockito.when(mJobMasterClient.getJobServiceSummary())
             .thenReturn(new JobServiceSummary(jobInfos));
 
-    new JobServiceMetricsCommand(mJobMasterClient, mPrintStream, "MM-dd-yyyy HH:mm:ss:SSS").run();
+    new JobServiceMetricsCommand(mJobMasterClient, mPrintStream, "yyyyMMdd-HHmmss").run();
 
     String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
-
-    String[] lineByLine = output.split("\n");
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode jsonNode = mapper.readTree(output);
 
     // Master Status Section
-    assertTrue(lineByLine[0].contains("Master Address      State    Start Time       "
-        + "Version                          Revision"));
-    assertTrue(lineByLine[1].contains("master-node-1:19998 PRIMARY"));
-    assertTrue(lineByLine[1].contains(startTimeStr));
-    assertTrue(lineByLine[1].contains("alluxio-version-2.9              abcdef"));
-    assertTrue(lineByLine[2].contains("master-node-0:19998 STANDBY"));
-    assertTrue(lineByLine[2].contains(startTimeStr));
-    assertTrue(lineByLine[2].contains("alluxio-version-2.10             abcdef"));
-    assertTrue(lineByLine[3].contains("master-node-2:19998 STANDBY"));
-    assertTrue(lineByLine[3].contains(startTimeStr));
-    assertTrue(lineByLine[3].contains("alluxio-version-2.10             bcdefg"));
+    JsonNode masterStatuses = jsonNode.get("masterStatus");
+    assertEquals(startTimeStr, masterStatuses.get(0).get("startTime").asText());
+    assertEquals("abcdef", masterStatuses.get(0).get("revision").asText());
+    assertEquals("19998", masterStatuses.get(0).get("port").asText());
+    assertEquals("master-node-1", masterStatuses.get(0).get("host").asText());
+    assertEquals("alluxio-version-2.9", masterStatuses.get(0).get("version").asText());
+    assertEquals("PRIMARY", masterStatuses.get(0).get("state").asText());
+    assertEquals(startTimeStr, masterStatuses.get(1).get("startTime").asText());
+    assertEquals("abcdef", masterStatuses.get(1).get("revision").asText());
+    assertEquals("19998", masterStatuses.get(1).get("port").asText());
+    assertEquals("master-node-0", masterStatuses.get(1).get("host").asText());
+    assertEquals("alluxio-version-2.10", masterStatuses.get(1).get("version").asText());
+    assertEquals("STANDBY", masterStatuses.get(1).get("state").asText());
+    assertEquals(startTimeStr, masterStatuses.get(2).get("startTime").asText());
+    assertEquals("bcdefg", masterStatuses.get(2).get("revision").asText());
+    assertEquals("19998", masterStatuses.get(2).get("port").asText());
+    assertEquals("master-node-2", masterStatuses.get(2).get("host").asText());
+    assertEquals("alluxio-version-2.10", masterStatuses.get(2).get("version").asText());
+    assertEquals("STANDBY", masterStatuses.get(2).get("state").asText());
 
     // Worker Health Section
-    assertTrue(lineByLine[5].contains("Job Worker       Version                          "
-        + "Revision Task Pool Size Unfinished Tasks Active Tasks Load Avg"));
-    assertTrue(lineByLine[6].contains("testHost         2.10.0-SNAPSHOT                  "
-        + "ac6a0616"));
-    assertTrue(lineByLine[6].contains("10             2                2            "
-        + "1.2, 0.9, 0.7"));
+    JsonNode workerHealth = jsonNode.get("workerHealth");
+    assertEquals("ac6a0616", workerHealth.get(0).get("revision").asText());
+    assertEquals("2", workerHealth.get(0).get("activeTasks").asText());
+    assertEquals("1.2", workerHealth.get(0).get("loadAverage").get(0).asText());
+    assertEquals("0.9", workerHealth.get(0).get("loadAverage").get(1).asText());
+    assertEquals("0.7", workerHealth.get(0).get("loadAverage").get(2).asText());
+    assertEquals("10", workerHealth.get(0).get("taskPoolSize").asText());
+    assertEquals("2", workerHealth.get(0).get("unfinishedTasks").asText());
+    assertEquals("testHost", workerHealth.get(0).get("host").asText());
+    assertEquals("2.10.0-SNAPSHOT", workerHealth.get(0).get("version").asText());
 
     // Group By Status
-    lineByLine = ArrayUtils.subarray(lineByLine, 8, lineByLine.length);
-
-    assertEquals("Status: CREATED   Count: 0", lineByLine[0]);
-    assertEquals("Status: CANCELED  Count: 0", lineByLine[1]);
-    assertEquals("Status: FAILED    Count: 1", lineByLine[2]);
-    assertEquals("Status: RUNNING   Count: 1", lineByLine[3]);
-    assertEquals("Status: COMPLETED Count: 0", lineByLine[4]);
-    assertEquals("", lineByLine[5]);
+    JsonNode statusSummary = jsonNode.get("statusSummary");
+    assertEquals("CREATED", statusSummary.get(0).get("status").asText());
+    assertEquals("0", statusSummary.get(0).get("count").asText());
+    assertEquals("CANCELED", statusSummary.get(1).get("status").asText());
+    assertEquals("0", statusSummary.get(1).get("count").asText());
+    assertEquals("FAILED", statusSummary.get(2).get("status").asText());
+    assertEquals("1", statusSummary.get(2).get("count").asText());
+    assertEquals("RUNNING", statusSummary.get(3).get("status").asText());
+    assertEquals("1", statusSummary.get(3).get("count").asText());
+    assertEquals("COMPLETED", statusSummary.get(4).get("status").asText());
+    assertEquals("0", statusSummary.get(4).get("count").asText());
 
     // Top 10
-    lineByLine = ArrayUtils.subarray(lineByLine, 6, lineByLine.length);
+    JsonNode recentModifiedJobs = jsonNode.get("recentModifiedJobs");
+    assertEquals("2", recentModifiedJobs.get(0).get("id").asText());
+    assertEquals("FAILED", recentModifiedJobs.get(0).get("status").asText());
+    assertEquals("1547699415000", recentModifiedJobs.get(0).get("lastUpdatedTime").asText());
+    assertEquals("Test2", recentModifiedJobs.get(0).get("name").asText());
+    assertEquals("1", recentModifiedJobs.get(1).get("id").asText());
+    assertEquals("RUNNING", recentModifiedJobs.get(1).get("status").asText());
+    assertEquals("1547697600000", recentModifiedJobs.get(1).get("lastUpdatedTime").asText());
+    assertEquals("Test1", recentModifiedJobs.get(1).get("name").asText());
 
-    assertEquals("10 Most Recently Modified Jobs:", lineByLine[0]);
-    assertEquals(
-        "Timestamp: 01-17-2019 12:30:15:000       Id: 2                   Name: Test2"
-        + "               Status: FAILED",
-        lineByLine[1]);
-    assertEquals(
-        "Timestamp: 01-17-2019 12:00:00:000       Id: 1                   Name: Test1"
-        + "               Status: RUNNING",
-        lineByLine[2]);
-    assertEquals("", lineByLine[3]);
-    assertEquals("10 Most Recently Failed Jobs:", lineByLine[4]);
-    assertEquals(
-        "Timestamp: 01-17-2019 12:30:15:000       Id: 2                   Name: Test2"
-        + "               Status: FAILED",
-        lineByLine[5]);
-    assertEquals("", lineByLine[6]);
-    assertEquals("10 Longest Running Jobs:", lineByLine[7]);
-    assertEquals(
-        "Timestamp: 01-17-2019 12:00:00:000       Id: 1                   Name: Test1"
-            + "               Status: RUNNING",
-        lineByLine[8]);
-  }
+    JsonNode recentFailedJobs = jsonNode.get("recentFailedJobs");
+    assertEquals("2", recentFailedJobs.get(0).get("id").asText());
+    assertEquals("FAILED", recentFailedJobs.get(0).get("status").asText());
+    assertEquals("1547699415000", recentFailedJobs.get(0).get("lastUpdatedTime").asText());
+    assertEquals("Test2", recentFailedJobs.get(0).get("name").asText());
 
-  private JobInfo createJobInfo(int id, String name, Status status, String datetime)
-      throws ParseException {
-    long timeMillis = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss").parse(datetime).getTime();
-    PlanInfo jobInfo = new PlanInfo(id, name, status, timeMillis, null);
-    return jobInfo;
+    JsonNode longestRunningJobs = jsonNode.get("longestRunningJobs");
+    assertEquals("1", longestRunningJobs.get(0).get("id").asText());
+    assertEquals("RUNNING", longestRunningJobs.get(0).get("status").asText());
+    assertEquals("1547697600000", longestRunningJobs.get(0).get("lastUpdatedTime").asText());
+    assertEquals("Test1", longestRunningJobs.get(0).get("name").asText());
   }
 }

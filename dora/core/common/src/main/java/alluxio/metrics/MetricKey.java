@@ -1145,15 +1145,15 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .build();
 
-  public static final MetricKey MASTER_JOB_LOAD_FILE_COUNT =
-      new Builder("Master.JobLoadFileCount")
-          .setDescription("The number of files loaded by load commands")
+  public static final MetricKey MASTER_JOB_LOAD_INODES_COUNT =
+      new Builder("Master.JobLoadInodesCount")
+          .setDescription("The number of files/dirs loaded by load commands")
           .setMetricType(MetricType.COUNTER)
           .build();
 
-  public static final MetricKey MASTER_JOB_LOAD_FILE_FAIL =
-      new Builder("Master.JobLoadFileFail")
-          .setDescription("The number of files failed to be loaded by load commands")
+  public static final MetricKey MASTER_JOB_LOAD_FAILURE_COUNT =
+      new Builder("Master.JobLoadInodesFail")
+          .setDescription("The number of files/dirs failed to be loaded by load commands")
           .setMetricType(MetricType.COUNTER)
           .build();
 
@@ -1197,6 +1197,12 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_JOB_COPY_FAIL_FILE_COUNT =
       new Builder("Master.JobCopyFailFileCount")
           .setDescription("The number of files failed to be copied by copy commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+
+  public static final MetricKey MASTER_JOB_COPY_SKIP_FILE_COUNT =
+      new Builder("Master.JobCopySkipFileCount")
+          .setDescription("The number of files skipped to be copied by copy commands")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_JOB_COPY_SIZE =
@@ -2152,6 +2158,26 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of the succeed master registration.")
           .setMetricType(MetricType.COUNTER)
           .build();
+  public static final MetricKey WORKER_LIST_STATUS_HIT_REQUESTS =
+      new Builder("Worker.ListStatusHitRequests")
+          .setDescription("Total number of ListStatus requests read from worker.")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey WORKER_LIST_STATUS_EXTERNAL_REQUESTS =
+      new Builder("Worker.ListStatusExternalRequests")
+          .setDescription("Total number of ListStatus read from external storage.")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey WORKER_GET_FILE_INFO_HIT_REQUESTS =
+      new Builder("Worker.GetFileInfoHitRequests")
+          .setDescription("Total number of GetFileInfo requests read from worker.")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey WORKER_GET_FILE_INFO_EXTERNAL_REQUESTS =
+      new Builder("Worker.GetFileInfoExternalRequests")
+          .setDescription("Total number of GetFileInfo read from external storage.")
+          .setMetricType(MetricType.COUNTER)
+          .build();
 
   // Client metrics
   public static final MetricKey CLIENT_BLOCK_READ_CHUNK_REMOTE =
@@ -2169,15 +2195,31 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
-  public static final MetricKey CLIENT_BYTES_WRITTEN_ALLUXIO =
-      new Builder("Client.BytesWrittenAlluxio")
-          .setDescription("Total number of bytes write to Alluxio by this client")
+  public static final MetricKey CLIENT_BYTES_WRITTEN_TO_WORKERS =
+      new Builder("Client.BytesWrittenToWorkers")
+          .setDescription("Total number of bytes write to Alluxio workers by this client")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
-  public static final MetricKey CLIENT_BYTES_WRITTEN_UFS =
-      new Builder("Client.BytesWrittenUfs")
+  public static final MetricKey CLIENT_BYTES_WRITTEN_TO_UFS =
+      new Builder("Client.BytesWrittenToUfs")
           .setDescription("Total number of bytes write to UFS by this client")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey CLIENT_BYTES_READ_FROM_WORKERS =
+      new Builder("Client.BytesReadFromWorkers")
+          .setDescription("Total number of bytes read from Alluxio workers by this client. "
+              + "This includes both the case where the data has been cached on the "
+              + "workers, and the case where the workers need to load it from the "
+              + "UFS.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey CLIENT_BYTES_READ_FROM_UFS =
+      new Builder("Client.BytesReadFromUfs")
+          .setDescription("Total number of bytes read from UFS directly by this "
+              + "client, bypassing any kind of cache of Alluxio.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
@@ -2210,7 +2252,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_EXTERNAL_REQUESTS =
-      new Builder("Client.CacheBytesExternalRequests")
+      new Builder("Client.CacheExternalRequests")
           .setDescription("Total number of requests to read from external storage.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
@@ -2251,6 +2293,12 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Client.CachePages")
           .setDescription("Total number of pages in the client cache.")
           .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_PAGES_AGES =
+      new Builder("Client.CachePagesAges")
+          .setDescription("The ages of pages in the client cache.")
+          .setMetricType(MetricType.HISTOGRAM)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_PAGES_DISCARDED =
@@ -2544,24 +2592,31 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   public static final MetricKey CLIENT_UFS_FALLBACK_COUNT =
-      new Builder("Client.UfsFallBackCount")
+      new Builder("Client.UfsFallbackCount")
           .setDescription("The number of fallbacks to UFS when failing to open file in Alluxio "
               + "distributed cache.")
-          .setMetricType(MetricType.GAUGE)
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_UFS_FALLBACK_READ_BYTES =
+      new Builder("Client.UfsFallbackReadBytes")
+          .setDescription("Total bytes of data read fallback to UFS "
+              + "after encountering error when reading from worker.")
+          .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
 
   public static final MetricKey CLOSE_UFS_OUTSTREAM_LATENCY =
-          new Builder("Client.CloseUFSOutStreamLatency")
-                  .setDescription("Latency of close UFS outstream latency")
-                  .setMetricType(MetricType.TIMER)
-                  .build();
+      new Builder("Client.CloseUFSOutStreamLatency")
+          .setDescription("Latency of close UFS outstream latency")
+          .setMetricType(MetricType.TIMER)
+          .build();
 
   public static final MetricKey CLOSE_ALLUXIO_OUTSTREAM_LATENCY =
-          new Builder("Client.CloseAlluxioOutStreamLatency")
-                  .setDescription("Latency of close Alluxio outstream latency")
-                  .setMetricType(MetricType.TIMER)
-                  .build();
+      new Builder("Client.CloseAlluxioOutStreamLatency")
+          .setDescription("Latency of close Alluxio outstream latency")
+          .setMetricType(MetricType.TIMER)
+          .build();
 
   // Fuse operation timer and failure counter metrics are added dynamically.
   // Other Fuse related metrics are added here

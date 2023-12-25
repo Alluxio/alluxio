@@ -11,6 +11,7 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.Constants;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.MemoryPageStore;
 import alluxio.client.file.cache.store.PageStoreOptions;
@@ -20,6 +21,7 @@ import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataFileChannel;
+import alluxio.util.logging.SamplingLogger;
 
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
@@ -34,6 +36,7 @@ import java.nio.ByteBuffer;
  */
 public interface PageStore extends AutoCloseable {
   Logger LOG = LoggerFactory.getLogger(PageStore.class);
+  Logger SAMPLING_LOG = new SamplingLogger(LOG, Constants.SECOND_MS * 10);
 
   /**
    * Create an instance of PageStore.

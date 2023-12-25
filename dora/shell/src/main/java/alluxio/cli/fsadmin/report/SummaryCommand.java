@@ -11,39 +11,32 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
-import alluxio.grpc.MasterVersion;
-import alluxio.grpc.NetAddress;
-import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
 
-import com.google.common.base.Strings;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 /**
  * Prints Alluxio cluster summarized information.
  */
 public class SummaryCommand {
-  private static final int INDENT_SIZE = 4;
-
-  private int mIndentationLevel = 0;
-  private MetaMasterClient mMetaMasterClient;
-  private BlockMasterClient mBlockMasterClient;
-  private PrintStream mPrintStream;
+  private static final Logger LOG = LoggerFactory.getLogger(SummaryCommand.class);
+  private final MetaMasterClient mMetaMasterClient;
+  private final BlockMasterClient mBlockMasterClient;
+  private final PrintStream mPrintStream;
   private final String mDateFormatPattern;
 
   /**
@@ -68,17 +61,6 @@ public class SummaryCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    print("Alluxio cluster summary: ");
-    printMetaMasterInfo();
-    printBlockMasterInfo();
-    return 0;
-  }
-
-  /**
-   * Prints Alluxio meta master information.
-   */
-  private void printMetaMasterInfo() throws IOException {
-    mIndentationLevel++;
     Set<MasterInfoField> masterInfoFilter = new HashSet<>(Arrays
         .asList(MasterInfoField.LEADER_MASTER_ADDRESS, MasterInfoField.WEB_PORT,
             MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
@@ -88,54 +70,6 @@ public class SummaryCommand {
             MasterInfoField.MASTER_VERSION));
     MasterInfo masterInfo = mMetaMasterClient.getMasterInfo(masterInfoFilter);
 
-    print("Master Address: " + masterInfo.getLeaderMasterAddress());
-    print("Web Port: " + masterInfo.getWebPort());
-    print("Rpc Port: " + masterInfo.getRpcPort());
-    print("Started: " + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs(),
-        mDateFormatPattern));
-    print("Uptime: " + CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()));
-    print("Version: " + masterInfo.getVersion());
-    print("Safe Mode: " + masterInfo.getSafeMode());
-
-    List<String> zookeeperAddresses = masterInfo.getZookeeperAddressesList();
-    if (zookeeperAddresses == null || zookeeperAddresses.isEmpty()) {
-      print("Zookeeper Enabled: false");
-    } else {
-      print("Zookeeper Enabled: true");
-      print("Zookeeper Addresses: ");
-      mIndentationLevel++;
-      for (String zkAddress : zookeeperAddresses) {
-        print(zkAddress);
-      }
-      mIndentationLevel--;
-    }
-
-    if (masterInfo.getRaftJournal()) {
-      print("Raft-based Journal: true");
-      print("Raft Journal Addresses: ");
-      mIndentationLevel++;
-      for (String raftAddress : masterInfo.getRaftAddressList()) {
-        print(raftAddress);
-      }
-      mIndentationLevel--;
-    } else {
-      print("Raft-based Journal: false");
-    }
-    String formatString = "%-32s %-8s %-32s";
-    print(String.format(formatString, "Master Address", "State", "Version"));
-    for (MasterVersion masterVersion: masterInfo.getMasterVersionsList()) {
-      NetAddress address = masterVersion.getAddresses();
-      print(String.format(formatString,
-              address.getHost() + ":" + address.getRpcPort(),
-          masterVersion.getState(),
-          masterVersion.getVersion()));
-    }
-  }
-
-  /**
-   * Prints Alluxio block master information.
-   */
-  private void printBlockMasterInfo() throws IOException {
     Set<BlockMasterInfoField> blockMasterInfoFilter = new HashSet<>(Arrays
         .asList(BlockMasterInfoField.LIVE_WORKER_NUM, BlockMasterInfoField.LOST_WORKER_NUM,
             BlockMasterInfoField.CAPACITY_BYTES, BlockMasterInfoField.USED_BYTES,
@@ -143,46 +77,19 @@ public class SummaryCommand {
             BlockMasterInfoField.USED_BYTES_ON_TIERS));
     BlockMasterInfo blockMasterInfo = mBlockMasterClient.getBlockMasterInfo(blockMasterInfoFilter);
 
-    print("Live Workers: " + blockMasterInfo.getLiveWorkerNum());
-    print("Lost Workers: " + blockMasterInfo.getLostWorkerNum());
-
-    print("Total Capacity: "
-        + FormatUtils.getSizeFromBytes(blockMasterInfo.getCapacityBytes()));
-
-    mIndentationLevel++;
-    Map<String, Long> totalCapacityOnTiers = new TreeMap<>((a, b)
-        -> (FileSystemAdminShellUtils.compareTierNames(a, b)));
-    totalCapacityOnTiers.putAll(blockMasterInfo.getCapacityBytesOnTiers());
-    for (Map.Entry<String, Long> capacityBytesTier : totalCapacityOnTiers.entrySet()) {
-      print("Tier: " + capacityBytesTier.getKey()
-          + "  Size: " + FormatUtils.getSizeFromBytes(capacityBytesTier.getValue()));
+    ObjectMapper objectMapper = new ObjectMapper();
+    SummaryOutput summaryInfo = new SummaryOutput(masterInfo, blockMasterInfo);
+    try {
+      String json = objectMapper.writeValueAsString(summaryInfo);
+      mPrintStream.println(json);
+    } catch (JsonProcessingException e) {
+      mPrintStream.println("Failed to convert summaryInfo output to JSON. "
+          + "Check the command line log for the detailed error message.");
+      LOG.error("Failed to output JSON object {}", summaryInfo);
+      e.printStackTrace();
+      return -1;
     }
 
-    mIndentationLevel--;
-    print("Used Capacity: "
-        + FormatUtils.getSizeFromBytes(blockMasterInfo.getUsedBytes()));
-
-    mIndentationLevel++;
-    Map<String, Long> usedCapacityOnTiers = new TreeMap<>((a, b)
-        -> (FileSystemAdminShellUtils.compareTierNames(a, b)));
-    usedCapacityOnTiers.putAll(blockMasterInfo.getUsedBytesOnTiers());
-    for (Map.Entry<String, Long> usedBytesTier: usedCapacityOnTiers.entrySet()) {
-      print("Tier: " + usedBytesTier.getKey()
-          + "  Size: " + FormatUtils.getSizeFromBytes(usedBytesTier.getValue()));
-    }
-
-    mIndentationLevel--;
-    print("Free Capacity: "
-        + FormatUtils.getSizeFromBytes(blockMasterInfo.getFreeBytes()));
-  }
-
-  /**
-   * Prints indented information.
-   *
-   * @param text information to print
-   */
-  private void print(String text) {
-    String indent = Strings.repeat(" ", mIndentationLevel * INDENT_SIZE);
-    mPrintStream.println(indent + text);
+    return 0;
   }
 }

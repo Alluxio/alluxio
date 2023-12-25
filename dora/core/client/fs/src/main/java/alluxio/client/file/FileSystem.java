@@ -74,6 +74,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 import javax.security.auth.Subject;
 
 /**
@@ -177,9 +178,7 @@ public interface FileSystem extends Closeable {
       AlluxioConfiguration conf = context.getClusterConf();
       checkSortConf(conf);
       Optional<UfsFileSystemOptions> ufsOptions = options.getUfsFileSystemOptions();
-      Preconditions.checkArgument(ufsOptions.isPresent(),
-          "Missing UfsFileSystemOptions in FileSystemOptions");
-      FileSystem fs = new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get());
+      FileSystem fs = context.createUfsBaseFileSystem(ufsOptions);
 
       if (options.isDoraCacheEnabled()) {
         LOG.debug("Dora cache enabled");
@@ -796,4 +795,18 @@ public interface FileSystem extends Closeable {
    */
   String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose);
+
+  /**
+   * @return the instance of {@link DoraCacheFileSystem}
+   */
+  default @Nullable DoraCacheFileSystem getDoraCacheFileSystem() {
+    return null;
+  }
+
+  /**
+   * @return the instance of {@link UfsBaseFileSystem}
+   */
+  default @Nullable UfsBaseFileSystem getUfsBaseFileSystem() {
+    return null;
+  }
 }

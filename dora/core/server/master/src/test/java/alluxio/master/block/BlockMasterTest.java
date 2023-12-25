@@ -11,7 +11,6 @@
 
 package alluxio.master.block;
 
-import static alluxio.stress.rpc.TierAlias.MEM;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
@@ -42,7 +41,6 @@ import alluxio.master.AlwaysPrimaryPrimarySelector;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
-import alluxio.master.WorkerState;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
@@ -56,6 +54,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerState;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.RegisterStreamer;
 
@@ -100,7 +99,7 @@ public class BlockMasterTest {
       = ImmutableMap.of();
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
   public static final Map<String, List<String>> LOST_STORAGE =
-          ImmutableMap.of(MEM.toString(), ImmutableList.of());
+          ImmutableMap.of("MEM", ImmutableList.of());
   public static final List<ConfigProperty> EMPTY_CONFIG = ImmutableList.of();
   public static final int BATCH_SIZE = 1000;
 
@@ -333,7 +332,7 @@ public class BlockMasterTest {
     assertEquals(1, liveWorkerInfo.size());
     assertEquals(1, allWorkerInfo.size());
     WorkerInfo w = liveWorkerInfo.get(0);
-    assertEquals(WorkerState.LIVE.toString(), w.getState());
+    assertEquals(WorkerState.LIVE, w.getState());
     assertEquals(OLD_VERSION.getVersion(), w.getVersion());
     assertEquals(OLD_VERSION.getRevision(), w.getRevision());
 
@@ -349,7 +348,7 @@ public class BlockMasterTest {
         mBlockMaster.getWorkerReport(createGetWorkerReportOptions());
     assertEquals(1, allWorkersAfterDecom.size());
     WorkerInfo decomWorker = allWorkersAfterDecom.get(0);
-    assertEquals(WorkerState.DECOMMISSIONED.toString(), decomWorker.getState());
+    assertEquals(WorkerState.DECOMMISSIONED, decomWorker.getState());
     assertEquals(OLD_VERSION.getVersion(), decomWorker.getVersion());
     assertEquals(OLD_VERSION.getRevision(), decomWorker.getRevision());
 
@@ -397,7 +396,7 @@ public class BlockMasterTest {
     assertEquals(1, liveWorkerAfterRestart.size());
     assertEquals(1, allWorkerAfterRestart.size());
     WorkerInfo restartedWorker = liveWorkerAfterRestart.get(0);
-    assertEquals(WorkerState.LIVE.toString(), restartedWorker.getState());
+    assertEquals(WorkerState.LIVE, restartedWorker.getState());
     assertEquals(NEW_VERSION.getVersion(), restartedWorker.getVersion());
     assertEquals(NEW_VERSION.getRevision(), restartedWorker.getRevision());
     MasterWorkerInfo upgradedWorkerInfo = mBlockMaster.getWorker(workerId);
@@ -431,7 +430,7 @@ public class BlockMasterTest {
     assertEquals(1, liveWorkerInfo.size());
     assertEquals(1, allWorkerInfo.size());
     WorkerInfo w = liveWorkerInfo.get(0);
-    assertEquals(WorkerState.LIVE.toString(), w.getState());
+    assertEquals(WorkerState.LIVE, w.getState());
     assertEquals(OLD_VERSION.getVersion(), w.getVersion());
     assertEquals(OLD_VERSION.getRevision(), w.getRevision());
 
@@ -447,7 +446,7 @@ public class BlockMasterTest {
         mBlockMaster.getWorkerReport(createGetWorkerReportOptions());
     assertEquals(1, allWorkersAfterDecom.size());
     WorkerInfo decomWorker = allWorkersAfterDecom.get(0);
-    assertEquals(WorkerState.DECOMMISSIONED.toString(), decomWorker.getState());
+    assertEquals(WorkerState.DECOMMISSIONED, decomWorker.getState());
     assertEquals(OLD_VERSION.getVersion(), decomWorker.getVersion());
     assertEquals(OLD_VERSION.getRevision(), decomWorker.getRevision());
 
@@ -489,7 +488,7 @@ public class BlockMasterTest {
     assertEquals(1, liveWorkerAfterRestart.size());
     assertEquals(1, allWorkerAfterRestart.size());
     WorkerInfo restartedWorker = liveWorkerAfterRestart.get(0);
-    assertEquals(WorkerState.LIVE.toString(), restartedWorker.getState());
+    assertEquals(WorkerState.LIVE, restartedWorker.getState());
     assertEquals(NEW_VERSION.getVersion(), restartedWorker.getVersion());
     assertEquals(NEW_VERSION.getRevision(), restartedWorker.getRevision());
     MasterWorkerInfo upgradedWorkerInfo = mBlockMaster.getWorker(workerId);
@@ -525,7 +524,7 @@ public class BlockMasterTest {
     assertEquals(1, liveWorkerInfo.size());
     assertEquals(1, allWorkerInfo.size());
     WorkerInfo w = liveWorkerInfo.get(0);
-    assertEquals(WorkerState.LIVE.toString(), w.getState());
+    assertEquals(WorkerState.LIVE, w.getState());
     assertEquals(OLD_VERSION.getVersion(), w.getVersion());
     assertEquals(OLD_VERSION.getRevision(), w.getRevision());
 
@@ -546,7 +545,7 @@ public class BlockMasterTest {
         mBlockMaster.getWorkerReport(createGetWorkerReportOptions());
     assertEquals(1, allWorkersAfterDecom.size());
     WorkerInfo decomWorker = allWorkersAfterDecom.get(0);
-    assertEquals(WorkerState.DECOMMISSIONED.toString(), decomWorker.getState());
+    assertEquals(WorkerState.DECOMMISSIONED, decomWorker.getState());
     assertEquals(OLD_VERSION.getVersion(), decomWorker.getVersion());
     assertEquals(OLD_VERSION.getRevision(), decomWorker.getRevision());
 
@@ -583,7 +582,7 @@ public class BlockMasterTest {
     assertEquals(1, liveWorkerAfterRestart.size());
     assertEquals(1, allWorkerAfterRestart.size());
     WorkerInfo restartedWorker = liveWorkerAfterRestart.get(0);
-    assertEquals(WorkerState.LIVE.toString(), restartedWorker.getState());
+    assertEquals(WorkerState.LIVE, restartedWorker.getState());
     assertEquals(NEW_VERSION.getVersion(), restartedWorker.getVersion());
     assertEquals(NEW_VERSION.getRevision(), restartedWorker.getRevision());
     MasterWorkerInfo upgradedWorkerInfo = mBlockMaster.getWorker(workerId);
@@ -620,7 +619,7 @@ public class BlockMasterTest {
     assertEquals(1, liveWorkerInfo.size());
     assertEquals(1, allWorkerInfo.size());
     WorkerInfo w = liveWorkerInfo.get(0);
-    assertEquals(WorkerState.LIVE.toString(), w.getState());
+    assertEquals(WorkerState.LIVE, w.getState());
     assertEquals(OLD_VERSION.getVersion(), w.getVersion());
     assertEquals(OLD_VERSION.getRevision(), w.getRevision());
 
@@ -641,7 +640,7 @@ public class BlockMasterTest {
         mBlockMaster.getWorkerReport(createGetWorkerReportOptions());
     assertEquals(1, allWorkersAfterDecom.size());
     WorkerInfo decomWorker = allWorkersAfterDecom.get(0);
-    assertEquals(WorkerState.DECOMMISSIONED.toString(), decomWorker.getState());
+    assertEquals(WorkerState.DECOMMISSIONED, decomWorker.getState());
     assertEquals(OLD_VERSION.getVersion(), decomWorker.getVersion());
     assertEquals(OLD_VERSION.getRevision(), decomWorker.getRevision());
 
@@ -684,7 +683,7 @@ public class BlockMasterTest {
     assertEquals(1, liveWorkerAfterRestart.size());
     assertEquals(1, allWorkerAfterRestart.size());
     WorkerInfo restartedWorker = liveWorkerAfterRestart.get(0);
-    assertEquals(WorkerState.LIVE.toString(), restartedWorker.getState());
+    assertEquals(WorkerState.LIVE, restartedWorker.getState());
     assertEquals(NEW_VERSION.getVersion(), restartedWorker.getVersion());
     assertEquals(NEW_VERSION.getRevision(), restartedWorker.getRevision());
     MasterWorkerInfo upgradedWorkerInfo = mBlockMaster.getWorker(workerId);

@@ -13,6 +13,7 @@ package alluxio.worker.netty;
 
 import com.codahale.metrics.Counter;
 import io.netty.buffer.ByteBuf;
+import io.prometheus.metrics.core.datapoints.DistributionDataPoint;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -75,6 +76,9 @@ public class WriteRequestContext<T extends WriteRequest> {
   protected volatile long mPosToWrite;
 
   private Counter mCounter;
+
+  @Nullable
+  private DistributionDataPoint mAccessMetric;
 
   /** This is set when EOF or CANCEL is received. This is only for sanity check. */
   private volatile boolean mDone;
@@ -146,6 +150,15 @@ public class WriteRequestContext<T extends WriteRequest> {
   }
 
   /**
+   * @param dataBytes data size written in one request
+   */
+  public void recordAccessMetric(double dataBytes) {
+    if (mAccessMetric != null) {
+      mAccessMetric.observe(dataBytes);
+    }
+  }
+
+  /**
    * @return true when the EOF or CANCEL is received, false otherwise
    */
   public boolean isDoneUnsafe() {
@@ -196,5 +209,12 @@ public class WriteRequestContext<T extends WriteRequest> {
    */
   public void setCounter(Counter counter) {
     mCounter = counter;
+  }
+
+  /**
+   * @param metric metric to set
+   */
+  public void setAccessMetric(DistributionDataPoint metric) {
+    mAccessMetric = metric;
   }
 }

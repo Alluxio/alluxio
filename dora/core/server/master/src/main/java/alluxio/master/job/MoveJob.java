@@ -60,8 +60,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -69,6 +69,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -108,6 +109,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
   private final AtomicLong mTotalByteCount = new AtomicLong();
   private final AtomicLong mTotalFailureCount = new AtomicLong();
   private final AtomicLong mCurrentFailureCount = new AtomicLong();
+  private final AtomicLong mCurrentSuccessCount = new AtomicLong();
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
   private final Iterable<FileInfo> mFileIterable;
   private Optional<Iterator<FileInfo>> mFileIterator = Optional.empty();
@@ -285,7 +287,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
    * @param workers workers candidates
    * @return the next task to run. If there is no task to run, return empty
    */
-  public List<MoveTask> getNextTasks(Collection<WorkerInfo> workers) {
+  public List<MoveTask> getNextTasks(Set<WorkerInfo> workers) {
     List<MoveTask> tasks = new ArrayList<>();
     Iterator<MoveTask> it = mRetryTaskList.iterator();
     if (it.hasNext()) {
@@ -295,14 +297,17 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
       it.remove();
       return Collections.unmodifiableList(tasks);
     }
-    List<Route> routes = getNextRoutes(BATCH_SIZE);
-    if (routes.isEmpty()) {
-      return Collections.unmodifiableList(tasks);
+    for (WorkerInfo ignored : workers) {
+      List<Route> routes = getNextRoutes(BATCH_SIZE);
+      if (routes.isEmpty()) {
+        return Collections.unmodifiableList(tasks);
+      }
+      List<WorkerInfo>
+          workerInfo = mWorkerAssignPolicy.pickWorkers(StringUtil.EMPTY_STRING, workers, 1);
+      MoveTask moveTask = new MoveTask(routes);
+      moveTask.setMyRunningWorker(workerInfo.get(0));
+      tasks.add(moveTask);
     }
-    WorkerInfo workerInfo = mWorkerAssignPolicy.pickAWorker(StringUtil.EMPTY_STRING, workers);
-    MoveTask moveTask = new MoveTask(routes);
-    moveTask.setMyRunningWorker(workerInfo);
-    tasks.add(moveTask);
     return Collections.unmodifiableList(tasks);
   }
 
@@ -476,6 +481,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
         }
       }
       addMovedBytes(totalBytes);
+      mCurrentSuccessCount.addAndGet(task.getRoutes().size() - response.getFailuresCount());
       MOVE_FILE_COUNT.inc(
           task.getRoutes().size() - response.getFailuresCount());
       MOVE_SIZE.inc(totalBytes);
@@ -576,8 +582,11 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     private final double mFailurePercentage;
     private final AlluxioRuntimeException mFailureReason;
     private final long mFailedFileCount;
+    private final long mSuccessFileCount;
     private final Map<String, String> mFailedFilesWithReasons;
     private final String mJobId;
+    private final long mStartTime;
+    private final long mEndTime;
 
     public MoveProgressReport(MoveJob job, boolean verbose)
     {
@@ -611,10 +620,22 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
       }
       mFailureReason = job.mFailedReason.orElse(null);
       mFailedFileCount = job.mFailedFiles.size();
+      mSuccessFileCount = job.mCurrentSuccessCount.get();
       if (verbose && mFailedFileCount > 0) {
         mFailedFilesWithReasons = job.mFailedFiles;
       } else {
         mFailedFilesWithReasons = Collections.emptyMap();
+      }
+      mStartTime = job.mStartTime;
+      if (mJobState == JobState.SUCCEEDED || mJobState == JobState.FAILED) {
+        if (job.mEndTime.isPresent()) {
+          mEndTime = job.mEndTime.getAsLong();
+        } else {
+          throw new InternalRuntimeException(
+              String.format("No end time in ending state %s", mJobState));
+        }
+      } else {
+        mEndTime = 0;
       }
     }
 
@@ -634,30 +655,42 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     private String getTextReport() {
       StringBuilder progress = new StringBuilder();
       progress.append(
-          format("\tSettings:\tcheck-content: %s%n", mCheckContent));
+          format("\tSettings: \"check-content: %s\"%n", mCheckContent));
+      progress.append(format("\tJob Submitted: %s%n", new Date(mStartTime)));
       progress.append(format("\tJob Id: %s%n", mJobId));
-      progress.append(format("\tJob State: %s%s%n", mJobState,
-          mFailureReason == null
-              ? "" : format(
-              " (%s: %s)",
-              mFailureReason.getClass().getName(),
-              mFailureReason.getMessage())));
+      if (mJobState == JobState.SUCCEEDED || mJobState == JobState.FAILED) {
+        progress.append(format("\tJob State: %s%s, finished at %s%n", mJobState,
+            mFailureReason == null
+                ? "" : format(
+                " (%s: %s)",
+                mFailureReason.getClass().getName(),
+                mFailureReason.getMessage()),
+            new Date(mEndTime)));
+      } else {
+        progress.append(format("\tJob State: %s%s%n", mJobState,
+            mFailureReason == null
+                ? "" : format(
+                " (%s: %s)",
+                mFailureReason.getClass().getName(),
+                mFailureReason.getMessage())));
+      }
       if (mVerbose && mFailureReason != null) {
         for (StackTraceElement stack : mFailureReason.getStackTrace()) {
           progress.append(format("\t\t%s%n", stack.toString()));
         }
       }
-      progress.append(format("\tFiles Processed: %d%n", mProcessedFileCount));
-      progress.append(format("\tBytes Moved: %s%s%n",
-          FormatUtils.getSizeFromBytes(mByteCount),
+      progress.append(format("\tFiles qualified%s: %d%s%n",
+          mJobState == JobState.RUNNING ? " so far" : "", mProcessedFileCount,
           mTotalByteCount == null
-              ? "" : format(" out of %s", FormatUtils.getSizeFromBytes(mTotalByteCount))));
+              ? "" : format(", %s", FormatUtils.getSizeFromBytes(mTotalByteCount))));
+      progress.append(format("\tFiles Failed: %s%n", mFailedFileCount));
+      progress.append(format("\tFiles Succeeded: %s%n", mSuccessFileCount));
+      progress.append(format("\tBytes Moved: %s%n", FormatUtils.getSizeFromBytes(mByteCount)));
       if (mThroughput != null) {
         progress.append(format("\tThroughput: %s/s%n",
             FormatUtils.getSizeFromBytes(mThroughput)));
       }
       progress.append(format("\tFiles failure rate: %.2f%%%n", mFailurePercentage));
-      progress.append(format("\tFiles Failed: %s%n", mFailedFileCount));
       if (mVerbose && !mFailedFilesWithReasons.isEmpty()) {
         mFailedFilesWithReasons.forEach((fileName, reason) ->
             progress.append(format("\t\t%s: %s%n", fileName, reason)));

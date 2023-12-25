@@ -11,6 +11,8 @@
 
 package alluxio.worker.http;
 
+import alluxio.client.file.FileSystemContext;
+
 import com.google.inject.Inject;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -26,13 +28,18 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
 
   private final PagedService mPagedService;
 
+  private final FileSystemContext.FileSystemContextFactory mFsContextFactory;
+
   /**
    * {@link HttpServerInitializer} is used for initializing the Netty pipeline of HTTP Server.
    * @param pagedService the {@link PagedService} object provides page related RESTful API
+   * @param fsContextFactory the file system context factory
    */
   @Inject
-  public HttpServerInitializer(PagedService pagedService) {
+  public HttpServerInitializer(PagedService pagedService,
+                               FileSystemContext.FileSystemContextFactory fsContextFactory) {
     mPagedService = pagedService;
+    mFsContextFactory = fsContextFactory;
   }
 
   @Override
@@ -41,6 +48,6 @@ public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
     p.addLast(new HttpServerCodec());
     p.addLast(new HttpObjectAggregator(1024 * 10));
     p.addLast(new HttpServerExpectContinueHandler());
-    p.addLast(new HttpServerHandler(mPagedService));
+    p.addLast(new HttpServerHandler(mPagedService, mFsContextFactory));
   }
 }

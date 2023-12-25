@@ -274,14 +274,14 @@ function main {
 
   # Only a single process is going to be started, simply exec and replace in the shell
   if [ "${#processes[@]}" -eq 1 ]; then
-    exec ./bin/launch-process "${processes[0]}" -c
+    exec ./bin/launch-process-bash "${processes[0]}" -c
   fi
 
   # Multiple processes may be running, so manage them by forwarding any signals to them.
   setup_signals
 
   for proc in "${processes[@]}"; do
-    ./bin/launch-process "${proc}" -c &
+    ./bin/launch-process-bash "${proc}" -c &
   done
   wait
 }

@@ -152,7 +152,7 @@ public final class RemovedKey {
       put("alluxio.worker.tieredstore.retry", removedSince(V2_0_0));
       put("alluxio.worker.evictor.lrfu.attenuation.factor", removedSince(V2_3_0));
       put("alluxio.worker.evictor.lrfu.step.factor", removedSince(V2_3_0));
-      put("fs.swift.apikey", replacedSince(V2_0_0, PropertyKey.Name.SWIFT_PASSWORD_KEY));
+      put("fs.swift.apikey", removedSince(V2_0_0));
       put("fs.swift.use.public.url", removedSince(V2_0_0));
       put(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(0),
           replacedSince(V2_0_0, "alluxio.worker.tieredstore.level0.watermark.{high/low}.ratio"));

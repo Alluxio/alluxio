@@ -29,6 +29,14 @@ public interface DataServer extends Closeable {
   SocketAddress getBindAddress();
 
   /**
+   * Gets the actual bind socket address for S3. It is either a {@link InetSocketAddress} or a
+   * {@link io.netty.channel.unix.DomainSocketAddress}.
+   *
+   * @return the bind socket address
+   */
+  SocketAddress getS3BindAddress();
+
+  /**
    * Checks if the {@link DataServer} is closed.
    *
    * @return true if the {@link DataServer} is closed, false otherwise

@@ -70,6 +70,13 @@ public class OpenFileHandle {
   }
 
   /**
+   * Update last accessed time.
+   */
+  public void updateLastAccessTimeMs() {
+    mLastAccessTimeMs = System.currentTimeMillis();
+  }
+
+  /**
    *  Get path of this handle.
    * @return path of this handle
    */

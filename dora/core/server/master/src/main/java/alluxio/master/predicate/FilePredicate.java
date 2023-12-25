@@ -12,6 +12,7 @@
 package alluxio.master.predicate;
 
 import alluxio.proto.journal.Job.FileFilter;
+import alluxio.underfs.UfsStatus;
 import alluxio.wire.FileInfo;
 
 import com.google.common.cache.CacheBuilder;
@@ -48,6 +49,12 @@ public interface FilePredicate {
    * @return the predicate function
    */
   Predicate<FileInfo> get();
+
+  /**
+   * Get the predicate function from the file predicate.
+   * @return the predicate function
+   */
+  Predicate<UfsStatus> getUfsStatusPredicate();
 
   /**
    * Creates a file predicate from a file filter.
