@@ -968,7 +968,7 @@ public final class AlluxioFileInStreamTest {
         new InStreamOptions(mStatus, options, mConf, mContext), mContext)) {
       Assert.assertFalse(testStream.isStatusOutdated());
     }
-
+    mConf.set(PropertyKey.USER_FILE_IN_STREAM_STATUS_EXPIRATION_TIME, 0L);
     try (AlluxioFileInStream testStream = new AlluxioFileInStream(mStatus,
         new InStreamOptions(mStatus, options, mConf, mContext), mContext)) {
       Assert.assertTrue(testStream.isStatusOutdated());
