@@ -428,7 +428,7 @@ public class AlluxioFileInStream extends FileInStream {
    */
   @VisibleForTesting
   public boolean isStatusOutdated() {
-    return System.currentTimeMillis() > mStatusOutdatedTime;
+    return System.currentTimeMillis() >= mStatusOutdatedTime;
   }
 
   private void closeBlockInStream(BlockInStream stream) throws IOException {
