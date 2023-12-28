@@ -11,13 +11,14 @@
 
 package alluxio.cli.bundler.command;
 
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.membership.WorkerClusterView;
 import alluxio.util.SleepUtils;
 import alluxio.util.network.HttpUtils;
+import alluxio.wire.WorkerInfo;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -172,7 +173,7 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
   public static List<String> workerMetrics(FileSystemContext fsContext) throws IOException {
     List<String> metricsResponses = new ArrayList<>();
     // Generate URL from config properties
-    List<BlockWorkerInfo> workers;
+    WorkerClusterView workers;
     try {
       workers = fsContext.getCachedWorkers();
     } catch (UnavailableException e) {
@@ -181,9 +182,9 @@ public class CollectMetricsCommand extends AbstractCollectInfoCommand {
       metricsResponses.add(noWorkerMsg);
       return metricsResponses;
     }
-    for (BlockWorkerInfo worker : workers) {
-      String workerAddress = worker.getNetAddress().getContainerHost().equals("")
-          ? worker.getNetAddress().getHost() : worker.getNetAddress().getContainerHost();
+    for (WorkerInfo worker : workers) {
+      String workerAddress = worker.getAddress().getContainerHost().equals("")
+          ? worker.getAddress().getHost() : worker.getAddress().getContainerHost();
       String url = String.format("http://%s:%s%s", workerAddress,
           fsContext.getClusterConf().get(PropertyKey.WORKER_WEB_PORT),
           METRICS_SERVLET_PATH);

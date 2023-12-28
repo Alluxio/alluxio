@@ -13,8 +13,11 @@ package alluxio.client.file.dora;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.membership.WorkerClusterView;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerState;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,15 +35,15 @@ public class RemoteWorkerList {
   private static final Logger LOG = LoggerFactory.getLogger(RemoteWorkerList.class);
   private static RemoteWorkerList sInstance;
 
-  private final List<BlockWorkerInfo> mRemoteWorkers;
+  private final List<WorkerInfo> mRemoteWorkers;
   private int mNextIndex = 0;
 
-  private RemoteWorkerList(List<BlockWorkerInfo> blockWorkerInfos, AlluxioConfiguration conf) {
+  private RemoteWorkerList(WorkerClusterView blockWorkerInfos, AlluxioConfiguration conf) {
     String userHostname = NetworkAddressUtils.getClientHostName(conf);
     mRemoteWorkers = new ArrayList<>();
 
-    for (BlockWorkerInfo worker : blockWorkerInfos) {
-      WorkerNetAddress workerAddr = worker.getNetAddress();
+    for (WorkerInfo worker : blockWorkerInfos) {
+      WorkerNetAddress workerAddr = worker.getAddress();
       if (workerAddr == null) {
         continue;
       }
@@ -51,7 +54,7 @@ public class RemoteWorkerList {
       }
     }
 
-    mRemoteWorkers.sort(Comparator.comparing(a -> (a.getNetAddress().getHost())));
+    mRemoteWorkers.sort(Comparator.comparing(a -> (a.getAddress().getHost())));
     LOG.debug("{} remote workers found on {}", mRemoteWorkers.size(), userHostname);
   }
 
@@ -59,12 +62,11 @@ public class RemoteWorkerList {
    * A synchronized function to get the singleton object.
    *
    * @param blockWorkerInfos list of all worker infos
-   * @param conf Alluxio configuration
-   *
+   * @param conf             Alluxio configuration
    * @return The singleton object; can be fetched by one thread only
    */
   public static synchronized RemoteWorkerList getInstance(
-      List<BlockWorkerInfo> blockWorkerInfos, AlluxioConfiguration conf) {
+      WorkerClusterView blockWorkerInfos, AlluxioConfiguration conf) {
     if (sInstance == null) {
       sInstance = new RemoteWorkerList(blockWorkerInfos, conf);
     }
@@ -77,11 +79,15 @@ public class RemoteWorkerList {
    * @return the next worker
    */
   public synchronized BlockWorkerInfo findNextWorker() {
-    BlockWorkerInfo nextWorker = mRemoteWorkers.get(mNextIndex);
+    WorkerInfo nextWorker = mRemoteWorkers.get(mNextIndex);
     mNextIndex++;
     if (mNextIndex >= mRemoteWorkers.size()) {
       mNextIndex -= mRemoteWorkers.size();
     }
-    return nextWorker;
+    return new BlockWorkerInfo(nextWorker.getIdentity(),
+        nextWorker.getAddress(),
+        nextWorker.getCapacityBytes(),
+        nextWorker.getUsedBytes(),
+        nextWorker.getState() == WorkerState.LIVE);
   }
 }

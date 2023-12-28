@@ -17,7 +17,6 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.client.block.BlockStoreClient;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -27,6 +26,7 @@ import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.batch.BatchedJobDefinition;
 import alluxio.job.plan.persist.PersistConfig;
+import alluxio.membership.WorkerClusterView;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -46,6 +46,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -80,12 +81,16 @@ public class BatchedJobDefinitionTest {
       .add(new WorkerInfo().setId(3).setIdentity(WORKER_IDENTITY_3).setAddress(WORKER_ADDR_3))
       .build();
 
-  private static final List<BlockWorkerInfo> BLOCK_WORKERS =
-      new ImmutableList.Builder<BlockWorkerInfo>()
-          .add(new BlockWorkerInfo(WORKER_IDENTITY_0, WORKER_ADDR_0, 0, 0))
-          .add(new BlockWorkerInfo(WORKER_IDENTITY_1, WORKER_ADDR_1, 0, 0))
-          .add(new BlockWorkerInfo(WORKER_IDENTITY_2, WORKER_ADDR_2, 0, 0))
-          .add(new BlockWorkerInfo(WORKER_IDENTITY_3, WORKER_ADDR_3, 0, 0)).build();
+  private static final WorkerClusterView BLOCK_WORKERS =
+      new WorkerClusterView(Arrays.asList(
+          new WorkerInfo().setIdentity(WORKER_IDENTITY_0).setAddress(WORKER_ADDR_0)
+              .setCapacityBytes(0).setUsedBytes(0),
+          new WorkerInfo().setIdentity(WORKER_IDENTITY_1).setAddress(WORKER_ADDR_1)
+              .setCapacityBytes(0).setUsedBytes(0),
+          new WorkerInfo().setIdentity(WORKER_IDENTITY_2).setAddress(WORKER_ADDR_2)
+              .setCapacityBytes(0).setUsedBytes(0),
+          new WorkerInfo().setIdentity(WORKER_IDENTITY_3).setAddress(WORKER_ADDR_3)
+              .setCapacityBytes(0).setUsedBytes(0)));
 
   private JobServerContext mJobServerContext;
   private FileSystem mMockFileSystem;

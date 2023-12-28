@@ -14,7 +14,6 @@ package alluxio.job.plan.persist;
 import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -22,6 +21,7 @@ import alluxio.collections.Pair;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.util.SerializableVoid;
+import alluxio.membership.WorkerClusterView;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -38,6 +38,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.util.Arrays;
 import java.util.Set;
 
 /**
@@ -69,10 +70,12 @@ public final class PersistDefinitionTest {
     WorkerNetAddress workerNetAddress2 = new WorkerNetAddress().setDataPort(100).setHost("host2");
     WorkerIdentity workerIdentity2 = WorkerIdentityTestUtils.randomLegacyId();
 
-    BlockWorkerInfo blockWorkerInfo1 =
-        new BlockWorkerInfo(workerIdentity1, workerNetAddress1, 1, 1);
-    BlockWorkerInfo blockWorkerInfo2 =
-        new BlockWorkerInfo(workerIdentity2, workerNetAddress2, 1, 1);
+    WorkerInfo blockWorkerInfo1 =
+        new WorkerInfo().setIdentity(workerIdentity1).setAddress(workerNetAddress1)
+            .setCapacityBytes(1).setUsedBytes(1);
+    WorkerInfo blockWorkerInfo2 =
+        new WorkerInfo().setIdentity(workerIdentity2).setAddress(workerNetAddress2)
+            .setCapacityBytes(1).setUsedBytes(1);
 
     WorkerInfo workerInfo1 = new WorkerInfo()
         .setIdentity(workerIdentity1)
@@ -89,7 +92,7 @@ public final class PersistDefinitionTest {
         Lists.newArrayList(fileBlockInfo1, fileBlockInfo2, fileBlockInfo3));
 
     Mockito.when(mMockFileSystemContext.getCachedWorkers()).thenReturn(
-        Lists.newArrayList(blockWorkerInfo1, blockWorkerInfo2));
+        new WorkerClusterView(Arrays.asList(blockWorkerInfo1, blockWorkerInfo2)));
     Mockito.when(mMockFileSystem.getStatus(uri)).thenReturn(new URIStatus(testFileInfo));
 
     Set<Pair<WorkerInfo, SerializableVoid>> result = new PersistDefinition()

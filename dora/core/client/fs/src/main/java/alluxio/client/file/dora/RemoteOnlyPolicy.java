@@ -14,6 +14,7 @@ package alluxio.client.file.dora;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.membership.WorkerClusterView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +38,7 @@ public class RemoteOnlyPolicy implements WorkerLocationPolicy {
    * Finds a remote worker from the available workers, matching by hostname.
    */
   @Override
-  public List<BlockWorkerInfo> getPreferredWorkers(List<BlockWorkerInfo> blockWorkerInfos,
+  public List<BlockWorkerInfo> getPreferredWorkers(WorkerClusterView blockWorkerInfos,
       String fileId, int count) throws ResourceExhaustedException {
     // Find the worker matching in hostname
     List<BlockWorkerInfo> results = new ArrayList<>();
