@@ -12,14 +12,18 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.cache.CacheManager;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
@@ -73,13 +77,39 @@ public final class MetadataCache {
 
   private final Cache<String, CachedItem> mCache;
 
+  private Optional<CacheManager> mCacheManager = Optional.empty();
+
+  private boolean mIsDora;
+
+  /**
+   * @param maxSize the max size of the cache
+   * @param isDora if dora is enabled
+   */
+  public MetadataCache(int maxSize, boolean isDora) {
+    mCache = CacheBuilder.newBuilder()
+        .maximumSize(maxSize)
+        .removalListener(new MetadataCacheRemovalListener()).build();
+    mIsDora = isDora;
+  }
+
   /**
    * @param maxSize the max size of the cache
    */
   public MetadataCache(int maxSize) {
+    this(maxSize, true);
+  }
+
+  /**
+   * @param maxSize the max size of the cache
+   * @param expirationTimeMs the expiration time (in milliseconds) of the cached item
+   * @param isDora if dora is enabled
+   */
+  public MetadataCache(int maxSize, long expirationTimeMs, boolean isDora) {
     mCache = CacheBuilder.newBuilder()
         .maximumSize(maxSize)
-        .build();
+        .expireAfterWrite(expirationTimeMs, TimeUnit.MILLISECONDS)
+        .removalListener(new MetadataCacheRemovalListener()).build();
+    mIsDora = isDora;
   }
 
   /**
@@ -87,10 +117,27 @@ public final class MetadataCache {
    * @param expirationTimeMs the expiration time (in milliseconds) of the cached item
    */
   public MetadataCache(int maxSize, long expirationTimeMs) {
-    mCache = CacheBuilder.newBuilder()
-        .maximumSize(maxSize)
-        .expireAfterWrite(expirationTimeMs, TimeUnit.MILLISECONDS)
-        .build();
+    this(maxSize, expirationTimeMs, true);
+  }
+
+  /**
+   * Set the cache manager for invalidating related pages data cache when metadata is expired.
+   * @param cacheManager the cache manager
+   */
+  public void setCacheManager(CacheManager cacheManager) {
+    if (cacheManager == null) {
+      mCacheManager = Optional.empty();
+    } else {
+      mCacheManager = Optional.of(cacheManager);
+    }
+  }
+
+  /**
+   * Get the cache manager.
+   * @return the cache manager
+   */
+  public Optional<CacheManager> getCacheManager() {
+    return mCacheManager;
   }
 
   /**
@@ -198,5 +245,31 @@ public final class MetadataCache {
   @VisibleForTesting
   public long size() {
     return mCache.size();
+  }
+
+  class MetadataCacheRemovalListener implements RemovalListener<String, CachedItem> {
+    @Override
+    public void onRemoval(RemovalNotification<String, CachedItem> notification) {
+      if (mCacheManager.isPresent()) {
+        CacheManager cacheManager = mCacheManager.get();
+        List<URIStatus> uriStatusList = notification.getValue().mDirStatuses;
+        if (uriStatusList != null && !uriStatusList.isEmpty()) {
+          uriStatusList.forEach(uriStatus -> {
+            String fileId = mIsDora ? new AlluxioURI(uriStatus.getUfsPath()).hash() :
+                Long.toString(uriStatus.getFileId());
+            cacheManager.deleteFile(fileId);
+            LOG.debug("Cache entry removed: ufsPath={}, fileId={}",
+                uriStatus.getUfsPath(), fileId);
+          });
+        } else {
+          URIStatus uriStatus = notification.getValue().getStatus();
+          String fileId = mIsDora ? new AlluxioURI(uriStatus.getUfsPath()).hash() :
+              Long.toString(uriStatus.getFileId());
+          cacheManager.deleteFile(fileId);
+          LOG.debug("Cache entry removed: ufsPath={}, fileId={}",
+              uriStatus.getUfsPath(), fileId);
+        }
+      }
+    }
   }
 }

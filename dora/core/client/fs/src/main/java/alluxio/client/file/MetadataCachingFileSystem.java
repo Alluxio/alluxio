@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -43,6 +44,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
@@ -67,6 +69,8 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
   private final ExecutorService mAccessTimeUpdater;
   private final boolean mDisableUpdateFileAccessTime;
 
+  private Optional<CacheManager> mCacheManager = Optional.empty();
+
   /**
    * @param fileSystem the file system
    * @param context the fs context
@@ -82,8 +86,10 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
     mMetadataCache = mFsContext.getClusterConf()
         .isSet(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME)
         ? new MetadataCache(maxSize, mFsContext.getClusterConf()
-            .getMs(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME))
-        : new MetadataCache(maxSize);
+            .getMs(PropertyKey.USER_METADATA_CACHE_EXPIRATION_TIME),
+        mFsContext.getClusterConf().getBoolean(PropertyKey.DORA_ENABLED))
+        : new MetadataCache(maxSize,
+        mFsContext.getClusterConf().getBoolean(PropertyKey.DORA_ENABLED));
     int masterClientThreads = mFsContext.getClusterConf()
         .getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX);
     mDisableUpdateFileAccessTime = mFsContext.getClusterConf()
@@ -95,6 +101,28 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
     MetricsSystem.registerCachedGaugeIfAbsent(
         MetricsSystem.getMetricName(MetricKey.CLIENT_META_DATA_CACHE_SIZE.getName()),
         mMetadataCache::size);
+  }
+
+  /**
+   * Set the cache manager for invalidating related pages data cache when metadata is expired.
+   * @param cacheManager the cache manager
+   */
+  public void setCacheManager(CacheManager cacheManager) {
+    if (cacheManager == null) {
+      mCacheManager = Optional.empty();
+      mMetadataCache.setCacheManager(null);
+    }  else {
+      mCacheManager = Optional.of(cacheManager);
+      mMetadataCache.setCacheManager(cacheManager);
+    }
+  }
+
+  /**
+   * Get the cache manager.
+   * @return the cache manager
+   */
+  public Optional<CacheManager> getCacheManager() {
+    return mCacheManager;
   }
 
   @Override

@@ -193,6 +193,7 @@ public class LocalCacheFileInStream extends FileInStream {
     int bytesLeftInPage = (int) (mPageSize - currentPageOffset);
     int bytesToReadInPage = Math.min(bytesLeftInPage, length);
     stopwatch.reset().start();
+    int originalOffset = bytesBuffer.offset();
     int bytesRead =
         mCacheManager.get(pageId, currentPageOffset, bytesToReadInPage, bytesBuffer, mCacheContext);
     stopwatch.stop();
@@ -211,6 +212,7 @@ public class LocalCacheFileInStream extends FileInStream {
     byte[] page = readExternalPage(position, readType);
     stopwatch.stop();
     if (page.length > 0) {
+      bytesBuffer.offset(originalOffset);
       bytesBuffer.writeBytes(page, currentPageOffset, bytesToReadInPage);
       // cache misses
       MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())

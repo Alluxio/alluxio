@@ -193,6 +193,9 @@ public interface FileSystem extends Closeable {
           && CommonUtils.PROCESS_TYPE.get() == CommonUtils.ProcessType.CLIENT) {
         try {
           CacheManager cacheManager = CacheManager.Factory.get(conf);
+          if (fs instanceof MetadataCachingFileSystem) {
+            ((MetadataCachingFileSystem) fs).setCacheManager(cacheManager);
+          }
           LOG.debug("Client local data caching enabled");
           return new LocalCacheFileSystem(cacheManager, fs, conf);
         } catch (IOException e) {
