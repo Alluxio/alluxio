@@ -15,11 +15,16 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationTestUtils;
 import alluxio.client.block.BlockMasterClient;
+import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.GetStatusPRequest;
+import alluxio.grpc.GetStatusPResponse;
 import alluxio.membership.WorkerClusterView;
+import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.wire.WorkerInfo;
@@ -185,14 +190,14 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   protected void waitForWorkersServing() throws TimeoutException, InterruptedException {
     CommonUtils.waitFor("worker starts serving RPCs", () -> {
       try (FileSystemContext fsContext = FileSystemContext.create()) {
-        List<BlockWorkerInfo> workerInfoList = fsContext.getCachedWorkers();
+        WorkerClusterView workerInfoList = fsContext.getCachedWorkers();
         if (mNumWorkers != workerInfoList.size()) {
           return false;
         }
         LOG.info("Observed {} workers in the cluster", workerInfoList.size());
-        for (BlockWorkerInfo workerInfo : workerInfoList) {
+        for (WorkerInfo workerInfo : workerInfoList) {
           try (CloseableResource<BlockWorkerClient> blockWorkerClient =
-                   fsContext.acquireBlockWorkerClient(workerInfo.getNetAddress())) {
+                   fsContext.acquireBlockWorkerClient(workerInfo.getAddress())) {
             AlluxioURI rootUri = new AlluxioURI("/");
             FileSystem masterFs = mMaster.getClient();
             DoraCacheFileSystem doraCacheFs = masterFs.getDoraCacheFileSystem();
@@ -204,7 +209,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
               return false;
             }
           } catch (IOException ioe) {
-            LOG.error("Failed to connect to worker {}: {}", workerInfo.getNetAddress(), ioe);
+            LOG.error("Failed to connect to worker {}: {}", workerInfo.getAddress(), ioe);
             return false;
           }
         }
