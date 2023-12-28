@@ -16,22 +16,21 @@ import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.Constants;
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerIdentity;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.HashFunction;
 
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 /**
@@ -64,8 +63,8 @@ public class JumpHashProvider {
    * Used to compare with incoming worker list to skip the heavy build process if the worker
    * list has not changed.
    */
-  private final AtomicReference<List<BlockWorkerInfo>> mLastWorkerInfos =
-      new AtomicReference<>(ImmutableList.of());
+  private final AtomicReference<Set<WorkerIdentity>> mLastWorkers =
+      new AtomicReference<>(ImmutableSet.of());
   /**
    * Requirements for interacting with this map:
    * 1. This bucket list is lazy initialized (cannot init in the constructor).
@@ -83,7 +82,7 @@ public class JumpHashProvider {
    *    At this stage it is guarded by `mLastUpdatedTimestamp`.
    */
   @Nullable
-  private volatile HashMap<Integer, BlockWorkerInfo> mActiveNodesByConsistentHashing;
+  private volatile HashMap<Integer, WorkerIdentity> mActiveNodesByConsistentHashing;
   /**
    * Lock to protect the lazy initialization of {@link #mActiveNodesByConsistentHashing}.
    */
@@ -99,26 +98,45 @@ public class JumpHashProvider {
   }
 
   /**
+   * Finds multiple workers from the buckets.
+   *
+   * @param key the key to use for hashing
+   * @param count the expected number of workers
+   * @return a list of workers following the worker list
+   */
+  public List<WorkerIdentity> getMultiple(String key, int count) {
+    Set<WorkerIdentity> workers = new LinkedHashSet<>();
+    int attempts = 0;
+    while (workers.size() < count && attempts < mMaxAttempts) {
+      attempts++;
+      WorkerIdentity selectedWorker = get(key, attempts);
+      workers.add(selectedWorker);
+    }
+    return ImmutableList.copyOf(workers);
+  }
+
+  /**
    * Initializes or refreshes the worker list using the given list of workers.
    * <br>
    * Thread safety:
    * If called concurrently by two or more threads, only one of the callers will actually
    * update the state of the hash provider using the worker list provided by that thread, and all
    * others will not change the internal state of the hash provider.
-   * @param workerInfos the up-to-date worker list
+   * @param workers the up-to-date worker list
    */
-  public void refresh(List<BlockWorkerInfo> workerInfos) {
-    Preconditions.checkArgument(!workerInfos.isEmpty(),
+  public void refresh(Set<WorkerIdentity> workers) {
+    Preconditions.checkArgument(!workers.isEmpty(),
         "cannot refresh hash provider with empty worker list");
-    maybeInitialize(workerInfos);
+    maybeInitialize(workers);
     // check if the worker list has expired
     if (shouldRebuildActiveNodesMapExclusively()) {
       // thread safety is valid provided that build() takes less than
       // WORKER_INFO_UPDATE_INTERVAL_NS, so that before next update the current update has been
       // finished
-      if (hasWorkerListChanged(workerInfos, mLastWorkerInfos.get())) {
-        mActiveNodesByConsistentHashing = build(workerInfos);
-        mLastWorkerInfos.set(workerInfos);
+      Set<WorkerIdentity> lastWorkerIds = mLastWorkers.get();
+      if (!workers.equals(lastWorkerIds)) {
+        mActiveNodesByConsistentHashing = build(workers);
+        mLastWorkers.set(workers);
         mUpdateCount.increment();
       }
     }
@@ -148,57 +166,28 @@ public class JumpHashProvider {
    * Only one caller gets to initialize the map while all others are blocked.
    * After the initialization, the map must not be null.
    */
-  private void maybeInitialize(List<BlockWorkerInfo> workerInfos) {
+  private void maybeInitialize(Set<WorkerIdentity> workers) {
     if (mActiveNodesByConsistentHashing == null) {
       synchronized (mInitLock) {
         // only one thread should reach here
         // test again to skip re-initialization
         if (mActiveNodesByConsistentHashing == null) {
-          mActiveNodesByConsistentHashing = build(workerInfos);
-          mLastWorkerInfos.set(workerInfos);
+          mActiveNodesByConsistentHashing = build(workers);
+          mLastWorkers.set(workers);
           mLastUpdatedTimestamp.set(System.nanoTime());
         }
       }
     }
   }
 
-  private boolean hasWorkerListChanged(List<BlockWorkerInfo> workerInfoList,
-      List<BlockWorkerInfo> anotherWorkerInfoList) {
-    if (workerInfoList == anotherWorkerInfoList) {
-      return false;
-    }
-    Set<WorkerNetAddress> workerAddressSet = workerInfoList.stream()
-        .map(info -> info.getNetAddress()).collect(Collectors.toSet());
-    Set<WorkerNetAddress> anotherWorkerAddressSet = anotherWorkerInfoList.stream()
-        .map(info -> info.getNetAddress()).collect(Collectors.toSet());
-    return !workerAddressSet.equals(anotherWorkerAddressSet);
-  }
-
-  /**
-   * Finds multiple workers from the buckets.
-   *
-   * @param key the key to use for hashing
-   * @param count the expected number of workers
-   * @return a list of workers following the worker list
-   */
-  public List<BlockWorkerInfo> getMultiple(String key, int count) {
-    Set<BlockWorkerInfo> workers = new HashSet<>();
-    int attempts = 0;
-    while (workers.size() < count && attempts < mMaxAttempts) {
-      attempts++;
-      workers.add(get(key, attempts));
-    }
-    return ImmutableList.copyOf(workers);
-  }
-
-  BlockWorkerInfo get(String key, int index) {
-    HashMap<Integer, BlockWorkerInfo> hashMap = mActiveNodesByConsistentHashing;
+  WorkerIdentity get(String key, int index) {
+    HashMap<Integer, WorkerIdentity> hashMap = mActiveNodesByConsistentHashing;
     Preconditions.checkState(hashMap != null, "Hash provider is not properly initialized");
     return get(hashMap, key, index);
   }
 
   @VisibleForTesting
-  static BlockWorkerInfo get(HashMap<Integer, BlockWorkerInfo> hashMap, String key, int index) {
+  static WorkerIdentity get(HashMap<Integer, WorkerIdentity> hashMap, String key, int index) {
     int hashKey = HASH_FUNCTION.hashString(format("%s%d", key, index), UTF_8).asInt();
     int workerId = jumpConsistentHash(hashKey, hashMap.size());
     return hashMap.get(workerId);
@@ -235,12 +224,12 @@ public class JumpHashProvider {
   }
 
   @VisibleForTesting
-  List<BlockWorkerInfo> getLastWorkerInfos() {
-    return mLastWorkerInfos.get();
+  Set<WorkerIdentity> getLastWorkers() {
+    return mLastWorkers.get();
   }
 
   @VisibleForTesting
-  HashMap<Integer, BlockWorkerInfo> getActiveNodesMap() {
+  HashMap<Integer, WorkerIdentity> getActiveNodesMap() {
     return mActiveNodesByConsistentHashing;
   }
 
@@ -250,12 +239,14 @@ public class JumpHashProvider {
   }
 
   @VisibleForTesting
-  static HashMap<Integer, BlockWorkerInfo> build(
-      List<BlockWorkerInfo> workerInfos) {
-    Preconditions.checkArgument(!workerInfos.isEmpty(), "worker list is empty");
-    HashMap<Integer, BlockWorkerInfo> activeNodesByJumpConsistentHashing = new HashMap<>();
-    for (int i = 0; i < workerInfos.size(); i++) {
-      activeNodesByJumpConsistentHashing.put(i, workerInfos.get(i));
+  static HashMap<Integer, WorkerIdentity> build(
+      Set<WorkerIdentity> workers) {
+    Preconditions.checkArgument(!workers.isEmpty(), "worker list is empty");
+    HashMap<Integer, WorkerIdentity> activeNodesByJumpConsistentHashing = new HashMap<>();
+    int workerIndex = 0;
+    for (WorkerIdentity worker : workers) {
+      activeNodesByJumpConsistentHashing.put(workerIndex, worker);
+      workerIndex++;
     }
     return activeNodesByJumpConsistentHashing;
   }

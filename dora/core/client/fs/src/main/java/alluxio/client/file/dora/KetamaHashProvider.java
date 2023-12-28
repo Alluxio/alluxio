@@ -15,15 +15,17 @@ import static com.google.common.hash.Hashing.murmur3_32_fixed;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.Constants;
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerIdentity;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.SortedMap;
@@ -31,7 +33,6 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -55,11 +56,11 @@ public class KetamaHashProvider {
    */
   private final LongAdder mUpdateCount = new LongAdder();
 
-  private final AtomicReference<List<BlockWorkerInfo>> mLastWorkerInfos =
-      new AtomicReference<>(ImmutableList.of());
+  private final AtomicReference<Set<WorkerIdentity>> mLastWorkers =
+      new AtomicReference<>(ImmutableSet.of());
 
   @Nullable
-  private volatile SortedMap<Integer, BlockWorkerInfo> mActiveNodes;
+  private volatile SortedMap<Integer, WorkerIdentity> mActiveNodes;
   /**
    * Lock to protect the lazy initialization of {@link #mActiveNodes}.
    */
@@ -85,32 +86,34 @@ public class KetamaHashProvider {
    * @param count the expected number of workers
    * @return a list of workers following the hash ring
    */
-  public List<BlockWorkerInfo> getMultiple(String key, int count) {
-    Set<BlockWorkerInfo> workers = new HashSet<>();
+  public List<WorkerIdentity> getMultiple(String key, int count) {
+    Set<WorkerIdentity> workers = new LinkedHashSet<>();
     int attempts = 0;
     while (workers.size() < count && attempts < mMaxAttempts) {
       attempts++;
-      workers.add(get(key, attempts));
+      WorkerIdentity selectedWorker = get(key, attempts);
+      workers.add(selectedWorker);
     }
     return ImmutableList.copyOf(workers);
   }
 
   /**
    * Initializes or refreshes the worker list using the given list of workers.
-   * @param workerInfos the up-to-date worker list
+   * @param workers the up-to-date worker list
    */
-  public void refresh(List<BlockWorkerInfo> workerInfos) {
-    Preconditions.checkArgument(!workerInfos.isEmpty(),
+  public void refresh(Set<WorkerIdentity> workers) {
+    Preconditions.checkArgument(!workers.isEmpty(),
         "cannot refresh hash provider with empty worker list");
-    maybeInitialize(workerInfos);
+    maybeInitialize(workers);
     // check if the worker list has expired
     if (shouldRebuildActiveNodesMapExclusively()) {
       // thread safety is valid provided that build() takes less than
       // WORKER_INFO_UPDATE_INTERVAL_NS, so that before next update the current update has been
       // finished
-      if (hasWorkerListChanged(workerInfos, mLastWorkerInfos.get())) {
-        updateActiveNodes(workerInfos, mLastWorkerInfos.get());
-        mLastWorkerInfos.set(workerInfos);
+      Set<WorkerIdentity> lastWorkerIds = mLastWorkers.get();
+      if (!workers.equals(lastWorkerIds)) {
+        updateActiveNodes(workers, mLastWorkers.get());
+        mLastWorkers.set(workers);
         mUpdateCount.increment();
       }
     }
@@ -140,14 +143,14 @@ public class KetamaHashProvider {
    * Only one caller gets to initialize the map while all others are blocked.
    * After the initialization, the map must not be null.
    */
-  private void maybeInitialize(List<BlockWorkerInfo> workerInfos) {
+  private void maybeInitialize(Set<WorkerIdentity> workers) {
     if (mActiveNodes == null) {
       synchronized (mInitLock) {
         // only one thread should reach here
         // test again to skip re-initialization
         if (mActiveNodes == null) {
-          build(workerInfos);
-          mLastWorkerInfos.set(workerInfos);
+          build(workers);
+          mLastWorkers.set(workers);
           mLastUpdatedTimestamp.set(System.nanoTime());
         }
       }
@@ -155,67 +158,49 @@ public class KetamaHashProvider {
   }
 
   /**
-   * Whether the worker list has changed.
-   * @param workerInfoList
-   * @param anotherWorkerInfoList
-   * @return
-   */
-  private boolean hasWorkerListChanged(List<BlockWorkerInfo> workerInfoList,
-                                       List<BlockWorkerInfo> anotherWorkerInfoList) {
-    if (workerInfoList == anotherWorkerInfoList) {
-      return false;
-    }
-    Set<WorkerNetAddress> workerAddressSet = workerInfoList.stream()
-        .map(info -> info.getNetAddress()).collect(Collectors.toSet());
-    Set<WorkerNetAddress> anotherWorkerAddressSet = anotherWorkerInfoList.stream()
-        .map(info -> info.getNetAddress()).collect(Collectors.toSet());
-    return !workerAddressSet.equals(anotherWorkerAddressSet);
-  }
-
-  /**
    * Update the active nodes.
-   * @param workerInfos
-   * @param lastWorkerInfos
+   * @param workers
+   * @param lastWorkers
    */
-  private void updateActiveNodes(List<BlockWorkerInfo> workerInfos,
-                                 List<BlockWorkerInfo> lastWorkerInfos) {
-    HashSet<BlockWorkerInfo> workerInfoSet = new HashSet<>(workerInfos);
-    HashSet<BlockWorkerInfo> lastWorkerInfoSet = new HashSet<>(lastWorkerInfos);
+  private void updateActiveNodes(Set<WorkerIdentity> workers,
+                                 Set<WorkerIdentity> lastWorkers) {
+    HashSet<WorkerIdentity> workerSet = new HashSet<>(workers);
+    HashSet<WorkerIdentity> lastWorkerSet = new HashSet<>(lastWorkers);
     // remove the workers that are no longer active
-    for (BlockWorkerInfo workerInfo : lastWorkerInfoSet) {
-      if (!workerInfoSet.contains(workerInfo)) {
-        remove(workerInfo);
+    for (WorkerIdentity worker : lastWorkerSet) {
+      if (!workerSet.contains(worker)) {
+        remove(worker);
       }
     }
     // add the new workers
-    for (BlockWorkerInfo workerInfo : workerInfoSet) {
-      if (!lastWorkerInfoSet.contains(workerInfo)) {
-        add(workerInfo);
+    for (WorkerIdentity worker : workerSet) {
+      if (!lastWorkerSet.contains(worker)) {
+        add(worker);
       }
     }
   }
 
   @VisibleForTesting
-  BlockWorkerInfo get(String key, int index) {
+  WorkerIdentity get(String key, int index) {
     Preconditions.checkState(mActiveNodes != null, "Hash provider is not properly initialized");
     if (mActiveNodes.isEmpty()) {
       return null;
     }
     int hash = hash(String.format("%s%d", key, index));
     if (!mActiveNodes.containsKey(hash)) {
-      SortedMap<Integer, BlockWorkerInfo> tailMap = mActiveNodes.tailMap(hash);
+      SortedMap<Integer, WorkerIdentity> tailMap = mActiveNodes.tailMap(hash);
       hash = tailMap.isEmpty() ? mActiveNodes.firstKey() : tailMap.firstKey();
     }
     return mActiveNodes.get(hash);
   }
 
   @VisibleForTesting
-  List<BlockWorkerInfo> getLastWorkerInfos() {
-    return mLastWorkerInfos.get();
+  Set<WorkerIdentity> getLastWorkers() {
+    return mLastWorkers.get();
   }
 
   @VisibleForTesting
-  SortedMap<Integer, BlockWorkerInfo> getActiveNodesMap() {
+  SortedMap<Integer, WorkerIdentity> getActiveNodesMap() {
     return mActiveNodes;
   }
 
@@ -226,27 +211,29 @@ public class KetamaHashProvider {
 
   @VisibleForTesting
   private void build(
-      List<BlockWorkerInfo> workerInfos) {
-    Preconditions.checkArgument(!workerInfos.isEmpty(), "worker list is empty");
+      Set<WorkerIdentity> workers) {
+    Preconditions.checkArgument(!workers.isEmpty(), "worker list is empty");
     mActiveNodes = new TreeMap<>();
-    for (BlockWorkerInfo workerInfo : workerInfos) {
-      add(workerInfo);
+    for (WorkerIdentity worker : workers) {
+      add(worker);
     }
   }
 
-  private void add(BlockWorkerInfo node) {
+  private void add(WorkerIdentity node) {
     Preconditions.checkState(mActiveNodes != null, "Hash provider is not properly initialized");
-    String nodeInfo = node.getNetAddress().dumpMainInfo();
+    final HashCode hashCode = HASH_FUNCTION.newHasher()
+        .putObject(node, WorkerIdentity.HashFunnel.INSTANCE).hash();
     for (int i = 0; i < mReplicas; i++) {
-      mActiveNodes.put(hash(i + nodeInfo + i), node);
+      mActiveNodes.put(hashCode.asInt() + i, node);
     }
   }
 
-  private void remove(BlockWorkerInfo node) {
+  private void remove(WorkerIdentity node) {
     Preconditions.checkState(mActiveNodes != null, "Hash provider is not properly initialized");
-    String nodeInfo = node.getNetAddress().dumpMainInfo();
+    final HashCode hashCode = HASH_FUNCTION.newHasher()
+        .putObject(node, WorkerIdentity.HashFunnel.INSTANCE).hash();
     for (int i = 0; i < mReplicas; i++) {
-      mActiveNodes.remove(hash(i + nodeInfo + i));
+      mActiveNodes.remove(hashCode.asInt() + i);
     }
   }
 

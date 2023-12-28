@@ -15,19 +15,20 @@ import static com.google.common.hash.Hashing.murmur3_32_fixed;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.Constants;
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerIdentity;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import org.apache.curator.shaded.com.google.common.hash.Hashing;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +36,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
-import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -62,8 +62,8 @@ public class MaglevHashProvider {
    */
   private final LongAdder mUpdateCount = new LongAdder();
 
-  private final AtomicReference<List<BlockWorkerInfo>> mLastWorkerInfos =
-      new AtomicReference<>(ImmutableList.of());
+  private final AtomicReference<Set<WorkerIdentity>> mLastWorkers =
+      new AtomicReference<>(ImmutableSet.of());
 
   /**
    * Lock to protect the lazy initialization of {@link #mLookup}.
@@ -82,10 +82,10 @@ public class MaglevHashProvider {
   /**
    * The lookup table.
    */
-  private BlockWorkerInfo[] mLookup;
+  private WorkerIdentity[] mLookup;
 
   /** Maps each backend to the related permutation. */
-  private Map<BlockWorkerInfo, Permutation> mPermutations;
+  private Map<WorkerIdentity, Permutation> mPermutations;
 
   /**
    * Constructor.
@@ -108,32 +108,34 @@ public class MaglevHashProvider {
    * @param count the expected number of workers
    * @return a list of workers to be mapped
    */
-  public List<BlockWorkerInfo> getMultiple(String key, int count) {
-    Set<BlockWorkerInfo> workers = new HashSet<>();
+  public List<WorkerIdentity> getMultiple(String key, int count) {
+    Set<WorkerIdentity> workers = new LinkedHashSet<>();
     int attempts = 0;
     while (workers.size() < count && attempts < mMaxAttempts) {
       attempts++;
-      workers.add(get(key, attempts));
+      WorkerIdentity selectedWorker = get(key, attempts);
+      workers.add(selectedWorker);
     }
     return ImmutableList.copyOf(workers);
   }
 
   /**
    * Initializes or refreshes the worker list using the given list of workers.
-   * @param workerInfos the up-to-date worker list
+   * @param workers the up-to-date worker list
    */
-  public void refresh(List<BlockWorkerInfo> workerInfos) {
-    Preconditions.checkArgument(!workerInfos.isEmpty(),
+  public void refresh(Set<WorkerIdentity> workers) {
+    Preconditions.checkArgument(!workers.isEmpty(),
         "cannot refresh hash provider with empty worker list");
-    maybeInitialize(workerInfos);
+    maybeInitialize(workers);
     // check if the worker list has expired
     if (shouldRebuildActiveNodesMapExclusively()) {
       // thread safety is valid provided that build() takes less than
       // WORKER_INFO_UPDATE_INTERVAL_NS, so that before next update the current update has been
       // finished
-      if (hasWorkerListChanged(workerInfos, mLastWorkerInfos.get())) {
-        updateActiveNodes(workerInfos, mLastWorkerInfos.get());
-        mLastWorkerInfos.set(workerInfos);
+      Set<WorkerIdentity> lastWorkerIds = mLastWorkers.get();
+      if (!workers.equals(lastWorkerIds)) {
+        updateActiveNodes(workers, mLastWorkers.get());
+        mLastWorkers.set(workers);
         mUpdateCount.increment();
       }
     }
@@ -163,14 +165,14 @@ public class MaglevHashProvider {
    * Only one caller gets to initialize the map while all others are blocked.
    * After the initialization, the map must not be null.
    */
-  private void maybeInitialize(List<BlockWorkerInfo> workerInfos) {
+  private void maybeInitialize(Set<WorkerIdentity> workers) {
     if (mLookup == null) {
       synchronized (mInitLock) {
         // only one thread should reach here
         // test again to skip re-initialization
         if (mLookup == null) {
-          build(workerInfos);
-          mLastWorkerInfos.set(workerInfos);
+          build(workers);
+          mLastWorkers.set(workers);
           mLastUpdatedTimestamp.set(System.nanoTime());
         }
       }
@@ -178,44 +180,26 @@ public class MaglevHashProvider {
   }
 
   /**
-   * Whether the worker list has changed.
-   * @param workerInfoList
-   * @param anotherWorkerInfoList
-   * @return
-   */
-  private boolean hasWorkerListChanged(List<BlockWorkerInfo> workerInfoList,
-                                       List<BlockWorkerInfo> anotherWorkerInfoList) {
-    if (workerInfoList == anotherWorkerInfoList) {
-      return false;
-    }
-    Set<WorkerNetAddress> workerAddressSet = workerInfoList.stream()
-        .map(info -> info.getNetAddress()).collect(Collectors.toSet());
-    Set<WorkerNetAddress> anotherWorkerAddressSet = anotherWorkerInfoList.stream()
-        .map(info -> info.getNetAddress()).collect(Collectors.toSet());
-    return !workerAddressSet.equals(anotherWorkerAddressSet);
-  }
-
-  /**
    * Update the active nodes.
-   * @param workerInfos
-   * @param lastWorkerInfos
+   * @param workers
+   * @param lastWorkers
    */
-  private void updateActiveNodes(List<BlockWorkerInfo> workerInfos,
-                                 List<BlockWorkerInfo> lastWorkerInfos) {
-    HashSet<BlockWorkerInfo> workerInfoSet = new HashSet<>(workerInfos);
-    HashSet<BlockWorkerInfo> lastWorkerInfoSet = new HashSet<>(lastWorkerInfos);
-    List<BlockWorkerInfo> toRemove = new ArrayList<>();
-    List<BlockWorkerInfo> toAdd = new ArrayList<>();
+  private void updateActiveNodes(Set<WorkerIdentity> workers,
+                                 Set<WorkerIdentity> lastWorkers) {
+    HashSet<WorkerIdentity> workerSet = new HashSet<>(workers);
+    HashSet<WorkerIdentity> lastWorkerSet = new HashSet<>(lastWorkers);
+    HashSet<WorkerIdentity> toRemove = new HashSet<>();
+    HashSet<WorkerIdentity> toAdd = new HashSet<>();
     // remove the workers that are no longer active
-    for (BlockWorkerInfo workerInfo : lastWorkerInfoSet) {
-      if (!workerInfoSet.contains(workerInfo)) {
-        toRemove.add(workerInfo);
+    for (WorkerIdentity worker : lastWorkerSet) {
+      if (!workerSet.contains(worker)) {
+        toRemove.add(worker);
       }
     }
     // add the new workers
-    for (BlockWorkerInfo workerInfo : workerInfoSet) {
-      if (!lastWorkerInfoSet.contains(workerInfo)) {
-        toAdd.add(workerInfo);
+    for (WorkerIdentity worker : workerSet) {
+      if (!lastWorkerSet.contains(worker)) {
+        toAdd.add(worker);
       }
     }
     // remove the workers that are no longer active
@@ -225,7 +209,7 @@ public class MaglevHashProvider {
   }
 
   @VisibleForTesting
-  BlockWorkerInfo get(String key, int index) {
+  WorkerIdentity get(String key, int index) {
     Preconditions.checkState(mLookup != null, "Hash provider is not properly initialized");
     if (mLookup.length == 0) {
       return null;
@@ -241,21 +225,21 @@ public class MaglevHashProvider {
 
   @VisibleForTesting
   private void build(
-      List<BlockWorkerInfo> workerInfos) {
-    Preconditions.checkArgument(!workerInfos.isEmpty(), "worker list is empty");
-    mLookup = new BlockWorkerInfo[0];
-    add(workerInfos);
+      Set<WorkerIdentity> workers) {
+    Preconditions.checkArgument(!workers.isEmpty(), "worker list is empty");
+    mLookup = new WorkerIdentity[0];
+    add(workers);
   }
 
-  private void add(List<BlockWorkerInfo> toAdd) {
+  private void add(Set<WorkerIdentity> toAdd) {
     mPermutations.values().forEach(Permutation::reset);
-    for (BlockWorkerInfo backend : toAdd) {
+    for (WorkerIdentity backend : toAdd) {
       mPermutations.put(backend, newPermutation(backend));
     }
     mLookup = newLookup();
   }
 
-  private void remove(Collection<BlockWorkerInfo> toRemove) {
+  private void remove(Collection<WorkerIdentity> toRemove) {
     toRemove.forEach(mPermutations::remove);
     mPermutations.values().forEach(Permutation::reset);
     mLookup = newLookup();
@@ -271,7 +255,7 @@ public class MaglevHashProvider {
    * @param backend the source of the permutation
    * @return a new permutation
    */
-  private Permutation newPermutation(BlockWorkerInfo backend) {
+  private Permutation newPermutation(WorkerIdentity backend) {
     return new Permutation(backend, mLookupSize);
   }
 
@@ -280,8 +264,8 @@ public class MaglevHashProvider {
    *
    * @return the new lookup table
    */
-  private BlockWorkerInfo[] newLookup() {
-    final BlockWorkerInfo[] lookup = new BlockWorkerInfo[mLookupSize];
+  private WorkerIdentity[] newLookup() {
+    final WorkerIdentity[] lookup = new WorkerIdentity[mLookupSize];
     final AtomicInteger filled = new AtomicInteger();
     do {
       mPermutations.values().forEach(permutation -> {
@@ -308,7 +292,7 @@ public class MaglevHashProvider {
     /**
      * The backend associated to the permutation.
      */
-    private final BlockWorkerInfo mBackend;
+    private final WorkerIdentity mBackend;
 
     /**
      * The size of the lookup table.
@@ -345,13 +329,15 @@ public class MaglevHashProvider {
      * @param backend the backend to wrap
      * @param size    size of the lookup table
      */
-    Permutation(BlockWorkerInfo backend, int size) {
+    Permutation(WorkerIdentity backend, int size) {
       mSize = size;
       mBackend = backend;
-      mOffset = hash1(String.format("%s%d",
-          backend.getNetAddress().dumpMainInfo(), OFFSET_SEED)) % size;
-      mSkip = hash2(String.format("%s%d",
-          backend.getNetAddress().dumpMainInfo(), SKIP_SEED)) % (size - 1) + 1;
+      final HashCode hashCode = HASH_FUNCTION.newHasher()
+          .putObject(backend, WorkerIdentity.HashFunnel.INSTANCE).hash();
+      mOffset = hash1(String.format("%d%d",
+          hashCode.asInt(), OFFSET_SEED)) % size;
+      mSkip = hash2(String.format("%d%d",
+          hashCode.asInt(), SKIP_SEED)) % (size - 1) + 1;
       mCurrent = mOffset;
     }
 
@@ -360,7 +346,7 @@ public class MaglevHashProvider {
      *
      * @return the backend related to the current permutation
      */
-    BlockWorkerInfo backend() {
+    WorkerIdentity backend() {
       return mBackend;
     }
 

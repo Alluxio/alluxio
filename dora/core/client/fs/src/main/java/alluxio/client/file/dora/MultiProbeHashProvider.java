@@ -15,24 +15,25 @@ import static com.google.common.hash.Hashing.murmur3_32_fixed;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.Constants;
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerIdentity;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -53,8 +54,8 @@ public class MultiProbeHashProvider {
    */
   private final LongAdder mUpdateCount = new LongAdder();
 
-  private final AtomicReference<List<BlockWorkerInfo>> mLastWorkerInfos =
-      new AtomicReference<>(ImmutableList.of());
+  private final AtomicReference<Set<WorkerIdentity>> mLastWorkers =
+      new AtomicReference<>(ImmutableSet.of());
 
   /** Common default seed to use during hashing of the nodes. */
   private static final int SEED = 0xDEADBEEF;
@@ -88,32 +89,34 @@ public class MultiProbeHashProvider {
    * @param count the expected number of workers
    * @return a list of workers following the hash ring
    */
-  public List<BlockWorkerInfo> getMultiple(String key, int count) {
-    Set<BlockWorkerInfo> workers = new HashSet<>();
+  public List<WorkerIdentity> getMultiple(String key, int count) {
+    Set<WorkerIdentity> workers = new LinkedHashSet<>();
     int attempts = 0;
     while (workers.size() < count && attempts < mMaxAttempts) {
       attempts++;
-      workers.add(get(key, attempts));
+      WorkerIdentity selectedWorker = get(key, attempts);
+      workers.add(selectedWorker);
     }
     return ImmutableList.copyOf(workers);
   }
 
   /**
    * Initializes or refreshes the worker list using the given list of workers.
-   * @param workerInfos the up-to-date worker list
+   * @param workers the up-to-date worker list
    */
-  public void refresh(List<BlockWorkerInfo> workerInfos) {
-    Preconditions.checkArgument(!workerInfos.isEmpty(),
+  public void refresh(Set<WorkerIdentity> workers) {
+    Preconditions.checkArgument(!workers.isEmpty(),
         "cannot refresh hash provider with empty worker list");
-    maybeInitialize(workerInfos);
+    maybeInitialize(workers);
     // check if the worker list has expired
     if (shouldRebuildActiveNodesMapExclusively()) {
       // thread safety is valid provided that build() takes less than
       // WORKER_INFO_UPDATE_INTERVAL_NS, so that before next update the current update has been
       // finished
-      if (hasWorkerListChanged(workerInfos, mLastWorkerInfos.get())) {
-        updateActiveNodes(workerInfos, mLastWorkerInfos.get());
-        mLastWorkerInfos.set(workerInfos);
+      Set<WorkerIdentity> lastWorkerIds = mLastWorkers.get();
+      if (!workers.equals(lastWorkerIds)) {
+        updateActiveNodes(workers, mLastWorkers.get());
+        mLastWorkers.set(workers);
         mUpdateCount.increment();
       }
     }
@@ -143,14 +146,14 @@ public class MultiProbeHashProvider {
    * Only one caller gets to initialize the map while all others are blocked.
    * After the initialization, the map must not be null.
    */
-  private void maybeInitialize(List<BlockWorkerInfo> workerInfos) {
+  private void maybeInitialize(Set<WorkerIdentity> workers) {
     if (mRing == null) {
       synchronized (mInitLock) {
         // only one thread should reach here
         // test again to skip re-initialization
         if (mRing == null) {
-          build(workerInfos);
-          mLastWorkerInfos.set(workerInfos);
+          build(workers);
+          mLastWorkers.set(workers);
           mLastUpdatedTimestamp.set(System.nanoTime());
         }
       }
@@ -158,48 +161,30 @@ public class MultiProbeHashProvider {
   }
 
   /**
-   * Whether the worker list has changed.
-   * @param workerInfoList
-   * @param anotherWorkerInfoList
-   * @return
-   */
-  private boolean hasWorkerListChanged(List<BlockWorkerInfo> workerInfoList,
-                                       List<BlockWorkerInfo> anotherWorkerInfoList) {
-    if (workerInfoList == anotherWorkerInfoList) {
-      return false;
-    }
-    Set<WorkerNetAddress> workerAddressSet = workerInfoList.stream()
-        .map(info -> info.getNetAddress()).collect(Collectors.toSet());
-    Set<WorkerNetAddress> anotherWorkerAddressSet = anotherWorkerInfoList.stream()
-        .map(info -> info.getNetAddress()).collect(Collectors.toSet());
-    return !workerAddressSet.equals(anotherWorkerAddressSet);
-  }
-
-  /**
    * Update the active nodes.
-   * @param workerInfos
-   * @param lastWorkerInfos
+   * @param workers
+   * @param lastWorkers
    */
-  private void updateActiveNodes(List<BlockWorkerInfo> workerInfos,
-                                 List<BlockWorkerInfo> lastWorkerInfos) {
-    HashSet<BlockWorkerInfo> workerInfoSet = new HashSet<>(workerInfos);
-    HashSet<BlockWorkerInfo> lastWorkerInfoSet = new HashSet<>(lastWorkerInfos);
+  private void updateActiveNodes(Set<WorkerIdentity> workers,
+                                 Set<WorkerIdentity> lastWorkers) {
+    HashSet<WorkerIdentity> workerSet = new HashSet<>(workers);
+    HashSet<WorkerIdentity> lastWorkerSet = new HashSet<>(lastWorkers);
     // remove the workers that are no longer active
-    for (BlockWorkerInfo workerInfo : lastWorkerInfoSet) {
-      if (!workerInfoSet.contains(workerInfo)) {
-        remove(workerInfo);
+    for (WorkerIdentity worker : lastWorkerSet) {
+      if (!workerSet.contains(worker)) {
+        remove(worker);
       }
     }
     // add the new workers
-    for (BlockWorkerInfo workerInfo : workerInfoSet) {
-      if (!lastWorkerInfoSet.contains(workerInfo)) {
-        add(workerInfo);
+    for (WorkerIdentity worker : workerSet) {
+      if (!lastWorkerSet.contains(worker)) {
+        add(worker);
       }
     }
   }
 
   @VisibleForTesting
-  BlockWorkerInfo get(String key, int index) {
+  WorkerIdentity get(String key, int index) {
     Preconditions.checkState(mRing != null, "Hash provider is not properly initialized");
     if (mRing.isEmpty()) {
       return null;
@@ -210,8 +195,8 @@ public class MultiProbeHashProvider {
   }
 
   @VisibleForTesting
-  List<BlockWorkerInfo> getLastWorkerInfos() {
-    return mLastWorkerInfos.get();
+  Set<WorkerIdentity> getLastWorkers() {
+    return mLastWorkers.get();
   }
 
   @VisibleForTesting
@@ -221,15 +206,15 @@ public class MultiProbeHashProvider {
 
   @VisibleForTesting
   private void build(
-      List<BlockWorkerInfo> workerInfos) {
-    Preconditions.checkArgument(!workerInfos.isEmpty(), "worker list is empty");
+      Set<WorkerIdentity> workers) {
+    Preconditions.checkArgument(!workers.isEmpty(), "worker list is empty");
     mRing = new ArrayList<>();
-    for (BlockWorkerInfo workerInfo : workerInfos) {
-      add(workerInfo);
+    for (WorkerIdentity worker : workers) {
+      add(worker);
     }
   }
 
-  private void add(BlockWorkerInfo node) {
+  private void add(WorkerIdentity node) {
     Preconditions.checkState(mRing != null, "Hash provider is not properly initialized");
     final Point bucket = wrap(node);
     final int pos = Collections.binarySearch(mRing, bucket);
@@ -237,7 +222,7 @@ public class MultiProbeHashProvider {
     mRing.add(index, bucket);
   }
 
-  private void remove(BlockWorkerInfo node) {
+  private void remove(WorkerIdentity node) {
     Preconditions.checkState(mRing != null, "Hash provider is not properly initialized");
     final Point bucket = wrap(node);
     final int pos = Collections.binarySearch(mRing, bucket);
@@ -250,8 +235,10 @@ public class MultiProbeHashProvider {
    * @param resource the resource to wrap
    * @return the related point in the ring
    */
-  private Point wrap(BlockWorkerInfo resource) {
-    final int hash = hash(String.format("%s%d", resource.getNetAddress().dumpMainInfo(), SEED));
+  private Point wrap(WorkerIdentity resource) {
+    final HashCode hashCode = HASH_FUNCTION.newHasher()
+        .putObject(resource, WorkerIdentity.HashFunnel.INSTANCE).hash();
+    final int hash = hash(String.format("%d%d", hashCode.asInt(), SEED));
     return new Point(resource, hash);
   }
 
@@ -300,7 +287,7 @@ public class MultiProbeHashProvider {
 
   class Point implements Comparable<Point> {
     /** The resource to store. */
-    final BlockWorkerInfo mResource;
+    final WorkerIdentity mResource;
 
     /** The position in the consistent hash ring. */
     final int mHash;
@@ -310,7 +297,7 @@ public class MultiProbeHashProvider {
      * @param resource  the resource to store
      * @param hashValue the position in the consistent hash ring
      */
-    Point(BlockWorkerInfo resource, int hashValue) {
+    Point(WorkerIdentity resource, int hashValue) {
       mResource = resource;
       mHash = hashValue;
     }

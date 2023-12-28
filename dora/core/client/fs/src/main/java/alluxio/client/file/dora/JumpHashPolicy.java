@@ -16,11 +16,18 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.membership.WorkerClusterView;
+import alluxio.wire.WorkerIdentity;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerState;
 
+import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * An impl of WorkerLocationPolicy.
@@ -31,8 +38,7 @@ import java.util.List;
  */
 public class JumpHashPolicy implements WorkerLocationPolicy {
   private static final Logger LOG = LoggerFactory.getLogger(JumpHashPolicy.class);
-  private static final JumpHashProvider HASH_PROVIDER =
-      new JumpHashProvider(100, Constants.SECOND_MS);
+  private final JumpHashProvider mHashProvider;
 
   /**
    * Constructs a new {@link JumpHashPolicy}.
@@ -42,22 +48,50 @@ public class JumpHashPolicy implements WorkerLocationPolicy {
   public JumpHashPolicy(AlluxioConfiguration conf) {
     LOG.debug("%s is chosen for user worker hash algorithm",
         conf.getString(PropertyKey.USER_WORKER_SELECTION_POLICY));
+    mHashProvider = new JumpHashProvider(100, Constants.SECOND_MS);
   }
 
   @Override
-  public List<BlockWorkerInfo> getPreferredWorkers(List<BlockWorkerInfo> blockWorkerInfos,
+  public List<BlockWorkerInfo> getPreferredWorkers(WorkerClusterView workerClusterView,
       String fileId, int count) throws ResourceExhaustedException {
-    if (blockWorkerInfos.size() < count) {
+    if (workerClusterView.size() < count) {
       throw new ResourceExhaustedException(String.format(
           "Not enough workers in the cluster %d workers in the cluster but %d required",
-          blockWorkerInfos.size(), count));
+          workerClusterView.size(), count));
     }
-    HASH_PROVIDER.refresh(blockWorkerInfos);
-    List<BlockWorkerInfo> workers = HASH_PROVIDER.getMultiple(fileId, count);
+    Set<WorkerIdentity> workerIdentities = workerClusterView.workerIds();
+    mHashProvider.refresh(workerIdentities);
+    List<WorkerIdentity> workers = mHashProvider.getMultiple(fileId, count);
     if (workers.size() != count) {
       throw new ResourceExhaustedException(String.format(
-          "Found %d workers from the hash ring but %d required", blockWorkerInfos.size(), count));
+          "Found %d workers from the hash ring but %d required", workers.size(), count));
     }
-    return workers;
+    ImmutableList.Builder<BlockWorkerInfo> builder = ImmutableList.builder();
+    for (WorkerIdentity worker : workers) {
+      Optional<WorkerInfo> optionalWorkerInfo = workerClusterView.getWorkerById(worker);
+      final WorkerInfo workerInfo;
+      if (optionalWorkerInfo.isPresent()) {
+        workerInfo = optionalWorkerInfo.get();
+      } else {
+        // the worker returned by the policy does not exist in the cluster view
+        // supplied by the client.
+        // this can happen when the membership changes and some callers fail to update
+        // to the latest worker cluster view.
+        // in this case, just skip this worker
+        LOG.debug("Inconsistency between caller's view of cluster and that of "
+                + "the consistent hash policy's: worker {} selected by policy does not exist in "
+                + "caller's view {}. Skipping this worker.",
+            worker, workerClusterView);
+        continue;
+      }
+
+      BlockWorkerInfo blockWorkerInfo = new BlockWorkerInfo(
+          worker, workerInfo.getAddress(), workerInfo.getCapacityBytes(),
+          workerInfo.getUsedBytes(), workerInfo.getState() == WorkerState.LIVE
+      );
+      builder.add(blockWorkerInfo);
+    }
+    List<BlockWorkerInfo> infos = builder.build();
+    return infos;
   }
 }
