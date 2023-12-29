@@ -297,7 +297,7 @@ public class BaseFileSystem implements FileSystem {
             locations.addAll(getHostWorkerMap().values());
             Collections.shuffle(locations);
           } else if (count > 0) {
-            List<WorkerNetAddress> addrs = (List<WorkerNetAddress>) getHostWorkerMap().values();
+            List<WorkerNetAddress> addrs = new ArrayList<>(getHostWorkerMap().values());
             Collections.shuffle(addrs);
             for (int i = 0; i < Math.min(count, addrs.size()); i++) {
               locations.add(addrs.get(i));
