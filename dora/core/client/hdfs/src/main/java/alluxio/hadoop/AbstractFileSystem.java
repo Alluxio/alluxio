@@ -782,7 +782,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
    * @param e an {@link AlluxioRuntimeException} instance
    * @return the corresponding io exception
    */
-  private IOException toHdfsIOException(AlluxioRuntimeException e) {
+  //TODO(binfan): move this util method to HadoopUtils
+  public static IOException toHdfsIOException(AlluxioRuntimeException e) {
     if (e instanceof NotFoundRuntimeException) {
       return new FileNotFoundException(e.getMessage());
     }

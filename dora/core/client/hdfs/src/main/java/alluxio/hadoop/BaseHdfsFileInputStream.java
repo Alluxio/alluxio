@@ -11,12 +11,15 @@
 
 package alluxio.hadoop;
 
+import static alluxio.hadoop.AbstractFileSystem.toHdfsIOException;
+
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 
 import org.apache.hadoop.fs.ByteBufferReadable;
 import org.apache.hadoop.fs.FileSystem.Statistics;
@@ -63,6 +66,8 @@ public class BaseHdfsFileInputStream extends InputStream implements Seekable, Po
     } catch (FileDoesNotExistException e) {
       // Transform the Alluxio exception to a Java exception to satisfy the HDFS API contract.
       throw new FileNotFoundException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(uri));
+    } catch (AlluxioRuntimeException e) {
+      throw toHdfsIOException(e);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
