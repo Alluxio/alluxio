@@ -89,8 +89,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   private Path mWorkingDir = new Path(AlluxioURI.SEPARATOR);
   private Statistics mStatistics = null;
   private String mAlluxioHeader = null;
-  private boolean isClosed = false;
   private boolean mExcludeMountInfoOnListStatus;
+  private boolean mIsClosed = false;
 
   /**
    * Constructs a new {@link AbstractFileSystem} instance with specified a {@link FileSystem}
@@ -144,7 +144,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
 
   @Override
   public void close() throws IOException {
-    if (isClosed) {
+    if (mIsClosed) {
       return;
     }
 
@@ -154,15 +154,17 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     // closing
     super.close();
     mFileSystem.close();
-    isClosed = true;
+    mIsClosed = true;
   }
 
+  // CHECKSTYLE.OFF: NoFinalizer
   @Override
   protected void finalize() throws Throwable {
     LOG.debug("finalize() called.");
     close();
     super.finalize();
   }
+  // CHECKSTYLE.ON: NoFinalizer
 
   /**
    * Attempts to create a file with default permission.
