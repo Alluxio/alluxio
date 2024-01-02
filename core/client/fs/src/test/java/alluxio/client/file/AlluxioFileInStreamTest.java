@@ -961,16 +961,18 @@ public final class AlluxioFileInStreamTest {
   }
 
   @Test
-  public void testStatusOutdated() throws IOException {
+  public void testStatusOutdated() throws IOException, InterruptedException {
     OpenFilePOptions options =
         OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
     try (AlluxioFileInStream testStream = new AlluxioFileInStream(mStatus,
         new InStreamOptions(mStatus, options, mConf, mContext), mContext)) {
+      Thread.sleep(1);
       Assert.assertFalse(testStream.isStatusOutdated());
     }
     mConf.set(PropertyKey.USER_FILE_IN_STREAM_STATUS_EXPIRATION_TIME, 0L);
     try (AlluxioFileInStream testStream = new AlluxioFileInStream(mStatus,
         new InStreamOptions(mStatus, options, mConf, mContext), mContext)) {
+      Thread.sleep(1);
       Assert.assertTrue(testStream.isStatusOutdated());
     }
   }
