@@ -48,4 +48,12 @@ public class AlluxioFileSystem extends DelegateToFileSystem {
       throws IOException, URISyntaxException {
     super(uri, new FileSystem(), conf, Constants.SCHEME, false);
   }
+
+  // CHECKSTYLE.OFF: NoFinalizer
+  @Override
+  protected void finalize() throws Throwable {
+    fsImpl.close();
+    super.finalize();
+  }
+  // CHECKSTYLE.ON: NoFinalizer
 }

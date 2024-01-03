@@ -157,15 +157,6 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     mIsClosed = true;
   }
 
-  // CHECKSTYLE.OFF: NoFinalizer
-  @Override
-  protected void finalize() throws Throwable {
-    LOG.debug("finalize() called.");
-    close();
-    super.finalize();
-  }
-  // CHECKSTYLE.ON: NoFinalizer
-
   /**
    * Attempts to create a file with default permission.
    * Overwrite will not succeed if the path exists and is a folder.
