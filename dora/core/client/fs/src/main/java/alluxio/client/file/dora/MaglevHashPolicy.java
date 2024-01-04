@@ -30,11 +30,22 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * An impl of WorkerLocationPolicy.
+ * An impl of Maglev Hash policy.
  *
  * A policy where a file path is matched to worker(s) by Jump Consistent Hashing Algorithm.
  * The algorithm is described in this paper:
- * https://arxiv.org/pdf/1406.2294.pdf
+ * https://static.googleusercontent.com/media/research.google.com/zh-CN//pubs/archive/44824.pdf
+ *
+ * One thing to note about Maglev hashing is that alluxio.user.maglev.hash.lookup.size
+ * needs to be set to a prime number.
+ * The bigger the size of the lookup table,
+ * the smaller the variance of this hashing algorithm will be.
+ * But bigger look up table will consume more time and memory.
+ *
+ * We strongly recommend using Maglev Hashing for User Worker Selection Policy.
+ * Under most situation, it has the minimum time cost,
+ * and it is the most uniform and balanced hashing policy.
+ *
  */
 public class MaglevHashPolicy implements WorkerLocationPolicy {
   private static final Logger LOG = LoggerFactory.getLogger(MaglevHashPolicy.class);

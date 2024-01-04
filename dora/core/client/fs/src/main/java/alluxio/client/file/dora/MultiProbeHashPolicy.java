@@ -30,12 +30,21 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * An impl of WorkerLocationPolicy.
+ * An impl of Multi Probe Hash Policy.
  *
  * A policy where a file path is matched to worker(s) by the multi-probe algorithm.
  * The hash algorithm makes sure the same path maps to the same worker sequence.
  * On top of that, this hashing algorithm makes sure worker membership changes incur minimal
  * hash changes.
+ *
+ * alluxio.user.multi.probe.hash.probe.num:
+ * This is the number of probes in the multi-probe hashing algorithm.
+ * In the multi-probe hashing algorithm, the bigger the number of probes,
+ * the smaller the variance of this hashing algorithm will be.
+ * But more probes will consume more time and memory.
+ *
+ * Relevant paper:
+ * https://arxiv.org/pdf/1505.00062.pdf
  */
 public class MultiProbeHashPolicy implements WorkerLocationPolicy {
   private static final Logger LOG = LoggerFactory.getLogger(MultiProbeHashPolicy.class);

@@ -42,13 +42,13 @@ public class MaglevtHashPolicyTest {
   public void setup() {
     mConf = new InstancedConfiguration(Configuration.copyProperties());
     mConf.set(PropertyKey.USER_WORKER_SELECTION_POLICY,
-        "alluxio.client.file.dora.KetamaHashPolicy");
+        "MAGLEV");
   }
 
   @Test
   public void getOneWorker() throws Exception {
     WorkerLocationPolicy policy = WorkerLocationPolicy.Factory.create(mConf);
-    assertTrue(policy instanceof KetamaHashPolicy);
+    assertTrue(policy instanceof MaglevHashPolicy);
     // Prepare a worker list
     WorkerClusterView workers = new WorkerClusterView(Arrays.asList(
         new WorkerInfo()
@@ -77,7 +77,7 @@ public class MaglevtHashPolicyTest {
   @Test
   public void getMultipleWorkers() throws Exception {
     WorkerLocationPolicy policy = WorkerLocationPolicy.Factory.create(mConf);
-    assertTrue(policy instanceof KetamaHashPolicy);
+    assertTrue(policy instanceof MaglevHashPolicy);
     // Prepare a worker list
     WorkerClusterView workers = new WorkerClusterView(Arrays.asList(
         new WorkerInfo()
@@ -119,7 +119,7 @@ public class MaglevtHashPolicyTest {
    */
   @Test
   public void workerAddrUpdateWithIdUnchanged() throws Exception {
-    KetamaHashPolicy policy = new KetamaHashPolicy(mConf);
+    MaglevHashPolicy policy = new MaglevHashPolicy(mConf);
     List<WorkerInfo> workers = new ArrayList<>();
     workers.add(new WorkerInfo().setIdentity(WorkerIdentityTestUtils.ofLegacyId(1L))
         .setAddress(new WorkerNetAddress().setHost("host1"))

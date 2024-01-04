@@ -30,11 +30,16 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * An impl of WorkerLocationPolicy.
+ * An impl of Jump Consistent Hash Policy.
  *
  * A policy where a file path is matched to worker(s) by Jump Consistent Hashing Algorithm.
  * The algorithm is described in this paper:
  * https://arxiv.org/pdf/1406.2294.pdf
+ *
+ * The disadvantage of this algorithm is that
+ * buckets can only be inserted and deleted at the head and tail of the worker list
+ * to maintain hash consistency,
+ * that is, nodes can only be added and deleted at the head and tail of the worker list.
  */
 public class JumpHashPolicy implements WorkerLocationPolicy {
   private static final Logger LOG = LoggerFactory.getLogger(JumpHashPolicy.class);

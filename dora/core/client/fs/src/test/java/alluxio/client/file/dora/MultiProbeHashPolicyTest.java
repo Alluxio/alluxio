@@ -42,7 +42,7 @@ public class MultiProbeHashPolicyTest {
   public void setup() {
     mConf = new InstancedConfiguration(Configuration.copyProperties());
     mConf.set(PropertyKey.USER_WORKER_SELECTION_POLICY,
-        "alluxio.client.file.dora.MultiProbeHashPolicy");
+        "MULTI_PROBE");
   }
 
   @Test

@@ -6310,7 +6310,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_WORKER_SELECTION_POLICY =
       classBuilder(Name.USER_WORKER_SELECTION_POLICY)
-          .setDefaultValue("alluxio.client.file.dora.ConsistentHashPolicy")
+          .setDefaultValue("CONSISTENT")
           .setDescription("The policy a client uses to map a file path to a worker address. "
               + "The only option is `alluxio.client.file.dora.ConsistentHashPolicy`. "
               + "Other options are for internal tests only and not for real deployments.")
