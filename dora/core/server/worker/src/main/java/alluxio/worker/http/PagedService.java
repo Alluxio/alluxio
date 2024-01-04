@@ -48,6 +48,18 @@ public class PagedService {
   }
 
   /**
+   * Write page bytes given fileId, pageIndex.
+   * @param fileId the file ID
+   * @param pageIndex the page index
+   * @param bytes bytes of the page
+   * @return if write page successfully
+   */
+  public boolean writePage(String fileId, long pageIndex, byte[] bytes) {
+    PageId pageId = new PageId(fileId, pageIndex);
+    return mCacheManager.put(pageId, bytes);
+  }
+
+  /**
    * Get page bytes given fileId, pageIndex, and channel which is used for allocating ByteBuf.
    *
    * @param fileId    the file ID

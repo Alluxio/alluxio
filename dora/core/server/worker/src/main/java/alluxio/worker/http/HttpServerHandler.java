@@ -29,8 +29,11 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.util.FileSystemOptionsUtils;
+import alluxio.worker.http.vo.WritePageResponseVO;
 
 import com.google.gson.Gson;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -39,6 +42,7 @@ import io.netty.channel.FileRegion;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
@@ -127,6 +131,32 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
     List<String> fields = HttpRequestUtil.extractFieldsFromHttpRequestUri(requestUri);
     HttpRequestUri httpRequestUri = HttpRequestUri.of(fields);
 
+    switch (httpRequest.method().name()) {
+      case "GET":
+        return dispatchGetRequest(httpRequest, httpRequestUri);
+      case "PUT":
+      case "POST":
+        return dispatchPostRequest(httpRequest, httpRequestUri);
+      default:
+        // TODO(JiamingMai): this should not happen, we should throw an exception here
+        return null;
+    }
+  }
+
+  private HttpResponseContext dispatchPostRequest(
+      HttpRequest httpRequest, HttpRequestUri httpRequestUri) throws PageNotFoundException {
+    // parse the URI and dispatch it to different methods
+    switch (httpRequestUri.getMappingPath()) {
+      case "file":
+        return doWritePage(httpRequest, httpRequestUri);
+      default:
+        // TODO(JiamingMai): this should not happen, we should throw an exception here
+        return null;
+    }
+  }
+
+  private HttpResponseContext dispatchGetRequest(
+      HttpRequest httpRequest, HttpRequestUri httpRequestUri) throws PageNotFoundException {
     // parse the URI and dispatch it to different methods
     switch (httpRequestUri.getMappingPath()) {
       case "file":
@@ -141,6 +171,41 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
         // TODO(JiamingMai): this should not happen, we should throw an exception here
         return null;
     }
+  }
+
+  private HttpResponseContext doWritePage(HttpRequest httpRequest, HttpRequestUri httpRequestUri)
+      throws PageNotFoundException {
+    List<String> remainingFields = httpRequestUri.getRemainingFields();
+    String fileId = remainingFields.get(0);
+    long pageIndex = Long.parseLong(remainingFields.get(2));
+
+    try {
+      if (httpRequest instanceof FullHttpRequest) {
+        FullHttpRequest fullRequest = (FullHttpRequest) httpRequest;
+        ByteBuf content = fullRequest.content();
+        boolean success = mPagedService.writePage(fileId, pageIndex, ByteBufUtil.getBytes(content));
+        WritePageResponseVO writePageResponseVO = new WritePageResponseVO(success,
+            success == false ? "Failed to write page" : "Page written successfully");
+        String responseJson = new Gson().toJson(writePageResponseVO);
+        FullHttpResponse response = new DefaultFullHttpResponse(httpRequest.protocolVersion(), OK,
+            Unpooled.wrappedBuffer(responseJson.getBytes()));
+        response.headers()
+            .set(CONTENT_TYPE, APPLICATION_JSON)
+            .setInt(CONTENT_LENGTH, response.content().readableBytes());
+        return new HttpResponseContext(response, null);
+      }
+    } catch (Exception e) {
+      LOG.error("Failed to write page. fileId: {}, pageIndex: {}", fileId, pageIndex, e);
+    }
+    WritePageResponseVO writePageResponseVO =
+        new WritePageResponseVO(false, "The HTTP request doesn't have body content");
+    String responseJson = new Gson().toJson(writePageResponseVO);
+    FullHttpResponse response = new DefaultFullHttpResponse(httpRequest.protocolVersion(), OK,
+        Unpooled.wrappedBuffer(responseJson.getBytes()));
+    response.headers()
+        .set(CONTENT_TYPE, APPLICATION_JSON)
+        .setInt(CONTENT_LENGTH, response.content().readableBytes());
+    return new HttpResponseContext(response, null);
   }
 
   private HttpResponseContext doGetPage(HttpRequest httpRequest, HttpRequestUri httpRequestUri)
