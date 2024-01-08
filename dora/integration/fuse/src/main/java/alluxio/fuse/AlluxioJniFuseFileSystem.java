@@ -113,7 +113,7 @@ public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   private final boolean mUfsEnabled;
   private final FuseOptions mFuseOptions;
 
-  private static final BlockMasterInfo ZERO_BLOCK_MASTER_INFO = new BlockMasterInfo();
+  private final BlockMasterInfo mFakeBlockMasterInfo;
 
   /** df command will treat -1 as an unknown value. */
   @VisibleForTesting
@@ -149,6 +149,13 @@ public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
         LOG.error("Failed to set AlluxioJniFuseFileSystem log to debug level", e);
       }
     }
+
+    // Alluxio 3.0 does not keep valid nor useful block info at this moment.
+    // Fake numbers for some applications which require a non-zero free space.
+    mFakeBlockMasterInfo = new BlockMasterInfo();
+    mFakeBlockMasterInfo.setCapacityBytes(1_000_000_000_000_000L);  // 1 petabytes
+    mFakeBlockMasterInfo.setFreeBytes(1_000_000_000_000_000L);  // 1 petabytes
+
     MetricsSystem.registerGaugeIfAbsent(
         MetricsSystem.getMetricName(MetricKey.FUSE_READ_WRITE_FILE_COUNT.getName()),
         mFileEntries::size);
@@ -656,21 +663,12 @@ public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   }
 
   private int statfsInternal(String path, Statvfs stbuf) {
-    if (mUfsEnabled) {
-      return 0;
-    }
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
 
-    // Alluxio does not keep valid nor useful block info at this moment.
-    BlockMasterInfo info = ZERO_BLOCK_MASTER_INFO;
-    if (info == null) {
-      LOG.error("Failed to statfs {}: cannot get block master info", path);
-      return -ErrorCodes.EIO();
-    }
     long blockSize = 16L * Constants.KB;
     // fs block size
     // The size in bytes of the minimum unit of allocation on this file system
@@ -678,9 +676,9 @@ public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
     // The preferred length of I/O requests for files on this file system.
     stbuf.f_frsize.set(blockSize);
     // total data blocks in fs
-    stbuf.f_blocks.set(info.getCapacityBytes() / blockSize);
+    stbuf.f_blocks.set(mFakeBlockMasterInfo.getCapacityBytes() / blockSize);
     // free blocks in fs
-    long freeBlocks = info.getFreeBytes() / blockSize;
+    long freeBlocks = mFakeBlockMasterInfo.getFreeBytes() / blockSize;
     stbuf.f_bfree.set(freeBlocks);
     stbuf.f_bavail.set(freeBlocks);
     // inode info in fs
