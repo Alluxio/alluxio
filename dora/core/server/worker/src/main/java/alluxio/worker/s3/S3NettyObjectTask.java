@@ -300,7 +300,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
       DataBuffer packet = null;
       long offset = range.getOffset(objectSize);
       long length = range.getLength(objectSize);
-        BlockReader blockReader = mHandler.openBlock(ufsFullPath, offset, offset + length);
+      BlockReader blockReader = mHandler.openBlock(ufsFullPath, offset, offset + length);
 
       // Writes http response to the netty channel before data.
       mHandler.processHttpResponse(response, false);
