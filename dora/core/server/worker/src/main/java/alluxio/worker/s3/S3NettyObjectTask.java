@@ -246,7 +246,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
             response.headers()
                 .set(HttpHeaderNames.LAST_MODIFIED, new Date(status.getLastModificationTimeMs()));
             response.headers().set(S3Constants.S3_CONTENT_LENGTH_HEADER,
-                status.isFolder() ? 0 : status.getLength());
+                    status.isFolder() ? 0 : s3Range.getLength(status.getLength()));
 
             // Check range
             if (s3Range.isValid()) {
@@ -300,7 +300,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
       DataBuffer packet = null;
       long offset = range.getOffset(objectSize);
       long length = range.getLength(objectSize);
-      BlockReader blockReader = mHandler.openBlock(ufsFullPath, offset, length);
+        BlockReader blockReader = mHandler.openBlock(ufsFullPath, offset, offset + length);
 
       // Writes http response to the netty channel before data.
       mHandler.processHttpResponse(response, false);
