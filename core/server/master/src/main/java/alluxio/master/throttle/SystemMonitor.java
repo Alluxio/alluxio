@@ -182,19 +182,19 @@ public class SystemMonitor {
         Configuration.getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO),
         Configuration.getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO),
         Configuration.getMs(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME),
-        Configuration.getInt(PropertyKey.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE));
+        Configuration.getInt(PropertyKey.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE), 0);
     // mPitThresholdStressed;
     mPitThresholdStressed = ServerIndicator.createThresholdIndicator(0,
         Configuration.getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO),
         Configuration.getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO),
         Configuration.getMs(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_GC_TIME),
-        Configuration.getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE));
+        Configuration.getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE), 0);
     // mPitThresholdOverloaded;
     mPitThresholdOverloaded = ServerIndicator.createThresholdIndicator(0,
         Configuration.getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO),
         Configuration.getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO),
         Configuration.getMs(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME),
-        Configuration.getInt(PropertyKey.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE));
+        Configuration.getInt(PropertyKey.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE), 0);
     mAggregateThresholdActive = new ServerIndicator(mPitThresholdActive, mMaxNumberOfSnapshot);
     mAggregateThresholdStressed
         = new ServerIndicator(mPitThresholdStressed, mMaxNumberOfSnapshot);

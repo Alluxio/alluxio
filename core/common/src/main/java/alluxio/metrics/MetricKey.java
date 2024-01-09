@@ -2742,6 +2742,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The used direct memory")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey PROCESS_NETTY_DIRECT_MEM_USED =
+      new Builder("Process.Netty.direct.mem.used")
+          .setDescription("The used direct memory of netty")
+          .setMetricType(MetricType.GAUGE)
+          .build();
 
   /**
    * A nested class to hold named string constants for their corresponding metrics.
