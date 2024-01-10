@@ -30,27 +30,40 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * An implementation of WorkerLocationPolicy.
+ * An impl of Maglev Hash policy.
  *
- * A policy where a file path is matched to worker(s) by a consistenct hashing algorithm.
- * The hash algorithm makes sure the same path maps to the same worker sequence.
- * On top of that, consistent hashing makes sure worker membership changes incur minimal
- * hash changes.
+ * A policy where a file path is matched to worker(s) by Jump Consistent Hashing Algorithm.
+ * The algorithm is described in this paper:
+ * https://static.googleusercontent.com/media/research.google.com/zh-CN//pubs/archive/44824.pdf
+ *
+ * One thing to note about Maglev hashing is that alluxio.user.maglev.hash.lookup.size
+ * needs to be set to a prime number.
+ * The bigger the size of the lookup table,
+ * the smaller the variance of this hashing algorithm will be.
+ * But bigger look up table will consume more time and memory.
+ *
+ * We strongly recommend using Maglev Hashing for User Worker Selection Policy.
+ * Under most situation, it has the minimum time cost,
+ * and it is the most uniform and balanced hashing policy.
+ *
  */
-public class ConsistentHashPolicy implements WorkerLocationPolicy {
-  private static final Logger LOG = LoggerFactory.getLogger(ConsistentHashPolicy.class);
-  private final ConsistentHashProvider mHashProvider;
+public class MaglevHashPolicy implements WorkerLocationPolicy {
+  private static final Logger LOG = LoggerFactory.getLogger(MaglevHashPolicy.class);
+  private final MaglevHashProvider mHashProvider;
 
   /**
-   * Constructs a new {@link ConsistentHashPolicy}.
-   *
-   * @param conf the configuration used by the policy
+   * Constructor.
+   * @param conf Alluxio Configuration
    */
-  public ConsistentHashPolicy(AlluxioConfiguration conf) {
+  public MaglevHashPolicy(AlluxioConfiguration conf) {
     LOG.debug("%s is chosen for user worker hash algorithm",
         conf.getString(PropertyKey.USER_WORKER_SELECTION_POLICY));
-    mHashProvider = new ConsistentHashProvider(100, Constants.SECOND_MS,
-        conf.getInt(PropertyKey.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER));
+    int lookupSize = conf.getInt(PropertyKey.USER_MAGLEV_HASH_LOOKUP_SIZE);
+    mHashProvider = new MaglevHashProvider(100, Constants.SECOND_MS, lookupSize);
+    if (!isPrime(lookupSize)) {
+      System.out.println("The number of alluxio.user.maglev.hash.lookup.size "
+          + "must be a prime number!");
+    }
   }
 
   @Override
@@ -81,8 +94,8 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
         // to the latest worker cluster view.
         // in this case, just skip this worker
         LOG.debug("Inconsistency between caller's view of cluster and that of "
-            + "the consistent hash policy's: worker {} selected by policy does not exist in "
-            + "caller's view {}. Skipping this worker.",
+                + "the consistent hash policy's: worker {} selected by policy does not exist in "
+                + "caller's view {}. Skipping this worker.",
             worker, workerClusterView);
         continue;
       }
@@ -95,5 +108,17 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
     }
     List<BlockWorkerInfo> infos = builder.build();
     return infos;
+  }
+
+  private boolean isPrime(int n) {
+    if (n <= 1) {
+      return false;
+    }
+    for (int i = 2; i * i <= n; ++i) {
+      if (n % i == 0) {
+        return false;
+      }
+    }
+    return true;
   }
 }

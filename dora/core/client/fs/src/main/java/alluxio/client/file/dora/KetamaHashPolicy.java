@@ -30,27 +30,35 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * An implementation of WorkerLocationPolicy.
+ * An impl of Ketama Hash Policy.
  *
  * A policy where a file path is matched to worker(s) by a consistenct hashing algorithm.
  * The hash algorithm makes sure the same path maps to the same worker sequence.
  * On top of that, consistent hashing makes sure worker membership changes incur minimal
  * hash changes.
+ *
+ * Relevant article:
+ * https://www.metabrew.com/article/libketama-consistent-hashing-algo-memcached-clients
+ *
+ * The difference with ConsistentHashPolicy is that whenever the Worker changes,
+ * ConsistentHashPolicy will re-establish the hash ring and re-establish virtual nodes,
+ * while Ketama directly modifies the hash ring, adds and deletes virtual nodes.
+ *
  */
-public class ConsistentHashPolicy implements WorkerLocationPolicy {
-  private static final Logger LOG = LoggerFactory.getLogger(ConsistentHashPolicy.class);
-  private final ConsistentHashProvider mHashProvider;
+public class KetamaHashPolicy implements WorkerLocationPolicy {
+  private static final Logger LOG = LoggerFactory.getLogger(KetamaHashPolicy.class);
+  private final KetamaHashProvider mHashProvider;
 
   /**
-   * Constructs a new {@link ConsistentHashPolicy}.
+   * Constructs a new {@link KetamaHashPolicy}.
    *
    * @param conf the configuration used by the policy
    */
-  public ConsistentHashPolicy(AlluxioConfiguration conf) {
+  public KetamaHashPolicy(AlluxioConfiguration conf) {
     LOG.debug("%s is chosen for user worker hash algorithm",
         conf.getString(PropertyKey.USER_WORKER_SELECTION_POLICY));
-    mHashProvider = new ConsistentHashProvider(100, Constants.SECOND_MS,
-        conf.getInt(PropertyKey.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER));
+    mHashProvider = new KetamaHashProvider(100, Constants.SECOND_MS,
+        conf.getInt(PropertyKey.USER_KETAMA_HASH_REPLICAS));
   }
 
   @Override
@@ -81,8 +89,8 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
         // to the latest worker cluster view.
         // in this case, just skip this worker
         LOG.debug("Inconsistency between caller's view of cluster and that of "
-            + "the consistent hash policy's: worker {} selected by policy does not exist in "
-            + "caller's view {}. Skipping this worker.",
+                + "the consistent hash policy's: worker {} selected by policy does not exist in "
+                + "caller's view {}. Skipping this worker.",
             worker, workerClusterView);
         continue;
       }

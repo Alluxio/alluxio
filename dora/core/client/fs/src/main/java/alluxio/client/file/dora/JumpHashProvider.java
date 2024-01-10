@@ -12,6 +12,7 @@
 package alluxio.client.file.dora;
 
 import static com.google.common.hash.Hashing.murmur3_32_fixed;
+import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.Constants;
@@ -21,34 +22,30 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.LongAdder;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A consistent hashing algorithm implementation.
- *
- * This implementation is thread safe in lazy init and in refreshing the worker list.
- * See inline comments for thread safety guarantees and semantics.
+ * An impl of JumpConsistentHash.
  */
-@VisibleForTesting
-@ThreadSafe
-public class ConsistentHashProvider {
+public class JumpHashProvider {
   private static final HashFunction HASH_FUNCTION = murmur3_32_fixed();
   private final int mMaxAttempts;
   private final long mWorkerInfoUpdateIntervalNs;
+  private static final long UNSIGNED_MASK = 0x7fffffffffffffffL;
+
+  private static final long JUMP = 1L << 31;
+
+  private static final long CONSTANT = Long
+      .parseUnsignedLong("2862933555777941757");
 
   /**
    * Timestamp of the last update to {@link #mActiveNodesByConsistentHashing}.
@@ -70,59 +67,45 @@ public class ConsistentHashProvider {
       new AtomicReference<>(ImmutableSet.of());
   /**
    * Requirements for interacting with this map:
-   * 1. This hash ring is lazy initialized (cannot init in the constructor).
-   *    Multiple threads may try to enter the init section and it should be only initialized once.
-   * 2. This hash ring is timestamped. After the TTL expires, we need to compare the worker
-   *    list with the current available workers and possibly rebuild the hash ring.
-   * 3. While the hash ring is being updated, readers should see a stale hash ring
+   * 1. This bucket list is lazy initialized (cannot init in the constructor).
+   *    Multiple threads may try to enter the init section, and it should be only initialized once.
+   * 2. This bucket list is timestamped. After the TTL expires, we need to compare the worker
+   *    list with the current available workers and possibly rebuild the bucket list.
+   * 3. While the bucket list is being updated, readers should see a stale bucket list
    *    without blocking.
-   * <p>
+   *
    * Thread safety guarantees:
    * 1. At lazy-init time, mutual exclusion is provided by `synchronized(mInitLock)`
    *    and double-checking. At this stage it is guarded by `mInitLock`.
-   * 2. After init, updating the hash ring is guarded by an optimistic lock using CAS(timestamp).
-   *    There will be no blocking but a read may see a stale ring.
+   * 2. After init, updating the bucket list is guarded by an optimistic lock using CAS(timestamp).
+   *    There will be no blocking but a read may see a stale bucket list.
    *    At this stage it is guarded by `mLastUpdatedTimestamp`.
    */
   @Nullable
-  private volatile NavigableMap<Integer, WorkerIdentity> mActiveNodesByConsistentHashing;
+  private volatile HashMap<Integer, WorkerIdentity> mActiveNodesByConsistentHashing;
   /**
    * Lock to protect the lazy initialization of {@link #mActiveNodesByConsistentHashing}.
    */
   private final Object mInitLock = new Object();
 
   /**
-   * This is the number of virtual nodes in the consistent hashing algorithm.
-   * In a consistent hashing algorithm, on membership changes, some virtual nodes are
-   * re-distributed instead of rebuilding the whole hash table.
-   * This guarantees the hash table is changed only in a minimal.
-   * In order to achieve that, the number of virtual nodes should be X times the physical nodes
-   * in the cluster, where X is a balance between redistribution granularity and size.
-   */
-  private final int mNumVirtualNodes;
-
-  /**
-   * Constructor.
-   *
-   * @param maxAttempts max attempts to rehash
+   * @param maxAttempts the max attempts
    * @param workerListTtlMs interval between retries
-   * @param numVirtualNodes number of virtual nodes
    */
-  public ConsistentHashProvider(int maxAttempts, long workerListTtlMs, int numVirtualNodes) {
+  public JumpHashProvider(int maxAttempts, long workerListTtlMs) {
     mMaxAttempts = maxAttempts;
     mWorkerInfoUpdateIntervalNs = workerListTtlMs * Constants.MS_NANO;
-    mNumVirtualNodes = numVirtualNodes;
   }
 
   /**
-   * Finds multiple workers from the hash ring.
+   * Finds multiple workers from the buckets.
    *
-   * @param key the key to hash on
+   * @param key the key to use for hashing
    * @param count the expected number of workers
-   * @return a list of workers following the hash ring
+   * @return a list of workers following the worker list
    */
   public List<WorkerIdentity> getMultiple(String key, int count) {
-    Set<WorkerIdentity> workers = new LinkedHashSet<>(); // preserve insertion order
+    Set<WorkerIdentity> workers = new LinkedHashSet<>();
     int attempts = 0;
     while (workers.size() < count && attempts < mMaxAttempts) {
       attempts++;
@@ -133,14 +116,12 @@ public class ConsistentHashProvider {
   }
 
   /**
-   * Initializes or refreshes the worker list using the given list of workers and number of
-   * virtual nodes.
+   * Initializes or refreshes the worker list using the given list of workers.
    * <br>
    * Thread safety:
    * If called concurrently by two or more threads, only one of the callers will actually
    * update the state of the hash provider using the worker list provided by that thread, and all
    * others will not change the internal state of the hash provider.
-   *
    * @param workers the up-to-date worker list
    */
   public void refresh(Set<WorkerIdentity> workers) {
@@ -154,10 +135,8 @@ public class ConsistentHashProvider {
       // finished
       Set<WorkerIdentity> lastWorkerIds = mLastWorkers.get();
       if (!workers.equals(lastWorkerIds)) {
-        Set<WorkerIdentity> newWorkerIds = ImmutableSet.copyOf(workers);
-        NavigableMap<Integer, WorkerIdentity> nodes = build(newWorkerIds, mNumVirtualNodes);
-        mActiveNodesByConsistentHashing = nodes;
-        mLastWorkers.set(newWorkerIds);
+        mActiveNodesByConsistentHashing = build(workers);
+        mLastWorkers.set(workers);
         mUpdateCount.increment();
       }
     }
@@ -183,7 +162,7 @@ public class ConsistentHashProvider {
   }
 
   /**
-   * Lazily initializes the hash ring.
+   * Lazily initializes the bucket list.
    * Only one caller gets to initialize the map while all others are blocked.
    * After the initialization, the map must not be null.
    */
@@ -193,39 +172,55 @@ public class ConsistentHashProvider {
         // only one thread should reach here
         // test again to skip re-initialization
         if (mActiveNodesByConsistentHashing == null) {
-          Set<WorkerIdentity> workerIdentities = ImmutableSet.copyOf(workers);
-          mActiveNodesByConsistentHashing = build(workerIdentities, mNumVirtualNodes);
-          mLastWorkers.set(workerIdentities);
+          mActiveNodesByConsistentHashing = build(workers);
+          mLastWorkers.set(workers);
           mLastUpdatedTimestamp.set(System.nanoTime());
         }
       }
     }
   }
 
-  @VisibleForTesting
   WorkerIdentity get(String key, int index) {
-    NavigableMap<Integer, WorkerIdentity> map = mActiveNodesByConsistentHashing;
-    Preconditions.checkState(map != null, "Hash provider is not properly initialized");
-    return get(map, key, index);
+    HashMap<Integer, WorkerIdentity> hashMap = mActiveNodesByConsistentHashing;
+    Preconditions.checkState(hashMap != null, "Hash provider is not properly initialized");
+    return get(hashMap, key, index);
   }
 
   @VisibleForTesting
-  static WorkerIdentity get(NavigableMap<Integer, WorkerIdentity> map, String key, int index) {
-    HashCode hashCode = HASH_FUNCTION.newHasher()
-        .putString(key, UTF_8)
-        .putInt(index)
-        .hash();
-    int hashKey = hashCode.asInt();
-    Map.Entry<Integer, WorkerIdentity> entry = map.ceilingEntry(hashKey);
-    if (entry != null) {
-      return entry.getValue();
-    } else {
-      Map.Entry<Integer, WorkerIdentity> firstEntry = map.firstEntry();
-      if (firstEntry == null) {
-        throw new IllegalStateException("Hash provider is empty");
-      }
-      return firstEntry.getValue();
+  static WorkerIdentity get(HashMap<Integer, WorkerIdentity> hashMap, String key, int index) {
+    int hashKey = HASH_FUNCTION.hashString(format("%s%d", key, index), UTF_8).asInt();
+    int workerId = jumpConsistentHash(hashKey, hashMap.size());
+    return hashMap.get(workerId);
+  }
+
+  /**
+   * Accepts "a 64-bit key and the number of buckets. It outputs a number in
+   * the range [0, buckets]."
+   *
+   * @param key
+   *            key to store
+   * @param buckets
+   *            number of available buckets
+   * @return the hash of the key
+   */
+  private static int jumpConsistentHash(final int key, final int buckets) {
+    long hashValue = -1;
+    long k = key;
+    long j = 0;
+    while (j < buckets) {
+      hashValue = j;
+      k = k * CONSTANT + 1L;
+      j = (long) ((hashValue + 1L) * (JUMP / toDouble((k >>> 33) + 1L)));
     }
+    return (int) hashValue;
+  }
+
+  private static double toDouble(final long n) {
+    double d = n & UNSIGNED_MASK;
+    if (n < 0) {
+      d += 0x1.0p63;
+    }
+    return d;
   }
 
   @VisibleForTesting
@@ -234,7 +229,7 @@ public class ConsistentHashProvider {
   }
 
   @VisibleForTesting
-  NavigableMap<Integer, WorkerIdentity> getActiveNodesMap() {
+  HashMap<Integer, WorkerIdentity> getActiveNodesMap() {
     return mActiveNodesByConsistentHashing;
   }
 
@@ -244,19 +239,15 @@ public class ConsistentHashProvider {
   }
 
   @VisibleForTesting
-  static NavigableMap<Integer, WorkerIdentity> build(
-      Collection<WorkerIdentity> workers, int numVirtualNodes) {
+  static HashMap<Integer, WorkerIdentity> build(
+      Set<WorkerIdentity> workers) {
     Preconditions.checkArgument(!workers.isEmpty(), "worker list is empty");
-    NavigableMap<Integer, WorkerIdentity> activeNodesByConsistentHashing = new TreeMap<>();
+    HashMap<Integer, WorkerIdentity> activeNodesByJumpConsistentHashing = new HashMap<>();
+    int workerIndex = 0;
     for (WorkerIdentity worker : workers) {
-      for (int i = 0; i < numVirtualNodes; i++) {
-        final HashCode hashCode = HASH_FUNCTION.newHasher()
-            .putObject(worker, WorkerIdentity.HashFunnel.INSTANCE)
-            .putInt(i)
-            .hash();
-        activeNodesByConsistentHashing.put(hashCode.asInt(), worker);
-      }
+      activeNodesByJumpConsistentHashing.put(workerIndex, worker);
+      workerIndex++;
     }
-    return activeNodesByConsistentHashing;
+    return activeNodesByJumpConsistentHashing;
   }
 }

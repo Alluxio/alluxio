@@ -30,27 +30,36 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * An implementation of WorkerLocationPolicy.
+ * An impl of Multi Probe Hash Policy.
  *
- * A policy where a file path is matched to worker(s) by a consistenct hashing algorithm.
+ * A policy where a file path is matched to worker(s) by the multi-probe algorithm.
  * The hash algorithm makes sure the same path maps to the same worker sequence.
- * On top of that, consistent hashing makes sure worker membership changes incur minimal
+ * On top of that, this hashing algorithm makes sure worker membership changes incur minimal
  * hash changes.
+ *
+ * alluxio.user.multi.probe.hash.probe.num:
+ * This is the number of probes in the multi-probe hashing algorithm.
+ * In the multi-probe hashing algorithm, the bigger the number of probes,
+ * the smaller the variance of this hashing algorithm will be.
+ * But more probes will consume more time and memory.
+ *
+ * Relevant paper:
+ * https://arxiv.org/pdf/1505.00062.pdf
  */
-public class ConsistentHashPolicy implements WorkerLocationPolicy {
-  private static final Logger LOG = LoggerFactory.getLogger(ConsistentHashPolicy.class);
-  private final ConsistentHashProvider mHashProvider;
+public class MultiProbeHashPolicy implements WorkerLocationPolicy {
+  private static final Logger LOG = LoggerFactory.getLogger(MultiProbeHashPolicy.class);
+  private final MultiProbeHashProvider mHashProvider;
 
   /**
-   * Constructs a new {@link ConsistentHashPolicy}.
+   * Constructs a new {@link MultiProbeHashPolicy}.
    *
    * @param conf the configuration used by the policy
    */
-  public ConsistentHashPolicy(AlluxioConfiguration conf) {
+  public MultiProbeHashPolicy(AlluxioConfiguration conf) {
     LOG.debug("%s is chosen for user worker hash algorithm",
         conf.getString(PropertyKey.USER_WORKER_SELECTION_POLICY));
-    mHashProvider = new ConsistentHashProvider(100, Constants.SECOND_MS,
-        conf.getInt(PropertyKey.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER));
+    mHashProvider = new MultiProbeHashProvider(100, Constants.SECOND_MS,
+        conf.getInt(PropertyKey.USER_MULTI_PROBE_HASH_PROBE_NUM));
   }
 
   @Override
@@ -81,8 +90,8 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
         // to the latest worker cluster view.
         // in this case, just skip this worker
         LOG.debug("Inconsistency between caller's view of cluster and that of "
-            + "the consistent hash policy's: worker {} selected by policy does not exist in "
-            + "caller's view {}. Skipping this worker.",
+                + "the consistent hash policy's: worker {} selected by policy does not exist in "
+                + "caller's view {}. Skipping this worker.",
             worker, workerClusterView);
         continue;
       }

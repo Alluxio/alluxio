@@ -30,27 +30,30 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * An implementation of WorkerLocationPolicy.
+ * An impl of Jump Consistent Hash Policy.
  *
- * A policy where a file path is matched to worker(s) by a consistenct hashing algorithm.
- * The hash algorithm makes sure the same path maps to the same worker sequence.
- * On top of that, consistent hashing makes sure worker membership changes incur minimal
- * hash changes.
+ * A policy where a file path is matched to worker(s) by Jump Consistent Hashing Algorithm.
+ * The algorithm is described in this paper:
+ * https://arxiv.org/pdf/1406.2294.pdf
+ *
+ * The disadvantage of this algorithm is that
+ * buckets can only be inserted and deleted at the head and tail of the worker list
+ * to maintain hash consistency,
+ * that is, nodes can only be added and deleted at the head and tail of the worker list.
  */
-public class ConsistentHashPolicy implements WorkerLocationPolicy {
-  private static final Logger LOG = LoggerFactory.getLogger(ConsistentHashPolicy.class);
-  private final ConsistentHashProvider mHashProvider;
+public class JumpHashPolicy implements WorkerLocationPolicy {
+  private static final Logger LOG = LoggerFactory.getLogger(JumpHashPolicy.class);
+  private final JumpHashProvider mHashProvider;
 
   /**
-   * Constructs a new {@link ConsistentHashPolicy}.
+   * Constructs a new {@link JumpHashPolicy}.
    *
    * @param conf the configuration used by the policy
    */
-  public ConsistentHashPolicy(AlluxioConfiguration conf) {
+  public JumpHashPolicy(AlluxioConfiguration conf) {
     LOG.debug("%s is chosen for user worker hash algorithm",
         conf.getString(PropertyKey.USER_WORKER_SELECTION_POLICY));
-    mHashProvider = new ConsistentHashProvider(100, Constants.SECOND_MS,
-        conf.getInt(PropertyKey.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER));
+    mHashProvider = new JumpHashProvider(100, Constants.SECOND_MS);
   }
 
   @Override
@@ -81,8 +84,8 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
         // to the latest worker cluster view.
         // in this case, just skip this worker
         LOG.debug("Inconsistency between caller's view of cluster and that of "
-            + "the consistent hash policy's: worker {} selected by policy does not exist in "
-            + "caller's view {}. Skipping this worker.",
+                + "the consistent hash policy's: worker {} selected by policy does not exist in "
+                + "caller's view {}. Skipping this worker.",
             worker, workerClusterView);
         continue;
       }

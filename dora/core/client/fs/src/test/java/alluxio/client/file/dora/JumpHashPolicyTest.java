@@ -12,6 +12,7 @@
 package alluxio.client.file.dora;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
@@ -35,20 +36,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ConsistentHashPolicyTest {
+public class JumpHashPolicyTest {
   InstancedConfiguration mConf;
 
   @Before
   public void setup() {
     mConf = new InstancedConfiguration(Configuration.copyProperties());
     mConf.set(PropertyKey.USER_WORKER_SELECTION_POLICY,
-        "CONSISTENT");
+        "JUMP");
   }
 
   @Test
   public void getOneWorker() throws Exception {
     WorkerLocationPolicy policy = WorkerLocationPolicy.Factory.create(mConf);
-    assertTrue(policy instanceof ConsistentHashPolicy);
+    assertTrue(policy instanceof JumpHashPolicy);
     // Prepare a worker list
     WorkerClusterView workers = new WorkerClusterView(Arrays.asList(
         new WorkerInfo()
@@ -77,7 +78,7 @@ public class ConsistentHashPolicyTest {
   @Test
   public void getMultipleWorkers() throws Exception {
     WorkerLocationPolicy policy = WorkerLocationPolicy.Factory.create(mConf);
-    assertTrue(policy instanceof ConsistentHashPolicy);
+    assertTrue(policy instanceof JumpHashPolicy);
     // Prepare a worker list
     WorkerClusterView workers = new WorkerClusterView(Arrays.asList(
         new WorkerInfo()
@@ -96,9 +97,9 @@ public class ConsistentHashPolicyTest {
     List<BlockWorkerInfo> assignedWorkers = policy.getPreferredWorkers(workers, "hdfs://a/b/c", 2);
     assertEquals(2, assignedWorkers.size());
     assertTrue(assignedWorkers.stream().allMatch(w -> contains(workers, w)));
-    // The order of the workers should be consistent
-    assertEquals(assignedWorkers.get(0).getNetAddress().getHost(), "master1");
-    assertEquals(assignedWorkers.get(1).getNetAddress().getHost(), "master2");
+    // The two workers should be different
+    assertNotEquals(assignedWorkers.get(0).getNetAddress().getHost(),
+        assignedWorkers.get(1).getNetAddress().getHost());
     assertThrows(ResourceExhaustedException.class, () -> {
       // Getting 2 out of 1 worker will result in an error
       policy.getPreferredWorkers(
@@ -119,7 +120,7 @@ public class ConsistentHashPolicyTest {
    */
   @Test
   public void workerAddrUpdateWithIdUnchanged() throws Exception {
-    ConsistentHashPolicy policy = new ConsistentHashPolicy(mConf);
+    JumpHashPolicy policy = new JumpHashPolicy(mConf);
     List<WorkerInfo> workers = new ArrayList<>();
     workers.add(new WorkerInfo().setIdentity(WorkerIdentityTestUtils.ofLegacyId(1L))
         .setAddress(new WorkerNetAddress().setHost("host1"))

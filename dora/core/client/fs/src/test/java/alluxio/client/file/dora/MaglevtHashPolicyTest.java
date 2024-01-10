@@ -35,20 +35,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ConsistentHashPolicyTest {
+public class MaglevtHashPolicyTest {
   InstancedConfiguration mConf;
 
   @Before
   public void setup() {
     mConf = new InstancedConfiguration(Configuration.copyProperties());
     mConf.set(PropertyKey.USER_WORKER_SELECTION_POLICY,
-        "CONSISTENT");
+        "MAGLEV");
   }
 
   @Test
   public void getOneWorker() throws Exception {
     WorkerLocationPolicy policy = WorkerLocationPolicy.Factory.create(mConf);
-    assertTrue(policy instanceof ConsistentHashPolicy);
+    assertTrue(policy instanceof MaglevHashPolicy);
     // Prepare a worker list
     WorkerClusterView workers = new WorkerClusterView(Arrays.asList(
         new WorkerInfo()
@@ -77,7 +77,7 @@ public class ConsistentHashPolicyTest {
   @Test
   public void getMultipleWorkers() throws Exception {
     WorkerLocationPolicy policy = WorkerLocationPolicy.Factory.create(mConf);
-    assertTrue(policy instanceof ConsistentHashPolicy);
+    assertTrue(policy instanceof MaglevHashPolicy);
     // Prepare a worker list
     WorkerClusterView workers = new WorkerClusterView(Arrays.asList(
         new WorkerInfo()
@@ -119,7 +119,7 @@ public class ConsistentHashPolicyTest {
    */
   @Test
   public void workerAddrUpdateWithIdUnchanged() throws Exception {
-    ConsistentHashPolicy policy = new ConsistentHashPolicy(mConf);
+    MaglevHashPolicy policy = new MaglevHashPolicy(mConf);
     List<WorkerInfo> workers = new ArrayList<>();
     workers.add(new WorkerInfo().setIdentity(WorkerIdentityTestUtils.ofLegacyId(1L))
         .setAddress(new WorkerNetAddress().setHost("host1"))

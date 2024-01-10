@@ -15,7 +15,11 @@ package alluxio.stress.worker;
  * WorkerBenchMode, HASH or LOCAL_ONLY.
  */
 public enum WorkerBenchMode {
-  HASH("HASH"),
+  CONSISTENT("CONSISTENT"),
+  JUMP("JUMP"),
+  KETAMA("KETAMA"),
+  MAGLEV("MAGLEV"),
+  MULTI_PROBE("MULTI_PROBE"),
   LOCAL_ONLY("LOCAL_ONLY"),
   REMOTE_ONLY("REMOTE_ONLY");
 
