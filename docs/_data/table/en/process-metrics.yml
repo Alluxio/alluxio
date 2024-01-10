@@ -1,2 +1,4 @@
 Process.pool.direct.mem.used:
   'The used direct memory'
+Process.Netty.direct.mem.used:
+  'The used direct memory of netty'
