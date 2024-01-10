@@ -2739,7 +2739,12 @@ public final class MetricKey implements Comparable<MetricKey> {
   // Other system related metrics
   public static final MetricKey PROCESS_POOL_DIRECT_MEM_USED =
       new Builder("Process.pool.direct.mem.used")
-          .setDescription("The used direct memory")
+          .setDescription("Direct memory used by NIO direct buffer pool ")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey PROCESS_NETTY_DIRECT_MEM_USED =
+      new Builder("Process.netty.direct.mem.used")
+          .setDescription("Direct memory used by Netty")
           .setMetricType(MetricType.GAUGE)
           .build();
 
