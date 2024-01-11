@@ -36,6 +36,7 @@ public class ServerIndicator {
   private long mHeapMax;
   private long mHeapUsed;
   private long mDirectMemUsed;
+  private long mNettyDirectMemUsed;
   private double mCpuLoad;
 
   private long mTotalJVMPauseTimeMS;
@@ -55,11 +56,13 @@ public class ServerIndicator {
    * @param pitTotalJVMPauseTimeMS the pit total JVM pause time
    * @param rpcQueueSize the pit rpc queue size
    * @param snapshotTimeMS the pit time
+   * @param nettyDirectMemUsed the used direct memory by Netty
    */
   public ServerIndicator(long directMemUsed, long heapMax, long heapUsed, double cpuLoad,
       long totalJVMPauseTimeMS, long pitTotalJVMPauseTimeMS, long rpcQueueSize,
-      long snapshotTimeMS) {
+      long snapshotTimeMS, long nettyDirectMemUsed) {
     mDirectMemUsed = directMemUsed;
+    mNettyDirectMemUsed = nettyDirectMemUsed;
     mHeapMax = heapMax;
     mHeapUsed = heapUsed;
     mCpuLoad = cpuLoad;
@@ -90,6 +93,7 @@ public class ServerIndicator {
   public ServerIndicator(ServerIndicator serverIndicator, int multiple) {
     Preconditions.checkNotNull(serverIndicator, "serverIndicator");
     mDirectMemUsed = serverIndicator.mDirectMemUsed * multiple;
+    mNettyDirectMemUsed = serverIndicator.mNettyDirectMemUsed * multiple;
     mHeapMax = serverIndicator.mHeapMax;
     mHeapUsed = serverIndicator.mHeapUsed * multiple;
     mCpuLoad = serverIndicator.mCpuLoad * multiple;
@@ -131,7 +135,10 @@ public class ServerIndicator {
         (long) getMetrics(MetricsMonitorUtils.MemoryGaugeName.HEAP_MAX, 0L),
         (long) getMetrics(MetricsMonitorUtils.MemoryGaugeName.HEAP_USED, 0L),
         (double) getMetrics(MetricsMonitorUtils.OSGaugeName.OS_CPU_LOAD, 0d),
-        totalJVMPauseTime, pitTotalJVMPauseTime, rpcQueueSize, System.currentTimeMillis());
+        totalJVMPauseTime, pitTotalJVMPauseTime, rpcQueueSize, System.currentTimeMillis(),
+        (long) getMetrics(
+            MetricsSystem.getMetricName(MetricsMonitorUtils.MemoryGaugeName.NETTY_DIRECT_MEM_USED),
+            0L));
   }
 
   private static <T> T getMetrics(String name, T value) {
@@ -151,10 +158,13 @@ public class ServerIndicator {
    * @param cpuLoad the cpu load
    * @param totalJVMPauseTimeMS the total JVM pause time
    * @param rpcQueueSize the rpc queue size
+   * @param nettyDirectMemUsed the used direct mem by Netty
    * @return  the threshold indicator object
    */
-  public static ServerIndicator createThresholdIndicator(long directMemUsed,
-      double ratioOfUsedHeap, double cpuLoad, long totalJVMPauseTimeMS, long rpcQueueSize) {
+  public static ServerIndicator createThresholdIndicator(long directMemUsed, double ratioOfUsedHeap,
+                                                         double cpuLoad, long totalJVMPauseTimeMS,
+                                                         long rpcQueueSize,
+                                                         long nettyDirectMemUsed) {
     long pitTotalJVMPauseTimeMS = 0;
     long heapMax = (long) getMetrics(MetricsMonitorUtils.MemoryGaugeName.HEAP_MAX, 0L);
     long heapUsed = (long) (ratioOfUsedHeap * heapMax);
@@ -165,7 +175,7 @@ public class ServerIndicator {
     }
     return new ServerIndicator(directMemUsed, heapMax,
         heapUsed, cpuLoad, totalJVMPauseTimeMS, pitTotalJVMPauseTimeMS,
-        rpcQueueSize, System.currentTimeMillis());
+        rpcQueueSize, System.currentTimeMillis(), nettyDirectMemUsed);
   }
 
   /**
@@ -173,6 +183,13 @@ public class ServerIndicator {
    */
   public long getDirectMemUsed() {
     return mDirectMemUsed;
+  }
+
+  /**
+   * @return the direct mem used by Netty
+   */
+  public long getNettyDirectMemUsed() {
+    return mNettyDirectMemUsed;
   }
 
   /**
@@ -241,6 +258,7 @@ public class ServerIndicator {
   public void addition(ServerIndicator serverIndicator) {
     // This is to record the aggregated time
     mDirectMemUsed += serverIndicator.getDirectMemUsed();
+    mNettyDirectMemUsed += serverIndicator.getNettyDirectMemUsed();
     mRpcQueueSize += serverIndicator.getRpcQueueSize();
     mCpuLoad += serverIndicator.getCpuLoad();
     mHeapUsed += serverIndicator.getHeapUsed();
@@ -258,6 +276,8 @@ public class ServerIndicator {
   public void reduction(ServerIndicator serverIndicator) {
     mDirectMemUsed = mDirectMemUsed > serverIndicator.mDirectMemUsed
         ? mDirectMemUsed - serverIndicator.mDirectMemUsed : 0;
+    mNettyDirectMemUsed = mNettyDirectMemUsed > serverIndicator.mNettyDirectMemUsed
+        ? mNettyDirectMemUsed - serverIndicator.mNettyDirectMemUsed : 0;
     mRpcQueueSize = mRpcQueueSize > serverIndicator.mRpcQueueSize
         ? mRpcQueueSize - serverIndicator.mRpcQueueSize : 0;
     mCpuLoad = Double.compare(mCpuLoad, serverIndicator.mCpuLoad) > 0
@@ -274,6 +294,7 @@ public class ServerIndicator {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("directMemUsed", mDirectMemUsed)
+        .add("nettyDirectMemUsed", mNettyDirectMemUsed)
         .add("heapMax", mHeapMax)
         .add("heapUsed", mHeapUsed)
         .add("cpuLoad", mCpuLoad)

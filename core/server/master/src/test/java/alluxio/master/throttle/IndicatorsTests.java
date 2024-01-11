@@ -78,6 +78,7 @@ public class IndicatorsTests {
   @Test
   public void basicIndicatorComparisonTest() throws InterruptedException {
     long directMemUsed = 8;
+    long nettyDirectMemUsed = 8;
     long headMax = 1000;
     long headUsed = 800;
     double cpuLoad = 0.3;
@@ -85,8 +86,9 @@ public class IndicatorsTests {
     long pitTotalJVMPauseTime = 30;
     long rpcQueueSize = 50;
     long snapshotTimeMS = 33;
-    ServerIndicator serverIndicator = new ServerIndicator(directMemUsed, headMax, headUsed, cpuLoad,
-        totalJVMPauseTimeMS, pitTotalJVMPauseTime, rpcQueueSize, snapshotTimeMS);
+    ServerIndicator serverIndicator =
+        new ServerIndicator(directMemUsed, headMax, headUsed, cpuLoad, totalJVMPauseTimeMS,
+            pitTotalJVMPauseTime, rpcQueueSize, snapshotTimeMS, nettyDirectMemUsed);
 
     int times = 3;
     ServerIndicator serverIndicatorM = new ServerIndicator(serverIndicator, times);
@@ -96,6 +98,8 @@ public class IndicatorsTests {
         (serverIndicator.getCpuLoad() * times), 0.0000001);
     Assert.assertEquals(serverIndicatorM.getDirectMemUsed(),
         (serverIndicator.getDirectMemUsed() * times));
+    Assert.assertEquals(serverIndicatorM.getNettyDirectMemUsed(),
+        (serverIndicator.getNettyDirectMemUsed() * times));
     Assert.assertEquals(serverIndicatorM.getTotalJVMPauseTimeMS(),
         (serverIndicator.getTotalJVMPauseTimeMS() * times));
     Assert.assertEquals(serverIndicatorM.getRpcQueueSize(),
@@ -109,13 +113,14 @@ public class IndicatorsTests {
         headMax,
         headUsed + deltaLong, cpuLoad + deltaDouble,
         totalJVMPauseTimeMS + deltaLong, pitTotalJVMPauseTime + deltaLong,
-        rpcQueueSize + deltaLong, snapshotTimeMS);
+        rpcQueueSize + deltaLong, snapshotTimeMS, nettyDirectMemUsed + deltaLong);
 
     ServerIndicator deltaIndicator = new ServerIndicator(serverIndicator1Delta);
     deltaIndicator.reduction(serverIndicator);
     Assert.assertEquals(deltaLong, deltaIndicator.getRpcQueueSize());
     Assert.assertEquals(deltaDouble, deltaIndicator.getCpuLoad(), 0.00001);
     Assert.assertEquals(deltaLong, deltaIndicator.getDirectMemUsed());
+    Assert.assertEquals(deltaLong, deltaIndicator.getNettyDirectMemUsed());
     Assert.assertEquals(deltaLong, deltaIndicator.getHeapUsed());
     Assert.assertEquals(deltaLong, deltaIndicator.getTotalJVMPauseTimeMS());
 
@@ -125,12 +130,13 @@ public class IndicatorsTests {
         headMax,
         headUsed + deltaLong, cpuLoad + deltaDouble,
         totalJVMPauseTimeMS + deltaLong, pitTotalJVMPauseTime + deltaLong,
-        rpcQueueSize + deltaLong, snapshotTimeMS);
+        rpcQueueSize + deltaLong, snapshotTimeMS, nettyDirectMemUsed + deltaLong);
     deltaIndicator = new ServerIndicator(serverIndicator2Delta);
     deltaIndicator.reduction(serverIndicator);
     Assert.assertEquals(deltaIndicator.getRpcQueueSize(), deltaLong);
     Assert.assertEquals(deltaIndicator.getCpuLoad(), deltaDouble, 0.00001);
     Assert.assertEquals(deltaIndicator.getDirectMemUsed(), deltaLong);
+    Assert.assertEquals(deltaIndicator.getNettyDirectMemUsed(), deltaLong);
     Assert.assertEquals(deltaIndicator.getHeapUsed(), deltaLong);
     Assert.assertEquals(deltaIndicator.getTotalJVMPauseTimeMS(), deltaLong);
 
@@ -142,6 +148,8 @@ public class IndicatorsTests {
     Assert.assertEquals(aggTimes * serverIndicator.getRpcQueueSize(), serverAgg.getRpcQueueSize());
     Assert.assertEquals(aggTimes * serverIndicator.getDirectMemUsed(),
         serverAgg.getDirectMemUsed());
+    Assert.assertEquals(aggTimes * serverIndicator.getNettyDirectMemUsed(),
+        serverAgg.getNettyDirectMemUsed());
     Assert.assertEquals(aggTimes * serverIndicator.getHeapUsed(), serverAgg.getHeapUsed());
     Assert.assertEquals(aggTimes * serverIndicator.getTotalJVMPauseTimeMS(),
         serverAgg.getTotalJVMPauseTimeMS());
