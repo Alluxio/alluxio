@@ -53,6 +53,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -766,8 +767,15 @@ public final class AlluxioFileInStreamTest {
     when(mBlockStore
         .getInStream(eq(0L), any(InStreamOptions.class), any()))
         .thenReturn(brokenStream).thenReturn(workingStream);
+    when(mBlockStore
+        .getInStream(eq(new BlockInfo().setBlockId(0)), any(InStreamOptions.class), any()))
+        .thenReturn(brokenStream).thenReturn(workingStream);
     when(brokenStream.positionedRead(anyLong(), any(byte[].class), anyInt(), anyInt()))
         .thenThrow(new UnavailableException("test exception"));
+    when(mBlockStore.getInfo(anyLong())).thenAnswer(invocation -> {
+      long blockId = invocation.getArgument(0);
+      return mStatus.getBlockInfo(blockId);
+    });
 
     byte[] b = new byte[(int) BLOCK_LENGTH * 2];
     mTestStream.positionedRead(BLOCK_LENGTH / 2, b, 0, b.length);
@@ -950,5 +958,22 @@ public final class AlluxioFileInStreamTest {
   // block is sent to the netty channel
   private void validatePartialCaching(int index, int readSize) {
     assertEquals(readSize, mInStreams.get(index).getBytesRead());
+  }
+
+  @Test
+  public void testStatusOutdated() throws IOException, InterruptedException {
+    OpenFilePOptions options =
+        OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE_PROMOTE).build();
+    try (AlluxioFileInStream testStream = new AlluxioFileInStream(mStatus,
+        new InStreamOptions(mStatus, options, mConf, mContext), mContext)) {
+      Thread.sleep(1);
+      Assert.assertFalse(testStream.isStatusOutdated());
+    }
+    mConf.set(PropertyKey.USER_FILE_IN_STREAM_STATUS_EXPIRATION_TIME, 0L);
+    try (AlluxioFileInStream testStream = new AlluxioFileInStream(mStatus,
+        new InStreamOptions(mStatus, options, mConf, mContext), mContext)) {
+      Thread.sleep(1);
+      Assert.assertTrue(testStream.isStatusOutdated());
+    }
   }
 }

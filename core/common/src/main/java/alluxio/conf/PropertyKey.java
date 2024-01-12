@@ -6307,6 +6307,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILE_IN_STREAM_STATUS_EXPIRATION_TIME =
+      durationBuilder(Name.USER_FILE_IN_STREAM_STATUS_EXPIRATION_TIME)
+          .setDefaultValue("5min")
+          .setDescription("Specifies how long the file metadata can be cached and reused during "
+              + "the FileInStream. Once the specified expiration time has elapsed, the file "
+              + "metadata will be reloaded from the Alluxio master. The cache reduces the number "
+              + "of metadata requests to the Master. The default is 5 minutes.")
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_FILE_WRITE_INIT_SLEEP_MIN =
       durationBuilder(Name.USER_FILE_WRITE_INIT_SLEEP_MIN)
           .setDefaultValue("1sec")
@@ -8965,6 +8974,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.write.tier.default";
     public static final String USER_FILE_INCLUDE_OPERATION_ID =
         "alluxio.user.file.include.operation.id";
+    public static final String USER_FILE_IN_STREAM_STATUS_EXPIRATION_TIME =
+        "alluxio.user.file.in.stream.status.expiration.time";
     public static final String USER_FILE_WRITE_INIT_SLEEP_MIN =
         "alluxio.user.file.write.init.sleep.min";
     public static final String USER_FILE_WRITE_INIT_SLEEP_MAX =
