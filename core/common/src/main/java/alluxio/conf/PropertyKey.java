@@ -6310,6 +6310,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_FILE_IN_STREAM_STATUS_EXPIRATION_TIME =
       durationBuilder(Name.USER_FILE_IN_STREAM_STATUS_EXPIRATION_TIME)
           .setDefaultValue("5min")
+          .setDescription("Specifies how long the file metadata can be cached and reused during the "
+              + "FileInStream. Once the specified expiration time has elapsed, the file metadata "
+              + "will be reloaded from the Alluxio master. The cache reduces the number of "
+              + "metadata requests to the Master. The default is 5 minutes.")
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_FILE_WRITE_INIT_SLEEP_MIN =
