@@ -212,6 +212,10 @@ public class LocalPageStore implements PageStore {
     }
 
     long fileLength = pageFile.length();
+    if (pageOffset >= fileLength) {
+      LOG.info("pageOffset {} >= fileLength {}", pageOffset, fileLength);
+      throw new PageNotFoundException(pagePath.toString());
+    }
     if (pageOffset + bytesToRead > fileLength) {
       bytesToRead = (int) (fileLength - (long) pageOffset);
     }
