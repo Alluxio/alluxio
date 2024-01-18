@@ -155,7 +155,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
     // initialize the base, for only the non-distributed task (the cluster launching task)
     Path basePath = new Path(mParameters.mBasePath);
-    int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
+    long fileSize = FormatUtils.parseSpaceSize(mParameters.mFileSize);
     int numFiles = getTotalFileNumber();
 
     // Generate the file paths using the same heuristics so all nodes have the same set of paths
@@ -266,7 +266,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     LOG.info("{} file paths generated", mFilePaths.length);
   }
 
-  private void prepareTestFiles(Path basePath, int fileSize, FileSystem prepareFs)
+  private void prepareTestFiles(Path basePath, long fileSize, FileSystem prepareFs)
       throws IOException {
     int numFiles = mFilePaths.length;
     LOG.info("Preparing {} test files under {}", numFiles, basePath);
