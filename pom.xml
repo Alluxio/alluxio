@@ -330,7 +330,7 @@
       <dependency>
         <groupId>com.squareup.okhttp3</groupId>
         <artifactId>okhttp</artifactId>
-        <version>3.10.0</version>
+        <version>3.12.12</version>
       </dependency>
       <dependency>
         <groupId>com.sun.xml.bind</groupId>
@@ -391,6 +391,11 @@
         <groupId>io.etcd</groupId>
         <artifactId>jetcd-core</artifactId>
         <version>0.7.5</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-client</artifactId>
+        <version>6.8.1</version>
       </dependency>
       <dependency>
         <groupId>io.github.opendataio</groupId>

@@ -17,5 +17,6 @@ package alluxio.membership;
 public enum MembershipType {
   STATIC, // Use a static file to configure a static member list for MembershipManager
   ETCD, // Use etcd for MembershipManager
-  MASTER // For regression purpose, still leverage Master for worker registration
+  MASTER, // For regression purpose, still leverage Master for worker registration
+  KUBERNETES // Use Kubernetes Api Server for MembershipManager
 }
