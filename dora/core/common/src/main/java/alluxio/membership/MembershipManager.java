@@ -125,6 +125,8 @@ public interface MembershipManager extends AutoCloseable {
           return EtcdMembershipManager.create(conf);
         case MASTER:
           return MasterMembershipManager.create();
+        case SERVICE_REGISTRY:
+          return ServiceRegistryMembershipManager.create(conf);
         default:
           throw new IllegalStateException("Unrecognized Membership Type");
       }
