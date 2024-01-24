@@ -16,11 +16,13 @@ import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.FreeContext;
+import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.InodeTree.LockPattern;
@@ -29,6 +31,7 @@ import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournalContext;
+import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.util.ThreadUtils;
 
@@ -107,9 +110,14 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                 if (inode.isDirectory()) {
                   mFileSystemMaster.free(path, FreeContext
                       .mergeFrom(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
+                  mFileSystemMaster.setAttribute(path, SetAttributeContext.mergeFrom(
+                      SetAttributePOptions.newBuilder().setReplicationMin(0).setPinned(false)
+                          .setRecursive(true)));
                 } else {
                   mFileSystemMaster.free(path,
                       FreeContext.mergeFrom(FreePOptions.newBuilder().setForced(true)));
+                  mFileSystemMaster.setAttribute(path, SetAttributeContext.mergeFrom(
+                      SetAttributePOptions.newBuilder().setReplicationMin(0).setPinned(false)));
                 }
                 try (JournalContext journalContext = mFileSystemMaster.createJournalContext()) {
                   // Reset state
@@ -117,6 +125,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                       .setId(inode.getId())
                       .setTtl(Constants.NO_TTL)
                       .setTtlAction(ProtobufUtils.toProtobuf(TtlAction.DELETE))
+                      .setPinned(false)
                       .build());
                 }
                 break;
