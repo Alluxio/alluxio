@@ -106,6 +106,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
               case FREE: // Default: FREE
                 // public free method will lock the path, and check WRITE permission required at
                 // parent of file
+                // Also we will unpin the file if pinned and set min replication to 0
                 if (inode.isDirectory()) {
                   mFileSystemMaster.free(path, FreeContext
                       .mergeFrom(FreePOptions.newBuilder().setForced(true).setRecursive(true)));
