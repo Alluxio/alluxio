@@ -31,7 +31,6 @@ import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournalContext;
-import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.util.ThreadUtils;
 
