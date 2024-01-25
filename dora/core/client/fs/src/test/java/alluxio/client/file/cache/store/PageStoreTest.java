@@ -19,6 +19,7 @@ import static org.junit.Assert.fail;
 import alluxio.ProjectConstants;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
+import alluxio.exception.PageCorruptedException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.file.ByteArrayTargetBuffer;
 import alluxio.util.io.BufferUtils;
@@ -79,7 +80,8 @@ public class PageStoreTest {
     PageId id = new PageId("0", 0);
     mPageStore.put(id, msgBytes);
     byte[] buf = new byte[1024];
-    assertEquals(msgBytes.length, mPageStore.get(id, new ByteArrayTargetBuffer(buf, 0)));
+    assertEquals(msgBytes.length,
+        mPageStore.get(id, 0, msgBytes.length, new ByteArrayTargetBuffer(buf, 0)));
     assertArrayEquals(msgBytes, Arrays.copyOfRange(buf, 0, msgBytes.length));
     mPageStore.delete(id);
     try {
@@ -97,7 +99,8 @@ public class PageStoreTest {
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[len];
     for (int offset = 1; offset < len; offset++) {
-      int bytesRead = mPageStore.get(id, offset, len, new ByteArrayTargetBuffer(buf, 0), false);
+      int bytesRead = mPageStore.get(id, offset, len - offset,
+          new ByteArrayTargetBuffer(buf, 0), false);
       assertEquals(len - offset, bytesRead);
       assertArrayEquals(BufferUtils.getIncreasingByteArray(offset, len - offset),
           Arrays.copyOfRange(buf, 0, bytesRead));
@@ -111,7 +114,7 @@ public class PageStoreTest {
     PageId id = new PageId("0", 0);
     mPageStore.put(id, BufferUtils.getIncreasingByteArray(len));
     byte[] buf = new byte[1024];
-    assertThrows(IllegalArgumentException.class, () ->
+    assertThrows(PageCorruptedException.class, () ->
         mPageStore.get(id, offset, len, new ByteArrayTargetBuffer(buf, 0)));
   }
 
