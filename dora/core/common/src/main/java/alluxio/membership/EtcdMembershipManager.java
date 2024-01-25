@@ -138,13 +138,15 @@ public class EtcdMembershipManager implements MembershipManager {
                 "Existing WorkerServiceEntity for path:%s corrupted",
                 pathOnRing));
           }
-          throw new AlreadyExistsException(
-              String.format("Some other member with same id registered on the ring, bail."
-                  + "Conflicting worker addr:%s, worker identity:%s."
-                  + "Different workers can't assume same worker identity in non-k8s env,"
-                  + "clean local worker identity settings to continue.",
-                  existingEntity.get().getWorkerNetAddress().toString(),
-                  existingEntity.get().getIdentity()));
+          if (!existingEntity.get().equals(entity)) {
+            throw new AlreadyExistsException(
+                String.format("Some other member with same id registered on the ring, bail."
+                        + "Conflicting worker addr:%s, worker identity:%s."
+                        + "Different workers can't assume same worker identity in non-k8s env,"
+                        + "clean local worker identity settings to continue.",
+                    existingEntity.get().getWorkerNetAddress().toString(),
+                    existingEntity.get().getIdentity()));
+          }
         }
       }
     } catch (InterruptedException | ExecutionException e) {

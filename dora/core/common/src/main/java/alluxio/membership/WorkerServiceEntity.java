@@ -108,7 +108,8 @@ public class WorkerServiceEntity extends DefaultServiceEntity {
     // only the service name and the identity are the factors that define
     // what a WorkerServiceEntity is. Any other is either ephemeral or supplementary data.
     return mIdentity.equals(anotherO.mIdentity)
-        && getServiceEntityName().equals(anotherO.getServiceEntityName());
+        && getServiceEntityName().equals(anotherO.getServiceEntityName())
+        && mAddress.equals(anotherO.getWorkerNetAddress());
   }
 
   @Override
