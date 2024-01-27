@@ -138,7 +138,9 @@ public class EtcdMembershipManager implements MembershipManager {
                 "Existing WorkerServiceEntity for path:%s corrupted",
                 pathOnRing));
           }
-          if (!existingEntity.get().equals(entity)) {
+          if (existingEntity.get().equals(entity)) {
+            mAlluxioEtcdClient.createForPath(pathOnRing, Optional.of(serializedEntity));
+          } else {
             throw new AlreadyExistsException(
                 String.format("Some other member with same id registered on the ring, bail."
                         + "Conflicting worker addr:%s, worker identity:%s."

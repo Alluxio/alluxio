@@ -253,14 +253,15 @@ public final class WorkerNetAddress implements Serializable {
         && mRpcPort == that.mRpcPort
         && mDataPort == that.mDataPort
         && mWebPort == that.mWebPort
-        && mDomainSocketPath.equals(that.mDomainSocketPath)
-        && mHttpServerPort == that.mHttpServerPort;
+        && mDomainSocketPath.equals(that.mDomainSocketPath);
+        // Skip the comparison of mHttpServerPort for backward compatibility
+        // && mHttpServerPort == that.mHttpServerPort;
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mSecureRpcPort, mHost, mContainerHost, mDataPort, mRpcPort, mWebPort,
-        mDomainSocketPath, mHttpServerPort);
+        mDomainSocketPath);
   }
 
   /**
