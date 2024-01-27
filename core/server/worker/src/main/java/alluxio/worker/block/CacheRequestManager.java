@@ -271,15 +271,24 @@ public class CacheRequestManager {
       Protocol.OpenUfsBlockOptions openUfsBlockOptions) throws IOException {
     try (BlockReader reader = mBlockWorker.createUfsBlockReader(
         Sessions.CACHE_UFS_SESSION_ID, blockId, 0, false, openUfsBlockOptions)) {
-      // Read the entire block, caching to block store will be handled internally in UFS block store
-      // when close the reader.
-      // Note that, we read from UFS with a smaller buffer to avoid high pressure on heap
-      // memory when concurrent async requests are received and thus trigger GC.
-      long offset = 0;
-      while (offset < blockSize) {
-        long bufferSize = Math.min(8L * Constants.MB, blockSize - offset);
-        reader.read(offset, bufferSize);
-        offset += bufferSize;
+      try {
+        // Read the entire block, caching to block store will be handled internally in UFS block
+        // store when close the reader.
+        // Note that, we read from UFS with a smaller buffer to avoid high pressure on heap
+        // memory when concurrent async requests are received and thus trigger GC.
+        long offset = 0;
+        while (offset < blockSize) {
+          long bufferSize = Math.min(8L * Constants.MB, blockSize - offset);
+          reader.read(offset, bufferSize);
+          offset += bufferSize;
+        }
+        reader.commit();
+      } catch (Exception e) {
+        reader.abort();
+        if (e instanceof IOException) {
+          throw (IOException) e;
+        }
+        throw new RuntimeException(e);
       }
     }
     return CacheResult.SUCCEED;

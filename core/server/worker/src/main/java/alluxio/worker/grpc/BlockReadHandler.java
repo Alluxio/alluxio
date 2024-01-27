@@ -54,6 +54,7 @@ import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -550,12 +551,23 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
               try {
                 while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
                 }
+                blockReader.commit();
                 return new NettyDataBuffer(buf.retain());
+              } catch (Exception e) {
+                blockReader.abort();
+                throw e;
               } finally {
                 buf.release();
               }
             } else {
-              ByteBuffer buffer = blockReader.read(offset, len);
+              ByteBuffer buffer;
+              try {
+                buffer = blockReader.read(offset, len);
+                blockReader.commit();
+              } catch (IOException e) {
+                blockReader.abort();
+                throw e;
+              }
               return new NettyDataBuffer(Unpooled.wrappedBuffer(buffer));
             }
           default:

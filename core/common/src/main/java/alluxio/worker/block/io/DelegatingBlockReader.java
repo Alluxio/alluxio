@@ -25,16 +25,32 @@ import java.nio.channels.ReadableByteChannel;
 public class DelegatingBlockReader extends BlockReader {
   private final BlockReader mBlockReader;
   private final Closer mCloser;
+  private final IOFunction mCommitter;
+  private final IOFunction mAborter;
 
   /**
    * Default constructor for the abstract reader implementations.
    * @param blockReader block reader
-   * @param closeable closer
+   * @param closer closer
    */
-  public DelegatingBlockReader(BlockReader blockReader, Closeable closeable) {
+  public DelegatingBlockReader(BlockReader blockReader, Closeable closer) {
+    this(blockReader, closer, null, null);
+  }
+
+  /**
+   * Default constructor for the abstract reader implementations.
+   * @param blockReader block reader
+   * @param closer closer
+   * @param committer committer
+   * @param aborter aborter
+   */
+  public DelegatingBlockReader(BlockReader blockReader, Closeable closer,
+      IOFunction committer, IOFunction aborter) {
     mCloser = Closer.create();
     mBlockReader = mCloser.register(blockReader);
-    mCloser.register(closeable);
+    mCloser.register(closer);
+    mCommitter = committer;
+    mAborter = aborter;
   }
 
   /**
@@ -82,5 +98,19 @@ public class DelegatingBlockReader extends BlockReader {
   @Override
   public void close() throws IOException {
     mCloser.close();
+  }
+
+  @Override
+  public void abort() throws IOException {
+    if (mAborter != null) {
+      mAborter.call();
+    }
+  }
+
+  @Override
+  public void commit() throws IOException {
+    if (mCommitter != null) {
+      mCommitter.call();
+    }
   }
 }

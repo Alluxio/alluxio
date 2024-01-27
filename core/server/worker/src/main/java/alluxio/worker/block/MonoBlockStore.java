@@ -187,12 +187,14 @@ public class MonoBlockStore implements BlockStore {
       BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
           positionShort, options);
       BlockReader blockReader = new DelegatingBlockReader(reader,
-          () -> closeUfsBlock(sessionId, blockId, true));
+          () -> closeUfsBlock(sessionId, blockId),
+          () -> commitUfsBlock(sessionId, blockId),
+          () -> abortUfsBlock(sessionId, blockId));
       Metrics.WORKER_ACTIVE_CLIENTS.inc();
       return blockReader;
     } catch (Exception e) {
       try {
-        closeUfsBlock(sessionId, blockId, false);
+        closeUfsBlock(sessionId, blockId);
       } catch (Exception ee) {
         LOG.warn("Failed to close UFS block", ee);
       }
@@ -206,18 +208,12 @@ public class MonoBlockStore implements BlockStore {
     }
   }
 
-  private void closeUfsBlock(long sessionId, long blockId, boolean successful)
+  private void closeUfsBlock(long sessionId, long blockId)
       throws IOException {
     try {
       mUnderFileSystemBlockStore.closeBlock(sessionId, blockId);
       Optional<TempBlockMeta> tempBlockMeta = mLocalBlockStore.getTempBlockMeta(blockId);
-      if (tempBlockMeta.isPresent() && tempBlockMeta.get().getSessionId() == sessionId) {
-        if (successful) {
-          commitBlock(sessionId, blockId, false);
-        } else {
-          abortBlock(sessionId, blockId);
-        }
-      } else {
+      if (!tempBlockMeta.isPresent() || tempBlockMeta.get().getSessionId() != sessionId) {
         // When getTempBlockMeta() return null, such as a block readType NO_CACHE writeType THROUGH.
         // Counter will not be decrement in the commitblock().
         // So we should decrement counter here.
@@ -227,6 +223,30 @@ public class MonoBlockStore implements BlockStore {
       }
     } finally {
       mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);
+    }
+  }
+
+  private void abortUfsBlock(long sessionId, long blockId) throws IOException {
+    mUnderFileSystemBlockStore.closeBlock(sessionId, blockId);
+    Optional<TempBlockMeta> tempBlockMeta = mLocalBlockStore.getTempBlockMeta(blockId);
+    if (tempBlockMeta.isPresent() && tempBlockMeta.get().getSessionId() == sessionId) {
+      abortBlock(sessionId, blockId);
+    } else {
+      LOG.warn("Skipping abort of UFS block due to missing temp block "
+              + "metadata or mismatched session ID. Block ID: {}, Session ID: {}",
+          blockId, sessionId);
+    }
+  }
+
+  private void commitUfsBlock(long sessionId, long blockId) throws IOException {
+    mUnderFileSystemBlockStore.closeBlock(sessionId, blockId);
+    Optional<TempBlockMeta> tempBlockMeta = mLocalBlockStore.getTempBlockMeta(blockId);
+    if (tempBlockMeta.isPresent() && tempBlockMeta.get().getSessionId() == sessionId) {
+      commitBlock(sessionId, blockId, false);
+    } else {
+      LOG.warn("Skipping commit of UFS block due to missing temp block "
+              + "metadata or mismatched session ID. Block ID: {}, Session ID: {}",
+          blockId, sessionId);
     }
   }
 
