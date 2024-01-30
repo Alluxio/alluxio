@@ -255,11 +255,11 @@ public final class WorkerNetAddress implements Serializable {
         && mWebPort == that.mWebPort
         && mDomainSocketPath.equals(that.mDomainSocketPath);
         // Skip the comparison of mHttpServerPort for backward compatibility
-        // && mHttpServerPort == that.mHttpServerPort;
   }
 
   @Override
   public int hashCode() {
+    // Skip the mHttpServerPort for backward compatibility
     return Objects.hashCode(mSecureRpcPort, mHost, mContainerHost, mDataPort, mRpcPort, mWebPort,
         mDomainSocketPath);
   }

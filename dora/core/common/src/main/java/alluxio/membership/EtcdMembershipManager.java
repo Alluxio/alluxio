@@ -139,6 +139,7 @@ public class EtcdMembershipManager implements MembershipManager {
                 pathOnRing));
           }
           if (existingEntity.get().equals(entity)) {
+            // Same entity, update the original etcd-stored worker information
             mAlluxioEtcdClient.createForPath(pathOnRing, Optional.of(serializedEntity));
           } else {
             throw new AlreadyExistsException(

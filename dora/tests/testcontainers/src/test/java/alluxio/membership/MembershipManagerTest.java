@@ -401,4 +401,44 @@ public class MembershipManagerTest {
     Assert.assertTrue(curWorkerInfo.isPresent());
     Assert.assertEquals(wkr2.getAddress(), curWorkerInfo.get().getAddress());
   }
+
+  @Test
+  public void testWorkerHttpServerPorts() throws Exception {
+    final MembershipManager membershipManager = getHealthyEtcdMemberMgr();
+    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.ETCD);
+    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getClientEndpoints());
+    Assert.assertTrue(membershipManager instanceof EtcdMembershipManager);
+    // join without http server ports
+    WorkerIdentity workerIdentity = WorkerIdentityTestUtils.randomUuidBasedId();
+    WorkerNetAddress workerNetAddress = new WorkerNetAddress()
+        .setHost("worker1").setContainerHost("containerhostname1")
+        .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
+        .setDomainSocketPath("/var/lib/domain.sock");
+    WorkerInfo wkr = new WorkerInfo()
+        .setIdentity(workerIdentity)
+        .setAddress(workerNetAddress);
+    membershipManager.join(wkr);
+    Optional<WorkerInfo> curWorkerInfo = membershipManager.getLiveMembers()
+        .getWorkerById(workerIdentity);
+    Assert.assertTrue(curWorkerInfo.isPresent());
+    membershipManager.stopHeartBeat(wkr);
+    CommonUtils.waitFor("wkr is not alive.", () -> {
+      try {
+        return membershipManager.getFailedMembers().getWorkerById(workerIdentity).isPresent();
+      } catch (IOException e) {
+        // IGNORE
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(5000));
+
+    // set the http server port and rejoin
+    workerNetAddress.setHttpServerPort(1021);
+    membershipManager.join(wkr);
+    // check if the worker is rejoined and information updated
+    curWorkerInfo = membershipManager.getLiveMembers().getWorkerById(workerIdentity);
+    Assert.assertTrue(curWorkerInfo.isPresent());
+    Assert.assertEquals(wkr.getAddress(), curWorkerInfo.get().getAddress());
+    Assert.assertEquals(wkr.getAddress().getHttpServerPort(),
+        curWorkerInfo.get().getAddress().getHttpServerPort());
+  }
 }
