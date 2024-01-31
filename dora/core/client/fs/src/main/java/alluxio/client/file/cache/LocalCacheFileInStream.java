@@ -197,16 +197,14 @@ public class LocalCacheFileInStream extends FileInStream {
     int bytesLeftInPage = (int) (mPageSize - currentPageOffset);
     int bytesToReadInPage = Math.min(bytesLeftInPage, length);
     stopwatch.reset().start();
+    if (cacheContext == null) {
+      cacheContext = mCacheContext;
+    }
     int bytesRead =
-        mCacheManager.get(pageId, currentPageOffset, bytesToReadInPage, bytesBuffer, mCacheContext);
+        mCacheManager.get(pageId, currentPageOffset, bytesToReadInPage, bytesBuffer, cacheContext);
     stopwatch.stop();
     if (bytesRead > 0) {
       MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).inc();
-      if (cacheContext != null) {
-        cacheContext.incrementCounter(
-            MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
-            stopwatch.elapsed(TimeUnit.NANOSECONDS));
-      }
       return bytesRead;
     }
     // on local cache miss, read a complete page from external storage. This will always make
