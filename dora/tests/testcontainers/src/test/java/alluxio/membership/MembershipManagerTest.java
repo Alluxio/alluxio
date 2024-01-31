@@ -201,19 +201,19 @@ public class MembershipManagerTest {
         .setAddress(new WorkerNetAddress()
             .setHost("worker1").setContainerHost("containerhostname1")
             .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
-            .setDomainSocketPath("/var/lib/domain.sock"));
+            .setDomainSocketPath("/var/lib/domain.sock").setHttpServerPort(1021));
     WorkerInfo wkr2 = new WorkerInfo()
         .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
         .setAddress(new WorkerNetAddress()
             .setHost("worker2").setContainerHost("containerhostname2")
             .setRpcPort(2000).setDataPort(2001).setWebPort(2011)
-            .setDomainSocketPath("/var/lib/domain.sock"));
+            .setDomainSocketPath("/var/lib/domain.sock").setHttpServerPort(2021));
     WorkerInfo wkr3 = new WorkerInfo()
         .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
         .setAddress(new WorkerNetAddress()
             .setHost("worker3").setContainerHost("containerhostname3")
             .setRpcPort(3000).setDataPort(3001).setWebPort(3011)
-            .setDomainSocketPath("/var/lib/domain.sock"));
+            .setDomainSocketPath("/var/lib/domain.sock").setHttpServerPort(3031));
     membershipManager.join(wkr1);
     membershipManager.join(wkr2);
     membershipManager.join(wkr3);
@@ -330,13 +330,13 @@ public class MembershipManagerTest {
         .setAddress(new WorkerNetAddress()
             .setHost("worker-1").setContainerHost("containerhostname1")
             .setRpcPort(29999).setDataPort(29997).setWebPort(30000)
-            .setDomainSocketPath("/var/lib/domain.sock"));
+            .setDomainSocketPath("/var/lib/domain.sock").setHttpServerPort(30001));
     WorkerInfo wkr2 = new WorkerInfo()
         .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
         .setAddress(new WorkerNetAddress()
             .setHost("worker-2").setContainerHost("containerhostname2")
             .setRpcPort(29999).setDataPort(29997).setWebPort(30000)
-            .setDomainSocketPath("/var/lib/domain.sock"));
+            .setDomainSocketPath("/var/lib/domain.sock").setHttpServerPort(30001));
     membershipManager.join(wkr1);
     membershipManager.join(wkr2);
     CommonUtils.waitFor("Workers joined",
@@ -396,19 +396,19 @@ public class MembershipManagerTest {
         .setAddress(new WorkerNetAddress()
             .setHost("worker1").setContainerHost("containerhostname1")
             .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
-            .setDomainSocketPath("/var/lib/domain.sock"));
+            .setDomainSocketPath("/var/lib/domain.sock").setHttpServerPort(1021));
     WorkerInfo wkr2 = new WorkerInfo()
         .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
         .setAddress(new WorkerNetAddress()
             .setHost("worker2").setContainerHost("containerhostname2")
             .setRpcPort(2000).setDataPort(2001).setWebPort(2011)
-            .setDomainSocketPath("/var/lib/domain.sock"));
+            .setDomainSocketPath("/var/lib/domain.sock").setHttpServerPort(2021));
     WorkerInfo wkr3 = new WorkerInfo()
         .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
         .setAddress(new WorkerNetAddress()
             .setHost("worker3").setContainerHost("containerhostname3")
             .setRpcPort(3000).setDataPort(3001).setWebPort(3011)
-            .setDomainSocketPath("/var/lib/domain.sock"));
+            .setDomainSocketPath("/var/lib/domain.sock").setHttpServerPort(3021));
     membershipManager.join(wkr1);
     membershipManager.join(wkr2);
     membershipManager.join(wkr3);
@@ -437,13 +437,13 @@ public class MembershipManagerTest {
         .setAddress(new WorkerNetAddress()
             .setHost("worker1").setContainerHost("containerhostname1")
             .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
-            .setDomainSocketPath("/var/lib/domain.sock"));
+            .setDomainSocketPath("/var/lib/domain.sock").setHttpServerPort(1021));
     WorkerInfo wkr2 = new WorkerInfo()
         .setIdentity(workerIdentity1)
         .setAddress(new WorkerNetAddress()
             .setHost("worker2").setContainerHost("containerhostname2")
             .setRpcPort(2000).setDataPort(2001).setWebPort(2011)
-            .setDomainSocketPath("/var/lib/domain.sock"));
+            .setDomainSocketPath("/var/lib/domain.sock").setHttpServerPort(2021));
     membershipManager.join(wkr1);
     // bring wrk1 down and join wrk2 with a same worker identity.
     membershipManager.stopHeartBeat(wkr1);
@@ -470,5 +470,45 @@ public class MembershipManagerTest {
         .getWorkerById(workerIdentity1);
     Assert.assertTrue(curWorkerInfo.isPresent());
     Assert.assertEquals(wkr2.getAddress(), curWorkerInfo.get().getAddress());
+  }
+
+  @Test
+  public void testOptionalHttpPortChangeInWorkerAddress() throws Exception {
+    final MembershipManager membershipManager = getHealthyEtcdMemberMgr();
+    Assert.assertTrue(membershipManager instanceof EtcdMembershipManager);
+    // join without http server ports
+    WorkerIdentity workerIdentity = WorkerIdentityTestUtils.randomUuidBasedId();
+    WorkerNetAddress workerNetAddress = new WorkerNetAddress()
+        .setHost("worker1").setContainerHost("containerhostname1")
+        .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
+        .setDomainSocketPath("/var/lib/domain.sock");
+    WorkerInfo wkr = new WorkerInfo()
+        .setIdentity(workerIdentity)
+        .setAddress(workerNetAddress);
+    membershipManager.join(wkr);
+    Optional<WorkerInfo> curWorkerInfo = membershipManager.getLiveMembers()
+        .getWorkerById(workerIdentity);
+    Assert.assertTrue(curWorkerInfo.isPresent());
+    membershipManager.stopHeartBeat(wkr);
+    CommonUtils.waitFor("wkr is not alive.", () -> {
+      try {
+        return membershipManager.getFailedMembers().getWorkerById(workerIdentity).isPresent();
+      } catch (IOException e) {
+        // IGNORE
+        return false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(5000));
+
+    // set the http server port and rejoin
+    workerNetAddress.setHttpServerPort(1021);
+    membershipManager.join(wkr);
+    // check if the worker is rejoined and information updated
+    WorkerClusterView allMembers = membershipManager.getAllMembers();
+    Assert.assertEquals(1, allMembers.size());
+    curWorkerInfo = membershipManager.getLiveMembers().getWorkerById(workerIdentity);
+    Assert.assertTrue(curWorkerInfo.isPresent());
+    Assert.assertEquals(wkr.getAddress(), curWorkerInfo.get().getAddress());
+    Assert.assertEquals(wkr.getAddress().getHttpServerPort(),
+        curWorkerInfo.get().getAddress().getHttpServerPort());
   }
 }

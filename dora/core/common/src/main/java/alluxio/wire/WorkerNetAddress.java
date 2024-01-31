@@ -56,6 +56,10 @@ public final class WorkerNetAddress implements Serializable {
   @Expose
   @com.google.gson.annotations.SerializedName("DomainSocketPath")
   private String mDomainSocketPath = "";
+  @Expose
+  @com.google.gson.annotations.SerializedName("HttpServerPort")
+  // Optional field - skipped in the customized equality comparison
+  private int mHttpServerPort;
 
   /**
    * Creates a new instance of {@link WorkerNetAddress}.
@@ -77,6 +81,7 @@ public final class WorkerNetAddress implements Serializable {
     mNettyDataPort = copyFrom.mNettyDataPort;
     mWebPort = copyFrom.mWebPort;
     mDomainSocketPath = copyFrom.mDomainSocketPath;
+    mHttpServerPort = copyFrom.mHttpServerPort;
   }
 
   /**
@@ -141,6 +146,14 @@ public final class WorkerNetAddress implements Serializable {
   @ApiModelProperty(value = "The domain socket path used by the worker, disabled if empty")
   public String getDomainSocketPath() {
     return mDomainSocketPath;
+  }
+
+  /**
+   * @return the http server port
+   */
+  @ApiModelProperty(value = "Port of the worker's http server for rest apis")
+  public int getHttpServerPort() {
+    return mHttpServerPort;
   }
 
   /**
@@ -217,6 +230,15 @@ public final class WorkerNetAddress implements Serializable {
     return this;
   }
 
+  /**
+   * @param httpServerPort the http server port to use
+   * @return the worker net address
+   */
+  public WorkerNetAddress setHttpServerPort(int httpServerPort) {
+    mHttpServerPort = httpServerPort;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -232,13 +254,14 @@ public final class WorkerNetAddress implements Serializable {
         && mRpcPort == that.mRpcPort
         && mDataPort == that.mDataPort
         && mWebPort == that.mWebPort
-        && mDomainSocketPath.equals(that.mDomainSocketPath);
+        && mDomainSocketPath.equals(that.mDomainSocketPath)
+        && mHttpServerPort == that.mHttpServerPort;
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mSecureRpcPort, mHost, mContainerHost, mDataPort, mRpcPort, mWebPort,
-        mDomainSocketPath);
+        mDomainSocketPath, mHttpServerPort);
   }
 
   /**
@@ -254,6 +277,7 @@ public final class WorkerNetAddress implements Serializable {
         .add("dataPort", mDataPort)
         .add("webPort", mWebPort)
         .add("domainSocketPath", mDomainSocketPath)
+        .add("httpServerPort", mHttpServerPort)
         .toString();
   }
 
@@ -267,6 +291,7 @@ public final class WorkerNetAddress implements Serializable {
         .add("webPort", mWebPort)
         .add("domainSocketPath", mDomainSocketPath)
         .add("secureRpcPort", mSecureRpcPort)
+        .add("httpServerPort", mHttpServerPort)
         .toString();
   }
 }

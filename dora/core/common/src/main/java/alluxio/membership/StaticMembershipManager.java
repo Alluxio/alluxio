@@ -87,7 +87,8 @@ public class StaticMembershipManager implements MembershipManager {
           .setContainerHost(Configuration.global()
               .getOrDefault(PropertyKey.WORKER_CONTAINER_HOSTNAME, ""))
           .setRpcPort(conf.getInt(PropertyKey.WORKER_RPC_PORT))
-          .setWebPort(conf.getInt(PropertyKey.WORKER_WEB_PORT));
+          .setWebPort(conf.getInt(PropertyKey.WORKER_WEB_PORT))
+          .setHttpServerPort(conf.getInt(PropertyKey.WORKER_HTTP_SERVER_PORT));
       //data port, these are initialized from configuration for client to deduce the
       //workeraddr related info, on worker side, it will be corrected by join().
       InetSocketAddress inetAddr;
@@ -126,7 +127,8 @@ public class StaticMembershipManager implements MembershipManager {
         .setDomainSocketPath(addr.getDomainSocketPath())
         .setNettyDataPort(addr.getNettyDataPort())
         .setWebPort(addr.getWebPort())
-        .setSecureRpcPort(addr.getSecureRpcPort()));
+        .setSecureRpcPort(addr.getSecureRpcPort())
+        .setHttpServerPort(addr.getHttpServerPort()));
   }
 
   @Override

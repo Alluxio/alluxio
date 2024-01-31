@@ -138,13 +138,19 @@ public class EtcdMembershipManager implements MembershipManager {
                 "Existing WorkerServiceEntity for path:%s corrupted",
                 pathOnRing));
           }
-          throw new AlreadyExistsException(
-              String.format("Some other member with same id registered on the ring, bail."
-                  + "Conflicting worker addr:%s, worker identity:%s."
-                  + "Different workers can't assume same worker identity in non-k8s env,"
-                  + "clean local worker identity settings to continue.",
-                  existingEntity.get().getWorkerNetAddress().toString(),
-                  existingEntity.get().getIdentity()));
+          if (existingEntity.get().equalsIgnoringOptionalFields(entity)) {
+            // Same entity but potentially with new optional fields,
+            // update the original etcd-stored worker information
+            mAlluxioEtcdClient.createForPath(pathOnRing, Optional.of(serializedEntity));
+          } else {
+            throw new AlreadyExistsException(
+                String.format("Some other member with same id registered on the ring, bail."
+                        + "Conflicting worker addr:%s, worker identity:%s."
+                        + "Different workers can't assume same worker identity in non-k8s env,"
+                        + "clean local worker identity settings to continue.",
+                    existingEntity.get().getWorkerNetAddress().toString(),
+                    existingEntity.get().getIdentity()));
+          }
         }
       }
     } catch (InterruptedException | ExecutionException e) {
