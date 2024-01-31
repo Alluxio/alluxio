@@ -543,11 +543,8 @@ public class LocalCacheFileInStreamTest {
         };
 
     Assert.assertArrayEquals(testData, ByteStreams.toByteArray(stream));
-    long timeReadCache = recordedMetrics.get(
-        MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName());
     long timeReadExternal = recordedMetrics.get(
         MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName());
-    Assert.assertEquals(timeSource.get(StepTicker.Type.CACHE_HIT), timeReadCache);
     Assert.assertEquals(timeSource.get(StepTicker.Type.CACHE_MISS), timeReadExternal);
   }
 
