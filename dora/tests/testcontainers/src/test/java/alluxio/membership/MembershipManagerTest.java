@@ -403,10 +403,8 @@ public class MembershipManagerTest {
   }
 
   @Test
-  public void testWorkerHttpServerPorts() throws Exception {
+  public void testOptionalHttpPortChangeInWorkerAddress() throws Exception {
     final MembershipManager membershipManager = getHealthyEtcdMemberMgr();
-    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.ETCD);
-    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getClientEndpoints());
     Assert.assertTrue(membershipManager instanceof EtcdMembershipManager);
     // join without http server ports
     WorkerIdentity workerIdentity = WorkerIdentityTestUtils.randomUuidBasedId();
@@ -435,6 +433,8 @@ public class MembershipManagerTest {
     workerNetAddress.setHttpServerPort(1021);
     membershipManager.join(wkr);
     // check if the worker is rejoined and information updated
+    WorkerClusterView allMembers = membershipManager.getAllMembers();
+    Assert.assertEquals(1, allMembers.size());
     curWorkerInfo = membershipManager.getLiveMembers().getWorkerById(workerIdentity);
     Assert.assertTrue(curWorkerInfo.isPresent());
     Assert.assertEquals(wkr.getAddress(), curWorkerInfo.get().getAddress());

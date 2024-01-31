@@ -58,6 +58,7 @@ public final class WorkerNetAddress implements Serializable {
   private String mDomainSocketPath = "";
   @Expose
   @com.google.gson.annotations.SerializedName("HttpServerPort")
+  // Optional field - skipped in the equality comparison
   private int mHttpServerPort;
 
   /**
