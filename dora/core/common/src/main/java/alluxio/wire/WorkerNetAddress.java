@@ -58,7 +58,7 @@ public final class WorkerNetAddress implements Serializable {
   private String mDomainSocketPath = "";
   @Expose
   @com.google.gson.annotations.SerializedName("HttpServerPort")
-  // Optional field - skipped in the equality comparison
+  // Optional field - skipped in the customized equality comparison
   private int mHttpServerPort;
 
   /**
@@ -254,15 +254,38 @@ public final class WorkerNetAddress implements Serializable {
         && mRpcPort == that.mRpcPort
         && mDataPort == that.mDataPort
         && mWebPort == that.mWebPort
-        && mDomainSocketPath.equals(that.mDomainSocketPath);
-        // Skip the comparison of mHttpServerPort for backward compatibility
+        && mDomainSocketPath.equals(that.mDomainSocketPath)
+        && mHttpServerPort == that.mHttpServerPort;
   }
 
   @Override
   public int hashCode() {
-    // Skip the mHttpServerPort for backward compatibility
     return Objects.hashCode(mSecureRpcPort, mHost, mContainerHost, mDataPort, mRpcPort, mWebPort,
-        mDomainSocketPath);
+        mDomainSocketPath, mHttpServerPort);
+  }
+
+  /**
+   * A customized equality comparison which skips the comparison of optional fields, including
+   * mHttpServerPort, for backward compatibility.
+   *
+   * @param o The object to be compared with this WorkerNetAddress for customized equality
+   * @return true if the specified object is equal to this WorkerNetAddress; false otherwise
+   */
+  public boolean customizedEquals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof WorkerNetAddress)) {
+      return false;
+    }
+    WorkerNetAddress that = (WorkerNetAddress) o;
+    return mHost.equals(that.mHost)
+        && mContainerHost.equals(that.mContainerHost)
+        && mSecureRpcPort == that.mSecureRpcPort
+        && mRpcPort == that.mRpcPort
+        && mDataPort == that.mDataPort
+        && mWebPort == that.mWebPort
+        && mDomainSocketPath.equals(that.mDomainSocketPath);
   }
 
   /**

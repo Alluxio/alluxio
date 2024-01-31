@@ -108,8 +108,7 @@ public class WorkerServiceEntity extends DefaultServiceEntity {
     // only the service name and the identity are the factors that define
     // what a WorkerServiceEntity is. Any other is either ephemeral or supplementary data.
     return mIdentity.equals(anotherO.mIdentity)
-        && getServiceEntityName().equals(anotherO.getServiceEntityName())
-        && mAddress.equals(anotherO.getWorkerNetAddress());
+        && getServiceEntityName().equals(anotherO.getServiceEntityName());
   }
 
   @Override
@@ -126,5 +125,25 @@ public class WorkerServiceEntity extends DefaultServiceEntity {
         .registerTypeAdapter(WorkerServiceEntity.class, creator)
         .create();
     gson.fromJson(new InputStreamReader(new ByteArrayInputStream(buf)), WorkerServiceEntity.class);
+  }
+
+  /**
+   * A customized equality comparison which uses the customized comparison of WorkerNetAddress
+   * objects.
+   *
+   * @param o The object to be compared with this WorkerServiceEntity for customized equality
+   * @return true if the specified object is equal to this WorkerServiceEntity; false otherwise
+   */
+  public boolean customizedEquals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    WorkerServiceEntity anotherO = (WorkerServiceEntity) o;
+    return mIdentity.equals(anotherO.mIdentity)
+        && getServiceEntityName().equals(anotherO.getServiceEntityName())
+        && mAddress.customizedEquals(anotherO.getWorkerNetAddress());
   }
 }

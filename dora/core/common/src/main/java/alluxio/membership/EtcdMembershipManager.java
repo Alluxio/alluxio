@@ -138,8 +138,9 @@ public class EtcdMembershipManager implements MembershipManager {
                 "Existing WorkerServiceEntity for path:%s corrupted",
                 pathOnRing));
           }
-          if (existingEntity.get().equals(entity)) {
-            // Same entity, update the original etcd-stored worker information
+          if (existingEntity.get().customizedEquals(entity)) {
+            // Same entity but potentially with new optional fields,
+            // update the original etcd-stored worker information
             mAlluxioEtcdClient.createForPath(pathOnRing, Optional.of(serializedEntity));
           } else {
             throw new AlreadyExistsException(

@@ -72,6 +72,43 @@ public class WorkerNetAddressTest {
     }
   }
 
+  @Test
+  public void testCustomizedEquals() {
+    WorkerNetAddress workerNetAddress1 = new WorkerNetAddress()
+        .setHost("host")
+        .setContainerHost("container")
+        .setRpcPort(1)
+        .setDataPort(1)
+        .setNettyDataPort(1)
+        .setSecureRpcPort(1)
+        .setWebPort(1)
+        .setDomainSocketPath("path")
+        .setHttpServerPort(1);
+    WorkerNetAddress workerNetAddress2 = new WorkerNetAddress()
+        .setHost("host")
+        .setContainerHost("container")
+        .setRpcPort(1)
+        .setDataPort(1)
+        .setNettyDataPort(1)
+        .setSecureRpcPort(1)
+        .setWebPort(1)
+        .setDomainSocketPath("path")
+        .setHttpServerPort(2);
+    WorkerNetAddress workerNetAddress3 = new WorkerNetAddress()
+        .setHost("host2")
+        .setContainerHost("container")
+        .setRpcPort(1)
+        .setDataPort(1)
+        .setNettyDataPort(1)
+        .setSecureRpcPort(1)
+        .setWebPort(1)
+        .setDomainSocketPath("path")
+        .setHttpServerPort(1);
+    Assert.assertTrue(workerNetAddress1.customizedEquals(workerNetAddress2));
+    Assert.assertFalse(workerNetAddress1.customizedEquals(workerNetAddress3));
+    Assert.assertFalse(workerNetAddress2.customizedEquals(workerNetAddress3));
+  }
+
   public void checkEquality(WorkerNetAddress a, WorkerNetAddress b) {
     Assert.assertEquals(a.getHost(), b.getHost());
     Assert.assertEquals(a.getRpcPort(), b.getRpcPort());
