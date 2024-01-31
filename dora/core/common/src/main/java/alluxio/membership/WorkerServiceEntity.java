@@ -128,13 +128,14 @@ public class WorkerServiceEntity extends DefaultServiceEntity {
   }
 
   /**
-   * A customized equality comparison which uses the customized comparison of WorkerNetAddress
-   * objects.
+   * A customized equality comparison which ignores optional fields such as mHttpServerPort in the
+   * WorkerNetAddress.
    *
-   * @param o The object to be compared with this WorkerServiceEntity for customized equality
-   * @return true if the specified object is equal to this WorkerServiceEntity; false otherwise
+   * @param o The object to be compared with this WorkerServiceEntity for equality
+   * @return true if the specified object is equal to this WorkerServiceEntity by ignoring optional
+   *         fields; false otherwise
    */
-  public boolean customizedEquals(Object o) {
+  public boolean equalsIgnoringOptionalFields(Object o) {
     if (this == o) {
       return true;
     }
@@ -144,6 +145,16 @@ public class WorkerServiceEntity extends DefaultServiceEntity {
     WorkerServiceEntity anotherO = (WorkerServiceEntity) o;
     return mIdentity.equals(anotherO.mIdentity)
         && getServiceEntityName().equals(anotherO.getServiceEntityName())
-        && mAddress.customizedEquals(anotherO.getWorkerNetAddress());
+        && equalsIgnoringHttpServerPort(anotherO.getWorkerNetAddress());
+  }
+
+  private boolean equalsIgnoringHttpServerPort(WorkerNetAddress other) {
+    return mAddress.getHost().equals(other.getHost())
+        && mAddress.getContainerHost().equals(other.getContainerHost())
+        && mAddress.getSecureRpcPort() == other.getSecureRpcPort()
+        && mAddress.getRpcPort() == other.getRpcPort()
+        && mAddress.getDataPort() == other.getDataPort()
+        && mAddress.getWebPort() == other.getWebPort()
+        && mAddress.getDomainSocketPath().equals(other.getDomainSocketPath());
   }
 }

@@ -265,30 +265,6 @@ public final class WorkerNetAddress implements Serializable {
   }
 
   /**
-   * A customized equality comparison which skips the comparison of optional fields, including
-   * mHttpServerPort, for backward compatibility.
-   *
-   * @param o The object to be compared with this WorkerNetAddress for customized equality
-   * @return true if the specified object is equal to this WorkerNetAddress; false otherwise
-   */
-  public boolean customizedEquals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof WorkerNetAddress)) {
-      return false;
-    }
-    WorkerNetAddress that = (WorkerNetAddress) o;
-    return mHost.equals(that.mHost)
-        && mContainerHost.equals(that.mContainerHost)
-        && mSecureRpcPort == that.mSecureRpcPort
-        && mRpcPort == that.mRpcPort
-        && mDataPort == that.mDataPort
-        && mWebPort == that.mWebPort
-        && mDomainSocketPath.equals(that.mDomainSocketPath);
-  }
-
-  /**
    * dump the main info of the WorkerNetAddress object.
    *
    * @return the main info string of the WorkerNetAddress object
