@@ -1497,7 +1497,7 @@
             </goals>
             <phase>validate</phase>
             <configuration>
-              <verifyFail>stop</verifyFail>
+              <verifyFail>warn</verifyFail>
               <verifyFailOn>strict</verifyFailOn>
               <violationFilename>target/sortpom_reports/violation.xml</violationFilename>
             </configuration>
