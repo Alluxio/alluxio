@@ -53,7 +53,8 @@ public class WorkerNetAddressTest {
         .setNettyDataPort(1)
         .setSecureRpcPort(1)
         .setWebPort(1)
-        .setDomainSocketPath("path");
+        .setDomainSocketPath("path")
+        .setHttpServerPort(1);
     WorkerNetAddress copied = new WorkerNetAddress(original);
     // copied instance should contain exactly the same content
     checkEquality(original, copied);

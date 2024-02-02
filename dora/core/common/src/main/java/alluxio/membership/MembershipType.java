@@ -17,5 +17,6 @@ package alluxio.membership;
 public enum MembershipType {
   STATIC, // Use a static file to configure a static member list for MembershipManager
   ETCD, // Use etcd for MembershipManager
-  MASTER // For regression purpose, still leverage Master for worker registration
+  MASTER, // For regression purpose, still leverage Master for worker registration
+  SERVICE_REGISTRY // Use SERVICE REGISTRY MembershipManager, which only use active workers
 }

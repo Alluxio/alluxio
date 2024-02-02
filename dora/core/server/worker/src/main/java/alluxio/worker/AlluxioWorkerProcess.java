@@ -393,6 +393,9 @@ public class AlluxioWorkerProcess implements WorkerProcess {
     if (mNettyDataTransmissionEnable) {
       workerNetAddress.setNettyDataPort(getNettyDataLocalPort());
     }
+    if (Configuration.getBoolean(PropertyKey.WORKER_HTTP_SERVER_ENABLED)) {
+      workerNetAddress.setHttpServerPort(Configuration.getInt(PropertyKey.WORKER_HTTP_SERVER_PORT));
+    }
     return workerNetAddress;
   }
 
