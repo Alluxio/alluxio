@@ -5837,7 +5837,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_METADATA_CACHE_NEGATIVE_CACHE_ENABLED =
-      booleanBuilder(Name.USER_METADATA_CACHE_NOT_FOUND_CACHE_ENABLED)
+      booleanBuilder(Name.USER_METADATA_CACHE_NEGATIVE_CACHE_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether to enable negative cache for the client metadata "
               + "cache, which caches the absence of a file in the UFS.")
