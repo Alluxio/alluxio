@@ -8453,8 +8453,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.metadata.cache.max.size";
     public static final String USER_METADATA_CACHE_EXPIRATION_TIME =
         "alluxio.user.metadata.cache.expiration.time";
-    public static final String USER_METADATA_CACHE_NOT_FOUND_CACHE_ENABLED =
-        "alluxio.user.metadata.cache.not.found.cache.enabled";
+    public static final String USER_METADATA_CACHE_NEGATIVE_CACHE_ENABLED =
+        "alluxio.user.metadata.cache.negative.cache.enabled";
     public static final String USER_METRICS_COLLECTION_ENABLED =
         "alluxio.user.metrics.collection.enabled";
     public static final String USER_METRICS_HEARTBEAT_INTERVAL_MS =
