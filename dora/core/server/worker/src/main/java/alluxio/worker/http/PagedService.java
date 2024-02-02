@@ -111,5 +111,19 @@ public class PagedService {
     }
     return (FileRegion) dataFileChannel.get().getNettyOutput();
   }
+
+  /**
+   * Get {@link FileRegion} object given fileId, pageIndex, and channel.
+   *
+   * @param fileId    the file ID
+   * @param pageIndex the page index
+   * @param offset offset into the page
+   * @return the ByteBuf object that wraps page bytes
+   * @throws PageNotFoundException
+   */
+  public FileRegion getPageFileRegion(String fileId, long pageIndex, long offset)
+      throws PageNotFoundException {
+    return getPageFileRegion(fileId, pageIndex, offset, (int) (mPageSize - offset));
+  }
   // TODO(JiamingMai): do we need to implement a method for reading file directly?
 }
