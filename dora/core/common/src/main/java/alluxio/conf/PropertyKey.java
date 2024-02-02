@@ -5836,7 +5836,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_METADATA_CACHE_NOT_FOUND_CACHE_ENABLED =
+  public static final PropertyKey USER_METADATA_CACHE_NEGATIVE_CACHE_ENABLED =
       booleanBuilder(Name.USER_METADATA_CACHE_NOT_FOUND_CACHE_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether cache the file not found status.")
