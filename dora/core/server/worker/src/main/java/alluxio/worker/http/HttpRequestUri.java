@@ -11,6 +11,7 @@
 
 package alluxio.worker.http;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,9 +29,9 @@ public class HttpRequestUri {
 
   private String mMappingPath;
 
-  private List<String> mRemainingFields;
+  private List<String> mRemainingFields = new ArrayList<>();
 
-  private Map<String, String> mParameters;
+  private Map<String, String> mParameters = new HashMap<>();
 
   private HttpRequestUri() {
   }
