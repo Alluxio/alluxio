@@ -114,7 +114,7 @@ public class BaseFileSystem implements FileSystem {
   private final Closer mCloser = Closer.create();
   protected final FileSystemContext mFsContext;
   protected final BlockStoreClient mBlockStore;
-  protected List<String> mPathList;
+  protected String mPathRegex;
 
   protected volatile boolean mClosed = false;
 
@@ -172,16 +172,10 @@ public class BaseFileSystem implements FileSystem {
     if (!getConf().isSet(PropertyKey.USER_FILE_DIRECT_ACCESS)) {
       return false;
     }
-    if (mPathList == null) {
-      mPathList = getConf().getList(PropertyKey.USER_FILE_DIRECT_ACCESS);
+    if (mPathRegex == null) {
+      mPathRegex = getConf().getString(PropertyKey.USER_FILE_DIRECT_ACCESS);
     }
-    return mPathList.stream().anyMatch(x -> {
-      try {
-        return PathUtils.hasPrefix(uri.getPath(), x);
-      } catch (InvalidPathException e) {
-        return false;
-      }
-    });
+    return uri.getPath().matches(mPathRegex);
   }
 
   private AlluxioConfiguration getDirectAccessConf(AlluxioURI uri) {
