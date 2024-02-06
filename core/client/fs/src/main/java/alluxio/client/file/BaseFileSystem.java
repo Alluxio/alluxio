@@ -94,6 +94,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -113,7 +116,7 @@ public class BaseFileSystem implements FileSystem {
   private final Closer mCloser = Closer.create();
   protected final FileSystemContext mFsContext;
   protected final BlockStoreClient mBlockStore;
-  protected String mPathRegex;
+  protected Matcher mPathRegex;
 
   protected volatile boolean mClosed = false;
 
@@ -172,9 +175,10 @@ public class BaseFileSystem implements FileSystem {
       return false;
     }
     if (mPathRegex == null) {
-      mPathRegex = getConf().getString(PropertyKey.USER_FILE_DIRECT_ACCESS);
+      mPathRegex = Pattern.compile(
+          getConf().getString(PropertyKey.USER_FILE_DIRECT_ACCESS)).matcher("");
     }
-    return uri.getPath().matches(mPathRegex);
+    return mPathRegex.reset(uri.getPath()).matches();
   }
 
   private AlluxioConfiguration getDirectAccessConf(AlluxioURI uri) {
