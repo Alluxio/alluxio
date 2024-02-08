@@ -38,13 +38,14 @@ public class DirectAccessIntegrationTest extends BaseIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private static final String DIRECT_DIR = "/mnt/direct/";
+  private static final String DIRECT_DIR_REGEX = ".?/mnt/direct/.?";
   private static final String NON_DIRECT_DIR = "/mnt/non_direct/";
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
-          .setProperty(PropertyKey.USER_FILE_DIRECT_ACCESS, DIRECT_DIR)
+          .setProperty(PropertyKey.USER_FILE_DIRECT_ACCESS, DIRECT_DIR_REGEX)
           .build();
   private FileSystem mFileSystem;
 
