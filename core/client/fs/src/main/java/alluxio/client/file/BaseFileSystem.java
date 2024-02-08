@@ -73,7 +73,6 @@ import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.util.FileSystemOptionsUtils;
-import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
@@ -94,7 +93,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -114,7 +116,7 @@ public class BaseFileSystem implements FileSystem {
   private final Closer mCloser = Closer.create();
   protected final FileSystemContext mFsContext;
   protected final BlockStoreClient mBlockStore;
-  protected List<String> mPathList;
+  protected AtomicReference<Matcher> mPathRegex = new AtomicReference<>();
 
   protected volatile boolean mClosed = false;
 
@@ -172,16 +174,12 @@ public class BaseFileSystem implements FileSystem {
     if (!getConf().isSet(PropertyKey.USER_FILE_DIRECT_ACCESS)) {
       return false;
     }
-    if (mPathList == null) {
-      mPathList = getConf().getList(PropertyKey.USER_FILE_DIRECT_ACCESS);
+    if (mPathRegex.get() == null) {
+      mPathRegex.compareAndSet(null,
+          Pattern.compile(
+              getConf().getString(PropertyKey.USER_FILE_DIRECT_ACCESS)).matcher(""));
     }
-    return mPathList.stream().anyMatch(x -> {
-      try {
-        return PathUtils.hasPrefix(uri.getPath(), x);
-      } catch (InvalidPathException e) {
-        return false;
-      }
-    });
+    return mPathRegex.get().reset(uri.getPath()).matches();
   }
 
   private AlluxioConfiguration getDirectAccessConf(AlluxioURI uri) {
