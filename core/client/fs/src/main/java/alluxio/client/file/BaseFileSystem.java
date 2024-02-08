@@ -174,9 +174,11 @@ public class BaseFileSystem implements FileSystem {
     if (!getConf().isSet(PropertyKey.USER_FILE_DIRECT_ACCESS)) {
       return false;
     }
-    mPathRegex.compareAndSet(null,
-        Pattern.compile(
-        getConf().getString(PropertyKey.USER_FILE_DIRECT_ACCESS)).matcher(""));
+    if (mPathRegex.get() == null) {
+      mPathRegex.compareAndSet(null,
+          Pattern.compile(
+              getConf().getString(PropertyKey.USER_FILE_DIRECT_ACCESS)).matcher(""));
+    }
     return mPathRegex.get().reset(uri.getPath()).matches();
   }
 
