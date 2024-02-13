@@ -9,7 +9,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-FROM alluxio/alluxio:309
+FROM alluxio/alluxio:310-SNAPSHOT
 
 USER root
 
