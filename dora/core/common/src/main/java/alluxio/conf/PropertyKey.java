@@ -5681,7 +5681,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER =
       intBuilder(Name.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER)
-          .setDefaultValue(2000)
+          .setDefaultValue(5)
           .setDescription("This is the number of virtual nodes for one worker in the consistent "
               + "hashing algorithm. In a consistent hashing algorithm, on membership changes, some "
               + "virtual nodes are re-distributed instead of rebuilding the whole hash table. "
