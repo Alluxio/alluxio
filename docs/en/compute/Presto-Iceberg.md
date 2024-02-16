@@ -68,9 +68,9 @@ Launch the Presto CLI client with the following command:
 ./presto --server localhost:8080 --catalog iceberg --debug
 ```
 
-For more information on the client, please refer to this section on [querying tables using Presto]
-({{ '/en/compute/Presto.html' | relativize_url }}#query-tables-using-presto). Note that the 
-catalog is set to `iceberg` since we will be dealing with Iceberg tables.
+For more information on the client, please refer to this section on
+[querying tables using Presto]({{ '/en/compute/Presto.html' | relativize_url }}#query-tables-using-presto).
+Note that the catalog is set to `iceberg` since we will be dealing with Iceberg tables.
 
 Run the following statements from the client:
 
