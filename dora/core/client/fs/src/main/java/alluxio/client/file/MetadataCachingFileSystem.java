@@ -28,8 +28,12 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.SetAclAction;
+import alluxio.grpc.SetAclPOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.security.authorization.AclEntry;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.wire.BlockLocationInfo;
@@ -253,6 +257,22 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
       ThreadUtils.shutdownAndAwaitTermination(mAccessTimeUpdater, THREAD_TERMINATION_TIMEOUT_MS);
       mDelegatedFileSystem.close();
     }
+  }
+
+  @Override
+  public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
+      SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+    mDelegatedFileSystem.setAcl(path, action, entries, options);
+    mMetadataCache.invalidate(path);
+    mMetadataCache.invalidate(path.getParent());
+  }
+
+  @Override
+  public void setAttribute(AlluxioURI path, SetAttributePOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    mDelegatedFileSystem.setAttribute(path, options);
+    mMetadataCache.invalidate(path);
+    mMetadataCache.invalidate(path.getParent());
   }
 
   /**
