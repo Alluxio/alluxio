@@ -464,8 +464,9 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         continue;
       }
       if (eof || cancel || error != null) {
+        boolean success = !cancel && error == null;
         try {
-          completeRequest(mContext);
+          completeRequest(mContext, success);
         } catch (Exception e) {
           if (error != null) {
             LOG.error("Failed to close the request.", e);
@@ -494,11 +495,17 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
      *
      * @param context context of the request to complete
      */
-    private void completeRequest(BlockReadRequestContext context) throws Exception {
+    private void completeRequest(BlockReadRequestContext context, boolean success)
+        throws Exception {
       BlockReader reader = context.getBlockReader();
       try {
         if (reader != null) {
-          reader.close();
+          if (success) {
+            reader.commit();
+          }
+          else {
+            reader.abort();
+          }
         }
       } finally {
         context.setBlockReader(null);
@@ -551,7 +558,6 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
               try {
                 while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
                 }
-                blockReader.commit();
                 return new NettyDataBuffer(buf.retain());
               } catch (Exception e) {
                 blockReader.abort();

@@ -267,8 +267,9 @@ public final class UnderFileSystemBlockReader extends BlockReader {
     super.close();
     try {
       // This aborts the block if the block is not fully read.
-      updateBlockWriter(mBlockMeta.getBlockSize());
-
+      if (mBlockWriter != null && mBlockMeta.getBlockSize() > mBlockWriter.getPosition()) {
+        cancelBlockWriter();
+      }
       if (mUnderFileSystemInputStream != null) {
         mUfsInstreamCache.release(mUnderFileSystemInputStream);
         mUnderFileSystemInputStream = null;

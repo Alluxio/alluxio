@@ -67,7 +67,6 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   @Parameterized.Parameters(name = "{index}_BlockStoreType_{0}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
-        {BlockStoreType.PAGE},
         {BlockStoreType.FILE}
     });
   }

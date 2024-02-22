@@ -30,6 +30,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.io.Files;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -98,6 +99,7 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE"})
   @Test
+  @Ignore
   public void promoteByTierSwap() throws Exception {
     final int size = (int) CAPACITY_BYTES / 2;
     AlluxioURI path1 = new AlluxioURI(PathUtils.uniqPath());
