@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>310-SNAPSHOT</version>
+    <version>310</version>
   </parent>
   <artifactId>alluxio-underfs-hdfs</artifactId>
   <name>Alluxio Under File System - HDFS</name>
@@ -148,7 +148,7 @@
         <dependency>
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-shaded-hadoop</artifactId>
-          <version>3.3.1</version>
+          <version>310</version>
         </dependency>
       </dependencies>
       <build>
@@ -186,7 +186,7 @@
         <dependency>
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-shaded-hadoop</artifactId>
-          <version>3.3.1</version>
+          <version>310</version>
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>

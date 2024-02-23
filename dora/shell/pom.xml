@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>310-SNAPSHOT</version>
+    <version>310</version>
   </parent>
   <artifactId>alluxio-shell</artifactId>
   <packaging>jar</packaging>
