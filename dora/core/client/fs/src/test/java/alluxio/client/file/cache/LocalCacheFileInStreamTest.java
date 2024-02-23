@@ -584,6 +584,23 @@ public class LocalCacheFileInStreamTest {
   }
 
   @Test
+  public void testPageDataFileCorrupted() throws Exception
+  {
+    int pages = 10;
+    int fileSize = mPageSize * pages;
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    //by default local cache fallback is not enabled, the read should fail for any error
+    LocalCacheFileInStream streamWithOutFallback = setupWithSingleFile(testData, manager);
+
+    sConf.set(PropertyKey.USER_CLIENT_CACHE_FALLBACK_ENABLED, true);
+    LocalCacheFileInStream streamWithFallback = setupWithSingleFile(testData, manager);
+    Assert.assertEquals(100, streamWithFallback.positionedRead(0, new byte[10], 100, 100));
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_POSITION_READ_FALLBACK.getName()).getCount());
+  }
+
+  @Test
   public void testPositionReadFallBack() throws Exception
   {
     int pages = 10;

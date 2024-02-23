@@ -26,6 +26,7 @@ import alluxio.client.quota.CacheScope;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.PageCorruptedException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.file.ByteArrayTargetBuffer;
@@ -919,6 +920,7 @@ public class LocalCacheManager implements CacheManager {
 
   private int getPage(PageInfo pageInfo, int pageOffset, int bytesToRead,
                       ReadTargetBuffer target, CacheContext cacheContext) {
+    int originOffset = target.offset();
     try {
       int ret = pageInfo.getLocalCacheDir().getPageStore()
           .get(pageInfo.getPageId(), pageOffset, bytesToRead, target,
@@ -927,10 +929,20 @@ public class LocalCacheManager implements CacheManager {
         // data read from page store is inconsistent from the metastore
         LOG.error("Failed to read page {}: supposed to read {} bytes, {} bytes actually read",
             pageInfo.getPageId(), bytesToRead, ret);
+        target.offset(originOffset); //reset the offset
+        //best efforts to delete the corrupted file without acquire the write lock
+        deletePage(pageInfo, false);
         return -1;
       }
+    } catch (PageCorruptedException e) {
+      LOG.error("Data corrupted page {} from pageStore", pageInfo.getPageId(), e);
+      target.offset(originOffset); //reset the offset
+      //best efforts to delete the corrupted file without acquire the write lock
+      deletePage(pageInfo, false);
+      return -1;
     } catch (IOException | PageNotFoundException e) {
       LOG.debug("Failed to get existing page {} from pageStore", pageInfo.getPageId(), e);
+      target.offset(originOffset); //reset the offset
       return -1;
     }
     return bytesToRead;

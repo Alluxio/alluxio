@@ -43,7 +43,8 @@ public class MemoryPageStoreTest {
     PageId id = new PageId("0", 0);
     store.put(id, msg.getBytes());
     byte[] buf = new byte[PAGE_SIZE];
-    assertEquals(msg.getBytes().length, store.get(id, new ByteArrayTargetBuffer(buf, 0)));
+    assertEquals(msg.getBytes().length,
+        store.get(id, 0, msg.length(), new ByteArrayTargetBuffer(buf, 0)));
     assertArrayEquals(msg.getBytes(), Arrays.copyOfRange(buf, 0, msg.getBytes().length));
   }
 }

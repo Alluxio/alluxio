@@ -13,6 +13,7 @@ package alluxio.client.file.cache.store;
 
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
+import alluxio.exception.PageCorruptedException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.file.ReadTargetBuffer;
 
@@ -68,8 +69,12 @@ public class MemoryPageStore implements PageStore {
       throw new PageNotFoundException(pageId.getFileId() + "_" + pageId.getPageIndex());
     }
     MemPage page = mPageStoreMap.get(pageKey);
-    Preconditions.checkArgument(pageOffset <= page.getPageLength(),
-        "page offset %s exceeded page size %s", pageOffset, page.getPageLength());
+    if (pageOffset + bytesToRead > page.getPageLength()) {
+      throw new PageCorruptedException(String.format(
+          "The page %s probably has been corrupted, "
+              + "page-offset %s, bytes to read %s, page file length %s",
+          pageId, pageOffset, bytesToRead, page.getPageLength()));
+    }
     int bytesLeft = (int) Math.min(page.getPageLength() - pageOffset, target.remaining());
     bytesLeft = Math.min(bytesLeft, bytesToRead);
     target.writeBytes(page.getPage(), pageOffset, bytesLeft);
