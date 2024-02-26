@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.exception.status.InvalidArgumentException;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -116,6 +118,33 @@ public final class WorkerIdentity implements Serializable {
   public String toString() {
     return String.format("worker-%s",
         Parsers.getParserOfVersion(mVersion).getVersionSpecificRepresentation(this));
+  }
+
+  /**
+   * Construct from a workerid representation from registration.
+   *
+   * @param workerIdentityStr
+   * @return WorkerIdentity object
+   * @throws InvalidArgumentException
+   */
+  public static WorkerIdentity fromString(String workerIdentityStr)
+      throws InvalidArgumentException {
+    String prefix = "worker-";
+    String errStr = "Unrecognized worker identity string.";
+    if (!workerIdentityStr.startsWith(prefix)) {
+      throw new InvalidArgumentException(errStr);
+    }
+    String idStr = workerIdentityStr.substring(prefix.length());
+    try {
+      return ParserV1.INSTANCE.fromUUID(idStr);
+    } catch (java.lang.IllegalArgumentException ex) {
+      // DO NOTHING
+    }
+    try {
+      return ParserV0.INSTANCE.fromLong(Long.parseLong(idStr));
+    } catch (NumberFormatException ex) {
+      throw new InvalidArgumentException(errStr);
+    }
   }
 
   private void writeObject(java.io.ObjectOutputStream out)
