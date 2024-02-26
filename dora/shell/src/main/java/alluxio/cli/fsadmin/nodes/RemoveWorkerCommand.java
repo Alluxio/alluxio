@@ -87,8 +87,7 @@ public class RemoveWorkerCommand extends AbstractFsAdminCommand {
     }
     MembershipManager membershipManager =
         MembershipManager.Factory.create(mAlluxioConf);
-    String workerId = cl.getOptionValue(WORKERNAME_OPTION_NAME);
-    workerId.trim();
+    String workerId = cl.getOptionValue(WORKERNAME_OPTION_NAME).trim();
     membershipManager.decommission(
         new WorkerInfo().setIdentity(WorkerIdentity.fromString(workerId)));
     mPrintStream.println(String.format(
