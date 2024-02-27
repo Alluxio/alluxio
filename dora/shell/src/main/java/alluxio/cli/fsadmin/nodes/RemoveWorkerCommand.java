@@ -94,7 +94,7 @@ public class RemoveWorkerCommand extends AbstractFsAdminCommand {
     membershipManager.decommission(
         new WorkerInfo().setIdentity(WorkerIdentity.fromString(workerId)));
     mPrintStream.println(String.format(
-        "Successfully decommissioned worker: %s", workerId));
+        "Successfully removed worker: %s", workerId));
     return 0;
   }
 }

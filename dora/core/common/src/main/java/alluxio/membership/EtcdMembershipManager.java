@@ -265,8 +265,8 @@ public class EtcdMembershipManager implements MembershipManager {
     // Worker should already be offline
     if (targetWorker.get().getState() != WorkerState.LOST) {
       throw new InvalidArgumentException(
-          String.format("Can't decommission running worker: %s, stop the worker"
-              + " before decommissioning", worker.getIdentity()));
+          String.format("Can't remove running worker: %s, stop the worker"
+              + " before removing", worker.getIdentity()));
     }
     // stop heartbeat if it is an existing service discovery tab(although unlikely)
     stopHeartBeat(worker);
@@ -274,7 +274,7 @@ public class EtcdMembershipManager implements MembershipManager {
         .append(getRingPathPrefix())
         .append(worker.getIdentity()).toString();
     mAlluxioEtcdClient.deleteForPath(pathOnRing, false);
-    LOG.info("Successfully decommissioned worker:{}", worker.getIdentity());
+    LOG.info("Successfully removed worker:{}", worker.getIdentity());
   }
 
   @Override
