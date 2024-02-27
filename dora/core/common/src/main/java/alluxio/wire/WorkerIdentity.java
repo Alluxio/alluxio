@@ -338,7 +338,7 @@ public final class WorkerIdentity implements Serializable {
     /**
      * Parses from a long worker ID.
      * <br>
-     * Code that needs to be forward- and backward-compatibleshould not rely on a version
+     * Code that needs to be forward- and backward-compatible should not rely on a version
      * specific parser implementation.
      *
      * @param workerId worker ID

@@ -260,7 +260,7 @@ public class EtcdMembershipManager implements MembershipManager {
     Optional<WorkerInfo> targetWorker = getAllMembers().getWorkerById(worker.getIdentity());
     if (!targetWorker.isPresent()) {
       throw new InvalidArgumentException(
-          String.format("Unrecognized or non-existing worker:%s", worker.getIdentity()));
+          String.format("Unrecognized or non-existing worker: %s", worker.getIdentity()));
     }
     // Worker should already be offline
     if (targetWorker.get().getState() != WorkerState.LOST) {
