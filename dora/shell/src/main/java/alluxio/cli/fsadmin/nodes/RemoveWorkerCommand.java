@@ -69,12 +69,15 @@ public class RemoveWorkerCommand extends AbstractFsAdminCommand {
 
   @Override
   public String getUsage() {
-    return "remove";
+    return getCommandName() + " -n <WorkerId> | -h";
   }
 
   @Override
   public String getDescription() {
-    return "Remove given worker from the cluster";
+    return "Remove given worker from the cluster, so that clients and "
+        + "other workers will not consider the removed worker for services. "
+        + "The worker must have been stopped before it can be safely removed "
+        + "from the cluster.";
   }
 
   @Override
@@ -91,7 +94,7 @@ public class RemoveWorkerCommand extends AbstractFsAdminCommand {
     membershipManager.decommission(
         new WorkerInfo().setIdentity(WorkerIdentity.fromString(workerId)));
     mPrintStream.println(String.format(
-        "Successfully decommissioned worker:%s", workerId));
+        "Successfully decommissioned worker: %s", workerId));
     return 0;
   }
 }

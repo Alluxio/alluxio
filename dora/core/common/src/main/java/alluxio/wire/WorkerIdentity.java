@@ -114,12 +114,6 @@ public final class WorkerIdentity implements Serializable {
     return hashCode;
   }
 
-  @Override
-  public String toString() {
-    return String.format("worker-%s",
-        Parsers.getParserOfVersion(mVersion).getVersionSpecificRepresentation(this));
-  }
-
   /**
    * Construct from a workerid representation from registration.
    *
@@ -130,9 +124,9 @@ public final class WorkerIdentity implements Serializable {
   public static WorkerIdentity fromString(String workerIdentityStr)
       throws InvalidArgumentException {
     String prefix = "worker-";
-    String errStr = "Unrecognized worker identity string.";
+    String errStr = "Unrecognized worker identity string";
     if (!workerIdentityStr.startsWith(prefix)) {
-      throw new InvalidArgumentException(errStr);
+      throw new InvalidArgumentException(errStr + ": " + workerIdentityStr);
     }
     String idStr = workerIdentityStr.substring(prefix.length());
     try {
@@ -143,8 +137,19 @@ public final class WorkerIdentity implements Serializable {
     try {
       return ParserV0.INSTANCE.fromLong(Long.parseLong(idStr));
     } catch (NumberFormatException ex) {
-      throw new InvalidArgumentException(errStr);
+      throw new InvalidArgumentException(errStr + ": " + workerIdentityStr);
     }
+  }
+
+  /**
+   * [NOTE] paired with fromString.
+   * if modified, change fromString as well
+   * @return String representation of WorkerIdentity
+   */
+  @Override
+  public String toString() {
+    return String.format("worker-%s",
+        Parsers.getParserOfVersion(mVersion).getVersionSpecificRepresentation(this));
   }
 
   private void writeObject(java.io.ObjectOutputStream out)
@@ -333,7 +338,7 @@ public final class WorkerIdentity implements Serializable {
     /**
      * Parses from a long worker ID.
      * <br>
-     * Code that needs to be forward- and backward-compatible should not rely on a version
+     * Code that needs to be forward- and backward-compatibleshould not rely on a version
      * specific parser implementation.
      *
      * @param workerId worker ID
