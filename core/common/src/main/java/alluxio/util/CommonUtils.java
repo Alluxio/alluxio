@@ -299,17 +299,21 @@ public final class CommonUtils {
    * @return the groups list that the {@code user} belongs to. The primary group is returned first
    */
   public static List<String> getUnixGroups(String user) throws IOException {
-    String effectiveGroupsResult, allGroupsResult;
+    String effectiveGroupsResult;
+    String allGroupsResult;
     List<String> groups = new ArrayList<>();
     try {
-      effectiveGroupsResult = ShellUtils.execCommand(ShellUtils.getEffectiveGroupsForUserCommand(user));
-      allGroupsResult = ShellUtils.execCommand(ShellUtils.getAllGroupsForUserCommand(user));
+      effectiveGroupsResult = ShellUtils.execCommand(
+          ShellUtils.getEffectiveGroupsForUserCommand(user));
+      allGroupsResult = ShellUtils.execCommand(
+          ShellUtils.getAllGroupsForUserCommand(user));
     } catch (ExitCodeException e) {
       // if we didn't get the group - just return empty list
       LOG.warn("got exception trying to get groups for user {}: {}", user, e.toString());
       return groups;
     }
-    StringTokenizer tokenizer = new StringTokenizer(effectiveGroupsResult, ShellUtils.TOKEN_SEPARATOR_REGEX);
+    StringTokenizer tokenizer = new StringTokenizer(
+        effectiveGroupsResult, ShellUtils.TOKEN_SEPARATOR_REGEX);
     while (tokenizer.hasMoreTokens()) {
       groups.add(tokenizer.nextToken());
     }

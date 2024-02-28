@@ -19,6 +19,7 @@ import static org.junit.Assume.assumeTrue;
 import alluxio.Constants;
 
 import com.google.common.base.Optional;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -66,9 +67,13 @@ public final class ShellUtilsTest {
     // On Linux user "root" will be a part of the group "root". On OSX it will be a part of "admin".
     assertTrue(result.contains("root") || result.contains("admin"));
   }
-  
+
+  /**
+   * Test the {@link ShellUtils#execCommand(String...)} method for effective groups command
+   * with malicious username passed in.
+   */
   @Test
-  public void execGetEffectiveGroupCommand() throws Exception {
+  public void execGetEffectiveGroupCommandMaliciousTest() {
     String maliciousName = "> echo ALLUXIO";
     ShellUtils.ExitCodeException exception =
         Assert.assertThrows(ShellUtils.ExitCodeException.class,

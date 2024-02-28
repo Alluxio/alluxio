@@ -261,7 +261,10 @@ public class CommonUtilsTest {
     }
   }
 
-  private void setupShellMocks(String username, List<String> effectiveGroups, List<String> allGroups) throws IOException {
+  private void setupShellMocks(String username,
+                               List<String> effectiveGroups,
+                               List<String> allGroups)
+      throws IOException {
     PowerMockito.mockStatic(ShellUtils.class);
     StringBuilder shellResultForEffective = new StringBuilder();
     for (String group: effectiveGroups) {
@@ -306,8 +309,8 @@ public class CommonUtilsTest {
   }
 
   /**
-   * Test for the {@link CommonUtils#getGroups(String)} and
-   * {@link CommonUtils#getPrimaryGroupName(String)} method.
+   * Test for the {@link CommonUtils#getGroups(String, AlluxioConfiguration)} and
+   * {@link CommonUtils#getPrimaryGroupName(String, AlluxioConfiguration)} method.
    */
   @Test
   public void getGroups() throws Throwable {
