@@ -35,7 +35,7 @@ public class RemoveWorkerCommand extends AbstractFsAdminCommand {
       Option.builder(WORKERNAME_OPTION_NAME)
           .required(true)
           .hasArg(true)
-          .desc("print help information.")
+          .desc("ID of the worker to remove")
           .build();
 
   private static final Option HELP_OPTION =
