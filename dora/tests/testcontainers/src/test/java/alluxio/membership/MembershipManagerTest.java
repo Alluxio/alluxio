@@ -11,9 +11,12 @@
 
 package alluxio.membership;
 
+import static org.junit.Assert.assertThrows;
+
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlreadyExistsException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.wire.WorkerIdentity;
@@ -33,7 +36,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -146,6 +148,10 @@ public class MembershipManagerTest {
 
   public MembershipManager getHealthyEtcdMemberMgr() {
     return new EtcdMembershipManager(Configuration.global(), getHealthyAlluxioEtcdClient());
+  }
+
+  public MembershipManager getToxicEtcdMemberMgr() {
+    return new EtcdMembershipManager(Configuration.global(), getToxicAlluxioEtcdClient());
   }
 
   public void enableEtcdAuthentication() throws ExecutionException, InterruptedException {
@@ -288,7 +294,7 @@ public class MembershipManagerTest {
     Assert.assertEquals(wkrs, allMembers);
     List<String> strs =
         client.getChildren("/").stream().map(kv -> kv.getKey().toString(StandardCharsets.UTF_8))
-              .collect(Collectors.toList());
+            .collect(Collectors.toList());
     Assert.assertEquals(3, strs.size());
     for (String str : strs) {
       Assert.assertTrue(str.contains("/ServiceDiscovery/DefaultAlluxioCluster/worker"));
@@ -316,15 +322,9 @@ public class MembershipManagerTest {
         .collect(Collectors.toList()), actualLiveMembers);
   }
 
-  // ignore due to flaky already exist address exception. This test only passes when it is the
-  // first test to run.
-  @Ignore
   @Test
   public void testFlakyNetwork() throws Exception {
-    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.ETCD);
-    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getProxiedClientEndpoints());
-    MembershipManager membershipManager = MembershipManager.Factory.create(Configuration.global());
-    Assert.assertTrue(membershipManager instanceof EtcdMembershipManager);
+    MembershipManager membershipManager = getToxicEtcdMemberMgr();
     WorkerInfo wkr1 = new WorkerInfo()
         .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
         .setAddress(new WorkerNetAddress()
@@ -510,5 +510,75 @@ public class MembershipManagerTest {
     Assert.assertEquals(wkr.getAddress(), curWorkerInfo.get().getAddress());
     Assert.assertEquals(wkr.getAddress().getHttpServerPort(),
         curWorkerInfo.get().getAddress().getHttpServerPort());
+  }
+
+  @Test
+  public void testDecommission() throws Exception {
+    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.ETCD);
+    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getClientEndpoints());
+    MembershipManager membershipManager = getHealthyEtcdMemberMgr();
+    WorkerInfo wkr1 = new WorkerInfo()
+        .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker1").setContainerHost("containerhostname1")
+            .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
+            .setDomainSocketPath("/var/lib/domain.sock"));
+    WorkerIdentity wkr2Id = WorkerIdentityTestUtils.randomUuidBasedId();
+    WorkerInfo wkr2 = new WorkerInfo()
+        .setIdentity(wkr2Id)
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker2").setContainerHost("containerhostname2")
+            .setRpcPort(2000).setDataPort(2001).setWebPort(2011)
+            .setDomainSocketPath("/var/lib/domain.sock"));
+    membershipManager.join(wkr1);
+    membershipManager.join(wkr2);
+    List<WorkerInfo> wkrs = new ArrayList<>();
+    wkrs.add(new WorkerInfo(wkr1).setState(WorkerState.LIVE));
+    wkrs.add(new WorkerInfo(wkr2).setState(WorkerState.LIVE));
+    List<WorkerInfo> allMembers = membershipManager.getAllMembers().stream()
+        .sorted(Comparator.comparing(w -> w.getAddress().getHost()))
+        .collect(Collectors.toList());
+    Assert.assertEquals(wkrs, allMembers);
+
+    // try to decommission a running worker will be rejected
+    assertThrows(InvalidArgumentException.class, () -> membershipManager.decommission(wkr2));
+
+    // try stop and decommission
+    membershipManager.stopHeartBeat(wkr2);
+    CommonUtils.waitFor("Worker to stop",
+        () -> {
+          try {
+            return membershipManager.getFailedMembers()
+                .getWorkerById(wkr2.getIdentity()).isPresent();
+          } catch (IOException e) {
+            throw new RuntimeException(
+                String.format("Unexpected error while getting failed members: %s", e));
+          }
+        }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
+    membershipManager.decommission(wkr2);
+    Assert.assertFalse(membershipManager.getAllMembers()
+        .getWorkerById(wkr2.getIdentity()).isPresent());
+
+    // some other worker with a same id could register again
+    WorkerInfo wkr2Replacement = new WorkerInfo()
+        .setIdentity(wkr2Id)
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker3").setContainerHost("containerhostname3")
+            .setRpcPort(2000).setDataPort(2001).setWebPort(2011)
+            .setDomainSocketPath("/var/lib/domain.sock"));
+    membershipManager.join(wkr2Replacement);
+    CommonUtils.waitFor("Worker2 replacement to be up.",
+        () -> {
+          try {
+            return membershipManager.getLiveMembers().getWorkerById(wkr2Id).isPresent();
+          } catch (IOException e) {
+            throw new RuntimeException(
+                String.format("Unexpected error while getting live members: %s", e));
+          }
+        }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
+    Optional<WorkerInfo> newWkr2Entity = membershipManager.getAllMembers().getWorkerById(wkr2Id);
+    Assert.assertTrue(newWkr2Entity.isPresent());
+    wkr2Replacement.setState(WorkerState.LIVE);
+    Assert.assertEquals(wkr2Replacement, newWkr2Entity.get());
   }
 }

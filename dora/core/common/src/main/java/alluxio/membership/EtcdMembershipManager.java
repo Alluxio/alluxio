@@ -14,6 +14,7 @@ package alluxio.membership;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlreadyExistsException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerInfo;
@@ -256,7 +257,24 @@ public class EtcdMembershipManager implements MembershipManager {
 
   @Override
   public void decommission(WorkerInfo worker) throws IOException {
-    // TO BE IMPLEMENTED
+    Optional<WorkerInfo> targetWorker = getAllMembers().getWorkerById(worker.getIdentity());
+    if (!targetWorker.isPresent()) {
+      throw new InvalidArgumentException(
+          String.format("Unrecognized or non-existing worker: %s", worker.getIdentity()));
+    }
+    // Worker should already be offline
+    if (targetWorker.get().getState() != WorkerState.LOST) {
+      throw new InvalidArgumentException(
+          String.format("Can't remove running worker: %s, stop the worker"
+              + " before removing", worker.getIdentity()));
+    }
+    // stop heartbeat if it is an existing service discovery tab(although unlikely)
+    stopHeartBeat(worker);
+    String pathOnRing = new StringBuffer()
+        .append(getRingPathPrefix())
+        .append(worker.getIdentity()).toString();
+    mAlluxioEtcdClient.deleteForPath(pathOnRing, false);
+    LOG.info("Successfully removed worker:{}", worker.getIdentity());
   }
 
   @Override

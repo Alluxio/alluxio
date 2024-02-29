@@ -15,11 +15,14 @@ import (
 	"alluxio.org/cli/env"
 )
 
-var Service = &env.Service{
-	Name:        "process",
-	Description: "Start or stop cluster processes",
-	Commands: []env.Command{
-		&env.StartProcessCommand{},
-		&env.StopProcessCommand{},
-	},
-}
+var (
+	Service = &env.Service{
+		Name:        "process",
+		Description: "Start/stop cluster processes or remove workers",
+		Commands: []env.Command{
+			&env.StartProcessCommand{},
+			&env.StopProcessCommand{},
+			RemoveWorker,
+		},
+	}
+)
