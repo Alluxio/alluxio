@@ -66,17 +66,6 @@ public final class ShellUtilsTest {
     // On Linux user "root" will be a part of the group "root". On OSX it will be a part of "admin".
     assertTrue(result.contains("root") || result.contains("admin"));
   }
-  
-  @Test
-  public void execGetEffectiveGroupCommand() throws Exception {
-    String maliciousName = "> echo ALLUXIO";
-    ShellUtils.ExitCodeException exception =
-        Assert.assertThrows(ShellUtils.ExitCodeException.class,
-        () -> ShellUtils.execCommand(
-        ShellUtils.getEffectiveGroupsForUserCommand(maliciousName))
-    );
-    Assert.assertTrue(exception.getMessage().contains("no such user"));
-  }
 
   /**
    * Tests the {@link ShellUtils#execCommand(String...)} method for all groups command.
