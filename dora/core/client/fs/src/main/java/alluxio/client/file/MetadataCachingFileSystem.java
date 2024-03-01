@@ -262,17 +262,17 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
   @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
-    mDelegatedFileSystem.setAcl(path, action, entries, options);
-    mMetadataCache.invalidate(path);
     mMetadataCache.invalidate(path.getParent());
+    mMetadataCache.invalidate(path);
+    mDelegatedFileSystem.setAcl(path, action, entries, options);
   }
 
   @Override
   public void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    mDelegatedFileSystem.setAttribute(path, options);
-    mMetadataCache.invalidate(path);
     mMetadataCache.invalidate(path.getParent());
+    mMetadataCache.invalidate(path);
+    mDelegatedFileSystem.setAttribute(path, options);
   }
 
   /**
