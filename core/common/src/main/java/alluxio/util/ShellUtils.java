@@ -50,13 +50,23 @@ public final class ShellUtils {
   public static final String MOUNT_COMMAND = "mount";
 
   /**
-   * Gets a Unix command to get a given user's groups list.
+   * Gets a Unix command to get a given user's effective groups list.
    *
    * @param user the user name
-   * @return the Unix command to get a given user's groups list
+   * @return the Unix command to get a given user's effective groups list
    */
-  public static String[] getGroupsForUserCommand(final String user) {
-    return new String[] {"bash", "-c", "id -gn " + user + "; id -Gn " + user};
+  public static String[] getEffectiveGroupsForUserCommand(final String user) {
+    return new String[] {"id", "-gn", user};
+  }
+
+  /**
+   * Gets a Unix command to get a given user's all groups list.
+   *
+   * @param user the user name
+   * @return the Unix command to get a given user's all groups list
+   */
+  public static String[] getAllGroupsForUserCommand(final String user) {
+    return new String[] {"id", "-Gn", user};
   }
 
   /**
