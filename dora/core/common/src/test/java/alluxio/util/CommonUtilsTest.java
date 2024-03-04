@@ -261,15 +261,23 @@ public class CommonUtilsTest {
     }
   }
 
-  private void setupShellMocks(String username, List<String> groups) throws IOException {
+  private void setupShellMocks(String username,
+                               List<String> effectiveGroups,
+                               List<String> allGroups)
+      throws IOException {
     PowerMockito.mockStatic(ShellUtils.class);
-    String shellResult = "";
-    for (String group: groups) {
-      shellResult = shellResult + " " + group;
+    StringBuilder shellResultForEffective = new StringBuilder();
+    for (String group: effectiveGroups) {
+      shellResultForEffective.append(" ").append(group);
+    }
+    StringBuilder shellResultForAll = new StringBuilder();
+    for (String group: allGroups) {
+      shellResultForAll.append(" ").append(group);
     }
     PowerMockito.when(
-        ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand(Mockito.eq(username))))
-        .thenReturn(shellResult);
+            ShellUtils.execCommand(Mockito.any()))
+        .thenReturn(shellResultForEffective.toString())
+        .thenReturn(shellResultForAll.toString());
   }
 
   /**
@@ -278,24 +286,32 @@ public class CommonUtilsTest {
   @Test
   public void userGroup() throws Throwable {
     String userName = "alluxio-user1";
-    String userGroup1 = "alluxio-user1-group1";
-    String userGroup2 = "alluxio-user1-group2";
-    List<String> userGroups = new ArrayList<>();
-    userGroups.add(userGroup1);
-    userGroups.add(userGroup2);
-    setupShellMocks(userName, userGroups);
+    String userEffectiveGroup1 = "alluxio-user1-effective-group1";
+    String userEffectiveGroup2 = "alluxio-user1-effective-group2";
+    String userAllGroup1 = "alluxio-user1-all-group1";
+    String userAllGroup2 = "alluxio-user1-all-group2";
+    List<String> userEffectiveGroups = new ArrayList<>();
+    List<String> userAllGroups = new ArrayList<>();
+    userEffectiveGroups.add(userEffectiveGroup1);
+    userEffectiveGroups.add(userEffectiveGroup2);
+    userAllGroups.add(userAllGroup1);
+    userAllGroups.add(userAllGroup2);
+
+    setupShellMocks(userName, userEffectiveGroups, userAllGroups);
 
     List<String> groups = CommonUtils.getUnixGroups(userName);
 
     assertNotNull(groups);
-    assertEquals(groups.size(), 2);
-    assertEquals(groups.get(0), userGroup1);
-    assertEquals(groups.get(1), userGroup2);
+    assertEquals(groups.size(), 4);
+    assertEquals(groups.get(0), userEffectiveGroup1);
+    assertEquals(groups.get(1), userEffectiveGroup2);
+    assertEquals(groups.get(2), userAllGroup1);
+    assertEquals(groups.get(3), userAllGroup2);
   }
 
   /**
-   * Test for the {@link CommonUtils#getGroups(String)} and
-   * {@link CommonUtils#getPrimaryGroupName(String)} method.
+   * Test for the {@link CommonUtils#getGroups(String, AlluxioConfiguration)} and
+   * {@link CommonUtils#getPrimaryGroupName(String, AlluxioConfiguration)} method.
    */
   @Test
   public void getGroups() throws Throwable {
