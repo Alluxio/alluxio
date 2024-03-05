@@ -99,7 +99,7 @@ public class TierPromoteIntegrationTest extends BaseIntegrationTest {
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE"})
   @Test
-  @Ignore
+  @Ignore("TierPromote is not recommended")
   public void promoteByTierSwap() throws Exception {
     final int size = (int) CAPACITY_BYTES / 2;
     AlluxioURI path1 = new AlluxioURI(PathUtils.uniqPath());
