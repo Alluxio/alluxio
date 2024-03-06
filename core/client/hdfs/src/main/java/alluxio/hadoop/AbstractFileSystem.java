@@ -90,6 +90,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   private Statistics mStatistics = null;
   private String mAlluxioHeader = null;
   private boolean mExcludeMountInfoOnListStatus;
+  private volatile boolean mIsClosed = false;
 
   /**
    * Constructs a new {@link AbstractFileSystem} instance with specified a {@link FileSystem}
@@ -143,12 +144,17 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
 
   @Override
   public void close() throws IOException {
+    if (mIsClosed) {
+      return;
+    }
+
     // super.close should be called first before releasing the resources in this instance, as the
     // super class may invoke other methods in this class. For example,
     // org.apache.hadoop.fs.FileSystem.close may check the existence of certain temp files before
     // closing
     super.close();
     mFileSystem.close();
+    mIsClosed = true;
   }
 
   /**
