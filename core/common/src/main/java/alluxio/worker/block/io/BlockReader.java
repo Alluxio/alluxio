@@ -82,17 +82,4 @@ public abstract class BlockReader extends BlockClient {
    * @return an informational string of the location the reader is reading from
    */
   public abstract String getLocation();
-
-  /**
-   * Abort the reader. This method should be called when an exception occurs during execution
-   * or when the operation is cancelled by the user.
-   */
-  public void abort() throws IOException {
-  }
-
-  /**
-   * Commit the reader in case there is any uncommitted block cached from UFS.
-   */
-  public void commit() throws IOException {
-  }
 }

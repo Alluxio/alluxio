@@ -425,7 +425,7 @@ public class DefaultBlockWorkerTest extends DefaultBlockWorkerTestBase {
 
     // read a whole block
     assertArrayEquals(data, reader.read(0, ufsBlockSize).array());
-    reader.commit();
+    mBlockWorker.commitBlock(sessionId, blockId, false);
     reader.close();
 
     // after closing, the ufs block should be cached locally
