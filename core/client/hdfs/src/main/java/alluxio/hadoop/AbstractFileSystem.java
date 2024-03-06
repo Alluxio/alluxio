@@ -90,7 +90,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   private Statistics mStatistics = null;
   private String mAlluxioHeader = null;
   private boolean mExcludeMountInfoOnListStatus;
-  private boolean mIsClosed = false;
+  private volatile boolean mIsClosed = false;
 
   /**
    * Constructs a new {@link AbstractFileSystem} instance with specified a {@link FileSystem}
