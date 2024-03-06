@@ -28,7 +28,7 @@ public class HashParameters extends Parameters {
       + "If you want to test multiple hash policies, please separate them with \",\", "
       + "such as \"CONSISTENT,MAGLEV\". "
       + "There are currently five supported policies: "
-      + "CONSISTENT, JUMP, KETAMA, MAGLEV, MULTI_PROBE")
+      + "CONSISTENT,JUMP,KETAMA,MAGLEV,MULTI_PROBE")
   public String mHashPolicy = "CONSISTENT,JUMP,KETAMA,MAGLEV,MULTI_PROBE";
 
   @Parameter(names = {"--virtual-node-num"}, description = "the number of virtual nodes")

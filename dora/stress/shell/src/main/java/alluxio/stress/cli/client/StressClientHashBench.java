@@ -60,18 +60,33 @@ public class StressClientHashBench extends Benchmark<HashTaskResult> {
   public String getBenchDescription() {
     return String.join("\n", ImmutableList.of(
         "A benchmarking tool for various hashing policy",
-        "This test will measure  "
-            + "program running time. "
-            + "The standard deviation of the number of assigned workers. ",
+        "This test will measure:\n"
+            + "1. Time Cost: The time consumed after the file "
+            + "is allocated once to judge the efficiency of the algorithm.\n\n"
+            + "2. Standard Deviation: The standard deviation of the number assigned to each "
+            + "worker to judge the uniformity of the algorithm.\n\n"
+            + "3. File Reallocated: After randomly deleting a Worker, redistribute the File again, "
+            + "and count how many files assigned to the Worker have changed. "
+            + "The fewer the number of File moves, "
+            + "the better the consistency of the algorithm.\n\n",
         "",
 
         "Example:",
-        "# This invokes the hashing test",
+        "# This invokes the hashing tests",
+        "# 5 hash algorithms will be tested: CONSISTENT, JUMP, KETAMA, MAGLEV, MULTI_PROBE",
         "# 10 workers will be used",
         "# 10000 virtual nodes will be used",
+        "# 10 workers will be used",
+        "# 1000 worker replicas will be used",
+        "# the size of lookup table is 65537 (must be a prime)",
+        "# the num of probes is 21",
+        "# The report will be generated under the current path",
+        "# The number of simulation test files is 1,000,000",
         "$ bin/alluxio exec class alluxio.stress.cli.client.StressClientHashBench -- \\"
+        + "--hash-policy CONSISTENT,JUMP,KETAMA,MAGLEV,MULTI_PROBE \\"
         + "--virtual-node-num 10000 --worker-num 10 --node-replicas 1000 \\"
-        + "--lookup-size 65537 --probe-num 21",
+        + "--lookup-size 65537 --probe-num 21 --report-path . \\"
+        + "--file-num 1000000",
         ""
     ));
   }
