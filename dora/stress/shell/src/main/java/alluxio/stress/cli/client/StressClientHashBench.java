@@ -235,6 +235,8 @@ public class StressClientHashBench extends Benchmark<HashTaskResult> {
     // Add the parameters set by the user to the conf file.
     InstancedConfiguration conf = new InstancedConfiguration(Configuration.copyProperties());
     conf.set(PropertyKey.USER_WORKER_SELECTION_POLICY, hashPolicy);
+
+    // Configure the parameters corresponding to each hash algorithm
     if (hashPolicy.equals("CONSISTENT")) {
       conf.set(PropertyKey.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER,
           mParameters.mVirtualNodeNum);
@@ -248,28 +250,36 @@ public class StressClientHashBench extends Benchmark<HashTaskResult> {
     else if (hashPolicy.equals("MULTI_PROBE")) {
       conf.set(PropertyKey.USER_MULTI_PROBE_HASH_PROBE_NUM, mParameters.mProbeNum);
     }
+
+    // Create a hash policy
     WorkerLocationPolicy policy = WorkerLocationPolicy.Factory.create(conf);
 
     // Record the number of files allocated to each worker
     HashMap<WorkerIdentity, Integer> workerCount = new HashMap<>();
 
-    // 保存每个文件存储到哪个worker
+    // Record which worker each file is stored to
     List<WorkerIdentity> fileWorkerList = new ArrayList<>();
 
     // Simulate the process of hashing a file and then assigning it to a worker
     for (int i = 0; i < mParameters.mFileNum; i++) {
       String fileName = mFileNamesList.get(i);
       List<BlockWorkerInfo> workers = policy.getPreferredWorkers(mWorkers, fileName, 1);
+
+      // Add 1 to the cumulative value corresponding to the worker allocated by file
       for (BlockWorkerInfo worker : workers) {
         if (workerCount.containsKey(worker.getIdentity())) {
           workerCount.put(worker.getIdentity(), workerCount.get(worker.getIdentity()) + 1);
         } else {
           workerCount.put(worker.getIdentity(), 1);
         }
+        // Record which worker the file is assigned to,
+        // so that you can compare the changes after removing the worker later.
         fileWorkerList.add(worker.getIdentity());
       }
     }
     long endTime = System.currentTimeMillis();
+
+    // Here we count the cumulative time of allocating all files.
     long timeCost = endTime - startTime;
 
     // Count how many files are allocated on each worker.
@@ -288,6 +298,7 @@ public class StressClientHashBench extends Benchmark<HashTaskResult> {
     workerCount.clear();
     List<WorkerIdentity> newFileWorkerList = new ArrayList<>();
 
+    // Repeat the file allocation process.
     for (int i = 0; i < mParameters.mFileNum; i++) {
       String fileName = mFileNamesList.get(i);
       List<BlockWorkerInfo> workers = policy.getPreferredWorkers(mWorkers, fileName, 1);
@@ -324,7 +335,8 @@ public class StressClientHashBench extends Benchmark<HashTaskResult> {
     }
     variance /= list.size();
 
-    // Keep to two decimal places
+    // Take the square root of the difference to get the standard deviation,
+    // and keep it to two decimal places.
     return Math.round(Math.sqrt(variance) * 100) / 100.0;
   }
 }

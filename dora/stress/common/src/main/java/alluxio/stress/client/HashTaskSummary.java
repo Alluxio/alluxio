@@ -23,7 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The summary for the Hash test.
+ * This class actually does not work at the moment,
+ * but if StressClientHashBench inherits the Benchmark interface,
+ * it must implement the most basic functions of the HashTaskSummary class.
+ * If the hash algorithm benchmark adds complex functions in the future,
+ * the functions can be expanded on this class.
  */
 public class HashTaskSummary implements Summary {
   private static final Logger LOG = LoggerFactory.getLogger(HashTaskSummary.class);
