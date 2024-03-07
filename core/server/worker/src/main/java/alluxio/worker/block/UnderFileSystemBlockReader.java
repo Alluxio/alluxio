@@ -153,6 +153,20 @@ public final class UnderFileSystemBlockReader extends BlockReader {
 
   @Override
   public ByteBuffer read(long offset, long length) throws IOException {
+    try {
+      return readInternal(offset, length);
+    } catch (IOException e) {
+      LOG.warn("Failed to cache data read from UFS : {}", e.toString());
+      try {
+        cancelBlockWriter();
+      } catch (IOException ee) {
+        LOG.error("Failed to cancel block writer:", ee);
+      }
+      throw e;
+    }
+  }
+
+  private ByteBuffer readInternal(long offset, long length) throws IOException {
     Preconditions.checkState(!mClosed);
     updateUnderFileSystemInputStream(offset);
     updateBlockWriter(offset);
@@ -213,6 +227,20 @@ public final class UnderFileSystemBlockReader extends BlockReader {
    */
   @Override
   public int transferTo(ByteBuf buf) throws IOException {
+    try {
+      return transferToInternal(buf);
+    } catch (IOException e) {
+      LOG.warn("Failed to cache data read from UFS : {}", e.toString());
+        try {
+          cancelBlockWriter();
+        } catch (IOException ee) {
+          LOG.error("Failed to cancel block writer:", ee);
+        }
+        throw e;
+    }
+  }
+
+  private int transferToInternal(ByteBuf buf) throws IOException {
     Preconditions.checkState(!mClosed);
     if (mUnderFileSystemInputStream == null) {
       return -1;
@@ -220,7 +248,7 @@ public final class UnderFileSystemBlockReader extends BlockReader {
     if (mBlockMeta.getBlockSize() <= mInStreamPos) {
       return -1;
     }
-   // Make a copy of the state to keep track of what we have read in this transferTo call.
+    // Make a copy of the state to keep track of what we have read in this transferTo call.
     ByteBuf bufCopy = null;
     if (mBlockWriter != null) {
       bufCopy = buf.duplicate();
