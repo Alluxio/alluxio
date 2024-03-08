@@ -160,20 +160,6 @@ public class StressClientHashBench extends Benchmark<HashTaskResult> {
     for (int i = 0; i < mParameters.mFileNum; i++) {
       mFileNamesList.add(randomString(10));
     }
-
-    // Generate simulated Worker.
-    mWorkerInfos = new ArrayList<>();
-    for (int i = 0; i < mParameters.mWorkerNum; i++) {
-      mWorkerInfos.add(
-          new WorkerInfo()
-              .setIdentity(ofLegacyId(i))
-              .setAddress(new WorkerNetAddress()
-                  .setHost("worker" + i).setRpcPort(29998).setDataPort(29999).setWebPort(30000))
-              .setCapacityBytes(1024)
-              .setUsedBytes(0)
-      );
-    }
-    mWorkers = new WorkerClusterView(mWorkerInfos);
   }
 
   /**
@@ -230,6 +216,20 @@ public class StressClientHashBench extends Benchmark<HashTaskResult> {
   // Test a hash algorithm
   private HashTaskResult.SingleTestResult testHashPolicy(String hashPolicy)
       throws ResourceExhaustedException {
+    // Generate simulated Worker.
+    mWorkerInfos = new ArrayList<>();
+    for (int i = 0; i < mParameters.mWorkerNum; i++) {
+      mWorkerInfos.add(
+          new WorkerInfo()
+              .setIdentity(ofLegacyId(i))
+              .setAddress(new WorkerNetAddress()
+                  .setHost("worker" + i).setRpcPort(29998).setDataPort(29999).setWebPort(30000))
+              .setCapacityBytes(1024)
+              .setUsedBytes(0)
+      );
+    }
+    mWorkers = new WorkerClusterView(mWorkerInfos);
+
     long startTime = System.currentTimeMillis();
 
     // Add the parameters set by the user to the conf file.
