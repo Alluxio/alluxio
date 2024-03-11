@@ -17,7 +17,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>311</version>
+    <version>312-SNAPSHOT</version>
   </parent>
 
   <artifactId>alluxio-underfs-cosn</artifactId>
