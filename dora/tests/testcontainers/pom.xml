@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-tests</artifactId>
-    <version>311-SNAPSHOT</version>
+    <version>311</version>
   </parent>
   <artifactId>alluxio-tests-testcontainers</artifactId>
   <packaging>jar</packaging>
