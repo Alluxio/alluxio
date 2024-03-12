@@ -19,6 +19,7 @@ import alluxio.exception.PageNotFoundException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
@@ -119,5 +120,24 @@ public class QuotaPageMetaStore extends DefaultPageMetaStore {
     }
     CacheEvictor evictor = mCacheEvictors.computeIfAbsent(cacheScope, k -> mSupplier.get());
     return evictInternal(evictor);
+  }
+
+  @Override
+  public Optional<CacheUsage> getUsage() {
+    return Optional.of(new Usage());
+  }
+
+  class Usage extends DefaultPageMetaStore.Usage {
+    @Override
+    public Optional<CacheUsage> partitionedBy(PartitionDescriptor<?> partition) {
+      if (partition instanceof ScopePartition) {
+        CacheScope scope = ((ScopePartition) partition).getIdentifier();
+        long capacity = capacity();
+        long used = bytes(scope);
+        long available = capacity - bytes(); // not capacity - used!
+        return Optional.of(new ImmutableCacheUsageView(used, available, capacity));
+      }
+      return super.partitionedBy(partition);
+    }
   }
 }

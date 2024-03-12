@@ -11,6 +11,8 @@
 
 package alluxio.client.file.cache;
 
+import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
+import static alluxio.client.file.CacheContext.StatsUnit.NANO;
 import static alluxio.client.file.cache.CacheManager.State.NOT_IN_USE;
 import static alluxio.client.file.cache.CacheManager.State.READ_ONLY;
 import static alluxio.client.file.cache.CacheManager.State.READ_WRITE;
@@ -18,17 +20,21 @@ import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import alluxio.client.file.CacheContext;
-import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.PageCorruptedException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.file.ByteArrayTargetBuffer;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;
@@ -43,6 +49,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -54,6 +61,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -61,12 +69,12 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * A class to manage & serve cached pages. This class coordinates various components to respond for
  * thread-safety and enforce cache replacement policies.
- *
+ * <p>
  * The idea of creating a client-side cache is followed after "Improving In-Memory File System
  * Reading Performance by Fine-Grained User-Space Cache Mechanisms" by Gu et al, which illustrates
  * performance benefits for various read workloads. This class also introduces paging as a caching
  * unit.
- *
+ * <p>
  * Lock hierarchy in this class: All operations must follow this order to operate on pages:
  * <ol>
  * <li>Acquire corresponding page lock</li>
@@ -83,29 +91,37 @@ public class LocalCacheManager implements CacheManager {
 
   private static final int LOCK_SIZE = 1024;
   private final long mCacheSize;
-  /** A readwrite lock pool to guard individual pages based on striping. */
+  /**
+   * A readwrite lock pool to guard individual pages based on striping.
+   */
   private final ReadWriteLock[] mPageLocks = new ReentrantReadWriteLock[LOCK_SIZE];
   private final List<PageStoreDir> mPageStoreDirs;
   @GuardedBy("PageMetaStore.getLock()")
   private final PageMetaStore mPageMetaStore;
-  /** Executor service for execute the init tasks. */
+  /**
+   * Executor service for execute the init tasks.
+   */
   private final Optional<ExecutorService> mInitService;
-  /** Executor service for execute the async cache tasks. */
+  /**
+   * Executor service for execute the async cache tasks.
+   */
   private final Optional<ExecutorService> mAsyncCacheExecutor;
   /** Executor service for execute the cache ttl check tasks. */
   private final Optional<ScheduledExecutorService> mTtlEnforcerExecutor;
   private final ConcurrentHashSet<PageId> mPendingRequests;
-  /** State of this cache. */
+  /**
+   * State of this cache.
+   */
   private final AtomicReference<CacheManager.State> mState = new AtomicReference<>();
   private final CacheManagerOptions mOptions;
 
   /**
-   * @param options the options of local cache manager
+   * @param options       the options of local cache manager
    * @param pageMetaStore the metadata store for local cache
    * @return an instance of {@link LocalCacheManager}
    */
   public static LocalCacheManager create(CacheManagerOptions options,
-      PageMetaStore pageMetaStore)
+                                         PageMetaStore pageMetaStore)
       throws IOException {
     LocalCacheManager manager = new LocalCacheManager(options, pageMetaStore);
     List<PageStoreDir> pageStoreDirs = pageMetaStore.getStoreDirs();
@@ -124,7 +140,7 @@ public class LocalCacheManager implements CacheManager {
   }
 
   /**
-   * @param options the options of local cache manager
+   * @param options       the options of local cache manager
    * @param pageMetaStore the meta store manages the metadata
    */
   @VisibleForTesting
@@ -139,10 +155,9 @@ public class LocalCacheManager implements CacheManager {
     mPendingRequests = new ConcurrentHashSet<>();
     mAsyncCacheExecutor =
         options.isAsyncWriteEnabled()
-            ? Optional.of(
-              new ThreadPoolExecutor(mOptions.getAsyncWriteThreads(),
-                  mOptions.getAsyncWriteThreads(), 60, TimeUnit.SECONDS,
-                  new SynchronousQueue<>(), new ThreadPoolExecutor.CallerRunsPolicy()))
+            ? Optional.of(new ThreadPoolExecutor(mOptions.getAsyncWriteThreads(),
+            mOptions.getAsyncWriteThreads(), 60, TimeUnit.SECONDS,
+                new SynchronousQueue<>(), new ThreadPoolExecutor.CallerRunsPolicy()))
             : Optional.empty();
     mInitService =
         options.isAsyncRestoreEnabled() ? Optional.of(Executors.newSingleThreadExecutor()) :
@@ -165,6 +180,64 @@ public class LocalCacheManager implements CacheManager {
     Metrics.registerGauges(mCacheSize, mPageMetaStore);
     mState.set(READ_ONLY);
     Metrics.STATE.inc();
+  }
+
+  @Override
+  public Optional<DataFileChannel> getDataFileChannel(
+      PageId pageId, int pageOffset, int bytesToRead, CacheContext cacheContext)
+      throws PageNotFoundException {
+    Preconditions.checkArgument(pageOffset <= mOptions.getPageSize(),
+        "Read exceeds page boundary: offset=%s size=%s",
+        pageOffset, mOptions.getPageSize());
+    LOG.debug("get({},pageOffset={}) enters", pageId, pageOffset);
+    if (mState.get() == NOT_IN_USE) {
+      Metrics.GET_NOT_READY_ERRORS.inc();
+      Metrics.GET_ERRORS.inc();
+      throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
+    }
+    ReadWriteLock pageLock = getPageLock(pageId);
+    long startTime = System.nanoTime();
+    try (LockResource r = new LockResource(pageLock.readLock())) {
+      PageInfo pageInfo;
+      try (LockResource r2 = new LockResource(mPageMetaStore.getLock().readLock())) {
+        pageInfo = mPageMetaStore.getPageInfo(pageId); //check if page exists and refresh LRU items
+      } catch (PageNotFoundException e) {
+        LOG.debug("getDataChannel({},pageOffset={}) fails due to page not found in metastore",
+            pageId, pageOffset);
+        return Optional.empty();
+      }
+
+      try {
+        DataFileChannel dataFileChannel = pageInfo.getLocalCacheDir().getPageStore()
+            .getDataFileChannel(pageInfo.getPageId(), pageOffset, bytesToRead,
+                cacheContext.isTemporary());
+        MultiDimensionalMetricsSystem.CACHED_DATA_READ.inc(bytesToRead);
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).inc();
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesToRead);
+        cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
+            bytesToRead);
+        LOG.debug("getDataChannel({},pageOffset={}) exits", pageId, pageOffset);
+        return Optional.of(dataFileChannel);
+      } catch (PageNotFoundException e) {
+        LOG.debug("getDataChannel({},pageOffset={}) fails due to page file not found",
+            pageId, pageOffset);
+        Metrics.GET_ERRORS.inc();
+        Metrics.GET_STORE_READ_ERRORS.inc();
+        // something is wrong to read this page, let's remove it from meta store
+        try (LockResource r2 = new LockResource(mPageMetaStore.getLock().writeLock())) {
+          mPageMetaStore.removePage(pageId);
+          return Optional.empty();
+        } catch (PageNotFoundException ex) {
+          // best effort to remove this page from meta store and ignore the exception
+          Metrics.CLEANUP_GET_ERRORS.inc();
+          return Optional.empty();
+        }
+      }
+    } finally {
+      cacheContext.incrementCounter(
+          MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
+          System.nanoTime() - startTime);
+    }
   }
 
   /**
@@ -221,9 +294,9 @@ public class LocalCacheManager implements CacheManager {
    */
   @Nullable
   private CacheScope checkScopeToEvict(int pageSize,
-      PageStoreDir pageStoreDir,
-      CacheScope scope, CacheQuota quota,
-      boolean forcedToEvict) {
+                                       PageStoreDir pageStoreDir,
+                                       CacheScope scope, CacheQuota quota,
+                                       boolean forcedToEvict) {
     if (mOptions.isQuotaEnabled()) {
       // Check quota usage for each scope
       for (CacheScope currentScope = scope; currentScope != null;
@@ -325,9 +398,32 @@ public class LocalCacheManager implements CacheManager {
     return false;
   }
 
+  @Override
+  public void commitFile(String fileId) {
+    // TODO(JiamingMai): we still need to commit the data (not only the page metadata)
+    // call commit method of PageStoreDir
+    try {
+      PageStoreDir dir = mPageMetaStore.getStoreDirOfFile(fileId);
+      dir.commit(fileId, fileId);
+    } catch (FileDoesNotExistException notExistException) {
+      LOG.error(notExistException.getMessage());
+    } catch (IllegalStateException illegalStateException) {
+      // ignore the commit exception
+      LOG.error(illegalStateException.getMessage());
+    } catch (IOException ioException) {
+      // ignore the commit exception
+      LOG.error(ioException.getMessage());
+    }
+  }
+
   private PutResult putAttempt(PageId pageId, ByteBuffer page, CacheContext cacheContext,
-      boolean forcedToEvict) {
+                               boolean forcedToEvict) {
     LOG.debug("putInternal({},{} bytes) enters", pageId, page.remaining());
+    if (pageId.getPageIndex() > 0 && page.remaining() == 0) {
+      LOG.error("cannot put an empty page except for the first page."
+          + "pageId={}, isTemporary={}", pageId, cacheContext.isTemporary());
+      return PutResult.OTHER;
+    }
     PageInfo victimPageInfo = null;
     CacheScope scopeToEvict;
     ReadWriteLock pageLock = getPageLock(pageId);
@@ -385,7 +481,7 @@ public class LocalCacheManager implements CacheManager {
     Pair<ReadWriteLock, ReadWriteLock> pageLockPair =
         getPageLockPair(pageId, victimPageInfo.getPageId());
     try (LockResource r1 = new LockResource(pageLockPair.getFirst().writeLock());
-        LockResource r2 = new LockResource(pageLockPair.getSecond().writeLock())) {
+         LockResource r2 = new LockResource(pageLockPair.getSecond().writeLock())) {
       // Excise a two-phase commit to evict victim and add new page:
       // phase1: remove victim and add new page in metastore in a critical section protected by
       // metalock. Evictor will be updated inside metastore.
@@ -413,6 +509,7 @@ public class LocalCacheManager implements CacheManager {
       try {
         pageStoreDir.getPageStore().delete(victim);
         // Bytes evicted from the cache
+        MultiDimensionalMetricsSystem.CACHED_EVICTED_DATA.inc(victimPageInfo.getPageSize());
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_EVICTED.getName())
             .mark(victimPageInfo.getPageSize());
         // Errors when adding pages
@@ -456,7 +553,7 @@ public class LocalCacheManager implements CacheManager {
   }
 
   private void addPageToMetaStore(PageId pageId, ByteBuffer page, CacheContext cacheContext,
-      PageStoreDir pageStoreDir) {
+                                  PageStoreDir pageStoreDir) {
     PageInfo pageInfo =
         new PageInfo(pageId, page.remaining(), cacheContext.getCacheScope(), pageStoreDir);
     if (cacheContext.isTemporary()) {
@@ -477,8 +574,26 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
-      CacheContext cacheContext) {
+  public int get(PageId pageId, int pageOffset, ReadTargetBuffer buffer,
+                 CacheContext cacheContext) {
+    ReadWriteLock pageLock = getPageLock(pageId);
+    long pageSize = -1L;
+    try (LockResource r = new LockResource(pageLock.readLock())) {
+      PageInfo pageInfo;
+      try (LockResource r2 = new LockResource(mPageMetaStore.getLock().readLock())) {
+        pageInfo = mPageMetaStore.getPageInfo(pageId); //check if page exists and refresh LRU items
+      } catch (PageNotFoundException e) {
+        LOG.debug("get({},pageOffset={}) fails due to page not found", pageId, pageOffset);
+        return 0;
+      }
+      pageSize = pageInfo.getPageSize();
+    }
+    return get(pageId, pageOffset, (int) pageSize, buffer, cacheContext);
+  }
+
+  @Override
+  public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
+                 CacheContext cacheContext) {
     Preconditions.checkArgument(pageOffset <= mOptions.getPageSize(),
         "Read exceeds page boundary: offset=%s size=%s", pageOffset, mOptions.getPageSize());
     Preconditions.checkArgument(bytesToRead <= buffer.remaining(),
@@ -491,6 +606,7 @@ public class LocalCacheManager implements CacheManager {
       return -1;
     }
     ReadWriteLock pageLock = getPageLock(pageId);
+    long startTime = System.nanoTime();
     try (LockResource r = new LockResource(pageLock.readLock())) {
       PageInfo pageInfo;
       try (LockResource r2 = new LockResource(mPageMetaStore.getLock().readLock())) {
@@ -513,14 +629,61 @@ public class LocalCacheManager implements CacheManager {
         }
         return -1;
       }
+      MultiDimensionalMetricsSystem.CACHED_DATA_READ.inc(bytesRead);
+      MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
+      cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
+          bytesRead);
       LOG.debug("get({},pageOffset={}) exits", pageId, pageOffset);
       return bytesRead;
+    } finally {
+      cacheContext.incrementCounter(
+          MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
+          System.nanoTime() - startTime);
     }
   }
 
   @Override
-  public boolean delete(PageId pageId) {
-    LOG.debug("delete({}) enters", pageId);
+  public int getAndLoad(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
+                        CacheContext cacheContext, Supplier<byte[]> externalDataSupplier) {
+    int bytesRead = get(pageId, pageOffset,
+        bytesToRead, buffer, cacheContext);
+    if (bytesRead > 0) {
+      MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).inc();
+      return bytesRead;
+    }
+    // on local cache miss, read a complete page from external storage. This will always make
+    // progress or throw an exception
+    // Note that we cannot synchronize on the new page, as this will cause deadlock due to
+    // incompatible lock order within putAttempt
+    // Not synchronizing may cause the same page to be read multiple times from UFS by two or more
+    // concurrent requests,
+    // but this is acceptable, and is expected to be rare as long as the number of striping locks
+    // is big enough
+    long startTime = System.nanoTime();
+    byte[] page = externalDataSupplier.get();
+    long timeElapse = System.nanoTime() - startTime;
+    buffer.writeBytes(page, pageOffset, bytesToRead);
+    MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
+        .mark(bytesToRead);
+    MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).inc();
+    cacheContext.incrementCounter(
+        MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
+        bytesToRead);
+    cacheContext.incrementCounter(
+        MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
+        timeElapse);
+    put(pageId, page, cacheContext);
+    return bytesToRead;
+  }
+
+  /**
+   * delete the specified page.
+   *
+   * @param pageId      page identifier
+   * @param isTemporary whether is it temporary or not
+   * @return whether the page is deleted successfully or not
+   */
+  public boolean delete(PageId pageId, boolean isTemporary) {
     if (mState.get() != READ_WRITE) {
       Metrics.DELETE_NOT_READY_ERRORS.inc();
       Metrics.DELETE_ERRORS.inc();
@@ -531,15 +694,15 @@ public class LocalCacheManager implements CacheManager {
       PageInfo pageInfo;
       try (LockResource r1 = new LockResource(mPageMetaStore.getLock().writeLock())) {
         try {
-          pageInfo = mPageMetaStore.removePage(pageId);
+          pageInfo = mPageMetaStore.removePage(pageId, isTemporary);
         } catch (PageNotFoundException e) {
-          LOG.error("Failed to delete page {} from metaStore ", pageId, e);
+          LOG.debug("Failed to delete page {} from metaStore ", pageId, e);
           Metrics.DELETE_NON_EXISTING_PAGE_ERRORS.inc();
           Metrics.DELETE_ERRORS.inc();
           return false;
         }
       }
-      boolean ok = deletePage(pageInfo);
+      boolean ok = deletePage(pageInfo, isTemporary);
       LOG.debug("delete({}) exits, success: {}", pageId, ok);
       if (!ok) {
         Metrics.DELETE_STORE_DELETE_ERRORS.inc();
@@ -547,6 +710,11 @@ public class LocalCacheManager implements CacheManager {
       }
       return ok;
     }
+  }
+
+  @Override
+  public boolean delete(PageId pageId) {
+    return delete(pageId, false);
   }
 
   @Override
@@ -563,8 +731,11 @@ public class LocalCacheManager implements CacheManager {
     }
     if (appendAt > 0) {
       byte[] newPage = new byte[appendAt + page.length];
-      get(pageId, 0, appendAt, new ByteArrayTargetBuffer(newPage, 0),  cacheContext);
-      delete(pageId);
+      int readBytes = get(pageId, 0, appendAt,
+          new ByteArrayTargetBuffer(newPage, 0), cacheContext);
+      boolean success = delete(pageId, cacheContext.isTemporary());
+      LOG.debug("delete pageId: {}, appendAt: {}, readBytes: {}, success: {}",
+          pageId, appendAt, readBytes, success);
       System.arraycopy(page, 0, newPage, appendAt, page.length);
       return put(pageId, newPage, cacheContext);
     }
@@ -575,6 +746,7 @@ public class LocalCacheManager implements CacheManager {
    * Restores a page store at the configured location, updating meta store accordingly.
    * If restore process fails, cleanup the location and create a new page store.
    * This method is synchronized to ensure only one thread can enter and operate.
+   *
    * @param pageStoreDirs
    */
   private void restoreOrInit(List<PageStoreDir> pageStoreDirs) throws IOException {
@@ -600,7 +772,12 @@ public class LocalCacheManager implements CacheManager {
   }
 
   private boolean restore(PageStoreDir pageStoreDir) {
+    long restoredPages = mPageMetaStore.numPages();
+    long restoredBytes = mPageMetaStore.bytes();
+    long discardPages = Metrics.PAGE_DISCARDED.getCount();
+    long discardBytes = Metrics.BYTE_DISCARDED.getCount();
     LOG.info("Restoring PageStoreDir ({})", pageStoreDir.getRootPath());
+
     if (!Files.exists(pageStoreDir.getRootPath())) {
       LOG.error("Failed to restore PageStore: Directory {} does not exist",
           pageStoreDir.getRootPath());
@@ -608,7 +785,9 @@ public class LocalCacheManager implements CacheManager {
     }
     try {
       pageStoreDir.scanPages(pageInfo -> {
-        addPageToDir(pageStoreDir, pageInfo.get());
+        if (pageInfo.isPresent()) {
+          addPageToDir(pageStoreDir, pageInfo.get());
+        }
       });
     } catch (IOException | RuntimeException e) {
       LOG.error("Failed to restore PageStore", e);
@@ -616,8 +795,9 @@ public class LocalCacheManager implements CacheManager {
     }
     LOG.info("PageStore ({}) restored with {} pages ({} bytes), "
             + "discarded {} pages ({} bytes)",
-        pageStoreDir.getRootPath(), mPageMetaStore.numPages(), mPageMetaStore.bytes(),
-        Metrics.PAGE_DISCARDED.getCount(), Metrics.BYTE_DISCARDED);
+        pageStoreDir.getRootPath(), mPageMetaStore.numPages() - restoredPages,
+        mPageMetaStore.bytes() - restoredBytes, Metrics.PAGE_DISCARDED.getCount() - discardPages,
+        Metrics.BYTE_DISCARDED.getCount() - discardBytes);
     return true;
   }
 
@@ -662,15 +842,48 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
+  public boolean hasPageUnsafe(PageId pageId) {
+    return mPageMetaStore.hasPage(pageId);
+  }
+
+  @Override
+  public void deleteFile(String fileId) {
+    Set<PageInfo> pages;
+    try (LockResource r = new LockResource(mPageMetaStore.getLock().readLock())) {
+      pages = mPageMetaStore.getAllPagesByFileId(fileId);
+    }
+    pages.forEach(page -> delete(page.getPageId()));
+  }
+
+  @Override
+  public void deleteTempFile(String fileId) {
+    Set<PageInfo> pages;
+    try (LockResource r = new LockResource(mPageMetaStore.getLock().readLock())) {
+      pages = mPageMetaStore.getAllPagesByFileId(fileId);
+    }
+    pages.forEach(page -> delete(page.getPageId(), true));
+  }
+
+  @Override
   public void invalidate(Predicate<PageInfo> predicate) {
     mPageStoreDirs.forEach(dir -> {
       try {
-        dir.scanPages(pageInfo -> {
-          if (pageInfo.isPresent() && predicate.test(pageInfo.get())) {
-            delete(pageInfo.get().getPageId());
+        dir.scanPages(pageInfoOpt -> {
+          if (pageInfoOpt.isPresent()) {
+            PageInfo pageInfo = pageInfoOpt.get();
+            boolean isPageDeleted = false;
+            if (predicate.test(pageInfo)) {
+              isPageDeleted = delete(pageInfo.getPageId());
+            }
+            if (!isPageDeleted) {
+              MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_INVALIDATED.getName()).mark();
+              MetricsSystem.histogram(MetricKey.CLIENT_CACHE_PAGES_AGES.getName())
+                  .update(System.currentTimeMillis() - pageInfo.getCreatedTimestamp());
+            }
           }
         });
       } catch (IOException e) {
+        LOG.error("IOException occurs in page scan", e);
         throw new RuntimeException(e);
       }
     });
@@ -678,7 +891,7 @@ public class LocalCacheManager implements CacheManager {
 
   @Override
   public void close() throws Exception {
-    for (PageStoreDir pageStoreDir: mPageStoreDirs) {
+    for (PageStoreDir pageStoreDir : mPageStoreDirs) {
       pageStoreDir.close();
     }
     mPageMetaStore.reset();
@@ -694,18 +907,20 @@ public class LocalCacheManager implements CacheManager {
    * @param pageInfo page info
    * @return true if successful, false otherwise
    */
-  private boolean deletePage(PageInfo pageInfo) {
+  private boolean deletePage(PageInfo pageInfo, boolean isTemporary) {
     try {
-      pageInfo.getLocalCacheDir().getPageStore().delete(pageInfo.getPageId());
+      pageInfo.getLocalCacheDir().getPageStore().delete(pageInfo.getPageId(), isTemporary);
     } catch (IOException | PageNotFoundException e) {
-      LOG.error("Failed to delete page {} from pageStore", pageInfo.getPageId(), e);
+      LOG.error("Failed to delete page {} (isTemporary: {}) from pageStore.",
+          pageInfo.getPageId(), isTemporary, e);
       return false;
     }
     return true;
   }
 
   private int getPage(PageInfo pageInfo, int pageOffset, int bytesToRead,
-      PageReadTargetBuffer target, CacheContext cacheContext) {
+                      ReadTargetBuffer target, CacheContext cacheContext) {
+    int originOffset = target.offset();
     try {
       int ret = pageInfo.getLocalCacheDir().getPageStore()
           .get(pageInfo.getPageId(), pageOffset, bytesToRead, target,
@@ -714,80 +929,168 @@ public class LocalCacheManager implements CacheManager {
         // data read from page store is inconsistent from the metastore
         LOG.error("Failed to read page {}: supposed to read {} bytes, {} bytes actually read",
             pageInfo.getPageId(), bytesToRead, ret);
+        target.offset(originOffset); //reset the offset
+        //best efforts to delete the corrupted file without acquire the write lock
+        deletePage(pageInfo, false);
         return -1;
       }
+    } catch (PageCorruptedException e) {
+      LOG.error("Data corrupted page {} from pageStore", pageInfo.getPageId(), e);
+      target.offset(originOffset); //reset the offset
+      //best efforts to delete the corrupted file without acquire the write lock
+      deletePage(pageInfo, false);
+      return -1;
     } catch (IOException | PageNotFoundException e) {
       LOG.debug("Failed to get existing page {} from pageStore", pageInfo.getPageId(), e);
+      target.offset(originOffset); //reset the offset
       return -1;
     }
     return bytesToRead;
+  }
+
+  @Override
+  public Optional<CacheUsage> getUsage() {
+    return Optional.of(new Usage());
+  }
+
+  private final class Usage implements CacheUsage {
+    @Override
+    public long used() {
+      return mPageMetaStore.bytes();
+    }
+
+    @Override
+    public long available() {
+      return capacity() - used();
+    }
+
+    @Override
+    public long capacity() {
+      return mPageStoreDirs.stream().mapToLong(PageStoreDir::getCapacityBytes).sum();
+    }
+
+    @Override
+    public Optional<CacheUsage> partitionedBy(PartitionDescriptor<?> partitionDescriptor) {
+      if (partitionDescriptor instanceof DirPartition) {
+        int dirIndex = ((DirPartition) partitionDescriptor).getIdentifier();
+        if (dirIndex >= 0 && dirIndex < mPageStoreDirs.size()) {
+          return mPageStoreDirs.get(dirIndex).getUsage();
+        } else {
+          return Optional.empty();
+        }
+      }
+      return mPageMetaStore.getUsage()
+          .flatMap(usage -> usage.partitionedBy(partitionDescriptor));
+    }
   }
 
   private static final class Metrics {
     // Note that only counter/guage can be added here.
     // Both meter and timer need to be used inline
     // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
-    /** Total number of bytes discarded when restoring the page store. */
+    /**
+     * Total number of bytes discarded when restoring the page store.
+     */
     private static final Counter BYTE_DISCARDED =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_BYTES_DISCARDED.getName());
-    /** Errors when cleaning up a failed get operation. */
+    /**
+     * Errors when cleaning up a failed get operation.
+     */
     private static final Counter CLEANUP_GET_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_CLEANUP_GET_ERRORS.getName());
-    /** Errors when cleaning up a failed put operation. */
+    /**
+     * Errors when cleaning up a failed put operation.
+     */
     private static final Counter CLEANUP_PUT_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_CLEANUP_PUT_ERRORS.getName());
-    /** Errors when deleting pages. */
+    /**
+     * Errors when deleting pages.
+     */
     private static final Counter DELETE_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_DELETE_ERRORS.getName());
-    /** Errors when deleting pages due to absence. */
+    /**
+     * Errors when deleting pages due to absence.
+     */
     private static final Counter DELETE_NON_EXISTING_PAGE_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_DELETE_NON_EXISTING_PAGE_ERRORS.getName());
-    /** Errors when cache is not ready to delete pages. */
+    /**
+     * Errors when cache is not ready to delete pages.
+     */
     private static final Counter DELETE_NOT_READY_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_DELETE_NOT_READY_ERRORS.getName());
-    /** Errors when deleting pages due to failed delete in page stores. */
+    /**
+     * Errors when deleting pages due to failed delete in page stores.
+     */
     private static final Counter DELETE_STORE_DELETE_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_DELETE_FROM_STORE_ERRORS.getName());
-    /** Errors when getting pages. */
+    /**
+     * Errors when getting pages.
+     */
     private static final Counter GET_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_ERRORS.getName());
-    /** Errors when cache is not ready to get pages. */
+    /**
+     * Errors when cache is not ready to get pages.
+     */
     private static final Counter GET_NOT_READY_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_NOT_READY_ERRORS.getName());
-    /** Errors when getting pages due to failed read from page stores. */
+    /**
+     * Errors when getting pages due to failed read from page stores.
+     */
     private static final Counter GET_STORE_READ_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_GET_STORE_READ_ERRORS.getName());
-    /** Total number of pages discarded when restoring the page store. */
+    /**
+     * Total number of pages discarded when restoring the page store.
+     */
     private static final Counter PAGE_DISCARDED =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PAGES_DISCARDED.getName());
-    /** Errors when adding pages. */
+    /**
+     * Errors when adding pages.
+     */
     private static final Counter PUT_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_ERRORS.getName());
-    /** Errors when adding pages due to failed injection to async write queue. */
+    /**
+     * Errors when adding pages due to failed injection to async write queue.
+     */
     private static final Counter PUT_ASYNC_REJECTION_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_ASYNC_REJECTION_ERRORS.getName());
-    /** Errors when adding pages due to failed eviction. */
+    /**
+     * Errors when adding pages due to failed eviction.
+     */
     private static final Counter PUT_EVICTION_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_EVICTION_ERRORS.getName());
-    /** Errors when adding pages due to benign racing eviction. */
+    /**
+     * Errors when adding pages due to benign racing eviction.
+     */
     private static final Counter PUT_BENIGN_RACING_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_BENIGN_RACING_ERRORS.getName());
-    /** Errors when adding pages due to insufficient space made after eviction. */
+    /**
+     * Errors when adding pages due to insufficient space made after eviction.
+     */
     private static final Counter PUT_INSUFFICIENT_SPACE_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_INSUFFICIENT_SPACE_ERRORS.getName());
-    /** Errors when cache is not ready to add pages. */
+    /**
+     * Errors when cache is not ready to add pages.
+     */
     private static final Counter PUT_NOT_READY_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_NOT_READY_ERRORS.getName());
-    /** Errors when adding pages due to failed deletes in page store. */
+    /**
+     * Errors when adding pages due to failed deletes in page store.
+     */
     private static final Counter PUT_STORE_DELETE_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_STORE_DELETE_ERRORS.getName());
-    /** Errors when adding pages due to failed writes to page store. */
+    /**
+     * Errors when adding pages due to failed writes to page store.
+     */
     private static final Counter PUT_STORE_WRITE_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_STORE_WRITE_ERRORS.getName());
-    /** Errors when adding pages due to failed writes but before reaching cache capacity. */
+    /**
+     * Errors when adding pages due to failed writes but before reaching cache capacity.
+     */
     private static final Counter PUT_STORE_WRITE_NO_SPACE_ERRORS =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_PUT_STORE_WRITE_NO_SPACE_ERRORS.getName());
-    /** State of the cache. */
+    /**
+     * State of the cache.
+     */
     private static final Counter STATE =
         MetricsSystem.counter(MetricKey.CLIENT_CACHE_STATE.getName());
 

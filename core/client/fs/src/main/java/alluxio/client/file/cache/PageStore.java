@@ -11,15 +11,17 @@
 
 package alluxio.client.file.cache;
 
+import alluxio.Constants;
 import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.MemoryPageStore;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.client.file.cache.store.PageStoreOptions;
-import alluxio.client.file.cache.store.RocksPageStore;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.DataFileChannel;
+import alluxio.util.logging.SamplingLogger;
 
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
@@ -34,6 +36,7 @@ import java.nio.ByteBuffer;
  */
 public interface PageStore extends AutoCloseable {
   Logger LOG = LoggerFactory.getLogger(PageStore.class);
+  Logger SAMPLING_LOG = new SamplingLogger(LOG, Constants.SECOND_MS * 10);
 
   /**
    * Create an instance of PageStore.
@@ -47,9 +50,6 @@ public interface PageStore extends AutoCloseable {
     switch (options.getType()) {
       case LOCAL:
         pageStore = new LocalPageStore(options);
-        break;
-      case ROCKS:
-        pageStore = RocksPageStore.open(options);
         break;
       case MEM:
         pageStore = new MemoryPageStore((int) options.getPageSize());
@@ -127,7 +127,7 @@ public interface PageStore extends AutoCloseable {
    * @throws IOException when the store fails to read this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  default int get(PageId pageId, PageReadTargetBuffer buffer)
+  default int get(PageId pageId, ReadTargetBuffer buffer)
       throws IOException, PageNotFoundException {
     return get(pageId, 0, (int) buffer.remaining(), buffer, false);
   }
@@ -144,7 +144,7 @@ public interface PageStore extends AutoCloseable {
    * @throws PageNotFoundException when the page isn't found in the store
    * @throws IllegalArgumentException when the page offset exceeds the page size
    */
-  default int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer)
+  default int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer)
       throws IOException, PageNotFoundException {
     return get(pageId, pageOffset, bytesToRead, buffer, false);
   }
@@ -162,9 +162,22 @@ public interface PageStore extends AutoCloseable {
    * @throws PageNotFoundException when the page isn't found in the store
    * @throws IllegalArgumentException when the page offset exceeds the page size
    */
-  int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
+  int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
       boolean isTemporary)
       throws IOException, PageNotFoundException;
+
+  /**
+   * Deletes a temporary page from the store.
+   *
+   * @param pageId page identifier
+   * @param isTemporary whether is to delete the temporary page or not
+   * @throws IOException when the store fails to delete this page
+   * @throws PageNotFoundException when the page isn't found in the store
+   */
+  default void delete(PageId pageId, boolean isTemporary)
+      throws IOException, PageNotFoundException {
+    delete(pageId);
+  }
 
   /**
    * Deletes a page from the store.
@@ -173,7 +186,9 @@ public interface PageStore extends AutoCloseable {
    * @throws IOException when the store fails to delete this page
    * @throws PageNotFoundException when the page isn't found in the store
    */
-  void delete(PageId pageId) throws IOException, PageNotFoundException;
+  default void delete(PageId pageId) throws IOException, PageNotFoundException {
+    delete(pageId, false);
+  }
 
   /**
    * Commit a temporary file.
@@ -197,6 +212,21 @@ public interface PageStore extends AutoCloseable {
    * @param fileId
    */
   default void abort(String fileId) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Get a {@link DataFileChannel} which wraps a {@link io.netty.channel.FileRegion}.
+   * @param pageId the page id
+   * @param pageOffset the offset inside the page
+   * @param bytesToRead the bytes to read
+   * @param isTemporary whether it is temporary or not
+   * @return an object of {@link DataFileChannel}
+   * @throws PageNotFoundException
+   */
+  default DataFileChannel getDataFileChannel(
+      PageId pageId, int pageOffset, int bytesToRead, boolean isTemporary)
+      throws PageNotFoundException {
     throw new UnsupportedOperationException();
   }
 

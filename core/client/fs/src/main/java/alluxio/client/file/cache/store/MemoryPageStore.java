@@ -13,11 +13,14 @@ package alluxio.client.file.cache.store;
 
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
+import alluxio.exception.PageCorruptedException;
 import alluxio.exception.PageNotFoundException;
+import alluxio.file.ReadTargetBuffer;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
@@ -57,7 +60,7 @@ public class MemoryPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+  public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
       boolean isTemporary) throws IOException, PageNotFoundException {
     Preconditions.checkArgument(target != null, "buffer is null");
     Preconditions.checkArgument(pageOffset >= 0, "page offset should be non-negative");
@@ -66,8 +69,12 @@ public class MemoryPageStore implements PageStore {
       throw new PageNotFoundException(pageId.getFileId() + "_" + pageId.getPageIndex());
     }
     MemPage page = mPageStoreMap.get(pageKey);
-    Preconditions.checkArgument(pageOffset <= page.getPageLength(),
-        "page offset %s exceeded page size %s", pageOffset, page.getPageLength());
+    if (pageOffset + bytesToRead > page.getPageLength()) {
+      throw new PageCorruptedException(String.format(
+          "The page %s probably has been corrupted, "
+              + "page-offset %s, bytes to read %s, page file length %s",
+          pageId, pageOffset, bytesToRead, page.getPageLength()));
+    }
     int bytesLeft = (int) Math.min(page.getPageLength() - pageOffset, target.remaining());
     bytesLeft = Math.min(bytesLeft, bytesToRead);
     target.writeBytes(page.getPage(), pageOffset, bytesLeft);
@@ -82,6 +89,11 @@ public class MemoryPageStore implements PageStore {
     }
     mPagePool.release(mPageStoreMap.get(pageKey));
     mPageStoreMap.remove(pageKey);
+  }
+
+  @Override
+  public void commit(String fileId, String newFileId) throws IOException {
+    // noop because the pages are all in memory, there is no underlying storage to commit to
   }
 
   /**
@@ -99,6 +111,7 @@ public class MemoryPageStore implements PageStore {
   public void close() {
     mPageStoreMap.clear();
     mPageStoreMap = null;
+    mPagePool.close();
   }
 
   /**
@@ -130,7 +143,7 @@ public class MemoryPageStore implements PageStore {
     }
   }
 
-  private static class PagePool {
+  private static class PagePool implements Closeable {
     private final int mPageSize;
     private final LinkedList<MemPage> mPool = new LinkedList<>();
 
@@ -153,6 +166,11 @@ public class MemoryPageStore implements PageStore {
       synchronized (mPool) {
         mPool.push(page);
       }
+    }
+
+    @Override
+    public void close() {
+      mPool.clear();
     }
   }
 }

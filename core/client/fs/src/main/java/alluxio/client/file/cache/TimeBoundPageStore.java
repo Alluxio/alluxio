@@ -11,12 +11,13 @@
 
 package alluxio.client.file.cache;
 
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.client.file.cache.store.PageStoreOptions;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -88,7 +89,7 @@ public class TimeBoundPageStore implements PageStore {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+  public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
       boolean isTemporary) throws IOException, PageNotFoundException {
     Callable<Integer> callable = () ->
         mPageStore.get(pageId, pageOffset, bytesToRead, target, isTemporary);
@@ -134,6 +135,12 @@ public class TimeBoundPageStore implements PageStore {
       Throwables.propagateIfPossible(t, IOException.class, PageNotFoundException.class);
       throw new IOException(t);
     }
+  }
+
+  @Override
+  public DataFileChannel getDataFileChannel(PageId pageId, int pageOffset, int bytesToRead,
+                                            boolean isTemporary) throws PageNotFoundException {
+    return mPageStore.getDataFileChannel(pageId, pageOffset, bytesToRead, isTemporary);
   }
 
   @Override

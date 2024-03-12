@@ -14,11 +14,13 @@ package alluxio.client.file.cache;
 import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
 
 import alluxio.client.file.CacheContext;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.PageNotFoundException;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
@@ -26,6 +28,8 @@ import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
+import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 
 /**
@@ -47,14 +51,32 @@ public class CacheManagerWithShadowCache implements CacheManager {
   }
 
   @Override
+  public void commitFile(String fileId) {
+    mCacheManager.commitFile(fileId);
+  }
+
+  @Override
   public boolean put(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
     updateShadowCache(pageId, page.remaining(), cacheContext);
     return mCacheManager.put(pageId, page, cacheContext);
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+  public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
       CacheContext cacheContext) {
+    getOrUpdateShadowCache(pageId, bytesToRead, cacheContext);
+    return mCacheManager.get(pageId, pageOffset, bytesToRead, target, cacheContext);
+  }
+
+  @Override
+  public int getAndLoad(PageId pageId, int pageOffset, int bytesToRead,
+      ReadTargetBuffer buffer, CacheContext cacheContext, Supplier<byte[]> externalDataSupplier) {
+    getOrUpdateShadowCache(pageId, bytesToRead, cacheContext);
+    return mCacheManager.getAndLoad(pageId, pageOffset, bytesToRead,
+        buffer, cacheContext, externalDataSupplier);
+  }
+
+  private void getOrUpdateShadowCache(PageId pageId, int bytesToRead, CacheContext cacheContext) {
     int nread = mShadowCacheManager.get(pageId, bytesToRead, getCacheScope(cacheContext));
     if (nread > 0) {
       Metrics.SHADOW_CACHE_PAGES_HIT.inc();
@@ -64,7 +86,6 @@ public class CacheManagerWithShadowCache implements CacheManager {
     }
     Metrics.SHADOW_CACHE_PAGES_READ.inc();
     Metrics.SHADOW_CACHE_BYTES_READ.inc(bytesToRead);
-    return mCacheManager.get(pageId, pageOffset, bytesToRead, target, cacheContext);
   }
 
   /**
@@ -140,6 +161,27 @@ public class CacheManagerWithShadowCache implements CacheManager {
   @Override
   public void close() throws Exception {
     mCacheManager.close();
+  }
+
+  @Override
+  public void deleteFile(String fileId) {
+    mCacheManager.deleteFile(fileId);
+  }
+
+  @Override
+  public void deleteTempFile(String fileId) {
+    mCacheManager.deleteTempFile(fileId);
+  }
+
+  @Override
+  public Optional<CacheUsage> getUsage() {
+    return mCacheManager.getUsage();
+  }
+
+  @Override
+  public Optional<DataFileChannel> getDataFileChannel(PageId pageId, int pageOffset,
+      int bytesToRead, CacheContext cacheContext) throws PageNotFoundException {
+    return mCacheManager.getDataFileChannel(pageId, pageOffset, bytesToRead, cacheContext);
   }
 
   /**

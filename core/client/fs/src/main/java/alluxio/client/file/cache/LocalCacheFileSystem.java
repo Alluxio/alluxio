@@ -12,13 +12,19 @@
 package alluxio.client.file.cache;
 
 import alluxio.AlluxioURI;
+import alluxio.CloseableSupplier;
+import alluxio.PositionReader;
+import alluxio.client.file.CacheContext;
 import alluxio.client.file.DelegatingFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.cache.filter.CacheFilter;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.OpenFilePOptions;
 
 import com.google.common.base.Preconditions;
@@ -26,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * A FileSystem implementation with a local cache.
@@ -70,6 +77,31 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
       return mDelegatedFileSystem.openFile(status, options);
     }
     return new LocalCacheFileInStream(status,
-        uriStatus -> mDelegatedFileSystem.openFile(status, options), mCacheManager, mConf);
+        uriStatus -> mDelegatedFileSystem.openFile(status, options), mCacheManager, mConf,
+        Optional.empty());
+  }
+
+  @Override
+  public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options)
+      throws FileDoesNotExistException {
+    if (mCacheManager == null || mCacheManager.state() == CacheManager.State.NOT_IN_USE) {
+      return mDelegatedFileSystem.openPositionRead(path, options);
+    }
+    try {
+      return openPositionRead(mDelegatedFileSystem.getStatus(path), options);
+    } catch (IOException | AlluxioException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
+  }
+
+  @Override
+  public PositionReader openPositionRead(URIStatus status, OpenFilePOptions options) {
+    if (mCacheManager == null || mCacheManager.state() == CacheManager.State.NOT_IN_USE) {
+      return mDelegatedFileSystem.openPositionRead(status, options);
+    }
+    return LocalCachePositionReader.create(mConf, mCacheManager,
+        new CloseableSupplier<>(() -> mDelegatedFileSystem.openPositionRead(status, options)),
+        status, mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE),
+        status.getCacheContext() == null ? CacheContext.defaults() : status.getCacheContext());
   }
 }

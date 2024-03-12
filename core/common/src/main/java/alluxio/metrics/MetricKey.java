@@ -2398,6 +2398,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_EXTERNAL_REQUESTS =
+      new Builder("Client.CacheExternalRequests")
+          .setDescription("Total number of requests to read from external storage.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS =
       new Builder("Client.CachePageReadCacheTimeNanos")
           .setDescription("Time in nanoseconds taken to read a page from the client cache "
@@ -2418,6 +2424,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_PAGES_INVALIDATED =
+      new Builder("Client.CachePagesInvalidated")
+          .setDescription("Total number of pages invalidated by TTL rules")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_BYTES_EVICTED =
       new Builder("Client.CacheBytesEvicted")
           .setDescription("Total number of bytes evicted from the client cache.")
@@ -2428,6 +2440,12 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Client.CachePages")
           .setDescription("Total number of pages in the client cache.")
           .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+    public static final MetricKey CLIENT_CACHE_PAGES_AGES =
+      new Builder("Client.CachePagesAges")
+          .setDescription("The ages of pages in the client cache.")
+          .setMetricType(MetricType.HISTOGRAM)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_PAGES_DISCARDED =
@@ -2452,6 +2470,12 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Client.CacheHitRate")
           .setDescription("Cache hit rate: (# bytes read from cache) / (# bytes requested).")
           .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_HIT_REQUESTS =
+      new Builder("Client.CacheHitRequests")
+          .setDescription("Total number of requests of hitting the cache.")
+          .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_SPACE_AVAILABLE =
