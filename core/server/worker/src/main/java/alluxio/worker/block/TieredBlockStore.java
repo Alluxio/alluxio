@@ -252,8 +252,8 @@ public class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
-    LOG.debug("getTempBlockMeta: sessionId={}, blockId={}", sessionId, blockId);
+  public TempBlockMeta getTempBlockMeta(long blockId) {
+    LOG.debug("getTempBlockMeta: blockId={}", blockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       return mMetaManager.getTempBlockMetaOrNull(blockId);
     }

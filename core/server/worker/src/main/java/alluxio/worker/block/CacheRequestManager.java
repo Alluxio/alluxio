@@ -30,6 +30,7 @@ import alluxio.util.logging.SamplingLogger;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
@@ -272,8 +273,24 @@ public class CacheRequestManager {
         reader.read(offset, bufferSize);
         offset += bufferSize;
       }
+      if (isTempBlockMetaPresent(blockId)) {
+        mBlockWorker.commitBlock(Sessions.CACHE_UFS_SESSION_ID, blockId, false);
+      }
+    } catch (Exception e) {
+      LOG.warn("Failed to async cache block {} from UFS on reading the block:", blockId, e);
+      if (isTempBlockMetaPresent(blockId)) {
+        mBlockWorker.abortBlock(Sessions.CACHE_UFS_SESSION_ID, blockId);
+      }
+      return false;
     }
     return true;
+  }
+
+  private boolean isTempBlockMetaPresent(long blockId) {
+    TempBlockMeta tempBlockMeta =
+          mBlockWorker.getTempBlockMeta(blockId);
+    return tempBlockMeta != null
+          && tempBlockMeta.getSessionId() == Sessions.CACHE_UFS_SESSION_ID;
   }
 
   /**
@@ -305,7 +322,7 @@ public class CacheRequestManager {
       return true;
     } catch (AlluxioException | IOException e) {
       LOG.warn("Failed to async cache block {} from remote worker ({}) on copying the block: {}",
-          blockId, sourceAddress, e.toString());
+          blockId, sourceAddress, e);
       try {
         mBlockWorker.abortBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId);
       } catch (AlluxioException | IOException ee) {

@@ -73,8 +73,8 @@ public class UfsFallbackBlockWriteHandlerTest extends AbstractWriteHandlerTest {
     }
 
     @Override
-    public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
-      return mBlockStore.getTempBlockMeta(sessionId, blockId);
+    public TempBlockMeta getTempBlockMeta(long blockId) {
+      return mBlockStore.getTempBlockMeta(blockId);
     }
   }
 
