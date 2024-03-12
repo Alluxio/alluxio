@@ -38,6 +38,7 @@ import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.BlockStoreType;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
@@ -55,6 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
@@ -464,14 +466,15 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       }
       if (error != null) {
         try {
-          completeRequest(mContext);
+          completeRequest(mContext, false);
         } catch (Exception e) {
           LOG.error("Failed to close the request.", e);
         }
         replyError(error);
       } else if (eof || cancel) {
         try {
-          completeRequest(mContext);
+          boolean success = !cancel;
+          completeRequest(mContext, success);
         } catch (Exception e) {
           LogUtils.warnWithException(LOG, "Exception occurred while completing read request, "
                   + "EOF/CANCEL sessionId: {}. {}", mContext.getRequest().getSessionId(),
@@ -491,12 +494,33 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
      * state it may have accumulated.
      *
      * @param context context of the request to complete
+     * @param success whether the request was successful
      */
-    private void completeRequest(BlockReadRequestContext context) throws Exception {
+    private void completeRequest(BlockReadRequestContext context, boolean success)
+        throws Exception {
       BlockReader reader = context.getBlockReader();
+      long sessionId = context.getRequest().getSessionId();
+      long blockId = context.getRequest().getId();
       try {
         if (reader != null) {
-          reader.close();
+          if (!success) {
+            Optional<TempBlockMeta> tempBlockMeta =
+                mWorker.getBlockStore().getTempBlockMeta(blockId);
+            // we need to cancel the block at the final step here to avoid mistakenly commit block.
+            if (tempBlockMeta.isPresent() && tempBlockMeta.get().getSessionId() == sessionId) {
+              mWorker.abortBlock(sessionId, blockId);
+            }
+            reader.close();
+          }
+          else {
+            // have to close the reader here to avoid commit block if the block is not fully read.
+            reader.close();
+            Optional<TempBlockMeta> tempBlockMeta =
+                mWorker.getBlockStore().getTempBlockMeta(blockId);
+            if (tempBlockMeta.isPresent() && tempBlockMeta.get().getSessionId() == sessionId) {
+              mWorker.commitBlock(sessionId, blockId, false);
+            }
+          }
         }
       } finally {
         context.setBlockReader(null);

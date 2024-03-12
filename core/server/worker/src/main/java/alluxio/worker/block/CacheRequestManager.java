@@ -29,6 +29,7 @@ import alluxio.util.logging.SamplingLogger;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
@@ -38,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -268,8 +270,8 @@ public class CacheRequestManager {
    */
   private CacheResult cacheBlockFromUfs(long blockId, long blockSize,
       Protocol.OpenUfsBlockOptions openUfsBlockOptions) throws IOException {
-    try (BlockReader reader = mBlockWorker.createUfsBlockReader(
-        Sessions.CACHE_UFS_SESSION_ID, blockId, 0, false, openUfsBlockOptions)) {
+    try (BlockReader reader = mBlockWorker.createUfsBlockReader(Sessions.CACHE_UFS_SESSION_ID,
+        blockId, 0, false, openUfsBlockOptions)) {
       // Read the entire block, caching to block store will be handled internally in UFS block store
       // when close the reader.
       // Note that, we read from UFS with a smaller buffer to avoid high pressure on heap
@@ -280,8 +282,24 @@ public class CacheRequestManager {
         reader.read(offset, bufferSize);
         offset += bufferSize;
       }
+      if (isTempBlockMetaPresent(blockId)) {
+        mBlockWorker.commitBlock(Sessions.CACHE_UFS_SESSION_ID, blockId, false);
+      }
+    } catch (Exception e) {
+      LOG.warn("Failed to async cache block {} from UFS on reading the block:", blockId, e);
+      if (isTempBlockMetaPresent(blockId)) {
+        mBlockWorker.abortBlock(Sessions.CACHE_UFS_SESSION_ID, blockId);
+      }
+      return CacheResult.FAILED;
     }
     return CacheResult.SUCCEED;
+  }
+
+  private boolean isTempBlockMetaPresent(long blockId) {
+    Optional<TempBlockMeta> tempBlockMeta =
+          mBlockWorker.getBlockStore().getTempBlockMeta(blockId);
+    return tempBlockMeta.isPresent()
+          && tempBlockMeta.get().getSessionId() == Sessions.CACHE_UFS_SESSION_ID;
   }
 
   /**
@@ -313,7 +331,7 @@ public class CacheRequestManager {
       return CacheResult.SUCCEED;
     } catch (IllegalStateException | IOException e) {
       LOG.warn("Failed to async cache block {} from remote worker ({}) on copying the block: {}",
-          blockId, sourceAddress, e.toString());
+          blockId, sourceAddress, e);
       try {
         mBlockWorker.abortBlock(Sessions.CACHE_WORKER_SESSION_ID, blockId);
       } catch (IOException ee) {

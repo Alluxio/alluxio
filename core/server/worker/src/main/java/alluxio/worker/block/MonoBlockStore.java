@@ -187,12 +187,16 @@ public class MonoBlockStore implements BlockStore {
       BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
           positionShort, options);
       BlockReader blockReader = new DelegatingBlockReader(reader,
-          () -> closeUfsBlock(sessionId, blockId, true));
+          () -> closeUfsBlock(sessionId, blockId));
       Metrics.WORKER_ACTIVE_CLIENTS.inc();
       return blockReader;
     } catch (Exception e) {
       try {
-        closeUfsBlock(sessionId, blockId, false);
+        Optional<TempBlockMeta> tempBlockMeta = mLocalBlockStore.getTempBlockMeta(blockId);
+        if (tempBlockMeta.isPresent() && tempBlockMeta.get().getSessionId() == sessionId) {
+          abortBlock(sessionId, blockId);
+        }
+        closeUfsBlock(sessionId, blockId);
       } catch (Exception ee) {
         LOG.warn("Failed to close UFS block", ee);
       }
@@ -206,24 +210,16 @@ public class MonoBlockStore implements BlockStore {
     }
   }
 
-  private void closeUfsBlock(long sessionId, long blockId, boolean successful)
+  private void closeUfsBlock(long sessionId, long blockId)
       throws IOException {
     try {
       mUnderFileSystemBlockStore.closeBlock(sessionId, blockId);
-      Optional<TempBlockMeta> tempBlockMeta = mLocalBlockStore.getTempBlockMeta(blockId);
-      if (tempBlockMeta.isPresent() && tempBlockMeta.get().getSessionId() == sessionId) {
-        if (successful) {
-          commitBlock(sessionId, blockId, false);
-        } else {
-          abortBlock(sessionId, blockId);
-        }
-      } else {
+      if (!mLocalBlockStore.hasTempBlockMeta(blockId) && mUnderFileSystemBlockStore.isNoCache(
+          sessionId, blockId)) {
         // When getTempBlockMeta() return null, such as a block readType NO_CACHE writeType THROUGH.
         // Counter will not be decrement in the commitblock().
         // So we should decrement counter here.
-        if (mUnderFileSystemBlockStore.isNoCache(sessionId, blockId)) {
-          DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.dec();
-        }
+        Metrics.WORKER_ACTIVE_CLIENTS.dec();
       }
     } finally {
       mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);
