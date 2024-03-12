@@ -148,6 +148,8 @@ public class TtlIntegrationTest extends BaseIntegrationTest {
     }
     CommonUtils.sleepMs(2 * TTL_INTERVAL_MS);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
+    // Sleep for a while to make sure the delete operations are done.
+    CommonUtils.sleepMs(4 * TTL_INTERVAL_MS);
     for (int i = 0; i < numFiles; i++) {
       if (i % 2 == 0) {
         if (i % 20 != 0) {
