@@ -466,15 +466,15 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       }
       if (error != null) {
         try {
-          boolean success = !cancel && error == null;
-          completeRequest(mContext, success);
+          completeRequest(mContext, false);
         } catch (Exception e) {
           LOG.error("Failed to close the request.", e);
         }
         replyError(error);
       } else if (eof || cancel) {
         try {
-          completeRequest(mContext);
+          boolean success = !cancel;
+          completeRequest(mContext, success);
         } catch (Exception e) {
           LogUtils.warnWithException(LOG, "Exception occurred while completing read request, "
                   + "EOF/CANCEL sessionId: {}. {}", mContext.getRequest().getSessionId(),
