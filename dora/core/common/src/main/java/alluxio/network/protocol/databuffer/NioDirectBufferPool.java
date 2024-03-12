@@ -27,16 +27,21 @@ public class NioDirectBufferPool {
    * @return buffer
    */
   public static synchronized ByteBuffer acquire(int length) {
-    Map.Entry<Integer, LinkedList<ByteBuffer>> entry = BUF_POOL.ceilingEntry(length);
-    if (entry == null || entry.getValue().size() == 0) {
-      return ByteBuffer.allocateDirect(length);
+    Map.Entry<Integer, LinkedList<ByteBuffer>> entry;
+    while ((entry = BUF_POOL.ceilingEntry(length)) != null) {
+      LinkedList<ByteBuffer> buffers = entry.getValue();
+      if (buffers.isEmpty()) {
+        BUF_POOL.remove(entry.getKey());
+      } else {
+        ByteBuffer buffer = buffers.pop();
+        buffer.clear();
+        // the buffer probably is larger than the amount of capacity being requested
+        // need to set the limit explicitly
+        buffer.limit(length);
+        return buffer;
+      }
     }
-    ByteBuffer buffer = entry.getValue().pop();
-    buffer.clear();
-    // the buffer probably is larger than the amount of capacity being requested
-    // need to set the limit explicitly
-    buffer.limit(length);
-    return buffer;
+    return ByteBuffer.allocateDirect(length);
   }
 
   /**
