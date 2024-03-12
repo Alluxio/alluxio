@@ -426,7 +426,7 @@ wait_for_fuse_process_killed() {
     else
       printf "\n"
       err  "Failed to kill fuse process [${fuse_pid}] after 60 seconds.
-Run \"alluxio-fuse umount -f mount_point\" if needed to forcibly kill the alluxio fuse process and fuse mount point. "
+Run \"alluxio-fuse umount mount_point -f\" if needed to forcibly kill the alluxio fuse process and fuse mount point. "
       return 1
     fi
     (( cnt += 1 ))
