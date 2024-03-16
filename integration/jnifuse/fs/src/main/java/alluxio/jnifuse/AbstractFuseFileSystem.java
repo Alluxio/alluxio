@@ -345,7 +345,12 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
   }
 
   public int setxattrCallback(String path, String name, ByteBuffer value, long size, int flags) {
-    return 0;
+    try {
+      return setxattr(path, name, value, size, flags);
+    } catch (Exception e) {
+      LOG.error("Failed to getxattr {}: ", path, e);
+      return -ErrorCodes.EIO();
+    }
   }
 
   public int getxattrCallback(String path, String name, ByteBuffer value) {
