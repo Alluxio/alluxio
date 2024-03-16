@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Glue partition implementation.
  */
-public class GluePartition implements UdbPartition {
-  private static final Logger LOG = LoggerFactory.getLogger(GluePartition.class);
+public class GlueUdbPartition implements UdbPartition {
+  private static final Logger LOG = LoggerFactory.getLogger(GlueUdbPartition.class);
 
   private final HiveLayout mLayout;
 
@@ -32,7 +32,7 @@ public class GluePartition implements UdbPartition {
    *
    * @param layout glue table layout
    */
-  public GluePartition(HiveLayout layout) {
+  public GlueUdbPartition(HiveLayout layout) {
     mLayout = layout;
   }
 

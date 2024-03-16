@@ -61,8 +61,8 @@ import java.util.stream.Collectors;
 /**
  * Hive database implementation.
  */
-public class HiveDatabase implements UnderDatabase {
-  private static final Logger LOG = LoggerFactory.getLogger(HiveDatabase.class);
+public class HiveUnderDatabase implements UnderDatabase {
+  private static final Logger LOG = LoggerFactory.getLogger(HiveUnderDatabase.class);
 
   private static final int MAX_PARTITION_COLUMN_STATISTICS = 10000;
 
@@ -77,8 +77,8 @@ public class HiveDatabase implements UnderDatabase {
   /** Hive client is not thread-safe, so use a client pool for concurrency. */
   private final AbstractHiveClientPool mClientPool;
 
-  private HiveDatabase(UdbContext udbContext, UdbConfiguration configuration,
-      String connectionUri, String hiveDbName) {
+  private HiveUnderDatabase(UdbContext udbContext, UdbConfiguration configuration,
+                            String connectionUri, String hiveDbName) {
     this(udbContext,
         configuration,
         connectionUri,
@@ -87,8 +87,8 @@ public class HiveDatabase implements UnderDatabase {
   }
 
   @VisibleForTesting
-  HiveDatabase(UdbContext udbContext, UdbConfiguration configuration,
-               String connectionUri, String hiveDbName, AbstractHiveClientPool clientPool) {
+  HiveUnderDatabase(UdbContext udbContext, UdbConfiguration configuration,
+                    String connectionUri, String hiveDbName, AbstractHiveClientPool clientPool) {
     mUdbContext = udbContext;
     mConfiguration = configuration;
     mConnectionUri = connectionUri;
@@ -103,7 +103,7 @@ public class HiveDatabase implements UnderDatabase {
    * @param configuration the configuration
    * @return the new instance
    */
-  public static HiveDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
+  public static HiveUnderDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
     String connectionUri = udbContext.getConnectionUri();
     if (connectionUri == null || connectionUri.isEmpty()) {
       throw new IllegalArgumentException(
@@ -114,7 +114,7 @@ public class HiveDatabase implements UnderDatabase {
       throw new IllegalArgumentException("Hive database name cannot be empty: " + hiveDbName);
     }
 
-    return new HiveDatabase(udbContext, configuration, connectionUri, hiveDbName);
+    return new HiveUnderDatabase(udbContext, configuration, connectionUri, hiveDbName);
   }
 
   @Override
@@ -293,7 +293,7 @@ public class HiveDatabase implements UnderDatabase {
             .setStorage(HiveUtils.toProto(table.getSd(), pathTranslator))
             .setPartitionName(tableName)
             .putAllParameters(table.getParameters());
-        udbPartitions.add(new HivePartition(
+        udbPartitions.add(new HiveUdbPartition(
             new HiveLayout(pib.build(), Collections.emptyList())));
       } else {
         for (Partition partition : partitions) {
@@ -308,12 +308,12 @@ public class HiveDatabase implements UnderDatabase {
           if (partition.getValues() != null) {
             pib.addAllValues(partition.getValues());
           }
-          udbPartitions.add(new HivePartition(new HiveLayout(pib.build(),
+          udbPartitions.add(new HiveUdbPartition(new HiveLayout(pib.build(),
               statsMap.getOrDefault(partName, Collections.emptyList()))));
         }
       }
 
-      return new HiveTable(tableName, HiveUtils.toProtoSchema(table.getSd().getCols()), colStats,
+      return new HiveUdbTable(tableName, HiveUtils.toProtoSchema(table.getSd().getCols()), colStats,
           HiveUtils.toProto(table.getPartitionKeys()), udbPartitions, layout, table);
     } catch (NoSuchObjectException e) {
       throw new NotFoundException("Table " + tableName + " does not exist.", e);
