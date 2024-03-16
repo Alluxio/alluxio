@@ -51,7 +51,7 @@ func (t *TarballOpts) clientJarPath(alluxioVersion string) string {
 	return filepath.Join("client", strings.ReplaceAll(t.ClientJarName, VersionPlaceholder, alluxioVersion))
 }
 
-func (p *Profile) updateFromFlags(targetName, mvnArgs, libModules, pluginModules string) {
+func (p *Profile) updateFromFlags(targetName, mvnArgs, libModules, pluginModules string, skipWebUi bool) {
 	// update profile
 	if targetName != "" {
 		p.TargetName = targetName
@@ -64,6 +64,9 @@ func (p *Profile) updateFromFlags(targetName, mvnArgs, libModules, pluginModules
 	}
 	if pluginModules != "" {
 		p.PluginModules = pluginModules
+	}
+	if skipWebUi {
+		p.Tarball.SkipCopyWebUi = true
 	}
 }
 
