@@ -19,6 +19,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.proxy.AuthenticationFilter;
 import alluxio.proxy.ProxyProcess;
 import alluxio.proxy.s3.CompleteMultipartUploadHandler;
 import alluxio.proxy.s3.S3BaseTask;
@@ -43,12 +44,14 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.DispatcherType;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -179,6 +182,10 @@ public final class ProxyWebServer extends WebServer {
     ServletHolder rsServletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);
     mServletContextHandler
         .addServlet(rsServletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
+    Boolean httpAuthEnable = Configuration.getBoolean(PropertyKey.PROXY_HTTP_AUTH_ENABLE);
+    if(httpAuthEnable){
+      mServletContextHandler.addFilter(AuthenticationFilter.class, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"), EnumSet.of(DispatcherType.REQUEST));
+    }
   }
 
   private ThreadPoolExecutor createLightThreadPool() {
