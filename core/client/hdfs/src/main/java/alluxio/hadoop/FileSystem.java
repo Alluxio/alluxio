@@ -81,14 +81,48 @@ public class FileSystem extends AbstractFileSystem {
               authority.getZookeeperAddress());
     } else if (alluxioUri.getAuthority() instanceof SingleMasterAuthority) {
       SingleMasterAuthority authority = (SingleMasterAuthority) alluxioUri.getAuthority();
-      alluxioConfProperties.put(PropertyKey.MASTER_HOSTNAME.getName(), authority.getHost());
-      alluxioConfProperties.put(PropertyKey.MASTER_RPC_PORT.getName(), authority.getPort());
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
-      alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
-      // Unset the embedded journal related configuration
-      // to support alluxio URI has the highest priority
-      alluxioConfProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES.getName(), null);
-      alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(), null);
+      String masterNamesConfKey = PropertyKey.Template.MASTER_LOGICAL_NAMESERVICES
+          .format(authority.getHost()).getName();
+      String[] masterNames = conf.getTrimmedStrings(masterNamesConfKey);
+      String zkNodesConfKey = PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_NAMESERVICES
+          .format(authority.getHost()).getName();
+      String[] zkNodeNames = conf.getTrimmedStrings(zkNodesConfKey);
+
+      StringJoiner rpcAddress = new StringJoiner(",");
+      if (masterNames.length != 0) {
+        for (String masterName : masterNames) {
+          String name = PropertyKey.Template.MASTER_LOGICAL_RPC_ADDRESS
+              .format(authority.getHost(), masterName).getName();
+          String address = conf.get(name);
+          Preconditions.checkArgument(address != null, "You need to set %s", name);
+          rpcAddress.add(address);
+        }
+
+        alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
+            rpcAddress.toString());
+        alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
+        alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
+      } else if (zkNodeNames.length != 0) {
+        for (String zkName : zkNodeNames) {
+          String name = PropertyKey.Template.MASTER_LOGICAL_ZOOKEEPER_ADDRESS
+              .format(authority.getHost(), zkName).getName();
+          String address = conf.get(name);
+          Preconditions.checkArgument(address != null, "You need to set %s", name);
+          rpcAddress.add(address);
+        }
+
+        alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), true);
+        alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), rpcAddress.toString());
+      } else {
+        alluxioConfProperties.put(PropertyKey.MASTER_HOSTNAME.getName(), authority.getHost());
+        alluxioConfProperties.put(PropertyKey.MASTER_RPC_PORT.getName(), authority.getPort());
+        alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), false);
+        alluxioConfProperties.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), null);
+        // Unset the embedded journal related configuration
+        // to support alluxio URI has the highest priority
+        alluxioConfProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES.getName(), null);
+        alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(), null);
+      }
     } else if (alluxioUri.getAuthority() instanceof MultiMasterAuthority) {
       MultiMasterAuthority authority = (MultiMasterAuthority) alluxioUri.getAuthority();
       alluxioConfProperties.put(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
