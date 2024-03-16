@@ -105,7 +105,19 @@ public class LocalCacheManager implements CacheManager {
    * @return an instance of {@link LocalCacheManager}
    */
   public static LocalCacheManager create(CacheManagerOptions options,
-      PageMetaStore pageMetaStore)
+      PageMetaStore pageMetaStore) throws IOException {
+    return create(options, pageMetaStore, CacheRestorationCallback.NOOP);
+  }
+
+  /**
+   * @param options the options of local cache manager
+   * @param pageMetaStore the metadata store for local cache
+   * @param callback the callback that will be invoked when the page store
+   *        finishes restoring pages after start up.
+   * @return an instance of {@link LocalCacheManager}
+   */
+  public static LocalCacheManager create(CacheManagerOptions options,
+      PageMetaStore pageMetaStore, CacheRestorationCallback callback)
       throws IOException {
     LocalCacheManager manager = new LocalCacheManager(options, pageMetaStore);
     List<PageStoreDir> pageStoreDirs = pageMetaStore.getStoreDirs();
@@ -115,6 +127,11 @@ public class LocalCacheManager implements CacheManager {
           manager.restoreOrInit(pageStoreDirs);
         } catch (IOException e) {
           LOG.error("Failed to restore LocalCacheManager", e);
+        }
+        if (manager.mState.get() == READ_WRITE) {
+          try (LockResource r = new LockResource(pageMetaStore.getLock().readLock())) {
+            callback.onCacheRestorationSuccess();
+          }
         }
       });
     } else {

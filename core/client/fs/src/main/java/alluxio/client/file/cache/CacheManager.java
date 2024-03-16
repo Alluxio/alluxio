@@ -105,26 +105,31 @@ public interface CacheManager extends AutoCloseable {
      */
     public static CacheManager create(AlluxioConfiguration conf) throws IOException {
       CacheManagerOptions options = CacheManagerOptions.create(conf);
-      return create(conf, options, PageMetaStore.create(options));
+      return create(conf, options, PageMetaStore.create(options),
+          CacheRestorationCallback.NOOP);
     }
 
     /**
      * @param conf the Alluxio configuration
      * @param options the options for local cache manager
      * @param pageMetaStore  meta store for pages
+     * @param callback the callback that will be invoked when the page store
+     *        finishes restoring pages after start up.
      * @return an instance of {@link CacheManager}
      */
     public static CacheManager create(AlluxioConfiguration conf,
-        CacheManagerOptions options, PageMetaStore pageMetaStore) throws IOException {
+        CacheManagerOptions options, PageMetaStore pageMetaStore,
+        CacheRestorationCallback callback) throws IOException {
       try {
         boolean isShadowCacheEnabled =
             conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_ENABLED);
         if (isShadowCacheEnabled) {
           return new NoExceptionCacheManager(
-              new CacheManagerWithShadowCache(LocalCacheManager.create(options, pageMetaStore),
-                  conf));
+              new CacheManagerWithShadowCache(
+                  LocalCacheManager.create(options, pageMetaStore, callback), conf));
         }
-        return new NoExceptionCacheManager(LocalCacheManager.create(options, pageMetaStore));
+        return new NoExceptionCacheManager(
+            LocalCacheManager.create(options, pageMetaStore, callback));
       } catch (IOException e) {
         Metrics.CREATE_ERRORS.inc();
         LOG.error("Failed to create CacheManager", e);

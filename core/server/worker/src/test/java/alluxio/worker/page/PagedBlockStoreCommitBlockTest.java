@@ -150,7 +150,8 @@ public class PagedBlockStoreCommitBlockTest {
   public void localCommitAndMasterCommitBothSuccess()
          throws IOException, InterruptedException, TimeoutException {
     mPageMetaStore = new PagedBlockMetaStore(mDirs);
-    mCacheManager = CacheManager.Factory.create(mConf, mCacheManagerOptions, mPageMetaStore);
+    mCacheManager = CacheManager.Factory.create(mConf, mCacheManagerOptions, mPageMetaStore,
+        () -> mPageMetaStore.onCacheRestorationSuccess());
 
     mPagedBlockStore = new PagedBlockStore(mCacheManager, mUfs, mBlockMasterClientPool, mWorkerId,
             mPageMetaStore, mCacheManagerOptions.getPageSize());
@@ -174,7 +175,8 @@ public class PagedBlockStoreCommitBlockTest {
             throw new RuntimeException();
         }
     };
-    mCacheManager = CacheManager.Factory.create(mConf, mCacheManagerOptions, mPageMetaStore);
+    mCacheManager = CacheManager.Factory.create(mConf, mCacheManagerOptions, mPageMetaStore,
+        () -> mPageMetaStore.onCacheRestorationSuccess());
 
     mPagedBlockStore = new PagedBlockStore(mCacheManager, mUfs, mBlockMasterClientPool,
             mWorkerId, mPageMetaStore, mCacheManagerOptions.getPageSize());
@@ -199,7 +201,8 @@ public class PagedBlockStoreCommitBlockTest {
     }).when(mMockedBlockMasterClient).commitBlock(anyLong(), anyLong(), anyString(),
              anyString(), anyLong(), anyLong());
     mPageMetaStore = new PagedBlockMetaStore(mDirs);
-    mCacheManager = CacheManager.Factory.create(mConf, mCacheManagerOptions, mPageMetaStore);
+    mCacheManager = CacheManager.Factory.create(mConf, mCacheManagerOptions, mPageMetaStore,
+        () -> mPageMetaStore.onCacheRestorationSuccess());
 
     mPagedBlockStore = new PagedBlockStore(mCacheManager, mUfs, mBlockMasterClientPool, mWorkerId,
              mPageMetaStore, mCacheManagerOptions.getPageSize());

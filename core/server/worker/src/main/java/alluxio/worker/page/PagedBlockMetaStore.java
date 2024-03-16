@@ -404,6 +404,30 @@ public class PagedBlockMetaStore implements PageMetaStore {
         usedBytesOnDirs.build(), blockOnDirs.build());
   }
 
+  /**
+   * Callback that gets called when the underlying page store finishes async
+   * restoration.
+   * This method notifies all registered block store event listeners
+   * about the newly added blocks. In particular, these blocks will be reported
+   * as added blocks to master via heartbeat.
+   */
+  @GuardedBy("getLock().readLock()")
+  public void onCacheRestorationSuccess() {
+    final List<PageStoreDir> pageStoreDirs = getStoreDirs();
+    for (PageStoreDir pageStoreDir : pageStoreDirs) {
+      final PagedBlockStoreDir pagedBlockStoreDir = downcast(pageStoreDir);
+      Set<PagedBlockMeta> blockMetas = mBlocks.getByField(INDEX_STORE_DIR, pagedBlockStoreDir);
+      for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+        synchronized (listener) {
+          for (PagedBlockMeta blockMeta : blockMetas) {
+            listener.onMoveBlockByWorker(blockMeta.getBlockId(),
+                blockMeta.getBlockLocation(), blockMeta.getBlockLocation());
+          }
+        }
+      }
+    }
+  }
+
   private static PagedBlockStoreDir downcast(PageStoreDir pageStoreDir) {
     if (pageStoreDir instanceof PagedBlockStoreDir) {
       return (PagedBlockStoreDir) pageStoreDir;
