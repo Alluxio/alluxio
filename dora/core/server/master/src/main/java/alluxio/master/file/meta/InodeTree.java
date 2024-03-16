@@ -771,7 +771,7 @@ public class InodeTree implements DelegatingJournaled {
    * Returns the path for a particular inode. The inode and the path to the inode must already be
    * locked.
    *
-   * @param inode the inode to get the path for
+   * @param inode the {@link Inode} to get the path for
    * @return the {@link AlluxioURI} for the path of the inode
    * @throws FileDoesNotExistException if the path does not exist
    */
