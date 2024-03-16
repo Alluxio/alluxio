@@ -1842,11 +1842,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public Iterator<Long> getLostBlocksIterator() {
-    return mLostBlocks.iterator();
-  }
-
-  @Override
   public int getLostBlocksCount() {
     return mLostBlocks.size();
   }
