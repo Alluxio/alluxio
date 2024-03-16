@@ -73,6 +73,10 @@ public interface FuseFileSystem {
     throw new UnsupportedOperationException("write");
   }
 
+  default int ioctl(String path, int cmd, ByteBuffer buf, FuseFileInfo fi) {
+    throw new UnsupportedOperationException("write");
+  }
+
   default int statfs(String path, Statvfs stbuf) {
     throw new UnsupportedOperationException("statfs");
   }
