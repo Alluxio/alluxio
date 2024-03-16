@@ -14,13 +14,19 @@ package alluxio.fuse.auth;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.FuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;
 
 import com.google.common.base.Preconditions;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 /**
  * The system user group authentication policy that always set the user group
@@ -28,6 +34,27 @@ import java.util.Optional;
  * Note that this may downgrade the performance of creating file/directory.
  */
 public final class SystemUserGroupAuthPolicy extends LaunchUserGroupAuthPolicy {
+
+  private final LoadingCache<String, Optional<Long>> mUidCache = CacheBuilder.newBuilder()
+      .maximumSize(Configuration.getInt(PropertyKey.FUSE_AUTH_POLICY_SYSTEM_CACHE_USER_GROUP_SIZE))
+      .expireAfterWrite(Configuration.getDuration(
+          PropertyKey.FUSE_AUTH_POLICY_SYSTEM_CACHE_USER_GROUP_EXPIRE_TIME))
+      .build(new CacheLoader<String, Optional<Long>>() {
+        @Override
+        public Optional<Long> load(String username) {
+          return AlluxioFuseUtils.getUid(username);
+        }
+      });
+  private final LoadingCache<String, Optional<Long>> mGidCache = CacheBuilder.newBuilder()
+      .maximumSize(Configuration.getInt(PropertyKey.FUSE_AUTH_POLICY_SYSTEM_CACHE_USER_GROUP_SIZE))
+      .expireAfterWrite(Configuration.getDuration(
+          PropertyKey.FUSE_AUTH_POLICY_SYSTEM_CACHE_USER_GROUP_EXPIRE_TIME))
+      .build(new CacheLoader<String, Optional<Long>>() {
+        @Override
+        public Optional<Long> load(String group) {
+          return AlluxioFuseUtils.getGidFromGroupName(group);
+        }
+      });
 
   /**
    * Creates a new system auth policy.
@@ -65,7 +92,11 @@ public final class SystemUserGroupAuthPolicy extends LaunchUserGroupAuthPolicy {
 
   @Override
   public Optional<Long> getUid(String owner) {
-    return AlluxioFuseUtils.getUid(owner);
+    try {
+      return mUidCache.get(owner);
+    } catch (ExecutionException e) {
+      return Optional.empty();
+    }
   }
 
   @Override
@@ -75,6 +106,10 @@ public final class SystemUserGroupAuthPolicy extends LaunchUserGroupAuthPolicy {
 
   @Override
   public Optional<Long> getGid(String group) {
-    return AlluxioFuseUtils.getGidFromGroupName(group);
+    try {
+      return mGidCache.get(group);
+    } catch (ExecutionException e) {
+      return Optional.empty();
+    }
   }
 }
