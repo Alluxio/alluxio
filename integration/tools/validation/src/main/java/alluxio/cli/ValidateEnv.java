@@ -25,6 +25,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -248,8 +249,9 @@ public final class ValidateEnv {
   private boolean validateRemote(String node, String target, String name,
                                  CommandLine cmd) throws InterruptedException {
     System.out.format("Validating %s environment on %s...%n", target, node);
-    if (!CommonUtils.isAddressReachable(node, 22, 30 * Constants.SECOND_MS)) {
-      System.err.format("Unable to reach ssh port 22 on node %s.%n", node);
+    int sshPort = getHostSSHPort();
+    if (!CommonUtils.isAddressReachable(node, sshPort, 30 * Constants.SECOND_MS)) {
+      System.err.format("Unable to reach ssh port %d on node %s.%n", sshPort, node);
       return false;
     }
 
@@ -260,8 +262,8 @@ public final class ValidateEnv {
         "%s/bin/alluxio validateEnv %s %s %s",
         homeDir, target, name == null ? "" : name, argStr);
     String localCommand = String.format(
-        "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",
-        node, remoteCommand);
+        "ssh -p %d -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",
+            sshPort, node, remoteCommand);
     String[] command = {"bash", "-c", localCommand};
     try {
       ProcessBuilder builder = new ProcessBuilder(command);
@@ -480,5 +482,15 @@ public final class ValidateEnv {
           "Failed to parse args for validateEnv", e);
     }
     return cmd;
+  }
+
+  /**
+   * get ssh port from conf and this method is used for test.
+   *
+   * @return return host ssh port
+   */
+  @VisibleForTesting
+  protected int getHostSSHPort() {
+    return mConf.getInt(PropertyKey.HOST_SSH_PORT);
   }
 }
