@@ -20,6 +20,7 @@ import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
+import alluxio.master.job.JobMaster;
 import alluxio.underfs.JobUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -230,6 +231,13 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
         .setRpcPort(Configuration.getInt(PropertyKey.JOB_WORKER_RPC_PORT))
         .setDataPort(Configuration.getInt(PropertyKey.JOB_WORKER_DATA_PORT))
         .setWebPort(Configuration.getInt(PropertyKey.JOB_WORKER_WEB_PORT));
+  }
+
+  /**
+   * @return the {@link JobMaster} for this process
+   */
+  public JobWorker getJobWorker() {
+    return mJobWorker;
   }
 
   private void startWorkers() throws Exception {
