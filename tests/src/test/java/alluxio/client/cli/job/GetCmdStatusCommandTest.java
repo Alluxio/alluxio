@@ -18,8 +18,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
+import alluxio.job.wire.Status;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
@@ -65,7 +65,7 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
   }
 
   @Test
-  public void testGetCmdStatusForLoad() throws IOException, AlluxioException {
+  public void testGetDetailCmdStatusForLoad() throws IOException {
     FileSystem fs = sResource.get().getClient();
     FileSystemTestUtils.createByteFile(fs, "/testRoot/testFileA", WritePType.THROUGH,
             10);
@@ -77,7 +77,7 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
     String jobControlId = output[1].split("=\\s+")[1];
 
     mOutput.reset();
-    sJobShell.run("getCmdStatus", jobControlId);
+    sJobShell.run("getCmdStatus", "-v", jobControlId);
     Assert.assertTrue(mOutput.toString().contains("Get command status information below:"));
     Assert.assertTrue(mOutput.toString().contains(
             "Successfully loaded path /testRoot/testFileA\n"));
@@ -85,10 +85,14 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
             "Successfully loaded path /testRoot/testFileB\n"));
     Assert.assertTrue(mOutput.toString().contains(
             "Total completed file count is 2, failed file count is 0"));
+
+    mOutput.reset();
+    sJobShell.run("getCmdStatus", jobControlId);
+    Assert.assertTrue(mOutput.toString().contains(Status.COMPLETED.toString()));
   }
 
   @Test
-  public void testGetCmdStatusForBatchLoad() throws IOException {
+  public void testGetDetailCmdStatusForBatchLoad() throws IOException {
     int batch = 2;
     FileSystem fs = sResource.get().getClient();
     FileSystemTestUtils.createByteFile(fs, "/testBatchRoot/testBatchFileA", WritePType.THROUGH, 10);
@@ -99,7 +103,7 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
     String[] output = mOutput.toString().split("\n");
     String jobControlId = output[1].split("=\\s+")[1];
     mOutput.reset();
-    sJobShell.run("getCmdStatus", jobControlId);
+    sJobShell.run("getCmdStatus", "-v", jobControlId);
     Assert.assertTrue(mOutput.toString().contains(
             "Successfully loaded path /testBatchRoot/testBatchFileA\n"));
     Assert.assertTrue(mOutput.toString().contains(
@@ -108,5 +112,24 @@ public class GetCmdStatusCommandTest extends AbstractFileSystemShellTest  {
             "Successfully loaded path /testBatchRoot/testBatchFileC\n"));
     Assert.assertTrue(mOutput.toString().contains(
             "Total completed file count is 3, failed file count is 0"));
+
+    mOutput.reset();
+    sJobShell.run("getCmdStatus", jobControlId);
+    Assert.assertTrue(mOutput.toString().contains(Status.COMPLETED.toString()));
+  }
+
+  @Test
+  public void testGetCmdStatusForWrongJobId() throws IOException {
+    String jobControlId = String.valueOf(1L);
+
+    mOutput.reset();
+    sJobShell.run("getCmdStatus", "-v", jobControlId);
+    Assert.assertTrue(mOutput.toString().contains(
+            String.format("Unable to get detailed information for command %s.\n", jobControlId)));
+
+    mOutput.reset();
+    sJobShell.run("getCmdStatus", jobControlId);
+    Assert.assertTrue(mOutput.toString().contains(
+            String.format("Unable to get the status for command %s.\n", jobControlId)));
   }
 }
