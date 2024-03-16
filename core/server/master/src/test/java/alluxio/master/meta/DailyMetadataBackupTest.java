@@ -11,6 +11,7 @@
 
 package alluxio.master.meta;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -117,6 +118,25 @@ public class DailyMetadataBackupTest {
       verify(mMetaMaster, times(backUpFileNum)).backup(any(), any());
       deleteFileNum += getNumOfDeleteFile(backUpFileNum, fileToRetain);
       verify(mUfs, times(deleteFileNum)).deleteExistingFile(any());
+    }
+  }
+
+  @Test
+  public void testBackupInterval() throws Exception {
+    int fileToRetain = 1;
+    try (Closeable c =
+        new ConfigurationRule(ImmutableMap.of(
+            PropertyKey.MASTER_BACKUP_DIRECTORY, mBackupDir,
+            PropertyKey.MASTER_DAILY_BACKUP_ENABLED, true,
+            PropertyKey.MASTER_DAILY_BACKUP_FILES_RETAINED,
+            fileToRetain,
+            PropertyKey.MASTER_DAILY_BACKUP_INTERVAL, "6hr"
+            ), Configuration.modifiableGlobal()).toResource()) {
+      long interval = Configuration.getMs(PropertyKey.MASTER_DAILY_BACKUP_INTERVAL);
+      assertEquals(interval, 6 * 60 * 60 * 1000);
+      DailyMetadataBackup dailyBackup =
+          new DailyMetadataBackup(mMetaMaster, mScheduler, mUfsManager);
+      dailyBackup.start();
     }
   }
 
