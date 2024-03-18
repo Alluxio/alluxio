@@ -18,12 +18,10 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
 
-import org.eclipse.jetty.server.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
@@ -76,9 +74,7 @@ public class S3RequestServlet extends HttpServlet {
       S3Handler.processResponse(response, errorResponse);
       return;
     }
-    ((ConcurrentHashMap<Request, S3Handler>) getServletContext()
-        .getAttribute(ProxyWebServer.PROXY_S3_HANDLER_MAP))
-        .put((Request) request, s3Handler);
+    request.setAttribute(ProxyWebServer.S3_HANDLER_ATTRIBUTE, s3Handler);
     // Handle request async
     if (Configuration.getBoolean(PropertyKey.PROXY_S3_V2_ASYNC_PROCESSING_ENABLED)) {
       S3BaseTask.OpTag opTag = s3Handler.getS3Task().mOPType.getOpTag();
