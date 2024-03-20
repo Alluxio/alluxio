@@ -85,12 +85,13 @@ public class ServiceDiscoveryRecipe implements AutoCloseable {
    * update of the DefaultServiceEntity fields(lease,revision num) is guarded by
    * lock within DefaultServiceEntity instance.
    * @param service
-   * @param force
+   * @param forceOverwriteOldLease
    * @throws IOException
    */
-  private void newLeaseInternal(DefaultServiceEntity service, boolean force) throws IOException {
+  private void newLeaseInternal(DefaultServiceEntity service,
+                                boolean forceOverwriteOldLease) throws IOException {
     try (LockResource lockResource = new LockResource(service.getLock())) {
-      if (!force && service.getLease() != null
+      if (!forceOverwriteOldLease && service.getLease() != null
           && !mAlluxioEtcdClient.isLeaseExpired(service.getLease())) {
         LOG.info("Lease attached with service:{} is not expired, bail from here.",
             service.getServiceEntityName());
@@ -101,13 +102,15 @@ public class ServiceDiscoveryRecipe implements AutoCloseable {
           .append(MembershipManager.PATH_SEPARATOR)
           .append(path).toString();
       try {
+        AlluxioEtcdClient.Lease oldLease = service.getLease();
         AlluxioEtcdClient.Lease lease = mAlluxioEtcdClient.createLease(
             service.getLeaseTTLInSec(), service.getLeaseTimeoutInSec(), TimeUnit.SECONDS);
         Txn txn = mAlluxioEtcdClient.getEtcdClient().getKVClient().txn();
         ByteSequence keyToPut = ByteSequence.from(fullPath, StandardCharsets.UTF_8);
         ByteSequence valToPut = ByteSequence.from(service.serialize());
+        // Always overwrite the key
         CompletableFuture<TxnResponse> txnResponseFut = txn
-            .If(new Cmp(keyToPut, Cmp.Op.EQUAL, CmpTarget.version(0L)))
+            .If()
             .Then(Op.put(keyToPut, valToPut, PutOption.newBuilder()
                 .withLeaseId(lease.mLeaseId).build()))
             .Then(Op.get(keyToPut, GetOption.DEFAULT))
@@ -118,10 +121,17 @@ public class ServiceDiscoveryRecipe implements AutoCloseable {
         txnResponse.getGetResponses().stream().map(
             r -> kvs.addAll(r.getKvs())).collect(Collectors.toList());
         if (!txnResponse.isSucceeded()) {
-          if (!kvs.isEmpty()) {
-            throw new AlreadyExistsException("Same service kv pair already exists.");
-          }
           throw new IOException("Failed to new a lease for service:" + service.toString());
+        }
+        // revoke old lease if there's any
+        if (oldLease != null) {
+          try {
+            LOG.info("Try revoking previous lease:{} to ServiceRegistry key:{}",
+                      service.getLease(), keyToPut);
+            mAlluxioEtcdClient.revokeLease(oldLease);
+          } catch (Throwable th) {
+            // best-of-effort to revoke, silence all exceptions.
+          }
         }
         Preconditions.checkState(!kvs.isEmpty(), "No such service entry found.");
         long latestRevision = kvs.stream().mapToLong(kv -> kv.getModRevision())
