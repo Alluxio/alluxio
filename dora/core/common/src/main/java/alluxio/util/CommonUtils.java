@@ -918,6 +918,9 @@ public final class CommonUtils {
    * see https://www.oracle.com/java/technologies/javase/versioning-naming.html for reference
    */
   public static int parseMajorVersion(String version) {
+    if (version.endsWith("-ea")) {
+      version = version.substring(0, version.length() - 3);
+    }
     if (version.startsWith("1.")) {
       version = version.substring(2, 3);
     } else {
