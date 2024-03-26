@@ -54,6 +54,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 public class MembershipManagerTest {
@@ -72,11 +74,11 @@ public class MembershipManagerTest {
   /*
   @BeforeClass
   public static void init() {
-    PropertyConfigurator.configure("alluxio/conf/log4j.properties");
+    PropertyConfigurator.configure("/Users/lucyge/Documents/github/alluxio/conf/log4j.properties");
     Properties props = new Properties();
     props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "Console");
   }
-  */
+ */
 
   @ClassRule
   public static final GenericContainer<?> ETCD_CONTAINER =
@@ -329,6 +331,8 @@ public class MembershipManagerTest {
 
   @Test
   public void testFlakyNetwork() throws Exception {
+    System.out.println("WORKER_FAILURE_TIMEOUT is configured to be "
+        + WORKER_FAILURE_TIMEOUT);
     MembershipManager membershipManager = getToxicEtcdMemberMgr();
     WorkerInfo wkr1 = new WorkerInfo()
         .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
@@ -356,10 +360,30 @@ public class MembershipManagerTest {
 
     MembershipManager healthyMgr = getHealthyEtcdMemberMgr();
     System.out.println("All Node Status:\n" + healthyMgr.showAllMembers());
-    System.out.println(String.format("Induce {} sec latency upstream to etcd...",
-        WORKER_FAILURE_TIMEOUT + 10000));
+    System.out.println(String.format("Induce %d sec latency upstream to etcd...",
+        TimeUnit.MILLISECONDS.toSeconds(WORKER_FAILURE_TIMEOUT_IN_MILLIS / 2)));
+    /* For induced latency lower than WORKER_FAILURE_TIMEOUT_IN_MILLIS, we shouldn't see
+       that the worker is considered failed. */
     sEtcdProxy.toxics()
-        .latency("latency", ToxicDirection.UPSTREAM, 10000);
+        .latency("latency", ToxicDirection.UPSTREAM, WORKER_FAILURE_TIMEOUT_IN_MILLIS / 2);
+    // assert that we will never see any worker considered FAIL.
+    Assert.assertThrows(TimeoutException.class, () ->
+        CommonUtils.waitFor("Workers network errored but not considered fail",
+            () -> {
+              try {
+                return !healthyMgr.getFailedMembers().isEmpty();
+              } catch (IOException e) {
+                throw new RuntimeException(
+                    String.format("Unexpected error while getting failed members: %s", e));
+              }
+            }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10))));
+    System.out.println("All Node Status:\n" + healthyMgr.showAllMembers());
+    System.out.println(String.format(
+        "Remove latency toxics and induce %d sec latency upstream to etcd...",
+        TimeUnit.MILLISECONDS.toSeconds(WORKER_FAILURE_TIMEOUT_IN_MILLIS + 10000)));
+    sEtcdProxy.toxics().get("latency").remove();
+    sEtcdProxy.toxics()
+        .latency("latency", ToxicDirection.UPSTREAM, WORKER_FAILURE_TIMEOUT_IN_MILLIS + 10000);
     CommonUtils.waitFor("Workers network errored",
         () -> {
           try {
@@ -368,7 +392,8 @@ public class MembershipManagerTest {
             throw new RuntimeException(
                 String.format("Unexpected error while getting failed members: %s", e));
           }
-        }, WaitForOptions.defaults().setTimeoutMs(WORKER_FAILURE_TIMEOUT_IN_MILLIS + 1000));
+        }, WaitForOptions.defaults().setTimeoutMs(WORKER_FAILURE_TIMEOUT_IN_MILLIS + 10000));
+
     System.out.println("All Node Status:\n" + healthyMgr.showAllMembers());
     System.out.println("Remove latency toxics...");
     sEtcdProxy.toxics().get("latency").remove();
@@ -380,7 +405,7 @@ public class MembershipManagerTest {
             throw new RuntimeException(
                 String.format("Unexpected error while getting failed members: %s", e));
           }
-        }, WaitForOptions.defaults().setTimeoutMs(WORKER_FAILURE_TIMEOUT_IN_MILLIS + 1000));
+        }, WaitForOptions.defaults().setTimeoutMs(WORKER_FAILURE_TIMEOUT_IN_MILLIS));
     System.out.println("All Node Status:\n" + healthyMgr.showAllMembers());
   }
 

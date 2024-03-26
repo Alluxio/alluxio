@@ -123,16 +123,6 @@ public class ServiceDiscoveryRecipe implements AutoCloseable {
         if (!txnResponse.isSucceeded()) {
           throw new IOException("Failed to new a lease for service:" + service.toString());
         }
-        // revoke old lease if there's any
-        if (oldLease != null) {
-          try {
-            LOG.info("Try revoking previous lease:{} to ServiceRegistry key:{}",
-                      service.getLease(), keyToPut);
-            mAlluxioEtcdClient.revokeLease(oldLease);
-          } catch (Throwable th) {
-            // best-of-effort to revoke, silence all exceptions.
-          }
-        }
         Preconditions.checkState(!kvs.isEmpty(), "No such service entry found.");
         long latestRevision = kvs.stream().mapToLong(kv -> kv.getModRevision())
             .max().getAsLong();
