@@ -13,6 +13,7 @@ package alluxio.fuse.file;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.MetadataCachingFileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseOpenUtils;
@@ -152,6 +153,9 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   public synchronized void close() {
     try {
       closeStream();
+      if (mFileSystem instanceof MetadataCachingFileSystem) {
+        ((MetadataCachingFileSystem) mFileSystem).dropMetadataCache(mUri);
+      }
     } finally {
       releaseLock();
     }
