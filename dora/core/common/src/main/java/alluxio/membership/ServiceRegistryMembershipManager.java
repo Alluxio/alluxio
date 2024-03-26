@@ -12,6 +12,7 @@
 package alluxio.membership;
 
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerState;
 
@@ -32,7 +33,7 @@ import java.util.stream.Stream;
  */
 public class ServiceRegistryMembershipManager implements MembershipManager {
   private static final Logger LOG = LoggerFactory.getLogger(ServiceRegistryMembershipManager.class);
-
+  private final AlluxioConfiguration mConf;
   private AlluxioEtcdClient mAlluxioEtcdClient;
 
   /**
@@ -60,6 +61,7 @@ public class ServiceRegistryMembershipManager implements MembershipManager {
    */
   public ServiceRegistryMembershipManager(AlluxioConfiguration conf,
       AlluxioEtcdClient alluxioEtcdClient) {
+    mConf = conf;
     mAlluxioEtcdClient = alluxioEtcdClient;
   }
 
@@ -68,6 +70,8 @@ public class ServiceRegistryMembershipManager implements MembershipManager {
     LOG.info("Try joining Service Registry for worker:{} ", workerInfo);
     WorkerServiceEntity entity =
         new WorkerServiceEntity(workerInfo.getIdentity(), workerInfo.getAddress());
+    entity.setLeaseTTLInSec(
+        mConf.getDuration(PropertyKey.WORKER_FAILURE_DETECTION_TIMEOUT).getSeconds());
     mAlluxioEtcdClient.mServiceDiscovery.registerAndStartSync(entity);
     LOG.info("register to service registry for worker:{} ", workerInfo);
   }

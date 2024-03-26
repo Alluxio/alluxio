@@ -878,17 +878,22 @@ public class FileSystemContext implements Closeable {
     synchronized (mCachedWorkerClusterView) {
       if (mCachedWorkerClusterView.get() == null || mCachedWorkerClusterView.get().isEmpty()
           || mWorkerRefreshPolicy.attempt()) {
-        switch (type) {
-          case ALL:
-            mCachedWorkerClusterView.set(getAllWorkers());
-            break;
-          case LIVE:
-            mCachedWorkerClusterView.set(getLiveWorkers());
-            break;
-          case LOST:
-            mCachedWorkerClusterView.set(getLostWorkers());
-            break;
-          default:
+        try {
+          switch (type) {
+            case ALL:
+              mCachedWorkerClusterView.set(getAllWorkers());
+              break;
+            case LIVE:
+              mCachedWorkerClusterView.set(getLiveWorkers());
+              break;
+            case LOST:
+              mCachedWorkerClusterView.set(getLostWorkers());
+              break;
+            default:
+          }
+        } catch (Throwable th) {
+          LOG.warn("Got exception while trying to refresh {} worker list, ex:{},"
+              + " using the last updated worker cluster view.", type, th.getMessage());
         }
       }
       return mCachedWorkerClusterView.get();
