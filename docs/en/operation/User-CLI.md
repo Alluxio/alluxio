@@ -933,17 +933,6 @@ $ ./bin/alluxio fs distributedLoad /data/today --locality ROCK2,ROCK3 --hosts ho
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host2,host3 --excluded-locality ROCK2,ROCK3
 ```
 
-### distributedMv
-
-The `distributedMv` command moves a file or directory in the Alluxio file system distributed across workers
-using the job service.
-
-If the source designates a directory, `distributedMv` moves the entire subtree at source to the destination.
-
-```console
-$ ./bin/alluxio fs distributedMv /data/1023 /data/1024
-```
-
 ### du
 
 The `du` command outputs the total size and amount stored in Alluxio of files and folders.
