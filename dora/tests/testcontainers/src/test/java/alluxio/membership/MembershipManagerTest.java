@@ -74,7 +74,7 @@ public class MembershipManagerTest {
   /*
   @BeforeClass
   public static void init() {
-    PropertyConfigurator.configure("/Users/lucyge/Documents/github/alluxio/conf/log4j.properties");
+    PropertyConfigurator.configure("<path_to_alluxio>/conf/log4j.properties");
     Properties props = new Properties();
     props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "Console");
   }
