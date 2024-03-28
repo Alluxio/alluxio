@@ -99,6 +99,8 @@ public class EtcdMembershipManager implements MembershipManager {
     LOG.info("Try joining on etcd for worker:{} ", workerInfo);
     WorkerServiceEntity entity =
         new WorkerServiceEntity(workerInfo.getIdentity(), workerInfo.getAddress());
+    entity.setLeaseTTLInSec(
+        mConf.getDuration(PropertyKey.WORKER_FAILURE_DETECTION_TIMEOUT).getSeconds());
     String pathOnRing = new StringBuffer()
         .append(getRingPathPrefix())
         .append(entity.getServiceEntityName()).toString();
