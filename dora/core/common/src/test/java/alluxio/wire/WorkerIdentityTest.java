@@ -16,6 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.io.BufferUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +27,7 @@ import com.google.gson.JsonParseException;
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.RandomUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -310,5 +312,28 @@ public class WorkerIdentityTest {
           ois::readObject);
       t.printStackTrace();
     }
+  }
+
+  @Test
+  public void stringSerDeTest() throws InvalidArgumentException {
+    // V1 string SerDe
+    UUID uuid = UUID.nameUUIDFromBytes("uuid".getBytes(StandardCharsets.UTF_8));
+    WorkerIdentity identity = WorkerIdentity.ParserV1.INSTANCE.fromUUID(uuid);
+    String idStr = identity.toString();
+    WorkerIdentity deserializedId = WorkerIdentity.fromString(idStr);
+    Assert.assertEquals(identity, deserializedId);
+
+    // V0 string SerDe
+    Long longId = RandomUtils.nextLong();
+    identity = WorkerIdentity.ParserV0.INSTANCE.fromLong(longId);
+    idStr = identity.toString();
+    deserializedId =  WorkerIdentity.fromString(idStr);
+    Assert.assertEquals(identity, deserializedId);
+
+    // Deserialize an unrecognized id str should get a InvalidArgumentException exception
+    String invalidIdStr = String.format("{}-{}",
+        RandomUtils.nextLong(), RandomUtils.nextLong());
+    Assert.assertThrows(InvalidArgumentException.class,
+        () -> WorkerIdentity.fromString(invalidIdStr));
   }
 }

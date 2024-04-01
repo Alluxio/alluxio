@@ -299,17 +299,26 @@ public final class CommonUtils {
    * @return the groups list that the {@code user} belongs to. The primary group is returned first
    */
   public static List<String> getUnixGroups(String user) throws IOException {
-    String result;
+    String effectiveGroupsResult;
+    String allGroupsResult;
     List<String> groups = new ArrayList<>();
     try {
-      result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand(user));
+      effectiveGroupsResult = ShellUtils.execCommand(
+          ShellUtils.getEffectiveGroupsForUserCommand(user));
+      allGroupsResult = ShellUtils.execCommand(
+          ShellUtils.getAllGroupsForUserCommand(user));
     } catch (ExitCodeException e) {
       // if we didn't get the group - just return empty list
       LOG.warn("got exception trying to get groups for user {}: {}", user, e.toString());
       return groups;
     }
 
-    StringTokenizer tokenizer = new StringTokenizer(result, ShellUtils.TOKEN_SEPARATOR_REGEX);
+    StringTokenizer tokenizer = new StringTokenizer(
+        effectiveGroupsResult, ShellUtils.TOKEN_SEPARATOR_REGEX);
+    while (tokenizer.hasMoreTokens()) {
+      groups.add(tokenizer.nextToken());
+    }
+    tokenizer = new StringTokenizer(allGroupsResult, ShellUtils.TOKEN_SEPARATOR_REGEX);
     while (tokenizer.hasMoreTokens()) {
       groups.add(tokenizer.nextToken());
     }
@@ -909,6 +918,9 @@ public final class CommonUtils {
    * see https://www.oracle.com/java/technologies/javase/versioning-naming.html for reference
    */
   public static int parseMajorVersion(String version) {
+    if (version.endsWith("-ea")) {
+      version = version.substring(0, version.length() - 3);
+    }
     if (version.startsWith("1.")) {
       version = version.substring(2, 3);
     } else {

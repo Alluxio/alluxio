@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.Command;
+import alluxio.cli.fsadmin.nodes.RemoveWorkerCommand;
 import alluxio.cli.fsadmin.nodes.WorkerStatusCommand;
 import alluxio.conf.AlluxioConfiguration;
 
@@ -29,6 +30,7 @@ public class NodesCommand extends AbstractFsAdminCommand {
 
   static {
     SUB_COMMANDS.put("status", WorkerStatusCommand::new);
+    SUB_COMMANDS.put("remove", RemoveWorkerCommand::new);
   }
 
   private Map<String, Command> mSubCommands = new HashMap<>();

@@ -21,9 +21,19 @@ public class NodesCommandIntegrationTest extends AbstractFsAdminShellTest {
    * alluxio mini cluster to start with for StaticMembershipManager
    * and EtcdMembershipManager. Currrently only add basic tests.
    */
+
   @Test
   public void testNoopMemberManager() {
     int ret = mFsAdminShell.run("nodes", "status");
     Assert.assertEquals(0, ret);
+  }
+
+  @Test
+  public void testRemoveMember() throws Exception {
+    int ret = mFsAdminShell.run("nodes", "remove");
+    Assert.assertNotEquals(0, ret);
+    Assert.assertTrue(mOutput.toString().contains("Missing required option"));
+    /* TODO() if possible start the local cluster with etcdmembership and then test
+    further logics */
   }
 }

@@ -15,6 +15,7 @@ import static alluxio.client.file.cache.store.PageStoreDir.getFileBucket;
 
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
+import alluxio.exception.PageCorruptedException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.file.ReadTargetBuffer;
@@ -100,11 +101,15 @@ public class LocalPageStore implements PageStore {
     }
     Path pagePath = getPagePath(pageId, isTemporary);
     try (RandomAccessFile localFile = new RandomAccessFile(pagePath.toString(), "r")) {
+      long pageLength = localFile.length();
+      if (pageOffset + bytesToRead > pageLength) {
+        throw new PageCorruptedException(String.format(
+            "The page %s (%s) probably has been corrupted, "
+                + "page-offset %s, bytes to read %s, page file length %s",
+            pageId, pagePath, pageOffset, bytesToRead, pageLength));
+      }
       int bytesSkipped = localFile.skipBytes(pageOffset);
       if (pageOffset != bytesSkipped) {
-        long pageLength = pagePath.toFile().length();
-        Preconditions.checkArgument(pageOffset <= pageLength,
-            "page offset %s exceeded page size %s", pageOffset, pageLength);
         throw new IOException(
             String.format("Failed to read page %s (%s) from offset %s: %s bytes skipped",
                 pageId, pagePath, pageOffset, bytesSkipped));

@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-stress</artifactId>
-    <version>309-SNAPSHOT</version>
+    <version>312-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-stress-common</artifactId>
   <packaging>jar</packaging>

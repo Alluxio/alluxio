@@ -19,6 +19,7 @@ import static org.junit.Assume.assumeTrue;
 import alluxio.Constants;
 
 import com.google.common.base.Optional;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -56,13 +57,40 @@ public final class ShellUtilsTest {
   }
 
   /**
-   * Tests the {@link ShellUtils#execCommand(String...)} method for a group of commands.
+   * Tests the {@link ShellUtils#execCommand(String...)} method for effective groups command.
    *
    * @throws Throwable when the execution of the commands fails
    */
   @Test
-  public void execGetGroupCommand() throws Exception {
-    String result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand("root"));
+  public void execGetEffectiveGroupCommand() throws Exception {
+    String result = ShellUtils.execCommand(ShellUtils.getEffectiveGroupsForUserCommand("root"));
+    // On Linux user "root" will be a part of the group "root". On OSX it will be a part of "admin".
+    assertTrue(result.contains("root") || result.contains("admin"));
+  }
+
+  /**
+   * Test the {@link ShellUtils#execCommand(String...)} method for effective groups command
+   * with malicious username passed in.
+   */
+  @Test
+  public void execGetEffectiveGroupCommandMaliciousTest() {
+    String maliciousName = "> echo ALLUXIO";
+    ShellUtils.ExitCodeException exception =
+        Assert.assertThrows(ShellUtils.ExitCodeException.class,
+            () -> ShellUtils.execCommand(
+                ShellUtils.getEffectiveGroupsForUserCommand(maliciousName))
+        );
+    Assert.assertTrue(exception.getMessage().contains("no such user"));
+  }
+
+  /**
+   * Tests the {@link ShellUtils#execCommand(String...)} method for all groups command.
+   *
+   * @throws Throwable when the execution of the commands fails
+   */
+  @Test
+  public void execGetAllGroupCommand() throws Exception {
+    String result = ShellUtils.execCommand(ShellUtils.getAllGroupsForUserCommand("root"));
     // On Linux user "root" will be a part of the group "root". On OSX it will be a part of "admin".
     assertTrue(result.contains("root") || result.contains("admin"));
   }

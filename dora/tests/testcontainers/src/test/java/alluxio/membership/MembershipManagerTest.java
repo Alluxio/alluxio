@@ -11,10 +11,14 @@
 
 package alluxio.membership;
 
+import static org.junit.Assert.assertThrows;
+
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlreadyExistsException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerIdentityTestUtils;
@@ -33,7 +37,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -52,11 +55,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 public class MembershipManagerTest {
   private static final Network NETWORK = Network.newNetwork();
   private static final int ETCD_PORT = 2379;
+  private static final String WORKER_FAILURE_TIMEOUT = "15sec";
+  private static final long WORKER_FAILURE_TIMEOUT_IN_MILLIS =
+      FormatUtils.parseTimeSize(WORKER_FAILURE_TIMEOUT);
+
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -66,11 +74,11 @@ public class MembershipManagerTest {
   /*
   @BeforeClass
   public static void init() {
-    PropertyConfigurator.configure("alluxio/conf/log4j.properties");
+    PropertyConfigurator.configure("<path_to_alluxio>/conf/log4j.properties");
     Properties props = new Properties();
     props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "Console");
   }
-  */
+ */
 
   @ClassRule
   public static final GenericContainer<?> ETCD_CONTAINER =
@@ -115,6 +123,7 @@ public class MembershipManagerTest {
 
   @Before
   public void before() throws IOException {
+    Configuration.set(PropertyKey.WORKER_FAILURE_DETECTION_TIMEOUT, WORKER_FAILURE_TIMEOUT);
     List<String> strs = getHealthyAlluxioEtcdClient().getChildren("/")
         .stream().map(kv -> kv.getKey().toString(StandardCharsets.UTF_8))
         .collect(Collectors.toList());
@@ -146,6 +155,10 @@ public class MembershipManagerTest {
 
   public MembershipManager getHealthyEtcdMemberMgr() {
     return new EtcdMembershipManager(Configuration.global(), getHealthyAlluxioEtcdClient());
+  }
+
+  public MembershipManager getToxicEtcdMemberMgr() {
+    return new EtcdMembershipManager(Configuration.global(), getToxicAlluxioEtcdClient());
   }
 
   public void enableEtcdAuthentication() throws ExecutionException, InterruptedException {
@@ -236,7 +249,7 @@ public class MembershipManagerTest {
             throw new RuntimeException(
                 String.format("Unexpected error while getting failed members: %s", e));
           }
-        }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
+        }, WaitForOptions.defaults().setTimeoutMs(WORKER_FAILURE_TIMEOUT_IN_MILLIS + 1000));
     List<WorkerInfo> expectedFailedList = new ArrayList<>();
     expectedFailedList.add(new WorkerInfo(wkr2).setState(WorkerState.LOST));
     Assert.assertEquals(expectedFailedList,
@@ -288,7 +301,7 @@ public class MembershipManagerTest {
     Assert.assertEquals(wkrs, allMembers);
     List<String> strs =
         client.getChildren("/").stream().map(kv -> kv.getKey().toString(StandardCharsets.UTF_8))
-              .collect(Collectors.toList());
+            .collect(Collectors.toList());
     Assert.assertEquals(3, strs.size());
     for (String str : strs) {
       Assert.assertTrue(str.contains("/ServiceDiscovery/DefaultAlluxioCluster/worker"));
@@ -302,7 +315,7 @@ public class MembershipManagerTest {
         throw new RuntimeException(
             String.format("Unexpected error while getting failed members: %s", e));
       }
-    }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
+    }, WaitForOptions.defaults().setTimeoutMs(WORKER_FAILURE_TIMEOUT_IN_MILLIS + 1000));
     Assert.assertTrue(Lists.newArrayList(membershipManager.getFailedMembers()).isEmpty());
     List<WorkerInfo> actualLiveMembers = membershipManager.getLiveMembers().stream()
         .sorted(Comparator.comparing(w -> w.getAddress().getHost()))
@@ -316,15 +329,11 @@ public class MembershipManagerTest {
         .collect(Collectors.toList()), actualLiveMembers);
   }
 
-  // ignore due to flaky already exist address exception. This test only passes when it is the
-  // first test to run.
-  @Ignore
   @Test
   public void testFlakyNetwork() throws Exception {
-    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.ETCD);
-    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getProxiedClientEndpoints());
-    MembershipManager membershipManager = MembershipManager.Factory.create(Configuration.global());
-    Assert.assertTrue(membershipManager instanceof EtcdMembershipManager);
+    System.out.println("WORKER_FAILURE_TIMEOUT is configured to be "
+        + WORKER_FAILURE_TIMEOUT);
+    MembershipManager membershipManager = getToxicEtcdMemberMgr();
     WorkerInfo wkr1 = new WorkerInfo()
         .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
         .setAddress(new WorkerNetAddress()
@@ -347,13 +356,34 @@ public class MembershipManagerTest {
             throw new RuntimeException(
                 String.format("Unexpected error while getting live members: %s", e));
           }
-        }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
+        }, WaitForOptions.defaults().setTimeoutMs(WORKER_FAILURE_TIMEOUT_IN_MILLIS + 1000));
 
     MembershipManager healthyMgr = getHealthyEtcdMemberMgr();
     System.out.println("All Node Status:\n" + healthyMgr.showAllMembers());
-    System.out.println("Induce 10 sec latency upstream to etcd...");
+    System.out.println(String.format("Induce %d sec latency upstream to etcd...",
+        TimeUnit.MILLISECONDS.toSeconds(WORKER_FAILURE_TIMEOUT_IN_MILLIS / 2)));
+    /* For induced latency lower than WORKER_FAILURE_TIMEOUT_IN_MILLIS, we shouldn't see
+       that the worker is considered failed. */
     sEtcdProxy.toxics()
-        .latency("latency", ToxicDirection.UPSTREAM, 10000);
+        .latency("latency", ToxicDirection.UPSTREAM, WORKER_FAILURE_TIMEOUT_IN_MILLIS / 2);
+    // assert that we will never see any worker considered FAIL.
+    Assert.assertThrows(TimeoutException.class, () ->
+        CommonUtils.waitFor("Workers network errored but not considered fail",
+            () -> {
+              try {
+                return !healthyMgr.getFailedMembers().isEmpty();
+              } catch (IOException e) {
+                throw new RuntimeException(
+                    String.format("Unexpected error while getting failed members: %s", e));
+              }
+            }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10))));
+    System.out.println("All Node Status:\n" + healthyMgr.showAllMembers());
+    System.out.println(String.format(
+        "Remove latency toxics and induce %d sec latency upstream to etcd...",
+        TimeUnit.MILLISECONDS.toSeconds(WORKER_FAILURE_TIMEOUT_IN_MILLIS + 10000)));
+    sEtcdProxy.toxics().get("latency").remove();
+    sEtcdProxy.toxics()
+        .latency("latency", ToxicDirection.UPSTREAM, WORKER_FAILURE_TIMEOUT_IN_MILLIS + 10000);
     CommonUtils.waitFor("Workers network errored",
         () -> {
           try {
@@ -362,7 +392,8 @@ public class MembershipManagerTest {
             throw new RuntimeException(
                 String.format("Unexpected error while getting failed members: %s", e));
           }
-        }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
+        }, WaitForOptions.defaults().setTimeoutMs(WORKER_FAILURE_TIMEOUT_IN_MILLIS + 10000));
+
     System.out.println("All Node Status:\n" + healthyMgr.showAllMembers());
     System.out.println("Remove latency toxics...");
     sEtcdProxy.toxics().get("latency").remove();
@@ -374,7 +405,7 @@ public class MembershipManagerTest {
             throw new RuntimeException(
                 String.format("Unexpected error while getting failed members: %s", e));
           }
-        }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
+        }, WaitForOptions.defaults().setTimeoutMs(WORKER_FAILURE_TIMEOUT_IN_MILLIS));
     System.out.println("All Node Status:\n" + healthyMgr.showAllMembers());
   }
 
@@ -454,7 +485,7 @@ public class MembershipManagerTest {
         // IGNORE
         return false;
       }
-    }, WaitForOptions.defaults().setTimeoutMs(5000));
+    }, WaitForOptions.defaults().setTimeoutMs(WORKER_FAILURE_TIMEOUT_IN_MILLIS + 1000));
     try {
       membershipManager.join(wkr2);
     } catch (IOException ex) {
@@ -497,7 +528,7 @@ public class MembershipManagerTest {
         // IGNORE
         return false;
       }
-    }, WaitForOptions.defaults().setTimeoutMs(5000));
+    }, WaitForOptions.defaults().setTimeoutMs(WORKER_FAILURE_TIMEOUT_IN_MILLIS + 1000));
 
     // set the http server port and rejoin
     workerNetAddress.setHttpServerPort(1021);
@@ -510,5 +541,75 @@ public class MembershipManagerTest {
     Assert.assertEquals(wkr.getAddress(), curWorkerInfo.get().getAddress());
     Assert.assertEquals(wkr.getAddress().getHttpServerPort(),
         curWorkerInfo.get().getAddress().getHttpServerPort());
+  }
+
+  @Test
+  public void testDecommission() throws Exception {
+    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.ETCD);
+    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getClientEndpoints());
+    MembershipManager membershipManager = getHealthyEtcdMemberMgr();
+    WorkerInfo wkr1 = new WorkerInfo()
+        .setIdentity(WorkerIdentityTestUtils.randomUuidBasedId())
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker1").setContainerHost("containerhostname1")
+            .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
+            .setDomainSocketPath("/var/lib/domain.sock"));
+    WorkerIdentity wkr2Id = WorkerIdentityTestUtils.randomUuidBasedId();
+    WorkerInfo wkr2 = new WorkerInfo()
+        .setIdentity(wkr2Id)
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker2").setContainerHost("containerhostname2")
+            .setRpcPort(2000).setDataPort(2001).setWebPort(2011)
+            .setDomainSocketPath("/var/lib/domain.sock"));
+    membershipManager.join(wkr1);
+    membershipManager.join(wkr2);
+    List<WorkerInfo> wkrs = new ArrayList<>();
+    wkrs.add(new WorkerInfo(wkr1).setState(WorkerState.LIVE));
+    wkrs.add(new WorkerInfo(wkr2).setState(WorkerState.LIVE));
+    List<WorkerInfo> allMembers = membershipManager.getAllMembers().stream()
+        .sorted(Comparator.comparing(w -> w.getAddress().getHost()))
+        .collect(Collectors.toList());
+    Assert.assertEquals(wkrs, allMembers);
+
+    // try to decommission a running worker will be rejected
+    assertThrows(InvalidArgumentException.class, () -> membershipManager.decommission(wkr2));
+
+    // try stop and decommission
+    membershipManager.stopHeartBeat(wkr2);
+    CommonUtils.waitFor("Worker to stop",
+        () -> {
+          try {
+            return membershipManager.getFailedMembers()
+                .getWorkerById(wkr2.getIdentity()).isPresent();
+          } catch (IOException e) {
+            throw new RuntimeException(
+                String.format("Unexpected error while getting failed members: %s", e));
+          }
+        }, WaitForOptions.defaults().setTimeoutMs(WORKER_FAILURE_TIMEOUT_IN_MILLIS + 1000));
+    membershipManager.decommission(wkr2);
+    Assert.assertFalse(membershipManager.getAllMembers()
+        .getWorkerById(wkr2.getIdentity()).isPresent());
+
+    // some other worker with a same id could register again
+    WorkerInfo wkr2Replacement = new WorkerInfo()
+        .setIdentity(wkr2Id)
+        .setAddress(new WorkerNetAddress()
+            .setHost("worker3").setContainerHost("containerhostname3")
+            .setRpcPort(2000).setDataPort(2001).setWebPort(2011)
+            .setDomainSocketPath("/var/lib/domain.sock"));
+    membershipManager.join(wkr2Replacement);
+    CommonUtils.waitFor("Worker2 replacement to be up.",
+        () -> {
+          try {
+            return membershipManager.getLiveMembers().getWorkerById(wkr2Id).isPresent();
+          } catch (IOException e) {
+            throw new RuntimeException(
+                String.format("Unexpected error while getting live members: %s", e));
+          }
+        }, WaitForOptions.defaults().setTimeoutMs(WORKER_FAILURE_TIMEOUT_IN_MILLIS + 1000));
+    Optional<WorkerInfo> newWkr2Entity = membershipManager.getAllMembers().getWorkerById(wkr2Id);
+    Assert.assertTrue(newWkr2Entity.isPresent());
+    wkr2Replacement.setState(WorkerState.LIVE);
+    Assert.assertEquals(wkr2Replacement, newWkr2Entity.get());
   }
 }

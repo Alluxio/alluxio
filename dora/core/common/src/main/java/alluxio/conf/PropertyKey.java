@@ -4842,6 +4842,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey WORKER_FAILURE_DETECTION_TIMEOUT =
+      durationBuilder(Name.WORKER_FAILURE_DETECTION_TIMEOUT)
+          .setDefaultValue("2min")
+          .setDescription("The timeout to consider a worker failure in membership"
+              + " failure detection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE =
       stringBuilder(Name.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE)
           .setDefaultValue(format("${%s}/workers", Name.CONF_DIR))
@@ -5681,7 +5689,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER =
       intBuilder(Name.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER)
-          .setDefaultValue(2000)
+          .setDefaultValue(5)
           .setDescription("This is the number of virtual nodes for one worker in the consistent "
               + "hashing algorithm. In a consistent hashing algorithm, on membership changes, some "
               + "virtual nodes are re-distributed instead of rebuilding the whole hash table. "
@@ -8211,6 +8219,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.ufs.instream.cache.max.size";
     public static final String WORKER_MEMBERSHIP_MANAGER_TYPE =
         "alluxio.worker.membership.manager.type";
+    public static final String WORKER_FAILURE_DETECTION_TIMEOUT =
+        "alluxio.worker.failure.detection.timeout";
     public static final String WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE =
         "alluxio.worker.static.membership.manager.config.file";
 
