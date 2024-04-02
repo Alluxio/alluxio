@@ -126,12 +126,11 @@ public interface BlockStore extends SessionCleanable, Closeable {
   /**
    * Gets the temp metadata of a specific block from local storage.
    *
-   * @param sessionId the id of the session to get this file
    * @param blockId the id of the block
    * @return metadata of the block or null if the temp block does not exist
    */
   @Nullable
-  TempBlockMeta getTempBlockMeta(long sessionId, long blockId);
+  TempBlockMeta getTempBlockMeta(long blockId);
 
   /**
    * Commits a temporary block to the local store. After commit, the block will be available in this

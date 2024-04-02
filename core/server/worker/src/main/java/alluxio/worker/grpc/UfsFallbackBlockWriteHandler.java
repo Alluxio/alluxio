@@ -269,7 +269,7 @@ public final class UfsFallbackBlockWriteHandler
 
     long sessionId = context.getRequest().getSessionId();
     long blockId = context.getRequest().getId();
-    TempBlockMeta block = mWorker.getTempBlockMeta(sessionId, blockId);
+    TempBlockMeta block = mWorker.getTempBlockMeta(blockId);
     if (block == null) {
       throw new NotFoundException("block " + blockId + " not found");
     }

@@ -397,8 +397,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
-    return mLocalBlockStore.getTempBlockMeta(sessionId, blockId);
+  public TempBlockMeta getTempBlockMeta(long blockId) {
+    return mLocalBlockStore.getTempBlockMeta(blockId);
   }
 
   @Override
@@ -546,6 +546,10 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       });
     } catch (Exception e) {
       try {
+        TempBlockMeta tempBlockMeta = mLocalBlockStore.getTempBlockMeta(blockId);
+        if (tempBlockMeta != null && tempBlockMeta.getSessionId() == sessionId) {
+          abortBlock(sessionId, blockId);
+        }
         closeUfsBlock(sessionId, blockId);
       } catch (Exception ee) {
         LOG.warn("Failed to close UFS block", ee);
@@ -651,7 +655,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
     try {
       mUnderFileSystemBlockStore.closeReaderOrWriter(sessionId, blockId);
-      if (mLocalBlockStore.getTempBlockMeta(sessionId, blockId) != null) {
+      if (mLocalBlockStore.getTempBlockMeta(blockId) != null) {
         try {
           commitBlock(sessionId, blockId, false);
         } catch (BlockDoesNotExistException e) {

@@ -136,13 +136,11 @@ public interface BlockWorker extends Worker, SessionCleanable {
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
-   * @param sessionId the id of the session to get this file
    * @param blockId the id of the block
-   *
    * @return metadata of the block or null if the temp block does not exist
    */
   @Nullable
-  TempBlockMeta getTempBlockMeta(long sessionId, long blockId);
+  TempBlockMeta getTempBlockMeta(long blockId);
 
   /**
    * Creates a {@link BlockWriter} for an existing temporary block which is already created by
