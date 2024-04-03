@@ -875,10 +875,12 @@ public class LocalCacheManager implements CacheManager {
             if (predicate.test(pageInfo)) {
               isPageDeleted = delete(pageInfo.getPageId());
             }
-            if (!isPageDeleted) {
+            if (isPageDeleted) {
               MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_INVALIDATED.getName()).mark();
+            }
+            else {
               MetricsSystem.histogram(MetricKey.CLIENT_CACHE_PAGES_AGES.getName())
-                  .update(System.currentTimeMillis() - pageInfo.getCreatedTimestamp());
+                           .update(System.currentTimeMillis() - pageInfo.getCreatedTimestamp());
             }
           }
         });
