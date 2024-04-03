@@ -114,6 +114,7 @@ public class LocalCacheManager implements CacheManager {
    */
   private final AtomicReference<CacheManager.State> mState = new AtomicReference<>();
   private final CacheManagerOptions mOptions;
+  private Optional<Predicate<PageInfo>> mPagePredicate = Optional.empty();
 
   /**
    * @param options       the options of local cache manager
@@ -163,17 +164,19 @@ public class LocalCacheManager implements CacheManager {
         options.isAsyncRestoreEnabled() ? Optional.of(Executors.newSingleThreadExecutor()) :
             Optional.empty();
     if (options.isTtlEnabled()) {
+      Predicate<PageInfo> ttl = pageInfo -> {
+        try {
+          return System.currentTimeMillis() - pageInfo.getCreatedTimestamp()
+              >= options.getTtlThresholdSeconds() * 1000;
+        } catch (Exception ex) {
+          // In case of any exception, do not invalidate the cache
+          return false;
+        }
+      };
+      mPagePredicate = Optional.of(ttl);
       mTtlEnforcerExecutor = Optional.of(newScheduledThreadPool(1));
       mTtlEnforcerExecutor.get().scheduleAtFixedRate(() ->
-          LocalCacheManager.this.invalidate(pageInfo -> {
-            try {
-              return System.currentTimeMillis() - pageInfo.getCreatedTimestamp()
-                  >= options.getTtlThresholdSeconds() * 1000;
-            } catch (Exception ex) {
-              // In case of any exception, do not invalidate the cache
-              return false;
-            }
-          }), 0, options.getTtlCheckIntervalSeconds(), SECONDS);
+          LocalCacheManager.this.invalidate(ttl), 0, options.getTtlCheckIntervalSeconds(), SECONDS);
     } else {
       mTtlEnforcerExecutor = Optional.empty();
     }
@@ -784,9 +787,10 @@ public class LocalCacheManager implements CacheManager {
       return false;
     }
     try {
-      pageStoreDir.scanPages(pageInfo -> {
-        if (pageInfo.isPresent()) {
-          addPageToDir(pageStoreDir, pageInfo.get());
+      pageStoreDir.scanPages(optionalPageInfo -> {
+        if (optionalPageInfo.isPresent()) {
+          PageInfo pageInfo = optionalPageInfo.get();
+          addPageBasedOnPredicate(pageStoreDir, pageInfo);
         }
       });
     } catch (IOException | RuntimeException e) {
@@ -799,6 +803,33 @@ public class LocalCacheManager implements CacheManager {
         mPageMetaStore.bytes() - restoredBytes, Metrics.PAGE_DISCARDED.getCount() - discardPages,
         Metrics.BYTE_DISCARDED.getCount() - discardBytes);
     return true;
+  }
+
+  private void addPageBasedOnPredicate(PageStoreDir pageStoreDir, PageInfo pageInfo) {
+    boolean tested = false;
+    if (mPagePredicate.isPresent()) {
+      tested = mPagePredicate.get().test(pageInfo);
+    }
+    if (!tested) {
+      addPageToDir(pageStoreDir, pageInfo);
+      MetricsSystem.histogram(MetricKey.CLIENT_CACHE_PAGES_AGES.getName())
+                   .update(System.currentTimeMillis() - pageInfo.getCreatedTimestamp());
+    }
+    else {
+      // delete page directly and no metadata put into meta store
+      boolean isPageDeleted = deletePage(pageInfo, false);
+      if (isPageDeleted) {
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_INVALIDATED.getName()).mark();
+      }
+      else {
+        LOG.debug("Failed to delete old pages {} when restore", pageInfo.getPageId());
+        Metrics.DELETE_STORE_DELETE_ERRORS.inc();
+        Metrics.DELETE_ERRORS.inc();
+        // still show the age of the old page to warn users
+        MetricsSystem.histogram(MetricKey.CLIENT_CACHE_PAGES_AGES.getName())
+                     .update(System.currentTimeMillis() - pageInfo.getCreatedTimestamp());
+      }
+    }
   }
 
   private void addPageToDir(PageStoreDir pageStoreDir, PageInfo pageInfo) {
@@ -866,6 +897,11 @@ public class LocalCacheManager implements CacheManager {
 
   @Override
   public void invalidate(Predicate<PageInfo> predicate) {
+    if (mState.get() != READ_WRITE) {
+      Metrics.DELETE_NOT_READY_ERRORS.inc();
+      Metrics.DELETE_ERRORS.inc();
+      return;
+    }
     mPageStoreDirs.forEach(dir -> {
       try {
         dir.scanPages(pageInfoOpt -> {
