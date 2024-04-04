@@ -292,7 +292,7 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       }
     }
 
-        private void createFiles(FileSystem fs, int numFiles, String dirPath, long fileSize)
+    private void createFiles(FileSystem fs, int numFiles, String dirPath, long fileSize)
         throws IOException, AlluxioException {
       CreateFilePOptions options = CreateFilePOptions.newBuilder()
           .setRecursive(true).setWriteType(WritePType.THROUGH).build();
