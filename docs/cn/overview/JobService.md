@@ -18,10 +18,6 @@ Job Worker将来自Job Master的任务排列（queue)，并通过管理可配置
 
 ## 不同类型的作业
 
-### 加载 Load
-
-`fs distributedLoad`CLI命令中使用了加载作业，按特定的副本数将文件加载到Alluxio。
-
 ### 迁移 Migrate
 
 `fs distributedCp`CLI命令中使用了迁移作业，使用固定的[写入类型]({{ '/en/overview/Architecture.html#data-flow-write' | relativize_url }})进行数据复制/移动。
