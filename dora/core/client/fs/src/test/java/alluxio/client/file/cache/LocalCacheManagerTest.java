@@ -823,6 +823,29 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
+  public void ttlDeleteOldPagesWhenRestore() throws Exception {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_TTL_THRESHOLD_SECONDS, 5);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_TTL_ENABLED, true);
+    mCacheManagerOptions = CacheManagerOptions.create(mConf);
+    mCacheManager.close();
+    PageStoreDir dir = PageStoreDir.createPageStoreDirs(mCacheManagerOptions)
+                                   .get(0); // previous page store has been closed
+    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
+    dir.getPageStore().put(PAGE_ID1, PAGE1);
+    dir.getPageStore().put(PAGE_ID2, PAGE2);
+
+    dir = PageStoreDir.createPageStoreDirs(mCacheManagerOptions).get(0);
+    mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
+    Thread.sleep(6000);
+    dir.getPageStore().put(pageUuid,
+        BufferUtils.getIncreasingByteArray(PAGE1.length + PAGE2.length + 1));
+    mCacheManager = createLocalCacheManager(mConf, mPageMetaStore);
+    assertFalse(mCacheManager.hasPageUnsafe(PAGE_ID1));
+    assertFalse(mCacheManager.hasPageUnsafe(PAGE_ID2));
+    assertTrue(mCacheManager.hasPageUnsafe(pageUuid)); // we should have the new page
+  }
+
+  @Test
   public void asyncCache() throws Exception {
     // this must be smaller than the number of locks in the page store for the test to succeed
     final int threads = 16;
