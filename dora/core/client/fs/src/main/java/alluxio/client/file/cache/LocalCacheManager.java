@@ -114,7 +114,7 @@ public class LocalCacheManager implements CacheManager {
    */
   private final AtomicReference<CacheManager.State> mState = new AtomicReference<>();
   private final CacheManagerOptions mOptions;
-  private Optional<Predicate<PageInfo>> mPagePredicate = Optional.empty();
+  private final Optional<Predicate<PageInfo>> mPagePredicate;
 
   /**
    * @param options       the options of local cache manager
@@ -179,6 +179,7 @@ public class LocalCacheManager implements CacheManager {
           LocalCacheManager.this.invalidate(ttl), 0, options.getTtlCheckIntervalSeconds(), SECONDS);
     } else {
       mTtlEnforcerExecutor = Optional.empty();
+      mPagePredicate = Optional.empty();
     }
     Metrics.registerGauges(mCacheSize, mPageMetaStore);
     mState.set(READ_ONLY);
@@ -790,7 +791,12 @@ public class LocalCacheManager implements CacheManager {
       pageStoreDir.scanPages(optionalPageInfo -> {
         if (optionalPageInfo.isPresent()) {
           PageInfo pageInfo = optionalPageInfo.get();
-          addPageBasedOnPredicate(pageStoreDir, pageInfo);
+          if (mPagePredicate.isPresent()) {
+            addPageBasedOnPredicate(pageStoreDir, pageInfo);
+          }
+          else {
+            addPageToDir(pageStoreDir, pageInfo);
+          }
         }
       });
     } catch (IOException | RuntimeException e) {
@@ -806,10 +812,7 @@ public class LocalCacheManager implements CacheManager {
   }
 
   private void addPageBasedOnPredicate(PageStoreDir pageStoreDir, PageInfo pageInfo) {
-    boolean tested = false;
-    if (mPagePredicate.isPresent()) {
-      tested = mPagePredicate.get().test(pageInfo);
-    }
+    boolean tested = mPagePredicate.get().test(pageInfo);
     if (!tested) {
       addPageToDir(pageStoreDir, pageInfo);
       MetricsSystem.histogram(MetricKey.CLIENT_CACHE_PAGES_AGES.getName())
@@ -817,7 +820,11 @@ public class LocalCacheManager implements CacheManager {
     }
     else {
       // delete page directly and no metadata put into meta store
-      boolean isPageDeleted = deletePage(pageInfo, false);
+      ReadWriteLock pageLock = getPageLock(pageInfo.getPageId());
+      boolean isPageDeleted;
+      try (LockResource r = new LockResource(pageLock.writeLock())) {
+        isPageDeleted = deletePage(pageInfo, false);
+      }
       if (isPageDeleted) {
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_INVALIDATED.getName()).mark();
       }
