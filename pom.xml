@@ -21,7 +21,7 @@
   </parent>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>312-SNAPSHOT</version>
+  <version>312</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -36,7 +36,7 @@
   <scm>
     <connection>scm:git:git@github.com:alluxio/alluxio.git</connection>
     <developerConnection>scm:git:git@github.com:alluxio/alluxio.git</developerConnection>
-    <tag>alluxio-parent-312-SNAPSHOT</tag>
+    <tag>alluxio-parent-312</tag>
     <url>scm:git:git@github.com:alluxio/alluxio.git</url>
   </scm>
   <issueManagement>
@@ -124,7 +124,7 @@
 
   <properties>
     <apache.curator.version>4.2.0</apache.curator.version>
-    <argLine/>
+    <argLine />
     <aws.amazonaws.version>1.11.815</aws.amazonaws.version>
     <awssdk.version>2.20.56</awssdk.version>
     <build.path>build</build.path>
@@ -1260,7 +1260,7 @@
               <rules>
                 <!-- checks for duplicate dependencies in the "dependencies" and "dependencyManagement" sections. -->
                 <!-- dependencies are considered duplicate if they have the same groupId, artifactId, type, and classifier properties -->
-                <banDuplicatePomDependencyVersions/>
+                <banDuplicatePomDependencyVersions />
               </rules>
             </configuration>
           </execution>
@@ -1510,7 +1510,7 @@
             </goals>
             <!-- Empty phase to skip automatically running this as part of a build process -->
             <!-- Still invokable by running `mvn sortpom:sort@manual-sort` from the command line -->
-            <phase/>
+            <phase />
             <configuration>
               <createBackupFile>true</createBackupFile>
             </configuration>
