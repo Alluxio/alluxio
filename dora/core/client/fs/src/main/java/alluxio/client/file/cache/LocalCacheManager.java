@@ -36,6 +36,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.resource.LockResource;
+import alluxio.util.ThreadFactoryUtils;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
@@ -158,10 +159,13 @@ public class LocalCacheManager implements CacheManager {
         options.isAsyncWriteEnabled()
             ? Optional.of(new ThreadPoolExecutor(mOptions.getAsyncWriteThreads(),
             mOptions.getAsyncWriteThreads(), 60, TimeUnit.SECONDS,
-                new SynchronousQueue<>(), new ThreadPoolExecutor.CallerRunsPolicy()))
+                new SynchronousQueue<>(), ThreadFactoryUtils.build(
+                        "alluxio-async-cache-executor", true),
+                new ThreadPoolExecutor.CallerRunsPolicy()))
             : Optional.empty();
     mInitService =
-        options.isAsyncRestoreEnabled() ? Optional.of(Executors.newSingleThreadExecutor()) :
+        options.isAsyncRestoreEnabled() ? Optional.of(Executors.newSingleThreadExecutor(
+                ThreadFactoryUtils.build("alluxio-init-service", true))) :
             Optional.empty();
     if (options.isTtlEnabled()) {
       Predicate<PageInfo> ttl = pageInfo -> {
@@ -174,7 +178,8 @@ public class LocalCacheManager implements CacheManager {
         }
       };
       mPagePredicate = Optional.of(ttl);
-      mTtlEnforcerExecutor = Optional.of(newScheduledThreadPool(1));
+      mTtlEnforcerExecutor = Optional.of(newScheduledThreadPool(1,
+              ThreadFactoryUtils.build("alluxio-ttl-executor", true)));
       mTtlEnforcerExecutor.get().scheduleAtFixedRate(() ->
           LocalCacheManager.this.invalidate(ttl), 0, options.getTtlCheckIntervalSeconds(), SECONDS);
     } else {
