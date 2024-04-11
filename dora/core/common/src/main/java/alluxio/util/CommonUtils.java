@@ -83,6 +83,9 @@ public final class CommonUtils {
   private static final int JAVA_MAJOR_VERSION =
       parseMajorVersion(System.getProperty("java.version"));
 
+  private static final String JVM_EARLY_ACCESS_VERSION_SUFFIX = "-ea";
+  private static final String JVM_BETA_VERSION_SUFFIX = "-beta";
+
   /**
    * Convenience method for calling {@link #createProgressThread(long, PrintStream)} with an
    * interval of 2 seconds.
@@ -918,8 +921,11 @@ public final class CommonUtils {
    * see https://www.oracle.com/java/technologies/javase/versioning-naming.html for reference
    */
   public static int parseMajorVersion(String version) {
-    if (version.endsWith("-ea")) {
-      version = version.substring(0, version.length() - 3);
+    if (version.endsWith(JVM_EARLY_ACCESS_VERSION_SUFFIX)) {
+      version = version.substring(0, version.length() - JVM_EARLY_ACCESS_VERSION_SUFFIX.length());
+    }
+    else if (version.endsWith(JVM_BETA_VERSION_SUFFIX)) {
+      version = version.substring(0, version.length() - JVM_BETA_VERSION_SUFFIX.length());
     }
     if (version.startsWith("1.")) {
       version = version.substring(2, 3);
