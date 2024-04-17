@@ -5570,6 +5570,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
 
           .build();
+  public static final PropertyKey PROXY_S3_USE_POSITION_READ_RANGE_SIZE =
+      dataSizeBuilder(Name.PROXY_S3_USE_POSITION_READ_RANGE_SIZE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setDescription("When the requested range length is less than this value, "
+              + "the S3 proxy will use 'positionRead' to read data from the worker. "
+              + "Setting a value less than or equal to 0 indicates disabling this feature.")
+          .setDefaultValue("1MB")
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // Locality related properties
@@ -8814,6 +8823,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.global.read.rate.limit.mb";
     public static final String PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB =
         "alluxio.proxy.s3.single.connection.read.rate.limit.mb";
+    public static final String PROXY_S3_USE_POSITION_READ_RANGE_SIZE =
+        "alluxio.proxy.s3.use.position.read.range.size";
 
     //
     // Locality related properties

@@ -56,6 +56,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -121,6 +122,9 @@ public final class S3RestServiceHandler {
           Configuration.global().getMs(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS),
           TimeUnit.MILLISECONDS)
       .build();
+  private static final int MAX_POSITION_READ_LENGTH = 4 * Constants.MB;
+  private static final int USE_POSITION_READ_SIZE = (int) Math.min(MAX_POSITION_READ_LENGTH,
+      Configuration.getBytes(PropertyKey.PROXY_S3_USE_POSITION_READ_RANGE_SIZE));
   private final FileSystem mMetaFS;
   private final InstancedConfiguration mSConf;
 
@@ -1289,17 +1293,24 @@ public final class S3RestServiceHandler {
           URIStatus status = userFs.getStatus(objectUri);
           FileInStream is = userFs.openFile(status, OpenFilePOptions.getDefaultInstance());
           S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
-          RangeFileInStream ris = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
-
-          InputStream inputStream;
+          InputStream inputStream = null;
+          long read = s3Range.getLength(status.getLength());
+          if (read < USE_POSITION_READ_SIZE) {
+            byte[] bytes = new byte[(int) read];
+            is.positionedRead(s3Range.getOffset(status.getLength()), bytes, 0, bytes.length);
+            is.close();
+            inputStream = new ByteArrayInputStream(bytes);
+          }
+          if (inputStream == null) {
+            inputStream = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
+          }
           long rate =
               (long) mSConf.getInt(PropertyKey.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB)
                   * Constants.MB;
           RateLimiter currentRateLimiter = S3RestUtils.createRateLimiter(rate).orElse(null);
-          if (currentRateLimiter == null && mGlobalRateLimiter == null) {
-            inputStream = ris;
-          } else {
-            inputStream = new RateLimitInputStream(ris, mGlobalRateLimiter, currentRateLimiter);
+          if (currentRateLimiter != null || mGlobalRateLimiter != null) {
+            inputStream =
+                new RateLimitInputStream(inputStream, mGlobalRateLimiter, currentRateLimiter);
           }
 
           Response.ResponseBuilder res = Response.ok(inputStream)
