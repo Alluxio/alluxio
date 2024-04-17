@@ -5576,7 +5576,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("When the requested range length is less than this value, "
               + "the S3 proxy will use 'positionRead' to read data from the worker. "
               + "Setting a value less than or equal to 0 indicates disabling this feature.")
-          .setDefaultValue("1MB")
+          .setDefaultValue(0)
           .setScope(Scope.SERVER)
           .build();
 
