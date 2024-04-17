@@ -90,6 +90,7 @@ public class S3Handler {
   private static final Logger LOG = LoggerFactory.getLogger(S3Handler.class);
   private static final ThreadLocal<byte[]> TLS_BYTES =
           ThreadLocal.withInitial(() -> new byte[8 * 1024]);
+  // Position read will consume additional memory, so here we limit the maximum memory usage.
   private static final int MAX_POSITION_READ_LENGTH = 4 * Constants.MB;
   public static final int USE_POSITION_READ_SIZE = (int) Math.min(MAX_POSITION_READ_LENGTH,
       Configuration.getBytes(PropertyKey.PROXY_S3_USE_POSITION_READ_RANGE_SIZE));

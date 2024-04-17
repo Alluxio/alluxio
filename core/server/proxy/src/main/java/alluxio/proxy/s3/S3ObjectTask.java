@@ -319,6 +319,15 @@ public class S3ObjectTask extends S3BaseTask {
             S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
             InputStream inputStream = null;
             long read = s3Range.getLength(status.getLength());
+            /**
+             * The client will request the worker to read data in chunk sizes,
+             * approximately 2MB. If the range is small, only a few KB in size,
+             * it will cause significant read amplification.
+             * Therefore, for smaller ranges,
+             * we attempt to use position read to avoid read amplification.
+             * For larger ranges, reading according to the chunk size does not cause
+             * particularly noticeable amplification, so we maintain the current approach.
+             */
             if (read < S3Handler.USE_POSITION_READ_SIZE) {
               byte[] bytes = new byte[(int) read];
               is.positionedRead(s3Range.getOffset(status.getLength()), bytes, 0, bytes.length);
