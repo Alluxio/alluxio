@@ -5575,7 +5575,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setDescription("When the requested range length is less than this value, "
               + "the S3 proxy will use 'positionRead' to read data from the worker. "
-              + "Setting a value less than or equal to 0 indicates disabling this feature.")
+              + "Setting a value less than or equal to 0 indicates disabling this feature. "
+              + "In the current implementation, each request for a position read uses "
+              + "a byte array of the same size as the range to temporarily store data, "
+              + "which consumes additional memory. "
+              + "Therefore, in practical use, we limit this value to 4MB. "
+              + "This means that if a value exceeding 4MB is configured, "
+              + "it will be modified to 4MB.")
           .setDefaultValue(0)
           .setScope(Scope.SERVER)
           .build();
