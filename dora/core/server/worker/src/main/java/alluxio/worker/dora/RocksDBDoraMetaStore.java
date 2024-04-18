@@ -96,7 +96,8 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
     columns.add(new ColumnFamilyDescriptor(DORA_META_FILE_STATUS_COLUMN.getBytes(),
             new ColumnFamilyOptions()
                     .setMemTableConfig(new HashLinkedListMemTableConfig())
-                    .setCompressionType(CompressionType.NO_COMPRESSION)));
+                    .setCompressionType(CompressionType.NO_COMPRESSION)
+                    .setTtl(metaTTL)));
     mToClose.addAll(columns.stream().map(
             ColumnFamilyDescriptor::getOptions).collect(Collectors.toList()));
 
@@ -132,13 +133,6 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
     }
     try {
       DoraMeta.FileStatus fs = DoraMeta.FileStatus.parseFrom(status);
-      if (mMetaTTL != -1) {
-        if (System.nanoTime() - fs.getTs() > mMetaTTL * Constants.SECOND_NANO) {
-          // The Metadata is out of date.
-          removeDoraMeta(path);
-          return Optional.empty();
-        }
-      }
       return Optional.of(fs);
     } catch (Exception e) {
       removeDoraMeta(path);
