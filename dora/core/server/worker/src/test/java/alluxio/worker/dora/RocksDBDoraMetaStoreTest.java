@@ -50,7 +50,6 @@ public class RocksDBDoraMetaStoreTest extends TestCase {
     assert (res.isPresent());
     assert (res.get().equals(fs));
     System.out.println(res);
-
     mTestMetastore.removeDoraMeta(path);
     Optional<DoraMeta.FileStatus> res2 = mTestMetastore.getDoraMeta(path);
     assert (!res2.isPresent());
