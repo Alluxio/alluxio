@@ -11,7 +11,6 @@
 
 package alluxio.worker.dora;
 
-import alluxio.Constants;
 import alluxio.conf.PropertyKey;
 import alluxio.master.metastore.rocks.RocksExclusiveLockHandle;
 import alluxio.master.metastore.rocks.RocksSharedLockHandle;
