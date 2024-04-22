@@ -15,10 +15,12 @@ import static alluxio.client.file.cache.store.LocalPageStore.TEMP_DIR;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
+import alluxio.exception.PageCorruptedException;
 import alluxio.file.ByteArrayTargetBuffer;
 
 import org.junit.Before;
@@ -171,12 +173,26 @@ public class LocalPageStoreTest {
     assertFalse(Files.exists(p.getParent()));
   }
 
+  @Test
+  public void testCorruptedPages() throws Exception {
+    mOptions.setFileBuckets(1);
+    LocalPageStore pageStore = new LocalPageStore(mOptions);
+    byte[] buf = new byte[1000];
+    PageId id = new PageId("1", 0);
+    pageStore.put(id, "corrupted".getBytes());
+    assertThrows(PageCorruptedException.class, () -> {
+      //the bytes caller want to read is larger than the page file, mostly means the page corrupted
+      pageStore.get(id, 0, 100, new ByteArrayTargetBuffer(buf, 0));
+    });
+  }
+
   private void helloWorldTest(PageStore store) throws Exception {
     String msg = "Hello, World!";
     PageId id = new PageId("0", 0);
     store.put(id, msg.getBytes());
     byte[] buf = new byte[1024];
-    assertEquals(msg.getBytes().length, store.get(id, new ByteArrayTargetBuffer(buf, 0)));
+    assertEquals(msg.getBytes().length, store.get(id, 0, msg.length(),
+        new ByteArrayTargetBuffer(buf, 0)));
     assertArrayEquals(msg.getBytes(), Arrays.copyOfRange(buf, 0, msg.getBytes().length));
   }
 }
