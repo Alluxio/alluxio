@@ -14,7 +14,6 @@ package alluxio.client.file.cache;
 import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
 import static alluxio.client.file.CacheContext.StatsUnit.NANO;
 
-import alluxio.AlluxioURI;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;

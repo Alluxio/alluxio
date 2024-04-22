@@ -174,7 +174,6 @@ public class PagedBlockStoreDir implements PageStoreDir {
 
   @Override
   public void deleteTempPage(PageInfo bytes) {
-
   }
 
   @Override

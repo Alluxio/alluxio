@@ -2448,7 +2448,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-    public static final MetricKey CLIENT_CACHE_PAGES_AGES =
+  public static final MetricKey CLIENT_CACHE_PAGES_AGES =
       new Builder("Client.CachePagesAges")
           .setDescription("The ages of pages in the client cache.")
           .setMetricType(MetricType.HISTOGRAM)

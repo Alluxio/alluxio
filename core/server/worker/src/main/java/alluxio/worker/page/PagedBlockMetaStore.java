@@ -88,11 +88,6 @@ public class PagedBlockMetaStore implements PageMetaStore {
         }
       };
 
-  @Override
-  public Optional<CacheUsage> getUsage() {
-    return Optional.empty();
-  }
-
   private class BlockPageAllocator implements Allocator {
     private final Allocator mDelegate;
 
@@ -190,11 +185,6 @@ public class PagedBlockMetaStore implements PageMetaStore {
   }
 
   @Override
-  public PageInfo removePage(PageId pageId, boolean isTemporary) throws PageNotFoundException {
-    return null;
-  }
-
-  @Override
   public ReadWriteLock getLock() {
     return mDelegate.getLock();
   }
@@ -229,21 +219,6 @@ public class PagedBlockMetaStore implements PageMetaStore {
     mDelegate.addPage(pageId, pageInfo);
   }
 
-  /**
-   * Gets the block meta for a page of the block.
-   * @param pageId the page ID
-   * @return block meta
-   * @throws BlockDoesNotExistRuntimeException when the block is not being stored in the store
-   */
-  private PagedBlockMeta getBlockMetaOfPage(PageId pageId) {
-    long blockId = BlockPageId.downcast(pageId).getBlockId();
-    PagedBlockMeta blockMeta = mBlocks.getFirstByField(INDEX_BLOCK_ID, blockId);
-    if (blockMeta == null) {
-      throw new BlockDoesNotExistRuntimeException(blockId);
-    }
-    return blockMeta;
-  }
-
   @Override
   @GuardedBy("getLock().writeLock()")
   public void addTempPage(PageId pageId, PageInfo pageInfo) {
@@ -266,34 +241,14 @@ public class PagedBlockMetaStore implements PageMetaStore {
     return null;
   }
 
-  /**
-   * @param blockId
-   * @return the permanent block meta after committing
-   */
-  public PagedBlockMeta commit(long blockId) {
-    PagedTempBlockMeta tempBlockMeta = mTempBlocks.getFirstByField(INDEX_TEMP_BLOCK_ID, blockId);
-    if (tempBlockMeta == null) {
-      throw new BlockDoesNotExistRuntimeException(blockId);
-    }
-    PagedBlockMeta blockMeta = new PagedBlockMeta(tempBlockMeta.getBlockId(),
-        tempBlockMeta.getBlockSize(), tempBlockMeta.getDir());
-    mTempBlocks.remove(tempBlockMeta);
-    mBlocks.add(blockMeta);
-    try {
-      commitFile(BlockPageId.tempFileIdOf(blockId),
-          BlockPageId.fileIdOf(blockId, blockMeta.getBlockSize()));
-    } catch (PageNotFoundException e) {
-      // this should be unreachable, since we have checked the existence of the block
-      // otherwise it's a bug
-      LOG.error("Cannot commit block {} as no pages are found", blockId, e);
-      throw new RuntimeException(e);
-    }
-    return blockMeta;
+  @Override
+  public Optional<CacheUsage> getUsage() {
+    return Optional.empty();
   }
 
   @Override
-  public List<PageStoreDir> getStoreDirs() {
-    return mDelegate.getStoreDirs();
+  public PageInfo removePage(PageId pageId, boolean isTemporary) throws PageNotFoundException {
+    return null;
   }
 
   @Override
@@ -313,6 +268,11 @@ public class PagedBlockMetaStore implements PageMetaStore {
       }
     }
     return pageInfo;
+  }
+
+  @Override
+  public List<PageStoreDir> getStoreDirs() {
+    return mDelegate.getStoreDirs();
   }
 
   @Override
@@ -381,6 +341,31 @@ public class PagedBlockMetaStore implements PageMetaStore {
   }
 
   /**
+   * @param blockId
+   * @return the permanent block meta after committing
+   */
+  public PagedBlockMeta commit(long blockId) {
+    PagedTempBlockMeta tempBlockMeta = mTempBlocks.getFirstByField(INDEX_TEMP_BLOCK_ID, blockId);
+    if (tempBlockMeta == null) {
+      throw new BlockDoesNotExistRuntimeException(blockId);
+    }
+    PagedBlockMeta blockMeta = new PagedBlockMeta(tempBlockMeta.getBlockId(),
+        tempBlockMeta.getBlockSize(), tempBlockMeta.getDir());
+    mTempBlocks.remove(tempBlockMeta);
+    mBlocks.add(blockMeta);
+    try {
+      commitFile(BlockPageId.tempFileIdOf(blockId),
+          BlockPageId.fileIdOf(blockId, blockMeta.getBlockSize()));
+    } catch (PageNotFoundException e) {
+      // this should be unreachable, since we have checked the existence of the block
+      // otherwise it's a bug
+      LOG.error("Cannot commit block {} as no pages are found", blockId, e);
+      throw new RuntimeException(e);
+    }
+    return blockMeta;
+  }
+
+  /**
    * @return brief store meta
    */
   public PagedBlockStoreMeta getStoreMeta() {
@@ -433,5 +418,20 @@ public class PagedBlockMetaStore implements PageMetaStore {
     throw new IllegalArgumentException(
         String.format("Unexpected page store dir type %s, for worker page store it should be %s",
         pageStoreDir.getClass().getSimpleName(), PagedBlockStoreDir.class.getSimpleName()));
+  }
+
+  /**
+   * Gets the block meta for a page of the block.
+   * @param pageId the page ID
+   * @return block meta
+   * @throws BlockDoesNotExistRuntimeException when the block is not being stored in the store
+   */
+  private PagedBlockMeta getBlockMetaOfPage(PageId pageId) {
+    long blockId = BlockPageId.downcast(pageId).getBlockId();
+    PagedBlockMeta blockMeta = mBlocks.getFirstByField(INDEX_BLOCK_ID, blockId);
+    if (blockMeta == null) {
+      throw new BlockDoesNotExistRuntimeException(blockId);
+    }
+    return blockMeta;
   }
 }
