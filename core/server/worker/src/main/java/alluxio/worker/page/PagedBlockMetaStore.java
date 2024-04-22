@@ -11,6 +11,7 @@
 
 package alluxio.worker.page;
 
+import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.DefaultPageMetaStore;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
@@ -21,6 +22,7 @@ import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.worker.block.BlockStoreEventListener;
@@ -85,6 +87,11 @@ public class PagedBlockMetaStore implements PageMetaStore {
           return o.getDir();
         }
       };
+
+  @Override
+  public Optional<CacheUsage> getUsage() {
+    return Optional.empty();
+  }
 
   private class BlockPageAllocator implements Allocator {
     private final Allocator mDelegate;
@@ -183,6 +190,11 @@ public class PagedBlockMetaStore implements PageMetaStore {
   }
 
   @Override
+  public PageInfo removePage(PageId pageId, boolean isTemporary) throws PageNotFoundException {
+    return null;
+  }
+
+  @Override
   public ReadWriteLock getLock() {
     return mDelegate.getLock();
   }
@@ -247,6 +259,11 @@ public class PagedBlockMetaStore implements PageMetaStore {
   @Override
   public void commitFile(String fileId, String newFileId) throws PageNotFoundException {
     mDelegate.commitFile(fileId, newFileId);
+  }
+
+  @Override
+  public PageStoreDir getStoreDirOfFile(String fileId) throws FileDoesNotExistException {
+    return null;
   }
 
   /**
@@ -315,6 +332,11 @@ public class PagedBlockMetaStore implements PageMetaStore {
   public void reset() {
     mDelegate.reset();
     mBlocks.clear();
+  }
+
+  @Override
+  public Set<PageInfo> getAllPagesByFileId(String fileId) {
+    return null;
   }
 
   @Override

@@ -136,6 +136,10 @@
       <artifactId>zookeeper</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-servlet</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
     </dependency>

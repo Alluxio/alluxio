@@ -16,12 +16,14 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.CacheContext;
+import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileInStream;
 import alluxio.client.file.cache.filter.CacheFilter;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.metrics.MetricsConfig;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.FileInfo;
@@ -41,6 +43,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -93,8 +96,8 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
     MetricsSystem.startSinksFromConfig(new MetricsConfig(metricsProperties));
     mCacheManager = CacheManager.Factory.get(mAlluxioConf);
-    LocalCacheFileInStream.registerMetrics();
     mCacheFilter = CacheFilter.create(mAlluxioConf);
+    LocalCacheFileInStream.registerMetrics();
   }
 
   @Override
@@ -146,19 +149,45 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
-   * Attempts to open the specified file for reading.
+   * A wrapper method to default not enforce an open call.
    *
    * @param status the status of the file to open
    * @param bufferSize stream buffer size in bytes, currently unused
    * @return an {@link FSDataInputStream} at the indicated path of a file
    */
   public FSDataInputStream open(URIStatus status, int bufferSize) throws IOException {
+    return open(status, bufferSize, false);
+  }
+
+  /**
+   * Attempts to open the specified file for reading.
+   *
+   * @param status the status of the file to open
+   * @param bufferSize stream buffer size in bytes, currently unused
+   * @param enforceOpen flag to enforce calling open to external storage
+   * @return an {@link FSDataInputStream} at the indicated path of a file
+   */
+  public FSDataInputStream open(URIStatus status, int bufferSize, boolean enforceOpen)
+          throws IOException {
     if (mCacheManager == null || !mCacheFilter.needsCache(status)) {
       return mExternalFileSystem.open(HadoopUtils.toPath(new AlluxioURI(status.getPath())),
           bufferSize);
     }
+    Optional<FileInStream> externalFileInStream;
+    if (enforceOpen) {
+      try {
+        // making the open call right now, instead of later when called back
+        externalFileInStream = Optional.of(mAlluxioFileOpener.open(status));
+      } catch (AlluxioException e) {
+        throw new IOException(e);
+      }
+    } else {
+      externalFileInStream = Optional.empty();
+    }
+
     return new FSDataInputStream(new HdfsFileInputStream(
-        new LocalCacheFileInStream(status, mAlluxioFileOpener, mCacheManager, mAlluxioConf),
+        new LocalCacheFileInStream(status, mAlluxioFileOpener, mCacheManager, mAlluxioConf,
+            externalFileInStream),
         statistics));
   }
 

@@ -2418,6 +2418,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_POSITION_READ_FALLBACK =
+      new Builder("Client.CacheBytesPositionReadFallback")
+          .setDescription("Total number of position read fallback to external storage.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_BYTES_DISCARDED =
       new Builder("Client.CacheBytesDiscarded")
           .setDescription("Total number of bytes discarded when restoring the page store.")

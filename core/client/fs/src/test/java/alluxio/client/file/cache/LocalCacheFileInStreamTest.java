@@ -15,7 +15,6 @@ import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.PositionReader;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -36,6 +35,7 @@ import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
 import alluxio.file.ReadTargetBuffer;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -43,6 +43,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
@@ -53,6 +54,9 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
+import alluxio.grpc.SyncMetadataPOptions;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -65,6 +69,7 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
@@ -990,6 +995,11 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
         throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
         IOException, AlluxioException {
@@ -1013,16 +1023,6 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PositionReader openPositionRead(URIStatus status, OpenFilePOptions options) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void persist(AlluxioURI path, ScheduleAsyncPersistencePOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
@@ -1043,6 +1043,18 @@ public class LocalCacheFileInStreamTest {
     @Override
     public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
         SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void startSync(AlluxioURI path)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void stopSync(AlluxioURI path)
+        throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
 
@@ -1077,6 +1089,31 @@ public class LocalCacheFileInStreamTest {
     public String getJobProgress(JobDescription jobDescription,
         JobProgressReportFormat format, boolean verbose) {
       throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      return null;
+    }
+
+    @Override
+    public SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path,
+                                                        SyncMetadataPOptions options)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      return null;
+    }
+
+    @Override
+    public GetSyncProgressPResponse getSyncProgress(long taskGroupId)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      return null;
+    }
+
+    @Override
+    public CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId)
+        throws IOException, AlluxioException {
+      return null;
     }
 
     @Override
