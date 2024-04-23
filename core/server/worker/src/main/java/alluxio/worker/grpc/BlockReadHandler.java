@@ -466,7 +466,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
       }
       if (eof || cancel || error != null) {
         try {
-          completeRequest(mContext, false);
+          boolean success = !cancel && error == null;
+          completeRequest(mContext, success);
         } catch (Exception e) {
           if (error != null) {
             LOG.error("Failed to close the request.", e);
@@ -477,36 +478,9 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
             error = new Error(AlluxioStatusException.fromThrowable(e), true);
           }
         }
-<<<<<<< HEAD
-        replyError(error);
-      } else if (eof || cancel) {
-        try {
-          boolean success = !cancel;
-          completeRequest(mContext, success);
-        } catch (Exception e) {
-          LogUtils.warnWithException(LOG, "Exception occurred while completing read request, "
-                  + "EOF/CANCEL sessionId: {}. {}", mContext.getRequest().getSessionId(),
-              mContext.getRequest(), e);
-          setError(new Error(AlluxioStatusException.fromThrowable(e), true));
-        }
-        if (eof) {
-||||||| parent of f575e4fab5 (Fix the active rpc metrics)
-        replyError(error);
-      } else if (eof || cancel) {
-        try {
-          completeRequest(mContext);
-        } catch (Exception e) {
-          LogUtils.warnWithException(LOG, "Exception occurred while completing read request, "
-                  + "EOF/CANCEL sessionId: {}. {}", mContext.getRequest().getSessionId(),
-              mContext.getRequest(), e);
-          setError(new Error(AlluxioStatusException.fromThrowable(e), true));
-        }
-        if (eof) {
-=======
         if (error != null) {
           replyError(error);
         } else if (eof) {
->>>>>>> f575e4fab5 (Fix the active rpc metrics)
           replyEof();
         } else if (cancel) {
           replyCancel();
