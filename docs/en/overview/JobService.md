@@ -21,6 +21,11 @@ The Job Workers queues tasks from the Job Master and manages a configurable fixe
 
 ## Different Types of Jobs
 
+### Load
+
+Load Job is used as part of the `fs distributedLoad` CLI command and loads files to Alluxio 
+with specified amount of replication
+
 ### Migrate
 
 Migrate Job is used as part of the `fs distributedCp` CLI command and is responsible

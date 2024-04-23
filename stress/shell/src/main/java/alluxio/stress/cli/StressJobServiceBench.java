@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
+import alluxio.cli.fs.command.DistributedLoadCommand;
+import alluxio.cli.fs.command.DistributedLoadUtils;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -49,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -244,6 +247,14 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
     private void applyOperation(String dirPath)
         throws IOException, AlluxioException, InterruptedException, TimeoutException {
       switch (mParameters.mOperation) {
+        case DISTRIBUTED_LOAD:
+          mResult.setRecordStartMs(mContext.getStartMs());
+          long startNs = System.nanoTime();
+          // send distributed load task to job service and wait for result
+          long endNs = runDistributedLoad(dirPath);
+          // record response times
+          recordResponseTimeInfo(startNs, endNs);
+          break;
         case CREATE_FILES:
           FileSystem fileSystem = FileSystem.Factory.create(mFsContext);
           long start = CommonUtils.getCurrentMs();
@@ -267,9 +278,9 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
             long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
             mResult.setRecordStartMs(recordMs);
             mContext.getRateLimiter().acquire();
-            long startNs = System.nanoTime();
+            startNs = System.nanoTime();
             runNoop();
-            long endNs = System.nanoTime();
+            endNs = System.nanoTime();
             long currentMs = CommonUtils.getCurrentMs();
             // Start recording after the warmup
             if (currentMs > recordMs) {
@@ -290,6 +301,24 @@ public class StressJobServiceBench extends Benchmark<JobServiceBenchTaskResult> 
       if (responseTimeNs > maxResponseTimeNs[MAX_RESPONSE_TIME_BUCKET_INDEX]) {
         maxResponseTimeNs[MAX_RESPONSE_TIME_BUCKET_INDEX] = responseTimeNs;
       }
+    }
+
+    private long runDistributedLoad(String dirPath) {
+      int numReplication = 1;
+      DistributedLoadCommand cmd = new DistributedLoadCommand(mFsContext);
+      long stopTime;
+      try {
+        long jobControlId = DistributedLoadUtils.runDistLoad(cmd, new AlluxioURI(dirPath),
+                numReplication, mParameters.mBatchSize,
+                new HashSet<>(), new HashSet<>(),
+                new HashSet<>(), new HashSet<>(), false);
+        cmd.waitForCmd(jobControlId);
+        stopTime = System.nanoTime();
+        cmd.postProcessing(jobControlId);
+      } finally {
+        mResult.incrementNumSuccess(cmd.getCompletedCount());
+      }
+      return stopTime;
     }
 
     private void createFiles(FileSystem fs, int numFiles, String dirPath, long fileSize)
