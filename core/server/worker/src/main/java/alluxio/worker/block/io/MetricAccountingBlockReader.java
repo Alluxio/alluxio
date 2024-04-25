@@ -24,13 +24,13 @@ import java.nio.channels.ReadableByteChannel;
  * An reader class with metrics.
  */
 public class MetricAccountingBlockReader extends BlockReader {
-  private final LocalFileBlockReader mBlockReader;
+  private final BlockReader mBlockReader;
 
   /**
    * A decorator of BlockReader.
    * @param mblockReader block reader
    */
-  public MetricAccountingBlockReader(LocalFileBlockReader mblockReader) {
+  public MetricAccountingBlockReader(BlockReader mblockReader) {
     mBlockReader = mblockReader;
   }
 
