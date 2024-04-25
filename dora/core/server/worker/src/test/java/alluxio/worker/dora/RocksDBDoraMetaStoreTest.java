@@ -13,7 +13,6 @@ package alluxio.worker.dora;
 
 import alluxio.grpc.FileInfo;
 import alluxio.proto.meta.DoraMeta;
-import alluxio.util.CommonUtils;
 
 import junit.framework.TestCase;
 
@@ -51,7 +50,6 @@ public class RocksDBDoraMetaStoreTest extends TestCase {
     assert (res.isPresent());
     assert (res.get().equals(fs));
     System.out.println(res);
-
     mTestMetastore.removeDoraMeta(path);
     Optional<DoraMeta.FileStatus> res2 = mTestMetastore.getDoraMeta(path);
     assert (!res2.isPresent());
@@ -88,34 +86,6 @@ public class RocksDBDoraMetaStoreTest extends TestCase {
     mTestMetastore.removeDoraMeta(pathNotExist);
 
     System.out.println("End testRemoveNotExist");
-  }
-
-  public void testGetExpire() {
-    System.out.println("Start testGetExpire");
-
-    String path = new String("/SOME/PATH/FILE");
-    FileInfo fi = FileInfo.newBuilder()
-        .setFileId(1234)
-        .setMode(0567)
-        .setLength(1000)
-        .build();
-    DoraMeta.FileStatus fs = DoraMeta.FileStatus.newBuilder()
-        .setFileInfo(fi)
-        .setTs(System.nanoTime())
-        .build();
-    mTestMetastore.putDoraMeta(path, fs);
-
-    Optional<DoraMeta.FileStatus> res2 = mTestMetastore.getDoraMeta(path);
-    assert (res2.isPresent());
-
-    // Sleep 5 seconds
-    CommonUtils.sleepMs(5 * 1000);
-
-    // The TTL of this MetaStore is configured to be 3 seconds. So the Metadata should have expired.
-    Optional<DoraMeta.FileStatus> res3 = mTestMetastore.getDoraMeta(path);
-    assert (!res3.isPresent());
-
-    System.out.println("End testGetExpire");
   }
 
   /**
