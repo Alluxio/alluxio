@@ -300,7 +300,7 @@ public class PagedBlockStore implements BlockStore {
     }
     final Optional<PagedUfsBlockReader> ufsBlockReader =
         readOptions.map(opt -> new PagedUfsBlockReader(
-            mUfsManager, mUfsInStreamCache, blockMeta, offset, opt, mPageSize));
+                mUfsManager, mUfsInStreamCache, blockMeta, offset, opt, mPageSize));
     return new PagedBlockReader(mCacheManager, blockMeta, offset, ufsBlockReader, mPageSize);
   }
 

@@ -16,6 +16,7 @@ import alluxio.proto.dataserver.Protocol;
 import com.google.common.base.Preconditions;
 
 import java.util.Objects;
+import javax.annotation.Nullable;
 
 /**
  * Options for reading a block from UFS.
@@ -26,12 +27,15 @@ public final class UfsBlockReadOptions {
   private final long mOffsetInFile;
   private final String mUfsPath;
   private final boolean mCacheIntoAlluxio;
+  @Nullable private final String mUser;
 
-  UfsBlockReadOptions(long mountId, long offsetInFile, String ufsPath, boolean cacheIntoAlluxio) {
+  UfsBlockReadOptions(long mountId, long offsetInFile, String ufsPath, boolean cacheIntoAlluxio,
+                      @Nullable String user) {
     mMountId = mountId;
     mOffsetInFile = offsetInFile;
     mUfsPath = ufsPath;
     mCacheIntoAlluxio = cacheIntoAlluxio;
+    mUser = user;
   }
 
   /**
@@ -47,7 +51,7 @@ public final class UfsBlockReadOptions {
         "missing offset in file for UFS block read");
     Preconditions.checkArgument(options.hasUfsPath(), "missing UFS path for UFS block read");
     return new UfsBlockReadOptions(options.getMountId(),
-        options.getOffsetInFile(), options.getUfsPath(), !options.getNoCache());
+        options.getOffsetInFile(), options.getUfsPath(), !options.getNoCache(), options.getUser());
   }
 
   /**
@@ -70,6 +74,12 @@ public final class UfsBlockReadOptions {
   public String getUfsPath() {
     return mUfsPath;
   }
+
+  /**
+   *
+   * @return user
+   */
+  public String getUser() { return mUser; }
 
   /**
    * @return whether the UFS block should be cached into Alluxio

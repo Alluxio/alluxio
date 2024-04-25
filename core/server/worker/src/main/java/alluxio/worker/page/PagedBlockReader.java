@@ -39,7 +39,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class PagedBlockReader extends BlockReader {
-
   private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocate(0);
   private final long mPageSize;
   private final CacheManager mCacheManager;
@@ -122,6 +121,7 @@ public class PagedBlockReader extends BlockReader {
         bytesRead += bytesReadFromCache;
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
         mReadFromLocalCache = true;
+        MetricsSystem.counter(MetricKey.WORKER_BYTES_READ_CACHE.getName()).inc(bytesReadFromCache);
       } else {
         if (!mUfsBlockReader.isPresent()) {
           throw new AlluxioRuntimeException(
