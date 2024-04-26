@@ -12,12 +12,15 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.CacheContext;
-import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.PageNotFoundException;
+import alluxio.file.ByteArrayTargetBuffer;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MultiDimensionalMetricsSystem;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;
@@ -27,16 +30,19 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
  * Interface for managing cached pages.
  */
-public interface CacheManager extends AutoCloseable {
+public interface CacheManager extends AutoCloseable, CacheStatus {
+  Logger LOG = LoggerFactory.getLogger(CacheManager.class);
 
   /**
    * State of a cache.
@@ -119,6 +125,12 @@ public interface CacheManager extends AutoCloseable {
       try {
         boolean isShadowCacheEnabled =
             conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_SHADOW_ENABLED);
+        boolean isNettyDataTransmissionEnable = false;
+        // Note that Netty data transmission doesn't support async write
+        if (isNettyDataTransmissionEnable) {
+          options.setIsAsyncWriteEnabled(false);
+        }
+        MultiDimensionalMetricsSystem.setCacheStorageSupplier(pageMetaStore::bytes);
         if (isShadowCacheEnabled) {
           return new NoExceptionCacheManager(
               new CacheManagerWithShadowCache(LocalCacheManager.create(options, pageMetaStore),
@@ -140,6 +152,8 @@ public interface CacheManager extends AutoCloseable {
         CacheManager manager = CACHE_MANAGER.getAndSet(null);
         if (manager != null) {
           manager.close();
+          MultiDimensionalMetricsSystem.setCacheStorageSupplier(
+              MultiDimensionalMetricsSystem.NULL_SUPPLIER);
         }
       } catch (Exception e) {
         LOG.warn("Failed to close CacheManager: {}", e.toString());
@@ -241,6 +255,20 @@ public interface CacheManager extends AutoCloseable {
    *
    * @param pageId page identifier
    * @param pageOffset offset into the page
+   * @param buffer destination buffer to write
+   * @param cacheContext cache related context
+   * @return number of bytes read, 0 if page is not found, -1 on errors
+   */
+  default int get(PageId pageId, int pageOffset, ReadTargetBuffer buffer,
+          CacheContext cacheContext) {
+    throw new UnsupportedOperationException("This method is unsupported. ");
+  }
+
+  /**
+   * Reads a part of a page if the queried page is found in the cache, stores the result in buffer.
+   *
+   * @param pageId page identifier
+   * @param pageOffset offset into the page
    * @param bytesToRead number of bytes to read in this page
    * @param buffer destination buffer to write
    * @param offsetInBuffer offset in the destination buffer to write
@@ -263,8 +291,23 @@ public interface CacheManager extends AutoCloseable {
    * @param cacheContext cache related context
    * @return number of bytes read, 0 if page is not found, -1 on errors
    */
-  int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
+  int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
       CacheContext cacheContext);
+
+  /**
+   * Reads a part of a page if the queried page is found in the cache, stores the result in buffer.
+   * Loads the page otherwise.
+   *
+   * @param pageId page identifier
+   * @param pageOffset offset into the page
+   * @param bytesToRead number of bytes to read in this page
+   * @param buffer destination buffer to write
+   * @param cacheContext cache related context
+   * @param externalDataSupplier the external data supplier to read a page
+   * @return number of bytes read, 0 if page is not found, -1 on errors
+   */
+  int getAndLoad(PageId pageId, int pageOffset, int bytesToRead,
+      ReadTargetBuffer buffer, CacheContext cacheContext, Supplier<byte[]> externalDataSupplier);
 
   /**
    * Get page ids by the given file id.
@@ -275,6 +318,20 @@ public interface CacheManager extends AutoCloseable {
   default List<PageId> getCachedPageIdsByFileId(String fileId, long fileLength) {
     throw new UnsupportedOperationException();
   }
+
+  /**
+   * Deletes all pages of the given file.
+   *
+   * @param fileId the file id of the target file
+   */
+  void deleteFile(String fileId);
+
+  /**
+   * Deletes all temporary pages of the given file.
+   *
+   * @param fileId the file id of the target file
+   */
+  void deleteTempFile(String fileId);
 
   /**
    * Deletes a page from the cache.
@@ -288,6 +345,14 @@ public interface CacheManager extends AutoCloseable {
    * @return state of this cache
    */
   State state();
+
+  /**
+   * @param pageId the page id
+   * @return true if the page is cached. This method is not thread-safe as no lock is acquired
+   */
+  default boolean hasPageUnsafe(PageId pageId) {
+    throw new UnsupportedOperationException();
+  }
 
   /**
    *
@@ -306,4 +371,25 @@ public interface CacheManager extends AutoCloseable {
   default void invalidate(Predicate<PageInfo> predicate) {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  Optional<CacheUsage> getUsage();
+
+  /**
+   * Commit the File.
+   * @param fileId the file ID
+   */
+  void commitFile(String fileId);
+
+  /**
+   * Get a {@link DataFileChannel} which wraps a {@link io.netty.channel.FileRegion}.
+   * @param pageId the page id
+   * @param pageOffset the offset inside the page
+   * @param bytesToRead the bytes to read
+   * @param cacheContext the cache context
+   * @return an object of {@link DataFileChannel}
+   */
+  Optional<DataFileChannel> getDataFileChannel(
+      PageId pageId, int pageOffset, int bytesToRead, CacheContext cacheContext)
+      throws PageNotFoundException;
 }

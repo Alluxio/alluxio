@@ -13,14 +13,20 @@ package alluxio.client.file.cache.store;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.resource.LockResource;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.GuardedBy;
@@ -34,6 +40,8 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   private final ReentrantReadWriteLock mTempFileIdSetLock = new ReentrantReadWriteLock();
   @GuardedBy("mTempFileIdSetLock")
   private final Set<String> mTempFileIdSet = new HashSet<>();
+
+  private final Map<String, List<PageInfo>> mTempFileToPageInfoListMap = new ConcurrentHashMap<>();
 
   private final Path mRootPath;
   private final long mCapacityBytes;
@@ -73,15 +81,37 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
 
   @Override
   public void putTempPage(PageInfo pageInfo) {
+    mTempFileToPageInfoListMap.computeIfAbsent(pageInfo.getPageId().getFileId(),
+        tempFileId -> new ArrayList<>()).add(pageInfo);
     try (LockResource lock = new LockResource(mTempFileIdSetLock.readLock())) {
       mTempFileIdSet.add(pageInfo.getPageId().getFileId());
     }
+    mBytesUsed.addAndGet(pageInfo.getPageSize());
   }
 
   @Override
   public long deletePage(PageInfo pageInfo) {
     mEvictor.updateOnDelete(pageInfo.getPageId());
     return mBytesUsed.addAndGet(-pageInfo.getPageSize());
+  }
+
+  @Override
+  public void deleteTempPage(PageInfo pageInfo) {
+    String fileId = pageInfo.getPageId().getFileId();
+    if (mTempFileToPageInfoListMap.containsKey(fileId)) {
+      List<PageInfo> pageInfoList =
+          mTempFileToPageInfoListMap.get(fileId);
+      if (pageInfoList != null && pageInfoList.contains(pageInfo)) {
+        pageInfoList.remove(pageInfo);
+        if (pageInfoList.isEmpty()) {
+          mTempFileToPageInfoListMap.remove(fileId);
+          try (LockResource lock = new LockResource(mTempFileIdSetLock.readLock())) {
+            mTempFileIdSet.remove(fileId);
+          }
+        }
+      }
+    }
+    mBytesUsed.addAndGet(-pageInfo.getPageSize());
   }
 
   @Override
@@ -142,10 +172,17 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
     try (LockResource tempFileIdSetlock = new LockResource(mTempFileIdSetLock.writeLock());
         LockResource fileIdSetlock = new LockResource(mFileIdSetLock.writeLock())) {
       checkState(mTempFileIdSet.contains(fileId), "temp file does not exist " + fileId);
-      checkState(!mFileIdSet.contains(newFileId), "file already committed " + newFileId);
+      // We need a new interface for {@PageStore} interface to remove all pages of a cached file,
+      // and remove the fileId from this mFileIdSet. See {@DoraWorker#invalidateCachedFile}.
+      // Currently, invalidated file is still in this map.
+      //checkState(!mFileIdSet.contains(newFileId), "file already committed " + newFileId);
       getPageStore().commit(fileId, newFileId);
       mTempFileIdSet.remove(fileId);
       mFileIdSet.add(newFileId);
+
+      mTempFileToPageInfoListMap.get(fileId)
+          .forEach(pageInfo -> mEvictor.updateOnPut(pageInfo.getPageId()));
+      mTempFileToPageInfoListMap.remove(fileId);
     }
   }
 
@@ -155,6 +192,41 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
       checkState(mTempFileIdSet.contains(fileId), "temp file does not exist " + fileId);
       getPageStore().abort(fileId);
       mTempFileIdSet.remove(fileId);
+    }
+  }
+
+  /**
+   * Generic implementation of cache usage stats.
+   * Subclasses may need to override the individual cache stat to reflect their own logic
+   * of usage accounting.
+   */
+  class Usage implements CacheUsage {
+    @Override
+    public long used() {
+      return getCachedBytes();
+    }
+
+    @Override
+    public long available() {
+      // TODO(bowen): take reserved bytes into account
+      return getCapacityBytes() - getCachedBytes();
+    }
+
+    @Override
+    public long capacity() {
+      return getCapacityBytes();
+    }
+
+    /**
+     * This generic implementation assumes the directory does not support finer-grained
+     * stats partitioning.
+     *
+     * @param partition how to partition the cache
+     * @return always empty
+     */
+    @Override
+    public Optional<CacheUsage> partitionedBy(PartitionDescriptor<?> partition) {
+      return Optional.empty();
     }
   }
 }

@@ -13,16 +13,18 @@ package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * The metadata store for pages stored in cache.
  */
-public interface PageMetaStore {
+public interface PageMetaStore extends CacheStatus {
 
   /**
    * @param options the options of cache
@@ -72,6 +74,17 @@ public interface PageMetaStore {
   void commitFile(String fileId, String newFileId) throws PageNotFoundException;
 
   /**
+   * Gets the store dir which the specified file is assigned to be cached in.
+   * Implementations should ensure that all pages
+   * of the same file are cached in the same directory, until all the pages of the file are evicted.
+   *
+   * @param fileId the file ID
+   * @return the store dir which caches the pages of the file
+   * @throws FileDoesNotExistException if the file is not being cached
+   */
+  PageStoreDir getStoreDirOfFile(String fileId) throws FileDoesNotExistException;
+
+  /**
    * Gets the storage directories.
    *
    * @return the storage directories
@@ -95,6 +108,15 @@ public interface PageMetaStore {
    * Removes a page.
    *
    * @param pageId page identifier
+   * @param isTemporary whether is it temporary page or not
+   * @return page info removed
+   */
+  PageInfo removePage(PageId pageId, boolean isTemporary) throws PageNotFoundException;
+
+  /**
+   * Removes a page.
+   *
+   * @param pageId page identifier
    * @return page info removed
    */
   PageInfo removePage(PageId pageId) throws PageNotFoundException;
@@ -113,6 +135,13 @@ public interface PageMetaStore {
    * Resets the meta store.
    */
   void reset();
+
+  /**
+   * Gets all pages by the specified File ID.
+   * @param fileId the target file id
+   * @return a set of PageInfo's of this file, otherwise an empty set if not found
+   */
+  Set<PageInfo> getAllPagesByFileId(String fileId);
 
   /**
    * @param pageStoreDir

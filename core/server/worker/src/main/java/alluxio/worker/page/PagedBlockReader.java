@@ -14,8 +14,9 @@ package alluxio.worker.page;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.file.NettyBufTargetBuffer;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.grpc.ErrorType;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -105,7 +106,7 @@ public class PagedBlockReader extends BlockReader {
     Preconditions.checkArgument(byteBuf.writableBytes() >= length,
         "buffer overflow, trying to write %s bytes, only %s writable",
         length, byteBuf.writableBytes());
-    PageReadTargetBuffer target = new NettyBufTargetBuffer(byteBuf);
+    ReadTargetBuffer target = new NettyBufTargetBuffer(byteBuf);
     long bytesRead = 0;
     while (bytesRead < length) {
       long pos = offset + bytesRead;

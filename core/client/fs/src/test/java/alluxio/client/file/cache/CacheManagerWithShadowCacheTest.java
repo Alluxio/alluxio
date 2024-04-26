@@ -17,10 +17,11 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.client.file.CacheContext;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.file.ReadTargetBuffer;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Before;
@@ -32,6 +33,8 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Tests for the {@link LocalCacheManager} class.
@@ -228,7 +231,7 @@ public final class CacheManagerWithShadowCacheTest {
     }
 
     @Override
-    public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
+    public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
         CacheContext cacheContext) {
       if (!mCache.containsKey(pageId)) {
         return 0;
@@ -238,6 +241,29 @@ public final class CacheManagerWithShadowCacheTest {
         System.arraycopy(page, pageOffset + 0, buffer.byteArray(), (int) buffer.offset(),
             bytesToRead);
       }
+      return bytesToRead;
+    }
+
+    @Override
+    public void commitFile(String fileId) {
+      throw new UnsupportedOperationException("commitFile method is unsupported. ");
+    }
+
+    @Override
+    public int getAndLoad(PageId pageId, int pageOffset, int bytesToRead,
+         ReadTargetBuffer buffer, CacheContext cacheContext,
+          Supplier<byte[]> externalDataSupplier) {
+      int bytesRead = get(pageId, pageOffset,
+          bytesToRead, buffer, cacheContext);
+      if (bytesRead > 0) {
+        return bytesRead;
+      }
+      byte[] page = externalDataSupplier.get();
+      if (page.length == 0) {
+        return 0;
+      }
+      buffer.writeBytes(page, pageOffset, bytesToRead);
+      put(pageId, page, cacheContext);
       return bytesToRead;
     }
 
@@ -261,6 +287,27 @@ public final class CacheManagerWithShadowCacheTest {
     }
 
     @Override
-    public void close() throws Exception {}
+    public void deleteFile(String fileId) {
+      // no-op
+    }
+
+    @Override
+    public void deleteTempFile(String fileId) {
+      // no-op
+    }
+
+    @Override
+    public Optional<CacheUsage> getUsage() {
+      return Optional.empty();
+    }
+
+    @Override
+    public Optional<DataFileChannel> getDataFileChannel(PageId pageId, int pageOffset,
+        int bytesToRead, CacheContext cacheContext) {
+      return Optional.empty();
+    }
+
+    @Override
+    public void close() {}
   }
 }

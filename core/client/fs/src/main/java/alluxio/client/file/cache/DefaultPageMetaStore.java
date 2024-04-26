@@ -20,6 +20,7 @@ import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -31,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -121,13 +123,22 @@ public class DefaultPageMetaStore implements PageMetaStore {
       throw new PageNotFoundException(
           String.format("No Pages found for file %s when committing", fileId));
     }
-    for (PageInfo oldPage : pages) {
-      PageId newPageId = new PageId(newFileId, oldPage.getPageId().getPageIndex());
-      PageInfo newPageInfo = new PageInfo(newPageId, oldPage.getPageSize(), oldPage.getScope(),
-          oldPage.getLocalCacheDir());
-      mPages.remove(oldPage);
+    for (PageInfo oldPageInfo : pages) {
+      PageId newPageId = new PageId(newFileId, oldPageInfo.getPageId().getPageIndex());
+      PageInfo newPageInfo = new PageInfo(newPageId, oldPageInfo.getPageSize(),
+          oldPageInfo.getScope(), oldPageInfo.getLocalCacheDir());
+      mPages.remove(oldPageInfo);
       mPages.add(newPageInfo);
     }
+  }
+
+  @Override
+  public PageStoreDir getStoreDirOfFile(String fileId) throws FileDoesNotExistException {
+    PageInfo pageInfo = mPages.getFirstByField(INDEX_FILE_ID, fileId);
+    if (pageInfo == null) {
+      throw new FileDoesNotExistException(String.format("File %s does not exist in cache", fileId));
+    }
+    return pageInfo.getLocalCacheDir();
   }
 
   @Override
@@ -153,7 +164,7 @@ public class DefaultPageMetaStore implements PageMetaStore {
 
   @Override
   @GuardedBy("getLock()")
-  public PageInfo removePage(PageId pageId) throws PageNotFoundException {
+  public PageInfo removePage(PageId pageId, boolean isTemporary) throws PageNotFoundException {
     if (!mPages.contains(INDEX_PAGE_ID, pageId)) {
       throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }
@@ -162,8 +173,18 @@ public class DefaultPageMetaStore implements PageMetaStore {
     mPages.remove(pageInfo);
     mBytes.addAndGet(-pageInfo.getPageSize());
     Metrics.SPACE_USED.dec(pageInfo.getPageSize());
-    pageInfo.getLocalCacheDir().deletePage(pageInfo);
+    if (isTemporary) {
+      pageInfo.getLocalCacheDir().deleteTempPage(pageInfo);
+    } else {
+      pageInfo.getLocalCacheDir().deletePage(pageInfo);
+    }
     return pageInfo;
+  }
+
+  @Override
+  @GuardedBy("getLock()")
+  public PageInfo removePage(PageId pageId) throws PageNotFoundException {
+    return removePage(pageId, false);
   }
 
   @Override
@@ -204,6 +225,56 @@ public class DefaultPageMetaStore implements PageMetaStore {
       return null;
     }
     return victimInfo;
+  }
+
+  @Override
+  @GuardedBy("getLock().readLock()")
+  public Set<PageInfo> getAllPagesByFileId(String fileId) {
+    Set<PageInfo> pages = mPages.getByField(INDEX_FILE_ID, fileId);
+    return pages;
+  }
+
+  @Override
+  public Optional<CacheUsage> getUsage() {
+    return Optional.of(new Usage());
+  }
+
+  class Usage implements CacheUsage {
+
+    @Override
+    public long used() {
+      return bytes();
+    }
+
+    @Override
+    public long available() {
+      return capacity() - used();
+    }
+
+    @Override
+    public long capacity() {
+      return mDirs.stream().mapToLong(PageStoreDir::getCapacityBytes).sum();
+    }
+
+    @Override
+    public Optional<CacheUsage> partitionedBy(PartitionDescriptor<?> partition) {
+      if (partition instanceof FilePartition) {
+        String fileId = ((FilePartition) partition).getIdentifier();
+        Set<PageInfo> pages = mPages.getByField(INDEX_FILE_ID, fileId);
+        long used = pages.stream().mapToLong(PageInfo::getPageSize).sum();
+        long capacity = capacity();
+        long available = capacity - bytes();
+        return Optional.of(new ImmutableCacheUsageView(used, available, capacity));
+      }
+      if (partition instanceof DirPartition) {
+        int dirIndex = ((DirPartition) partition).getIdentifier();
+        if (dirIndex < 0 || dirIndex >= mDirs.size()) {
+          return Optional.empty();
+        }
+        return mDirs.get(dirIndex).getUsage();
+      }
+      return Optional.empty();
+    }
   }
 
   private static final class Metrics {

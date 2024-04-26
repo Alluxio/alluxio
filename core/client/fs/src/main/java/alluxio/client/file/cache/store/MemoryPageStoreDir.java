@@ -13,6 +13,7 @@ package alluxio.client.file.cache.store;
 
 import static java.util.Objects.requireNonNull;
 
+import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.evictor.CacheEvictor;
@@ -56,5 +57,10 @@ public class MemoryPageStoreDir extends QuotaManagedPageStoreDir {
   @Override
   public void scanPages(Consumer<Optional<PageInfo>> pageInfoConsumer) {
     //do nothing
+  }
+
+  @Override
+  public Optional<CacheUsage> getUsage() {
+    return Optional.of(new QuotaManagedPageStoreDir.Usage());
   }
 }

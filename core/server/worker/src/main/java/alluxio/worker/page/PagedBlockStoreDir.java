@@ -14,6 +14,7 @@ package alluxio.worker.page;
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_MEDIUM;
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
+import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
@@ -172,6 +173,10 @@ public class PagedBlockStoreDir implements PageStoreDir {
   }
 
   @Override
+  public void deleteTempPage(PageInfo bytes) {
+  }
+
+  @Override
   public long deletePage(PageInfo pageInfo) {
     long blockId = BlockPageId.downcast(pageInfo.getPageId()).getBlockId();
     if (mBlockToPagesMap.remove(blockId, pageInfo)) {
@@ -276,5 +281,10 @@ public class PagedBlockStoreDir implements PageStoreDir {
   public Set<PageId> getBlockPages(long blockId) {
     return mBlockToPagesMap.get(blockId).stream().map(PageInfo::getPageId)
       .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Optional<CacheUsage> getUsage() {
+    return Optional.empty();
   }
 }
