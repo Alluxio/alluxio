@@ -30,6 +30,7 @@ import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.util.Optional;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -88,6 +89,11 @@ public final class BlockWorkerDataWriter implements DataWriter {
   @Override
   public int chunkSize() {
     return mChunkSize;
+  }
+
+  @Override
+  public Optional<String> getUfsContentHash() {
+    return Optional.empty();
   }
 
   @Override

@@ -22,6 +22,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.ContentHashable;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -83,6 +84,14 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
     }
     Preconditions.checkState(context.getOutputStream() != null);
     context.getOutputStream().close();
+    if (context.getOutputStream() instanceof ContentHashable) {
+      try {
+        ((ContentHashable) context.getOutputStream()).getContentHash()
+            .ifPresent(context::setContentHash);
+      } catch (IOException e) {
+        LOG.warn("Error getting content hash after completing file", e);
+      }
+    }
     CreateOptions createOptions = context.getCreateOptions();
     if (createOptions != null) {
       try {

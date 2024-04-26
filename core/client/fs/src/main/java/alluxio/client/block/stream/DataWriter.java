@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Optional;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -96,6 +97,12 @@ public interface DataWriter extends Closeable, Cancelable {
       }
     }
   }
+
+  /**
+   * @return the content hash of the file if it is written to the UFS. Will only
+   * return a non-empty value after the data writer has been closed.
+   */
+  Optional<String> getUfsContentHash();
 
   /**
    * Writes a chunk. This method takes the ownership of this chunk even if it fails to write
