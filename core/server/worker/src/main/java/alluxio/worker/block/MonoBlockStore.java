@@ -343,12 +343,12 @@ public class MonoBlockStore implements BlockStore {
               blockWriter.close();
             } catch (IOException e) {
               throw AlluxioRuntimeException.from(e);
-            } finally {
-              NioDirectBufferPool.release(buf);
             }
           })
           .thenRun(() -> commitBlock(sessionId, blockId, false))
+          .thenRun(() -> NioDirectBufferPool.release(buf))
           .exceptionally(t -> {
+            NioDirectBufferPool.release(buf);
             handleException(t.getCause(), block, errors, sessionId);
             return null;
           });
