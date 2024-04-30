@@ -27,7 +27,7 @@
     <build.path>${project.parent.parent.basedir}/build</build.path>
     <!-- Decouple hadoop versions between north and south bound -->
     <ufs.hadoop.version>3.3.4</ufs.hadoop.version>
-    <lib.jar.name>${project.artifactId}-${ufs.hadoop.version}-${project.version}.jar</lib.jar.name>
+    <lib.jar.name>${project.artifactId}-3.3.4-${project.version}.jar</lib.jar.name>
   </properties>
 
   <dependencies>
@@ -65,7 +65,7 @@
         <dependency>
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-shaded-hadoop</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <version>3.3.4</version>
         </dependency>
       </dependencies>
     </profile>
@@ -80,7 +80,7 @@
         <dependency>
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-shaded-hadoop</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <version>3.3.4</version>
         </dependency>
       </dependencies>
     </profile>

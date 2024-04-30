@@ -20,7 +20,7 @@
   <artifactId>alluxio-shaded-hadoop</artifactId>
   <packaging>jar</packaging>
   <name>Alluxio Shaded Libraries - Hadoop</name>
-  <version>${ufs.hadoop.version}</version>
+  <version>3.3.4</version>
   <description>Shaded Hadoop Module</description>
 
   <properties>
@@ -30,7 +30,7 @@
     <ufs.hadoop.version>3.3.4</ufs.hadoop.version>
     <shading.prefix>alluxio.shaded.hdfs</shading.prefix>
     <!-- Composite jar name with both hadoop version and project version included -->
-    <lib.jar.name>${project.artifactId}-${ufs.hadoop.version}-${project.version}.jar</lib.jar.name>
+    <lib.jar.name>${project.artifactId}-3.3.4-${project.version}.jar</lib.jar.name>
   </properties>
 
   <dependencies>
@@ -65,7 +65,7 @@
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-core</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <version>3.3.4</version>
         </dependency>
       </dependencies>
     </profile>
@@ -78,12 +78,12 @@
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-common</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <version>3.3.4</version>
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-hdfs</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <version>3.3.4</version>
         </dependency>
         <dependency>	
           <!-- using older version to match dependency version from Hadoop, guava introduced a breaking change between version 14 and later -->	
@@ -104,12 +104,12 @@
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-common</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <version>3.3.4</version>
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-hdfs-client</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <version>3.3.4</version>
         </dependency>
       </dependencies>
     </profile>

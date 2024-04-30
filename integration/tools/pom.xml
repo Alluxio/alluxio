@@ -55,7 +55,7 @@
         <dependency>
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-shaded-hadoop</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <version>3.3.4</version>
         </dependency>
       </dependencies>
     </profile>
@@ -70,7 +70,7 @@
         <dependency>
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-shaded-hadoop</artifactId>
-          <version>${ufs.hadoop.version}</version>
+          <version>3.3.4</version>
         </dependency>
       </dependencies>
     </profile>
