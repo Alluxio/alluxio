@@ -28,6 +28,8 @@ import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.worker.http.vo.WritePageResponseVO;
 
@@ -217,18 +219,19 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
     FileRegion fileRegion;
     String offsetStr = httpRequestUri.getParameters().get("offset");
     String lengthStr = httpRequestUri.getParameters().get("length");
+    long offset = 0;
+    long length = mPagedService.getPageSize();
     if (offsetStr != null && !offsetStr.isEmpty()) {
-      long offset = Long.parseLong(offsetStr);
+      offset = Long.parseLong(offsetStr);
       if (lengthStr != null && !lengthStr.isEmpty()) {
-        long length = Long.parseLong(lengthStr);
-        fileRegion = mPagedService.getPageFileRegion(fileId, pageIndex, offset, length);
+        length = Long.parseLong(lengthStr);
       } else {
-        fileRegion = mPagedService.getPageFileRegion(fileId, pageIndex, offset);
+        length -= offset;
       }
-    } else {
-      fileRegion = mPagedService.getPageFileRegion(fileId, pageIndex);
     }
-
+    MetricsSystem.meter(MetricKey.WORKER_HTTP_BYTES_REQUESTED.getName()).mark(length);
+    fileRegion = mPagedService.getPageFileRegion(fileId, pageIndex, offset, length);
+    MetricsSystem.meter(MetricKey.WORKER_HTTP_BYTES_READ_CACHE.getName()).mark(length);
     HttpResponse response = new DefaultHttpResponse(httpRequest.protocolVersion(), OK);
     HttpResponseContext httpResponseContext = new HttpResponseContext(response, fileRegion);
     response.headers()
@@ -365,5 +368,24 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
     super.handlerRemoved(ctx);
     mFileSystem.close();
     mFileSystemContext.close();
+  }
+
+  private static final class Metrics {
+    // Note that only counter/guage can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
+
+    private static void registerGauges() {
+      // Cache hit rate = Cache hits / (Cache hits + Cache misses).
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricsSystem.getMetricName(MetricKey.WORKER_HTTP_CACHE_HIT_RATE.getName()),
+          () -> {
+            long cacheHits = MetricsSystem.meter(
+                MetricKey.WORKER_HTTP_BYTES_READ_CACHE.getName()).getCount();
+            long total = MetricsSystem.meter(
+                MetricKey.WORKER_HTTP_BYTES_REQUESTED.getName()).getCount();
+            return cacheHits / (1.0 * total);
+          });
+    }
   }
 }

@@ -82,19 +82,6 @@ public class PagedService {
    *
    * @param fileId    the file ID
    * @param pageIndex the page index
-   * @return the ByteBuf object that wraps page bytes
-   * @throws PageNotFoundException
-   */
-  public FileRegion getPageFileRegion(String fileId, long pageIndex)
-      throws PageNotFoundException {
-    return getPageFileRegion(fileId, pageIndex, 0, (int) mPageSize);
-  }
-
-  /**
-   * Get {@link FileRegion} object given fileId, pageIndex, and channel.
-   *
-   * @param fileId    the file ID
-   * @param pageIndex the page index
    * @param offset offset into the page
    * @param length number of bytes to read in this page
    * @return the ByteBuf object that wraps page bytes
@@ -113,17 +100,9 @@ public class PagedService {
   }
 
   /**
-   * Get {@link FileRegion} object given fileId, pageIndex, and channel.
-   *
-   * @param fileId    the file ID
-   * @param pageIndex the page index
-   * @param offset offset into the page
-   * @return the ByteBuf object that wraps page bytes
-   * @throws PageNotFoundException
+   * @return page size
    */
-  public FileRegion getPageFileRegion(String fileId, long pageIndex, long offset)
-      throws PageNotFoundException {
-    return getPageFileRegion(fileId, pageIndex, offset, (int) (mPageSize - offset));
+  public long getPageSize() {
+    return mPageSize;
   }
-  // TODO(JiamingMai): do we need to implement a method for reading file directly?
 }
