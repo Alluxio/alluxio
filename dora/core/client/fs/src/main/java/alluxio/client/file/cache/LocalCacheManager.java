@@ -232,6 +232,10 @@ public class LocalCacheManager implements CacheManager {
             pageId, pageOffset);
         Metrics.GET_ERRORS.inc();
         Metrics.GET_STORE_READ_ERRORS.inc();
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE_ERROR.getName())
+            .mark(bytesToRead);
+        cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE_ERROR.getMetricName(),
+            BYTE, bytesToRead);
         // something is wrong to read this page, let's remove it from meta store
         try (LockResource r2 = new LockResource(mPageMetaStore.getLock().writeLock())) {
           mPageMetaStore.removePage(pageId);
