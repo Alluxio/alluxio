@@ -133,6 +133,12 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
     List<String> fields = HttpRequestUtil.extractFieldsFromHttpRequestUri(requestUri);
     HttpRequestUri httpRequestUri = HttpRequestUri.of(fields);
 
+    if (httpRequestUri.getVersion().startsWith("health")) {
+      HttpResponse response = new DefaultHttpResponse(httpRequest.protocolVersion(), OK);
+      HttpResponseContext httpResponseContext = new HttpResponseContext(response, null);
+      return httpResponseContext;
+    }
+
     switch (httpRequest.method().name()) {
       case "GET":
         return dispatchGetRequest(httpRequest, httpRequestUri);
