@@ -23,7 +23,7 @@ RUN echo "networkaddress.cache.ttl=0" >> /usr/lib/jvm/java-11-openjdk/conf/secur
 
 # Install libfuse2 and libfuse3. Libfuse2 setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on centOS
 RUN \
-    yum install -y ca-certificates pkgconfig wget udev git bind-utils && \
+    yum install -y ca-certificates pkgconfig wget udev git bind-utils nc && \
     yum install -y gcc gcc-c++ make cmake gettext-devel libtool autoconf && \
     git clone https://github.com/Alluxio/libfuse.git && \
     cd libfuse && \
