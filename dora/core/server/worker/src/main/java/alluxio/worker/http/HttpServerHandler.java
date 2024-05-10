@@ -133,12 +133,6 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
     List<String> fields = HttpRequestUtil.extractFieldsFromHttpRequestUri(requestUri);
     HttpRequestUri httpRequestUri = HttpRequestUri.of(fields);
 
-    if (httpRequestUri.getVersion().startsWith("health")) {
-      HttpResponse response = new DefaultHttpResponse(httpRequest.protocolVersion(), OK);
-      HttpResponseContext httpResponseContext = new HttpResponseContext(response, null);
-      return httpResponseContext;
-    }
-
     switch (httpRequest.method().name()) {
       case "GET":
         return dispatchGetRequest(httpRequest, httpRequestUri);
@@ -175,11 +169,23 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
         return doGetFileStatus(httpRequest, httpRequestUri);
       case "load":
         return doLoad(httpRequest, httpRequestUri);
+      case "health":
+        return doHealthCheck(httpRequest, httpRequestUri);
       default:
         // TODO(JiamingMai): this should not happen, we should throw an exception here
         return null;
     }
   }
+
+    private HttpResponseContext doHealthCheck(HttpRequest httpRequest,
+            HttpRequestUri httpRequestUri) {
+      FullHttpResponse response = new DefaultFullHttpResponse(httpRequest.protocolVersion(), OK,
+              Unpooled.wrappedBuffer("worker is active".getBytes()));
+      response.headers()
+              .set(CONTENT_TYPE, TEXT_PLAIN)
+              .setInt(CONTENT_LENGTH, response.content().readableBytes());
+      return new HttpResponseContext(response, null);
+    }
 
   private HttpResponseContext doWritePage(HttpRequest httpRequest, HttpRequestUri httpRequestUri)
       throws PageNotFoundException {
