@@ -177,15 +177,15 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
     }
   }
 
-    private HttpResponseContext doHealthCheck(HttpRequest httpRequest,
-            HttpRequestUri httpRequestUri) {
-      FullHttpResponse response = new DefaultFullHttpResponse(httpRequest.protocolVersion(), OK,
-              Unpooled.wrappedBuffer("worker is active".getBytes()));
-      response.headers()
-              .set(CONTENT_TYPE, TEXT_PLAIN)
-              .setInt(CONTENT_LENGTH, response.content().readableBytes());
-      return new HttpResponseContext(response, null);
-    }
+  private HttpResponseContext doHealthCheck(HttpRequest httpRequest,
+                                            HttpRequestUri httpRequestUri) {
+    FullHttpResponse response = new DefaultFullHttpResponse(httpRequest.protocolVersion(), OK,
+        Unpooled.wrappedBuffer("worker is active".getBytes()));
+    response.headers()
+        .set(CONTENT_TYPE, TEXT_PLAIN)
+        .setInt(CONTENT_LENGTH, response.content().readableBytes());
+    return new HttpResponseContext(response, null);
+  }
 
   private HttpResponseContext doWritePage(HttpRequest httpRequest, HttpRequestUri httpRequestUri)
       throws PageNotFoundException {
