@@ -1164,6 +1164,8 @@ public final class S3RestServiceHandler {
           URIStatus status = userFs.getStatus(objectUri);
           if (status.isFolder() && !object.endsWith(AlluxioURI.SEPARATOR)) {
             throw new FileDoesNotExistException(status.getPath() + " is a directory");
+          } else if (!status.isFolder() && object.endsWith(AlluxioURI.SEPARATOR)) {
+            throw new FileDoesNotExistException(status.getPath() + " is a file");
           }
           Response.ResponseBuilder res = Response.ok()
               .lastModified(new Date(status.getLastModificationTimeMs()))
