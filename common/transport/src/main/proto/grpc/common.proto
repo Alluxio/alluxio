@@ -154,3 +154,9 @@ message WorkerIdentity {
   /** version of the definition of the opaque identifier */
   optional int32 version = 2;
 }
+
+message UfsUrlMessage {
+  optional string scheme = 1;
+  optional string authority = 2;
+  repeated string pathComponents = 3;
+}
