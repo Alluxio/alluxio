@@ -847,6 +847,12 @@ Please wait for command submission to finish..
 Submitted migrate job successfully, jobControlId = JOB_CONTROL_ID_2
 ```
 
+Please note below are known limitations for the distributed copy command.
+- Limited Scalability: No more than 1 million total number of files should be moved concurrently. Note that a copy job may stay active for a short period after the last file is copied.
+- Manual Integrity Validation: Verification between source and destination files relies on the response code from the underlying data lake storage. In case the response code is unreliable, we recommend manual verification of source and destination checksums.
+- Manual Cleanup: In certain failure scenarios, a user may need to manually remove partially written contents in destination directories and restart the failed jobs.
+- Limited Observability: Status checks are limited to using the command line for each job individually.
+
 ### du
 
 The `du` command outputs the total size and amount stored in Alluxio of files and folders.
