@@ -42,7 +42,8 @@ public class ConsistentHashPolicyTest {
   public void setup() {
     mConf = new InstancedConfiguration(Configuration.copyProperties());
     mConf.set(PropertyKey.USER_WORKER_SELECTION_POLICY,
-        "alluxio.client.file.dora.ConsistentHashPolicy");
+        "CONSISTENT");
+    mConf.set(PropertyKey.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER, 5);
   }
 
   @Test
@@ -97,8 +98,8 @@ public class ConsistentHashPolicyTest {
     assertEquals(2, assignedWorkers.size());
     assertTrue(assignedWorkers.stream().allMatch(w -> contains(workers, w)));
     // The order of the workers should be consistent
-    assertEquals(assignedWorkers.get(0).getNetAddress().getHost(), "master1");
-    assertEquals(assignedWorkers.get(1).getNetAddress().getHost(), "master2");
+    assertEquals(assignedWorkers.get(0).getNetAddress().getHost(), "master2");
+    assertEquals(assignedWorkers.get(1).getNetAddress().getHost(), "master1");
     assertThrows(ResourceExhaustedException.class, () -> {
       // Getting 2 out of 1 worker will result in an error
       policy.getPreferredWorkers(

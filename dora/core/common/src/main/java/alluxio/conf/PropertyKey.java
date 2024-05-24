@@ -4842,6 +4842,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey WORKER_FAILURE_DETECTION_TIMEOUT =
+      durationBuilder(Name.WORKER_FAILURE_DETECTION_TIMEOUT)
+          .setDefaultValue("2min")
+          .setDescription("The timeout to consider a worker failure in membership"
+              + " failure detection.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE =
       stringBuilder(Name.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE)
           .setDefaultValue(format("${%s}/workers", Name.CONF_DIR))
@@ -5681,13 +5689,46 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER =
       intBuilder(Name.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER)
-          .setDefaultValue(2000)
+          .setDefaultValue(5)
           .setDescription("This is the number of virtual nodes for one worker in the consistent "
               + "hashing algorithm. In a consistent hashing algorithm, on membership changes, some "
               + "virtual nodes are re-distributed instead of rebuilding the whole hash table. "
               + "This guarantees the hash table is changed only in a minimal. In order to achieve "
               + "that, the number of virtual nodes should be X times the physical nodes in "
               + "the cluster, where X is a balance between redistribution granularity and size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_KETAMA_HASH_REPLICAS =
+      intBuilder(Name.USER_KETAMA_HASH_REPLICAS)
+          .setDefaultValue(200)
+          .setDescription("This is the value of replicas in the ketama hashing "
+              + "algorithm. When workers changes, it will guarantee the hash table is "
+              + "changed only in a minimal. The value of replicas should be X times "
+              + "the physical nodes in the cluster, where X is a balance between "
+              + "efficiency and cost.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_MAGLEV_HASH_LOOKUP_SIZE =
+      intBuilder(Name.USER_MAGLEV_HASH_LOOKUP_SIZE)
+          .setDefaultValue(65537)
+          .setDescription("This is the size of the lookup table in the maglev hashing "
+              + "algorithm. It must be a prime number. In the maglev hashing, "
+              + "it will generate a lookup table for workers. "
+              + "The bigger the size of the lookup table, "
+              + "the smaller the variance of this hashing algorithm will be. "
+              + "But bigger look up table will consume more time and memory")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_MULTI_PROBE_HASH_PROBE_NUM =
+      intBuilder(Name.USER_MULTI_PROBE_HASH_PROBE_NUM)
+          .setDefaultValue(21)
+          .setDescription("This is the number of probes in the multi-probe hashing "
+              + "algorithm. In the multi-probe hashing algorithm, the bigger the number of probes, "
+              + "the smaller the variance of this hashing algorithm will be. But more probes "
+              + "will consume more time and memory")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -6277,7 +6318,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_WORKER_SELECTION_POLICY =
       classBuilder(Name.USER_WORKER_SELECTION_POLICY)
-          .setDefaultValue("alluxio.client.file.dora.ConsistentHashPolicy")
+          .setDefaultValue("CONSISTENT")
           .setDescription("The policy a client uses to map a file path to a worker address. "
               + "The only option is `alluxio.client.file.dora.ConsistentHashPolicy`. "
               + "Other options are for internal tests only and not for real deployments.")
@@ -8178,6 +8219,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.ufs.instream.cache.max.size";
     public static final String WORKER_MEMBERSHIP_MANAGER_TYPE =
         "alluxio.worker.membership.manager.type";
+    public static final String WORKER_FAILURE_DETECTION_TIMEOUT =
+        "alluxio.worker.failure.detection.timeout";
     public static final String WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE =
         "alluxio.worker.static.membership.manager.config.file";
 
@@ -8342,6 +8385,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.include.mtime";
     public static final String USER_CLIENT_REPORT_VERSION_ENABLED =
         "alluxio.user.client.report.version.enabled";
+    public static final String USER_KETAMA_HASH_REPLICAS =
+        "alluxio.user.ketama.hash.replicas";
+    public static final String USER_MAGLEV_HASH_LOOKUP_SIZE =
+        "alluxio.user.maglev.hash.lookup.size";
+    public static final String USER_MULTI_PROBE_HASH_PROBE_NUM =
+        "alluxio.user.multi.probe.hash.probe.num";
     public static final String USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER =
         "alluxio.user.consistent.hash.virtual.node.count.per.worker";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =

@@ -45,7 +45,8 @@ public class ConsistentHashProviderTest {
 
   @Test
   public void uninitializedThrowsException() {
-    ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
+    ConsistentHashProvider provider = new ConsistentHashProvider(
+        1, WORKER_LIST_TTL_MS, NUM_VIRTUAL_NODES);
     assertThrows(IllegalStateException.class, () -> provider.get(OBJECT_KEY, 0));
   }
 
@@ -60,10 +61,11 @@ public class ConsistentHashProviderTest {
    * the bound is likely going to change.
    */
   public void virtualNodeDistribution() {
-    ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
+    ConsistentHashProvider provider = new ConsistentHashProvider(
+        1, WORKER_LIST_TTL_MS, NUM_VIRTUAL_NODES);
     Set<WorkerIdentity> workerList = generateRandomWorkerList(50);
     // set initial state
-    provider.refresh(workerList, 2000);
+    provider.refresh(workerList);
     NavigableMap<Integer, WorkerIdentity> map = provider.getActiveNodesMap();
     Map<WorkerIdentity, Long> count = new HashMap<>();
     long last = Integer.MIN_VALUE;
@@ -90,7 +92,8 @@ public class ConsistentHashProviderTest {
 
   @Test
   public void concurrentInitialization() {
-    ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
+    ConsistentHashProvider provider = new ConsistentHashProvider(
+        1, WORKER_LIST_TTL_MS, NUM_VIRTUAL_NODES);
     final int numThreads = 16;
     CountDownLatch startSignal = new CountDownLatch(numThreads);
     ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
@@ -107,7 +110,7 @@ public class ConsistentHashProviderTest {
             } catch (InterruptedException e) {
               fail("interrupted");
             }
-            provider.refresh(list, NUM_VIRTUAL_NODES);
+            provider.refresh(list);
             return provider.getActiveNodesMap();
           });
         })
@@ -145,8 +148,9 @@ public class ConsistentHashProviderTest {
     ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
 
     for (int repeat = 0; repeat < 100; repeat++) {
-      ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
-      provider.refresh(generateRandomWorkerList(50), NUM_VIRTUAL_NODES);
+      ConsistentHashProvider provider = new ConsistentHashProvider(
+          1, WORKER_LIST_TTL_MS, NUM_VIRTUAL_NODES);
+      provider.refresh(generateRandomWorkerList(50));
       long initialCount = provider.getUpdateCount();
       Thread.sleep(WORKER_LIST_TTL_MS);
 
@@ -166,7 +170,7 @@ public class ConsistentHashProviderTest {
               } catch (InterruptedException e) {
                 fail("interrupted");
               }
-              provider.refresh(list, NUM_VIRTUAL_NODES);
+              provider.refresh(list);
             });
           })
           .collect(Collectors.toList());
@@ -192,10 +196,11 @@ public class ConsistentHashProviderTest {
 
   @Test
   public void workerListTtl() throws Exception {
-    ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
+    ConsistentHashProvider provider = new ConsistentHashProvider(
+        1, WORKER_LIST_TTL_MS, NUM_VIRTUAL_NODES);
     Set<WorkerIdentity> workerList = generateRandomWorkerList(5);
     // set initial state
-    provider.refresh(workerList, NUM_VIRTUAL_NODES);
+    provider.refresh(workerList);
     long initialUpdateCount = provider.getUpdateCount();
     assertEquals(workerList, provider.getLastWorkers());
     assertEquals(
@@ -204,7 +209,7 @@ public class ConsistentHashProviderTest {
 
     // before TTL is up, refresh does not change the internal states of the provider
     Set<WorkerIdentity> newList = generateRandomWorkerList(5);
-    provider.refresh(newList, NUM_VIRTUAL_NODES);
+    provider.refresh(newList);
     assertEquals(0, provider.getUpdateCount() - initialUpdateCount);
     assertNotEquals(newList, workerList);
     assertEquals(workerList, provider.getLastWorkers());
@@ -214,7 +219,7 @@ public class ConsistentHashProviderTest {
 
     // after TTL expires, refresh should change the worker list and the active nodes map
     Thread.sleep(WORKER_LIST_TTL_MS);
-    provider.refresh(newList, NUM_VIRTUAL_NODES);
+    provider.refresh(newList);
     assertEquals(1, provider.getUpdateCount() - initialUpdateCount);
     assertEquals(newList, provider.getLastWorkers());
     assertEquals(

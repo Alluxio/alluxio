@@ -11,6 +11,7 @@
 
 package alluxio.worker.http;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,9 +29,9 @@ public class HttpRequestUri {
 
   private String mMappingPath;
 
-  private List<String> mRemainingFields;
+  private List<String> mRemainingFields = new ArrayList<>();
 
-  private Map<String, String> mParameters;
+  private Map<String, String> mParameters = new HashMap<>();
 
   private HttpRequestUri() {
   }
@@ -54,8 +55,14 @@ public class HttpRequestUri {
       httpRequestUri.setPort(80);
     }
 
-    httpRequestUri.setVersion(fields.get(1));
-    httpRequestUri.setMappingPath(fields.get(2));
+    if (fields.size() >= 3) {
+      httpRequestUri.setVersion(fields.get(1));
+      httpRequestUri.setMappingPath(fields.get(2));
+    } else {
+      httpRequestUri.setVersion("v1");
+      httpRequestUri.setMappingPath(fields.get(1));
+      return httpRequestUri;
+    }
 
     String lastField = fields.get(fields.size() - 1);
     if (lastField.startsWith("?")) {

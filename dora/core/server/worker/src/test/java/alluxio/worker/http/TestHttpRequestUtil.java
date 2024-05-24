@@ -32,6 +32,8 @@ public class TestHttpRequestUtil {
             + "91bdf08ba9e91218e30fe39503dd42e32c/page/0", false, -1L, -1L},
         {"http://127.0.0.1:28080/v1/file/5f2829f08879b0e89d07174cffa8d8"
             + "91bdf08ba9e91218e30fe39503dd42e32c/page/0?offset=5&length=7", true, 5L, 7L},
+        {"http://127.0.0.1:28080/v1/file/5f2829f08879b0e89d07174cffa8d8"
+            + "91bdf08ba9e91218e30fe39503dd42e32c/page/0?offset=6", true, 6L, -1L},
     });
   }
 
@@ -64,14 +66,18 @@ public class TestHttpRequestUtil {
     Assert.assertEquals("0", httpRequestUri.getRemainingFields().get(2));
 
     boolean hasParametersMap = false;
-    if (httpRequestUri.getParameters() != null) {
+    if (!httpRequestUri.getParameters().isEmpty()) {
       hasParametersMap = true;
     }
     Assert.assertEquals(mHasParametersMap, hasParametersMap);
 
     if (mHasParametersMap) {
-      Assert.assertEquals(mOffset, Long.parseLong(httpRequestUri.getParameters().get("offset")));
-      Assert.assertEquals(mLength, Long.parseLong(httpRequestUri.getParameters().get("length")));
+      if (httpRequestUri.getParameters().get("offset") != null) {
+        Assert.assertEquals(mOffset, Long.parseLong(httpRequestUri.getParameters().get("offset")));
+      }
+      if (httpRequestUri.getParameters().get("length") != null) {
+        Assert.assertEquals(mLength, Long.parseLong(httpRequestUri.getParameters().get("length")));
+      }
     }
   }
 

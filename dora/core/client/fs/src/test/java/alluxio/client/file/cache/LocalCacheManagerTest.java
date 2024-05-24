@@ -36,6 +36,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.PageCorruptedException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.file.ByteArrayTargetBuffer;
@@ -822,6 +823,29 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
+  public void ttlDeleteOldPagesWhenRestore() throws Exception {
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_TTL_THRESHOLD_SECONDS, 5);
+    mConf.set(PropertyKey.USER_CLIENT_CACHE_TTL_ENABLED, true);
+    mCacheManagerOptions = CacheManagerOptions.create(mConf);
+    mCacheManager.close();
+    PageStoreDir dir = PageStoreDir.createPageStoreDirs(mCacheManagerOptions)
+                                   .get(0); // previous page store has been closed
+    PageId pageUuid = new PageId(UUID.randomUUID().toString(), 0);
+    dir.getPageStore().put(PAGE_ID1, PAGE1);
+    dir.getPageStore().put(PAGE_ID2, PAGE2);
+
+    dir = PageStoreDir.createPageStoreDirs(mCacheManagerOptions).get(0);
+    mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
+    Thread.sleep(6000);
+    dir.getPageStore().put(pageUuid,
+        BufferUtils.getIncreasingByteArray(PAGE1.length + PAGE2.length + 1));
+    mCacheManager = createLocalCacheManager(mConf, mPageMetaStore);
+    assertFalse(mCacheManager.hasPageUnsafe(PAGE_ID1));
+    assertFalse(mCacheManager.hasPageUnsafe(PAGE_ID2));
+    assertTrue(mCacheManager.hasPageUnsafe(pageUuid)); // we should have the new page
+  }
+
+  @Test
   public void asyncCache() throws Exception {
     // this must be smaller than the number of locks in the page store for the test to succeed
     final int threads = 16;
@@ -981,7 +1005,7 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
-  public void getFaultyRead() throws Exception {
+  public void getFaultyReadWithNoExceptionManager() throws Exception {
     PageStoreOptions pageStoreOptions = PageStoreOptions.create(mConf).get(0);
     FaultyPageStore pageStore = new FaultyPageStore();
     PageStoreDir dir =
@@ -993,6 +1017,40 @@ public final class LocalCacheManagerTest {
     cacheManager.put(PAGE_ID1, PAGE1);
     ByteArrayTargetBuffer targetBuffer = new ByteArrayTargetBuffer(mBuf, 0);
     pageStore.setGetFaulty(true);
+    assertEquals(-1, cacheManager.get(PAGE_ID1, PAGE1.length,
+        targetBuffer, CacheContext.defaults()));
+    assertEquals(0, targetBuffer.offset());
+  }
+
+  @Test
+  public void getFaultyReadWithLocalCacheManager() throws Exception {
+    PageStoreOptions pageStoreOptions = PageStoreOptions.create(mConf).get(0);
+    FaultyPageStore pageStore = new FaultyPageStore();
+    PageStoreDir dir =
+        new LocalPageStoreDir(pageStoreOptions, pageStore, mEvictor);
+
+    mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
+    LocalCacheManager cacheManager = createLocalCacheManager(mConf, mPageMetaStore);
+    cacheManager.put(PAGE_ID1, PAGE1);
+    ByteArrayTargetBuffer targetBuffer = new ByteArrayTargetBuffer(mBuf, 0);
+    pageStore.setGetFaulty(true);
+    assertEquals(-1, cacheManager.get(PAGE_ID1, PAGE1.length,
+        targetBuffer, CacheContext.defaults()));
+    assertEquals(0, targetBuffer.offset());
+  }
+
+  @Test
+  public void getCorruptedReadWithLocalCacheManager() throws Exception {
+    PageStoreOptions pageStoreOptions = PageStoreOptions.create(mConf).get(0);
+    FaultyPageStore pageStore = new FaultyPageStore();
+    PageStoreDir dir =
+        new LocalPageStoreDir(pageStoreOptions, pageStore, mEvictor);
+
+    mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
+    LocalCacheManager cacheManager = createLocalCacheManager(mConf, mPageMetaStore);
+    cacheManager.put(PAGE_ID1, PAGE1);
+    ByteArrayTargetBuffer targetBuffer = new ByteArrayTargetBuffer(mBuf, 0);
+    pageStore.setGetCorrupted(true);
     assertEquals(-1, cacheManager.get(PAGE_ID1, PAGE1.length,
         targetBuffer, CacheContext.defaults()));
     assertEquals(0, targetBuffer.offset());
@@ -1157,12 +1215,18 @@ public final class LocalCacheManagerTest {
     private AtomicBoolean mDeleteFaulty = new AtomicBoolean(false);
     private AtomicBoolean mGetFaulty = new AtomicBoolean(false);
 
+    private AtomicBoolean mGetCorrupted = new AtomicBoolean(false);
+
     @Override
     public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
         boolean isTemporary) throws IOException, PageNotFoundException {
       if (mGetFaulty.get()) {
         target.offset(target.offset() + 100);
         throw new IOException("Page read fault");
+      }
+      if (mGetCorrupted.get()) {
+        target.offset(target.offset() + 100);
+        throw new PageCorruptedException("page corrupted");
       }
       return super.get(pageId, pageOffset, bytesToRead, target, isTemporary);
     }
@@ -1193,6 +1257,10 @@ public final class LocalCacheManagerTest {
 
     void setGetFaulty(boolean faulty) {
       mGetFaulty.set(faulty);
+    }
+
+    void setGetCorrupted(boolean faulty) {
+      mGetCorrupted.set(faulty);
     }
   }
 

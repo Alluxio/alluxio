@@ -92,14 +92,26 @@ public class ConsistentHashProvider {
   private final Object mInitLock = new Object();
 
   /**
+   * This is the number of virtual nodes in the consistent hashing algorithm.
+   * In a consistent hashing algorithm, on membership changes, some virtual nodes are
+   * re-distributed instead of rebuilding the whole hash table.
+   * This guarantees the hash table is changed only in a minimal.
+   * In order to achieve that, the number of virtual nodes should be X times the physical nodes
+   * in the cluster, where X is a balance between redistribution granularity and size.
+   */
+  private final int mNumVirtualNodes;
+
+  /**
    * Constructor.
    *
    * @param maxAttempts max attempts to rehash
    * @param workerListTtlMs interval between retries
+   * @param numVirtualNodes number of virtual nodes
    */
-  public ConsistentHashProvider(int maxAttempts, long workerListTtlMs) {
+  public ConsistentHashProvider(int maxAttempts, long workerListTtlMs, int numVirtualNodes) {
     mMaxAttempts = maxAttempts;
     mWorkerInfoUpdateIntervalNs = workerListTtlMs * Constants.MS_NANO;
+    mNumVirtualNodes = numVirtualNodes;
   }
 
   /**
@@ -130,12 +142,11 @@ public class ConsistentHashProvider {
    * others will not change the internal state of the hash provider.
    *
    * @param workers the up-to-date worker list
-   * @param numVirtualNodes the number of virtual nodes used by consistent hashing
    */
-  public void refresh(Set<WorkerIdentity> workers, int numVirtualNodes) {
+  public void refresh(Set<WorkerIdentity> workers) {
     Preconditions.checkArgument(!workers.isEmpty(),
         "cannot refresh hash provider with empty worker list");
-    maybeInitialize(workers, numVirtualNodes);
+    maybeInitialize(workers);
     // check if the worker list has expired
     if (shouldRebuildActiveNodesMapExclusively()) {
       // thread safety is valid provided that build() takes less than
@@ -144,7 +155,7 @@ public class ConsistentHashProvider {
       Set<WorkerIdentity> lastWorkerIds = mLastWorkers.get();
       if (!workers.equals(lastWorkerIds)) {
         Set<WorkerIdentity> newWorkerIds = ImmutableSet.copyOf(workers);
-        NavigableMap<Integer, WorkerIdentity> nodes = build(newWorkerIds, numVirtualNodes);
+        NavigableMap<Integer, WorkerIdentity> nodes = build(newWorkerIds, mNumVirtualNodes);
         mActiveNodesByConsistentHashing = nodes;
         mLastWorkers.set(newWorkerIds);
         mUpdateCount.increment();
@@ -176,14 +187,14 @@ public class ConsistentHashProvider {
    * Only one caller gets to initialize the map while all others are blocked.
    * After the initialization, the map must not be null.
    */
-  private void maybeInitialize(Set<WorkerIdentity> workers, int numVirtualNodes) {
+  private void maybeInitialize(Set<WorkerIdentity> workers) {
     if (mActiveNodesByConsistentHashing == null) {
       synchronized (mInitLock) {
         // only one thread should reach here
         // test again to skip re-initialization
         if (mActiveNodesByConsistentHashing == null) {
           Set<WorkerIdentity> workerIdentities = ImmutableSet.copyOf(workers);
-          mActiveNodesByConsistentHashing = build(workerIdentities, numVirtualNodes);
+          mActiveNodesByConsistentHashing = build(workerIdentities, mNumVirtualNodes);
           mLastWorkers.set(workerIdentities);
           mLastUpdatedTimestamp.set(System.nanoTime());
         }

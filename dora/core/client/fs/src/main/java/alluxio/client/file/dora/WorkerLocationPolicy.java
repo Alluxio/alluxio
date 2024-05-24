@@ -69,13 +69,21 @@ public interface WorkerLocationPolicy {
      */
     public static WorkerLocationPolicy create(AlluxioConfiguration conf) {
       try {
-        WorkerLocationPolicy workerLocationPolicy = CommonUtils.createNewClassInstance(
-            conf.getClass(PropertyKey.USER_WORKER_SELECTION_POLICY),
-            new Class[] {AlluxioConfiguration.class}, new Object[] {conf});
+        // Find the name of the class corresponding to the enumerated hash algorithm
+        String policyName = (String) conf.get(PropertyKey.USER_WORKER_SELECTION_POLICY);
+        WorkerLocationPolicyEnum policyEnum =
+            WorkerLocationPolicyEnum.valueOf(policyName.toUpperCase());
+        Class policyClass = Class.forName(policyEnum.getPolicyName());
+
+        WorkerLocationPolicy workerLocationPolicy =
+            (WorkerLocationPolicy) CommonUtils.createNewClassInstance(
+            policyClass, new Class[] {AlluxioConfiguration.class}, new Object[] {conf});
         LOG.debug("Using worker location policy: {}",
             workerLocationPolicy.getClass().getSimpleName());
         return workerLocationPolicy;
       } catch (ClassCastException e) {
+        throw new RuntimeException(e);
+      } catch (ClassNotFoundException e) {
         throw new RuntimeException(e);
       }
     }

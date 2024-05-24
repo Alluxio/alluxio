@@ -48,6 +48,18 @@ public class PagedService {
   }
 
   /**
+   * Write page bytes given fileId, pageIndex.
+   * @param fileId the file ID
+   * @param pageIndex the page index
+   * @param bytes bytes of the page
+   * @return if write page successfully
+   */
+  public boolean writePage(String fileId, long pageIndex, byte[] bytes) {
+    PageId pageId = new PageId(fileId, pageIndex);
+    return mCacheManager.put(pageId, bytes);
+  }
+
+  /**
    * Get page bytes given fileId, pageIndex, and channel which is used for allocating ByteBuf.
    *
    * @param fileId    the file ID
@@ -63,19 +75,6 @@ public class PagedService {
     // instead of the given fileId
     int bytesRead = mCacheManager.get(pageId, 0, targetBuffer, CacheContext.defaults());
     return targetBuffer.getTargetBuffer();
-  }
-
-  /**
-   * Get {@link FileRegion} object given fileId, pageIndex, and channel.
-   *
-   * @param fileId    the file ID
-   * @param pageIndex the page index
-   * @return the ByteBuf object that wraps page bytes
-   * @throws PageNotFoundException
-   */
-  public FileRegion getPageFileRegion(String fileId, long pageIndex)
-      throws PageNotFoundException {
-    return getPageFileRegion(fileId, pageIndex, 0, (int) mPageSize);
   }
 
   /**
@@ -99,5 +98,11 @@ public class PagedService {
     }
     return (FileRegion) dataFileChannel.get().getNettyOutput();
   }
-  // TODO(JiamingMai): do we need to implement a method for reading file directly?
+
+  /**
+   * @return page size
+   */
+  public long getPageSize() {
+    return mPageSize;
+  }
 }

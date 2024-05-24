@@ -2178,6 +2178,25 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of GetFileInfo read from external storage.")
           .setMetricType(MetricType.COUNTER)
           .build();
+  public static final MetricKey WORKER_HTTP_CACHE_HIT_RATE =
+      new Builder("Worker.HttpCacheHitRate")
+          .setDescription("Cache hit rate: (# bytes read from cache) / (# bytes requested) "
+              + "from worker http server.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_HTTP_BYTES_READ_CACHE =
+      new Builder("Worker.HttpBytesReadCache")
+          .setDescription("Total number of bytes read from the worker cache from http server.")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey WORKER_HTTP_BYTES_REQUESTED =
+      new Builder("Worker.HttpBytesReadRequested")
+          .setDescription("Total number of bytes read requested from http server.")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
 
   // Client metrics
   public static final MetricKey CLIENT_BLOCK_READ_CHUNK_REMOTE =

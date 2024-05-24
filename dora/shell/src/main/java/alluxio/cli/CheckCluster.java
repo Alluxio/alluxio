@@ -113,7 +113,7 @@ public final class CheckCluster {
 
   private static void setupConfiguration() {
     Configuration.set(PropertyKey.USER_WORKER_SELECTION_POLICY,
-        "alluxio.client.file.dora.ConsistentHashPolicy");
+        "CONSISTENT");
     Configuration.set(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED, false);
   }
 

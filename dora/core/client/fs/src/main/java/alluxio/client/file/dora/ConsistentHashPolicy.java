@@ -39,17 +39,7 @@ import java.util.Set;
  */
 public class ConsistentHashPolicy implements WorkerLocationPolicy {
   private static final Logger LOG = LoggerFactory.getLogger(ConsistentHashPolicy.class);
-  private final ConsistentHashProvider mHashProvider =
-      new ConsistentHashProvider(100, Constants.SECOND_MS);
-  /**
-   * This is the number of virtual nodes in the consistent hashing algorithm.
-   * In a consistent hashing algorithm, on membership changes, some virtual nodes are
-   * re-distributed instead of rebuilding the whole hash table.
-   * This guarantees the hash table is changed only in a minimal.
-   * In order to achieve that, the number of virtual nodes should be X times the physical nodes
-   * in the cluster, where X is a balance between redistribution granularity and size.
-   */
-  private final int mNumVirtualNodes;
+  private final ConsistentHashProvider mHashProvider;
 
   /**
    * Constructs a new {@link ConsistentHashPolicy}.
@@ -57,7 +47,10 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
    * @param conf the configuration used by the policy
    */
   public ConsistentHashPolicy(AlluxioConfiguration conf) {
-    mNumVirtualNodes = conf.getInt(PropertyKey.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER);
+    LOG.debug("%s is chosen for user worker hash algorithm",
+        conf.getString(PropertyKey.USER_WORKER_SELECTION_POLICY));
+    mHashProvider = new ConsistentHashProvider(100, Constants.SECOND_MS,
+        conf.getInt(PropertyKey.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT_PER_WORKER));
   }
 
   @Override
@@ -69,7 +62,7 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
           workerClusterView.size(), count));
     }
     Set<WorkerIdentity> workerIdentities = workerClusterView.workerIds();
-    mHashProvider.refresh(workerIdentities, mNumVirtualNodes);
+    mHashProvider.refresh(workerIdentities);
     List<WorkerIdentity> workers = mHashProvider.getMultiple(fileId, count);
     if (workers.size() != count) {
       throw new ResourceExhaustedException(String.format(

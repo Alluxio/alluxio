@@ -46,7 +46,7 @@ public class LocalWorkerPolicyTest {
   public void setup() {
     mConf = new InstancedConfiguration(Configuration.copyProperties());
     mConf.set(PropertyKey.USER_WORKER_SELECTION_POLICY,
-        "alluxio.client.file.dora.LocalWorkerPolicy");
+        "LOCAL");
     mConf.set(PropertyKey.USER_HOSTNAME, LOCAL_HOSTNAME);
   }
 

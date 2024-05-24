@@ -25,9 +25,13 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.grpc.Bits;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
+import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.proto.journal.File;
 import alluxio.s3.S3AuditContext;
 import alluxio.s3.S3Constants;
@@ -176,6 +180,34 @@ public final class S3RestUtils {
    */
   public static String getMultipartMetaFilepathForUploadId(String uploadId) {
     return MULTIPART_UPLOADS_METADATA_DIR + AlluxioURI.SEPARATOR + uploadId;
+  }
+
+  /**
+   * Initiate the S3 API metadata directories.
+   * @param fileSystem
+   * @throws IOException
+   * @throws AlluxioException
+   */
+  public static void initMultipartUploadsMetadataDir(FileSystem fileSystem)
+      throws IOException, AlluxioException {
+    // Initiate the S3 API metadata directories
+    if (!fileSystem.exists(new AlluxioURI(MULTIPART_UPLOADS_METADATA_DIR))) {
+      try {
+        fileSystem.createDirectory(new AlluxioURI(MULTIPART_UPLOADS_METADATA_DIR),
+            CreateDirectoryPOptions.newBuilder()
+                .setRecursive(true)
+                .setMode(PMode.newBuilder()
+                    .setOwnerBits(Bits.ALL).setGroupBits(Bits.ALL)
+                    .setOtherBits(Bits.NONE)
+                    .build())
+                .setWriteType(S3RestUtils.getS3WriteType())
+                .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                .build());
+      } catch (FileAlreadyExistsException e) {
+        LOG.warn("Multipart uploads metadata dir {} already exists.",
+            MULTIPART_UPLOADS_METADATA_DIR);
+      }
+    }
   }
 
   /**

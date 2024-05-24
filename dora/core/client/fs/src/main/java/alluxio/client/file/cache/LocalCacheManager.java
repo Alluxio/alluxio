@@ -26,6 +26,7 @@ import alluxio.client.quota.CacheScope;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.PageCorruptedException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.file.ByteArrayTargetBuffer;
@@ -35,6 +36,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.resource.LockResource;
+import alluxio.util.ThreadFactoryUtils;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
@@ -113,6 +115,7 @@ public class LocalCacheManager implements CacheManager {
    */
   private final AtomicReference<CacheManager.State> mState = new AtomicReference<>();
   private final CacheManagerOptions mOptions;
+  private final Optional<Predicate<PageInfo>> mPagePredicate;
 
   /**
    * @param options       the options of local cache manager
@@ -156,25 +159,32 @@ public class LocalCacheManager implements CacheManager {
         options.isAsyncWriteEnabled()
             ? Optional.of(new ThreadPoolExecutor(mOptions.getAsyncWriteThreads(),
             mOptions.getAsyncWriteThreads(), 60, TimeUnit.SECONDS,
-                new SynchronousQueue<>(), new ThreadPoolExecutor.CallerRunsPolicy()))
+                new SynchronousQueue<>(), ThreadFactoryUtils.build(
+                        "alluxio-async-cache-executor", true),
+                new ThreadPoolExecutor.CallerRunsPolicy()))
             : Optional.empty();
     mInitService =
-        options.isAsyncRestoreEnabled() ? Optional.of(Executors.newSingleThreadExecutor()) :
+        options.isAsyncRestoreEnabled() ? Optional.of(Executors.newSingleThreadExecutor(
+                ThreadFactoryUtils.build("alluxio-init-service", true))) :
             Optional.empty();
     if (options.isTtlEnabled()) {
-      mTtlEnforcerExecutor = Optional.of(newScheduledThreadPool(1));
+      Predicate<PageInfo> ttl = pageInfo -> {
+        try {
+          return System.currentTimeMillis() - pageInfo.getCreatedTimestamp()
+              >= options.getTtlThresholdSeconds() * 1000;
+        } catch (Exception ex) {
+          // In case of any exception, do not invalidate the cache
+          return false;
+        }
+      };
+      mPagePredicate = Optional.of(ttl);
+      mTtlEnforcerExecutor = Optional.of(newScheduledThreadPool(1,
+              ThreadFactoryUtils.build("alluxio-ttl-executor", true)));
       mTtlEnforcerExecutor.get().scheduleAtFixedRate(() ->
-          LocalCacheManager.this.invalidate(pageInfo -> {
-            try {
-              return System.currentTimeMillis() - pageInfo.getCreatedTimestamp()
-                  >= options.getTtlThresholdSeconds() * 1000;
-            } catch (Exception ex) {
-              // In case of any exception, do not invalidate the cache
-              return false;
-            }
-          }), 0, options.getTtlCheckIntervalSeconds(), SECONDS);
+          LocalCacheManager.this.invalidate(ttl), 0, options.getTtlCheckIntervalSeconds(), SECONDS);
     } else {
       mTtlEnforcerExecutor = Optional.empty();
+      mPagePredicate = Optional.empty();
     }
     Metrics.registerGauges(mCacheSize, mPageMetaStore);
     mState.set(READ_ONLY);
@@ -783,9 +793,15 @@ public class LocalCacheManager implements CacheManager {
       return false;
     }
     try {
-      pageStoreDir.scanPages(pageInfo -> {
-        if (pageInfo.isPresent()) {
-          addPageToDir(pageStoreDir, pageInfo.get());
+      pageStoreDir.scanPages(optionalPageInfo -> {
+        if (optionalPageInfo.isPresent()) {
+          PageInfo pageInfo = optionalPageInfo.get();
+          if (mPagePredicate.isPresent()) {
+            addPageBasedOnPredicate(pageStoreDir, pageInfo);
+          }
+          else {
+            addPageToDir(pageStoreDir, pageInfo);
+          }
         }
       });
     } catch (IOException | RuntimeException e) {
@@ -798,6 +814,34 @@ public class LocalCacheManager implements CacheManager {
         mPageMetaStore.bytes() - restoredBytes, Metrics.PAGE_DISCARDED.getCount() - discardPages,
         Metrics.BYTE_DISCARDED.getCount() - discardBytes);
     return true;
+  }
+
+  private void addPageBasedOnPredicate(PageStoreDir pageStoreDir, PageInfo pageInfo) {
+    boolean tested = mPagePredicate.get().test(pageInfo);
+    if (!tested) {
+      addPageToDir(pageStoreDir, pageInfo);
+      MetricsSystem.histogram(MetricKey.CLIENT_CACHE_PAGES_AGES.getName())
+                   .update(System.currentTimeMillis() - pageInfo.getCreatedTimestamp());
+    }
+    else {
+      // delete page directly and no metadata put into meta store
+      ReadWriteLock pageLock = getPageLock(pageInfo.getPageId());
+      boolean isPageDeleted;
+      try (LockResource r = new LockResource(pageLock.writeLock())) {
+        isPageDeleted = deletePage(pageInfo, false);
+      }
+      if (isPageDeleted) {
+        MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_INVALIDATED.getName()).mark();
+      }
+      else {
+        LOG.debug("Failed to delete old pages {} when restore", pageInfo.getPageId());
+        Metrics.DELETE_STORE_DELETE_ERRORS.inc();
+        Metrics.DELETE_ERRORS.inc();
+        // still show the age of the old page to warn users
+        MetricsSystem.histogram(MetricKey.CLIENT_CACHE_PAGES_AGES.getName())
+                     .update(System.currentTimeMillis() - pageInfo.getCreatedTimestamp());
+      }
+    }
   }
 
   private void addPageToDir(PageStoreDir pageStoreDir, PageInfo pageInfo) {
@@ -865,6 +909,11 @@ public class LocalCacheManager implements CacheManager {
 
   @Override
   public void invalidate(Predicate<PageInfo> predicate) {
+    if (mState.get() != READ_WRITE) {
+      Metrics.DELETE_NOT_READY_ERRORS.inc();
+      Metrics.DELETE_ERRORS.inc();
+      return;
+    }
     mPageStoreDirs.forEach(dir -> {
       try {
         dir.scanPages(pageInfoOpt -> {
@@ -874,10 +923,12 @@ public class LocalCacheManager implements CacheManager {
             if (predicate.test(pageInfo)) {
               isPageDeleted = delete(pageInfo.getPageId());
             }
-            if (!isPageDeleted) {
+            if (isPageDeleted) {
               MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_INVALIDATED.getName()).mark();
+            }
+            else {
               MetricsSystem.histogram(MetricKey.CLIENT_CACHE_PAGES_AGES.getName())
-                  .update(System.currentTimeMillis() - pageInfo.getCreatedTimestamp());
+                           .update(System.currentTimeMillis() - pageInfo.getCreatedTimestamp());
             }
           }
         });
@@ -919,6 +970,7 @@ public class LocalCacheManager implements CacheManager {
 
   private int getPage(PageInfo pageInfo, int pageOffset, int bytesToRead,
                       ReadTargetBuffer target, CacheContext cacheContext) {
+    int originOffset = target.offset();
     try {
       int ret = pageInfo.getLocalCacheDir().getPageStore()
           .get(pageInfo.getPageId(), pageOffset, bytesToRead, target,
@@ -927,10 +979,20 @@ public class LocalCacheManager implements CacheManager {
         // data read from page store is inconsistent from the metastore
         LOG.error("Failed to read page {}: supposed to read {} bytes, {} bytes actually read",
             pageInfo.getPageId(), bytesToRead, ret);
+        target.offset(originOffset); //reset the offset
+        //best efforts to delete the corrupted file without acquire the write lock
+        deletePage(pageInfo, false);
         return -1;
       }
+    } catch (PageCorruptedException e) {
+      LOG.error("Data corrupted page {} from pageStore", pageInfo.getPageId(), e);
+      target.offset(originOffset); //reset the offset
+      //best efforts to delete the corrupted file without acquire the write lock
+      deletePage(pageInfo, false);
+      return -1;
     } catch (IOException | PageNotFoundException e) {
       LOG.debug("Failed to get existing page {} from pageStore", pageInfo.getPageId(), e);
+      target.offset(originOffset); //reset the offset
       return -1;
     }
     return bytesToRead;

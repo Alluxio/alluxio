@@ -185,29 +185,6 @@ function setup_for_dynamic_non_root {
   fi
 }
 
-#######################################
-# Sets the Alluxio ram folder if alluxio top tier is MEM and ram folder isn't explicitly configured.
-# Globals:
-#   ALLUXIO_JAVA_OPTS
-#   ALLUXIO_HOME
-#   ALLUXIO_WORKER_JAVA_OPTS
-# Arguments:
-#   None
-#######################################
-function set_ram_folder_if_needed {
-  local tier_alias=$("${ALLUXIO_HOME}"/bin/alluxio getConf alluxio.worker.tieredstore.level0.alias)
-  if [[ "${tier_alias}" != "MEM" ]]; then
-    # If the top tier is not MEM, skip setting ram folder
-    return
-  fi
-  local full_worker_opts="${ALLUXIO_JAVA_OPTS} ${ALLUXIO_WORKER_JAVA_OPTS}"
-  if [[ "${full_worker_opts}" != *"alluxio.worker.tieredstore.level0.dirs.path"* ]]; then
-    # Docker will set this tmpfs up by default. Its size is configurable through the
-    # --shm-size argument to docker run
-    export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-/dev/shm}
-  fi
-}
-
 function main {
   if [[ "$#" -lt 1 ]]; then
     printUsage
@@ -226,31 +203,11 @@ function main {
   local processes
   processes=()
   case "${service}" in
-    master)
-      formatMasterIfSpecified
-      processes+=("job_master")
+    master|master-only)
       processes+=("master")
       ;;
-    master-only)
-      formatMasterIfSpecified
-      processes+=("master")
-      ;;
-    job-master)
-      processes+=("job_master")
-      ;;
-    worker)
-      set_ram_folder_if_needed
-      formatWorkerIfSpecified
-      processes+=("job_worker")
+    worker|worker-only)
       processes+=("worker")
-      ;;
-    worker-only)
-      set_ram_folder_if_needed
-      formatWorkerIfSpecified
-      processes+=("worker")
-      ;;
-    job-worker)
-      processes+=("job_worker")
       ;;
     proxy)
       processes+=("proxy")

@@ -155,7 +155,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
     // initialize the base, for only the non-distributed task (the cluster launching task)
     Path basePath = new Path(mParameters.mBasePath);
-    int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
+    long fileSize = FormatUtils.parseSpaceSize(mParameters.mFileSize);
     int numFiles = getTotalFileNumber();
 
     // Generate the file paths using the same heuristics so all nodes have the same set of paths
@@ -193,13 +193,29 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
     // default mode value: hash, using consistent hash
     switch (mParameters.mMode) {
-      case HASH:
+      case CONSISTENT:
         hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
-            "alluxio.client.file.dora.ConsistentHashPolicy");
+            "CONSISTENT");
+        break;
+      case JUMP:
+        hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
+            "JUMP");
+        break;
+      case KETAMA:
+        hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
+            "KETAMA");
+        break;
+      case MAGLEV:
+        hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
+            "MAGLEV");
+        break;
+      case MULTI_PROBE:
+        hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
+            "MULTI_PROBE");
         break;
       case LOCAL_ONLY:
         hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
-            "alluxio.client.file.dora.LocalWorkerPolicy");
+            "LOCAL");
         break;
       case REMOTE_ONLY:
         // if is cluster run and cluster size = 1, REMOTE_ONLY is not supported.
@@ -207,7 +223,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
           throw new IllegalArgumentException("Cluster size is 1. REMOTE_ONLY mode not supported.");
         }
         hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
-            "alluxio.client.file.dora.RemoteOnlyPolicy");
+            "REMOTE");
         break;
       default:
         throw new IllegalArgumentException("Unrecognized mode" + mParameters.mMode);
@@ -250,7 +266,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     LOG.info("{} file paths generated", mFilePaths.length);
   }
 
-  private void prepareTestFiles(Path basePath, int fileSize, FileSystem prepareFs)
+  private void prepareTestFiles(Path basePath, long fileSize, FileSystem prepareFs)
       throws IOException {
     int numFiles = mFilePaths.length;
     LOG.info("Preparing {} test files under {}", numFiles, basePath);

@@ -501,6 +501,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     WorkerProvider workerProvider;
     switch (Configuration.getEnum(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE,
         MembershipType.class)) {
+      case SERVICE_REGISTRY:
       case STATIC:
       case ETCD:
         workerProvider = new MembershipManagerWorkerProvider(
