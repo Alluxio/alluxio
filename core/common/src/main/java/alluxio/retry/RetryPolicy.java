@@ -36,4 +36,10 @@ public interface RetryPolicy {
    * @return whether another retry should be performed
    */
   boolean attempt();
+
+  /**
+   * Copy a new RetryPolicy based on the current RetryPolicy configuration.
+   * @return a copy of RetryPolicy
+   */
+  RetryPolicy copy();
 }

@@ -98,14 +98,15 @@ public class COSInputStream extends MultiRangeObjectInputStream {
     req.setRange(startPos, endPos < mContentLength ? endPos - 1 : mContentLength - 1);
     CosServiceException lastException = null;
     String errorMessage = String.format("Failed to open key: %s bucket: %s", mKey, mBucketName);
-    while (mRetryPolicy.attempt()) {
+    RetryPolicy retryPolicy = mRetryPolicy.copy();
+    while (retryPolicy.attempt()) {
       try {
         COSObject object = mCosClient.getObject(req);
         return new BufferedInputStream(object.getObjectContent());
       } catch (CosServiceException e) {
         errorMessage = String
             .format("Failed to open key: %s bucket: %s attempts: %d error: %s", mKey, mBucketName,
-                mRetryPolicy.getAttemptCount(), e.getMessage());
+                retryPolicy.getAttemptCount(), e.getMessage());
         if (e.getStatusCode() != HttpStatus.SC_NOT_FOUND) {
           throw new IOException(errorMessage, e);
         }

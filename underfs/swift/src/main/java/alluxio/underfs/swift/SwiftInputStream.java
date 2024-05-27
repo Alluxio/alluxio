@@ -84,7 +84,8 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
   protected InputStream createStream(long startPos, long endPos)
       throws IOException {
     NotFoundException lastException = null;
-    while (mRetryPolicy.attempt()) {
+    RetryPolicy retryPolicy = mRetryPolicy.copy();
+    while (retryPolicy.attempt()) {
       try {
         StoredObject storedObject = mAccount.getContainer(mContainerName).getObject(mObjectPath);
         DownloadInstructions downloadInstructions  = new DownloadInstructions();
@@ -92,7 +93,7 @@ public class SwiftInputStream extends MultiRangeObjectInputStream {
         return storedObject.downloadObjectAsInputStream(downloadInstructions);
       } catch (NotFoundException e) {
         LOG.warn("Attempt {} to get object {} from container {} failed with exception : {}",
-            mRetryPolicy.getAttemptCount(), mObjectPath, mContainerName, e.toString());
+            retryPolicy.getAttemptCount(), mObjectPath, mContainerName, e.toString());
         // Object does not exist
         lastException = e;
       }
