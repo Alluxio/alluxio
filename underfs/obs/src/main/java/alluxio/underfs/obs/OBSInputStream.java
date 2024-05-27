@@ -104,14 +104,15 @@ public class OBSInputStream extends MultiRangeObjectInputStream {
     req.setRangeStart(startPos);
     req.setRangeEnd(endPos < mContentLength ? endPos - 1 : mContentLength - 1);
     ObsException lastException = null;
-    while (mRetryPolicy.attempt()) {
+    RetryPolicy retryPolicy = mRetryPolicy.copy();
+    while (retryPolicy.attempt()) {
       try {
         ObsObject obj = mObsClient.getObject(req);
         return new BufferedInputStream(obj.getObjectContent());
       } catch (ObsException e) {
         System.out.println(e.getResponseCode());
         LOG.warn("Attempt {} to open key {} in bucket {} failed with exception : {}",
-            mRetryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
+            retryPolicy.getAttemptCount(), mKey, mBucketName, e.toString());
         if (e.getResponseCode() != HttpStatus.SC_NOT_FOUND) {
           throw new IOException(e);
         }

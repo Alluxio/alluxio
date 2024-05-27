@@ -34,7 +34,7 @@ public class TimeoutRetry implements RetryPolicy {
    * @param retryTimeoutMs maximum period of time to retry for, in milliseconds
    * @param sleepMs time in milliseconds to sleep before retrying
    */
-  public TimeoutRetry(long retryTimeoutMs, int sleepMs) {
+  public TimeoutRetry(long retryTimeoutMs, long sleepMs) {
     Preconditions.checkArgument(retryTimeoutMs > 0, "Retry timeout must be a positive number");
     Preconditions.checkArgument(sleepMs >= 0, "sleepMs cannot be negative");
     mRetryTimeoutMs = retryTimeoutMs;
@@ -62,5 +62,10 @@ public class TimeoutRetry implements RetryPolicy {
       return true;
     }
     return false;
+  }
+
+  @Override
+  public RetryPolicy copy() {
+    return new TimeoutRetry(mRetryTimeoutMs, mSleepMs);
   }
 }

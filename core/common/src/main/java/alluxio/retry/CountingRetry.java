@@ -54,4 +54,9 @@ public class CountingRetry implements RetryPolicy {
   public void reset() {
     mAttemptCount = 0;
   }
+
+  @Override
+  public RetryPolicy copy() {
+    return new CountingRetry(mMaxRetries);
+  }
 }

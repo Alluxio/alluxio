@@ -56,4 +56,9 @@ public class ExponentialBackoffRetry extends SleepingRetry {
       return Math.min(Math.abs(sleepMs), mMaxSleepMs);
     }
   }
+
+  @Override
+  public ExponentialBackoffRetry copy() {
+    return new ExponentialBackoffRetry(mBaseSleepTimeMs, mMaxSleepMs, mMaxRetries);
+  }
 }
