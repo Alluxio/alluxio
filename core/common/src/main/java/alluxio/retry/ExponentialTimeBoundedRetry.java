@@ -133,4 +133,16 @@ public final class ExponentialTimeBoundedRetry extends TimeBoundedRetry {
           mTimeCtx, mMaxDuration, mInitialSleep, mMaxSleep, mSkipInitialSleep);
     }
   }
+
+  @Override
+  public RetryPolicy copy() {
+    Builder builder = ExponentialTimeBoundedRetry.builder()
+        .withMaxDuration(mMaxDuration)
+        .withInitialSleep(mNextSleep)
+        .withMaxSleep(mMaxSleep);
+    if (mSkipInitialSleep) {
+      builder.withSkipInitialSleep();
+    }
+    return builder.build();
+  }
 }
