@@ -97,14 +97,15 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
     req.setRange(startPos, endPos < mContentLength ? endPos - 1 : mContentLength - 1);
     OSSException lastException = null;
     String errorMessage = String.format("Failed to open key: %s bucket: %s", mKey, mBucketName);
-    while (mRetryPolicy.attempt()) {
+    RetryPolicy retryPolicy = mRetryPolicy.copy();
+    while (retryPolicy.attempt()) {
       try {
         OSSObject ossObject = mOssClient.getObject(req);
         return new BufferedInputStream(ossObject.getObjectContent());
       } catch (OSSException e) {
         errorMessage = String
             .format("Failed to open key: %s bucket: %s attempts: %d error: %s", mKey, mBucketName,
-                mRetryPolicy.getAttemptCount(), e.getMessage());
+                retryPolicy.getAttemptCount(), e.getMessage());
         if (!e.getErrorCode().equals("NoSuchKey")) {
           throw new IOException(errorMessage, e);
         }

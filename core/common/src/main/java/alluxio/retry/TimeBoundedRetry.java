@@ -25,7 +25,7 @@ import java.time.Instant;
 public abstract class TimeBoundedRetry implements RetryPolicy {
   private final Clock mClock;
   private final Sleeper mSleeper;
-  private final Duration mMaxDuration;
+  protected final Duration mMaxDuration;
   private final Instant mStartTime;
   private final Instant mEndTime;
 
