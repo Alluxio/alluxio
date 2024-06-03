@@ -158,6 +158,7 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
       PutObjectInput input =
           new PutObjectInput().setBucket(mBucketName).setKey(key).setOptions(metaRequestOptions)
               .setContent(stream);
+      mClient.putObject(input);
       return true;
     } catch (TosException e) {
       LOG.error("Failed to create object: {}", key, e);
