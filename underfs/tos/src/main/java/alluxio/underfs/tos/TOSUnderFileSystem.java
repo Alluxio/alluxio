@@ -251,6 +251,9 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
     @Override
     public ObjectStatus[] getObjectStatuses() {
       List<ListedObjectV2> objects = mOutput.getContents();
+      if (objects == null) {
+        return new ObjectStatus[0];
+      }
       ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
       for (ListedObjectV2 obj : objects) {
@@ -265,6 +268,9 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
     @Override
     public String[] getCommonPrefixes() {
       List<ListedCommonPrefix> res = mOutput.getCommonPrefixes();
+      if (res == null) {
+        return new String[0];
+      }
       return res.stream().map(ListedCommonPrefix::getPrefix).toArray(String[]::new);
     }
 
