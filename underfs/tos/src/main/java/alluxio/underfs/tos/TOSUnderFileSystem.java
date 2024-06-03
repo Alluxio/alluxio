@@ -296,8 +296,8 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
       if (output == null) {
         return null;
       }
-      String lastModifiedDate = output.getLastModified();
-      Long lastModifiedTime = lastModifiedDate == null ? null : Long.parseLong(lastModifiedDate);
+      Date lastModifiedDate = output.getLastModifiedInDate();
+      Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
       return new ObjectStatus(key, output.getEtag(), output.getContentLength(),
           lastModifiedTime);
     } catch (TosException e) {
