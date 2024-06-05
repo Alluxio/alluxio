@@ -752,6 +752,50 @@ public class LocalCacheManager implements CacheManager {
   }
 
   /**
+   * delete the specified page. Be cautious that this method will return true if the page
+   * does not exist since the page already gone.
+   *
+   * @param info      pageInfo
+   * @param isTemporary whether is it temporary or not
+   * @return whether the page is deleted successfully or not
+   */
+  public boolean deletePageIfExists(PageInfo info, boolean isTemporary) {
+    if (mState.get() != READ_WRITE) {
+      Metrics.DELETE_NOT_READY_ERRORS.inc();
+      Metrics.DELETE_ERRORS.inc();
+      return false;
+    }
+    boolean ok = true;
+    ReadWriteLock pageLock = getPageLock(info.getPageId());
+    try (LockResource r = new LockResource(pageLock.writeLock())) {
+      try (LockResource r1 = new LockResource(mPageMetaStore.getLock().writeLock())) {
+        try {
+          mPageMetaStore.removePage(info.getPageId(), isTemporary);
+        } catch (PageNotFoundException e) {
+          Metrics.DELETE_NON_EXISTING_PAGE_ERRORS.inc();
+          Metrics.DELETE_ERRORS.inc();
+          // pass through to delete the page from page store
+        }
+      }
+      try {
+        info.getLocalCacheDir().getPageStore().delete(info.getPageId(), isTemporary);
+      } catch (IOException e) {
+        LOG.error("Failed to delete page {} (isTemporary: {}) from pageStore.",
+            info.getPageId(), isTemporary, e);
+        ok = false;
+        Metrics.DELETE_STORE_DELETE_ERRORS.inc();
+        Metrics.DELETE_ERRORS.inc();
+      } catch (PageNotFoundException e) {
+        Metrics.DELETE_NON_EXISTING_PAGE_ERRORS.inc();
+        Metrics.DELETE_ERRORS.inc();
+        ok = true;
+      }
+      LOG.debug("delete({}) exits, success: {}", info.getPageId(), ok);
+      return ok;
+    }
+  }
+
+  /**
    * Restores a page store at the configured location, updating meta store accordingly.
    * If restore process fails, cleanup the location and create a new page store.
    * This method is synchronized to ensure only one thread can enter and operate.
@@ -921,7 +965,7 @@ public class LocalCacheManager implements CacheManager {
             PageInfo pageInfo = pageInfoOpt.get();
             boolean isPageDeleted = false;
             if (predicate.test(pageInfo)) {
-              isPageDeleted = delete(pageInfo.getPageId());
+              isPageDeleted = deletePageIfExists(pageInfo, false);
             }
             if (isPageDeleted) {
               MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_INVALIDATED.getName()).mark();
