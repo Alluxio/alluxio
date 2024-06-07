@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A stream for writing a file into COS. The data will be persisted to a temporary directory on the
+ * A stream for writing a file into TOS. The data will be persisted to a temporary directory on the
  * local disk and copied as a complete file when the {@link #close()} method is called.
  */
 @NotThreadSafe

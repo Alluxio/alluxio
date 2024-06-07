@@ -31,7 +31,7 @@ import java.io.InputStream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A stream for reading a file from COS. This input stream returns 0 when calling read with an empty
+ * A stream for reading a file from TOS. This input stream returns 0 when calling read with an empty
  * buffer.
  */
 @NotThreadSafe

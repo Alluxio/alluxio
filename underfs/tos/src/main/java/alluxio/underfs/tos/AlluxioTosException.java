@@ -14,6 +14,7 @@ package alluxio.underfs.tos;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
+import com.volcengine.tos.TosClientException;
 import com.volcengine.tos.TosException;
 import io.grpc.Status;
 
@@ -31,7 +32,7 @@ public class AlluxioTosException extends AlluxioRuntimeException {
    * @param cause tos exception
    * @return alluxio tos exception
    */
-  public static AlluxioTosException from(TosException cause) {
+  public static AlluxioTosException from(TosClientException cause) {
     return from(null, cause);
   }
 
@@ -42,11 +43,11 @@ public class AlluxioTosException extends AlluxioRuntimeException {
    * @param cause        cos exception
    * @return alluxio cos exception
    */
-  public static AlluxioTosException from(String errorMessage, TosException cause) {
+  public static AlluxioTosException from(String errorMessage, TosClientException cause) {
     Status status = Status.UNKNOWN;
-    String errorDescription = "Exception:" + cause.getMessage();
+    String errorDescription = "ClientException:" + cause.getMessage();
     if (cause instanceof TosException) {
-      TosException exception = (TosException) cause;
+      TosException exception = cause;
       status = httpStatusToGrpcStatus(exception.getStatusCode());
       errorDescription = exception.getCode() + ":" + exception.getMessage();
     }

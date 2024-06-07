@@ -25,7 +25,9 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Preconditions;
 import com.volcengine.tos.TOSV2;
 import com.volcengine.tos.TOSV2ClientBuilder;
+import com.volcengine.tos.TosClientException;
 import com.volcengine.tos.TosException;
+import com.volcengine.tos.TosServerException;
 import com.volcengine.tos.model.object.CopyObjectV2Input;
 import com.volcengine.tos.model.object.CopyObjectV2Output;
 import com.volcengine.tos.model.object.DeleteMultiObjectsV2Input;
@@ -286,6 +288,11 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
       }
       return null;
     }
+
+    @Override
+    public Boolean hasNextChunk() {
+      return mOutput.isTruncated();
+    }
   }
 
   @Override
@@ -300,8 +307,13 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
       Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
       return new ObjectStatus(key, output.getEtag(), output.getContentLength(),
           lastModifiedTime);
-    } catch (TosException e) {
-      return null;
+    } catch (TosServerException e) {
+      if (e.getStatusCode() == 404) { // file not found, possible for exists calls
+        return null;
+      }
+      throw AlluxioTosException.from(e);
+    } catch (TosClientException e) {
+      throw AlluxioTosException.from(e);
     }
   }
 

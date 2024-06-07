@@ -2027,12 +2027,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setScope(Scope.SERVER)
       .setDisplayType(DisplayType.CREDENTIALS)
       .build();
-  public static final PropertyKey TOS_REGION =
-      stringBuilder(Name.TOS_REGION)
-          .setDescription("The region name of TOS bucket.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.SERVER)
-          .build();
+  public static final PropertyKey TOS_REGION = stringBuilder(Name.TOS_REGION)
+      .setDescription("The region name of TOS bucket.")
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setScope(Scope.SERVER)
+      .build();
   //
   // Mount table related properties
   //

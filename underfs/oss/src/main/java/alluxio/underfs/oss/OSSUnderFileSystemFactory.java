@@ -33,7 +33,8 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   /**
    * Constructs a new {@link OSSUnderFileSystemFactory}.
    */
-  public OSSUnderFileSystemFactory() {}
+  public OSSUnderFileSystemFactory() {
+  }
 
   @Override
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
@@ -47,7 +48,8 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
       }
     }
 
-    String err = "OSS Credentials not available, cannot create OSS Under File System.";
+    String err =
+        "TOS Credentials or configurations not available, cannot create TOS Under File System.";
     throw Throwables.propagate(new IOException(err));
   }
 
@@ -58,7 +60,6 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
 
   /**
    * @param conf optional configuration object for the UFS
-   *
    * @return true if both access, secret and endpoint keys are present, false otherwise
    */
   private boolean checkOSSCredentials(UnderFileSystemConfiguration conf) {

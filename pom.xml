@@ -205,6 +205,11 @@
         <version>3.7.0</version>
       </dependency>
       <dependency>
+        <groupId>com.volcengine</groupId>
+        <artifactId>ve-tos-java-sdk</artifactId>
+        <version>2.7.1</version>
+      </dependency>
+      <dependency>
         <groupId>com.amazonaws</groupId>
         <artifactId>aws-java-sdk-core</artifactId>
         <version>${aws.amazonaws.version}</version>
