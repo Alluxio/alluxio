@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-native-rust</artifactId>
-    <version>313</version>
+    <version>314-SNAPSHOT</version>
   </parent>
 
   <artifactId>alluxio-native-rust-archetype</artifactId>

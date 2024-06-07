@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-parent</artifactId>
-    <version>313</version>
+    <version>314-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-native</artifactId>
   <packaging>pom</packaging>
