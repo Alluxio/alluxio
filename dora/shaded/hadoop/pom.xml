@@ -16,10 +16,10 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-shaded</artifactId>
-    <version>313</version>
+    <version>314-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-shaded-hadoop</artifactId>
-  <version>313</version>
+  <version>314-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>Alluxio Shaded Libraries - Hadoop</name>
   <description>Shaded Hadoop Module</description>
