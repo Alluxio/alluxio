@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>313-SNAPSHOT</version>
+    <version>313</version>
   </parent>
   <artifactId>alluxio-shaded</artifactId>
   <packaging>pom</packaging>

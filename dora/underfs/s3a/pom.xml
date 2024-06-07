@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>313-SNAPSHOT</version>
+    <version>313</version>
   </parent>
   <artifactId>alluxio-underfs-s3a</artifactId>
   <name>Alluxio Under File System - S3</name>
