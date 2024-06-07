@@ -16,10 +16,10 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-shaded</artifactId>
-    <version>313-SNAPSHOT</version>
+    <version>313</version>
   </parent>
   <artifactId>alluxio-shaded-hadoop</artifactId>
-  <version>3.3.1</version>
+  <version>313</version>
   <packaging>jar</packaging>
   <name>Alluxio Shaded Libraries - Hadoop</name>
   <description>Shaded Hadoop Module</description>
@@ -119,7 +119,7 @@
                 </relocation>
               </relocations>
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
               </transformers>
               <artifactSet>
                 <includes>
