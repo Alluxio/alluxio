@@ -15,13 +15,12 @@ import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
 import com.volcengine.tos.TosClientException;
-import com.volcengine.tos.TosException;
 import io.grpc.Status;
 
 import java.net.HttpURLConnection;
 
 /**
- * Alluxio exception for cos.
+ * Alluxio exception for tos.
  */
 public class AlluxioTosException extends AlluxioRuntimeException {
   private static final ErrorType ERROR_TYPE = ErrorType.External;
@@ -37,20 +36,17 @@ public class AlluxioTosException extends AlluxioRuntimeException {
   }
 
   /**
-   * Converts an CosClientException with errormessage to a corresponding AlluxioCosException.
+   * Converts an TosClientException with errormessage to a corresponding AlluxioTosException.
    *
    * @param errorMessage error message
-   * @param cause        cos exception
-   * @return alluxio cos exception
+   * @param cause        tos exception
+   * @return alluxio tos exception
    */
   public static AlluxioTosException from(String errorMessage, TosClientException cause) {
     Status status = Status.UNKNOWN;
     String errorDescription = "ClientException:" + cause.getMessage();
-    if (cause instanceof TosException) {
-      TosException exception = cause;
-      status = httpStatusToGrpcStatus(exception.getStatusCode());
-      errorDescription = exception.getCode() + ":" + exception.getMessage();
-    }
+    status = httpStatusToGrpcStatus(cause.getStatusCode());
+    errorDescription = cause.getCode() + ":" + cause.getMessage();
     if (errorMessage == null) {
       errorMessage = errorDescription;
     }
