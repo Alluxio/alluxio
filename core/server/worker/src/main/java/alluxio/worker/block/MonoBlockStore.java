@@ -20,7 +20,6 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
-import alluxio.exception.runtime.DeadlineExceededRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
@@ -57,7 +56,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -339,8 +337,6 @@ public class MonoBlockStore implements BlockStore {
               () -> manager.read(buf, block.getOffsetInFile(), blockSize, blockId,
                   block.getUfsPath(), options),
               new ExponentialBackoffRetry(1000, 5000, 5))
-          // use orTimeout in java 11
-          .applyToEither(timeoutAfter(LOAD_TIMEOUT, TimeUnit.MILLISECONDS), d -> d)
           .thenRunAsync(() -> {
             buf.flip();
             blockWriter.append(buf);
@@ -382,13 +378,6 @@ public class MonoBlockStore implements BlockStore {
             block.getBlockId()), ee);
       }
     }
-  }
-
-  private <T> CompletableFuture<T> timeoutAfter(long timeout, TimeUnit unit) {
-    CompletableFuture<T> result = new CompletableFuture<>();
-    mDelayer.schedule(() -> result.completeExceptionally(new DeadlineExceededRuntimeException(
-        format("time out after waiting for %s %s", timeout, unit))), timeout, unit);
-    return result;
   }
 
   @Override
