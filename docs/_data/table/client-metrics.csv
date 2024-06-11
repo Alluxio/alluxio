@@ -10,6 +10,7 @@ Client.BytesWrittenLocalThroughput,METER
 Client.BytesWrittenUfs,COUNTER
 Client.CacheBytesDiscarded,METER
 Client.CacheBytesEvicted,METER
+Client.CacheBytesPositionReadFallback,COUNTER
 Client.CacheBytesReadCache,METER
 Client.CacheBytesReadExternal,METER
 Client.CacheBytesReadInStreamBuffer,METER
@@ -23,15 +24,19 @@ Client.CacheDeleteErrors,COUNTER
 Client.CacheDeleteFromStoreErrors,COUNTER
 Client.CacheDeleteNonExistingPageErrors,COUNTER
 Client.CacheDeleteNotReadyErrors,COUNTER
+Client.CacheExternalRequests,COUNTER
 Client.CacheGetErrors,COUNTER
 Client.CacheGetNotReadyErrors,COUNTER
 Client.CacheGetStoreReadErrors,COUNTER
 Client.CacheHitRate,GAUGE
+Client.CacheHitRequests,COUNTER
 Client.CachePageReadCacheTimeNanos,METER
 Client.CachePageReadExternalTimeNanos,METER
 Client.CachePages,COUNTER
+Client.CachePagesAges,HISTOGRAM
 Client.CachePagesDiscarded,METER
 Client.CachePagesEvicted,METER
+Client.CachePagesInvalidated,METER
 Client.CachePutAsyncRejectionErrors,COUNTER
 Client.CachePutBenignRacingErrors,COUNTER
 Client.CachePutErrors,COUNTER

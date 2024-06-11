@@ -20,6 +20,8 @@ Client.CacheBytesDiscarded:
   'Total number of bytes discarded when restoring the page store.'
 Client.CacheBytesEvicted:
   'Total number of bytes evicted from the client cache.'
+Client.CacheBytesPositionReadFallback:
+  'Total number of position read fallback to external storage.'
 Client.CacheBytesReadCache:
   'Total number of bytes read from the client cache.'
 Client.CacheBytesReadExternal:
@@ -46,6 +48,8 @@ Client.CacheDeleteNonExistingPageErrors:
   'Number of failures when deleting pages due to absence.'
 Client.CacheDeleteNotReadyErrors:
   'Number of failures when cache is not ready to delete pages.'
+Client.CacheExternalRequests:
+  'Total number of requests to read from external storage.'
 Client.CacheGetErrors:
   'Number of failures when getting cached data in the client cache.'
 Client.CacheGetNotReadyErrors:
@@ -54,16 +58,22 @@ Client.CacheGetStoreReadErrors:
   'Number of failures when getting cached data in the client cache due to failed read from page stores.'
 Client.CacheHitRate:
   'Cache hit rate: (# bytes read from cache) / (# bytes requested).'
+Client.CacheHitRequests:
+  'Total number of requests of hitting the cache.'
 Client.CachePageReadCacheTimeNanos:
   'Time in nanoseconds taken to read a page from the client cache when the cache hits.'
 Client.CachePageReadExternalTimeNanos:
   'Time in nanoseconds taken to read a page from external source when the cache misses.'
 Client.CachePages:
   'Total number of pages in the client cache.'
+Client.CachePagesAges:
+  'The ages of pages in the client cache.'
 Client.CachePagesDiscarded:
   'Total number of pages discarded when restoring the page store.'
 Client.CachePagesEvicted:
   'Total number of pages evicted from the client cache.'
+Client.CachePagesInvalidated:
+  'Total number of pages invalidated by TTL rules'
 Client.CachePutAsyncRejectionErrors:
   'Number of failures when putting cached data in the client cache due to failed injection to async write queue.'
 Client.CachePutBenignRacingErrors:

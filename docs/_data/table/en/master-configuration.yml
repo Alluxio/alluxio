@@ -166,6 +166,8 @@ alluxio.master.lock.pool.low.watermark:
   'Low watermark of lock pool size. When the size grows over the high watermark, a background thread will try to evict unused locks until the size reaches the low watermark.'
 alluxio.master.log.config.report.heartbeat.interval:
   'The interval for periodically logging the configuration check report.'
+alluxio.master.lost.proxy.deletion.timeout:
+  'If an Alluxio Proxy has been lost for more than this timeout, the master will totally forget this worker.'
 alluxio.master.lost.worker.deletion.timeout:
   'If a worker has no heartbeat with the master for more than this timeout, the master will totally forget this worker.'
 alluxio.master.lost.worker.detection.interval:
@@ -194,12 +196,20 @@ alluxio.master.metadata.sync.lock.pool.low.watermark:
   'Low watermark of metadata sync lock pool size. When the size grows over the high watermark, a background thread will try to evict unused locks until the size reaches the low watermark.'
 alluxio.master.metadata.sync.traversal.order:
   'The pending Path in the Inode SyncStream traversal order, DFS consumes less memory while BFS is more fair for all concurrent sync tasks. For more description see the comments of MetadataSyncTraversalOrder.'
+alluxio.master.metadata.sync.ufs.concurrent.get.status:
+  'Allows metadata sync operations on single items (i.e. getStatus) operations to run concurrently with metadata sync operations on directories (i.e listings) on intersecting paths.'
+alluxio.master.metadata.sync.ufs.concurrent.listing:
+  'Allows non-recursive metadata sync operations directories to run concurrently with recursive metadata sync operations on intersecting paths.'
+alluxio.master.metadata.sync.ufs.concurrent.loads:
+  'The number of concurrently running UFS listing operations during metadata sync. This includes loads that have completed, but have not yet been processed.'
 alluxio.master.metadata.sync.ufs.prefetch.pool.size:
   'The number of threads used to fetch UFS objects for all metadata syncoperations'
 alluxio.master.metadata.sync.ufs.prefetch.status:
   'Whether or not to prefetch ufs status of children during metadata sync. Prefetching will facilitate the metadata sync process but will consume more memory to hold prefetched results.'
 alluxio.master.metadata.sync.ufs.prefetch.timeout:
   'The timeout for a metadata fetch operation from the UFSes. Adjust this timeout according to the expected UFS worst-case response time.'
+alluxio.master.metadata.sync.ufs.rate.limit:
+  'The maximum number of operations per second to execute on an individual UFS during metadata sync operations. If 0 or unset then no rate limit is enforced.'
 alluxio.master.metastore:
   'The type of metastore to use, either HEAP or ROCKS. The heap metastore keeps all metadata on-heap, while the rocks metastore stores some metadata on heap and some metadata on disk. The rocks metastore has the advantage of being able to support a large namespace (1 billion plus files) without needing a massive heap size.The metadata storage includes inode and block metadata. Users can override the type of metastore using alluxio.master.metastore.inode and alluxio.master.metastore.block. For example if alluxio.master.metastore=ROCKS but alluxio.master.metastore.inode=HEAP, then inodes are stored with HEAP and blocks are stored with ROCKS.'
 alluxio.master.metastore.block:
@@ -314,6 +324,10 @@ alluxio.master.persistence.scheduler.interval:
   'How often the master schedules persistence jobs for files written using ASYNC_THROUGH'
 alluxio.master.principal:
   'Kerberos principal for Alluxio master.'
+alluxio.master.proxy.check.heartbeat.timeout:
+  'The master will periodically check the last heartbeat time from all Proxy instances. This key specifies the frequency of the check.'
+alluxio.master.proxy.timeout:
+  'An Alluxio Proxy instance will maintain heartbeat to the primary Alluxio Master. No heartbeat more than this timeout indicates a lost Proxy.'
 alluxio.master.recursive.operation.journal.force.flush.max.entries:
   'The threshold of the number of completed single operations in a recursive file system operation, e.g. delete file/set file attributes to trigger a force journal flush. Increasing the threshold decreases the possibility to see partial state of a recursive operation on a standby master but increases the memory consumption as alluxio holds more journal entries in memory. This config is only available when alluxio.master.filesystem.merge.inode.journalsis enabled.'
 alluxio.master.replication.check.interval:

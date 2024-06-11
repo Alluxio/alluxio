@@ -1,6 +1,7 @@
 metricName,metricType
 Cluster.ActiveRpcReadCount,COUNTER
 Cluster.ActiveRpcWriteCount,COUNTER
+Cluster.BytesReadCache,COUNTER
 Cluster.BytesReadDirect,COUNTER
 Cluster.BytesReadDirectThroughput,GAUGE
 Cluster.BytesReadDomain,COUNTER

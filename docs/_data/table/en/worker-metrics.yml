@@ -1,5 +1,7 @@
 Worker.ActiveClients:
   'The number of clients actively reading from or writing to this worker'
+Worker.ActiveOperations:
+  'The number of active RPCs in the worker, including control RPCs and data I/O. Used to tell if the worker is idle or busy.'
 Worker.ActiveRpcReadCount:
   'The number of active read-RPCs managed by this worker'
 Worker.ActiveRpcWriteCount:
@@ -58,6 +60,8 @@ Worker.BlocksReadRemote:
   'Total number of a remote blocks read by this worker.'
 Worker.BlocksReadUfs:
   'Total number of a UFS blocks read by this worker.'
+Worker.BytesReadCache:
+  'Total number of bytes read from the worker''s cache'
 Worker.BytesReadDirect:
   'Total number of bytes read from the this worker without external RPC involved. Data exists in worker storage or is fetched by this worker from underlying UFSes. This records data read by worker internal calls (e.g. a client embedded in this worker).'
 Worker.BytesReadDirectThroughput:
@@ -104,6 +108,8 @@ Worker.CacheManagerThreadMaxCount:
   'The maximum allowed number of block cache thread in the cache manager thread pool'
 Worker.CacheManagerThreadQueueWaitingTaskCount:
   'The current number of tasks waiting in the work queue in the cache manager thread pool, bounded by alluxio.worker.network.async.cache.manager.queue.max'
+Worker.CacheRejectedBlocks:
+  'Total number of rejected cache block requests on the worker'
 Worker.CacheRemoteBlocks:
   'Total number of blocks that need to be cached from remote source'
 Worker.CacheRequests:

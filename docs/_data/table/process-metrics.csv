@@ -1,2 +1,3 @@
 metricName,metricType
+Process.netty.direct.mem.used,GAUGE
 Process.pool.direct.mem.used,GAUGE

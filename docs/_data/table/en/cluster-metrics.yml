@@ -2,6 +2,8 @@ Cluster.ActiveRpcReadCount:
   'The number of active read-RPCs managed by workers'
 Cluster.ActiveRpcWriteCount:
   'The number of active write-RPCs managed by workers'
+Cluster.BytesReadCache:
+  'Total number of bytes read from all worker''s cache'
 Cluster.BytesReadDirect:
   'Total number of bytes read from all workers without external RPC involved. Data exists in worker storage or is fetched by workers from UFSes. This records data read by worker internal calls (e.g. clients embedded in workers).'
 Cluster.BytesReadDirectThroughput:

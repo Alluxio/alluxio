@@ -1,4 +1,4 @@
-Process.pool.direct.mem.used:
-  'The used direct memory by NIO direct buffer pool'
 Process.netty.direct.mem.used:
-  'The used direct memory by Netty'
+  'Direct memory used by Netty'
+Process.pool.direct.mem.used:
+  'Direct memory used by NIO direct buffer pool '

@@ -256,6 +256,38 @@ Master.MetadataSyncTimeMs:
   'The total time elapsed in all InodeSyncStream instances'
 Master.MetadataSyncUfsMount.:
   'The number of UFS sync operations for a given mount point'
+Master.MetadataSyncV2CancelledTasks:
+  'The number of cancelled metadata sync tasks'
+Master.MetadataSyncV2CompletedTasks:
+  'The number of completed metadata sync tasks'
+Master.MetadataSyncV2FailedTasks:
+  'The number of failed metadata sync tasks'
+Master.MetadataSyncV2FilesCreated:
+  'The number of files created during processing during metadata sync'
+Master.MetadataSyncV2FilesDeleted:
+  'The number of files deleted during processing during metadata sync'
+Master.MetadataSyncV2FilesNoop:
+  'The number of files at parity between alluxio and UFS during processing during metadata sync'
+Master.MetadataSyncV2FilesRecreated:
+  'The number of files recreated during processing during metadata sync'
+Master.MetadataSyncV2FilesSkippedConcurrentUpdate:
+  'The number of files skipped due to concurrent update during processing during metadata sync'
+Master.MetadataSyncV2FilesSkippedMountPoint:
+  'The number of files skipped because the inode is a mount point during processing during metadata sync'
+Master.MetadataSyncV2FilesSkippedNonPersisted:
+  'The number of files skipped because the inode is not persisted during processing during metadata sync'
+Master.MetadataSyncV2FilesUpdated:
+  'The number of files updated during processing during metadata sync'
+Master.MetadataSyncV2LoadsFailed:
+  'The number of failed load requests during metadata sync'
+Master.MetadataSyncV2ProcessingFailed:
+  'The number loads failed during processing during metadata sync'
+Master.MetadataSyncV2QueuedLoads:
+  'Total number of load requests that are pending'
+Master.MetadataSyncV2RunningLoads:
+  'The number of load requests that are in progress or have completed, but not yet been processed'
+Master.MetadataSyncV2RunningTasks:
+  'The number of metadata sync tasks currently running'
 Master.MigrateJobCancel:
   'The number of cancelled MigrateJob operations'
 Master.MigrateJobFail:

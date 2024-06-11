@@ -48,6 +48,8 @@ alluxio.fuse.web.port:
   'The port Alluxio FUSE web UI runs on.'
 alluxio.grpc.reflection.enabled:
   'If true, grpc reflection will be enabled on alluxio grpc servers, including masters, workers, job masters and job workers.  This makes grpc tools such as grpcurl or grpcui can send grpc requests to the master server easier without knowing the protobufs. This is a debug option.'
+alluxio.hadoop.checksum.combine.mode:
+  'File Checksum combine mode.'
 alluxio.hadoop.kerberos.keytab.login.autorenewal:
   'Kerberos authentication keytab login auto renew.'
 alluxio.hadoop.security.authentication:
@@ -74,8 +76,14 @@ alluxio.job.master.hostname:
   'The hostname of the Alluxio job master.'
 alluxio.job.master.job.capacity:
   'The total possible number of available job statuses in the job master. This value includes running and finished jobs which are have completed within alluxio.job.master.finished.job.retention.time.'
+alluxio.job.master.lost.master.interval:
+  'The time interval the job master waits between checks for lost job masters.'
 alluxio.job.master.lost.worker.interval:
   'The time interval the job master waits between checks for lost workers.'
+alluxio.job.master.master.heartbeat.interval:
+  'The amount of time that a standby Alluxio Job Master should wait in between heartbeats to the primary Job Master.'
+alluxio.job.master.master.timeout:
+  'The time period after which the primary Job Master will mark a standby as lost without a subsequent heartbeat.'
 alluxio.job.master.network.flowcontrol.window:
   'The HTTP2 flow control window used by Alluxio job-master gRPC connections. Larger value will allow more data to be buffered but will use more memory.'
 alluxio.job.master.network.keepalive.time:
@@ -164,6 +172,8 @@ alluxio.network.ip.address.used:
   'If true, when alluxio.&lt;service_name&gt;.hostname and alluxio.&lt;service_name&gt;.bind.host of a service not specified, use IP as the connect host of the service.'
 alluxio.proxy.audit.logging.enabled:
   'Set to true to enable proxy audit.'
+alluxio.proxy.master.heartbeat.interval:
+  'Proxy instances maintain a heartbeat with the primary master. This key specifies the heartbeat interval.'
 alluxio.proxy.s3.bucket.naming.restrictions.enabled:
   'Toggles whether or not the Alluxio S3 API will enforce AWS S3 bucket naming restrictions. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html.'
 alluxio.proxy.s3.bucketpathcache.timeout:
@@ -196,6 +206,10 @@ alluxio.proxy.s3.single.connection.read.rate.limit.mb:
   'Limit the maximum read speed for each connection. Set value less than or equal to 0 to disable rate limits.'
 alluxio.proxy.s3.tagging.restrictions.enabled:
   'Toggles whether or not the Alluxio S3 API will enforce AWS S3 tagging restrictions (10 tags, 128 character keys, 256 character values) See https://docs.aws.amazon.com/AmazonS3/latest/userguide/tagging-managing.html.'
+alluxio.proxy.s3.use.position.read.range.size:
+  'When the requested range length is less than this value, the S3 proxy will use ''positionRead'' to read data from the worker. Setting a value less than or equal to 0 indicates disabling this feature. In the current implementation, each request for a position read uses a byte array of the same size as the range to temporarily store data, which consumes additional memory. Therefore, in practical use, we limit this value to 4MB. This means that if a value exceeding 4MB is configured, it will be modified to 4MB.'
+alluxio.proxy.s3.v2.async.context.timeout.ms:
+  'Timeout(in milliseconds) for async context. Set zero or less indicates no timeout.'
 alluxio.proxy.s3.v2.async.heavy.pool.core.thread.number:
   'Core thread number for async heavy thread pool.'
 alluxio.proxy.s3.v2.async.heavy.pool.maximum.thread.number:
@@ -368,10 +382,14 @@ alluxio.underfs.oss.connection.timeout:
   'The timeout when connecting to OSS.'
 alluxio.underfs.oss.connection.ttl:
   'The TTL of OSS connections in ms.'
+alluxio.underfs.oss.default.mode:
+  'Mode (in octal notation) for OSS objects if mode cannot be discovered.'
 alluxio.underfs.oss.ecs.ram.role:
   'The RAM role of current owner of ECS.'
 alluxio.underfs.oss.intermediate.upload.clean.age:
   'Streaming uploads may not have been completed/aborted correctly and need periodical ufs cleanup. If ufs cleanup is enabled, intermediate multipart uploads in all non-readonly OSS mount points older than this age will be cleaned. This may impact other ongoing upload operations, so a large clean age is encouraged.'
+alluxio.underfs.oss.owner.id.to.username.mapping:
+  'Optionally, specify a preset oss canonical id to Alluxio username static mapping, in the format &quot;id1=user1;id2=user2&quot;. '
 alluxio.underfs.oss.retry.max:
   'The maximum number of OSS error retry.'
 alluxio.underfs.oss.socket.timeout:

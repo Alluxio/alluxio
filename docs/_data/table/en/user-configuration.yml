@@ -44,10 +44,14 @@ alluxio.user.client.cache.evictor.lfu.logbase:
   'The log base for client cache LFU evictor bucket index.'
 alluxio.user.client.cache.evictor.nondeterministic.enabled:
   'If this is enabled, the evictor picks uniformly from the worst k elements.Currently only LRU is supported.'
+alluxio.user.client.cache.fallback.enabled:
+  'If this is enabled, local cache will fallback to external storage.'
 alluxio.user.client.cache.filter.class:
   'The default cache filter caches everything'
 alluxio.user.client.cache.filter.config-file:
   'The alluxio cache filter config file'
+alluxio.user.client.cache.include.mtime:
+  'If this is enabled, client-side cache will include modification time while calculating the identifier of a file.'
 alluxio.user.client.cache.instream_buffer_size:
   'Size of the reading buffer for tiny read.'
 alluxio.user.client.cache.local.store.file.buckets:
@@ -112,6 +116,10 @@ alluxio.user.file.create.ttl.action:
   'When file''s ttl is expired, the action performs on it. Options: FREE(default), DELETE_ALLUXIO or DELETE'
 alluxio.user.file.delete.unchecked:
   'Whether to check if the UFS contents are in sync with Alluxio before attempting to delete persisted directories recursively.'
+alluxio.user.file.direct.access:
+  'A regular expression to define Alluxio paths that are not read or write cached and always fetches from the ufs for the latest listing'
+alluxio.user.file.in.stream.status.expiration.time:
+  'Specifies how long the file metadata can be cached and reused during the FileInStream. Once the specified expiration time has elapsed, the file metadata will be reloaded from the Alluxio master. The cache reduces the number of metadata requests to the Master. The default is 5 minutes.'
 alluxio.user.file.include.operation.id:
   'Whether to send a unique operation id with designated filesystem operations.'
 alluxio.user.file.master.client.pool.gc.interval:
@@ -170,6 +178,8 @@ alluxio.user.local.writer.chunk.size.bytes:
   'When a client writes to a local worker, the maximum data chunk size.'
 alluxio.user.logging.threshold:
   'Logging a client RPC when it takes more time than the threshold.'
+alluxio.user.master.polling.concurrent:
+  'Whether to concurrently polling the master.'
 alluxio.user.master.polling.timeout:
   'The maximum time for a rpc client to wait for master to respond.'
 alluxio.user.metadata.cache.enabled:
