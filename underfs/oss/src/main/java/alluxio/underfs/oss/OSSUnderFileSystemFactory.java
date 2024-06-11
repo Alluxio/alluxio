@@ -48,8 +48,7 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
       }
     }
 
-    String err =
-        "TOS Credentials or configurations not available, cannot create TOS Under File System.";
+    String err = "OSS Credentials not available, cannot create OSS Under File System.";
     throw Throwables.propagate(new IOException(err));
   }
 
