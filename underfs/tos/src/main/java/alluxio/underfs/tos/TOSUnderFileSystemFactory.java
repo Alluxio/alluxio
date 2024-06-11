@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.oss;
+package alluxio.underfs.tos;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
@@ -22,52 +22,47 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import java.io.IOException;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory for creating {@link OSSUnderFileSystem}.
+ * Factory for creating {@link TOSUnderFileSystem}.
  */
-@ThreadSafe
-public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
-
+public class TOSUnderFileSystemFactory implements UnderFileSystemFactory {
   /**
-   * Constructs a new {@link OSSUnderFileSystemFactory}.
+   * Constructs a new {@link TOSUnderFileSystemFactory}.
    */
-  public OSSUnderFileSystemFactory() {
+  public TOSUnderFileSystemFactory() {
   }
 
   @Override
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
 
-    if (checkOSSCredentials(conf)) {
+    if (checkTOSCredentials(conf)) {
       try {
-        return OSSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
+        return TOSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
     }
 
-    String err = "OSS Credentials not available, cannot create OSS Under File System.";
+    String err =
+        "TOS Credentials or configurations not available, cannot create TOS Under File System.";
     throw Throwables.propagate(new IOException(err));
   }
 
   @Override
   public boolean supportsPath(String path) {
-    return path != null && path.startsWith(Constants.HEADER_OSS);
+    return path != null && path.startsWith(Constants.HEADER_TOS);
   }
 
   /**
    * @param conf optional configuration object for the UFS
    * @return true if both access, secret and endpoint keys are present, false otherwise
    */
-  private boolean checkOSSCredentials(UnderFileSystemConfiguration conf) {
-    if (conf.getBoolean(PropertyKey.UNDERFS_OSS_STS_ENABLED)) {
-      return conf.isSet(PropertyKey.UNDERFS_OSS_ECS_RAM_ROLE);
-    }
-
-    return conf.isSet(PropertyKey.OSS_ACCESS_KEY)
-        && conf.isSet(PropertyKey.OSS_SECRET_KEY)
-        && conf.isSet(PropertyKey.OSS_ENDPOINT_KEY);
+  private boolean checkTOSCredentials(UnderFileSystemConfiguration conf) {
+    return conf.isSet(PropertyKey.TOS_ACCESS_KEY)
+        && conf.isSet(PropertyKey.TOS_SECRET_KEY)
+        && conf.isSet(PropertyKey.TOS_ENDPOINT_KEY)
+        && conf.isSet(PropertyKey.TOS_REGION);
   }
 }
