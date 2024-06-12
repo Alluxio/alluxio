@@ -3931,7 +3931,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_BLOCK_SIZE_OVERRIDE_UFS_ENABLED =
       new Builder(Name.USER_BLOCK_SIZE_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Use Default block size for Alluxio files.")
+          .setDescription("When reading a file from UFS, whether Alluxio should ignore the UFS block size and rely on the Alluxio configuration.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
