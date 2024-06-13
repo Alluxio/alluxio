@@ -24,7 +24,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.s3.DeleteObjectsRequest;
@@ -32,6 +31,8 @@ import alluxio.s3.DeleteObjectsResult;
 import alluxio.s3.ListAllMyBucketsResult;
 import alluxio.s3.ListBucketOptions;
 import alluxio.s3.ListBucketResult;
+import alluxio.s3.ListPrefixIterator;
+import alluxio.s3.ListPrefixIterator.ListPrefixException;
 import alluxio.s3.NettyRestUtils;
 import alluxio.s3.S3AuditContext;
 import alluxio.s3.S3Constants;
@@ -52,7 +53,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
@@ -215,7 +218,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
               .setContinuationToken(continuationTokenParam)
               .setStartAfter(startAfterParam);
 
-          List<URIStatus> children;
+          Iterator<URIStatus> uriStatusIterator;
           try {
             // TODO(czhu): allow non-"/" delimiters by parsing the prefix & delimiter pair to
             //             determine what directory to list the contents of
@@ -226,26 +229,30 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
               } else {
                 path = parsePathWithDelimiter(path, prefixParam, delimiterParam);
               }
-              children = userFs.listStatus(new AlluxioURI(path));
+              uriStatusIterator = userFs.listStatus(new AlluxioURI(path)).stream()
+                  .sorted(Comparator.comparing(URIStatus::getPath)).iterator();
             } else {
               if (prefixParam != null) {
                 path = parsePathWithDelimiter(path, prefixParam, AlluxioURI.SEPARATOR);
               }
-              ListStatusPOptions options = ListStatusPOptions.newBuilder()
-                  .setRecursive(true).build();
-              children = userFs.listStatus(new AlluxioURI(path), options);
+              String prefix = listBucketOptions.getPrefix();
+              String bucketPrefix = ListBucketResult.getBucketPrefix(mHandler.getBucket());
+              String absolutePrefix = StringUtils.isEmpty(prefix) ? path : bucketPrefix + prefix;
+              uriStatusIterator = new ListPrefixIterator(new AlluxioURI(path),
+                  userFs::listStatus, absolutePrefix);
             }
+            return new ListBucketResult(mHandler.getBucket(), uriStatusIterator, listBucketOptions);
           } catch (FileDoesNotExistException e) {
             // Since we've called S3RestUtils.checkPathIsAlluxioDirectory() on the bucket path
             // already, this indicates that the prefix was unable to be found in the Alluxio FS
-            children = new ArrayList<>();
+            return new ListBucketResult(mHandler.getBucket(), Collections.emptyIterator(),
+                listBucketOptions);
+          } catch (ListPrefixException e) {
+            throw NettyRestUtils.toBucketS3Exception((Exception) e.getCause(), mHandler.getBucket(),
+                auditContext);
           } catch (IOException | AlluxioException e) {
             throw NettyRestUtils.toBucketS3Exception(e, mHandler.getBucket(), auditContext);
           }
-          return new ListBucketResult(
-              mHandler.getBucket(),
-              children,
-              listBucketOptions);
         } // end try-with-resources block
       });
     }
