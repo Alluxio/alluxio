@@ -1,0 +1,393 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.client.file.dora.netty;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import alluxio.Constants;
+import alluxio.client.file.FileSystemContext;
+import alluxio.conf.Configuration;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.file.ByteArrayTargetBuffer;
+import alluxio.network.protocol.RPCMessage;
+import alluxio.network.protocol.RPCProtoMessage;
+import alluxio.network.protocol.databuffer.NettyDataBuffer;
+import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
+import alluxio.wire.WorkerNetAddress;
+
+import io.grpc.Status;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.embedded.EmbeddedChannel;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
+
+public class NettyDataReaderStateMachineTest {
+
+  // TODO(Yichuan):
+  //  Considering final.
+  //  Remove sleep.
+  //  Replace all time with a parameter
+  private final ExecutorService mExecutor = Executors.newSingleThreadExecutor();
+  private static final EmbeddedChannel CHANNEL = new EmbeddedChannel();
+  private static final String LOCAL_HOSTNAME = "localhost";
+  private final ServerStateDriver
+      mStateDriver = new ServerStateDriver(mExecutor, CHANNEL);
+  private static FileSystemContext sFsContext;
+  private NettyDataReaderStateMachine mStateMachine;
+  private static Protocol.ReadRequest.Builder
+      mRequestBuilder = Protocol.ReadRequest.newBuilder();
+  private static final WorkerNetAddress mWorkerNetAddress = new WorkerNetAddress()
+      .setHost("127.0.0.1").setRpcPort(29998).setDataPort(29999).setWebPort(30000);
+  private static final int BYTEBUFFER_CAPACITY = 10;
+
+  private Thread mMachineThread;
+
+  private byte[] mByteArray;
+  private final Supplier<Protocol.ReadRequest.Builder> mRequestBuilderSupplier
+      = mRequestBuilder::clone;
+
+  @BeforeClass
+  public static void beforeClass() throws IOException {
+//    mFsContext = FileSystemContext.create();
+    sFsContext = mock(FileSystemContext.class);
+    when(sFsContext.acquireNettyChannel(any(WorkerNetAddress.class)))
+        .thenReturn(CHANNEL);
+    when(sFsContext.getClusterConf())
+        .thenReturn(Configuration.global());
+//    doNothing()
+//        .when(mFsContext).releaseNettyChannel(any(WorkerNetAddress.class), any(Channel.class));
+  }
+
+  @Before
+  public void before() {
+    mByteArray = new byte[BYTEBUFFER_CAPACITY];
+    mStateMachine = new NettyDataReaderStateMachine(
+        sFsContext, mWorkerNetAddress, mRequestBuilderSupplier.get(),
+        new ByteArrayTargetBuffer(mByteArray, 0));
+    mMachineThread = new Thread(() -> mStateMachine.stepRun());
+  }
+
+  // TODO(Yichuan): CHANNEL_UNAVAILABLE is not tested.
+
+  @Ignore
+  @Test
+  public void interruptTest() throws InterruptedException {
+
+    mMachineThread.start();
+
+    assertEquals(NettyDataReaderStateMachine.State.CREATED,
+        mStateMachine.getStatus());
+    mStateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.START);
+    mStateMachine.stepRun();
+
+    assertEquals(NettyDataReaderStateMachine.State.ACQUIRING_CHANNEL,
+        mStateMachine.getStatus());
+    mStateMachine.fireNext(
+        NettyDataReaderStateMachine.TriggerEvent.CHANNEL_AVAILABLE);
+
+    mMachineThread.start();
+    mMachineThread.interrupt();
+    Thread.sleep(3000);
+
+    mStateMachine.stepRun();
+
+    assertEquals(NettyDataReaderStateMachine.State.CLIENT_CANCEL,
+        mStateMachine.getStatus());
+  }
+
+  @Test
+  public void timeOutTest() throws InterruptedException {
+
+    mMachineThread.start();
+
+    assertEquals(NettyDataReaderStateMachine.State.CREATED,
+        mStateMachine.getStatus());
+    mStateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.START);
+    mStateMachine.stepRun();
+
+    assertEquals(NettyDataReaderStateMachine.State.ACQUIRING_CHANNEL,
+        mStateMachine.getStatus());
+    mStateMachine.fireNext(
+        NettyDataReaderStateMachine.TriggerEvent.CHANNEL_AVAILABLE);
+
+    Thread thread1 = new Thread(() -> mStateMachine.stepRun());
+
+    thread1.start();
+    Thread.sleep(30000 + 1000);
+
+    mStateMachine.stepRun();
+
+    assertEquals(NettyDataReaderStateMachine.State.CLIENT_CANCEL,
+        mStateMachine.getStatus());
+  }
+
+  @Ignore
+  @Test
+  public void serverErrorTest() throws InterruptedException {
+    mMachineThread = new Thread(
+        () -> {
+          assertEquals(NettyDataReaderStateMachine.State.CREATED,
+              mStateMachine.getStatus());
+          mStateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.START);
+          mStateMachine.stepRun();
+
+          assertEquals(NettyDataReaderStateMachine.State.ACQUIRING_CHANNEL,
+              mStateMachine.getStatus());
+          mStateMachine.fireNext(
+              NettyDataReaderStateMachine.TriggerEvent.CHANNEL_AVAILABLE);
+          mStateMachine.stepRun();
+        }
+    );
+    mMachineThread.start();
+    Thread.sleep(3000);
+    // TODO(Yichuan): should not write like this. the server_error cannot interrupt the poll method,
+    //  so the timeout event is triggered, instead server_error.
+    mStateMachine.fireNext(
+        mStateMachine.getTriggerEventsWithParam().mServerErrorEvent,
+        new AlluxioStatusException(Status.CANCELLED));
+    mStateMachine.stepRun();
+    assertEquals(NettyDataReaderStateMachine.State.CLIENT_CANCEL,
+        mStateMachine.getStatus());
+  }
+
+  @Ignore
+  @Test
+  public void sendDataTest() throws ExecutionException, InterruptedException {
+
+    final int length = 10;
+    final int offset = 0;
+    final String testString1 = "hello";
+    final String testString2 = "world";
+    ServerState start = new WaitForRequestState(
+        mRequestBuilder.clone().setLength(length).setOffset(offset).build());
+    start.andThen(new SendDataState(testString1.getBytes()))
+        .andThen(new SendDataState(testString2.getBytes()))
+        .andThen(new EofState());
+    Future<Throwable> serverFault = mStateDriver.run(start);
+
+    Protocol.ReadRequest.Builder builder = mRequestBuilder.clone()
+        .setLength(length)
+        .setOffset(offset)
+        .clearCancel();
+    mStateMachine = new NettyDataReaderStateMachine(
+        sFsContext, mWorkerNetAddress, builder, new ByteArrayTargetBuffer(mByteArray, 0));
+
+    mStateMachine.run();
+    int byteRead = mStateMachine.getBytesRead();
+    assertNull(serverFault.get());
+    assertEquals(length, byteRead);
+    checkResult((testString1 + testString2).getBytes(), mByteArray);
+  }
+
+  @Test
+  public void TestOfSendDataTest() throws ExecutionException, InterruptedException {
+    final int length = 10;
+    final int offset = 0;
+    final String testString1 = "hello";
+    final String testString2 = "world";
+    ServerState start = new WaitForRequestState(
+        mRequestBuilder.clone().setLength(length).setOffset(offset).build());
+    start.andThen(new SendDataState(testString1.getBytes()));
+    Future<Throwable> serverFault = mStateDriver.run(start);
+
+    Protocol.ReadRequest.Builder builder = mRequestBuilder.clone()
+        .setLength(length).setOffset(offset).clearCancel();
+    mStateMachine = new NettyDataReaderStateMachine(
+        sFsContext, mWorkerNetAddress, builder, new ByteArrayTargetBuffer(mByteArray, 0));
+    mStateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.START);
+    mStateMachine.stepRun();
+    mStateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.CHANNEL_AVAILABLE);
+    mStateMachine.stepRun();
+
+    mStateMachine.stepRun();
+    assertEquals(NettyDataReaderStateMachine.State.RECEIVED_DATA, mStateMachine.getStatus());
+    assertNull(serverFault.get());
+    mStateMachine.stepRun();
+    assertEquals(NettyDataReaderStateMachine.State.CHANNEL_ACTIVE, mStateMachine.getStatus());
+  }
+
+  private void checkResult(byte[] expected, byte[] actual) {
+    assertTrue(expected.length <= actual.length);
+    for (int i = 0; i < expected.length; i++) {
+      assertEquals(expected[i], actual[i]);
+    }
+  }
+
+  private void setToChannelActive() {
+    assertEquals(NettyDataReaderStateMachine.State.CREATED,
+        mStateMachine.getStatus());
+    mStateMachine.fireNext(NettyDataReaderStateMachine.TriggerEvent.START);
+    mStateMachine.stepRun();
+
+    assertEquals(NettyDataReaderStateMachine.State.ACQUIRING_CHANNEL,
+        mStateMachine.getStatus());
+    mStateMachine.fireNext(
+        NettyDataReaderStateMachine.TriggerEvent.CHANNEL_AVAILABLE);
+  }
+
+  private static class ServerStateDriver {
+    private final ExecutorService mExecutor;
+    private final EmbeddedChannel mChannel;
+    private ServerState mCurrentState;
+
+    ServerStateDriver(ExecutorService executor, EmbeddedChannel channel) {
+      mExecutor = executor;
+      mChannel = channel;
+    }
+
+    public EmbeddedChannel getChannel() {
+      return mChannel;
+    }
+
+    public Future<Throwable> run(ServerState initialState) {
+      mCurrentState = initialState;
+      return mExecutor.submit(() -> {
+        if (mCurrentState.isTerminal()) {
+          return null;
+        }
+        while (true) {
+          try {
+            mCurrentState.run(this);
+          } catch (Throwable t) {
+            return t;
+          }
+          if (mCurrentState.isTerminal()) {
+            if (mChannel.outboundMessages().size() > 0) {
+              Object message = mChannel.outboundMessages().remove();
+              return new RuntimeException("Unhandled client message: " + message);
+            }
+            return null;
+          }
+          mCurrentState = mCurrentState.nextState();
+        }
+      });
+    }
+  }
+
+  private static class EofState extends ServerState {
+    public EofState() {
+      action((cd, cs) -> {
+        RPCProtoMessage response = RPCProtoMessage.createOkResponse(null);
+        cd.getChannel().writeInbound(response);
+      });
+    }
+  }
+
+  private static class SendDataState extends ServerState {
+    private final byte[] mBatch;
+
+    public SendDataState(byte[] data) {
+      mBatch = data;
+      action((cd, cs) -> {
+        RPCProtoMessage response = RPCProtoMessage.createOkResponse(
+            new NettyDataBuffer(Unpooled.wrappedBuffer(mBatch)));
+        cd.getChannel().writeInbound(response);
+      });
+    }
+  }
+
+  private static class WaitForRequestState extends ServerState {
+    private final Protocol.ReadRequest mExpectedRequest;
+
+    public WaitForRequestState(Protocol.ReadRequest readRequest) {
+      this(Constants.SECOND_MS * 6, readRequest);
+    }
+
+    public WaitForRequestState(int timeout, Protocol.ReadRequest readRequest) {
+      mExpectedRequest = readRequest;
+      action((cd, cs) -> {
+        try {
+          CommonUtils.waitFor("read request", () -> {
+            RPCProtoMessage message = cd.getChannel().readOutbound();
+            return message != null
+                && message.getType() == RPCMessage.Type.RPC_READ_REQUEST
+                && mExpectedRequest.equals(message.getMessage().asReadRequest());
+          }, WaitForOptions.defaults().setTimeoutMs(timeout));
+        } catch (TimeoutException timeoutException) {
+          throw new RuntimeException("waiting for read request timed out",
+              timeoutException);
+        } catch (InterruptedException interruptedException) {
+          throw new RuntimeException(interruptedException);
+        }
+      });
+    }
+  }
+
+  private static class TerminalState extends ServerState {
+    private static final TerminalState
+        INSTANCE = new TerminalState();
+
+    @Override
+    public boolean isTerminal() {
+      return true;
+    }
+
+    @Override
+    public ServerState nextState() {
+      return INSTANCE;
+    }
+  }
+
+  private static class ServerState {
+    private BiConsumer<ServerStateDriver, ServerState>
+        mAction = (cd, cs) -> { };
+    private ServerState mNextState = TerminalState.INSTANCE;
+    private boolean mIsTerminal = false;
+
+    ServerState() { }
+
+    ServerState action(BiConsumer<ServerStateDriver, ServerState> action) {
+      mAction = action;
+      return this;
+    }
+
+    void run(ServerStateDriver driver) {
+      mAction.accept(driver, this);
+    }
+
+    ServerState nextState() {
+      return mNextState;
+    }
+
+    ServerState andThen(ServerState next) {
+      mNextState = next;
+      return next;
+    }
+
+    ServerState terminal() {
+      mIsTerminal = true;
+      return this;
+    }
+
+    boolean isTerminal() {
+      return mIsTerminal;
+    }
+  }
+}

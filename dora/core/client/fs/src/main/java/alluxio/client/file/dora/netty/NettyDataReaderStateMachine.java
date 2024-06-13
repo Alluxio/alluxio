@@ -173,12 +173,13 @@ public class NettyDataReaderStateMachine {
    * @param address
    * @param requestBuilder
    * @param buffer
+   * @param state
    */
   public NettyDataReaderStateMachine(
       FileSystemContext context,
       WorkerNetAddress address,
       Protocol.ReadRequest.Builder requestBuilder,
-      ReadTargetBuffer buffer) {
+      ReadTargetBuffer buffer, State state) {
     mContext = context;
     AlluxioConfiguration conf = context.getClusterConf();
     mReadTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
@@ -259,9 +260,34 @@ public class NettyDataReaderStateMachine {
         .substateOf(State.TERMINATED)
         .onEntry(this::onTerminatedNormally);
 
-    mStateMachine = new StateMachine<>(/* initialState */ State.CREATED, config);
+    mStateMachine = new StateMachine<>(/* initialState */ state, config);
     mStateMachine.setTrace(new DebugLoggingTracer<>(LOG));
     mStateMachine.fireInitialTransition();
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param context
+   * @param address
+   * @param requestBuilder
+   * @param buffer
+   */
+  public NettyDataReaderStateMachine(
+      FileSystemContext context,
+      WorkerNetAddress address,
+      Protocol.ReadRequest.Builder requestBuilder,
+      ReadTargetBuffer buffer) {
+    this(context, address, requestBuilder, buffer, State.CREATED);
+  }
+
+  /**
+   * Get current status of state machine.
+   * @return state
+   */
+  @VisibleForTesting
+  public State getStatus() {
+    return mStateMachine.getState();
   }
 
   /**
@@ -321,6 +347,29 @@ public class NettyDataReaderStateMachine {
 
     Preconditions.checkState(mStateMachine.isInState(State.TERMINATED),
         "execution of state machine has stopped but it is not in a terminated state");
+  }
+
+  /**
+   * Run the state machine step by step.
+   */
+  @VisibleForTesting
+  public void stepRun() {
+    Runnable trigger = mNextTriggerEvent.getAndSet(null);
+    // TODO(Yichuan): Refactor the code to enable extract events name.
+    if (trigger != null)  {
+      trigger.run();
+    } else {
+      throw new IllegalStateException();
+    }
+  }
+
+  /**
+   * Set channel of current state machine.
+   * @param channel the target channel to be set
+   */
+  @VisibleForTesting
+  public void setChannel(Channel channel) {
+    mChannel = channel;
   }
 
   /**
@@ -450,6 +499,7 @@ public class NettyDataReaderStateMachine {
       fireNext(TriggerEvent.OUTPUT_LENGTH_NOT_FULFILLED);
     } else {
       fireNext(TriggerEvent.OUTPUT_LENGTH_FULFILLED);
+//      mStateMachine.
     }
   }
 
