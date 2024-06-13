@@ -21,6 +21,7 @@ import alluxio.s3.DeleteObjectsRequest;
 import alluxio.s3.DeleteObjectsResult;
 import alluxio.s3.S3Exception;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -63,7 +64,9 @@ public class S3RestServiceHandlerTest {
     String o = mapper.writerFor(DeleteObjectsRequest.class).writeValueAsString(r);
     assertTrue(r.getQuiet());
     assertEquals(2, r.getToDelete().size());
-    assertEquals(o, content);
+    JsonNode tree1 = mapper.readTree(o);
+    JsonNode tree2 = mapper.readTree(content);
+    assertTrue(tree1.equals(tree2));
   }
 
   @Test
