@@ -38,14 +38,10 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.hadoop.util.ReflectionUtils;
-import org.apache.hadoop.util.StringUtils;
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
 import org.junit.AfterClass;
 import org.junit.AssumptionViolatedException;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -95,7 +91,7 @@ import javax.annotation.Nullable;
  * <li>standard deviation of i/o rate</li>
  * </ul>
  */
-public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
+public class DFSIOIntegrationTest extends BaseIntegrationTest {
   /**
    * A rule that is used to enforce supported hadoop client versions before running this test.
    * Value for system property, "alluxio.hadoop.version", is injected by surefire plugin.
@@ -128,11 +124,6 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   private static final int DEFAULT_NR_BYTES = 16384;
   private static final int DEFAULT_NR_FILES = 4;
   private static boolean sGenerateReportFile = false;
-  private static final String USAGE = "Usage: " + DFSIOIntegrationTest.class.getSimpleName()
-      + " [genericOptions]" + " -read [-random | -backward | -skip [-skipSize Size]] |"
-      + " -write | -append | -clean" + " [-compression codecClassName]" + " [-nrFiles N]"
-      + " [-size Size[B|KB|MB|GB|TB]]" + " [-resFile resultFileName] [-bufferSize Bytes]"
-      + " [-rootDir]";
 
   private org.apache.hadoop.conf.Configuration mConfig;
 
@@ -293,7 +284,6 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   @Test(timeout = 50000)
   @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
       comment = "fix the test case")
-  @Ignore
   public void read() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, HadoopConfigurationUtils
@@ -307,7 +297,6 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   @Test(timeout = 50000)
   @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
       comment = "fix the test case")
-  @Ignore
   public void readRandom() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, HadoopConfigurationUtils
@@ -322,7 +311,6 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   @Test(timeout = 50000)
   @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
       comment = "fix the test case")
-  @Ignore
   public void readBackward() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, HadoopConfigurationUtils
@@ -337,7 +325,6 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   @Test(timeout = 50000)
   @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
       comment = "fix the test case")
-  @Ignore
   public void readSkip() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, HadoopConfigurationUtils
@@ -352,7 +339,6 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   @Test(timeout = 50000)
   @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
       comment = "fix the test case")
-  @Ignore
   public void readLargeSkip() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, HadoopConfigurationUtils
@@ -726,163 +712,9 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
     ioer.close();
   }
 
-  /**
-   * Runs the integration test for DFS IO.
-   *
-   * @param args arguments
-   */
-  public static void main(String[] args) {
-    DFSIOIntegrationTest bench = new DFSIOIntegrationTest();
-    int res;
-    try {
-      res = ToolRunner.run(bench, args);
-    } catch (Exception e) {
-      System.err.print(StringUtils.stringifyException(e));
-      res = -2;
-    }
-    if (res == -1) {
-      System.err.print(USAGE);
-    }
-    System.exit(res);
-  }
-
-  @Override
-  // Tool
-  public int run(String[] args) throws IOException {
-    TestType testType = null;
-    int bufferSize = DEFAULT_BUFFER_SIZE;
-    long nrBytes = MEGA;
-    int nrFiles = 1;
-    long skipSize = 0;
-    String resFileName = DEFAULT_RES_FILE_NAME;
-    String compressionClass = null;
-    boolean isSequential = false;
-    String version = DFSIOIntegrationTest.class.getSimpleName() + ".1.7";
-    sGenerateReportFile = true;
-
-    LOG.info(version);
-    if (args.length == 0) {
-      System.err.println("Missing arguments.");
-      return -1;
-    }
-
-    for (int i = 0; i < args.length; i++) { // parse command line
-      if (args[i].startsWith("-read")) {
-        testType = TestType.TEST_TYPE_READ;
-      } else if (args[i].equals("-write")) {
-        testType = TestType.TEST_TYPE_WRITE;
-      } else if (args[i].equals("-append")) {
-        testType = TestType.TEST_TYPE_APPEND;
-      } else if (args[i].equals("-random")) {
-        if (testType != TestType.TEST_TYPE_READ) {
-          return -1;
-        }
-        testType = TestType.TEST_TYPE_READ_RANDOM;
-      } else if (args[i].equals("-backward")) {
-        if (testType != TestType.TEST_TYPE_READ) {
-          return -1;
-        }
-        testType = TestType.TEST_TYPE_READ_BACKWARD;
-      } else if (args[i].equals("-skip")) {
-        if (testType != TestType.TEST_TYPE_READ) {
-          return -1;
-        }
-        testType = TestType.TEST_TYPE_READ_SKIP;
-      } else if (args[i].equals("-clean")) {
-        testType = TestType.TEST_TYPE_CLEANUP;
-      } else if (args[i].startsWith("-seq")) {
-        isSequential = true;
-      } else if (args[i].startsWith("-compression")) {
-        compressionClass = args[++i];
-      } else if (args[i].equals("-nrFiles")) {
-        nrFiles = Integer.parseInt(args[++i]);
-      } else if (args[i].equals("-fileSize") || args[i].equals("-size")) {
-        nrBytes = parseSize(args[++i]);
-      } else if (args[i].equals("-skipSize")) {
-        skipSize = parseSize(args[++i]);
-      } else if (args[i].equals("-bufferSize")) {
-        bufferSize = Integer.parseInt(args[++i]);
-      } else if (args[i].equals("-resFile")) {
-        resFileName = args[++i];
-      } else {
-        System.err.println("Illegal argument: " + args[i]);
-        return -1;
-      }
-    }
-    if (testType == null) {
-      return -1;
-    }
-    if (testType == TestType.TEST_TYPE_READ_BACKWARD) {
-      skipSize = -bufferSize;
-    } else if (testType == TestType.TEST_TYPE_READ_SKIP && skipSize == 0) {
-      skipSize = bufferSize;
-    }
-
-    LOG.info("nrFiles = " + nrFiles);
-    LOG.info("nrBytes (MB) = " + toMB(nrBytes));
-    LOG.info("bufferSize = " + bufferSize);
-    if (skipSize > 0) {
-      LOG.info("skipSize = " + skipSize);
-    }
-    LOG.info("baseDir = " + getBaseDir(mConfig));
-
-    if (compressionClass != null) {
-      mConfig.set("test.io.compression.class", compressionClass);
-      LOG.info("compressionClass = " + compressionClass);
-    }
-
-    mConfig.setInt("test.io.file.buffer.size", bufferSize);
-    mConfig.setLong("test.io.skip.size", skipSize);
-    mConfig.setBoolean("dfs.support.append", true);
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(mConfig);
-
-    if (isSequential) {
-      long tStart = System.currentTimeMillis();
-      sequentialTest(fs, testType, nrBytes, nrFiles);
-      long execTime = System.currentTimeMillis() - tStart;
-      String resultLine = "Seq Test exec time sec: " + (float) execTime / 1000;
-      LOG.info(resultLine);
-      return 0;
-    }
-    if (testType == TestType.TEST_TYPE_CLEANUP) {
-      cleanup(fs);
-      return 0;
-    }
-    createControlFile(fs, nrBytes, nrFiles);
-    long tStart = System.currentTimeMillis();
-    switch (testType) {
-      case TEST_TYPE_WRITE:
-        mapperWriteTest(fs);
-        break;
-      case TEST_TYPE_READ:
-        mapperReadTest(fs);
-        break;
-      case TEST_TYPE_APPEND:
-        mapperAppendTest(fs);
-        break;
-      case TEST_TYPE_READ_RANDOM:
-      case TEST_TYPE_READ_BACKWARD:
-      case TEST_TYPE_READ_SKIP:
-        randomReadTest(fs);
-        break;
-      default:
-    }
-    long execTime = System.currentTimeMillis() - tStart;
-
-    analyzeResult(fs, testType, execTime, resFileName);
-    return 0;
-  }
-
-  @Override
   // Configurable
   public org.apache.hadoop.conf.Configuration getConf() {
     return this.mConfig;
-  }
-
-  @Override
-  // Configurable
-  public void setConf(org.apache.hadoop.conf.Configuration conf) {
-    mConfig = conf;
   }
 
   /**
