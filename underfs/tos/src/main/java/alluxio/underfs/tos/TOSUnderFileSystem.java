@@ -20,9 +20,13 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Suppliers;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.volcengine.tos.TOSV2;
 import com.volcengine.tos.TOSV2ClientBuilder;
 import com.volcengine.tos.TosClientException;
@@ -54,6 +58,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -79,6 +85,8 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
    * Bucket name of user's configured Alluxio bucket.
    */
   private final String mBucketName;
+
+  private final Supplier<ListeningExecutorService> mStreamingUploadExecutor;
 
   /**
    * Constructs a new instance of {@link TOSUnderFileSystem}.
@@ -119,6 +127,14 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
     super(uri, conf);
     mClient = tosClient;
     mBucketName = bucketName;
+    mStreamingUploadExecutor = Suppliers.memoize(() -> {
+      int numTransferThreads =
+          conf.getInt(PropertyKey.UNDERFS_TOS_STREAMING_UPLOAD_THREADS);
+      ExecutorService service = ExecutorServiceFactories
+          .fixedThreadPool("alluxio-tos-streaming-upload-worker",
+              numTransferThreads).create();
+      return MoreExecutors.listeningDecorator(service);
+    });
   }
 
   @Override
@@ -170,6 +186,10 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
+    if (mUfsConf.getBoolean(PropertyKey.UNDERFS_TOS_STREAMING_UPLOAD_ENABLED)) {
+      return new TOSLowLevelOutputStream(mBucketName, key, mClient,
+          mStreamingUploadExecutor.get(), mUfsConf);
+    }
     return new TOSOutputStream(mBucketName, key, mClient,
         mUfsConf.getList(PropertyKey.TMP_DIRS));
   }

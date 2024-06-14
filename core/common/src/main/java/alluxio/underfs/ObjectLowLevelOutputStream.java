@@ -330,7 +330,7 @@ public abstract class ObjectLowLevelOutputStream extends OutputStream
     };
     ListenableFuture<?> futureTag = mExecutor.submit(callable);
     mFutures.add(futureTag);
-    LOG.debug(
+    LOG.info(
         "Submit upload part request. key={}, partNum={}, file={}, fileSize={}, lastPart={}.",
         mKey, partNumber, file.getPath(), file.length(), lastPart);
   }
