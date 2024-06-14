@@ -1718,7 +1718,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       booleanBuilder(Name.UNDERFS_TOS_STREAMING_UPLOAD_ENABLED)
           .setAlias("alluxio.underfs.tos.streaming.upload.enabled")
           .setDefaultValue(false)
-          .setDescription("(Experimental) If true, using streaming upload to write to S3.")
+          .setDescription("(Experimental) If true, using streaming upload to write to TOS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
@@ -2061,7 +2061,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_TOS_STREAMING_UPLOAD_THREADS =
       intBuilder(Name.UNDERFS_TOS_STREAMING_UPLOAD_THREADS)
           .setDefaultValue(20)
-          .setDescription("the number of threads to use for streaming upload data to OSS.")
+          .setDescription("the number of threads to use for streaming upload data to TOS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
