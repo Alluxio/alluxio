@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -106,13 +107,11 @@ public class TOSLowLevelOutputStream extends ObjectLowLevelOutputStream {
       @Nullable String md5)
       throws IOException {
     long fileSize = file.length();
-    long offset = partNumber * (mPartitionSize - 1);
     long partSize = mPartitionSize;
     try (FileInputStream content = new FileInputStream(file)) {
-      content.skip(offset);
       InputStream wrappedContent = new TosRepeatableBoundedFileInputStream(content, mPartitionSize);
-      if (fileSize - offset < mPartitionSize) {
-        partSize = fileSize - offset;
+      if (isLastPart) {
+        partSize = fileSize;
       }
       final UploadPartV2Input input = new UploadPartV2Input()
           .setBucket(mBucketName)
@@ -180,14 +179,14 @@ public class TOSLowLevelOutputStream extends ObjectLowLevelOutputStream {
 
   @Override
   protected void putObject(String key, File file, @Nullable String md5) throws IOException {
-    try {
+    try (InputStream content = Files.newInputStream(file.toPath())) {
       PutObjectInput putObjectInput = new PutObjectInput()
           .setBucket(mBucketName)
           .setKey(key)
-          .setContent(new FileInputStream(file))
-          .setContentLength(0);
+          .setContent(content)
+          .setContentLength(file.length()); // Set the correct content length
       mContentHash = getClient().putObject(putObjectInput).getEtag();
-    } catch (TosClientException e) {
+    } catch (IOException e) {
       throw new IOException(e);
     }
   }
