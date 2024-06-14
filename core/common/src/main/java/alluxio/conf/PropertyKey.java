@@ -706,6 +706,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .build();
+  public static final PropertyKey METRICS_KEY_INCLUDING_UNIQUE_ID_ENABLED =
+      booleanBuilder(Name.METRICS_KEY_INCLUDING_UNIQUE_ID_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to include the unique id such as hostname in the metrcis key.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey NETWORK_CONNECTION_AUTH_TIMEOUT =
       durationBuilder(Name.NETWORK_CONNECTION_AUTH_TIMEOUT)
           .setDefaultValue("30sec")
@@ -7858,6 +7865,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.metrics.executor.task.warn.size";
     public static final String METRICS_EXECUTOR_TASK_WARN_FREQUENCY =
         "alluxio.metrics.executor.task.warn.frequency";
+    public static final String METRICS_KEY_INCLUDING_UNIQUE_ID_ENABLED =
+        "alluxio.metrics.key.including.unique.id.enabled";
     public static final String NETWORK_CONNECTION_AUTH_TIMEOUT =
         "alluxio.network.connection.auth.timeout";
     public static final String NETWORK_CONNECTION_HEALTH_CHECK_TIMEOUT =
