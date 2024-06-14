@@ -1707,6 +1707,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_TOS_STREAMING_UPLOAD_ENABLED =
+      booleanBuilder(Name.UNDERFS_TOS_STREAMING_UPLOAD_ENABLED)
+          .setAlias("alluxio.underfs.tos.streaming.upload.enabled")
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If true, using streaming upload to write to S3.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_TOS_STREAMING_UPLOAD_PARTITION_SIZE =
+      dataSizeBuilder(Name.UNDERFS_TOS_STREAMING_UPLOAD_PARTITION_SIZE)
+          .setAlias("alluxio.underfs.tos.streaming.upload.partition.size")
+          .setDefaultValue("64MB")
+          .setDescription("Maximum allowable size of a single buffer file when using "
+              + "TOS streaming upload. When the buffer file reaches the partition size, "
+              + "it will be uploaded and the upcoming data will write to other buffer files."
+              + "If the partition size is too small, TOS upload speed might be affected. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
 
   // UFS access control related properties
   //
@@ -2032,6 +2051,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .build();
+  public static final PropertyKey UNDERFS_TOS_STREAMING_UPLOAD_THREADS =
+      intBuilder(Name.UNDERFS_TOS_STREAMING_UPLOAD_THREADS)
+          .setDefaultValue(20)
+          .setDescription("the number of threads to use for streaming upload data to OSS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   //
   // Mount table related properties
   //
@@ -8045,6 +8071,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.obs.streaming.upload.partition.size";
     public static final String UNDERFS_OBS_STREAMING_UPLOAD_THREADS =
         "alluxio.underfs.obs.streaming.upload.threads";
+    public static final String UNDERFS_TOS_STREAMING_UPLOAD_ENABLED =
+        "alluxio.underfs.tos.streaming.upload.enabled";
+    public static final String UNDERFS_TOS_STREAMING_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.tos.streaming.upload.partition.size";
+    public static final String UNDERFS_TOS_STREAMING_UPLOAD_THREADS =
+        "alluxio.underfs.tos.streaming.upload.threads";
 
     //
     // UFS access control related properties
