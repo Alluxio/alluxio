@@ -1273,7 +1273,7 @@
         <configuration>
           <generateGitPropertiesFile>true</generateGitPropertiesFile>
           <generateGitPropertiesFilename>${project.build.outputDirectory}/git.properties</generateGitPropertiesFilename>
-          <dateFormat>yyyy-MM-dd'T'HH:mm:ss'Z'</dateFormat>
+          <dateFormatTimeZone>UTC</dateFormatTimeZone>
           <includeOnlyProperties>
             <includeOnlyProperty>git.commit.time</includeOnlyProperty>
             <includeOnlyProperty>git.build.version</includeOnlyProperty>
