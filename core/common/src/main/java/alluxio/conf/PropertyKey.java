@@ -361,7 +361,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @param params parameters of the template
      */
     public Builder(PropertyType type, Optional<String> delimiter,
-                   PropertyKey.Template template, Object... params) {
+        PropertyKey.Template template, Object... params) {
       this(format(template.mFormat, params), type, Optional.empty(), delimiter);
     }
 
@@ -688,9 +688,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.METRICS_EXECUTOR_TASK_WARN_SIZE)
           .setDefaultValue(1000)
           .setDescription(String.format("When instrumenting an executor with"
-                  + " InstrumentedExecutorService, if the number of"
-                  + " active tasks (queued or running) is greater than this value, a warning log"
-                  + " will be printed at the interval given by %s",
+              + " InstrumentedExecutorService, if the number of"
+              + " active tasks (queued or running) is greater than this value, a warning log"
+              + " will be printed at the interval given by %s",
               Name.METRICS_EXECUTOR_TASK_WARN_FREQUENCY))
           .setScope(Scope.ALL)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
