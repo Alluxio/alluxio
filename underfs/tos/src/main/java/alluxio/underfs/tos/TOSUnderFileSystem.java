@@ -394,8 +394,7 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
    * @param alluxioConf the TOS Configuration
    * @return the TOS {@link TransportConfig}
    */
-  public static TransportConfig initializeTOSClientConfig(
-      AlluxioConfiguration alluxioConf) {
+  public static TransportConfig initializeTOSClientConfig(AlluxioConfiguration alluxioConf) {
     int readTimeoutMills = alluxioConf.getInt(PropertyKey.UNDERFS_TOS_READ_TIMEOUT);
     int writeTimeoutMills = alluxioConf.getInt(PropertyKey.UNDERFS_TOS_WRITE_TIMEOUT);
     int connectionTimeoutMills = alluxioConf.getInt(PropertyKey.UNDERFS_TOS_CONNECT_TIMEOUT);
