@@ -396,11 +396,11 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
    */
   public static TransportConfig initializeTOSClientConfig(
       AlluxioConfiguration alluxioConf) {
-    int readTimeoutMills = (int) alluxioConf.getMs(PropertyKey.UNDERFS_TOS_READ_TIMEOUT);
-    int writeTimeoutMills = (int) alluxioConf.getMs(PropertyKey.UNDERFS_TOS_WRITE_TIMEOUT);
-    int connectionTimeoutMills = (int) alluxioConf.getMs(PropertyKey.UNDERFS_TOS_CONNECT_TIMEOUT);
+    int readTimeoutMills = alluxioConf.getInt(PropertyKey.UNDERFS_TOS_READ_TIMEOUT);
+    int writeTimeoutMills = alluxioConf.getInt(PropertyKey.UNDERFS_TOS_WRITE_TIMEOUT);
+    int connectionTimeoutMills = alluxioConf.getInt(PropertyKey.UNDERFS_TOS_CONNECT_TIMEOUT);
     int maxConnections = alluxioConf.getInt(PropertyKey.UNDERFS_TOS_CONNECT_MAX);
-    int idleConnectionTime = (int) alluxioConf.getMs(PropertyKey.UNDERFS_TOS_CONNECT_TTL);
+    int idleConnectionTime = alluxioConf.getInt(PropertyKey.UNDERFS_TOS_CONNECT_TTL);
     int maxErrorRetry = alluxioConf.getInt(PropertyKey.UNDERFS_TOS_RETRY_MAX);
     TransportConfig config = TransportConfig.builder()
         .connectTimeoutMills(connectionTimeoutMills)
