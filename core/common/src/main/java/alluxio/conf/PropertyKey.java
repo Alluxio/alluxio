@@ -2065,6 +2065,64 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_TOS_RETRY_MAX =
+      intBuilder(Name.UNDERFS_TOS_RETRY_MAX)
+          .setAlias("alluxio.underfs.tos.retry.max")
+          .setDefaultValue(3)
+          .setDescription("The maximum number of TOS error retry.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_TOS_WRITE_TIMEOUT =
+      intBuilder(Name.UNDERFS_TOS_WRITE_TIMEOUT)
+          .setAlias("alluxio.underfs.tos.write.timeout.ms", "alluxio.underfs.tos.write.timeout")
+          .setDefaultValue(30000)
+          .setDescription("The timeout for a single write request to TOS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_TOS_READ_TIMEOUT =
+      intBuilder(Name.UNDERFS_TOS_READ_TIMEOUT)
+          .setAlias("alluxio.underfs.tos.read.timeout.ms", "alluxio.underfs.tos.read.timeout")
+          .setDefaultValue(30000)
+          .setDescription("The timeout for a single read request to TOS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_TOS_CONNECT_TIMEOUT =
+      intBuilder(Name.UNDERFS_TOS_CONNECT_TIMEOUT)
+          .setAlias("alluxio.underfs.tos.connect.timeout.ms", "alluxio.underfs.tos.connect.timeout")
+          .setDefaultValue(30000)
+          .setDescription("The timeout for a connection to TOS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_TOS_CONNECT_TTL =
+      intBuilder(Name.UNDERFS_TOS_CONNECT_TTL)
+          .setDefaultValue(60000)
+          .setDescription("The expiration time of TOS connections in ms. -1 means the connection "
+              + "will never expire.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_TOS_INTERMEDIATE_UPLOAD_CLEAN_AGE =
+      durationBuilder(Name.UNDERFS_TOS_INTERMEDIATE_UPLOAD_CLEAN_AGE)
+          .setDefaultValue("3day")
+          .setDescription("Streaming uploads may not have been completed/aborted correctly "
+              + "and need periodical ufs cleanup. If ufs cleanup is enabled, "
+              + "intermediate multipart uploads in all non-readonly TOS mount points "
+              + "older than this age will be cleaned. This may impact other "
+              + "ongoing upload operations, so a large clean age is encouraged.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_TOS_CONNECT_MAX =
+      intBuilder(Name.UNDERFS_TOS_CONNECT_MAX)
+          .setDefaultValue(1024)
+          .setDescription("The maximum number of TOS connections.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   //
   // Mount table related properties
   //
@@ -8086,6 +8144,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.tos.streaming.upload.partition.size";
     public static final String UNDERFS_TOS_STREAMING_UPLOAD_THREADS =
         "alluxio.underfs.tos.streaming.upload.threads";
+    public static final String UNDERFS_TOS_RETRY_MAX = "alluxio.underfs.tos.retry.max";
+    public static final String UNDERFS_TOS_WRITE_TIMEOUT = "alluxio.underfs.tos.write.timeout";
+    public static final String UNDERFS_TOS_READ_TIMEOUT = "alluxio.underfs.tos.read.timeout";
+    public static final String UNDERFS_TOS_CONNECT_TIMEOUT = "alluxio.underfs.tos.connect.timeout";
+    public static final String UNDERFS_TOS_CONNECT_TTL = "alluxio.underfs.tos.connect.ttl";
+    public static final String UNDERFS_TOS_CONNECT_MAX = "alluxio.underfs.tos.connect.max";
+    public static final String UNDERFS_TOS_INTERMEDIATE_UPLOAD_CLEAN_AGE =
+        "alluxio.underfs.tos.intermediate.upload.clean.age";
 
     //
     // UFS access control related properties
