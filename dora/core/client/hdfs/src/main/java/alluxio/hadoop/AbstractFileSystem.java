@@ -18,7 +18,9 @@ import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.FileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.InstancedConfiguration;
@@ -76,6 +78,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.auth.Subject;
@@ -210,7 +213,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       mStatistics.incrementWriteOps(1);
     }
 
-    AlluxioURI uri = getAlluxioPath(path);
+    AlluxioURI uri = new AlluxioURI(path.toString());
     CreateFilePOptions options = CreateFilePOptions.newBuilder().setBlockSizeBytes(blockSize)
         .setMode(new Mode(permission.toShort()).toProto()).setRecursive(true)
         .setOverwrite(overwrite).build();
@@ -587,8 +590,11 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     // Disable URI validation for non-Alluxio schemes.
     boolean enableUriValidation =
         (uri.getScheme() == null) || uri.getScheme().equals(Constants.SCHEME);
-    mFileSystem = FileSystem.Factory.create(
+    FileSystemContext context = FileSystemContext.create(
         ClientContext.create(subject, mAlluxioConf).setUriValidationEnabled(enableUriValidation));
+    mFileSystem = FileSystem.Factory.create(
+        context,
+        FileSystemOptions.Builder.fromConf(mAlluxioConf, Optional.of(mUri.toString())).build());
   }
 
   private Subject getSubjectFromUGI(UserGroupInformation ugi)
@@ -725,7 +731,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       mStatistics.incrementReadOps(1);
     }
 
-    AlluxioURI uri = getAlluxioPath(path);
+    AlluxioURI uri = new AlluxioURI(path.toString());
     return new FSDataInputStream(new HdfsFileInputStream(mFileSystem, uri, mStatistics));
   }
 
