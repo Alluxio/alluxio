@@ -1402,32 +1402,6 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     assertEquals(0, command.getCommandOptions().getPersistOptions().getFilesToPersist().size());
   }
 
-  /**
-   * Tests that lost files can successfully be detected.
-   */
-  @Test
-  @Ignore
-  public void lostFilesDetection() throws Exception {
-    createFileWithSingleBlock(NESTED_FILE_URI);
-    long fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);
-
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    mBlockMaster.reportLostBlocks(fileInfo.getBlockIds());
-
-    assertEquals(PersistenceState.NOT_PERSISTED.name(), fileInfo.getPersistenceState());
-    // Check with getPersistenceState.
-    assertEquals(PersistenceState.NOT_PERSISTED,
-        mFileSystemMaster.getPersistenceState(fileId));
-
-    // run the detector
-    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_FILES_DETECTION);
-
-    fileInfo = mFileSystemMaster.getFileInfo(fileId);
-    assertEquals(PersistenceState.LOST.name(), fileInfo.getPersistenceState());
-    // Check with getPersistenceState.
-    assertEquals(PersistenceState.LOST, mFileSystemMaster.getPersistenceState(fileId));
-  }
-
   @Test
   public void getUfsInfo() throws Exception {
     FileInfo alluxioRootInfo =
