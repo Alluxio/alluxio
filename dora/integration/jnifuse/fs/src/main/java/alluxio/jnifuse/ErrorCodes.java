@@ -942,7 +942,7 @@ public class ErrorCodes {
    * The file system does not support extended attributes or has the feature disabled
    */
   public static int ENOTSUP() {
-    return 45;
+    return Errno.EOPNOTSUPP.intValue();
   }
 
   private ErrorCodes() {
