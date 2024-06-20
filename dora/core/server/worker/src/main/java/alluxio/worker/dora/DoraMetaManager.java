@@ -109,20 +109,14 @@ public class DoraMetaManager implements Closeable {
   /**
    * Gets file meta from UFS.
    * @param path the full ufs path
-   * @return the file status, or empty optional if not found
+   * @param ufs the underFileSystem
+   * @return the file ufsStatus, or empty optional if not found
    */
-  public Optional<FileStatus> getFromUfs(String path) throws IOException {
+  public Optional<UfsStatus> getFromUfs(String path, UnderFileSystem ufs) throws IOException {
     try {
-      UnderFileSystem ufs = getUfsInstance(path);
       UfsStatus status = ufs.getStatus(path,
-          GetStatusOptions.defaults().setIncludeRealContentHash(mGetRealContentHash));
-      Map<String, String> xattrMap = null;
-      if (status != null && mXAttrWriteToUFSEnabled) {
-        xattrMap = ufs.getAttributes(path);
-      }
-      DoraMeta.FileStatus fs = PagedDoraWorker.buildFileStatusFromUfsStatus(
-          mCacheManager.getUsage(), ufs.getUnderFSType(), status, path, xattrMap);
-      return Optional.ofNullable(fs);
+              GetStatusOptions.defaults().setIncludeRealContentHash(mGetRealContentHash));
+      return Optional.ofNullable(status);
     } catch (FileNotFoundException e) {
       return Optional.empty();
     }
@@ -136,16 +130,28 @@ public class DoraMetaManager implements Closeable {
    * @return the file status, or empty optional if not found
    */
   public Optional<FileStatus> loadFromUfs(String path) throws IOException {
-    Optional<FileStatus> fileStatus = getFromUfs(path);
-    if (!fileStatus.isPresent()) {
-      removeFromMetaStore(path);
-    } else {
-      put(path, fileStatus.get());
+    UnderFileSystem ufs = getUfsInstance(path);
+    Optional<UfsStatus> ufsStatus = getFromUfs(path, ufs);
+    Map<String, String> xattrMap = null;
+    DoraMeta.FileStatus fileStatus = null;
+    if (ufsStatus.isPresent() && ufsStatus.get().isFile()) {
+      if (mXAttrWriteToUFSEnabled) {
+        xattrMap = ufs.getAttributes(path);
+      }
+      fileStatus = PagedDoraWorker.buildFileStatusFromUfsStatus(
+              mCacheManager.getUsage(), ufs.getUnderFSType(), ufsStatus.get(), path, xattrMap);
     }
-    // TODO(elega) invalidate/update listing cache based on the load result
-    return fileStatus;
+    if (fileStatus == null) {
+      removeFromMetaStore(path);
+      if (mListStatusCache.getIfPresent(path) != null) {
+        mListStatusCache.invalidate(path);
+      }
+    } else {
+      put(path, fileStatus);
+      mListStatusCache.put(path, new ListStatusResult(System.nanoTime(), new UfsStatus[]{ufsStatus.get()}, true));
+    }
+    return Optional.ofNullable(fileStatus);
   }
-
   /**
    * Gets file meta from the metastore.
    * @param path the full ufs path
