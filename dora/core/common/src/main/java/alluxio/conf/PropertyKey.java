@@ -5061,6 +5061,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
+  public static final PropertyKey PROXY_S3_V2_ASYNC_CONTEXT_TIMEOUT_MS =
+      durationBuilder(Name.PROXY_S3_V2_ASYNC_CONTEXT_TIMEOUT_MS)
+          .setDefaultValue("1min")
+          .setDescription("The timeout for async context.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey PROXY_WEB_BIND_HOST =
       stringBuilder(Name.PROXY_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
@@ -8257,6 +8264,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.tagging.restrictions.enabled";
     public static final String PROXY_STREAM_CACHE_TIMEOUT_MS =
         "alluxio.proxy.stream.cache.timeout";
+    public static final String PROXY_S3_V2_ASYNC_CONTEXT_TIMEOUT_MS =
+        "alluxio.proxy.s3.v2.async.context.timeout";
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
     public static final String PROXY_WEB_HOSTNAME = "alluxio.proxy.web.hostname";
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
