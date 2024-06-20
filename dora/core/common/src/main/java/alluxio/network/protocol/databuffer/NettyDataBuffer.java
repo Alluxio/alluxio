@@ -75,7 +75,7 @@ public final class NettyDataBuffer implements DataBuffer {
   }
 
   /**
-   * Release the Netty ByteBuf.
+   * Releases the Netty ByteBuf.
    */
   @Override
   public void release() {
