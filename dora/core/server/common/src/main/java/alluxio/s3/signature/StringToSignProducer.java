@@ -338,6 +338,7 @@ public final class StringToSignProducer {
     try {
       return URLEncoder.encode(str, "UTF-8")
               .replaceAll("\\+", "%20")
+              .replaceAll("\\*", "%2A")
               .replaceAll("%7E", "~");
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);
