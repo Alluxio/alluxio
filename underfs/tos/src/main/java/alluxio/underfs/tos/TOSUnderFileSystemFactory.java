@@ -20,6 +20,7 @@ import alluxio.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.volcengine.tos.TosException;
 
 import java.io.IOException;
 
@@ -40,13 +41,12 @@ public class TOSUnderFileSystemFactory implements UnderFileSystemFactory {
     if (checkTOSCredentials(conf)) {
       try {
         return TOSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
-      } catch (Exception e) {
+      } catch (TosException e) {
         throw Throwables.propagate(e);
       }
     }
 
-    String err =
-        "TOS Credentials or configurations not available, cannot create TOS Under File System.";
+    String err = "TOS Credentials not available, cannot create TOS Under File System.";
     throw Throwables.propagate(new IOException(err));
   }
 

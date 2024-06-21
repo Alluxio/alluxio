@@ -103,8 +103,8 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
    * @param conf the configuration for this UFS
    * @return the created {@link TOSUnderFileSystem} instance
    */
-  public static TOSUnderFileSystem createInstance(AlluxioURI uri, UnderFileSystemConfiguration conf)
-      throws Exception {
+  public static TOSUnderFileSystem createInstance(AlluxioURI uri,
+                                                  UnderFileSystemConfiguration conf) {
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
     Preconditions.checkArgument(conf.isSet(PropertyKey.TOS_ACCESS_KEY),
         "Property %s is required to connect to TOS", PropertyKey.TOS_ACCESS_KEY);
@@ -167,29 +167,33 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  public void cleanup() throws IOException {
+  public void cleanup() {
     long cleanAge = mUfsConf.getMs(PropertyKey.UNDERFS_TOS_INTERMEDIATE_UPLOAD_CLEAN_AGE);
     Date cleanBefore = new Date(new Date().getTime() - cleanAge);
     boolean isTruncated = true;
     String keyMarker = null;
     String uploadIdMarker = null;
     int maxKeys = 10;
-    while (isTruncated) {
-      ListMultipartUploadsV2Input input = new ListMultipartUploadsV2Input().setBucket(mBucketName)
-          .setMaxUploads(maxKeys).setKeyMarker(keyMarker).setUploadIDMarker(uploadIdMarker);
-      ListMultipartUploadsV2Output output = mClient.listMultipartUploads(input);
-      if (output.getUploads() != null) {
-        for (int i = 0; i < output.getUploads().size(); ++i) {
-          ListedUpload upload = output.getUploads().get(i);
-          if (upload.getInitiated().before(cleanBefore)) {
-            mClient.abortMultipartUpload(new AbortMultipartUploadInput().setBucket(mBucketName)
-                .setKey(upload.getKey()).setUploadID(upload.getUploadID()));
+    try {
+      while (isTruncated) {
+        ListMultipartUploadsV2Input input = new ListMultipartUploadsV2Input().setBucket(mBucketName)
+            .setMaxUploads(maxKeys).setKeyMarker(keyMarker).setUploadIDMarker(uploadIdMarker);
+        ListMultipartUploadsV2Output output = mClient.listMultipartUploads(input);
+        if (output.getUploads() != null) {
+          for (int i = 0; i < output.getUploads().size(); ++i) {
+            ListedUpload upload = output.getUploads().get(i);
+            if (upload.getInitiated().before(cleanBefore)) {
+              mClient.abortMultipartUpload(new AbortMultipartUploadInput().setBucket(mBucketName)
+                  .setKey(upload.getKey()).setUploadID(upload.getUploadID()));
+            }
           }
         }
+        isTruncated = output.isTruncated();
+        keyMarker = output.getNextKeyMarker();
+        uploadIdMarker = output.getNextUploadIdMarker();
       }
-      isTruncated = output.isTruncated();
-      keyMarker = output.getNextKeyMarker();
-      uploadIdMarker = output.getNextUploadIdMarker();
+    } catch (TosException e) {
+      throw AlluxioTosException.from(e);
     }
   }
 
@@ -248,7 +252,7 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
-  protected List<String> deleteObjects(List<String> keys) throws IOException {
+  protected List<String> deleteObjects(List<String> keys) {
     try {
       List<ObjectTobeDeleted> list = new ArrayList<>();
       for (String key : keys) {
@@ -259,7 +263,7 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
       DeleteMultiObjectsV2Output output = mClient.deleteMultiObjects(input);
       return output.getDeleteds().stream().map(Deleted::getKey).collect(Collectors.toList());
     } catch (TosException e) {
-      throw new IOException("Failed to delete objects", e);
+      throw AlluxioTosException.from(e);
     }
   }
 
