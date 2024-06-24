@@ -4542,6 +4542,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey WORKER_UCPSERVER_PORT =
+      intBuilder(Name.WORKER_UCPSERVER_PORT)
+          .setAlias("alluxio.worker.ucpserver.port")
+          .setDefaultValue(59999)
+          .setDescription("The port for Alluxio worker's UCP server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey WORKER_DATA_BIND_HOST =
       stringBuilder(Name.WORKER_DATA_BIND_HOST)
           .setDefaultValue("0.0.0.0")
@@ -6909,6 +6917,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey UCP_TRANSMISSION_ENABLED =
+      booleanBuilder(Name.UCP_TRANSMISSION_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to enable UCP server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
 
   public static final PropertyKey USER_DYNAMIC_CONSISTENT_HASH_RING_ENABLED =
       booleanBuilder(Name.USER_DYNAMIC_CONSISTENT_HASH_RING_ENABLED)
@@ -7993,6 +8008,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_REGISTER_LEASE_ENABLED =
         "alluxio.worker.register.lease.enabled";
     public static final String WORKER_RPC_PORT = "alluxio.worker.rpc.port";
+    public static final String WORKER_UCPSERVER_PORT = "alluxio.worker.ucpserver.port";
     public static final String WORKER_DATA_BIND_HOST = "alluxio.worker.data.bind.host";
     public static final String WORKER_DATA_HOSTNAME = "alluxio.worker.data.hostname";
     public static final String WORKER_DATA_PORT = "alluxio.worker.data.port";
@@ -8541,6 +8557,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String USER_NETTY_DATA_TRANSMISSION_ENABLED =
         "alluxio.user.netty.data.transmission.enabled";
+
+    public static final String UCP_TRANSMISSION_ENABLED =
+        "alluxio.ucp.transmission.enabled";
 
     public static final String USER_DYNAMIC_CONSISTENT_HASH_RING_ENABLED =
         "alluxio.user.dynamic.consistent.hash.ring.enabled";

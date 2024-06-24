@@ -2584,6 +2584,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
 
+  public static final MetricKey UCX_CONNECTION_COUNT =
+      new Builder("Process.UcxConnectionCount")
+          .setDescription("Number of UcxConnection.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+
   public static final MetricKey CLIENT_DEFAULT_HIVE_CLIENT_COUNT =
       new Builder("Client.DefaultHiveClientCount")
           .setDescription("Number of instances in the DefaultHiveClientPool.")

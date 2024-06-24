@@ -172,10 +172,10 @@
     <slf4j.version>1.7.30</slf4j.version>
     <stateless4j.version>2.6.0</stateless4j.version>
     <surefire.excludesFile>slow-tests</surefire.excludesFile>
-    <surefire.forkCount>2</surefire.forkCount>
+    <surefire.forkCount>1</surefire.forkCount>
     <surefire.rerunFailingTestsCount>1</surefire.rerunFailingTestsCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
-    <test.output.redirect>true</test.output.redirect>
+    <test.output.redirect>false</test.output.redirect>
     <testcontainers.version>1.18.3</testcontainers.version>
     <update.check.auth.string>YWxsdXhpbzp0YWNoeW9u</update.check.auth.string>
     <update.check.configurable>true</update.check.configurable>
@@ -719,6 +719,11 @@
         <groupId>org.lz4</groupId>
         <artifactId>lz4-java</artifactId>
         <version>1.8.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.openucx</groupId>
+        <artifactId>jucx</artifactId>
+        <version>1.15.0</version>
       </dependency>
       <dependency>
         <groupId>org.reflections</groupId>

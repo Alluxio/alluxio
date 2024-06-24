@@ -86,6 +86,10 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.openucx</groupId>
+      <artifactId>jucx</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.rocksdb</groupId>
       <artifactId>rocksdbjni</artifactId>
     </dependency>

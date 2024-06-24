@@ -20,6 +20,7 @@ import alluxio.worker.modules.AlluxioWorkerProcessModule;
 import alluxio.worker.modules.DoraWorkerModule;
 import alluxio.worker.modules.GrpcServerModule;
 import alluxio.worker.modules.NettyServerModule;
+import alluxio.worker.ucx.UcpServerModule;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
@@ -45,6 +46,8 @@ public interface WorkerProcess extends Process {
       // read configurations
       boolean isNettyDataTransmissionEnable =
           Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
+      boolean isUcpEnable =
+          Configuration.global().getBoolean(PropertyKey.UCP_TRANSMISSION_ENABLED);
       // add modules that need to be injected
       ImmutableList<Module> modules = sModules;
       if (modules == null) {
@@ -52,6 +55,7 @@ public interface WorkerProcess extends Process {
         builder.add(new DoraWorkerModule());
         builder.add(new GrpcServerModule());
         builder.add(new NettyServerModule(isNettyDataTransmissionEnable));
+        builder.add(new UcpServerModule(isUcpEnable));
         builder.add(new AlluxioWorkerProcessModule());
         modules = builder.build();
       }

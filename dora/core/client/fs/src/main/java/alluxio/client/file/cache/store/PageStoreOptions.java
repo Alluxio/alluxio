@@ -15,6 +15,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.FormatUtils;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
 import java.nio.file.Path;
@@ -295,5 +296,16 @@ public class PageStoreOptions {
   public PageStoreOptions setStoreType(PageStoreType storeType) {
     mStoreType = storeType;
     return this;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("rootdir", mRootDir.toAbsolutePath().toString())
+        .add("index", mIndex)
+        .add("alluxioversion", mAlluxioVersion)
+        .add("pagesize", mPageSize)
+        .add("cachesize", mCacheSize)
+        .toString();
   }
 }

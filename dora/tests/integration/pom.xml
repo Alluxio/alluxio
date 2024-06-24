@@ -183,6 +183,10 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
+      <groupId>org.openucx</groupId>
+      <artifactId>jucx</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.reflections</groupId>
       <artifactId>reflections</artifactId>
     </dependency>

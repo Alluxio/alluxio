@@ -31,6 +31,7 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.http.HttpServer;
 import alluxio.worker.netty.NettyDataServer;
+import alluxio.worker.ucx.UcpServer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
@@ -59,6 +60,8 @@ public class AlluxioWorkerProcess implements WorkerProcess {
   private DataServer mDataServer;
 
   private final DataServer mNettyDataServer;
+
+  private final UcpServer mUcpServer;
 
   /**
    * If started (i.e. not null), this server is used to serve local data transfer.
@@ -107,6 +110,8 @@ public class AlluxioWorkerProcess implements WorkerProcess {
 
   private boolean mNettyDataTransmissionEnable;
 
+  private boolean mUcpEnabled;
+
   /**
    * Creates a new instance of {@link AlluxioWorkerProcess}.
    */
@@ -117,9 +122,10 @@ public class AlluxioWorkerProcess implements WorkerProcess {
       Worker worker,
       DataServerFactory dataServerFactory,
       @Nullable NettyDataServer nettyDataServer,
-      @Nullable HttpServer httpServer) {
+      @Nullable HttpServer httpServer,
+      @Nullable UcpServer ucpServer) {
     this(workerRegistry, ufsManager, worker,
-        dataServerFactory, nettyDataServer, httpServer, false);
+        dataServerFactory, nettyDataServer, httpServer, ucpServer, false);
   }
 
   /**
@@ -132,6 +138,7 @@ public class AlluxioWorkerProcess implements WorkerProcess {
       DataServerFactory dataServerFactory,
       @Nullable NettyDataServer nettyDataServer,
       @Nullable HttpServer httpServer,
+      @Nullable UcpServer ucpServer,
       boolean delayWebServer) {
     try {
       mUfsManager = requireNonNull(ufsManager);
@@ -179,6 +186,13 @@ public class AlluxioWorkerProcess implements WorkerProcess {
         mNettyDataServer = null;
       }
 
+      // Spawn Ucp Server
+      mUcpEnabled = Configuration.global().getBoolean(PropertyKey.UCP_TRANSMISSION_ENABLED);
+      if (mUcpEnabled) {
+        mUcpServer = ucpServer;
+      } else {
+        mUcpServer = null;
+      }
       mHttpServer = httpServer;
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -273,6 +287,10 @@ public class AlluxioWorkerProcess implements WorkerProcess {
     // Start HTTP Server
     if (mHttpServer != null && Configuration.getBoolean(PropertyKey.WORKER_HTTP_SERVER_ENABLED)) {
       mHttpServer.start();
+    }
+
+    if (mUcpServer != null && Configuration.getBoolean(PropertyKey.UCP_TRANSMISSION_ENABLED)) {
+      mUcpServer.start();
     }
 
     // Start monitor jvm

@@ -60,8 +60,14 @@ import alluxio.grpc.SetAttributePRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.ucx.UcpProxy;
+
+import org.openucx.jucx.ucp.UcpContext;
+import org.openucx.jucx.ucp.UcpParams;
+import org.openucx.jucx.ucp.UcpWorker;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

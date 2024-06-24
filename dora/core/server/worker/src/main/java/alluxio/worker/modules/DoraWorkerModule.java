@@ -31,6 +31,7 @@ import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.http.HttpServer;
 import alluxio.worker.http.HttpServerInitializer;
 import alluxio.worker.http.PagedService;
+import alluxio.worker.ucx.UcpServer;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
@@ -67,7 +68,7 @@ public class DoraWorkerModule extends AbstractModule {
       bind(CacheManager.class).toProvider(() ->
       {
         try {
-          return CacheManager.Factory.create(Configuration.global(),
+          return CacheManager.Factory.get(Configuration.global(),
               cacheManagerOptions, pageMetaStore);
         } catch (IOException e) {
           throw new RuntimeException(e);

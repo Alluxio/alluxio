@@ -12,6 +12,27 @@ enum RequestType {
   UFS_FILE = 1;
 }
 
+// The rma read request.
+// next available id: 10
+message ReadRequestRMA {
+  optional int64 block_id = 1;
+  optional int64 offset = 2;
+  optional int64 length = 3;
+  // If set, this request is to cancel the reading request for the id.
+  optional bool cancel = 4;
+  // Whether the block should be promoted before reading
+  optional bool promote = 7;
+
+  // If set, the server should send packets in the specified packet size.
+  optional int64 chunk_size = 5;
+
+  // This is only set for UFS block read.
+  optional OpenUfsBlockOptions open_ufs_block_options = 6;
+
+  required int64 remote_mem_addr = 8;
+  required bytes rkey_buf = 9;
+}
+
 // The read request.
 // next available id: 8
 message ReadRequest {
@@ -95,6 +116,11 @@ message ReadResponse {
     UFS_READ_HEARTBEAT = 1;
   }
   optional Type type = 1;
+}
+
+message ReadResponseRMA {
+  required int64 read_length = 1;
+  optional string error_msg = 2;
 }
 
 // A heartbeat

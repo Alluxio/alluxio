@@ -26,7 +26,9 @@ import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
+import org.openucx.jucx.ucp.UcpMemory;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -62,10 +64,21 @@ public class CacheManagerWithShadowCache implements CacheManager {
   }
 
   @Override
+  public int cache(PageId pageId, CacheContext cacheContext, Supplier<byte[]> externalDataSupplier) {
+    return mCacheManager.cache(pageId, cacheContext, externalDataSupplier);
+  }
+
+  @Override
   public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
       CacheContext cacheContext) {
     getOrUpdateShadowCache(pageId, bytesToRead, cacheContext);
     return mCacheManager.get(pageId, pageOffset, bytesToRead, target, cacheContext);
+  }
+
+  @Override
+  public Optional<UcpMemory> getUcpMemory(PageId pageId, int pageOffset, int bytesToRead)
+      throws PageNotFoundException, IOException {
+    return mCacheManager.getUcpMemory(pageId, pageOffset, bytesToRead);
   }
 
   @Override

@@ -97,6 +97,18 @@ public final class WorkerBenchParameters extends FileSystemParameters {
           + "This argument sets the size of that window.")
   public String mSliceSize = "1s";
 
+  @Parameter(names = {"--worker-host-addr"},
+      description = "Worker host")
+  public String mWorkerHost = "127.0.0.1";
+
+  @Parameter(names = {"--ucp-server-addr"},
+      description = "")
+  public String mUcpHost = "127.0.0.1";
+
+  @Parameter(names = {"--ucp-port"},
+      description = "Ucp Server port")
+  public int mUcpPort = 59999;
+
   @DynamicParameter(names = "--conf", description = "HDFS client configuration. Can be repeated.")
   public Map<String, String> mConf = new HashMap<>();
 }

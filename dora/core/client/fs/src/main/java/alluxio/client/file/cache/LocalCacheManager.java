@@ -20,6 +20,7 @@ import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import alluxio.client.file.CacheContext;
+import alluxio.client.file.cache.store.LocalPageStore;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
@@ -38,6 +39,7 @@ import alluxio.resource.LockResource;
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import org.openucx.jucx.ucp.UcpMemory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -583,6 +585,26 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
+  public Optional<UcpMemory> getUcpMemory(PageId pageId, int pageOffset, int bytesToRead)
+      throws PageNotFoundException, IOException {
+    if (mState.get() == NOT_IN_USE) {
+      Metrics.GET_NOT_READY_ERRORS.inc();
+      Metrics.GET_ERRORS.inc();
+      return Optional.empty();
+    }
+    PageInfo pageInfo;
+    try (LockResource r2 = new LockResource(mPageMetaStore.getLock().readLock())) {
+      pageInfo = mPageMetaStore.getPageInfo(pageId); //check if page exists and refresh LRU items
+    } catch (PageNotFoundException e) {
+      LOG.debug("get({},pageOffset={}) fails due to page not found", pageId, pageOffset);
+      throw e;
+    }
+    UcpMemory ucpMemory = ((LocalPageStore)(pageInfo.getLocalCacheDir().getPageStore()))
+        .get(pageId, false, pageOffset, bytesToRead);
+    return Optional.of(ucpMemory);
+  }
+
+  @Override
   public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
                  CacheContext cacheContext) {
     Preconditions.checkArgument(pageOffset <= mOptions.getPageSize(),
@@ -630,6 +652,24 @@ public class LocalCacheManager implements CacheManager {
           MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
           System.nanoTime() - startTime);
     }
+  }
+
+  public int cache(PageId pageId, CacheContext cacheContext, Supplier<byte[]> externalDataSupplier) {
+    int bytesCached = 0;
+    long startTime = System.nanoTime();
+    byte[] page = externalDataSupplier.get();
+    long timeElapse = System.nanoTime() - startTime;
+    MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
+        .mark(bytesCached);
+    MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).inc();
+    cacheContext.incrementCounter(
+        MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
+        bytesCached);
+    cacheContext.incrementCounter(
+        MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
+        timeElapse);
+    put(pageId, page, cacheContext);
+    return bytesCached;
   }
 
   @Override

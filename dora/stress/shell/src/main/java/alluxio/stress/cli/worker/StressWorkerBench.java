@@ -69,8 +69,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   private static final long DUMMY_BLOCK_SIZE = 64 * Constants.MB;
 
   private FileSystem[] mCachedFs;
-  private Path[] mFilePaths;
-  private FileSystemContext mFsContext;
+  protected Path[] mFilePaths;
+  protected FileSystemContext mFsContext;
 
   /**
    * generate random number in range [min, max] (include both min and max).
