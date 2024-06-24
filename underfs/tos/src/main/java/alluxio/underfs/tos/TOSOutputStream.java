@@ -17,7 +17,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import com.volcengine.tos.TOSV2;
-import com.volcengine.tos.TosClientException;
+import com.volcengine.tos.TosException;
 import com.volcengine.tos.internal.util.base64.Base64;
 import com.volcengine.tos.model.object.ObjectMetaRequestOptions;
 import com.volcengine.tos.model.object.PutObjectInput;
@@ -27,10 +27,9 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -105,11 +104,12 @@ public final class TOSOutputStream extends OutputStream implements ContentHashab
     try {
       mHash = MessageDigest.getInstance("MD5");
       mLocalOutputStream =
-          new BufferedOutputStream(new DigestOutputStream(new FileOutputStream(mFile), mHash));
+          new BufferedOutputStream(
+              new DigestOutputStream(Files.newOutputStream(mFile.toPath()), mHash));
     } catch (NoSuchAlgorithmException e) {
       LOG.warn("Algorithm not available for MD5 hash.", e);
       mHash = null;
-      mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
+      mLocalOutputStream = new BufferedOutputStream(Files.newOutputStream(mFile.toPath()));
     }
   }
 
@@ -167,7 +167,7 @@ public final class TOSOutputStream extends OutputStream implements ContentHashab
       return;
     }
     mLocalOutputStream.close();
-    try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(mFile))) {
+    try (BufferedInputStream in = new BufferedInputStream(Files.newInputStream(mFile.toPath()))) {
       ObjectMetaRequestOptions meta = new ObjectMetaRequestOptions();
       meta.setContentLength(mFile.length());
       if (mHash != null) {
@@ -177,9 +177,9 @@ public final class TOSOutputStream extends OutputStream implements ContentHashab
       PutObjectInput putObjectInput = new PutObjectInput().setBucket(mBucketName).setKey(mKey)
           .setOptions(meta).setContent(in);
       mContentHash = mTOSClient.putObject(putObjectInput).getEtag();
-    } catch (TosClientException e) {
+    } catch (TosException e) {
       LOG.error("Failed to upload {}. ", mKey);
-      throw new IOException(e);
+      throw AlluxioTosException.from(e);
     } finally {
       // Delete the temporary file on the local machine if the COS client completed the
       // upload or if the upload failed.
@@ -187,7 +187,6 @@ public final class TOSOutputStream extends OutputStream implements ContentHashab
         LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
       }
     }
-    return;
   }
 
   @Override

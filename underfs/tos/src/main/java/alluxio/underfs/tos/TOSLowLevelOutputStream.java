@@ -18,7 +18,7 @@ import alluxio.underfs.ObjectLowLevelOutputStream;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.volcengine.tos.TOSV2;
-import com.volcengine.tos.TosClientException;
+import com.volcengine.tos.TosException;
 import com.volcengine.tos.comm.io.TosRepeatableBoundedFileInputStream;
 import com.volcengine.tos.model.object.AbortMultipartUploadInput;
 import com.volcengine.tos.model.object.CompleteMultipartUploadV2Input;
@@ -91,9 +91,9 @@ public class TOSLowLevelOutputStream extends ObjectLowLevelOutputStream {
       AbortMultipartUploadInput input = new AbortMultipartUploadInput().setBucket(mBucketName)
           .setKey(mKey).setUploadID(mUploadId);
       getClient().abortMultipartUpload(input);
-    } catch (TosClientException e) {
+    } catch (TosException e) {
       LOG.debug("failed to abort multi part upload. upload id: {}", mUploadId, e);
-      throw new IOException(String.format(
+      throw AlluxioTosException.from(String.format(
           "failed to upload part. key: %s uploadId: %s",
           mKey, mUploadId), e);
     }
@@ -137,14 +137,14 @@ public class TOSLowLevelOutputStream extends ObjectLowLevelOutputStream {
           new CreateMultipartUploadInput().setBucket(mBucketName).setKey(mKey);
       CreateMultipartUploadOutput output = getClient().createMultipartUpload(create);
       mUploadId = output.getUploadID();
-    } catch (TosClientException e) {
+    } catch (TosException e) {
       LOG.debug("failed to init multi part upload", e);
-      throw new IOException("failed to init multi part upload", e);
+      throw AlluxioTosException.from("failed to init multi part upload", e);
     }
   }
 
   @Override
-  protected void completeMultiPartUploadInternal() throws IOException {
+  protected void completeMultiPartUploadInternal() {
     try {
       LOG.debug("complete multi part {}", mUploadId);
       CompleteMultipartUploadV2Input complete = new CompleteMultipartUploadV2Input()
@@ -155,16 +155,16 @@ public class TOSLowLevelOutputStream extends ObjectLowLevelOutputStream {
       CompleteMultipartUploadV2Output completedOutput =
           getClient().completeMultipartUpload(complete);
       mContentHash = completedOutput.getEtag();
-    } catch (TosClientException e) {
+    } catch (TosException e) {
       LOG.debug("failed to complete multi part upload", e);
-      throw new IOException(
+      throw AlluxioTosException.from(
           String.format("failed to complete multi part upload, key: %s, upload id: %s",
-              mKey, mUploadId) + e);
+              mKey, mUploadId), e);
     }
   }
 
   @Override
-  protected void createEmptyObject(String key) throws IOException {
+  protected void createEmptyObject(String key) {
     try {
       PutObjectInput putObjectInput = new PutObjectInput()
           .setBucket(mBucketName)
@@ -172,8 +172,9 @@ public class TOSLowLevelOutputStream extends ObjectLowLevelOutputStream {
           .setContent(new ByteArrayInputStream(new byte[0]))
           .setContentLength(0);
       mContentHash = getClient().putObject(putObjectInput).getEtag();
-    } catch (TosClientException e) {
-      throw new IOException(e);
+    } catch (TosException e) {
+      LOG.debug("failed to create empty object", e);
+      throw AlluxioTosException.from(e);
     }
   }
 
@@ -186,8 +187,9 @@ public class TOSLowLevelOutputStream extends ObjectLowLevelOutputStream {
           .setContent(content)
           .setContentLength(file.length()); // Set the correct content length
       mContentHash = getClient().putObject(putObjectInput).getEtag();
-    } catch (IOException e) {
-      throw new IOException(e);
+    } catch (TosException e) {
+      LOG.debug("failed to put object", e);
+      throw AlluxioTosException.from(e);
     }
   }
 

@@ -14,7 +14,7 @@ package alluxio.underfs.tos;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 
-import com.volcengine.tos.TosClientException;
+import com.volcengine.tos.TosException;
 import io.grpc.Status;
 
 import java.net.HttpURLConnection;
@@ -26,27 +26,23 @@ public class AlluxioTosException extends AlluxioRuntimeException {
   private static final ErrorType ERROR_TYPE = ErrorType.External;
 
   /**
-   * Converts an TosClientException to a corresponding AlluxioTosException.
+   * Converts a TosClientException to a corresponding AlluxioTosException.
    *
    * @param cause tos exception
    * @return alluxio tos exception
    */
-  public static AlluxioTosException from(TosClientException cause) {
-    return from(null, cause);
-  }
+  public static AlluxioTosException from(TosException cause) { return from(null, cause); }
 
   /**
-   * Converts an TosClientException with errormessage to a corresponding AlluxioTosException.
+   * Converts a TosClientException with errormessage to a corresponding AlluxioTosException.
    *
    * @param errorMessage error message
-   * @param cause        tos exception
+   * @param cause tos exception
    * @return alluxio tos exception
    */
-  public static AlluxioTosException from(String errorMessage, TosClientException cause) {
-    Status status = Status.UNKNOWN;
-    String errorDescription = "ClientException:" + cause.getMessage();
-    status = httpStatusToGrpcStatus(cause.getStatusCode());
-    errorDescription = cause.getCode() + ":" + cause.getMessage();
+  public static AlluxioTosException from(String errorMessage, TosException cause) {
+    Status status = httpStatusToGrpcStatus(cause.getStatusCode());
+    String errorDescription = cause.getCode() + ":" + cause.getMessage();
     if (errorMessage == null) {
       errorMessage = errorDescription;
     }
