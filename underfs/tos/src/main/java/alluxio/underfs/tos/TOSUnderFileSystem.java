@@ -193,6 +193,7 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
         uploadIdMarker = output.getNextUploadIdMarker();
       }
     } catch (TosException e) {
+      LOG.error("Failed to cleanup TOS uploads", e);
       throw AlluxioTosException.from(e);
     }
   }
@@ -263,6 +264,7 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
       DeleteMultiObjectsV2Output output = mClient.deleteMultiObjects(input);
       return output.getDeleteds().stream().map(Deleted::getKey).collect(Collectors.toList());
     } catch (TosException e) {
+      LOG.error("Failed to delete objects", e);
       throw AlluxioTosException.from(e);
     }
   }
@@ -378,6 +380,7 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
       }
       throw AlluxioTosException.from(e);
     } catch (TosClientException e) {
+      LOG.error("Failed to get object status for {}", key, e);
       throw AlluxioTosException.from(e);
     }
   }
@@ -423,6 +426,7 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
       return new TOSInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy,
           mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (TosException e) {
+      LOG.error("Failed to open object: {}", key, e);
       throw AlluxioTosException.from(e);
     }
   }

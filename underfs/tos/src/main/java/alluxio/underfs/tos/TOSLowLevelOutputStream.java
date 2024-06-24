@@ -173,6 +173,7 @@ public class TOSLowLevelOutputStream extends ObjectLowLevelOutputStream {
           .setContentLength(0);
       mContentHash = getClient().putObject(putObjectInput).getEtag();
     } catch (TosException e) {
+      LOG.debug("failed to create empty object", e);
       throw AlluxioTosException.from(e);
     }
   }
@@ -187,6 +188,7 @@ public class TOSLowLevelOutputStream extends ObjectLowLevelOutputStream {
           .setContentLength(file.length()); // Set the correct content length
       mContentHash = getClient().putObject(putObjectInput).getEtag();
     } catch (TosException e) {
+      LOG.debug("failed to put object", e);
       throw AlluxioTosException.from(e);
     }
   }
