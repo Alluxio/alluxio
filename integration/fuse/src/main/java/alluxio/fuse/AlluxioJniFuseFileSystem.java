@@ -720,6 +720,26 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     super.umount(force);
   }
 
+  @Override
+  public int setxattr(String path, String name, ByteBuffer value, long size, int flags) {
+    return AlluxioFuseUtils.call(
+        LOG, () -> setxattrInternal(path, name, value, size, flags),
+        FuseConstants.FUSE_SETXATTR, "path=%s", path);
+  }
+
+  private int setxattrInternal(String path, String name, ByteBuffer value, long size, int flags) {
+    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
+    if (res != 0) {
+      return res;
+    }
+    // TODO(maobaolong): set xattr implementation.
+//    AlluxioFuseUtils.setAttribute(mFileSystem, mPathResolverCache.getUnchecked(path),
+//        SetAttributePOptions.newBuilder().putAllXattr()
+//            .toProto()).build());
+    return 0;
+  }
+
   @VisibleForTesting
   LoadingCache<String, AlluxioURI> getPathResolverCache() {
     return mPathResolverCache;
