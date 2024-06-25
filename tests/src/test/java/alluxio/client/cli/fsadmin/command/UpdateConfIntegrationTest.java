@@ -33,7 +33,7 @@ public final class UpdateConfIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void updateUnknownKey() {
     int ret = mFsAdminShell.run("updateConf", "unknown-key=unknown-value");
-    Assert.assertEquals(-2, ret);
+    Assert.assertEquals(0, ret);
     ret = mFsAdminShell.run("updateConf", "unknown-key");
     Assert.assertEquals(-1, ret);
     ret = mFsAdminShell.run("updateConf", "unknown-key=1=2");

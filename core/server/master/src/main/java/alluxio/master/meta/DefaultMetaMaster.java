@@ -731,7 +731,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         PropertyKey key = PropertyKey.fromString(entry.getKey());
         if (Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
             && key.isDynamic()) {
-          Object oldValue = Configuration.get(key);
+          Object oldValue = Configuration.getOrDefault(key, null);
           Object value = key.parseValue(entry.getValue());
           Configuration.set(key, value, Source.RUNTIME);
           result.put(entry.getKey(), true);
