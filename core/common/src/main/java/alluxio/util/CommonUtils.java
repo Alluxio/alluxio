@@ -76,6 +76,9 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class CommonUtils {
   private static final Logger LOG = LoggerFactory.getLogger(CommonUtils.class);
 
+  private static final String EARLY_ACCESS_SUFFIX = "-ea";
+  private static final String BETA_SUFFIX = "-beta";
+
   private static final String ALPHANUM =
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   private static final Random RANDOM = new Random();
@@ -882,6 +885,12 @@ public final class CommonUtils {
    * see https://www.oracle.com/java/technologies/javase/versioning-naming.html for reference
    */
   public static int parseMajorVersion(String version) {
+    if (version.endsWith(EARLY_ACCESS_SUFFIX)) {
+      version = version.substring(0, version.length() - EARLY_ACCESS_SUFFIX.length());
+    }
+    if (version.endsWith(BETA_SUFFIX)) {
+      version = version.substring(0, version.length() - BETA_SUFFIX.length());
+    }
     if (version.startsWith("1.")) {
       version = version.substring(2, 3);
     } else {

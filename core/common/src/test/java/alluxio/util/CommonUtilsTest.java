@@ -692,6 +692,10 @@ public class CommonUtilsTest {
     assertEquals(8, CommonUtils.parseMajorVersion("1.8.0"));
     assertEquals(11, CommonUtils.parseMajorVersion("11.0.1"));
     assertEquals(9, CommonUtils.parseMajorVersion("9.0.1"));
+    assertEquals(24, CommonUtils.parseMajorVersion("24-ea"));
+    assertEquals(23, CommonUtils.parseMajorVersion("23-beta"));
+    assertEquals(21, CommonUtils.parseMajorVersion("21.0.99-ea"));
+    assertEquals(22, CommonUtils.parseMajorVersion("22.0.2-beta"));
   }
 
   private void createFileOrDir(File dir, int index, Random rand, Set<File> files)
