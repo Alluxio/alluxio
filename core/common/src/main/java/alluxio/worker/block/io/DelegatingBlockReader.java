@@ -76,6 +76,9 @@ public class DelegatingBlockReader extends BlockReader {
 
   @Override
   public String toString() {
+    if (mBlockReader == null) {
+      return "DelegatingBlockReader not fully initialized.";
+    }
     return mBlockReader.toString();
   }
 
