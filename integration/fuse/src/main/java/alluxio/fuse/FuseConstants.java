@@ -20,6 +20,7 @@ import java.util.List;
 public class FuseConstants {
   // Operation metric name
   public static final String FUSE_GETATTR = "Fuse.Getattr";
+  public static final String FUSE_GETXATTR = "Fuse.Getxattr";
   public static final String FUSE_READDIR = "Fuse.Readdir";
   public static final String FUSE_READ = "Fuse.Read";
   public static final String FUSE_WRITE = "Fuse.Write";
