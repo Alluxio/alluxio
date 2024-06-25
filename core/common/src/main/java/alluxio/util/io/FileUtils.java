@@ -409,5 +409,16 @@ public final class FileUtils {
         && Files.isExecutable(filePath);
   }
 
+  /**
+   * Checks if a directory contains ${alluxio.work.dir}.
+   *
+   * @param  path the given path
+   * @param workDir the ${alluxio.work.dir}
+   * @return true if path contains, false otherwise
+   */
+  public static boolean isPathContainsWorkDir(String path, String workDir) {
+    return workDir.startsWith(path);
+  }
+
   private FileUtils() {} // prevent instantiation
 }
