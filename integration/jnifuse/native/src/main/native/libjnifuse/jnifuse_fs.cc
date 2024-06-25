@@ -51,6 +51,7 @@ JniFuseFileSystem::JniFuseFileSystem(JNIEnv *env, jobject obj) {
   this->unlinkOper = new UnlinkOperation(this);
   this->utimensOper = new UtimensOperation(this);
   this->writeOper = new WriteOperation(this);
+  this->ioctlOper = new IoctlOperation(this);
 }
 
 JniFuseFileSystem::~JniFuseFileSystem() {
@@ -75,6 +76,7 @@ JniFuseFileSystem::~JniFuseFileSystem() {
   delete this->unlinkOper;
   delete this->utimensOper;
   delete this->writeOper;
+  delete this->ioctlOper;
 }
 
 void JniFuseFileSystem::init(JNIEnv *env, jobject obj) {
