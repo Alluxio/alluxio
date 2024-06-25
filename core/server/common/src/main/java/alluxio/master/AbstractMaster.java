@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Constants;
 import alluxio.Server;
 import alluxio.exception.status.UnavailableException;
+import alluxio.heartbeat.HeartbeatThreadManager;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.StateChangeJournalContext;
@@ -105,6 +106,7 @@ public abstract class AbstractMaster implements Master {
     }
     // Shut down the executor service, interrupting any running threads.
     if (mExecutorService != null) {
+      HeartbeatThreadManager.unregister(mExecutorService);
       try {
         mExecutorService.shutdownNow();
         String awaitFailureMessage =

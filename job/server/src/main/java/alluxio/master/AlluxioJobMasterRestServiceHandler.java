@@ -15,9 +15,12 @@ import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.conf.Configuration;
 import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.PropertyKey;
 import alluxio.util.LogUtils;
 import alluxio.web.JobMasterWebServer;
 import alluxio.wire.AlluxioJobMasterInfo;
+import alluxio.wire.HeartbeatThreadInfo;
+import alluxio.wire.WebUIHeartbeatThreads;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -54,6 +57,8 @@ public final class AlluxioJobMasterRestServiceHandler {
 
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
+
+  public static final String WEBUI_HEARTBEAT_THREADS = "webui_heartbeat_threads";
 
   private final AlluxioJobMasterProcess mJobMaster;
 
@@ -108,6 +113,27 @@ public final class AlluxioJobMasterRestServiceHandler {
                            @QueryParam(LOG_ARGUMENT_LEVEL) final String level) {
     return RestUtils.call(() -> LogUtils.setLogLevel(logName, level),
             Configuration.global());
+  }
+
+  /**
+   * Gets Web UI heartbeat threads.
+   *
+   * @return the response object
+   */
+  @GET
+  @Path(WEBUI_HEARTBEAT_THREADS)
+  public Response getWebUIHeartbeatThreads() {
+    return RestUtils.call(() -> {
+      WebUIHeartbeatThreads response = new WebUIHeartbeatThreads();
+
+      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG));
+      Map<String, HeartbeatThreadInfo> heartbeatThreads =
+          mJobMaster.getJobMaster().getHeartbeatThreads();
+
+      response.setHeartbeatThreadInfos(heartbeatThreads);
+
+      return response;
+    }, Configuration.global());
   }
 
   private Map<String, Object> getConfigurationInternal(boolean raw) {

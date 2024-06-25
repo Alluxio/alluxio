@@ -24,6 +24,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.heartbeat.HeartbeatThreadManager;
 import alluxio.job.JobServerContext;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.user.ServerUserState;
@@ -104,7 +105,7 @@ public final class JobWorker extends AbstractWorker {
         new TaskExecutorManager(Configuration.getInt(PropertyKey.JOB_WORKER_THREADPOOL_SIZE),
             address);
 
-    mCommandHandlingService = getExecutorService().submit(
+    mCommandHandlingService = HeartbeatThreadManager.submit(getExecutorService(),
         new HeartbeatThread(HeartbeatContext.JOB_WORKER_COMMAND_HANDLING,
             new CommandHandlingExecutor(mJobServerContext, taskExecutorManager, mJobMasterClient,
                 address),
