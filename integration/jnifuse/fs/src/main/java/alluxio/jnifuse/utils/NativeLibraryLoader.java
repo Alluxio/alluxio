@@ -30,8 +30,8 @@ public class NativeLibraryLoader {
 
   public enum LoadState {
     NOT_LOADED,
-    LOADED_2,
-    LOADED_3,
+    LOADING,
+    LOADED
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(NativeLibraryLoader.class);
@@ -40,7 +40,6 @@ public class NativeLibraryLoader {
   private static final AtomicReference<LoadState> LOAD_STATE =
       new AtomicReference<>(LoadState.NOT_LOADED);
 
-  private static final String TEMP_FILE_PREFIX = "libjnifuse";
   private static final String TEMP_FILE_SUFFIX = Environment.getJniLibraryExtension();
 
   /**
@@ -89,7 +88,7 @@ public class NativeLibraryLoader {
   }
 
   /**
-   * Load a version of libjnifuse.
+   * Load library.
    * <p>
    * Firstly attempts to load the library from <i>java.library.path</i>,
    * if that fails then it falls back to extracting
@@ -126,15 +125,16 @@ public class NativeLibraryLoader {
     return tryLoad(() -> loadLibraryFromJar(sharedLibraryFileName, jniLibraryFileName, tmpDir));
   }
 
-  private Optional<UnsatisfiedLinkError> load2(final String tmpDir) throws IOException {
+  private Optional<UnsatisfiedLinkError> load(String libName, String tmpDir)
+      throws IOException {
     final String SHARED_LIBRARY_NAME =
-        Environment.getSharedLibraryName("jnifuse");
+        Environment.getSharedLibraryName(libName);
     final String SHARED_LIBRARY_FILE_NAME =
-        Environment.getSharedLibraryFileName("jnifuse");
+        Environment.getSharedLibraryFileName(libName);
     final String JNI_LIBRARY_NAME =
-        Environment.getJniLibraryName("jnifuse");
+        Environment.getJniLibraryName(libName);
     final String JNI_LIBRARY_FILE_NAME =
-        Environment.getJniLibraryFileName("jnifuse");
+        Environment.getJniLibraryFileName(libName);
 
     Optional<UnsatisfiedLinkError> err = load(
         SHARED_LIBRARY_NAME, JNI_LIBRARY_NAME, SHARED_LIBRARY_FILE_NAME, JNI_LIBRARY_FILE_NAME,
@@ -142,31 +142,7 @@ public class NativeLibraryLoader {
     );
 
     if (!err.isPresent()) {
-      LOG.info("Loaded libjnifuse with libfuse version 2.");
-      setLoadState(LoadState.LOADED_2);
-    }
-
-    return err;
-  }
-
-  private Optional<UnsatisfiedLinkError> load3(final String tmpDir) throws IOException {
-    final String SHARED_LIBRARY_NAME =
-        Environment.getSharedLibraryName("jnifuse3");
-    final String SHARED_LIBRARY_FILE_NAME =
-        Environment.getSharedLibraryFileName("jnifuse3");
-    final String JNI_LIBRARY_NAME =
-        Environment.getJniLibraryName("jnifuse3");
-    final String JNI_LIBRARY_FILE_NAME =
-        Environment.getJniLibraryFileName("jnifuse3");
-
-    Optional<UnsatisfiedLinkError> err = load(
-        SHARED_LIBRARY_NAME, JNI_LIBRARY_NAME, SHARED_LIBRARY_FILE_NAME, JNI_LIBRARY_FILE_NAME,
-        tmpDir
-    );
-
-    if (!err.isPresent()) {
-      LOG.info("Loaded libjnifuse with libfuse version 3.");
-      setLoadState(LoadState.LOADED_3);
+      LOG.info("Loaded " + libName);
     }
 
     return err;
@@ -175,7 +151,7 @@ public class NativeLibraryLoader {
   /**
    * Load the library.
    *
-   * @param version     the version of libfuse to load
+   * @param libName the native lib name
    * @param tmpDir A temporary directory to use
    *               to copy the native library to when loading from the classpath.
    *               If null, or the empty string, we rely on Java's
@@ -186,24 +162,19 @@ public class NativeLibraryLoader {
    * @throws IOException if a filesystem operation fails
    */
   public synchronized void loadLibrary(
-      final LibfuseVersion version, final String tmpDir) throws IOException {
+      String libName, final String tmpDir) throws IOException {
+    if (getLoadState() == LoadState.LOADED) {
+      return;
+    }
 
-    Optional<UnsatisfiedLinkError> err;
-    switch (version) {
-      case VERSION_2:
-        err = load2(tmpDir);
-        break;
-      case VERSION_3:
-        err = load3(tmpDir);
-        break;
-      default:
-        // should not fall here
-        throw new RuntimeException(String.format("Unsupported libfuse version %d", version));
+    if (LOAD_STATE.compareAndSet(LoadState.NOT_LOADED, LoadState.LOADING)) {
+      Optional<UnsatisfiedLinkError> err = load(libName, tmpDir);
+      if (err.isPresent()) {
+        setLoadState(LoadState.NOT_LOADED);
+        throw err.get();
+      }
+      setLoadState(LoadState.LOADED);
     }
-    if (err.isPresent()) {
-      throw err.get();
-    }
-    return;
   }
 
   /**
@@ -225,19 +196,17 @@ public class NativeLibraryLoader {
    */
   void loadLibraryFromJar(final String sharedLibraryFileName,
       final String jniLibraryFileName, final String tmpDir) throws IOException {
-    if (LOAD_STATE.get() == LoadState.NOT_LOADED) {
-      String libPath = loadLibraryFromJarToTemp(
-          sharedLibraryFileName, jniLibraryFileName, tmpDir).getAbsolutePath();
-      System.load(libPath);
-      LOG.info("Loaded lib by jar from path {}.", libPath);
-    }
+    String libPath = loadLibraryFromJarToTemp(
+        sharedLibraryFileName, jniLibraryFileName, tmpDir).getAbsolutePath();
+    System.load(libPath);
+    LOG.info("Loaded lib by jar from path {}.", libPath);
   }
 
   File loadLibraryFromJarToTemp(final String sharedLibraryFileName,
       final String jniLibraryFileName, final String tmpDir) throws IOException {
     final File temp;
     if (tmpDir == null || tmpDir.isEmpty()) {
-      temp = File.createTempFile(TEMP_FILE_PREFIX, TEMP_FILE_SUFFIX);
+      temp = File.createTempFile(sharedLibraryFileName, TEMP_FILE_SUFFIX);
     } else {
       temp = new File(tmpDir, jniLibraryFileName);
       if (temp.exists() && !temp.delete()) {
