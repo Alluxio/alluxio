@@ -49,6 +49,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.DateFormat;
@@ -128,7 +129,7 @@ public final class S3RestUtils {
       }
       // Need to explicitly encode the string as XML because Jackson will not do it automatically.
       XmlMapper mapper = new XmlMapper();
-      return Response.ok(mapper.writeValueAsString(result)).build();
+      return Response.ok(new ByteArrayInputStream(mapper.writeValueAsBytes(result))).build();
     } catch (Exception e) {
       String errOutputMsg = e.getMessage();
       if (StringUtils.isEmpty(errOutputMsg)) {
