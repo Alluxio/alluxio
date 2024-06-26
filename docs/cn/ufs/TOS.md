@@ -89,7 +89,7 @@ $ ./bin/alluxio fs mount --option fs.tos.accessKeyId=<TOS_ACCESS_KEY_ID> \
 
 ### TOS 流式上传
 
-由于TOS作为对象存储的特性，文件上传时会被从客户端发送到Worker节点，并被存储在本地磁盘的临时目录中，默认在 close() 方法中被上传到S3。
+由于TOS作为对象存储的特性，文件上传时会被从客户端发送到Worker节点，并被存储在本地磁盘的临时目录中，默认在 close() 方法中被上传到TOS。
 
 要启用流式上传，可以在 `conf/alluxio-site.properties` 中添加以下配置：
 
@@ -106,11 +106,13 @@ alluxio.underfs.tos.streaming.upload.enabled=true
 - 如果上传过程中断，文件可能会丢失。
 
 TOS流式上传功能解决了上述问题。
+
 - TOS流式上传功能的优点：
 
 - 更短的上传时间。Alluxio worker 在接收新数据的同时上传缓冲数据。总上传时间至少与默认方法一样快。
 
 - 容量要求更小，我们的数据是按照分区进行缓存和上传的（alluxio.underfs.tos.streaming.upload.partition.size默认是64MB），当一个分区上传成功后，这个分区就会被删除。
+
   更快的 close() 方法：close() 方法执行时间大大缩短，因为文件的上传在写入过程中已经完成。
 
 如果 TOS 流式上传中断，则可能会有中间分区上传到 TOS，并且 TOS 将对这些数据收费。
