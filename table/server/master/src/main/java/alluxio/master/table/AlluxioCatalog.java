@@ -457,7 +457,7 @@ public class AlluxioCatalog implements Journaled {
       @Override
       public void remove() {
         throw new UnsupportedOperationException(
-            "GetDbIteratorr#Iterator#remove is not supported.");
+            "GetDbIterator#Iterator#remove is not supported.");
       }
     };
   }
