@@ -248,6 +248,20 @@ should be used to set the metadata sync interval at a finer
 granularity. For example, for paths which change often, a sync interval of `5 minutes` can
 be set, and for paths which do not change, a sync interval of `-1` can be set.
 
+### Metrics for metadata sync
+
+Various metrics for metadata sync are available under the prefix `Master.MetadataSync` and
+can be found on the [metrics list]({{ '/en/reference/Metrics-List.html' | relativize_url }}).
+Additionally, the executor services responsible for performing metadata sync operations on
+the master can be instrumented with metrics using the property key
+`alluxio.master.metadata.sync.instrument.executor=true`.
+Metrics for the executor service responsible for prefecthing data from the UFS can be found
+under the prefix `Master.MetadataSyncPrefetchExecutor` and metrics for the executor service
+responsible for updating the metadata on the Alluxio master can be found under the prefix
+`Master.MetadataSyncExecutor`. Additionally, when this property key is set and there are more
+than `alluxio.metrics.executor.task.warn.size` active tasks on either of these executors
+a warning log will be printed on the master.
+
 ### Metadata Sync Recommendations for Common Scenarios
 
 #### All operations through Alluxio
