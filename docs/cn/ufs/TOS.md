@@ -107,11 +107,11 @@ alluxio.underfs.tos.streaming.upload.enabled=true
 
 TOS流式上传功能解决了上述问题。
 
-- TOS流式上传功能的优点：
+TOS流式上传功能的优点：
 
 - 更短的上传时间。Alluxio worker 在接收新数据的同时上传缓冲数据。总上传时间至少与默认方法一样快。
 
-- 容量要求更小，我们的数据是按照分区进行缓存和上传的（alluxio.underfs.tos.streaming.upload.partition.size默认是64MB），当一个分区上传成功后，这个分区就会被删除。
+- 容量要求更小，我们的数据是按照分片进行缓存和上传的（alluxio.underfs.tos.streaming.upload.partition.size默认是64MB），当一个分片上传成功后，这个分片就会被删除。
 
   更快的 close() 方法：close() 方法执行时间大大缩短，因为文件的上传在写入过程中已经完成。
 
@@ -123,7 +123,7 @@ TOS流式上传功能解决了上述问题。
 alluxio.underfs.cleanup.enabled=true
 ```
 
-当Alluxio检测达到清理间隔时，所有非只读 TOS 挂载点中超过清理年龄的中间分段上传alluxio.underfs.tos.intermediate.upload.clean.age都将被清理
+当Alluxio检测达到清理间隔时，所有非只读 TOS 挂载点中超过清理年龄的中间分段上传都将被清理。
 
 ### 高并发调优
 

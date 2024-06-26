@@ -94,7 +94,7 @@ To enable streaming upload, add the following configuration in `conf/alluxio-sit
 alluxio.underfs.tos.streaming.upload.enabled=true
 ```
 
-The default upload process is more secure but has the following issues:
+The default upload process is safer but has the following issues:
 
 - Slower upload speed. Files must be sent to the Alluxio worker, which then uploads the files to TOS. These two processes are sequential.
 - The temporary directory must have the capacity to store the entire file.
