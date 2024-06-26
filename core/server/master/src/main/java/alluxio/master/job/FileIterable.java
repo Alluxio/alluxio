@@ -24,6 +24,7 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.CheckAccessContext;
+import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.wire.BlockInfo;
@@ -108,7 +109,7 @@ public class FileIterable implements Iterable<FileInfo> {
       mFileSystemMaster = requireNonNull(fileSystemMaster, "fileSystemMaster is null");
       mPath = requireNonNull(path, "path is null");
       mUser = requireNonNull(user, "user is null");
-      mUsePartialListing = usePartialListing;
+      mUsePartialListing = usePartialListing && isFolder();
       mFilter = filter;
       checkAccess();
       if (usePartialListing) {
@@ -129,6 +130,22 @@ public class FileIterable implements Iterable<FileInfo> {
         throw new UnauthenticatedRuntimeException(e);
       } catch (IOException e) {
         throw AlluxioRuntimeException.from(e);
+      }
+    }
+
+    private boolean isFolder() {
+      AuthenticatedClientUser.set(mUser.orElse(null));
+      try {
+        return mFileSystemMaster.getFileInfo(new AlluxioURI(mPath),
+            GetStatusContext.defaults().defaults()).isFolder();
+      } catch (FileDoesNotExistException | InvalidPathException e) {
+        throw new NotFoundRuntimeException(e);
+      } catch (AccessControlException e) {
+        throw new UnauthenticatedRuntimeException(e);
+      } catch (IOException e) {
+        throw AlluxioRuntimeException.from(e);
+      } finally {
+        AuthenticatedClientUser.remove();
       }
     }
 
