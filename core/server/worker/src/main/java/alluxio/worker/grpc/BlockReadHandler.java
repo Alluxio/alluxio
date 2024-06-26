@@ -111,9 +111,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
   private final ReentrantLock mLock = new ReentrantLock();
   private final boolean mDomainSocketEnabled;
   private final boolean mIsReaderBufferPooled;
-
+  private final boolean mIsNioBufferPoolEnabled;
   private final BlockStoreType mBlockStoreType;
-
   /**
    * This is only created in the gRPC event thread when a read request is received.
    * Using "volatile" because we want any value change of this variable to be
@@ -142,6 +141,8 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
     mDomainSocketEnabled = domainSocketEnabled;
     mIsReaderBufferPooled =
         Configuration.getBoolean(PropertyKey.WORKER_NETWORK_READER_BUFFER_POOLED);
+    mIsNioBufferPoolEnabled =
+        Configuration.getBoolean(PropertyKey.WORKER_NIO_DIRECT_BUFFER_POOL_ENABLED);
     mBlockStoreType =
         Configuration.getEnum(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.class);
   }
@@ -554,7 +555,7 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         ByteBuf buf;
         switch (mBlockStoreType) {
           case PAGE:
-            if (mIsReaderBufferPooled) {
+            if (mIsNioBufferPoolEnabled) {
               buf = PooledDirectNioByteBuf.allocate(len);
             } else {
               buf = Unpooled.directBuffer(len, len);
@@ -569,7 +570,16 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           case FILE:
             //TODO(beinan): change the blockReader interface to accept pre-allocated byte buffer
             // or accept a supplier of the bytebuffer.
-            if (mIsReaderBufferPooled) {
+            if (mIsNioBufferPoolEnabled) {
+              buf = PooledDirectNioByteBuf.allocate(len);
+              try {
+                while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+                }
+                return new NettyDataBuffer(buf.retain());
+              } finally {
+                buf.release();
+              }
+            } else if (mIsReaderBufferPooled) {
               buf = PooledByteBufAllocator.DEFAULT.buffer(len, len);
               try {
                 while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
