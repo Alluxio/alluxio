@@ -32,7 +32,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 alluxio.master.mount.table.root.ufs=tos://<TOS_BUCKET>/<TOS_DIRECTORY>
 ``` 
 
-指定访问 OSS 的阿里云凭证。在 `conf/alluxio-site.properties` 中，添加：
+指定访问 TOS 的火山云云凭证。在 `conf/alluxio-site.properties` 中，添加：
 
 ```
 fs.tos.accessKeyId=<TOS_ACCESS_KEY_ID>
@@ -89,7 +89,7 @@ $ ./bin/alluxio fs mount --option fs.tos.accessKeyId=<TOS_ACCESS_KEY_ID> \
 
 ### TOS 流式上传
 
-TOS是一个对象存储，由于这个特性，整个文件从客户端发送到worker，存储在本地磁盘临时目录中，并close()默认在方法中上传。
+由于TOS作为对象存储的特性，文件上传时会被从客户端发送到Worker节点，并被存储在本地磁盘的临时目录中，默认在 close() 方法中被上传到S3。
 
 要启用流式上传，可以在 `conf/alluxio-site.properties` 中添加以下配置：
 
@@ -99,7 +99,7 @@ alluxio.underfs.tos.streaming.upload.enabled=true
 
 默认上传过程更安全，但存在以下问题：
 
-- 上传速度慢。文件必须先发送到 Alluxio worker，然后 Alluxio worker 负责将文件上传到 TOS。这两个过程是连续的。
+- 上传速度慢。文件必须先发送到 Alluxio worker，然后 Alluxio worker 负责将文件上传到 TOS。这两个过程是顺序执行的。
 
 - 临时目录必须具有存储整个文件的容量。
 
@@ -111,7 +111,7 @@ TOS流式上传功能解决了上述问题。
 - 更短的上传时间。Alluxio worker 在接收新数据的同时上传缓冲数据。总上传时间至少与默认方法一样快。
 
 - 容量要求更小，我们的数据是按照分区进行缓存和上传的（alluxio.underfs.tos.streaming.upload.partition.size默认是64MB），当一个分区上传成功后，这个分区就会被删除。
-更快close()。当缓冲数据达到分区大小时，我们才开始上传数据，而不是一次性上传整个文件close()。
+  更快的 close() 方法：close() 方法执行时间大大缩短，因为文件的上传在写入过程中已经完成。
 
 如果 TOS 流式上传中断，则可能会有中间分区上传到 TOS，并且 TOS 将对这些数据收费。
 
@@ -121,7 +121,7 @@ TOS流式上传功能解决了上述问题。
 alluxio.underfs.cleanup.enabled=true
 ```
 
-当领先的主服务器启动或达到清理间隔（由 配置）时，所有非只读 TOS 挂载点中超过清理年龄的中间分段上传alluxio.underfs.tos.intermediate.upload.clean.age都将被清理
+当Alluxio检测达到清理间隔时，所有非只读 TOS 挂载点中超过清理年龄的中间分段上传alluxio.underfs.tos.intermediate.upload.clean.age都将被清理
 
 ### 高并发调优
 
