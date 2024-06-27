@@ -13,6 +13,8 @@ package alluxio.master.job.tracker;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.CmdConfig;
@@ -36,6 +38,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -43,7 +48,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * CmdJobTracker to schedule a Cmd job to run.
  */
 @ThreadSafe
-public class CmdJobTracker {
+public class CmdJobTracker implements AutoCloseable {
   private static final Logger LOG = LoggerFactory.getLogger(CmdJobTracker.class);
   private final Map<Long, CmdInfo> mInfoMap = new ConcurrentHashMap<>(0, 0.95f,
       Math.max(8, 2 * Runtime.getRuntime().availableProcessors()));
@@ -52,6 +57,8 @@ public class CmdJobTracker {
   private final PersistRunner mPersistRunner;
   protected FileSystemContext mFsContext;
   public static final String DELIMITER = ",";
+  private final ScheduledExecutorService mScheduleCleanExecutor;
+  private static Long sTraceRetentionTime;
 
   /**
    * Create a new instance of {@link CmdJobTracker}.
@@ -64,6 +71,11 @@ public class CmdJobTracker {
     mDistLoadCliRunner = new DistLoadCliRunner(mFsContext, jobMaster);
     mMigrateCliRunner = new MigrateCliRunner(mFsContext, jobMaster);
     mPersistRunner = new PersistRunner(mFsContext, jobMaster);
+    mScheduleCleanExecutor = Executors.newSingleThreadScheduledExecutor();
+    mScheduleCleanExecutor.scheduleAtFixedRate(this::
+        cleanUnableTracedJobs, 60, 600, TimeUnit.SECONDS);
+    sTraceRetentionTime = Configuration.getMs(
+        PropertyKey.JOB_MASTER_JOB_TRACE_RETENTION_TIME);
   }
 
   /**
@@ -72,15 +84,22 @@ public class CmdJobTracker {
    * @param distLoadCliRunner DistributedLoad runner
    * @param migrateCliRunner DistributedCopy runner
    * @param persistRunner Persist runner
+   * @param retentionTime job retention time
    */
   public CmdJobTracker(FileSystemContext fsContext,
                        DistLoadCliRunner distLoadCliRunner,
                        MigrateCliRunner migrateCliRunner,
-                       PersistRunner persistRunner) {
+                       PersistRunner persistRunner,
+                       Long retentionTime
+  ) {
     mFsContext = fsContext;
     mDistLoadCliRunner = distLoadCliRunner;
     mMigrateCliRunner = migrateCliRunner;
     mPersistRunner = persistRunner;
+    mScheduleCleanExecutor = Executors.newSingleThreadScheduledExecutor();
+    mScheduleCleanExecutor.scheduleAtFixedRate(this::
+        cleanUnableTracedJobs, 60, 600, TimeUnit.SECONDS);
+    sTraceRetentionTime = retentionTime;
   }
 
   /**
@@ -269,5 +288,30 @@ public class CmdJobTracker {
                     String.join(DELIMITER, attempt.getFailedFiles())))
             .collect(Collectors.toList());
     return new CmdStatusBlock(cmdInfo.getJobControlId(), blockList, cmdInfo.getOperationType());
+  }
+
+  private void cleanUnableTracedJobs() {
+    long currentTime = System.currentTimeMillis();
+    for (Map.Entry<Long, CmdInfo> x : mInfoMap.entrySet()) {
+      CmdInfo cmdInfo = x.getValue();
+      if (currentTime - cmdInfo.getJobSubmissionTime() > sTraceRetentionTime) {
+        try {
+          Status jobStatus = getCmdStatus(cmdInfo.getJobControlId());
+          if (jobStatus.isFinished()) {
+            mInfoMap.remove(cmdInfo.getJobControlId());
+            LOG.debug("JobControlId:{} has been cleaned in CmdJobTracker,"
+                + " client will not trace the job anymore", cmdInfo.getJobControlId());
+          }
+        } catch (JobDoesNotExistException e) {
+          LOG.warn("JobControlId:{} can not find in CmdJobTracker when clean expired Job"
+              + "with unexpected exception", cmdInfo.getJobControlId());
+        }
+      }
+    }
+  }
+
+  @Override
+  public void close() throws Exception {
+    mScheduleCleanExecutor.shutdown();
   }
 }
