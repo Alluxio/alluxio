@@ -13,6 +13,8 @@ package alluxio.master.job.tracker;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.CmdConfig;
@@ -24,11 +26,13 @@ import alluxio.job.wire.SimpleJobStatusBlock;
 import alluxio.job.wire.Status;
 import alluxio.master.job.JobMaster;
 import alluxio.master.job.common.CmdInfo;
+import alluxio.master.job.plan.PlanTracker;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -36,6 +40,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -43,7 +50,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * CmdJobTracker to schedule a Cmd job to run.
  */
 @ThreadSafe
-public class CmdJobTracker {
+public class CmdJobTracker implements AutoCloseable {
   private static final Logger LOG = LoggerFactory.getLogger(CmdJobTracker.class);
   private final Map<Long, CmdInfo> mInfoMap = new ConcurrentHashMap<>(0, 0.95f,
       Math.max(8, 2 * Runtime.getRuntime().availableProcessors()));
@@ -52,18 +59,29 @@ public class CmdJobTracker {
   private final PersistRunner mPersistRunner;
   protected FileSystemContext mFsContext;
   public static final String DELIMITER = ",";
+  private final ScheduledExecutorService mScheduleCleanExecutor;
+  private final Long mTraceRetentionTime;
+
+  private final PlanTracker mPlanTracker;
 
   /**
    * Create a new instance of {@link CmdJobTracker}.
    * @param fsContext filesystem context
    * @param jobMaster the job master
+   * @param planTracker the planTracker
    */
   public CmdJobTracker(FileSystemContext fsContext,
-                   JobMaster jobMaster) {
+                   JobMaster jobMaster, PlanTracker planTracker) {
     mFsContext = fsContext;
     mDistLoadCliRunner = new DistLoadCliRunner(mFsContext, jobMaster);
     mMigrateCliRunner = new MigrateCliRunner(mFsContext, jobMaster);
     mPersistRunner = new PersistRunner(mFsContext, jobMaster);
+    mScheduleCleanExecutor = Executors.newSingleThreadScheduledExecutor();
+    mScheduleCleanExecutor.scheduleAtFixedRate(this::
+            cleanExpiredJobInfos, 60, 600, TimeUnit.SECONDS);
+    mTraceRetentionTime = Configuration.getMs(
+        PropertyKey.JOB_MASTER_JOB_TRACE_RETENTION_TIME);
+    mPlanTracker = planTracker;
   }
 
   /**
@@ -72,15 +90,25 @@ public class CmdJobTracker {
    * @param distLoadCliRunner DistributedLoad runner
    * @param migrateCliRunner DistributedCopy runner
    * @param persistRunner Persist runner
+   * @param retentionTime job retention time
+   * @param planTracker the planTracker
    */
   public CmdJobTracker(FileSystemContext fsContext,
                        DistLoadCliRunner distLoadCliRunner,
                        MigrateCliRunner migrateCliRunner,
-                       PersistRunner persistRunner) {
+                       PersistRunner persistRunner,
+                       Long retentionTime,
+                       PlanTracker planTracker
+  ) {
     mFsContext = fsContext;
     mDistLoadCliRunner = distLoadCliRunner;
     mMigrateCliRunner = migrateCliRunner;
     mPersistRunner = persistRunner;
+    mScheduleCleanExecutor = Executors.newSingleThreadScheduledExecutor();
+    mScheduleCleanExecutor.scheduleAtFixedRate(this::
+            cleanExpiredJobInfos, 60, 600, TimeUnit.SECONDS);
+    mTraceRetentionTime = retentionTime;
+    mPlanTracker = planTracker;
   }
 
   /**
@@ -134,7 +162,7 @@ public class CmdJobTracker {
 
   /**
    * Get status information for a CMD.
-   * @param jobControlId
+   * @param jobControlId jobControlId to trace a CMD
    * @return the Command level status
    */
   public Status getCmdStatus(long jobControlId) throws JobDoesNotExistException {
@@ -269,5 +297,37 @@ public class CmdJobTracker {
                     String.join(DELIMITER, attempt.getFailedFiles())))
             .collect(Collectors.toList());
     return new CmdStatusBlock(cmdInfo.getJobControlId(), blockList, cmdInfo.getOperationType());
+  }
+
+  private void cleanExpiredJobInfos() {
+    long currentTime = System.currentTimeMillis();
+    for (Map.Entry<Long, CmdInfo> x : mInfoMap.entrySet()) {
+      CmdInfo cmdInfo = x.getValue();
+      List<Long> cleanedJobsId = new ArrayList<>();
+      if (currentTime - cmdInfo.getJobSubmissionTime() > mTraceRetentionTime) {
+        try {
+          Status jobStatus = getCmdStatus(cmdInfo.getJobControlId());
+          if (jobStatus.isFinished()) {
+            for (CmdRunAttempt runAttempt : cmdInfo.getCmdRunAttempt()) {
+              cleanedJobsId.add(runAttempt.getJobId());
+            }
+            mPlanTracker.removeJobs(cleanedJobsId);
+            mInfoMap.remove(cmdInfo.getJobControlId());
+            LOG.info("JobControlId:{} has been cleaned in CmdJobTracker,"
+                + " client will not trace the job anymore.The filePaths in CmdInfo are:{}",
+                    cmdInfo.getJobControlId(), String.join(", ", cmdInfo.getFilePath()));
+          }
+        } catch (JobDoesNotExistException e) {
+          LOG.warn("JobControlId:{} can not find in CmdJobTracker when clean expired Job"
+              + "with unexpected exception.The filePaths in CmdInfo are:{}",
+                  cmdInfo.getJobControlId(), String.join(", ", cmdInfo.getFilePath()));
+        }
+      }
+    }
+  }
+
+  @Override
+  public void close() throws Exception {
+    mScheduleCleanExecutor.shutdown();
   }
 }

@@ -204,14 +204,12 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
 
     mPlanTracker = new PlanTracker(
         Configuration.getLong(PropertyKey.JOB_MASTER_JOB_CAPACITY),
-        Configuration.getMs(PropertyKey.JOB_MASTER_FINISHED_JOB_RETENTION_TIME),
-        Configuration.getLong(PropertyKey.JOB_MASTER_FINISHED_JOB_PURGE_COUNT),
         mWorkflowTracker);
 
     mWorkerHealth = new ConcurrentHashMap<>();
 
     mCmdJobTracker = new CmdJobTracker(
-            fsContext, this);
+            fsContext, this, mPlanTracker);
 
     MetricsSystem.registerGaugeIfAbsent(
         MetricKey.MASTER_JOB_COUNT.getName(),

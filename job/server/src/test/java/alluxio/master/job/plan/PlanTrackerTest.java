@@ -16,10 +16,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
-import alluxio.AlluxioMockUtil;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobServerContext;
@@ -29,7 +27,6 @@ import alluxio.job.plan.replicate.SetReplicaConfig;
 import alluxio.job.wire.Status;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.workflow.WorkflowTracker;
-import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.collect.ImmutableList;
@@ -40,14 +37,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 
 public class PlanTrackerTest {
 
   private static final long CAPACITY = 25;
-  private static final long RETENTION_TIME = 0;
-  private static final long PURGE_CONUT = -1;
   private List<WorkerInfo> mWorkers;
   private PlanTracker mTracker;
   private WorkflowTracker mMockWorkflowTracker;
@@ -61,7 +56,7 @@ public class PlanTrackerTest {
   @Before
   public void before() {
     mMockWorkflowTracker = mock(WorkflowTracker.class);
-    mTracker = new PlanTracker(CAPACITY, RETENTION_TIME, PURGE_CONUT, mMockWorkflowTracker);
+    mTracker = new PlanTracker(CAPACITY, mMockWorkflowTracker);
     mCommandManager = new CommandManager();
     mMockJobServerContext = mock(JobServerContext.class);
     mWorkers = Lists.newArrayList(new WorkerInfo());
@@ -95,45 +90,6 @@ public class PlanTrackerTest {
   }
 
   @Test
-  public void testAddAndPurge() throws Exception {
-    assertEquals("tracker should be empty", 0, mTracker.coordinators().size());
-    fillJobTracker(CAPACITY);
-    try {
-      addJob(100);
-      fail("Should have failed to add a job over capacity");
-    } catch (ResourceExhaustedException e) {
-      // Empty on purpose
-    }
-    finishAllJobs();
-    try {
-      addJob(100);
-    } catch (ResourceExhaustedException e) {
-      fail("Should not have failed to add a job over capacity when all are finished");
-    }
-  }
-
-  @Test
-  public void testPurgeCount() throws Exception {
-    PlanTracker tracker = new PlanTracker(10, 0, 5, mMockWorkflowTracker);
-    assertEquals("tracker should be empty", 0, tracker.coordinators().size());
-    fillJobTracker(tracker, 10);
-    finishAllJobs(tracker);
-    addJob(tracker, 100);
-    assertEquals(6, tracker.coordinators().size());
-  }
-
-  @Test
-  public void testRetentionTime() throws Exception {
-    long retentionMs = FormatUtils.parseTimeSize("24h");
-    PlanTracker tracker = new PlanTracker(10, retentionMs, -1, mMockWorkflowTracker);
-    assertEquals("tracker should be empty", 0, tracker.coordinators().size());
-    fillJobTracker(tracker, 10);
-    finishAllJobs(tracker);
-    mException.expect(ResourceExhaustedException.class);
-    addJob(tracker, 100);
-  }
-
-  @Test
   public void testGetCoordinator() throws Exception {
     long jobId = addJob(100);
     assertNull("job id should not exist", mTracker.getCoordinator(-1));
@@ -141,8 +97,18 @@ public class PlanTrackerTest {
     assertFalse("job should not be finished", mTracker.getCoordinator(jobId).isJobFinished());
     finishAllJobs();
     assertTrue("job should be finished", mTracker.getCoordinator(jobId).isJobFinished());
-    assertEquals("finished should be of size 1", 1,
-        ((Queue) AlluxioMockUtil.getInternalState(mTracker, "mFinished")).size());
+  }
+
+  @Test
+  public void removeExpiredJobsInfo() throws Exception {
+    List<Long> jobIdList = new ArrayList<>();
+    for (int i = 0; i < 3; i++) {
+      jobIdList.add(addJob(100));
+    }
+    mTracker.removeJobs(jobIdList);
+    for (Long jobId : jobIdList) {
+      assertNull("job id should not exist", mTracker.getCoordinator(jobId));
+    }
   }
 
   @Test
