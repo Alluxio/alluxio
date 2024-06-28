@@ -17,6 +17,7 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.Scope;
 import alluxio.util.ConfigurationUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
@@ -162,15 +163,26 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
 
   private Properties getNodeConf(String node) throws IOException {
     String homeDir = mConf.getString(PropertyKey.HOME);
+    int sshPort = getHostSSHPort();
     String remoteCommand = String.format(
         "%s/bin/alluxio getConf", homeDir);
     String localCommand = String.format(
-        "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",
-        node, remoteCommand);
+        "ssh -p %d -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",
+            sshPort, node, remoteCommand);
     String[] command = {"bash", "-c", localCommand};
     Properties properties = new Properties();
     Process process = Runtime.getRuntime().exec(command);
     properties.load(process.getInputStream());
     return properties;
+  }
+
+  /**
+   * get ssh port from conf and this method is used for test.
+   *
+   * @return return host ssh port
+   */
+  @VisibleForTesting
+  protected int getHostSSHPort() {
+    return mConf.getInt(PropertyKey.HOST_SSH_PORT);
   }
 }
