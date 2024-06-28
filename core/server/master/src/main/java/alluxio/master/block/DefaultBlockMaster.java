@@ -1946,13 +1946,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       long masterWorkerDeleteTimeoutMs =
           Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
-        try (LockResource r = worker.lockWorkerMeta(
-            EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
-          // This is not locking because the field is atomic
-          final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
-          if (lastUpdate > masterWorkerTimeoutMs) {
-            LOG.error("The worker {}({}) timed out after {}ms without a heartbeat!", worker.getId(),
-                worker.getWorkerAddress(), lastUpdate);
+        // This is not locking because the field is atomic
+        final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
+        if (lastUpdate > masterWorkerTimeoutMs) {
+          try (LockResource r = worker.lockWorkerMeta(
+              EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+            LOG.error("The worker {}({}) timed out after {}ms without a heartbeat!",
+                worker.getId(), worker.getWorkerAddress(), lastUpdate);
             processLostWorker(worker);
           }
         }
