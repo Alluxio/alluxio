@@ -124,6 +124,14 @@ Since Alluxio 1.7, Alluxio client jar built and located at
 `{{site.ALLUXIO_CLIENT_JAR_PATH}}` will work with different compute frameworks
 (e.g., Spark, Flink, Presto and etc) by default.
 
+### Support Apple M1
+
+Protoc has not yet released the version supporting M1 chip, the compatible mode is required for compiling on M1 Mac
+
+```console
+$ mvn clean compile -DskipTests -Dos.detected.classifier=osx-x86_64
+```
+
 ### Build different HDFS under storage
 
 By default, Alluxio is built with the HDFS under storage of Hadoop 3.3.
