@@ -70,8 +70,8 @@ import java.util.stream.Collectors;
 /**
  * Glue database implementation.
  */
-public class GlueDatabase implements UnderDatabase {
-  private static final Logger LOG = LoggerFactory.getLogger(GlueDatabase.class);
+public class GlueUnderDatabase implements UnderDatabase {
+  private static final Logger LOG = LoggerFactory.getLogger(GlueUnderDatabase.class);
 
   private final UdbContext mUdbContext;
   private final AWSGlueAsync mGlueClient;
@@ -84,7 +84,7 @@ public class GlueDatabase implements UnderDatabase {
   private final alluxio.grpc.table.PrincipalType mOwnerType = alluxio.grpc.table.PrincipalType.ROLE;
 
   @VisibleForTesting
-  protected GlueDatabase(UdbContext udbContext, UdbConfiguration glueConfig, String glueDbName) {
+  protected GlueUnderDatabase(UdbContext udbContext, UdbConfiguration glueConfig, String glueDbName) {
     mUdbContext = udbContext;
     mGlueConfiguration = glueConfig;
     mGlueClient = createAsyncGlueClient(glueConfig);
@@ -98,7 +98,7 @@ public class GlueDatabase implements UnderDatabase {
    * @param configuration the configuration
    * @return the new instance
    */
-  public static GlueDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
+  public static GlueUnderDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
     String glueDbName = udbContext.getUdbDbName();
     if (glueDbName == null || glueDbName.isEmpty()) {
       throw new IllegalArgumentException(
@@ -107,7 +107,7 @@ public class GlueDatabase implements UnderDatabase {
       throw new IllegalArgumentException("GlueUdb Error: Please setup aws region.");
     }
 
-    return new GlueDatabase(udbContext, configuration, glueDbName);
+    return new GlueUnderDatabase(udbContext, configuration, glueDbName);
   }
 
   @Override
@@ -424,7 +424,7 @@ public class GlueDatabase implements UnderDatabase {
             .setStorage(GlueUtils.toProto(table.getStorageDescriptor(), pathTranslator))
             .setPartitionName(tableName)
             .putAllParameters(tableParameters);
-        udbPartitions.add(new GluePartition(
+        udbPartitions.add(new GlueUdbPartition(
             new HiveLayout(partitionInfoBuilder.build(), Collections.emptyList())));
       } else {
         for (Partition partition : partitions) {
@@ -440,12 +440,12 @@ public class GlueDatabase implements UnderDatabase {
           if (partition.getValues() != null) {
             partitionInfoBuilder.addAllValues(partition.getValues());
           }
-          udbPartitions.add(new GluePartition(new HiveLayout(partitionInfoBuilder.build(),
+          udbPartitions.add(new GlueUdbPartition(new HiveLayout(partitionInfoBuilder.build(),
               statsMap.getOrDefault(partName, Collections.emptyList()))));
         }
       }
 
-      return new GlueTable(this,
+      return new GlueUdbTable(this,
           pathTranslator,
           tableName,
           GlueUtils.toProtoSchema(table.getStorageDescriptor().getColumns()),
