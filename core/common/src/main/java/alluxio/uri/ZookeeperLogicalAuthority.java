@@ -23,6 +23,7 @@ public class ZookeeperLogicalAuthority implements Authority {
    * The zookeeper logical name.
    */
   private final String mLogicalName;
+  private int mHashCode = 0;
 
   /**
    * @param logicalName the zookeeper logical name
@@ -57,7 +58,31 @@ public class ZookeeperLogicalAuthority implements Authority {
 
   @Override
   public int hashCode() {
-    return Objects.hash(mLogicalName);
+    // rationale:
+    // 1. calculate each comma-separated segment's hashcode in the same way
+    //    Java calculates the hashcode of a String object.
+    // 2. then XOR each segment's hashcode to produce the hashcode for this object.
+    //    since XOR is commutative, the order of the segments does not matter.
+    //    as long as the number of the segments and the hashcodes of the segments are equal,
+    //    the resulting hashcodes are equal.
+
+    // we might need to update the hashcode field,
+    // so copy to a local variable to avoid data race
+    int h = mHashCode;
+    if (mLogicalName.isEmpty() || h != 0) {
+      // either the string is empty, so the hashcode is 0,
+      // or we have calculated and cached the hashcode
+      return h;
+    }
+    final int prime = 31;
+    int segmentHashCode = 0;
+    for (int i = 0; i < mLogicalName.length(); i++) {
+      segmentHashCode = prime * segmentHashCode + mLogicalName.charAt(i);
+    }
+    h ^= segmentHashCode;
+
+    mHashCode = h;
+    return h;
   }
 
   @Override
