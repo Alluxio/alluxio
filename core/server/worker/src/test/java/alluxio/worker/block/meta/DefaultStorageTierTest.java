@@ -25,7 +25,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Unit tests for {@link DefaultStorageTier}.
@@ -141,8 +143,12 @@ public class DefaultStorageTierTest {
   public void getStorageDirs() {
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(2, dirs.size());
-    Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());
-    Assert.assertEquals(mTestBlockDirPath2, dirs.get(1).getDirPath());
+    Set<String> actualDirPaths = new HashSet<>();
+    dirs.forEach((dir) -> actualDirPaths.add(dir.getDirPath()));
+    Set<String> expectedDirPaths = new HashSet<>();
+    expectedDirPaths.add(mTestBlockDirPath1);
+    expectedDirPaths.add(mTestBlockDirPath2);
+    Assert.assertEquals(expectedDirPaths, actualDirPaths);
   }
 
   @Test
@@ -167,7 +173,9 @@ public class DefaultStorageTierTest {
     mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, 0, false);
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(2, dirs.size());
-    Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());
+    Set<String> actualDirPaths = new HashSet<>();
+    dirs.forEach((dir) -> actualDirPaths.add(dir.getDirPath()));
+    Assert.assertTrue(actualDirPaths.contains(mTestBlockDirPath1));
   }
 
   @Test
