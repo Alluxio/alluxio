@@ -31,6 +31,7 @@ import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.grpc.LostBlockList;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
@@ -247,6 +248,11 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   public CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId)
       throws AlluxioStatusException {
     return null;
+  }
+
+  @Override
+  public Map<Long, LostBlockList> getLostFiles() throws AlluxioStatusException {
+    return Collections.EMPTY_MAP;
   }
 
   @Override
