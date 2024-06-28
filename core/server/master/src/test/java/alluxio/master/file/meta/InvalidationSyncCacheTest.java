@@ -28,6 +28,8 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * Due to issue https://github.com/Alluxio/alluxio/issues/18641, we removed
+ * the actual callers of invalidation time.
  * Tests the {@link UfsSyncPathCache} using only validations and invalidations,
  * and without using interval based syncing.
  */
