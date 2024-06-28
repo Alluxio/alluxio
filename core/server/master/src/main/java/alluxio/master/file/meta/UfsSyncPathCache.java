@@ -98,7 +98,12 @@ public class UfsSyncPathCache {
                 if (onRemoval != null) {
                   onRemoval.accept((String) removal.getKey(), (SyncState) removal.getValue());
                 }
-                onCacheEviction((String) removal.getKey(), (SyncState) removal.getValue());
+                // Due to issue https://github.com/Alluxio/alluxio/issues/18641,
+                // we decide to stop updating invalidation time for paths in order to avoid
+                // paths got evicted recursively. Stopping calling this onCacheEviction
+                // function will result in stopping updating invalidation time for all paths.
+                // Since no one is using this invalidation time feature, we decide to disable
+                // updating invalidation time.
               }
             })
         .maximumSize(Configuration.getInt(
@@ -169,6 +174,7 @@ public class UfsSyncPathCache {
       syncState = currPath.equals(AlluxioURI.SEPARATOR) ? mRoot : mItems.getIfPresent(currPath);
       if (syncState != null) {
         // we always check if the current path has been invalidated
+        // This invalidation time will never be updated.
         lastInvalidationTime = Math.max(lastInvalidationTime,
             syncState.mInvalidationTime);
         switch (parentLevel) {
@@ -186,6 +192,7 @@ public class UfsSyncPathCache {
               case ONE:
                 lastSyncTime = Math.max(lastSyncTime, syncState.mDirectChildrenSyncTime);
                 // since we are syncing the children, we must check if a child was invalidated
+                // This invalidation time will never be updated.
                 lastInvalidationTime = Math.max(lastInvalidationTime,
                     syncState.mDirectChildrenInvalidation);
                 break;
@@ -195,6 +202,7 @@ public class UfsSyncPathCache {
                 lastSyncTime = Math.max(lastSyncTime, syncState.mRecursiveSyncTime);
                 // since we are syncing recursively, we must check if any recursive
                 // child was invalidated
+                // This invalidation time will never be updated.
                 lastInvalidationTime = Math.max(lastInvalidationTime,
                     syncState.mRecursiveChildrenInvalidation);
                 break;
