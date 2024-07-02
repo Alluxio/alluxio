@@ -30,7 +30,7 @@ RUN cd /alluxio-csi && \
 #   See - https://github.com/moby/moby/issues/35525
 FROM alpine:3.10.2 AS alluxio-extractor
 # Note that downloads for *-SNAPSHOT tarballs are not available.
-ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.9.6/alluxio-2.9.6-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/2.10.0-SNAPSHOT/alluxio-2.10.0-SNAPSHOT-bin.tar.gz
 # (Alert):It's not recommended to set this Argument to true, unless you know exactly what you are doing
 ARG ENABLE_DYNAMIC_USER=false
 
@@ -74,7 +74,7 @@ RUN \
     yum install -y gcc gcc-c++ make cmake gettext-devel libtool autoconf && \
     git clone https://github.com/Alluxio/libfuse.git && \
     cd libfuse && \
-    git checkout fuse_2.9.6_customize_multi_threads && \
+    git checkout fuse_2.10.0-SNAPSHOT_customize_multi_threads && \
     bash makeconf.sh && \
     ./configure && \
     make -j8 && \
