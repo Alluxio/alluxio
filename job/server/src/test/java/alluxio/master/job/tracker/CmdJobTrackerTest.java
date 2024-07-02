@@ -98,6 +98,29 @@ public final class CmdJobTrackerTest {
   }
 
   @Test
+  public void runCleanUnableTracedJobsTest() throws Exception {
+    testFindCmdIdsForMultipleCmds();
+    Thread.sleep(90000L);
+    // the expired job has been cleaned in mInfoMap
+    mSearchingCriteria.clear();
+    mSearchingCriteria.add(Status.CANCELED);
+    Set<Long> cancelCmdIds = mCmdJobTracker.findCmdIds(mSearchingCriteria);
+    Assert.assertEquals(cancelCmdIds.size(), 0);
+    mSearchingCriteria.clear();
+    mSearchingCriteria.add(Status.COMPLETED);
+    Set<Long> completedCmdIds = mCmdJobTracker.findCmdIds(mSearchingCriteria);
+    Assert.assertEquals(completedCmdIds.size(), 0);
+    mSearchingCriteria.clear();
+    mSearchingCriteria.add(Status.FAILED);
+    Set<Long> failedCmdIds = mCmdJobTracker.findCmdIds(mSearchingCriteria);
+    Assert.assertEquals(failedCmdIds.size(), 0);
+    mSearchingCriteria.clear();
+    mSearchingCriteria.add(Status.RUNNING);
+    Set<Long> runningCmdIds = mCmdJobTracker.findCmdIds(mSearchingCriteria);
+    Assert.assertEquals(runningCmdIds.size(), 3);
+  }
+
+  @Test
   public void runDistLoadBatchFailTest() throws Exception {
     CmdInfo cmdInfo = new CmdInfo(mLoadJobId, OperationType.DIST_LOAD,
             JobSource.CLI, System.currentTimeMillis(), Lists.newArrayList());
