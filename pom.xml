@@ -175,6 +175,10 @@
     <kerby.version>1.0.1</kerby.version>
     <fastutil.version>8.5.9</fastutil.version>
     <s3proxy.version>2.0.0</s3proxy.version>
+    <libthrift.version>0.9.3</libthrift.version>
+    <tikv.version>3.3.2</tikv.version>
+    <slf4j.version>1.7.32</slf4j.version>
+    <jsch.version>0.1.55</jsch.version>
   </properties>
 
   <modules>
@@ -596,6 +600,18 @@
         <groupId>org.apache.sling</groupId>
         <artifactId>maven-jspc-plugin</artifactId>
         <version>2.0.8</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.thrift</groupId>
+        <artifactId>libthrift</artifactId>
+        <version>${libthrift.version}</version>
+        <exclusions>
+          <!-- Excluded to avoid conflict with the version Alluxio uses. -->
+          <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.zookeeper</groupId>
@@ -1060,6 +1076,14 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
           <version>1.4.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>findbugs-maven-plugin</artifactId>
+          <version>3.0.4</version>
+          <configuration>
+            <failOnError>${maven.findbugs.failure.strict}</failOnError>
+          </configuration>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
