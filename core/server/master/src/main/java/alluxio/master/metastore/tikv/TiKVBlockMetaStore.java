@@ -138,6 +138,43 @@ public class TiKVBlockMetaStore implements BlockMetaStore {
         LOG.info("TiKVBlockStore closed");
     }
 
+    @Override
+    public List<BlockLocation> getLocations(long id) {
+
+        ListIterator<Kvrpcpb.KvPair> iter = mBlockClient
+                .scanPrefix(ByteString.copyFrom(TiKVUtils.toByteArray(BLOCK_LOCATIONS_COLUMN, id))).listIterator();
+        List<BlockLocation> locations = new ArrayList<>();
+        while ( iter.hasNext() ) { 
+            try {
+                locations.add(BlockLocation.parseFrom(iter.next().getValue().toByteArray()));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }   
+        }   
+        return locations;
+
+    }   
+
+    @Override
+    public void addLocation(long id, BlockLocation location) {
+        ByteString key = ByteString.copyFrom(TiKVUtils.toByteArray(BLOCK_LOCATIONS_COLUMN, id, location.getWorkerId()));
+        ByteString value = ByteString.copyFrom(location.toByteArray());
+        try {
+            mBlockClient.put(key, value);
+        } catch (TiKVException e) {
+            throw new RuntimeException(e);
+        }   
+    }   
+
+    @Override
+    public void removeLocation(long blockId, long workerId) {
+        ByteString key = ByteString.copyFrom(TiKVUtils.toByteArray(BLOCK_LOCATIONS_COLUMN, blockId, workerId));
+        try {
+            mBlockClient.delete(key);
+        } catch (TiKVException e) {
+            throw new RuntimeException(e);
+        }   
+    }
 
     @Override
     public CloseableIterator<Block> getCloseableIterator() {
