@@ -295,6 +295,30 @@ public class TiKVInodeStore implements InodeStore {
     }
 
     @Override
+    public CheckpointName getCheckpointName() {
+        return CheckpointName.TIKV_INODE_STORE;
+    }   
+
+    // TODO
+    @Override
+    public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
+        LOG.info("Creating tikv checkpoint");
+        output = new CheckpointOutputStream(output, CheckpointType.JOURNAL_ENTRY);
+        output.flush();
+        LOG.info("Completed tikv checkpoint");
+    }   
+
+    // TODO
+    @Override
+    public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
+        LOG.info("Restoring tikv from checkpoint");
+        Preconditions.checkState(input.getType() == CheckpointType.JOURNAL_ENTRY,
+                "Unrecognized checkpoint type when restoring %s: %s", getCheckpointName(),
+                input.getType());
+        LOG.info("Restored tikv checkpoint");
+    }
+
+    @Override
     public boolean supportsBatchWrite() {
         return false;
     }
