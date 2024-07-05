@@ -42,4 +42,5 @@ public enum CheckpointName {
   TTL_BUCKET_LIST,
   SCHEDULER,
   SNAPSHOT_ID,
+  TIKV_INODE_STORE,
 }
