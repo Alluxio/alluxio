@@ -323,8 +323,53 @@ public class TiKVInodeStore implements InodeStore {
         return false;
     }
 
-    private class TiKVWriteBatch implements WriteBatch {}
+    private class TiKVWriteBatch implements WriteBatch {
 
+        ConcurrentHashMap<ByteString, ByteString> mInodeMap = new ConcurrentHashMap<>();
+        ConcurrentHashMap<ByteString, ByteString> mEdgeMap = new ConcurrentHashMap<>();
+
+        @Override
+        public void writeInode(MutableInode<?> inode) {
+            ByteString key = ByteString.copyFrom(TiKVUtils.toByteArray(INODES_COLUMN, inode.getId()));
+            ByteString value = ByteString.copyFrom(inode.toProto().toByteArray());
+            mInodeMap.put(key,value);
+        }   
+
+        @Override
+        public void removeInode(Long key) {
+            ByteString k = ByteString.copyFrom(TiKVUtils.toByteArray(INODES_COLUMN, key));
+            mInodeMap.remove(k);
+        }
+
+        @Override
+        public void addChild(Long parentId, String childName, Long childId) {
+            ByteString key = ByteString.copyFrom(TiKVUtils.toByteArray(EDGES_COLUMN, parentId, childName));
+            ByteString value = ByteString.copyFrom(Longs.toByteArray(childId));
+            mEdgeMap.put(key,value);
+        }
+
+        @Override
+        public void removeChild(Long parentId, String childName) {
+            ByteString k = ByteString.copyFrom(TiKVUtils.toByteArray(EDGES_COLUMN, parentId, childName));
+            mEdgeMap.remove(k);
+        }
+
+        @Override
+        public void commit() {
+            try {
+                mInodeClient.batchPut(mInodeMap);
+                mInodeClient.batchPut(mEdgeMap);
+            } catch (TiKVException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public void close() {
+            mInodeMap.clear();
+            mEdgeMap.clear();
+        }
+    }
 
     @Override
     public void close() {
