@@ -17,6 +17,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
+import alluxio.grpc.OperationType;
 import alluxio.job.CmdConfig;
 import alluxio.job.cmd.load.LoadCliConfig;
 import alluxio.job.cmd.migrate.MigrateCliConfig;
@@ -304,7 +305,8 @@ public class CmdJobTracker implements AutoCloseable {
     for (Map.Entry<Long, CmdInfo> x : mInfoMap.entrySet()) {
       CmdInfo cmdInfo = x.getValue();
       List<Long> cleanedJobsId = new ArrayList<>();
-      if (currentTime - cmdInfo.getJobSubmissionTime() > mTraceRetentionTime) {
+      if (OperationType.DIST_LOAD.equals(cmdInfo.getOperationType())
+              && currentTime - cmdInfo.getJobSubmissionTime() > mTraceRetentionTime) {
         try {
           Status jobStatus = getCmdStatus(cmdInfo.getJobControlId());
           if (jobStatus.isFinished()) {

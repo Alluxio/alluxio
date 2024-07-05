@@ -12,14 +12,22 @@
 package alluxio.master.job.workflow;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
+import alluxio.job.SleepJobConfig;
 import alluxio.job.TestPlanConfig;
+import alluxio.job.plan.PlanConfig;
 import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.WorkflowInfo;
@@ -54,7 +62,7 @@ public class WorkflowTrackerTest {
   public void before() throws Exception {
     mMockJobMaster = mock(JobMaster.class);
     mWorkflowTracker = new WorkflowTracker(mMockJobMaster);
-    mPlanTracker = new PlanTracker(CAPACITY, mWorkflowTracker);
+    mPlanTracker = new PlanTracker(CAPACITY, RETENTION_TIME, PURGE_CONUT, mWorkflowTracker);
 
     mJobIdCounter = 100;
     when(mMockJobMaster.getNewJobId()).thenAnswer(invocation -> mJobIdCounter++);
@@ -109,5 +117,64 @@ public class WorkflowTrackerTest {
     mWorkflowTracker.onPlanStatusChange(plan101);
 
     assertEquals(Status.COMPLETED, mWorkflowTracker.getStatus(0, true).getStatus());
+  }
+
+  @Test
+  public void testCleanup() throws Exception {
+    SleepJobConfig jobConfig = new SleepJobConfig(1);
+    mPlanTracker.run(jobConfig, mCommandManager, mMockJobServerContext, mWorkers, 1);
+
+    jobConfig = new SleepJobConfig(1);
+    mPlanTracker.run(jobConfig, mCommandManager, mMockJobServerContext, mWorkers, 2);
+
+    jobConfig = new SleepJobConfig(1);
+    mPlanTracker.run(jobConfig, mCommandManager, mMockJobServerContext, mWorkers, 3);
+
+    doAnswer(invocation -> {
+      PlanConfig config = invocation.getArgument(0, PlanConfig.class);
+      long jobId = invocation.getArgument(1, Long.class);
+
+      mPlanTracker.run(config, mCommandManager, mMockJobServerContext, mWorkers, jobId);
+      return null;
+    }).when(mMockJobMaster).run(any(PlanConfig.class), any(Long.class));
+
+    ArrayList<JobConfig> jobs = Lists.newArrayList();
+
+    SleepJobConfig child1 = new SleepJobConfig(1);
+    SleepJobConfig child2 = new SleepJobConfig(2);
+    jobs.add(child1);
+    jobs.add(child2);
+
+    CompositeConfig config = new CompositeConfig(jobs, false);
+
+    mWorkflowTracker.run(config, 0);
+
+    try {
+      mPlanTracker.run(new SleepJobConfig(1), mCommandManager, mMockJobServerContext, mWorkers, 4);
+      fail();
+    } catch (ResourceExhaustedException e) {
+      // Should fail
+    }
+
+    mPlanTracker.coordinators().stream().filter(coordinator -> coordinator.getJobId() == 100)
+        .findFirst().get().setJobAsFailed("TestError", "failed");
+
+    mPlanTracker.run(new SleepJobConfig(1), mCommandManager, mMockJobServerContext, mWorkers, 4);
+
+    assertNotNull(mWorkflowTracker.getStatus(0, true));
+
+    try {
+      mPlanTracker.run(new SleepJobConfig(1), mCommandManager, mMockJobServerContext, mWorkers, 5);
+      fail();
+    } catch (ResourceExhaustedException e) {
+      // Should fail
+    }
+
+    mPlanTracker.coordinators().stream().filter(coordinator -> coordinator.getJobId() == 101)
+        .findFirst().get().setJobAsFailed("TestError", "failed");
+
+    mPlanTracker.run(new SleepJobConfig(1), mCommandManager, mMockJobServerContext, mWorkers, 5);
+
+    assertNull(mWorkflowTracker.getStatus(100, true));
   }
 }
