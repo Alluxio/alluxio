@@ -16,8 +16,6 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 import alluxio.Sessions;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
@@ -31,7 +29,6 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
 import alluxio.underfs.UfsManager;
-import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.DefaultBlockWorker.Metrics;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -54,8 +51,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -64,8 +59,6 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class MonoBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(MonoBlockStore.class);
-  private static final long LOAD_TIMEOUT =
-      Configuration.getMs(PropertyKey.USER_NETWORK_RPC_KEEPALIVE_TIMEOUT);
   private final LocalBlockStore mLocalBlockStore;
   private final UnderFileSystemBlockStore mUnderFileSystemBlockStore;
   private final BlockMasterClientPool mBlockMasterClientPool;
@@ -73,9 +66,6 @@ public class MonoBlockStore implements BlockStore {
 
   private final List<BlockStoreEventListener> mBlockStoreEventListeners =
           new CopyOnWriteArrayList<>();
-
-  private final ScheduledExecutorService mDelayer =
-      new ScheduledThreadPoolExecutor(1, ThreadFactoryUtils.build("LoadTimeOut", true));
 
   /**
    * Constructor of MonoBlockStore.
