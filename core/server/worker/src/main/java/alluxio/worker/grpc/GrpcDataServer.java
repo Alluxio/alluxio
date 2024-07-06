@@ -31,13 +31,13 @@ import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.DefaultBlockWorker;
 
 import com.codahale.metrics.Counter;
-import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.ServerChannel;
-import io.netty.channel.epoll.EpollChannelOption;
-import io.netty.channel.epoll.EpollMode;
-import io.netty.channel.unix.DomainSocketAddress;
+import io.grpc.netty.shaded.io.netty.buffer.PooledByteBufAllocator;
+import io.grpc.netty.shaded.io.netty.channel.ChannelOption;
+import io.grpc.netty.shaded.io.netty.channel.EventLoopGroup;
+import io.grpc.netty.shaded.io.netty.channel.ServerChannel;
+import io.grpc.netty.shaded.io.netty.channel.epoll.EpollChannelOption;
+import io.grpc.netty.shaded.io.netty.channel.epoll.EpollMode;
+import io.grpc.netty.shaded.io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

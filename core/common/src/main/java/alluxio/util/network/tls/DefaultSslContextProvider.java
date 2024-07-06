@@ -13,7 +13,7 @@ package alluxio.util.network.tls;
 
 import alluxio.conf.AlluxioConfiguration;
 
-import io.netty.handler.ssl.SslContext;
+import io.grpc.netty.shaded.io.netty.handler.ssl.SslContext;
 
 /**
  * Default SSL context provider.
