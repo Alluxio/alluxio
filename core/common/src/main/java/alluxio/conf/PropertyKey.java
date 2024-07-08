@@ -7357,6 +7357,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("60sec")
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey JOB_MASTER_JOB_TRACE_RETENTION_TIME =
+      durationBuilder(Name.JOB_MASTER_JOB_TRACE_RETENTION_TIME)
+          .setDescription("The length of time the client can trace the submitted job.")
+          .setDefaultValue("1d")
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey JOB_MASTER_JOB_CAPACITY =
       longBuilder(Name.JOB_MASTER_JOB_CAPACITY)
           .setDescription("The total possible number of available job statuses in the job master. "
@@ -9191,6 +9197,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.job.master.finished.job.purge.count";
     public static final String JOB_MASTER_FINISHED_JOB_RETENTION_TIME =
         "alluxio.job.master.finished.job.retention.time";
+    public static final String JOB_MASTER_JOB_TRACE_RETENTION_TIME =
+        "alluxio.job.master.job.trace.retention.time";
     public static final String JOB_MASTER_JOB_CAPACITY = "alluxio.job.master.job.capacity";
     public static final String JOB_MASTER_MASTER_HEARTBEAT_INTERVAL =
         "alluxio.job.master.master.heartbeat.interval";
