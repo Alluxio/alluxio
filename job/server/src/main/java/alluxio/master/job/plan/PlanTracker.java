@@ -35,13 +35,13 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
@@ -86,7 +86,7 @@ public class PlanTracker {
   private final SortedSet<PlanInfo> mFailed;
 
   /** A FIFO queue used to track jobs which have status {@link Status#isFinished()} as true. */
-  private final LinkedBlockingQueue<PlanInfo> mFinished;
+  private final LinkedList<PlanInfo> mFinished;
 
   private final WorkflowTracker mWorkflowTracker;
 
@@ -114,7 +114,7 @@ public class PlanTracker {
       }
       return Long.signum(right.getId() - left.getId());
     }));
-    mFinished = new LinkedBlockingQueue<>();
+    mFinished = new LinkedList<>();
     mWorkflowTracker = workflowTracker;
   }
 
@@ -298,6 +298,20 @@ public class PlanTracker {
                 && (name == null || name.isEmpty()
                 || x.getValue().getPlanInfoWire(false).getName().equals(name)))
         .map(Map.Entry::getKey).collect(Collectors.toSet());
+  }
+
+  /**
+   * Remove expired jobs in PlanTracker.
+   * @param jobIds the list of removed jobId
+   */
+  public void removeJobs(List<Long> jobIds) {
+    mWorkflowTracker.cleanup(jobIds);
+    for (Long jobId : jobIds) {
+      PlanInfo removedPlanInfo = mCoordinators.get(jobId).getPlanInfo();
+      mCoordinators.remove(jobId);
+      mFailed.remove(removedPlanInfo);
+      mFinished.remove(removedPlanInfo);
+    }
   }
 
   private void checkActiveSetReplicaJobs(JobConfig jobConfig) throws JobDoesNotExistException {

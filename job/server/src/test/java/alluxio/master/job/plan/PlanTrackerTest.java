@@ -40,6 +40,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
@@ -143,6 +144,18 @@ public class PlanTrackerTest {
     assertTrue("job should be finished", mTracker.getCoordinator(jobId).isJobFinished());
     assertEquals("finished should be of size 1", 1,
         ((Queue) AlluxioMockUtil.getInternalState(mTracker, "mFinished")).size());
+  }
+
+  @Test
+  public void removeExpiredJobsInfo() throws Exception {
+    List<Long> jobIdList = new ArrayList<>();
+    for (int i = 0; i < 3; i++) {
+      jobIdList.add(addJob(100));
+    }
+    mTracker.removeJobs(jobIdList);
+    for (Long jobId : jobIdList) {
+      assertNull("job id should not exist", mTracker.getCoordinator(jobId));
+    }
   }
 
   @Test

@@ -28,6 +28,13 @@ public enum Status {
   }
 
   /**
+   * @return whether this status represents a Completed state
+   */
+  public boolean isCompleted() {
+    return this.equals(COMPLETED);
+  }
+
+  /**
    * @return proto representation of the status
    */
   public alluxio.grpc.Status toProto() {
