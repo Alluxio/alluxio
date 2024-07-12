@@ -164,7 +164,7 @@ public class OSSOutputStreamTest {
             .thenThrow(new OSSException(errorMessage));
     OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient, sConf
         .getList(PropertyKey.TMP_DIRS));
-    mThrown.expect(IOException.class);
+    mThrown.expect(AlluxioOSSException.class);
     mThrown.expectMessage(errorMessage);
     stream.close();
     assertEquals(mEtag, stream.getContentHash().get());

@@ -31,7 +31,6 @@ import alluxio.util.io.PathUtils;
 import com.aliyun.oss.ClientBuilderConfiguration;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
-import com.aliyun.oss.OSSException;
 import com.aliyun.oss.ServiceException;
 import com.aliyun.oss.common.comm.Protocol;
 import com.aliyun.oss.model.AbortMultipartUploadRequest;
@@ -227,13 +226,10 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       TagSet taggingResult = mClient.getObjectTagging(mBucketName, path);
       return Collections.unmodifiableMap(taggingResult.getAllTags());
     } catch (ServiceException e) {
-      if (e instanceof OSSException) {
-        OSSException ossException = (OSSException) e;
-        if (NO_SUCH_KEY.equals(ossException.getErrorCode())) {
-          return null;
-        }
+      if (NO_SUCH_KEY.equals(e.getErrorCode())) {
+        return null;
       }
-      throw new IOException("Failed to get object tagging", e);
+      throw AlluxioOSSException.from(e);
     }
   }
 
@@ -299,7 +295,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       DeleteObjectsResult result = mClient.deleteObjects(request);
       return result.getDeletedObjects();
     } catch (ServiceException e) {
-      throw new IOException("Failed to delete objects", e);
+      throw AlluxioOSSException.from(e);
     }
   }
 
@@ -549,7 +545,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       return new OSSInputStream(mBucketName, key, mClient, options.getOffset(), retryPolicy,
           mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
     } catch (ServiceException e) {
-      throw new IOException(e.getMessage());
+      throw AlluxioOSSException.from(e);
     }
   }
 
