@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * Marshaller for data messages.
@@ -104,7 +105,7 @@ public abstract class DataMessageMarshaller<T> implements MethodDescriptor.Marsh
    * @param message the message to be combined
    * @return the message with the combined buffer
    */
-  public abstract T combineData(DataMessage<T, DataBuffer> message);
+  public abstract T combineData(@Nullable DataMessage<T, DataBuffer> message);
 
   /**
    * Serialize the message to buffers.
