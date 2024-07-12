@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.MetadataCachingFileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.concurrent.LockMode;
 import alluxio.exception.PreconditionMessage;
@@ -218,6 +219,11 @@ public class FuseFileOutStream implements FuseFileStream {
   public synchronized void close() {
     try {
       closeStream();
+      // metadata of the writing file may have been cached, and the
+      // cache entry should be dropped after writing
+      if (mFileSystem instanceof MetadataCachingFileSystem) {
+        ((MetadataCachingFileSystem) mFileSystem).dropMetadataCache(mURI);
+      }
     } finally {
       releaseLock();
     }
