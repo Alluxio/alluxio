@@ -12,6 +12,7 @@
 package alluxio.worker;
 
 import alluxio.Constants;
+import alluxio.heartbeat.HeartbeatThreadManager;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.wire.WorkerNetAddress;
 
@@ -62,6 +63,7 @@ public abstract class AbstractWorker implements Worker {
   public void stop() throws IOException {
     // Shut down the executor service, interrupting any running threads.
     if (mExecutorService != null) {
+      HeartbeatThreadManager.unregister(mExecutorService);
       try {
         mExecutorService.shutdownNow();
         String awaitFailureMessage =
