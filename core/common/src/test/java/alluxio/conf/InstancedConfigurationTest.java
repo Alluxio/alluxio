@@ -680,6 +680,13 @@ public class InstancedConfigurationTest {
   }
 
   @Test
+  public void setMasterTTLIntervalZero() {
+    mConfiguration.set(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "0");
+    mThrown.expect(IllegalStateException.class);
+    mConfiguration.validate();
+  }
+
+  @Test
   public void setUserFileBufferBytesMaxInteger() {
     mConfiguration.set(PropertyKey.USER_FILE_BUFFER_BYTES, Integer.MAX_VALUE + "B");
     assertEquals(Integer.MAX_VALUE,
