@@ -214,8 +214,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * resources.
    */
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL, "250ms",
-          PropertyKey.Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "250ms"})
+      confParams = {PropertyKey.Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "250ms"})
   @Test
   public void cancelWrite() throws Exception {
     AlluxioURI filePath = new AlluxioURI(mRoot).join("test_cancelWrite");
