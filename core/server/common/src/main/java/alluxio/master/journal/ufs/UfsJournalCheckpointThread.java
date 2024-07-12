@@ -226,9 +226,9 @@ public final class UfsJournalCheckpointThread extends AutopsyThread {
       try {
         switch (mJournalReader.advance()) {
           case CHECKPOINT:
-            LOG.debug("{}: Restoring from checkpoint", mMaster.getName());
+            LOG.info("{}: Restoring from checkpoint", mMaster.getName());
             mMaster.restoreFromCheckpoint(mJournalReader.getCheckpoint());
-            LOG.debug("{}: Finished restoring from checkpoint", mMaster.getName());
+            LOG.info("{}: Finished restoring from checkpoint", mMaster.getName());
             break;
           case LOG:
             entry = mJournalReader.getEntry();
