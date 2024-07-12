@@ -184,9 +184,10 @@ This functionality is enabled by setting the following property in `${ALLUXIO_HO
 alluxio.master.daily.backup.enabled=true
 ```
 
-The time to take daily snapshots is defined by `alluxio.master.daily.backup.time`. For example, if
-a user specified `alluxio.master.daily.backup.time=05:30`, the Alluxio leading master will back up its metadata
-to the `alluxio.master.backup.directory` of the root UFS every day at 5:30am UTC.
+The time to take daily snapshots is defined by `alluxio.master.daily.backup.time` and `alluxio.master.daily.backup.interval`. 
+For example, if a user specified `alluxio.master.daily.backup.time=05:30` and `alluxio.master.daily.backup.interval=6hr`, 
+the Alluxio leading master will back up its metadata to the `alluxio.master.backup.directory` of the root UFS, 
+the first day is 5:30am UTC, followed by an interval of 6 hours.
 We recommend setting the backup time to an off-peak time to avoid interfering with other users of the system.
 
 In the daily backup, the backup directory needs to be an absolute path within the root UFS.

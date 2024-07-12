@@ -23,7 +23,6 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BackupStatus;
 
@@ -85,10 +84,16 @@ public final class DailyMetadataBackup {
   public void start() {
     Preconditions.checkState(mBackup == null);
     long delayedTimeInMillis = getTimeToNextBackup();
+    long interval = Configuration.getMs(PropertyKey.MASTER_DAILY_BACKUP_INTERVAL);
+    Preconditions.checkArgument(interval > 0,
+        "The value of '" + PropertyKey.MASTER_DAILY_BACKUP_INTERVAL.getName()
+        + "' should be greater than 0");
     mBackup = mScheduledExecutor.scheduleAtFixedRate(this::dailyBackup,
-        delayedTimeInMillis, FormatUtils.parseTimeSize("1day"), TimeUnit.MILLISECONDS);
-    LOG.info("Daily metadata backup scheduled to start in {}",
-        CommonUtils.convertMsToClockTime(delayedTimeInMillis));
+        delayedTimeInMillis, interval, TimeUnit.MILLISECONDS);
+    LOG.info("Daily metadata backup scheduled to start in {} and "
+        + "are performed at regular intervals of {}.",
+        CommonUtils.convertMsToClockTime(delayedTimeInMillis),
+        CommonUtils.convertMsToClockTime(interval));
   }
 
   /**
