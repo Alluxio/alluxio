@@ -55,6 +55,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
 
   private final boolean mClusterDefaultsLoaded;
 
+  private String mLastClusterConfigHash;
+
   /**
    * Creates a new instance of {@link InstancedConfiguration}.
    *
@@ -83,6 +85,24 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   public InstancedConfiguration(AlluxioProperties properties, boolean clusterDefaultsLoaded) {
     mProperties = properties;
     mClusterDefaultsLoaded = clusterDefaultsLoaded;
+  }
+
+  /**
+   * Creates a new instance of {@link InstancedConfiguration}.
+   *
+   * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
+   * changed or removed in a future minor release.
+   *
+   * Application code should use {@link Configuration#global()}.
+   *
+   * @param properties alluxio properties underlying this configuration
+   * @param clusterDefaultsLoaded Whether or not the properties represent the cluster defaults
+   * @param clusterConfigHash the cluster config hash
+   */
+  public InstancedConfiguration(AlluxioProperties properties, boolean clusterDefaultsLoaded,
+      String clusterConfigHash) {
+    this(properties, clusterDefaultsLoaded);
+    mLastClusterConfigHash = clusterConfigHash;
   }
 
   /**
@@ -692,6 +712,15 @@ public class InstancedConfiguration implements AlluxioConfiguration {
               getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE),
               getInt(PropertyKey.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE)));
     }
+  }
+
+  /**
+   * Gets the last cluster config hash.
+   *
+   * @return the last cluster config hash
+   */
+  public String getLastClusterConfigHash() {
+    return mLastClusterConfigHash;
   }
 
   /**
