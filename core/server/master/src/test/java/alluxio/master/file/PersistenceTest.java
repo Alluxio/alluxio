@@ -141,6 +141,34 @@ public final class PersistenceTest {
     checkEmpty();
   }
 
+  @Test
+  public void testPersistThreads() throws Exception {
+    int checkerThreads = Configuration.getInt(PropertyKey.MASTER_PERSIST_CHECKER_POOL_THREADS);
+    try {
+      Configuration.set(PropertyKey.MASTER_PERSIST_CHECKER_POOL_THREADS, 10);
+      int newCheckerThreads = Configuration.getInt(PropertyKey.MASTER_PERSIST_CHECKER_POOL_THREADS);
+      Assert.assertTrue(newCheckerThreads == 10);
+      stopServices();
+      startServices();
+      Assert.assertNotNull(((DefaultFileSystemMaster) mFileSystemMaster).getPersistCheckerPool());
+      // Set the number of thread pools to less than 0
+      Configuration.set(PropertyKey.MASTER_PERSIST_CHECKER_POOL_THREADS, -10);
+      newCheckerThreads = Configuration.getInt(PropertyKey.MASTER_PERSIST_CHECKER_POOL_THREADS);
+      Assert.assertTrue(newCheckerThreads == -10);
+      try {
+        stopServices();
+        startServices();
+      } catch (Exception e) {
+        // do nothing
+      }
+      Assert.assertNull(((DefaultFileSystemMaster) mFileSystemMaster).getPersistCheckerPool());
+    } finally {
+      Configuration.set(PropertyKey.MASTER_PERSIST_CHECKER_POOL_THREADS, checkerThreads);
+      stopServices();
+      startServices();
+    }
+  }
+
   /**
    * Tests the progression of a successful persist job.
    */
