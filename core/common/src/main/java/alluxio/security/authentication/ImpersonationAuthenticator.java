@@ -13,16 +13,25 @@ package alluxio.security.authentication;
 
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.sasl.AuthenticationException;
@@ -37,14 +46,28 @@ import javax.security.sasl.AuthenticationException;
  */
 @ThreadSafe
 public final class ImpersonationAuthenticator {
+  private static final Logger LOG = LoggerFactory.getLogger(ImpersonationAuthenticator.class);
   public static final String WILDCARD = "*";
   private static final Splitter SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
   // Maps users configured for impersonation to the set of groups which they can impersonate.
-  private final Map<String, Set<String>> mImpersonationGroups;
+  // Because volatile visibility piggy-backs, there is no need to add volatile on the
+  // mImpersonationGroups property.
+  private Map<String, Set<String>> mImpersonationGroups;
   // Maps users configured for impersonation to the set of users which they can impersonate.
-  private final Map<String, Set<String>> mImpersonationUsers;
+  private volatile Map<String, Set<String>> mImpersonationUsers;
 
-  private AlluxioConfiguration mConfiguration;
+  private final AlluxioConfiguration mConfiguration;
+  private static final Supplier<ImpersonationAuthenticator> SINGLETON =
+      Suppliers.memoize(() -> new ImpersonationAuthenticator(Configuration.global()));
+
+  /**
+   * return a {@link ImpersonationAuthenticator} singleton instance.
+   *
+   * @return ImpersonationAuthenticator
+   */
+  public static ImpersonationAuthenticator getInstance() {
+    return SINGLETON.get();
+  }
 
   /**
    * Constructs a new {@link ImpersonationAuthenticator}.
@@ -54,11 +77,75 @@ public final class ImpersonationAuthenticator {
    *
    * @param conf conf Alluxio configuration
    */
-  public ImpersonationAuthenticator(AlluxioConfiguration conf) {
-    mImpersonationGroups = new HashMap<>();
-    mImpersonationUsers = new HashMap<>();
+  ImpersonationAuthenticator(AlluxioConfiguration conf) {
     mConfiguration = conf;
+    loadImpersonationConfig(conf);
+    if (conf.getBoolean(PropertyKey.SECURITY_DYNAMIC_IMPERSONATION_ENABLED)) {
+      if (!(conf instanceof InstancedConfiguration)) {
+        LOG.warn("configuration is not instanced configuration. "
+            + "dynamic impersonation is not supported");
+        return;
+      }
+      startDynamicUpdateThread((InstancedConfiguration) conf);
+    }
+  }
 
+  private void startDynamicUpdateThread(InstancedConfiguration conf) {
+    Thread thread = new Thread(() -> {
+      String filePath = Configuration.serverConfigPath();
+      if (filePath == null) {
+        LOG.info("site property not set, exit the dynamic impersonation updater");
+        return;
+      }
+      File file = new File(filePath);
+      if (!file.exists()) {
+        LOG.info("{} not exists, exit the dynamic impersonation updater", filePath);
+        return;
+      }
+      long lastModified = file.lastModified();
+      while (true) {
+        try {
+          if (file.lastModified() > lastModified) {
+            lastModified = file.lastModified();
+            AlluxioProperties properties =
+                Configuration.loadProperties().getSecond().getProperties();
+            if (properties != null) {
+              for (PropertyKey key : mConfiguration.keySet()) {
+                if (PropertyKey.Template.MASTER_IMPERSONATION_GROUPS_OPTION.matches(key.getName())
+                    || PropertyKey.Template.MASTER_IMPERSONATION_USERS_OPTION
+                    .matches(key.getName())) {
+                  conf.unset(key);
+                }
+              }
+              for (Map.Entry<PropertyKey, Object> entry : properties.entrySet()) {
+                String key = entry.getKey().toString().trim();
+                String value = entry.getValue() == null ? null : entry.getValue().toString().trim();
+                if (value == null) {
+                  continue;
+                }
+                if (PropertyKey.Template.MASTER_IMPERSONATION_GROUPS_OPTION.matches(key)
+                    || PropertyKey.Template.MASTER_IMPERSONATION_USERS_OPTION.matches(key)) {
+                  conf.set(PropertyKey.fromString(key), value, Source.siteProperty(filePath));
+                }
+              }
+              loadImpersonationConfig(mConfiguration);
+              LOG.info("dynamic update impersonation config");
+            }
+          }
+          CommonUtils.sleepMs(
+              conf.getMs(PropertyKey.SECURITY_DYNAMIC_IMPERSONATION_REFRESH_INTERVAL));
+        } catch (Throwable e) {
+          LOG.error("failed to run dynamic impersonation updater", e);
+        }
+      }
+    }, "dynamic-impersonation-updater");
+    thread.setDaemon(true);
+    thread.start();
+  }
+
+  private void loadImpersonationConfig(AlluxioConfiguration conf) {
+    Map<String, Set<String>> impersonationUsers = new HashMap<>();
+    Map<String, Set<String>> impersonationGroups = new HashMap<>();
     for (PropertyKey key : conf.keySet()) {
       // Process impersonation groups
       Matcher matcher =
@@ -67,7 +154,7 @@ public final class ImpersonationAuthenticator {
         String connectionUser = matcher.group(1);
         String value = conf.getOrDefault(key, null);
         if (connectionUser != null) {
-          mImpersonationGroups.put(connectionUser, Sets.newHashSet(SPLITTER.split(value)));
+          impersonationGroups.put(connectionUser, Sets.newHashSet(SPLITTER.split(value)));
         }
       }
 
@@ -77,10 +164,12 @@ public final class ImpersonationAuthenticator {
         String connectionUser = matcher.group(1);
         String value = conf.getOrDefault(key, null);
         if (connectionUser != null) {
-          mImpersonationUsers.put(connectionUser, Sets.newHashSet(SPLITTER.split(value)));
+          impersonationUsers.put(connectionUser, Sets.newHashSet(SPLITTER.split(value)));
         }
       }
     }
+    mImpersonationGroups = impersonationGroups;
+    mImpersonationUsers = impersonationUsers;
   }
 
   /**
