@@ -11,6 +11,8 @@
 
 package alluxio.jnifuse.struct;
 
+import alluxio.jnifuse.LibFuse;
+import alluxio.jnifuse.utils.LibfuseVersion;
 import alluxio.jnifuse.utils.NativeLibraryLoader;
 
 import jnr.ffi.Runtime;
@@ -18,6 +20,7 @@ import jnr.ffi.Struct;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import javax.security.auth.login.Configuration;
 
 public class FuseFileInfo extends Struct {
   public ByteBuffer buffer;
@@ -41,7 +44,7 @@ public class FuseFileInfo extends Struct {
     if (state == NativeLibraryLoader.LoadState.NOT_LOADED) {
       throw new RuntimeException("NativeLibraryLoader is not loaded");
     }
-    FuseFileInfo fi = state == NativeLibraryLoader.LoadState.LOADED_2
+    FuseFileInfo fi = (LibFuse.getLibFuseVersion() == LibfuseVersion.VERSION_2)
         ? new Fuse2FuseFileInfo(runtime, buffer)
         : new Fuse3FuseFileInfo(runtime, buffer);
     fi.useMemory(jnr.ffi.Pointer.wrap(runtime, buffer));
