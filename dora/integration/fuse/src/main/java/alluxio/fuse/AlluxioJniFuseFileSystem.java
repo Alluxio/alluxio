@@ -284,7 +284,7 @@ public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   }
 
   @Override
-  public int readdir(String path, long buff, long filter, long offset,
+  public synchronized int readdir(String path, long buff, long filter, long offset,
       FuseFileInfo fi) {
     return AlluxioFuseUtils.call(LOG, () -> readdirInternal(path, buff, filter, offset, fi),
         FuseConstants.FUSE_READDIR, "path=%s", path);
@@ -387,7 +387,7 @@ public class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem {
   }
 
   @Override
-  public int release(String path, FuseFileInfo fi) {
+  public synchronized int release(String path, FuseFileInfo fi) {
     long fd = fi.fh.get();
     return AlluxioFuseUtils.call(LOG, () -> releaseInternal(path, fd),
         "Fuse.Release", "path=%s,fd=%s", path, fd);
