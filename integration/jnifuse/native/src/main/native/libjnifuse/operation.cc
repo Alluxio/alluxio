@@ -10,6 +10,8 @@
  */
 
 #include "debug.h"
+#include <string.h>
+#include <stdlib.h>
 #include "jnifuse_jvm.h"
 #include "operation.h"
 
@@ -518,6 +520,31 @@ int UtimensOperation::call(const char *path, const struct timespec ts[2]) {
 
   env->DeleteLocalRef(jspath);
 
+  return ret;
+}
+
+IoctlOperation::IoctlOperation(JniFuseFileSystem *fs) {
+  this->fs = fs;
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
+  this->obj = this->fs->getFSObj();
+  this->clazz = env->GetObjectClass(this->fs->getFSObj());
+  this->signature = "(Ljava/lang/String;ILjava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)I";
+  this->methodID = env->GetMethodID(this->clazz, "ioctlCallback", signature);
+}
+
+int IoctlOperation::call(const char *path, int cmd, void *arg,
+  struct fuse_file_info *fi, unsigned int flags, void *data) {
+  JNIEnv *env = AttachCurrentThreadIfNeeded();
+  jstring jspath = env->NewStringUTF(path);
+  jobject fibuf = env->NewDirectByteBuffer((void *)fi, sizeof(struct fuse_file_info));
+  ioctl_cmd_data_t* cmd_data = (ioctl_cmd_data_t *)data;
+  int cmd_type = cmd_data->cmd;
+  jobject jbuffer = env->NewDirectByteBuffer((char *)cmd_data->data, IOC_DATA_MAX_LENGTH);
+  int ret = env->CallIntMethod(this->obj, this->methodID, jspath, cmd_type, jbuffer, fibuf);
+  LOGE("Ioctl operation: data=%s", (char *)cmd_data->data);
+  env->DeleteLocalRef(jspath);
+  env->DeleteLocalRef(fibuf);
+  env->DeleteLocalRef(jbuffer);
   return ret;
 }
 }  // namespace jnifuse
