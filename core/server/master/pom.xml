@@ -79,6 +79,16 @@
       <artifactId>rocksdbjni</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.tikv</groupId>
+      <artifactId>tikv-client-java</artifactId>
+      <version>${tikv.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.jcraft</groupId>
+      <artifactId>jsch</artifactId>
+      <version>${jsch.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-json-jackson</artifactId>
       <scope>provided</scope>

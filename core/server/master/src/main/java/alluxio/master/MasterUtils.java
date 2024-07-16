@@ -22,6 +22,8 @@ import alluxio.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.rocks.RocksBlockMetaStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
+import alluxio.master.metastore.tikv.TiKVInodeStore;
+import alluxio.master.metastore.tikv.TiKVBlockMetaStore;
 import alluxio.util.CommonUtils;
 
 import java.util.ArrayList;
@@ -70,6 +72,8 @@ public final class MasterUtils {
         return HeapBlockMetaStore::new;
       case ROCKS:
         return () -> new RocksBlockMetaStore(baseDir);
+      case TIKV:
+        return () -> new TiKVBlockMetaStore(baseDir);
       default:
         throw new IllegalStateException("Unknown metastore type: " + type);
     }
@@ -91,6 +95,12 @@ public final class MasterUtils {
           return lockManager -> new RocksInodeStore(baseDir);
         } else {
           return lockManager -> new CachingInodeStore(new RocksInodeStore(baseDir), lockManager);
+        }
+      case TIKV:
+        if (Configuration.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE) == 0) {
+          return lockManager -> new TiKVInodeStore(baseDir);
+        } else {
+          return lockManager -> new CachingInodeStore(new TiKVInodeStore(baseDir), lockManager);
         }
       default:
         throw new IllegalStateException("Unknown metastore type: " + type);

@@ -86,6 +86,7 @@
                 <excludes>
                   <exclude>org.alluxio:alluxio-microbench</exclude>
                   <exclude>org.openjdk.jmh:*</exclude>
+                  <exclude>**/Log4j2Plugins.dat</exclude>
                 </excludes>
               </artifactSet>
               <filters>

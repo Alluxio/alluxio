@@ -132,6 +132,10 @@
       <artifactId>curator-framework</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.apache.thrift</groupId>
+      <artifactId>libthrift</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.zookeeper</groupId>
       <artifactId>zookeeper</artifactId>
     </dependency>
@@ -146,6 +150,11 @@
     <dependency>
       <groupId>org.rocksdb</groupId>
       <artifactId>rocksdbjni</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.tikv</groupId>
+      <artifactId>tikv-client-java</artifactId>
+      <version>${tikv.version}</version>
     </dependency>
     <!-- Determine version with the table here: https://github.com/grpc/grpc-java/blob/master/SECURITY.md-->
     <dependency>
