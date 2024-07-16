@@ -127,11 +127,6 @@ public class TOSUnderFileSystemTest {
     conf.put(PropertyKey.TOS_SECRET_KEY, "key2");
 
     UnderFileSystemConfiguration ufsConf = UnderFileSystemConfiguration.defaults(CONF);
-    // Implement the method to create a credentials provider from the configuration
-    // TOSCredentialsProvider credentialsProvider =
-    //   TOSUnderFileSystem.createTosCredentialsProvider(ufsConf);
-    // Assert.assertEquals("key1", credentialsProvider.getAccessKeyId());
-    // Assert.assertEquals("key2", credentialsProvider.getSecretAccessKey());
   }
 
   @Test
