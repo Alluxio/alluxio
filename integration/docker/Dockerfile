@@ -46,7 +46,7 @@ RUN if [ ${ENABLE_DYNAMIC_USER} = "true" ] ; then \
     fi
 
 # Configure Java
-FROM centos:7 as build_java8
+FROM rockylinux:8 as build_java8
 RUN \
     yum update -y && yum upgrade -y && \
     yum install -y java-1.8.0-openjdk-devel java-1.8.0-openjdk && \
@@ -82,7 +82,7 @@ RUN \
     cd .. && \
     rm -rf libfuse && \
     yum remove -y gcc gcc-c++ make cmake gettext-devel libtool autoconf wget git && \
-    yum install -y fuse3 fuse3-devel fuse3-lib && \
+    yum install -y fuse3 fuse3-devel fuse3-libs && \
     yum clean all
 
 # Configuration for the modified libfuse2

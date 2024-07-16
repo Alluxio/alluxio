@@ -26,7 +26,10 @@ import alluxio.job.wire.CmdStatusBlock;
 import alluxio.job.wire.JobSource;
 import alluxio.job.wire.SimpleJobStatusBlock;
 import alluxio.job.wire.Status;
+import alluxio.master.job.JobMaster;
 import alluxio.master.job.common.CmdInfo;
+import alluxio.master.job.plan.PlanTracker;
+import alluxio.master.job.workflow.WorkflowTracker;
 
 import com.beust.jcommander.internal.Lists;
 import org.junit.Assert;
@@ -46,6 +49,7 @@ import java.util.Set;
 public final class CmdJobTrackerTest {
   private static final int REPEATED_ATTEMPT_COUNT = 5;
   private static final int ONE_ATTEMPT = 1;
+  private static final long CAPACITY = 100;
 
   private CmdJobTracker mCmdJobTracker;
   private FileSystem mFs;
@@ -55,10 +59,14 @@ public final class CmdJobTrackerTest {
   private MigrateCliRunner mMigrateCliRunner;
   private DistLoadCliRunner mDistLoadRunner;
   private PersistRunner mPersistRunner;
-
+  private PlanTracker mPlanTracker;
   private LoadCliConfig mLoad;
   private MigrateCliConfig mMigrate;
   private List<Status> mSearchingCriteria = Lists.newArrayList();
+  private WorkflowTracker mWorkflowTracker;
+  private JobMaster mMockJobMaster;
+
+  private Long mRetentionTime;
 
   @Rule
   public ExpectedException mException = ExpectedException.none();
@@ -66,14 +74,17 @@ public final class CmdJobTrackerTest {
   @Before
   public void before() throws Exception {
     mFs = mock(FileSystem.class);
+    mRetentionTime = 1000L;
     FileSystemContext fsCtx = mock(FileSystemContext.class);
 
     mMigrateCliRunner = mock(MigrateCliRunner.class);
     mDistLoadRunner = mock(DistLoadCliRunner.class);
     mPersistRunner = mock(PersistRunner.class);
-
+    mPlanTracker = mock(PlanTracker.class);
+    mMockJobMaster = mock(JobMaster.class);
+    mWorkflowTracker = new WorkflowTracker(mMockJobMaster);
     mCmdJobTracker = new CmdJobTracker(fsCtx,
-            mDistLoadRunner, mMigrateCliRunner, mPersistRunner);
+            mDistLoadRunner, mMigrateCliRunner, mPersistRunner, mRetentionTime, mPlanTracker);
 
     mLoad = new LoadCliConfig("/path/to/load", 3, 1, Collections.EMPTY_SET,
             Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, true);
@@ -95,6 +106,33 @@ public final class CmdJobTrackerTest {
     mCmdJobTracker.run(mLoad, mLoadJobId);
     Status s = mCmdJobTracker.getCmdStatus(mLoadJobId);
     Assert.assertEquals(s, Status.COMPLETED);
+  }
+
+  @Test
+  public void runCleanExpiredJobsTest() throws Exception {
+    generateLoadCommandForStatus(Status.CANCELED);
+    generateLoadCommandForStatus(Status.RUNNING);
+    generateLoadCommandForStatus(Status.FAILED);
+    generateLoadCommandForStatus(Status.COMPLETED);
+    generateLoadCommandForStatus(Status.CREATED);
+    Thread.sleep(70000L);
+    // the expired job has been cleaned in mInfoMap
+    mSearchingCriteria.clear();
+    mSearchingCriteria.add(Status.CANCELED);
+    Set<Long> cancelCmdIds = mCmdJobTracker.findCmdIds(mSearchingCriteria);
+    Assert.assertEquals(0, cancelCmdIds.size());
+    mSearchingCriteria.clear();
+    mSearchingCriteria.add(Status.COMPLETED);
+    Set<Long> completedCmdIds = mCmdJobTracker.findCmdIds(mSearchingCriteria);
+    Assert.assertEquals(0, completedCmdIds.size());
+    mSearchingCriteria.clear();
+    mSearchingCriteria.add(Status.FAILED);
+    Set<Long> failedCmdIds = mCmdJobTracker.findCmdIds(mSearchingCriteria);
+    Assert.assertEquals(0, failedCmdIds.size());
+    mSearchingCriteria.clear();
+    mSearchingCriteria.add(Status.RUNNING);
+    Set<Long> runningCmdIds = mCmdJobTracker.findCmdIds(mSearchingCriteria);
+    Assert.assertEquals(2, runningCmdIds.size());
   }
 
   @Test
@@ -316,7 +354,7 @@ public final class CmdJobTrackerTest {
 
  // Below are all help functions.
   private void prepareDistLoadTest(
-          CmdInfo cmdInfo, LoadCliConfig loadCliConfig, long loadId) throws Exception {
+         CmdInfo cmdInfo, LoadCliConfig loadCliConfig, long loadId) throws Exception {
     AlluxioURI filePath = new AlluxioURI(loadCliConfig.getFilePath());
     int replication = loadCliConfig.getReplication();
     Set<String> workerSet = loadCliConfig.getWorkerSet();
@@ -325,7 +363,7 @@ public final class CmdJobTrackerTest {
     Set<String> excludedLocalityIds = loadCliConfig.getExcludedLocalityIds();
     boolean directCache = loadCliConfig.getDirectCache();
     int batch = loadCliConfig.getBatchSize();
-
+    // Mock the behavior of runDistLoad
     when(mDistLoadRunner.runDistLoad(batch, filePath, replication, workerSet,
             excludedWorkerSet, localityIds, excludedLocalityIds, directCache, loadId))
             .thenReturn(cmdInfo);
