@@ -35,6 +35,8 @@ import com.volcengine.tos.TosClientException;
 import com.volcengine.tos.TosException;
 import com.volcengine.tos.TosServerException;
 import com.volcengine.tos.auth.StaticCredentials;
+import com.volcengine.tos.model.bucket.HeadBucketV2Input;
+import com.volcengine.tos.model.bucket.HeadBucketV2Output;
 import com.volcengine.tos.model.object.AbortMultipartUploadInput;
 import com.volcengine.tos.model.object.CopyObjectV2Input;
 import com.volcengine.tos.model.object.CopyObjectV2Output;
@@ -145,9 +147,9 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
     super(uri, conf);
     mClient = tosClient;
     mBucketName = bucketName;
-    HeadObjectV2Input input = new HeadObjectV2Input().setBucket(mBucketName).setKey("");
+    HeadBucketV2Input input = new HeadBucketV2Input().setBucket(mBucketName);
     try {
-      HeadObjectV2Output output = mClient.headObject(input);
+      HeadBucketV2Output output = mClient.headBucket(input);
       mBucketType = output.getRequestInfo().getHeader().getOrDefault("x-tos-bucket-type", "fns");
     } catch (TosException e) {
       LOG.error("Failed to get bucket type for bucket {}", mBucketName, e);
