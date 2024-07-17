@@ -55,6 +55,8 @@ import com.volcengine.tos.model.object.ListedUpload;
 import com.volcengine.tos.model.object.ObjectMetaRequestOptions;
 import com.volcengine.tos.model.object.ObjectTobeDeleted;
 import com.volcengine.tos.model.object.PutObjectInput;
+import com.volcengine.tos.model.object.RenameObjectInput;
+import com.volcengine.tos.model.object.RenameObjectOutput;
 import com.volcengine.tos.transport.TransportConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,12 +148,7 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
     HeadObjectV2Input input = new HeadObjectV2Input().setBucket(mBucketName).setKey("");
     try {
       HeadObjectV2Output output = mClient.headObject(input);
-      if (output.getRequestInfo().getHeader()
-          .getOrDefault("x-tos-bucket-type", "fns").equals("hns")) {
-        mBucketType = "hns";
-      } else {
-        mBucketType = "fns";
-      }
+      mBucketType = output.getRequestInfo().getHeader().getOrDefault("x-tos-bucket-type", "fns");
     } catch (TosException e) {
       LOG.error("Failed to get bucket type for bucket {}", mBucketName, e);
       throw AlluxioTosException.from(e);
@@ -450,5 +447,25 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
   public void close() throws IOException {
     super.close();
     mClient.close();
+  }
+
+  private boolean isEnvironmentHNS() {
+    return "hns".equals(mBucketType);
+  }
+
+  @Override
+  public boolean renameDirectory(String src, String dst) throws IOException {
+    if (!isEnvironmentHNS()) {
+      return super.renameDirectory(src, dst);
+    }
+    try {
+      RenameObjectInput input = new RenameObjectInput().setBucket(mBucketName).setKey(src)
+          .setNewKey(dst);
+      RenameObjectOutput output = mClient.renameObject(input);
+      return true;
+    } catch (TosException e) {
+      LOG.error("Failed to rename directory {} to {}", src, dst, e);
+      return false;
+    }
   }
 }
