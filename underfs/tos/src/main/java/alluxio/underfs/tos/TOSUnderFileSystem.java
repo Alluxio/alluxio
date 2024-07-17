@@ -94,6 +94,8 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
    */
   private final String mBucketName;
 
+  private final String mBucketType;
+
   private final Supplier<ListeningExecutorService> mStreamingUploadExecutor;
 
   /**
@@ -141,6 +143,19 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
     super(uri, conf);
     mClient = tosClient;
     mBucketName = bucketName;
+    HeadObjectV2Input input = new HeadObjectV2Input().setBucket(mBucketName).setKey("");
+    try {
+      HeadObjectV2Output output = mClient.headObject(input);
+      if (output.getRequestInfo().getHeader()
+          .getOrDefault("x-tos-bucket-type", "fns").equals("hns")) {
+        mBucketType = "hns";
+      } else {
+        mBucketType = "fns";
+      }
+    } catch (TosException e) {
+      LOG.error("Failed to get bucket type for bucket {}", mBucketName, e);
+      throw AlluxioTosException.from(e);
+    }
     mStreamingUploadExecutor = Suppliers.memoize(() -> {
       int numTransferThreads =
           conf.getInt(PropertyKey.UNDERFS_TOS_STREAMING_UPLOAD_THREADS);
