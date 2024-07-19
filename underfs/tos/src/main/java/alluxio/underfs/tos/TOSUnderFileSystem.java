@@ -68,6 +68,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -299,7 +300,53 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
         new ListObjectsType2Input().setBucket(mBucketName).setDelimiter(delimiter).setPrefix(key);
     ListObjectsType2Output output = getObjectListingChunk(input);
     if (output != null) {
-      return new TOSObjectListingChunk(input, output);
+      if (!isEnvironmentHNS()) {
+        return new TOSObjectListingChunk(input, output);
+      }
+      else {
+        List<ListedCommonPrefix> prefixes = output.getCommonPrefixes();
+        List<ObjectStatus> allStatuses = new ArrayList<>();
+        List<String> allCommonPrefixes = new ArrayList<>();
+
+        while (output != null) {
+          allStatuses.addAll(
+              Arrays.asList(new TOSObjectListingChunk(input, output).getObjectStatuses()));
+          allCommonPrefixes.addAll(
+              Arrays.asList(new TOSObjectListingChunk(input, output).getCommonPrefixes()));
+          output = getObjectListingChunk(
+              input.setContinuationToken(output.getNextContinuationToken()));
+        }
+
+        for (String prefix : allCommonPrefixes) {
+          ObjectListingChunk subChunk = getObjectListingChunk(prefix, recursive);
+          if (subChunk != null) {
+            allStatuses.addAll(Arrays.asList(subChunk.getObjectStatuses()));
+            allCommonPrefixes.addAll(Arrays.asList(subChunk.getCommonPrefixes()));
+          }
+        }
+
+        return new ObjectListingChunk() {
+          @Override
+          public ObjectStatus[] getObjectStatuses() {
+            return allStatuses.toArray(new ObjectStatus[0]);
+          }
+
+          @Override
+          public String[] getCommonPrefixes() {
+            return allCommonPrefixes.toArray(new String[0]);
+          }
+
+          @Override
+          public ObjectListingChunk getNextChunk() {
+            return null;
+          }
+
+          @Override
+          public Boolean hasNextChunk() {
+            return false;
+          }
+        };
+      }
     }
     return null;
   }
@@ -314,6 +361,36 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
       result = null;
     }
     return result;
+  }
+
+  @Override
+  public boolean deleteDirectory(String key) throws IOException {
+    if (!isEnvironmentHNS()) {
+      return super.deleteDirectory(key);
+    }
+
+    List<String> keysToDelete = new ArrayList<>();
+    ObjectListingChunk listingChunk = getObjectListingChunk(key, true);
+
+    while (listingChunk != null) {
+      for (ObjectStatus status : listingChunk.getObjectStatuses()) {
+        keysToDelete.add(status.getName());
+      }
+
+      String[] prefixes = listingChunk.getCommonPrefixes();
+      for (String prefix : prefixes) {
+        if (!deleteDirectory(prefix)) {
+          return false;
+        }
+      }
+      listingChunk = listingChunk.getNextChunk();
+    }
+
+    if (!keysToDelete.isEmpty()) {
+      deleteObjects(keysToDelete);
+    }
+
+    return deleteObject(key);
   }
 
   /**
