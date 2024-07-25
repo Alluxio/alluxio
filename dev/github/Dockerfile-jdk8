@@ -57,8 +57,7 @@ RUN ARCH=$(dpkg --print-architecture) && \
     wget --quiet https://releases.hashicorp.com/terraform/1.0.1/terraform_1.0.1_linux_${ARCH}.zip && \
     unzip -o ./terraform_1.0.1_linux_${ARCH}.zip -d /usr/local/bin/ && \
     rm terraform_1.0.1_linux_${ARCH}.zip
-# ucx for rdma \
-# UCX 1.16.0
+# UCX for RDMA
 RUN wget https://github.com/openucx/ucx/releases/download/v1.16.0/ucx-1.16.0.tar.gz && \
     tar xzf ucx-1.16.0.tar.gz && \
     cd ucx-1.16.0 && \
