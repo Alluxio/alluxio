@@ -39,9 +39,9 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import com.google.common.base.Strings;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
-import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
+import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -295,7 +295,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
     if (isRealContentHash) {
       ByteSource byteSource = com.google.common.io.Files.asByteSource(file);
       HashCode hashCode = byteSource.hash(Hashing.md5());
-      contentHash = BaseEncoding.base64().encode(hashCode.asBytes());
+      contentHash = Hex.encodeHexString(hashCode.asBytes());
     }
     else {
       contentHash =
