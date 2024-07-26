@@ -31,7 +31,6 @@
       <groupId>io.github.opendataio</groupId>
       <artifactId>libcephfs</artifactId>
       <version>0.0.1</version>
-      <scope>provided</scope>
     </dependency>
 
     <!-- Internal dependencies -->
