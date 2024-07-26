@@ -15,6 +15,7 @@ import alluxio.master.table.DatabaseInfo;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The database interface.
@@ -38,10 +39,9 @@ public interface UnderDatabase {
 
   /**
    * @param tableName the table name
-   * @param bypassSpec table and partition bypass specification
    * @return the {@link UdbTable} for the specified table name
    */
-  UdbTable getTable(String tableName, UdbBypassSpec bypassSpec) throws IOException;
+  UdbTable getTable(String tableName) throws IOException;
 
   /**
    * @return the {@link UdbContext}
@@ -52,4 +52,11 @@ public interface UnderDatabase {
    * @return get database info
    */
   DatabaseInfo getDatabaseInfo() throws IOException;
+
+  /**
+   * Mount the tables. Should be called only once, and before calls to {@link #getTable(String)}.
+   * @param tableNames table names
+   * @param bypassSpec bypassSpec
+   */
+  void mount(Set<String> tableNames, UdbBypassSpec bypassSpec) throws IOException;
 }
