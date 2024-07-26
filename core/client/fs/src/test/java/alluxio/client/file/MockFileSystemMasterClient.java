@@ -28,6 +28,7 @@ import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.grpc.LostBlockList;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
@@ -201,6 +202,11 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   @Override
   public List<String> getStateLockHolders() throws AlluxioStatusException {
     return Collections.EMPTY_LIST;
+  }
+
+  @Override
+  public Map<Long, LostBlockList> getLostFiles() throws AlluxioStatusException {
+    return Collections.EMPTY_MAP;
   }
 
   @Override
