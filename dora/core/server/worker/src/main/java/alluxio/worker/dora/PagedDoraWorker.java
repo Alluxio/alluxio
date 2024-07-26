@@ -45,6 +45,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
@@ -371,17 +372,16 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Nullable
   public UfsStatus[] listStatus(String path, ListStatusPOptions options)
       throws IOException, AccessControlException {
-    final long syncIntervalMs = options.hasCommonOptions()
-        ? (options.getCommonOptions().hasSyncIntervalMs()
-        ? options.getCommonOptions().getSyncIntervalMs() : -1) :
-        -1;
+    long syncIntervalMs = -1;
+    if (options.hasCommonOptions()) {
+      syncIntervalMs = getSyncIntervalMsFromOptions(options.getCommonOptions());
+    }
     boolean isRecursive = options.getRecursive();
     final Optional<ListStatusResult> resultFromCache = mMetaManager.listCached(path, isRecursive);
     if (resultFromCache.isPresent()
         && options.getLoadMetadataType() != LoadMetadataPType.ALWAYS
         && (syncIntervalMs < 0
-        || System.nanoTime() - resultFromCache.get().mTimeStamp
-        <= syncIntervalMs * Constants.MS_NANO)) {
+        || cacheIsValid(resultFromCache.get().mTimeStamp, syncIntervalMs))) {
       MetricsSystem.counter(MetricKey.WORKER_LIST_STATUS_HIT_REQUESTS.getName()).inc();
       return resultFromCache.get().mUfsStatuses;
     }
@@ -392,13 +392,25 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return ufsStatuses.orElse(null);
   }
 
+  private long getSyncIntervalMsFromOptions(FileSystemMasterCommonPOptions options) {
+    if (options.hasSyncIntervalMs()) {
+      return options.getSyncIntervalMs();
+    } else {
+      return -1;
+    }
+  }
+
+  private boolean cacheIsValid(long cacheStatusTime, long syncInterval) {
+    return System.nanoTime() - cacheStatusTime <= syncInterval * Constants.MS_NANO;
+  }
+
   @Override
   public FileInfo getFileInfo(String ufsFullPath, GetStatusPOptions options)
       throws IOException, AccessControlException {
-    long syncIntervalMs = options.hasCommonOptions()
-        ? (options.getCommonOptions().hasSyncIntervalMs()
-        ? options.getCommonOptions().getSyncIntervalMs() : -1) :
-        -1;
+    long syncIntervalMs = -1;
+    if (options.hasCommonOptions()) {
+      syncIntervalMs = getSyncIntervalMsFromOptions(options.getCommonOptions());
+    }
     alluxio.grpc.FileInfo fi = getGrpcFileInfo(ufsFullPath, syncIntervalMs);
     int cachedPercentage = getCachedPercentage(fi, ufsFullPath);
 
@@ -413,7 +425,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     boolean shouldLoad = !status.isPresent();
     if (syncIntervalMs >= 0 && status.isPresent()) {
       // Check if the metadata is still valid.
-      if (System.nanoTime() - status.get().getTs() > syncIntervalMs * Constants.MS_NANO) {
+      if (!cacheIsValid(status.get().getTs(), syncIntervalMs)) {
         shouldLoad = true;
       }
     }
@@ -1086,10 +1098,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public boolean exists(String path, ExistsPOptions options) throws IOException {
-    long syncIntervalMs = options.hasCommonOptions()
-        ? (options.getCommonOptions().hasSyncIntervalMs()
-        ? options.getCommonOptions().getSyncIntervalMs() : -1) :
-        -1;
+    long syncIntervalMs = -1;
+    if (options.hasCommonOptions()) {
+      syncIntervalMs = getSyncIntervalMsFromOptions(options.getCommonOptions());
+    }
     try {
       return getGrpcFileInfo(path, syncIntervalMs) != null;
     } catch (FileNotFoundException e) {
