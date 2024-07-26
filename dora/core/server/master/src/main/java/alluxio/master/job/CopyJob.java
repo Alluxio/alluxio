@@ -216,7 +216,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     setJobState(JobState.FAILED, true);
     mFailedReason = Optional.of(reason);
     JOB_COPY_FAIL.inc();
-    LOG.info("Copy Job {} fails with status: {}", mJobId, this);
+    LOG.info("Copy Job {} failed with status: {}", mJobId, this);
   }
 
   @Override
