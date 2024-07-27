@@ -239,6 +239,8 @@ public class FileSystemOptionsUtils {
         .setLoadMetadataType(conf.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
             LoadMetadataPType.class))
         .setLoadMetadataOnly(false)
+        .setDisableAreDescendantsLoadedCheck(conf.getBoolean(
+            PropertyKey.USER_FILE_METADATA_LOAD_DESCENDANTS_CHECK_DISABLED))
         .build();
   }
 
