@@ -82,7 +82,7 @@ public class MembershipManagerTest {
 
   @ClassRule
   public static final GenericContainer<?> ETCD_CONTAINER =
-      new GenericContainer<>("quay.io/coreos/etcd:latest")
+      new GenericContainer<>("quay.io/coreos/etcd:v3.5.13")
           .withCommand("etcd",
               "--listen-client-urls", "http://0.0.0.0:" + ETCD_PORT,
               "--advertise-client-urls", "http://0.0.0.0:" + ETCD_PORT)
