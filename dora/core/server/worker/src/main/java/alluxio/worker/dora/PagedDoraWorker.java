@@ -24,6 +24,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageId;
+import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.dora.netty.NettyDataReader;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
@@ -89,6 +90,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.uri.UfsUrl;
 import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -1293,5 +1295,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         .setFileInfo(buildFileInfoFromUfsStatus(cacheUsage, ufsType, status, ufsFullPath, xattrMap))
         .setTs(System.nanoTime())
         .build();
+  }
+
+  /**
+   * Get page info by a prefix.
+   * @param ufsUrl the start UfsUrl
+   * @return the PageInfo set
+   */
+  public List<PageInfo> getPageInfoByPrefix(UfsUrl ufsUrl) {
+    return mCacheManager.getPageInfoByPrefix(ufsUrl);
   }
 }

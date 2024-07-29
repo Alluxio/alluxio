@@ -16,6 +16,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
+import alluxio.uri.UfsUrl;
 import alluxio.util.OSUtils;
 
 import com.google.common.base.CharMatcher;
@@ -525,5 +526,19 @@ public final class PathUtils {
       throw new InvalidPathException(String.format(
           "UFS root %s is not a prefix of %s", ufsRootPath, ufsPath));
     }
+  }
+
+  /**
+   * Converts the Ufs path string to {@link UfsUrl}.
+   * If the path has no scheme, regards it as a local file.
+   *
+   * @param ufsPath the string representing an ufs path
+   * @return the UfsUrl instance
+   */
+  public static UfsUrl convertUfsPathToUfsUrl(String ufsPath) {
+    if (ufsPath.contains(UfsUrl.SCHEME_SEPARATOR)) {
+      return UfsUrl.createInstance(ufsPath);
+    }
+    return UfsUrl.createInstance("file" + UfsUrl.SCHEME_SEPARATOR + ufsPath);
   }
 }
