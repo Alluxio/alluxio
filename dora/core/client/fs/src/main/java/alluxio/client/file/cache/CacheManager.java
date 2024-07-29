@@ -22,6 +22,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.resource.LockResource;
+import alluxio.uri.UfsUrl;
 
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
@@ -393,4 +394,13 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
   Optional<DataFileChannel> getDataFileChannel(
       PageId pageId, int pageOffset, int bytesToRead, CacheContext cacheContext)
       throws PageNotFoundException;
+
+  /**
+   * Get pageInfo of a specific prefix.
+   * @param ufsUrl the prefix of UfsUrl
+   * @return a list of PageInfos with the same prefix
+   */
+  default List<PageInfo> getPageInfoByPrefix(UfsUrl ufsUrl) {
+    throw new UnsupportedOperationException("Unsupported method: getPageInfoByPrefix");
+  }
 }

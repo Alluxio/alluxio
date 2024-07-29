@@ -13,6 +13,7 @@ package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
+import alluxio.uri.UfsUrl;
 
 import com.google.common.base.MoreObjects;
 
@@ -64,6 +65,16 @@ public class PageInfo {
     mCacheScope = cacheScope;
     mLocalCacheDir = pageStoreDir;
     mCreatedTimestamp = createdTimestamp;
+  }
+
+  /**
+   * @return the UfsUrl
+   */
+  public UfsUrl getUfsUrl() {
+    if (mPageId.getFileId().contains(UfsUrl.SCHEME_SEPARATOR)) {
+      return UfsUrl.createInstance(mPageId.getFileId());
+    }
+    return UfsUrl.createInstance("zzz:///" + mPageId.getFileId());
   }
 
   /**
