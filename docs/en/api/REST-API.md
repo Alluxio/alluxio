@@ -9,7 +9,7 @@ interact with Alluxio through REST API for actions not supported by S3 API. For 
 
 ## REST API
 
-For portability with other language, the [Alluxio Java API]({{ '/en/api/Java-API.html' | relativize_url }})) is also
+For portability with other language, the [Alluxio Java API]({{ '/en/api/Java-API.html' | relativize_url }}) is also
 accessible via an HTTP proxy in the form of a REST API. Alluxio's Python and Go clients rely on 
 this REST API to talk to Alluxio.
 
@@ -31,7 +31,7 @@ run the proxy server and an Alluxio worker on each compute node.
 ## Python
 
 Alluxio has a [Python Client](https://github.com/Alluxio/alluxio-py) for interacting with Alluxio through its
-[REST API](#rest-api). The Python client exposes an API similar to the [Alluxio Java API]({{ '/en/api/Java-API.html' | relativize_url }})).
+[REST API](#rest-api). The Python client exposes an API similar to the [Alluxio Java API]({{ '/en/api/Java-API.html' | relativize_url }}).
 See the [doc](http://alluxio-py.readthedocs.io) for detailed documentation about all available
 methods. See the [example](https://github.com/Alluxio/alluxio-py/blob/master/example.py) on how to perform basic
 file system operations in Alluxio.
