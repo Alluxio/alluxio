@@ -1459,12 +1459,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
-  public static final PropertyKey UNDERFS_S3_THREADS_MAX =
-      intBuilder(Name.UNDERFS_S3_THREADS_MAX)
-          .setDefaultValue(40)
-          .setDescription("The maximum number of threads to use for communicating with S3 and "
-              + "the maximum number of concurrent connections to S3. Includes both threads "
-              + "for data upload and metadata operations. This number should be at least as "
+  public static final PropertyKey UNDERFS_S3_CONNECTIONS_MAX =
+      intBuilder(Name.UNDERFS_S3_CONNECTIONS_MAX)
+          .setAlias("alluxio.underfs.s3.threads.max")
+          .setDefaultValue(1024)
+          .setDescription("The maximum number of concurrent connections to communicate with S3. "
+              + "This value includes both connections for data upload and metadata operations. "
+              + "This number should be at least as "
               + "large as the max admin threads plus max upload threads.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
@@ -8104,7 +8105,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_S3_PROXY_HOST = "alluxio.underfs.s3.proxy.host";
     public static final String UNDERFS_S3_PROXY_PORT = "alluxio.underfs.s3.proxy.port";
     public static final String UNDERFS_S3_REGION = "alluxio.underfs.s3.region";
-    public static final String UNDERFS_S3_THREADS_MAX = "alluxio.underfs.s3.threads.max";
+    public static final String UNDERFS_S3_CONNECTIONS_MAX = "alluxio.underfs.s3.connections.max";
     public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
         "alluxio.underfs.s3.upload.threads.max";
     public static final String KODO_ENDPOINT = "alluxio.underfs.kodo.endpoint";

@@ -221,14 +221,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     int numAdminThreads = conf.getInt(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX);
     int numTransferThreads =
         conf.getInt(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX);
-    int numThreads = conf.getInt(PropertyKey.UNDERFS_S3_THREADS_MAX);
-    if (numThreads < numAdminThreads + numTransferThreads) {
+    int numConns = conf.getInt(PropertyKey.UNDERFS_S3_CONNECTIONS_MAX);
+    if (numConns < numAdminThreads + numTransferThreads) {
       LOG.warn("Configured s3 max threads ({}) is less than # admin threads ({}) plus transfer "
           + "threads ({}). Using admin threads + transfer threads as max threads instead.",
-              numThreads, numAdminThreads, numTransferThreads);
-      numThreads = numAdminThreads + numTransferThreads;
+              numConns, numAdminThreads, numTransferThreads);
+      numConns = numAdminThreads + numTransferThreads;
     }
-    clientConf.setMaxConnections(numThreads);
+    clientConf.setMaxConnections(numConns);
 
     // Set client request timeout for all requests since multipart copy is used,
     // and copy parts can only be set with the client configuration.
