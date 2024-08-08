@@ -145,7 +145,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         + "data locates in the local worker {}, shortCircuitEnabled {}, "
         + "shortCircuitPreferred {}, sourceSupportDomainSocket {}, enablePrefetchRead {})",
         blockId, dataSource, NetworkAddressUtils.getClientHostName(alluxioConf), dataSource,
-        sourceIsLocal, shortCircuit, shortCircuitPreferred, sourceSupportsDomainSocket, enablePrefetchRead);
+        sourceIsLocal, shortCircuit, shortCircuitPreferred, sourceSupportsDomainSocket,
+        enablePrefetchRead);
     return createGrpcBlockInStream(context, dataSource, dataSourceType, blockId,
         blockSize, options);
   }
@@ -289,8 +290,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * @param enablePrefetchRead whether to enable prefetch
    */
   @VisibleForTesting
-  protected BlockInStream(DataReader.Factory dataReaderFactory,
-      WorkerNetAddress address, BlockInStreamSource blockSource, long id, long length, boolean enablePrefetchRead) {
+  protected BlockInStream(DataReader.Factory dataReaderFactory, WorkerNetAddress address,
+      BlockInStreamSource blockSource, long id, long length, boolean enablePrefetchRead) {
     this(dataReaderFactory, address, blockSource, id, length);
     mEnablePrefetchRead = enablePrefetchRead;
   }
