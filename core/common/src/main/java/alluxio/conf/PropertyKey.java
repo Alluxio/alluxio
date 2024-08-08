@@ -7090,7 +7090,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-
+  public static final PropertyKey USER_PREFETCH_READ_ENABLED =
+      booleanBuilder(Name.USER_PREFETCH_READ_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether to enable the data prefetch, when remote read, "
+              + "prevents the worker from sending the entire block of data to the client.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   //
   // FUSE integration related properties
   //
@@ -9288,6 +9295,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.short.circuit.preferred";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
+    public static final String USER_PREFETCH_READ_ENABLED = "alluxio.user.prefetch.read.enabled";
 
     //
     // FUSE integration related properties

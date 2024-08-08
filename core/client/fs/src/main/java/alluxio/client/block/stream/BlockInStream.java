@@ -79,6 +79,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   private boolean mClosed = false;
   private boolean mEOF = false;
+  private boolean mEnablePrefetchRead = true;
 
   /**
    * Creates a {@link BlockInStream}.
@@ -120,6 +121,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
     boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.NODE_LOCAL;
+    boolean enablePrefetchRead = alluxioConf.getBoolean(PropertyKey.USER_PREFETCH_READ_ENABLED);
 
     // Short circuit is enabled when
     // 1. data source is local node
@@ -141,9 +143,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     // gRPC
     LOG.debug("Creating gRPC input stream for block {} @ {} from client {} reading through {} ("
         + "data locates in the local worker {}, shortCircuitEnabled {}, "
-        + "shortCircuitPreferred {}, sourceSupportDomainSocket {})",
+        + "shortCircuitPreferred {}, sourceSupportDomainSocket {}, enablePrefetchRead {})",
         blockId, dataSource, NetworkAddressUtils.getClientHostName(alluxioConf), dataSource,
-        sourceIsLocal, shortCircuit, shortCircuitPreferred, sourceSupportsDomainSocket);
+        sourceIsLocal, shortCircuit, shortCircuitPreferred, sourceSupportsDomainSocket, enablePrefetchRead);
     return createGrpcBlockInStream(context, dataSource, dataSourceType, blockId,
         blockSize, options);
   }
@@ -208,6 +210,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     AlluxioConfiguration conf = context.getClusterConf();
     long chunkSize = conf.getBytes(
         PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
+    boolean enablePrefetchRead = conf.getBoolean(
+        PropertyKey.USER_PREFETCH_READ_ENABLED);
     // Construct the partial read request
     ReadRequest.Builder builder = ReadRequest.newBuilder()
         .setBlockId(blockId)
@@ -224,7 +228,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     } else {
       factory = new GrpcDataReader.Factory(context, address, builder);
     }
-    return new BlockInStream(factory, address, blockSource, blockId, blockSize);
+    return new BlockInStream(factory, address, blockSource, blockId, blockSize, enablePrefetchRead);
   }
 
   /**
@@ -246,11 +250,13 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     AlluxioConfiguration conf = context.getClusterConf();
     long chunkSize = conf.getBytes(
         PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
+    boolean enablePrefetchRead = conf.getBoolean(
+        PropertyKey.USER_PREFETCH_READ_ENABLED);
     ReadRequest readRequest = ReadRequest.newBuilder().setBlockId(blockId)
         .setOpenUfsBlockOptions(ufsOptions).setChunkSize(chunkSize).buildPartial();
     DataReader.Factory factory = new GrpcDataReader.Factory(context, address,
         readRequest.toBuilder());
-    return new BlockInStream(factory, address, blockSource, blockId, blockSize);
+    return new BlockInStream(factory, address, blockSource, blockId, blockSize, enablePrefetchRead);
   }
 
   /**
@@ -270,6 +276,23 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     mInStreamSource = blockSource;
     mId = id;
     mLength = length;
+  }
+
+  /**
+   * Creates an instance of {@link BlockInStream}.
+   *
+   * @param dataReaderFactory the data reader factory
+   * @param address the address of the gRPC data server
+   * @param blockSource the source location of the block
+   * @param id the ID (either block ID or UFS file ID)
+   * @param length the length
+   * @param enablePrefetchRead whether to enable prefetch
+   */
+  @VisibleForTesting
+  protected BlockInStream(DataReader.Factory dataReaderFactory,
+      WorkerNetAddress address, BlockInStreamSource blockSource, long id, long length, boolean enablePrefetchRead) {
+    this(dataReaderFactory, address, blockSource, id, length);
+    mEnablePrefetchRead = enablePrefetchRead;
   }
 
   @Override
@@ -318,7 +341,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (mPos == mLength) {
       return -1;
     }
-    readChunk();
+    if (mEnablePrefetchRead) {
+      readChunk();
+    } else {
+      readLengthChunk(len);
+    }
     if (mCurrentChunk == null) {
       mEOF = true;
     }
@@ -492,6 +519,21 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (mCurrentChunk != null && mCurrentChunk.readableBytes() == 0) {
       mCurrentChunk.release();
       mCurrentChunk = null;
+    }
+    if (mCurrentChunk == null) {
+      mCurrentChunk = mDataReader.readChunk();
+    }
+  }
+
+  /**
+   * Reads a new length from the channel into current chunk.
+   */
+  private void readLengthChunk(int length) throws IOException {
+    if (mDataReader == null) {
+      mDataReader = mDataReaderFactory.create(mPos, length);
+    } else if (mCurrentChunk != null && mCurrentChunk.readableBytes() == 0) {
+      closeDataReader();
+      mDataReader = mDataReaderFactory.create(mPos, length);
     }
     if (mCurrentChunk == null) {
       mCurrentChunk = mDataReader.readChunk();
