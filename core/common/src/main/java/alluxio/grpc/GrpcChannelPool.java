@@ -26,8 +26,8 @@ import alluxio.util.network.tls.SslContextProvider;
 import com.google.common.base.Preconditions;
 import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
-import io.grpc.netty.NettyChannelBuilder;
-import io.netty.channel.EventLoopGroup;
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
+import io.grpc.netty.shaded.io.netty.channel.EventLoopGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

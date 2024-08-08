@@ -23,12 +23,12 @@ import com.google.common.io.Closer;
 import io.grpc.ServerInterceptor;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
-import io.grpc.netty.NettyServerBuilder;
+import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
+import io.grpc.netty.shaded.io.netty.channel.ChannelOption;
+import io.grpc.netty.shaded.io.netty.channel.EventLoopGroup;
+import io.grpc.netty.shaded.io.netty.channel.ServerChannel;
+import io.grpc.netty.shaded.io.netty.handler.ssl.SslContext;
 import io.grpc.protobuf.services.ProtoReflectionService;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.ServerChannel;
-import io.netty.handler.ssl.SslContext;
 
 import java.util.HashSet;
 import java.util.Set;
