@@ -119,6 +119,34 @@ public class BlockInStreamTest {
   }
 
   @Test
+  public void disablePrefetchReadTest() throws Exception {
+    int chunkSize = 512;
+    TestDataReader.Factory factory = new TestDataReader.Factory(
+        chunkSize, BufferUtils.getIncreasingByteArray(2 * chunkSize));
+    BlockInStream stream = new BlockInStream(factory, new WorkerNetAddress(),
+        BlockInStream.BlockInStreamSource.REMOTE, -1, 1024, false);
+    byte[] res = new byte[chunkSize];
+    int read;
+    read = stream.read(res);
+    TestDataReader reader = factory.getDataReader();
+    assertEquals(chunkSize, read);
+    assertEquals(stream.mCurrentChunk.getLength(), res.length);
+    assertNotNull(reader);
+    assertFalse(reader.isClosed());
+
+    read = stream.read(res, 0, chunkSize);
+    assertEquals(chunkSize, read);
+    assertTrue(reader.isClosed());
+
+    read = stream.read(res, 0, chunkSize);
+    assertEquals(-1, read);
+    assertTrue(reader.isClosed());
+
+    stream.close();
+    assertTrue(reader.isClosed());
+  }
+
+  @Test
   public void createShortCircuit() throws Exception {
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.NODE_LOCAL;
