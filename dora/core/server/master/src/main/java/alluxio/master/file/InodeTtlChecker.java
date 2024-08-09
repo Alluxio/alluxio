@@ -13,6 +13,8 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
@@ -116,7 +118,8 @@ final class InodeTtlChecker implements HeartbeatExecutor {
                   mInodeTree.updateInode(journalContext, UpdateInodeEntry.newBuilder()
                       .setId(inode.getId())
                       .setTtl(Constants.NO_TTL)
-                      .setTtlAction(ProtobufUtils.toProtobuf(TtlAction.DELETE))
+                      .setTtlAction(ProtobufUtils.toProtobuf(Configuration
+                          .getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class)))
                       .build());
                 }
                 break;
