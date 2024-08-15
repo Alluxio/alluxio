@@ -66,6 +66,7 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
   private final MetadataCache mMetadataCache;
   private final ExecutorService mAccessTimeUpdater;
   private final boolean mDisableUpdateFileAccessTime;
+  private final boolean mNegativeCacheEnabled;
 
   /**
    * @param fileSystem the file system
@@ -88,6 +89,8 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
         .getInt(PropertyKey.USER_FILE_MASTER_CLIENT_POOL_SIZE_MAX);
     mDisableUpdateFileAccessTime = mFsContext.getClusterConf()
         .getBoolean(PropertyKey.USER_UPDATE_FILE_ACCESSTIME_DISABLED);
+    mNegativeCacheEnabled = mFsContext.getClusterConf().getBoolean(
+        PropertyKey.USER_METADATA_CACHE_NEGATIVE_CACHE_ENABLED);
     // At a time point, there are at most the same number of concurrent master clients that
     // asynchronously update access time.
     mAccessTimeUpdater = new ThreadPoolExecutor(0, masterClientThreads, THREAD_KEEPALIVE_SECOND,
@@ -147,7 +150,9 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
         status = mDelegatedFileSystem.getStatus(path, options);
         mMetadataCache.put(path, status);
       } catch (FileDoesNotExistException e) {
-        mMetadataCache.put(path, NOT_FOUND_STATUS);
+        if (mNegativeCacheEnabled) {
+          mMetadataCache.put(path, NOT_FOUND_STATUS);
+        }
         throw e;
       }
     } else if (status == NOT_FOUND_STATUS) {

@@ -73,6 +73,7 @@ public class MetadataCachingFileSystemTest {
     mConf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 1000, Source.RUNTIME);
     // Avoid async update file access time to call getStatus to mess up the test results
     mConf.set(PropertyKey.USER_UPDATE_FILE_ACCESSTIME_DISABLED, true);
+    mConf.set(PropertyKey.USER_METADATA_CACHE_NEGATIVE_CACHE_ENABLED, true);
     mClientContext = ClientContext.create(mConf);
     mFileContext = PowerMockito.mock(FileSystemContext.class);
     when(mFileContext.getClientContext()).thenReturn(mClientContext);
