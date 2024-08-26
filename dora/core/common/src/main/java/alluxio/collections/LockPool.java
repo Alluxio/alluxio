@@ -158,6 +158,7 @@ public class LockPool<K> implements Closeable {
           if (!mIterator.hasNext()) {
             mIterator = mPool.entrySet().iterator();
             roundToScan--;
+            mOverHighWatermark.await(EVICTION_MAX_AWAIT_TIME, TimeUnit.MILLISECONDS);
           }
           Map.Entry<K, Resource> candidateMapEntry = mIterator.next();
           Resource candidate = candidateMapEntry.getValue();
