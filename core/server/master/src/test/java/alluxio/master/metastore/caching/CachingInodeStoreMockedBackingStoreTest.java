@@ -339,7 +339,7 @@ public class CachingInodeStoreMockedBackingStoreTest {
   @Test
   public void evictInodeForTestHasChildren() throws Exception {
     MutableInodeDirectory myTestdir =
-        MutableInodeDirectory.create(500, 0, "guptest", CreateDirectoryContext.defaults());
+        MutableInodeDirectory.create(500, 0, "evicttest", CreateDirectoryContext.defaults());
     mStore.writeNewInode(myTestdir);
     mStore.mListingCache.evictForTesting();
     mStore.mEdgeCache.flush();
