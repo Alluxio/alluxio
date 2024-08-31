@@ -26,8 +26,10 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.security.authorization.Mode;
@@ -150,8 +152,6 @@ public final class CpCommand extends AbstractFileSystemCommand {
     private final PrintStream mStdout;
     private final PrintStream mStderr;
     private final Thread mPrinter;
-    private final FileSystem mFileSystem;
-    private final AlluxioURI mPath;
 
     /**
      * Creates a new thread pool with the specified number of threads,
@@ -197,8 +197,6 @@ public final class CpCommand extends AbstractFileSystemCommand {
         }
       });
       mPrinter.start();
-      mFileSystem = fileSystem;
-      mPath = path;
     }
 
     /**
@@ -260,17 +258,6 @@ public final class CpCommand extends AbstractFileSystemCommand {
         LOG.warn("Message queue or printer in copy thread pool is interrupted in shutdown.", e);
         Thread.currentThread().interrupt();
         mPrinter.interrupt();
-      }
-
-      try {
-        if (mPath != null
-            && mFileSystem.exists(mPath)
-            && mFileSystem.getStatus(mPath).isFolder()
-            && mFileSystem.listStatus(mPath).isEmpty()) {
-          mFileSystem.delete(mPath);
-        }
-      } catch (Exception e) {
-        mExceptions.add(new IOException("Failed to delete path " + mPath, e));
       }
 
       if (!mExceptions.isEmpty()) {
@@ -365,6 +352,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
               && !mFileSystem.getStatus(dstPath).isFolder()) {
         throw new IOException(ExceptionMessage.FILE_TYPE_NOT_MATCH.getMessage(dstPath.getPath()));
       }
+      dstPath = checkPath(srcPath.getName(), mFileSystem, dstPath, false,true);
+
       List<AlluxioURI> srcPaths = new ArrayList<>();
       if (srcPath.containsWildcard()) {
         List<File> srcFiles = FileSystemShellUtils.getFiles(srcPath.getPath());
@@ -389,7 +378,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
           srcPaths.add(srcPath);
         }
       }
-      if (srcPaths.size() == 1 && !(new File(srcPaths.get(0).getPath())).isDirectory()) {
+      if (srcPaths.size() == 1 && srcPaths.get(0).equals(srcPath)) {
         copyFromLocalFile(srcPaths.get(0), dstPath, dstExist);
       } else {
         CopyThreadPoolExecutor pool = new CopyThreadPoolExecutor(mThread, System.out, System.err,
@@ -476,6 +465,25 @@ public final class CpCommand extends AbstractFileSystemCommand {
     if (errorMessages.size() != 0) {
       throw new IOException(Joiner.on('\n').join(errorMessages));
     }
+  }
+
+  private AlluxioURI checkPath(String srcName, FileSystem fs, AlluxioURI dst, boolean overwrite, boolean root) throws IOException, AlluxioException {
+    boolean dstExist = fs.exists(dst, ExistsPOptions.getDefaultInstance());
+    if (dstExist) {
+      URIStatus sdst = fs.getStatus(dst);
+      if (sdst.isFolder()) {
+        if (sdst.getName().equals(srcName)) {
+          return dst;
+        }
+        if (!root) {
+          throw new AlluxioException(String.format("The directory %s already exists.", sdst));
+        }
+        return checkPath(srcName, fs, new AlluxioURI(dst, new AlluxioURI(srcName)), overwrite, false);
+      } else if (!overwrite) {
+        throw new AlreadyExistsException(String.format("The directory %s already exists and it is a file.", sdst));
+      }
+    }
+    return dst;
   }
 
   /**
