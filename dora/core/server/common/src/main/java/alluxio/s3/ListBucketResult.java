@@ -33,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -132,6 +133,20 @@ public class ListBucketResult {
    */
   public ListBucketResult(
       String bucketName, List<URIStatus> children, ListBucketOptions options) throws S3Exception {
+    this(bucketName, children.stream().sorted(Comparator.comparing(URIStatus::getPath)).iterator(),
+        options);
+  }
+
+  /**
+   * Creates an {@link ListBucketResult}.
+   *
+   * @param bucketName the bucket name
+   * @param iterator an iterator of {@link URIStatus}, and the order of returned elements
+   *                 must be based on the path of URIStatus.
+   * @param options the list bucket options
+   */
+  public ListBucketResult(String bucketName, Iterator<URIStatus> iterator,
+      ListBucketOptions options) throws S3Exception {
     mName = bucketName;
     if (mName == null || mName.isEmpty()) {
       throw new S3Exception(S3ErrorCode.INVALID_BUCKET_NAME);
@@ -173,16 +188,16 @@ public class ListBucketResult {
       return;
     }
     // contains both ends of "/" character
-    final String bucketPrefix = AlluxioURI.SEPARATOR + mName + AlluxioURI.SEPARATOR;
-    buildListBucketResult(bucketPrefix, children);
+    final String bucketPrefix = getBucketPrefix(mName);
+    buildListBucketResult(bucketPrefix, iterator);
   }
 
   /**
    * Filter {@link URIStatus} use marker/continuation-token, prefix, delimiter, and max-keys.
-   * @param children a list of {@link URIStatus}, representing the objects and common prefixes
+   * @param iterator a list of {@link URIStatus}, representing the objects and common prefixes
    */
   private void buildListBucketResult(
-      String bucketPrefix, List<URIStatus> children) throws S3Exception {
+      String bucketPrefix, Iterator<URIStatus> iterator) throws S3Exception {
     final String marker;
     if (isVersion2()) {
       if (mContinuationToken != null) {
@@ -199,9 +214,8 @@ public class ListBucketResult {
     // used when handling truncating
     int[] keyCount = {0}; // must use an array to have a mutable variable during sequential stream
 
-    //sort use uri path
-    children.sort(Comparator.comparing(URIStatus::getPath));
-    mContents = children.stream()
+    mContents = ListPrefixIterator.createStream(iterator,
+            () -> keyCount[0] <= mMaxKeys && !mIsTruncated)
         //marker filter
         .filter(status -> {
           String path = status.getPath().substring(bucketPrefix.length());
@@ -515,6 +529,15 @@ public class ListBucketResult {
     } else {
       return "";
     }
+  }
+
+  /**
+   *
+   * @param bucketName
+   * @return the bucket prefix in alluxio
+   */
+  public static String getBucketPrefix(String bucketName) {
+    return AlluxioURI.SEPARATOR + bucketName + AlluxioURI.SEPARATOR;
   }
 
   /**
