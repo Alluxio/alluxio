@@ -30,8 +30,6 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WritePType;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
@@ -161,10 +159,6 @@ public class FileSystemMasterTestBase {
               Constants.MEDIUM_SSD);
         }
       }, Configuration.modifiableGlobal());
-
-  @ClassRule
-  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
-      HeartbeatContext.MASTER_TTL_CHECK, HeartbeatContext.MASTER_LOST_FILES_DETECTION);
 
   // Set ttl interval to 0 so that there is no delay in detecting expired files.
   @ClassRule
