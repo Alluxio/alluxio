@@ -415,11 +415,6 @@ public interface FileSystemMaster extends Master {
   List<String> getWhiteList();
 
   /**
-   * @return all the files lost on the workers
-   */
-  Set<Long> getLostFiles();
-
-  /**
    * Mounts a UFS path onto an Alluxio path.
    * <p>
    * This operation requires users to have WRITE permission on the parent

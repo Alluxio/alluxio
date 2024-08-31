@@ -67,8 +67,6 @@ public final class RemovedKey {
       put("alluxio.master.client.socket.cleanup.interval", removedSince(V2_0_0));
       put("alluxio.master.connection.timeout", removedSince(V2_0_0));
       put("alluxio.master.file.async.persist.handler", removedSince(V2_0_0));
-      put("alluxio.master.heartbeat.interval",
-          replacedSince(V2_0_0, PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL.getName()));
       put("alluxio.master.journal.formatter.class",
           "v2.0 removed the ability to specify the master journal formatter");
       put("alluxio.master.lineage.checkpoint.class", removedSince(V2_0_0));
