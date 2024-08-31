@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
+import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.ReadType;
@@ -156,15 +157,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       // convert to proto and then back to get a clone of the object
       // as it may be cached by a `MetadataCachingFileSystem`, while we need to mutate its fields
       FileInfo info = GrpcUtils.fromProto(GrpcUtils.toProto(status.getFileInfo()));
-      info.setPath(convertToAlluxioPath(new AlluxioURI(info.getUfsPath())).getPath());
       URIStatus statusWithRelativeAlluxioPath = new URIStatus(info, status.getCacheContext());
       return statusWithRelativeAlluxioPath;
     } catch (RuntimeException ex) {
-      if (ex instanceof StatusRuntimeException) {
-        if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
-          throw new FileDoesNotExistException(ufsFullPath);
-        }
-      }
       if (!mUfsFallbackEnabled) {
         throw ex;
       }
@@ -290,7 +285,6 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public FileOutStream createFile(AlluxioURI alluxioPath, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertToUfsPath(alluxioPath);
-
     try {
       CreateFilePOptions mergedOptions = FileSystemOptionsUtils.createFileDefaults(
           mFsContext.getClusterConf()).toBuilder().mergeFrom(options).build();
@@ -466,6 +460,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public AlluxioURI convertToUfsPath(AlluxioURI alluxioPath) {
     Preconditions.checkArgument(mDelegatedFileSystem instanceof UfsBaseFileSystem,
         "FileSystem is not UfsBaseFileSystem");
+    if (alluxioPath.isPathAbsolute() && !Constants.SCHEME.equals(alluxioPath.getScheme())) {
+      return alluxioPath; //already ufs path
+    }
     UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
     AlluxioURI rootUFS = under.getRootUFS();
     return PathUtils.convertAlluxioPathToUfsPath(alluxioPath, rootUFS);

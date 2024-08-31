@@ -139,7 +139,7 @@ public class FileSystem extends AbstractFileSystem {
 
   @Override
   protected String getFsScheme(URI fsUri) {
-    return getScheme();
+    return fsUri.getScheme();
   }
 
   @Override
