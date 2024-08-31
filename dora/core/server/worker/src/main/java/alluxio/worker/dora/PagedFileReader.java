@@ -118,10 +118,10 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     while (bytesToTransferLeft > 0) {
       long lengthPerOp = Math.min(bytesToTransferLeft, mPositionReader.getPageSize());
       DataBuffer dataBuffer;
-      Optional<DataFileChannel> dataFileChannel =
+      /*Optional<DataFileChannel> dataFileChannel =
           mPositionReader.getDataFileChannel(mPos, (int) lengthPerOp);
-      if (!dataFileChannel.isPresent()) {
-        dataBuffer = getDataBufferByCopying(channel, (int) lengthPerOp);
+      if (!dataFileChannel.isPresent()) {*/
+        dataBuffer = getDataBufferByCopying(channel, (int) lengthPerOp); /*
       } else {
         // update mPos
         // TODO(JiamingMai): need to lock page files since the openFile op is called in netty latter
@@ -131,7 +131,7 @@ public class PagedFileReader extends BlockReader implements PositionReader {
         } else {
           dataBuffer = getDataBufferByCopying(channel, (int) lengthPerOp);
         }
-      }
+      }*/
       // update bytesToTransferLeft
       bytesToTransferLeft -= dataBuffer.getLength();
       dataBufferList.add(dataBuffer);

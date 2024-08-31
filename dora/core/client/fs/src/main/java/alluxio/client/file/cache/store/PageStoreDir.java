@@ -73,6 +73,10 @@ public interface PageStoreDir extends CacheStatus {
             (MemoryPageStore) PageStore.create(pageStoreOptions),
             CacheEvictor.create(cacheEvictorOptions)
         );
+      case RAWDEVICE:
+        return new RawDevicePageStoreDir(pageStoreOptions,
+            alluxio.cachestore.RawDeviceStore.getInstance(),
+            CacheEvictor.create(cacheEvictorOptions));
       default:
         throw new IllegalArgumentException(String.format("Unrecognized store type %s",
             pageStoreOptions.getType().name()));
