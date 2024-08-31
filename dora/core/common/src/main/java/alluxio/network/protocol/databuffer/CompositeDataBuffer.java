@@ -21,7 +21,7 @@ import java.util.List;
  */
 public final class CompositeDataBuffer implements DataBuffer {
 
-  private final List<DataBuffer> mDataBufferList;
+  public final List<DataBuffer> mDataBufferList;
 
   /**
    * CompositeDataBuffer wraps multiple {@link DataBuffer}.

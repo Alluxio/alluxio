@@ -246,10 +246,29 @@ public class LocalPageStore implements PageStore {
     if (pageOffset + bytesToRead > fileLength) {
       bytesToRead = (int) (fileLength - (long) pageOffset);
     }
-
-    DataFileChannel dataFileChannel = new DataFileChannel(pageFile, pageOffset, bytesToRead);
+    DataFileChannel lastDataFileChannel = mLastDataFileChannel;
+    final RandomAccessFile raf;
+    if (lastDataFileChannel != null && lastDataFileChannel.mPageIndex == pageId.getPageIndex()) {
+      raf = lastDataFileChannel.mFile;
+    } else {
+      try {
+        raf = new RandomAccessFile(pageFile, "r") {
+          @Override
+          public void close() throws IOException {
+            super.close();
+          }
+        };
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+    DataFileChannel dataFileChannel = new DataFileChannel(
+        pageId.getPageIndex(), raf, pageOffset, bytesToRead);
+    mLastDataFileChannel = dataFileChannel;
     return dataFileChannel;
   }
+
+  volatile DataFileChannel mLastDataFileChannel;
 
   @Override
   public void close() {
