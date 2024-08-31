@@ -463,21 +463,24 @@ public abstract class AbstractClient implements Client {
         return null;
       });
       long duration = System.currentTimeMillis() - startMs;
-      logger.debug("Exit (OK): {}({}) in {} ms", rpcName, debugDesc, duration);
+      logger.debug("Exit (OK): {}({}) in {} ms, , attemptCount={}",
+          rpcName, debugDesc, duration, retryPolicy.getAttemptCount());
       if (duration >= mRpcThreshold) {
-        logger.warn("{}({}) returned {} in {} ms (>={} ms)",
+        logger.warn("{}({}) returned {} in {} ms (>={} ms), attemptCount={}",
             rpcName, String.format(description, args),
-            CommonUtils.summarizeCollection(ret), duration, mRpcThreshold);
+            CommonUtils.summarizeCollection(ret), duration, mRpcThreshold,
+            retryPolicy.getAttemptCount());
       }
       return ret;
     } catch (Exception e) {
       long duration = System.currentTimeMillis() - startMs;
       MetricsSystem.counter(getQualifiedFailureMetricName(rpcName)).inc();
-      logger.debug("Exit (ERROR): {}({}) in {} ms: {}",
-          rpcName, debugDesc, duration, e.toString());
+      logger.debug("Exit (ERROR): {}({}) in {} ms: {}, attemptCount={}",
+          rpcName, debugDesc, duration, e.toString(), retryPolicy.getAttemptCount());
       if (duration >= mRpcThreshold) {
-        logger.warn("{}({}) exits with exception [{}] in {} ms (>={}ms)",
-            rpcName, String.format(description, args), e, duration, mRpcThreshold);
+        logger.warn("{}({}) exits with exception [{}] in {} ms (>={}ms), attemptCount={}",
+            rpcName, String.format(description, args), e, duration, mRpcThreshold,
+            retryPolicy.getAttemptCount());
       }
       throw e;
     }
