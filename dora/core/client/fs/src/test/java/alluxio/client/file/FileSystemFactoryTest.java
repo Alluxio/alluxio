@@ -19,19 +19,16 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.SystemPropertyRule;
-import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterInquireClient;
 import alluxio.security.User;
-import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.ZookeeperAuthority;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.Closeable;
@@ -67,25 +64,6 @@ public class FileSystemFactoryTest {
   @Test
   public void singleMasterFileSystemCacheTest()  {
     fileSystemCacheTest();
-  }
-
-  @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Jiacheng",
-      comment = "fix master HA or remove if no longer needed")
-  @Ignore
-  public void multiMasterFileSystemCacheTest()  {
-    try (Closeable p = new SystemPropertyRule(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
-        "192.168.0.1:1234,192.168.0.2:1445,192.168.0.3:9943").toResource()) {
-      Configuration.reloadProperties();
-      AlluxioConfiguration conf = Configuration.global();
-      MasterInquireClient.ConnectDetails connectDetails =
-          MasterInquireClient.Factory.getConnectDetails(conf);
-      // Make sure we have a MultiMaster authority
-      assertTrue(connectDetails.toAuthority() instanceof MultiMasterAuthority);
-      fileSystemCacheTest();
-    } catch (IOException e) {
-      fail("Unable to set system properties");
-    }
   }
 
   @Test
