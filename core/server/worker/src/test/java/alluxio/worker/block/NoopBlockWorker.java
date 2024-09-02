@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.Server;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.Block;
+import alluxio.grpc.BlockChecksum;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
@@ -28,6 +29,7 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -200,5 +202,10 @@ public class NoopBlockWorker implements BlockWorker {
   @Override
   public void cleanupSession(long sessionId) {
     // noop
+  }
+
+  @Override
+  public Map<Long, BlockChecksum> calculateBlockChecksum() {
+    return Collections.emptyMap();
   }
 }

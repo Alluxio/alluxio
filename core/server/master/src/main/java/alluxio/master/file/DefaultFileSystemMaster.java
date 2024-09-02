@@ -946,6 +946,10 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public FileInfo getFileInfo(AlluxioURI path, GetStatusContext context)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException {
+    if (context.getOptions().hasDirectUfsAccess() && context.getOptions().getDirectUfsAccess()) {
+      return getFileInfoFromUfs(path);
+    }
+
     Metrics.GET_FILE_INFO_OPS.inc();
     boolean ufsAccessed = false;
     long opTimeMs = mClock.millis();
@@ -1020,6 +1024,28 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
       }
       return ret;
+    }
+  }
+
+  private FileInfo getFileInfoFromUfs(AlluxioURI path) {
+    try {
+      MountTable.Resolution resolution = mMountTable.resolve(path);
+      try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+        UnderFileSystem ufs = ufsResource.get();
+        String ufsPath = resolution.getUri().getPath();
+        if (ufs == null) {
+          throw new RuntimeException("Ufs not found");
+        }
+        UfsStatus ufsStatus;
+        try {
+          ufsStatus = ufs.getStatus(ufsPath);
+          return FileInfo.fromUfsStatus(ufsStatus);
+        } catch (FileNotFoundException e) {
+          throw new RuntimeException("File not found");
+        }
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 

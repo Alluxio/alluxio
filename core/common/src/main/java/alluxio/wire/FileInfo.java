@@ -11,10 +11,16 @@
 
 package alluxio.wire;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.underfs.Fingerprint;
+import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsStatus;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -641,6 +647,38 @@ public final class FileInfo implements Serializable {
   public FileInfo setXAttr(Map<String, byte[]> xAttr) {
     mXAttr = xAttr;
     return this;
+  }
+
+  public static FileInfo fromUfsStatus(UfsStatus ufsStatus) {
+    FileInfo info = new FileInfo().setName(ufsStatus.getName())
+        .setPath(ufsStatus.getName())
+        .setFolder(ufsStatus.isDirectory())
+        .setOwner(ufsStatus.getOwner())
+        .setGroup(ufsStatus.getGroup())
+        .setMode(ufsStatus.getMode())
+        .setCompleted(true);
+    if (ufsStatus.getLastModifiedTime() != null) {
+      info.setLastModificationTimeMs(info.getLastModificationTimeMs());
+    }
+    if (ufsStatus.getXAttr() != null) {
+      info.setXAttr(ufsStatus.getXAttr());
+    }
+    if (ufsStatus instanceof UfsFileStatus) {
+      UfsFileStatus fileStatus = (UfsFileStatus) ufsStatus;
+      info.setLength(fileStatus.getContentLength());
+      info.setBlockSizeBytes(fileStatus.getBlockSize());
+      if (info.getXAttr() == null) {
+        info.setXAttr(new HashMap<String, byte[]>());
+      }
+      info.getXAttr().put(Constants.ETAG_XATTR_KEY, fileStatus.getContentHash().getBytes());
+      if (fileStatus.getXAttr() != null && fileStatus.getXAttr().containsKey(Constants.CRC64_KEY)) {
+        info.getXAttr().put(Constants.CRC64_KEY, info.getXAttr().get(Constants.CRC64_KEY));
+      }
+    }
+    else {
+      info.setLength(0);
+    }
+    return info;
   }
 
   @Override

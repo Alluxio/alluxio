@@ -54,6 +54,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -116,13 +117,20 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     /** Last modified epoch time in ms, or null if it is not available. */
     private final Long mLastModifiedTimeMs;
     private final String mName;
+    private final Optional<String> mCrc64Checksum;
 
     public ObjectStatus(String name, String contentHash, long contentLength,
-        @Nullable Long lastModifiedTimeMs) {
+                        @Nullable Long lastModifiedTimeMs, @Nullable String crc64) {
       mContentHash = contentHash == null ? UfsFileStatus.INVALID_CONTENT_HASH : contentHash;
       mContentLength = contentLength;
       mLastModifiedTimeMs = lastModifiedTimeMs;
       mName = name;
+      mCrc64Checksum = Optional.ofNullable(crc64);
+    }
+
+    public ObjectStatus(String name, String contentHash, long contentLength,
+        @Nullable Long lastModifiedTimeMs) {
+      this(name, contentHash, contentLength, lastModifiedTimeMs, null);
     }
 
     public ObjectStatus(String name) {
@@ -130,6 +138,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       mContentLength = INVALID_CONTENT_LENGTH;
       mLastModifiedTimeMs = null;
       mName = name;
+      mCrc64Checksum = Optional.empty();
     }
 
     /**
@@ -165,6 +174,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      */
     public String getName() {
       return mName;
+    }
+
+    public Optional<String> getCrc64Checksum() {
+      return mCrc64Checksum;
     }
   }
 
@@ -527,10 +540,16 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   public UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException {
     ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
     if (details != null) {
+      Map<String, byte[]> xAttr = null;
+      if (details.getCrc64Checksum().isPresent()) {
+        xAttr = new HashMap<>();
+        xAttr.put("crc64", details.getCrc64Checksum().get().getBytes());
+      }
       ObjectPermissions permissions = getPermissions();
-      return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
+      return
+          new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
           details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-          permissions.getMode(), mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
+          permissions.getMode(), xAttr, mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     } else {
       LOG.debug("Error fetching file status, assuming file {} does not exist", path);
       throw new FileNotFoundException("Failed to fetch file status " + path);

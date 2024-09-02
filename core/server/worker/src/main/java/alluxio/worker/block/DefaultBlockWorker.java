@@ -32,6 +32,7 @@ import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.Block;
+import alluxio.grpc.BlockChecksum;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
@@ -48,6 +49,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
+import alluxio.util.CRC64;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.FileUtils;
 import alluxio.wire.FileInfo;
@@ -56,6 +58,7 @@ import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.page.PagedBlockStore;
@@ -597,5 +600,25 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     public void close() {
       // Nothing to clean up
     }
+  }
+
+  @Override
+  public Map<Long, BlockChecksum> calculateBlockChecksum() {
+    long blockId = 114514;
+//    BlockMeta bm = mBlockStore;
+    // Set option to avoid reading from UFS
+    // TODO: 64MB is too much
+    try {
+      BlockReader br = mBlockStore.createBlockReader(
+          -1, blockId, 0, false, Protocol.OpenUfsBlockOptions.getDefaultInstance());
+      // Read this 1MB / 4MB every time and then combine
+      // Thread pool?
+      CRC64.fromBytes(br.read(0, br.getLength()).array());
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    //    mBlockStore.createUfsBlockReader(sessionId, blockId, offset, positionShort, options);
+//    mBlockStore.getBlockStoreMeta().
+    return null;
   }
 }

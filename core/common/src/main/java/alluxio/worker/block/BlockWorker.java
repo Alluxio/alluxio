@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.Block;
+import alluxio.grpc.BlockChecksum;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.GetConfigurationPOptions;
@@ -29,6 +30,7 @@ import alluxio.worker.block.io.BlockWriter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -243,4 +245,6 @@ public interface BlockWorker extends Worker, SessionCleanable {
    * @return the worker address
    */
   WorkerNetAddress getWorkerAddress();
+
+  Map<Long, BlockChecksum> calculateBlockChecksum();
 }
