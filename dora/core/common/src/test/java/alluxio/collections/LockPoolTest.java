@@ -16,12 +16,16 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.concurrent.LockMode;
 import alluxio.resource.LockResource;
+import alluxio.util.AlluxioFaultInjector;
 import alluxio.util.CommonUtils;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -140,5 +144,54 @@ public class LockPoolTest {
     assertTrue(lock0.hasSameLock(mPool.get(0, LockMode.READ)));
     assertTrue(lock1.hasSameLock(mPool.get(50, LockMode.READ)));
     assertTrue(lock2.hasSameLock(mPool.get(100, LockMode.READ)));
+  }
+
+  @Test(timeout = 10000)
+  public void evictorTest() throws InterruptedException {
+    List<LockResource> unClosedLocks = new ArrayList<>();
+    CountDownLatch mainThreadDownLatch = new CountDownLatch(1);
+    CountDownLatch evictorDownLatch = new CountDownLatch(1);
+    AlluxioFaultInjector.set(new AlluxioFaultInjector() {
+      public void blockUtilAllocatedNewResource() {
+        try {
+          mainThreadDownLatch.countDown();
+          evictorDownLatch.await();
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
+
+    // Acquire 16 locks and just release the lock-3.
+    for (int i = 1; i <= 16; i++) {
+      LockResource lock = mPool.get(i, LockMode.READ);
+      if (i == 3) {
+        lock.close();
+      } else {
+        unClosedLocks.add(lock);
+      }
+    }
+    assertEquals(16, mPool.size());
+
+    // Acquire a new Lock to trigger evictor. And the Evictor will release the
+    // unused Resource-3, but it will be blocked by evictorDownLatch.
+    LockResource lock17 = mPool.get(17, LockMode.READ);
+    unClosedLocks.add(lock17);
+
+    // Acquire a resource for key 3 again, currently the Evictor is releasing
+    // the old Resource-3, but it is blocked right now.
+    mainThreadDownLatch.await();
+    LockResource lock3 = mPool.get(3, LockMode.READ);
+    unClosedLocks.add(lock3);
+
+    // Allow the evictor to continue.
+    evictorDownLatch.countDown();
+
+    // Sleep some millis to wait for the Evictor.
+    Thread.sleep(100);
+
+    // The Resource 3 should be still in the mPool.
+    assertEquals(17, mPool.size());
+    unClosedLocks.forEach(k -> k.close());
   }
 }
