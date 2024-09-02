@@ -16,6 +16,7 @@ import alluxio.concurrent.LockMode;
 import alluxio.resource.LockResource;
 import alluxio.resource.RWLockResource;
 import alluxio.resource.RefCountLockResource;
+import alluxio.util.AlluxioFaultInjector;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -165,8 +166,12 @@ public class LockPool<K> implements Closeable {
             candidate.mIsAccessed = false;
           } else {
             if (candidate.mRefCount.compareAndSet(0, Integer.MIN_VALUE)) {
-              mIterator.remove();
-              numToEvict--;
+              AlluxioFaultInjector.get().blockUtilAllocatedNewResource();
+              Resource tmpResource = mPool.compute(candidateMapEntry.getKey(),
+                  (k, v) -> v == candidate ? null : v);
+              if (tmpResource == null) {
+                numToEvict--;
+              }
             }
           }
         }
