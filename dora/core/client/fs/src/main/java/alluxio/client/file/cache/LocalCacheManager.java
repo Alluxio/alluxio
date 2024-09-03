@@ -36,6 +36,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MultiDimensionalMetricsSystem;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.resource.LockResource;
+import alluxio.uri.UfsUrl;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.codahale.metrics.Counter;
@@ -48,6 +49,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -1076,6 +1078,11 @@ public class LocalCacheManager implements CacheManager {
       return mPageMetaStore.getUsage()
           .flatMap(usage -> usage.partitionedBy(partitionDescriptor));
     }
+  }
+
+  @Override
+  public Set<PageInfo> getPageInfoByPrefix(UfsUrl ufsUrl) {
+    return mPageMetaStore.getPageInfoByPrefix(ufsUrl);
   }
 
   private static final class Metrics {

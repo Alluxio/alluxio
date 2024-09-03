@@ -11,16 +11,14 @@
 
 package alluxio.collections;
 
-import alluxio.collections.FieldIndex;
-import alluxio.collections.IndexDefinition;
-
 import org.apache.commons.collections4.Trie;
 import org.apache.commons.collections4.trie.PatriciaTrie;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -34,7 +32,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class NonUniqueFieldIndexInTrie<T, V> implements FieldIndex<T, V> {
   private final IndexDefinition<T, V> mIndexDefinition;
-  private final Trie<String, Set<T>> mIndexTrie;
+  private final Trie<String, ConcurrentHashSet<T>> mIndexTrie;
 
   /**
    * Constructs a new {@link NonUniqueFieldIndexInTrie} instance.
@@ -55,13 +53,30 @@ public class NonUniqueFieldIndexInTrie<T, V> implements FieldIndex<T, V> {
     synchronized (mIndexTrie) { // Synchronize on the trie map to ensure thread safety
       mIndexTrie.compute(fieldValueStr, (key, set) -> {
         if (set == null) {
-          set = Collections.newSetFromMap(new ConcurrentHashMap<>());
+          set = new ConcurrentHashSet<>();
         }
         res.set(set.add(object));
         return set;
       });
     }
     return res.get();
+  }
+
+  /**
+   * Returns the set of objects that have the given prefix.
+   *
+   * @param prefix the prefix to search for
+   * @return the set of objects that have the given prefix
+   */
+  public Set<T> getByPrefix(String prefix) {
+    Set<T> resultSet = new HashSet<>();
+    synchronized (mIndexTrie) {
+      Map<String, ConcurrentHashSet<T>> subMap = mIndexTrie.prefixMap(prefix);
+      for (ConcurrentHashSet<T> set : subMap.values()) {
+        resultSet.addAll(set);
+      }
+    }
+    return resultSet;
   }
 
   @Override
@@ -90,14 +105,16 @@ public class NonUniqueFieldIndexInTrie<T, V> implements FieldIndex<T, V> {
 
   @Override
   public boolean containsField(V fieldValue) {
+    String fieldValueStr = fieldValue.toString();
     synchronized (mIndexTrie) { // Synchronize on the trie map to ensure thread safety
-      return mIndexTrie.containsKey(fieldValue);
+      return mIndexTrie.containsKey(fieldValueStr);
     }
   }
 
   @Override
   public boolean containsObject(T object) {
     V fieldValue = mIndexDefinition.getFieldValue(object);
+    String fieldValueStr = fieldValue.toString();
     synchronized (mIndexTrie) { // Synchronize on the trie map to ensure thread safety
       Set<T> set = mIndexTrie.get(fieldValue);
       return set != null && set.contains(object);
@@ -106,6 +123,7 @@ public class NonUniqueFieldIndexInTrie<T, V> implements FieldIndex<T, V> {
 
   @Override
   public Set<T> getByField(V value) {
+    String valueStr = value.toString();
     synchronized (mIndexTrie) { // Synchronize on the trie map to ensure thread safety
       Set<T> set = mIndexTrie.get(value);
       return set == null ? Collections.<T>emptySet() : set;
@@ -114,6 +132,7 @@ public class NonUniqueFieldIndexInTrie<T, V> implements FieldIndex<T, V> {
 
   @Override
   public T getFirst(V value) {
+    String valueStr = value.toString();
     synchronized (mIndexTrie) { // Synchronize on the trie map to ensure thread safety
       Set<T> all = mIndexTrie.get(value);
       return all == null ? null : all.iterator().next();
@@ -144,7 +163,7 @@ public class NonUniqueFieldIndexInTrie<T, V> implements FieldIndex<T, V> {
    * This is needed to support consistent removal from the set and the indices.
    */
   private class NonUniqueFieldIndexIterator implements Iterator<T> {
-    private final Iterator<Set<T>> mTrieIterator;
+    private final Iterator<ConcurrentHashSet<T>> mTrieIterator;
     private Iterator<T> mObjectIterator;
     private T mObject;
 
