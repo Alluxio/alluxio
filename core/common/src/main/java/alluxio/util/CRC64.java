@@ -1,8 +1,12 @@
 package alluxio.util;
 
+import java.nio.ByteBuffer;
 import java.util.zip.Checksum;
 
 public class CRC64 implements Checksum {
+  /* 64-bit CRC-ecma182 polynomial with these coefficients, but reversed:
+      64, 62, 57, 55, 54, 53, 52, 47, 46, 45, 40, 39, 38, 37, 35, 33, 32,
+      31, 29, 27, 24, 23, 22, 21, 19, 17, 13, 12, 10, 9, 7, 4, 1, 0 */
   private final static long POLY = (long) 0xc96c5795d7870f42L; // ECMA-182
 
   /* CRC64 calculation table. */

@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -543,7 +544,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       Map<String, byte[]> xAttr = null;
       if (details.getCrc64Checksum().isPresent()) {
         xAttr = new HashMap<>();
-        xAttr.put("crc64", details.getCrc64Checksum().get().getBytes());
+        xAttr.put(Constants.CRC64_KEY, details.getCrc64Checksum().get().getBytes());
       }
       ObjectPermissions permissions = getPermissions();
       return
@@ -567,11 +568,17 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return getDirectoryStatus(path);
     }
     ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
+    ObjectPermissions permissions = getPermissions();
     if (details != null) {
-      ObjectPermissions permissions = getPermissions();
-      return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
-          details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-          permissions.getMode(), mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
+      Map<String, byte[]> xAttr = null;
+      if (details.getCrc64Checksum().isPresent()) {
+        xAttr = new HashMap<>();
+        xAttr.put(Constants.CRC64_KEY, details.getCrc64Checksum().get().getBytes());
+      }
+      return
+          new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
+              details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
+              permissions.getMode(), xAttr, mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     }
     return getDirectoryStatus(path);
   }

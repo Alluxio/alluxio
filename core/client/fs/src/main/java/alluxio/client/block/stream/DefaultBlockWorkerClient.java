@@ -24,6 +24,8 @@ import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.DataMessageMarshallerProvider;
 import alluxio.grpc.FreeWorkerRequest;
+import alluxio.grpc.GetBlockChecksumRequest;
+import alluxio.grpc.GetBlockChecksumResponse;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcNetworkGroup;
@@ -247,5 +249,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   @Override
   public ListenableFuture<LoadResponse> load(LoadRequest request) {
     return mRpcFutureStub.load(request);
+  }
+
+  @Override
+  public ListenableFuture<GetBlockChecksumResponse> getBlockChecksum(
+      GetBlockChecksumRequest request) {
+    return mRpcFutureStub.getBlockChecksum(request);
   }
 }

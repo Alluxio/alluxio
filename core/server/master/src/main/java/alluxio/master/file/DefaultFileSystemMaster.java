@@ -1039,7 +1039,10 @@ public class DefaultFileSystemMaster extends CoreMaster
         UfsStatus ufsStatus;
         try {
           ufsStatus = ufs.getStatus(ufsPath);
-          return FileInfo.fromUfsStatus(ufsStatus);
+          FileInfo fi = FileInfo.fromUfsStatus(ufsStatus);
+          // Set a dummy TTL action to avoid NPE
+          fi.setTtlAction(TtlAction.DELETE);
+          return fi;
         } catch (FileNotFoundException e) {
           throw new RuntimeException("File not found");
         }

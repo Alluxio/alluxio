@@ -205,7 +205,7 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
-  public Map<Long, BlockChecksum> calculateBlockChecksum() {
+  public Map<Long, BlockChecksum> calculateBlockChecksum(List<Long> blockIds) {
     return Collections.emptyMap();
   }
 }

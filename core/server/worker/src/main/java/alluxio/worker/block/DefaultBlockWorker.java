@@ -28,6 +28,7 @@ import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.AsyncCacheRequest;
@@ -46,6 +47,8 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.NioDirectBufferPool;
+import alluxio.network.protocol.databuffer.NioHeapBufferPool;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
@@ -68,19 +71,27 @@ import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -131,6 +142,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private final FuseManager mFuseManager;
 
   protected WorkerNetAddress mAddress;
+  private final ExecutorService mChecksumCalculationThreadPool;
 
   /**
    * Constructs a default block worker.
@@ -166,7 +178,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, fsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(fsContext));
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
-
+    mChecksumCalculationThreadPool =
+        ExecutorServiceFactories.fixedThreadPool("checksum-calculation-pool", 16)
+            .create();
+    ((ThreadPoolExecutor) mChecksumCalculationThreadPool)
+        .setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
     Metrics.registerGauges(this);
   }
 
@@ -603,22 +619,50 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public Map<Long, BlockChecksum> calculateBlockChecksum() {
-    long blockId = 114514;
-//    BlockMeta bm = mBlockStore;
-    // Set option to avoid reading from UFS
-    // TODO: 64MB is too much
-    try {
-      BlockReader br = mBlockStore.createBlockReader(
-          -1, blockId, 0, false, Protocol.OpenUfsBlockOptions.getDefaultInstance());
-      // Read this 1MB / 4MB every time and then combine
-      // Thread pool?
-      CRC64.fromBytes(br.read(0, br.getLength()).array());
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+  public Map<Long, BlockChecksum> calculateBlockChecksum(List<Long> blockIds) {
+    int chunkSize = 1024 * 1024 * 8; //8MB
+    HashMap<Long, BlockChecksum> result = new HashMap<>();
+    List<Future<?>> futures = new ArrayList<>();
+    for (long blockId: blockIds) {
+      Future<?> future = mChecksumCalculationThreadPool.submit(()->{
+        ByteBuffer bf = null;
+        try {
+          CRC64 crc64 = new CRC64();
+          BlockReader br = mBlockStore.createBlockReader(
+              -1, blockId, 0, false, Protocol.OpenUfsBlockOptions.getDefaultInstance());
+          bf = NioHeapBufferPool.acquire(chunkSize);
+          ByteBuf bb = Unpooled.wrappedBuffer(bf);
+          while (true) {
+            bb.clear();
+            long bytesRead = br.transferTo(bb);
+            if (bytesRead < 0) {
+              break;
+            }
+            crc64.update(bf.array(), Math.toIntExact(bytesRead));
+          }
+          result.put(blockId,
+              BlockChecksum.newBuilder()
+                  .setBlockId(blockId).setBlockLength(br.getLength())
+                  .setChecksum(String.valueOf(crc64.getValue())).build());
+        } catch (BlockDoesNotExistRuntimeException e) {
+          LOG.warn("Block {} not found during CRC calculation", blockId);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        } finally {
+          if (bf != null) {
+            NioHeapBufferPool.release(bf);
+          }
+        }
+      });
+      futures.add(future);
     }
-    //    mBlockStore.createUfsBlockReader(sessionId, blockId, offset, positionShort, options);
-//    mBlockStore.getBlockStoreMeta().
-    return null;
+    for (Future<?> future: futures) {
+      try {
+        future.get();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return result;
   }
 }

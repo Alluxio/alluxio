@@ -246,5 +246,5 @@ public interface BlockWorker extends Worker, SessionCleanable {
    */
   WorkerNetAddress getWorkerAddress();
 
-  Map<Long, BlockChecksum> calculateBlockChecksum();
+  Map<Long, BlockChecksum> calculateBlockChecksum(List<Long> blockIds);
 }
