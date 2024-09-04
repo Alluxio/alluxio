@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Direct buffer pool.
+ * Heap buffer pool.
  */
 public class NioHeapBufferPool {
   private static final TreeMap<Integer, LinkedList<ByteBuffer>> BUF_POOL = new TreeMap<>();

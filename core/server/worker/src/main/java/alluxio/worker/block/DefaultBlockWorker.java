@@ -53,6 +53,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.CRC64;
+import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.FileUtils;
 import alluxio.wire.FileInfo;
@@ -71,6 +72,7 @@ import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+import com.google.common.util.concurrent.RateLimiter;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
@@ -87,6 +89,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -143,6 +146,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   protected WorkerNetAddress mAddress;
   private final ExecutorService mChecksumCalculationThreadPool;
+  private final Optional<RateLimiter> mChecksumCalculationRateLimiter ;
 
   /**
    * Constructs a default block worker.
@@ -178,11 +182,20 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, fsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(fsContext));
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
-    mChecksumCalculationThreadPool =
-        ExecutorServiceFactories.fixedThreadPool("checksum-calculation-pool", 16)
-            .create();
-    ((ThreadPoolExecutor) mChecksumCalculationThreadPool)
-        .setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+    mChecksumCalculationThreadPool = ExecutorServiceFactories.fixedThreadPool(
+        "checksum-calculation-pool",
+        Configuration.getInt(PropertyKey.WORKER_BLOCK_CHECKSUM_CALCULATION_THREAD_POOL_SIZE))
+        .create();
+    long checksumThroughputThreshold =
+        Configuration.getBytes(PropertyKey.WORKER_BLOCK_CHECKSUM_CALCULATION_THROUGHPUT_THRESHOLD);
+    if (checksumThroughputThreshold <= 0) {
+      mChecksumCalculationRateLimiter = Optional.empty();
+    } else {
+      // The min precision is 1kb to avoid data overflow
+      mChecksumCalculationRateLimiter =
+          Optional.of(RateLimiter.create(
+              Math.max(Math.toIntExact(checksumThroughputThreshold / 1024), 1)));
+    }
     Metrics.registerGauges(this);
   }
 
@@ -623,8 +636,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     int chunkSize = 1024 * 1024 * 8; //8MB
     HashMap<Long, BlockChecksum> result = new HashMap<>();
     List<Future<?>> futures = new ArrayList<>();
-    for (long blockId: blockIds) {
-      Future<?> future = mChecksumCalculationThreadPool.submit(()->{
+    for (long blockId : blockIds) {
+      Future<?> future = mChecksumCalculationThreadPool.submit(() -> {
         ByteBuffer bf = null;
         try {
           CRC64 crc64 = new CRC64();
@@ -639,6 +652,10 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
               break;
             }
             crc64.update(bf.array(), Math.toIntExact(bytesRead));
+            int permits = Math.toIntExact(Math.max(1, bytesRead / 1024));
+            if (mChecksumCalculationRateLimiter.isPresent()) {
+              mChecksumCalculationRateLimiter.get().acquire(permits);
+            }
           }
           result.put(blockId,
               BlockChecksum.newBuilder()
@@ -656,7 +673,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       });
       futures.add(future);
     }
-    for (Future<?> future: futures) {
+    for (Future<?> future : futures) {
       try {
         future.get();
       } catch (Exception e) {

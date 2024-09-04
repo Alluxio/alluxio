@@ -47,9 +47,13 @@ import alluxio.resource.AlluxioResourceLeakDetectorFactory;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
+import alluxio.util.CommonUtils;
 
+import com.google.common.collect.Lists;
 import com.google.common.io.Closer;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.netty.util.ResourceLeakDetector;
@@ -58,6 +62,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
@@ -80,6 +85,8 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   private final BlockWorkerGrpc.BlockWorkerStub mStreamingAsyncStub;
   private final BlockWorkerGrpc.BlockWorkerBlockingStub mRpcBlockingStub;
   private final BlockWorkerGrpc.BlockWorkerFutureStub mRpcFutureStub;
+  private final int mChecksumBatchSize;
+  private final int mSlowChecksumCalculationRequestThresholdMs = 12;
 
   @Nullable
   private final ResourceLeakTracker<DefaultBlockWorkerClient> mTracker;
@@ -129,6 +136,8 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     mRpcFutureStub = BlockWorkerGrpc.newFutureStub(mRpcChannel);
     mAddress = address;
     mRpcTimeoutMs = alluxioConf.getMs(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
+    mChecksumBatchSize = alluxioConf.getInt(
+        PropertyKey.USER_CLIENT_CHECKSUM_CALCULATION_BATCH_SIZE);
     mTracker = DETECTOR.track(this);
   }
 
@@ -254,6 +263,49 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   @Override
   public ListenableFuture<GetBlockChecksumResponse> getBlockChecksum(
       GetBlockChecksumRequest request) {
-    return mRpcFutureStub.getBlockChecksum(request);
+    // Non-batched mode
+    if (request.getBlockIdsCount() < mChecksumBatchSize) {
+      long startTs = CommonUtils.getCurrentMs();
+      ListenableFuture<GetBlockChecksumResponse> future = mRpcFutureStub.getBlockChecksum(request);
+      future.addListener(()->{
+        long timeElapsed = CommonUtils.getCurrentMs() - startTs;
+        if (timeElapsed > mSlowChecksumCalculationRequestThresholdMs) {
+          LOG.warn(
+              "Slow checksum calculation RPC for {} blocks, address {}, time elapsed {}ms ",
+              request.getBlockIdsCount(), mAddress, timeElapsed);
+        }
+      }, MoreExecutors.directExecutor());
+      return future;
+    }
+
+    // Batched mode
+    GetBlockChecksumResponse.Builder responseBuilder = GetBlockChecksumResponse.newBuilder();
+    ListenableFuture<GetBlockChecksumResponse> chainedCalls =
+        Futures.immediateFuture(GetBlockChecksumResponse.getDefaultInstance());
+    List<List<Long>> blockIdsPerBatch =
+        Lists.partition(request.getBlockIdsList(), mChecksumBatchSize);
+    for (List<Long> blockIdsOfBatch : blockIdsPerBatch) {
+      chainedCalls = Futures.transformAsync(chainedCalls, (previousResult) -> {
+        responseBuilder.putAllChecksum(previousResult.getChecksumMap());
+        GetBlockChecksumRequest requestOfBatch =
+            GetBlockChecksumRequest.newBuilder().addAllBlockIds(blockIdsOfBatch).build();
+        ListenableFuture<GetBlockChecksumResponse> future =
+            mRpcFutureStub.getBlockChecksum(requestOfBatch);
+        long startTs = CommonUtils.getCurrentMs();
+        future.addListener(()->{
+          long timeElapsed = CommonUtils.getCurrentMs() - startTs;
+          if (timeElapsed > mSlowChecksumCalculationRequestThresholdMs) {
+            LOG.warn(
+                "Slow checksum calculation RPC for {} blocks, address {}, time elapsed {}ms ",
+                blockIdsOfBatch.size(), mAddress, timeElapsed);
+          }
+        }, MoreExecutors.directExecutor());
+        return future;
+      }, MoreExecutors.directExecutor());
+    }
+    return Futures.transform(chainedCalls, (lastResult) -> {
+      responseBuilder.putAllChecksum(lastResult.getChecksumMap());
+      return responseBuilder.build();
+    }, MoreExecutors.directExecutor());
   }
 }
