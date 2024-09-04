@@ -648,6 +648,10 @@ public class LocalCacheManager implements CacheManager {
       cacheContext.incrementCounter(
           MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
           System.nanoTime() - startTime);
+      cacheContext.incrementCounter(
+          MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
+          0); //@CHECK
+      )
     }
   }
 
@@ -678,6 +682,10 @@ public class LocalCacheManager implements CacheManager {
     cacheContext.incrementCounter(
         MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
         bytesToRead);
+    //Reset CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS==0
+    cacheContext.incrementCounter(
+        MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
+        0); //@CHECK
     cacheContext.incrementCounter(
         MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
         timeElapse);
