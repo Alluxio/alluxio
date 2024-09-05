@@ -289,7 +289,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
       }
       Date lastModifiedDate = meta.getLastModified();
       return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
-              lastModifiedDate != null ? lastModifiedDate.getTime() : null);
+              lastModifiedDate != null ? lastModifiedDate.getTime() : null, meta.getCrc64Ecma());
     } catch (CosClientException e) {
       return null;
     }

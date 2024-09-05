@@ -334,7 +334,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       Date lastModifiedDate = meta.getLastModified();
       Long lastModifiedTime = lastModifiedDate == null ? null : lastModifiedDate.getTime();
       return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
-          lastModifiedTime);
+          lastModifiedTime, String.valueOf(meta.getServerCRC()));
     } catch (ServiceException e) {
       return null;
     }

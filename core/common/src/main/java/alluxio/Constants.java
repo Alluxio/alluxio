@@ -240,6 +240,7 @@ public final class Constants {
 
   /* xAttr keys */
   public static final String ETAG_XATTR_KEY = "s3_etag";
+  public static final String CRC64_KEY = "crc64";
 
   private Constants() {} // prevent instantiation
 }

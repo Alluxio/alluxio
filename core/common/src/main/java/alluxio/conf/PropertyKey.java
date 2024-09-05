@@ -4297,6 +4297,31 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The implementation of LocalBlockStore that can be instantiated.")
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_BLOCK_CHECKSUM_CALCULATION_THROUGHPUT_THRESHOLD =
+      dataSizeBuilder(Name.WORKER_BLOCK_CHECKSUM_CALCULATION_THROUGHPUT_THRESHOLD)
+          .setDefaultValue(-1)
+          .setDescription("The throughput threshold per second to trigger the rate limit. "
+              + "-1 means no limitation. The minimum precision is 1MB.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_BLOCK_CHECKSUM_CALCULATION_THREAD_POOL_SIZE =
+      intBuilder(Name.WORKER_BLOCK_CHECKSUM_CALCULATION_THREAD_POOL_SIZE)
+          .setDefaultValue(16)
+          .setDescription("The thread pool size for the worker block checksum calculation. "
+              + "Each thread will take up at most 8MB (the chunksize) memory")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_BLOCK_CHECKSUM_CALCULATION_USE_BUFFER_POOL =
+      booleanBuilder(Name.WORKER_BLOCK_CHECKSUM_CALCULATION_USE_BUFFER_POOL)
+          .setDefaultValue(false)
+          .setDescription("If enabled, will use buffer pool for reading the file during "
+              + "checksum calculation. This reduces GC but will introduce permanent "
+              + "memory consumption.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_CONTAINER_HOSTNAME =
       stringBuilder(Name.WORKER_CONTAINER_HOSTNAME)
           .setDescription("The container hostname if worker is running in a container.")
@@ -6409,6 +6434,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("Whether the client reports version information to the server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_CLIENT_CHECKSUM_CALCULATION_BATCH_SIZE =
+      intBuilder(Name.USER_CLIENT_CHECKSUM_CALCULATION_BATCH_SIZE)
+          .setDefaultValue(Integer.MAX_VALUE)
+          .setDescription("The batch size of block ids for the checksum calculation rpc. "
+              + "by default all block ids are in a single batch. Reduce this value if "
+              + "you see too many timeouts.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
 
@@ -8710,6 +8744,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
         "alluxio.worker.block.heartbeat.timeout";
     public static final String WORKER_BLOCK_STORE_TYPE = "alluxio.worker.block.store.type";
+    public static final String WORKER_BLOCK_CHECKSUM_CALCULATION_THROUGHPUT_THRESHOLD =
+        "alluxio.worker.block.checksum.calculation.throughput.threshold";
+    public static final String WORKER_BLOCK_CHECKSUM_CALCULATION_THREAD_POOL_SIZE =
+        "alluxio.worker.block.checksum.calculation.thread.pool.size";
+    public static final String WORKER_BLOCK_CHECKSUM_CALCULATION_USE_BUFFER_POOL =
+        "alluxio.worker.block.checksum.calculation.use.buffer.pool";
     public static final String WORKER_CONTAINER_HOSTNAME =
         "alluxio.worker.container.hostname";
     public static final String WORKER_DATA_FOLDER = "alluxio.worker.data.folder";
@@ -9102,6 +9142,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.include.mtime";
     public static final String USER_CLIENT_REPORT_VERSION_ENABLED =
         "alluxio.user.client.report.version.enabled";
+    public static final String USER_CLIENT_CHECKSUM_CALCULATION_BATCH_SIZE =
+        "alluxio.useer.client.checksum.calculation.batch.size";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
