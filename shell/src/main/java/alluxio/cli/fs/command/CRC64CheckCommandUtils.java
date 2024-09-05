@@ -53,7 +53,7 @@ public class CRC64CheckCommandUtils {
   private static final Logger LOG = LoggerFactory.getLogger(DistributedLoadUtils.class);
   private static final int CHECKSUM_CALCULATION_BATCH_SIZE = Configuration.getInt(
       PropertyKey.USER_CLIENT_CHECKSUM_CALCULATION_BATCH_SIZE);
-  private static final int SLOW_CHECKSUM_CALCULATION_REQUEST_THRESHOLD_MS = 12; //120_000; //2min
+  private static final int SLOW_CHECKSUM_CALCULATION_REQUEST_THRESHOLD_MS = 120_000;
 
   /**
    * Gets the CRC64 checksum from UFS for a given path.
