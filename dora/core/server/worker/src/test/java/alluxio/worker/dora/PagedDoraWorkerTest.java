@@ -65,7 +65,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -1014,7 +1013,6 @@ public class PagedDoraWorkerTest {
     }
   }
 
-  @Ignore("Remove this annotation once OS worker supports the prefix search.")
   @Test
   public void searchPagesByPrefix() throws Exception {
     String prefix1 = "prefix1";

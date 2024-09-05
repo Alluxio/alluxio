@@ -103,12 +103,12 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * The first index of the indexed set. This index is used to guarantee uniqueness of objects,
    * support iterator and provide quick lookup.
    */
-  private final FieldIndex<T, ?> mPrimaryIndex;
+  protected final FieldIndex<T, ?> mPrimaryIndex;
   /**
    * Map from index definition to the index. An index is a map from index value to one or a set of
    * objects with that index value.
    */
-  private final Map<IndexDefinition<T, ?>, FieldIndex<T, ?>> mIndices;
+  protected final Map<IndexDefinition<T, ?>, FieldIndex<T, ?>> mIndices;
 
   /**
    * Constructs a new {@link IndexedSet} instance with at least one field as the index.
