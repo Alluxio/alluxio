@@ -17,6 +17,8 @@ import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.GetBlockChecksumRequest;
+import alluxio.grpc.GetBlockChecksumResponse;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
@@ -161,4 +163,16 @@ public interface BlockWorkerClient extends Closeable {
    * @throws StatusRuntimeException if any error occurs
    */
   ListenableFuture<LoadResponse> load(LoadRequest request);
+
+  /**
+   * Calculates the checksum of a block (currently CRC64).
+   * @param request the request
+   * @return the response
+   */
+  ListenableFuture<GetBlockChecksumResponse> getBlockChecksum(GetBlockChecksumRequest request);
+
+  /**
+   * @return the grpc server address
+   */
+  GrpcServerAddress getAddress();
 }

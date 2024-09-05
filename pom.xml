@@ -1247,7 +1247,7 @@
             <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
           </sourceDirectories>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/org/apache/jsp/**,**/alluxio/concurrent/jsr/**,**/alluxio/jnifuse/**</excludes>
+          <excludes>**/org/apache/jsp/**,**/alluxio/concurrent/jsr/**,**/alluxio/jnifuse/**,**/util/CRC64.java</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
