@@ -727,8 +727,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     if (!copyObject(srcKey, stripPrefixIfPresent(convertToFolderName(dst)))) {
       return false;
     }
-    deleteBuffer.add(srcKey);
-
     // Rename each child in the src folder to destination/child
     // a. Since renames are a copy operation, files are added to a buffer and processed concurrently
     // b. Pseudo-directories are metadata only operations are not added to the buffer
@@ -746,6 +744,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         buffer.add(new Pair<>(childSrcPath, childDstPath));
       }
     }
+    // The files are arranged in the order of the parent directories to avoid the failure of deleting the directories first.
+    deleteBuffer.add(srcKey);
     // Get result of parallel file renames
     int filesRenamed = buffer.getResult().size();
     if (filesRenamed != buffer.mEntriesAdded) {
