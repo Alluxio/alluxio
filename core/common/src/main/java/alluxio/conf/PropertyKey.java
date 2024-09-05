@@ -4313,6 +4313,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_BLOCK_CHECKSUM_CALCULATION_USE_BUFFER_POOL =
+      booleanBuilder(Name.WORKER_BLOCK_CHECKSUM_CALCULATION_USE_BUFFER_POOL)
+          .setDefaultValue(false)
+          .setDescription("If enabled, will use buffer pool for reading the file during "
+              + "checksum calculation. This reduces GC but will introduce permanent "
+              + "memory consumption.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_CONTAINER_HOSTNAME =
       stringBuilder(Name.WORKER_CONTAINER_HOSTNAME)
           .setDescription("The container hostname if worker is running in a container.")
@@ -6436,7 +6445,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
-
 
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       enumBuilder(Name.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
@@ -8740,6 +8748,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.block.checksum.calculation.throughput.threshold";
     public static final String WORKER_BLOCK_CHECKSUM_CALCULATION_THREAD_POOL_SIZE =
         "alluxio.worker.block.checksum.calculation.thread.pool.size";
+    public static final String WORKER_BLOCK_CHECKSUM_CALCULATION_USE_BUFFER_POOL =
+        "alluxio.worker.block.checksum.calculation.use.buffer.pool";
     public static final String WORKER_CONTAINER_HOSTNAME =
         "alluxio.worker.container.hostname";
     public static final String WORKER_DATA_FOLDER = "alluxio.worker.data.folder";

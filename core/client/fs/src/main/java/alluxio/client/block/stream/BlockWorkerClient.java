@@ -164,5 +164,15 @@ public interface BlockWorkerClient extends Closeable {
    */
   ListenableFuture<LoadResponse> load(LoadRequest request);
 
+  /**
+   * Calculates the checksum of a block (currently CRC64).
+   * @param request the request
+   * @return the response
+   */
   ListenableFuture<GetBlockChecksumResponse> getBlockChecksum(GetBlockChecksumRequest request);
+
+  /**
+   * @return the grpc server address
+   */
+  GrpcServerAddress getAddress();
 }

@@ -1,14 +1,33 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
-import javax.annotation.Nullable;
+
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
+import javax.annotation.Nullable;
 
-public class CRC64CheckCommand extends AbstractFileSystemCommand{
+/**
+ * The CLI for CRC64 check.
+ */
+public class CRC64CheckCommand extends AbstractFileSystemCommand {
+  /**
+   * The constructor.
+   * @param fsContext the fs context
+   */
   public CRC64CheckCommand(
       @Nullable FileSystemContext fsContext) {
     super(fsContext);
@@ -17,14 +36,10 @@ public class CRC64CheckCommand extends AbstractFileSystemCommand{
   @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
-    /*
     System.out.println("Checking " + plainPath);
     long crc64 = CRC64CheckCommandUtils.checkCRC64(mFsContext, mFileSystem, plainPath);
     System.out.println("CRC64 check for file " + plainPath + " succeeded. "
-        + "CRC64: " + crc64);
-
-     */
-    System.out.println(CRC64CheckCommandUtils.calculateAlluxioCRC64(mFsContext, mFileSystem, plainPath));
+        + "CRC64: " + Long.toHexString(crc64));
   }
 
   @Override

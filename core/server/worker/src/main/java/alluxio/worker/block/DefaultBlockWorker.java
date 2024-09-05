@@ -47,13 +47,11 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.network.protocol.databuffer.NioHeapBufferPool;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.CRC64;
-import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.FileUtils;
 import alluxio.wire.FileInfo;
@@ -62,7 +60,6 @@ import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.page.PagedBlockStore;
@@ -74,7 +71,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import com.google.common.util.concurrent.RateLimiter;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +90,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -146,7 +141,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   protected WorkerNetAddress mAddress;
   private final ExecutorService mChecksumCalculationThreadPool;
-  private final Optional<RateLimiter> mChecksumCalculationRateLimiter ;
+  private final Optional<RateLimiter> mChecksumCalculationRateLimiter;
+  private final boolean mChecksumCalculationUsingBufferPool;
 
   /**
    * Constructs a default block worker.
@@ -196,6 +192,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
           Optional.of(RateLimiter.create(
               Math.max(Math.toIntExact(checksumThroughputThreshold / 1024), 1)));
     }
+    mChecksumCalculationUsingBufferPool =
+        Configuration.getBoolean(PropertyKey.WORKER_BLOCK_CHECKSUM_CALCULATION_USE_BUFFER_POOL);
     Metrics.registerGauges(this);
   }
 
@@ -643,7 +641,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
           CRC64 crc64 = new CRC64();
           BlockReader br = mBlockStore.createBlockReader(
               -1, blockId, 0, false, Protocol.OpenUfsBlockOptions.getDefaultInstance());
-          bf = NioHeapBufferPool.acquire(chunkSize);
+          if (mChecksumCalculationUsingBufferPool) {
+            bf = NioHeapBufferPool.acquire(chunkSize);
+          } else {
+            bf = ByteBuffer.allocate(chunkSize);
+          }
           ByteBuf bb = Unpooled.wrappedBuffer(bf);
           while (true) {
             bb.clear();
@@ -666,7 +668,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         } catch (Exception e) {
           throw new RuntimeException(e);
         } finally {
-          if (bf != null) {
+          if (bf != null && mChecksumCalculationUsingBufferPool) {
             NioHeapBufferPool.release(bf);
           }
         }

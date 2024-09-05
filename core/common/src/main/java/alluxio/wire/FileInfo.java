@@ -11,16 +11,12 @@
 
 package alluxio.wire;
 
-import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.grpc.TtlAction;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
-import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
-import alluxio.util.CommonUtils;
-import alluxio.util.io.PathUtils;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -649,6 +645,11 @@ public final class FileInfo implements Serializable {
     return this;
   }
 
+  /**
+   * Coverts an ufs status to FileInfo.
+   * @param ufsStatus the ufs status
+   * @return the converted file info
+   */
   public static FileInfo fromUfsStatus(UfsStatus ufsStatus) {
     FileInfo info = new FileInfo().setName(ufsStatus.getName())
         .setPath(ufsStatus.getName())
@@ -658,7 +659,7 @@ public final class FileInfo implements Serializable {
         .setMode(ufsStatus.getMode())
         .setCompleted(true);
     if (ufsStatus.getLastModifiedTime() != null) {
-      info.setLastModificationTimeMs(info.getLastModificationTimeMs());
+      info.setLastModificationTimeMs(ufsStatus.getLastModifiedTime());
     }
     if (ufsStatus.getXAttr() != null) {
       info.setXAttr(ufsStatus.getXAttr());

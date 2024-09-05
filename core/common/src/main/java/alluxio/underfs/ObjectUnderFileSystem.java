@@ -550,7 +550,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return
           new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
           details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-          permissions.getMode(), xAttr, mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
+          permissions.getMode(), xAttr,
+          mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     } else {
       LOG.debug("Error fetching file status, assuming file {} does not exist", path);
       throw new FileNotFoundException("Failed to fetch file status " + path);
@@ -578,7 +579,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       return
           new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
               details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
-              permissions.getMode(), xAttr, mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
+              permissions.getMode(), xAttr,
+              mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     }
     return getDirectoryStatus(path);
   }

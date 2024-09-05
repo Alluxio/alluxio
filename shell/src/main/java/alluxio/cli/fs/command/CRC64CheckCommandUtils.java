@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
@@ -6,39 +17,46 @@ import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.BlockChecksum;
-import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetBlockChecksumRequest;
 import alluxio.grpc.GetBlockChecksumResponse;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.master.block.BlockId;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CRC64;
+import alluxio.util.CommonUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import org.apache.commons.cli.CommandLine;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+/**
+ * The utils functions for CRC64 check.
+ */
 public class CRC64CheckCommandUtils {
   private static final Logger LOG = LoggerFactory.getLogger(DistributedLoadUtils.class);
+  private static final int CHECKSUM_CALCULATION_BATCH_SIZE = Configuration.getInt(
+      PropertyKey.USER_CLIENT_CHECKSUM_CALCULATION_BATCH_SIZE);
+  private static final int SLOW_CHECKSUM_CALCULATION_REQUEST_THRESHOLD_MS = 12; //120_000; //2min
 
   /**
-   * Gets the CRC64 checksum from UFS for a given path
+   * Gets the CRC64 checksum from UFS for a given path.
    *
    * @param fileSystem the file system
    * @param plainPath  the file path
@@ -52,11 +70,11 @@ public class CRC64CheckCommandUtils {
     if (ufsStatus.getXAttr() == null || !ufsStatus.getXAttr().containsKey(Constants.CRC64_KEY)) {
       throw new UnsupportedOperationException("The ufs does not support CRC64 checksum");
     }
-    return Long.parseLong(new String(ufsStatus.getXAttr().get(Constants.CRC64_KEY)));
+    return parseSignedOrUnsignedLong(new String(ufsStatus.getXAttr().get(Constants.CRC64_KEY)));
   }
 
   /**
-   * Calculates the alluxio CRC64 value
+   * Calculates the alluxio CRC64 value.
    *
    * @param fsContext  the file system context
    * @param fileSystem the file system
@@ -99,7 +117,7 @@ public class CRC64CheckCommandUtils {
                = fsContext.acquireBlockWorkerClient(entry.getKey())) {
         GetBlockChecksumRequest request =
             GetBlockChecksumRequest.newBuilder().addAllBlockIds(entry.getValue()).build();
-        rpcFutures.put(entry.getKey(), blockWorkerClient.get().getBlockChecksum(request));
+        rpcFutures.put(entry.getKey(), getBlockChecksumInBatches(blockWorkerClient.get(), request));
       }
     }
 
@@ -116,9 +134,8 @@ public class CRC64CheckCommandUtils {
             BlockChecksum checksumFromMap = checksumMap.get(blockId);
             if (checksumFromMap.getBlockLength() != checksum.getBlockLength()
                 || !Objects.equals(checksumFromMap.getChecksum(), checksum.getChecksum())) {
-              throw new RuntimeException(
-                  "Block " + blockId +
-                      " have multiple replicas across the workers but their checksum does not match"
+              throw new RuntimeException("Block " + blockId
+                  + " have multiple replicas across the workers but their checksum does not match"
               );
             }
           }
@@ -145,14 +162,14 @@ public class CRC64CheckCommandUtils {
             + "from master block locations.");
       }
       BlockChecksum bcs = checksumMap.get(blockId);
-      crc64Value =
-          CRC64.combine(crc64Value, Long.parseLong(bcs.getChecksum()), bcs.getBlockLength());
+      crc64Value = CRC64.combine(
+              crc64Value, parseSignedOrUnsignedLong(bcs.getChecksum()), bcs.getBlockLength());
     }
     return crc64Value;
   }
 
   /**
-   * Calculates the alluxio CRC for a given block
+   * Calculates the alluxio CRC for a given block.
    *
    * @param fsContext          the file system context
    * @param blockId            the block id to calculate
@@ -170,7 +187,7 @@ public class CRC64CheckCommandUtils {
                = fsContext.acquireBlockWorkerClient(address)) {
         GetBlockChecksumRequest request =
             GetBlockChecksumRequest.newBuilder().addBlockIds(blockId).build();
-        rpcFutures.put(address, blockWorkerClient.get().getBlockChecksum(request));
+        rpcFutures.put(address, getBlockChecksumInBatches(blockWorkerClient.get(), request));
       }
     }
     for (Map.Entry<WorkerNetAddress, ListenableFuture<GetBlockChecksumResponse>>
@@ -190,7 +207,19 @@ public class CRC64CheckCommandUtils {
   }
 
   /**
-   * Checks if the CRC64 checksum is consistent between alluxio and UFS
+   * A direct RPC call to the worker to calculate the CRC64 checksum.
+   * @param client the worker client
+   * @param request the request
+   * @return the response
+   */
+  public static ListenableFuture<GetBlockChecksumResponse> getBlockChecksumRpc(
+      BlockWorkerClient client, GetBlockChecksumRequest request
+  ) throws IOException {
+    return client.getBlockChecksum(request);
+  }
+
+  /**
+   * Checks if the CRC64 checksum is consistent between alluxio and UFS.
    *
    * @param fsContext  the file system context
    * @param fileSystem the file system
@@ -208,5 +237,61 @@ public class CRC64CheckCommandUtils {
           + Long.toHexString(alluxioCRC));
     }
     return ufsCRC;
+  }
+
+  private static ListenableFuture<GetBlockChecksumResponse> getBlockChecksumInBatches(
+      BlockWorkerClient client, GetBlockChecksumRequest request) {
+    // Non-batched mode
+    if (request.getBlockIdsCount() < CHECKSUM_CALCULATION_BATCH_SIZE) {
+      long startTs = CommonUtils.getCurrentMs();
+      ListenableFuture<GetBlockChecksumResponse> future = client.getBlockChecksum(request);
+      future.addListener(() -> {
+        long timeElapsed = CommonUtils.getCurrentMs() - startTs;
+        if (timeElapsed > SLOW_CHECKSUM_CALCULATION_REQUEST_THRESHOLD_MS) {
+          LOG.warn(
+              "Slow checksum calculation RPC for {} blocks, address {}, time elapsed {}ms ",
+              request.getBlockIdsCount(), client.getAddress(), timeElapsed);
+        }
+      }, MoreExecutors.directExecutor());
+      return future;
+    }
+
+    // Batched mode
+    GetBlockChecksumResponse.Builder responseBuilder = GetBlockChecksumResponse.newBuilder();
+    ListenableFuture<GetBlockChecksumResponse> chainedCalls =
+        Futures.immediateFuture(GetBlockChecksumResponse.getDefaultInstance());
+    List<List<Long>> blockIdsPerBatch =
+        Lists.partition(request.getBlockIdsList(), CHECKSUM_CALCULATION_BATCH_SIZE);
+    for (List<Long> blockIdsOfBatch : blockIdsPerBatch) {
+      chainedCalls = Futures.transformAsync(chainedCalls, (previousResult) -> {
+        responseBuilder.putAllChecksum(previousResult.getChecksumMap());
+        GetBlockChecksumRequest requestOfBatch =
+            GetBlockChecksumRequest.newBuilder().addAllBlockIds(blockIdsOfBatch).build();
+        ListenableFuture<GetBlockChecksumResponse> future =
+            client.getBlockChecksum(requestOfBatch);
+        long startTs = CommonUtils.getCurrentMs();
+        future.addListener(() -> {
+          long timeElapsed = CommonUtils.getCurrentMs() - startTs;
+          if (timeElapsed > SLOW_CHECKSUM_CALCULATION_REQUEST_THRESHOLD_MS) {
+            LOG.warn(
+                "Slow checksum calculation RPC for {} blocks, address {}, time elapsed {}ms ",
+                blockIdsOfBatch.size(), client.getAddress(), timeElapsed);
+          }
+        }, MoreExecutors.directExecutor());
+        return future;
+      }, MoreExecutors.directExecutor());
+    }
+    return Futures.transform(chainedCalls, (lastResult) -> {
+      responseBuilder.putAllChecksum(lastResult.getChecksumMap());
+      return responseBuilder.build();
+    }, MoreExecutors.directExecutor());
+  }
+
+  private static long parseSignedOrUnsignedLong(String input) {
+    if (input.startsWith("-")) {
+      return Long.parseLong(input);
+    } else {
+      return Long.parseUnsignedLong(input);
+    }
   }
 }
