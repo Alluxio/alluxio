@@ -24,6 +24,7 @@ service BlockWorker {
   rpc Load(LoadRequest)returns (LoadResponse);
   rpc RemoveBlock (RemoveBlockRequest) returns (RemoveBlockResponse);
   rpc MoveBlock (MoveBlockRequest) returns (MoveBlockResponse);
+  rpc GetBlockChecksum (GetBlockChecksumRequest) returns (GetBlockChecksumResponse);
 
   // TODO(lu) Move to metrics worker
   rpc ClearMetrics (ClearMetricsRequest) returns (ClearMetricsResponse);
@@ -239,3 +240,16 @@ message MoveBlockResponse {}
 message ClearMetricsRequest {}
 
 message ClearMetricsResponse {}
+
+message GetBlockChecksumRequest {
+  repeated int64 block_ids = 1;
+}
+message BlockChecksum {
+  optional int64 block_id = 1;
+  optional int64 block_length = 2;
+  optional string checksum = 3;
+}
+
+message GetBlockChecksumResponse {
+  map<int64, BlockChecksum> checksum = 1;
+}

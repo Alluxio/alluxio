@@ -17,6 +17,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.AsyncCacheResponse;
+import alluxio.grpc.BlockChecksum;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CacheRequest;
@@ -27,6 +28,8 @@ import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.FreeWorkerRequest;
 import alluxio.grpc.FreeWorkerResponse;
+import alluxio.grpc.GetBlockChecksumRequest;
+import alluxio.grpc.GetBlockChecksumResponse;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
@@ -246,5 +249,16 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
     } catch (Exception e) {
       throw Status.UNAUTHENTICATED.withDescription(e.toString()).asRuntimeException();
     }
+  }
+
+  @Override
+  public void getBlockChecksum(
+      GetBlockChecksumRequest request,
+      StreamObserver<GetBlockChecksumResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      Map<Long, BlockChecksum> checksums =
+          mBlockWorker.calculateBlockChecksum(request.getBlockIdsList());
+      return GetBlockChecksumResponse.newBuilder().putAllChecksum(checksums).build();
+    }, "getBlockChecksum", "request=%s", responseObserver, request);
   }
 }

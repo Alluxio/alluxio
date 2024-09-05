@@ -1432,6 +1432,50 @@
           },
           {
             "name": "ClearMetricsResponse"
+          },
+          {
+            "name": "GetBlockChecksumRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "block_ids",
+                "type": "int64",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "BlockChecksum",
+            "fields": [
+              {
+                "id": 1,
+                "name": "block_id",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "block_length",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "checksum",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "GetBlockChecksumResponse",
+            "maps": [
+              {
+                "key_type": "int64",
+                "field": {
+                  "id": 1,
+                  "name": "checksum",
+                  "type": "BlockChecksum"
+                }
+              }
+            ]
           }
         ],
         "services": [
@@ -1490,6 +1534,11 @@
                 "name": "MoveBlock",
                 "in_type": "MoveBlockRequest",
                 "out_type": "MoveBlockResponse"
+              },
+              {
+                "name": "GetBlockChecksum",
+                "in_type": "GetBlockChecksumRequest",
+                "out_type": "GetBlockChecksumResponse"
               },
               {
                 "name": "ClearMetrics",
@@ -2749,6 +2798,16 @@
                     "value": "true"
                   }
                 ]
+              },
+              {
+                "id": 5,
+                "name": "includeRealContentHash",
+                "type": "bool"
+              },
+              {
+                "id": 6,
+                "name": "directUfsAccess",
+                "type": "bool"
               }
             ]
           },
