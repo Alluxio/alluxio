@@ -89,7 +89,7 @@ public class CRC64CheckCommandUtils {
       throw new IllegalStateException("The path is a folder");
     }
     if (status.getInAlluxioPercentage() != 100) {
-      throw new IllegalStateException("The file is not cached in alluxio");
+      throw new IllegalStateException("The file is not fully cached in alluxio");
     }
     List<BlockLocationInfo> blockLocationInfoList = fileSystem.getBlockLocations(status);
     Map<WorkerNetAddress, List<Long>> blockIdsOnWorkers = new HashMap<>();
