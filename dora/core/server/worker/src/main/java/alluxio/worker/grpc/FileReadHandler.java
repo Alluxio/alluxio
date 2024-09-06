@@ -349,6 +349,7 @@ public class FileReadHandler implements StreamObserver<ReadRequest> {
             DataBuffer finalChunk = chunk;
             mSerializingExecutor.execute(() -> {
               try {
+                long length = finalChunk.getLength();
                 ReadResponse response = ReadResponse.newBuilder().setChunk(Chunk.newBuilder()
                     .setData(UnsafeByteOperations.unsafeWrap(finalChunk.getReadOnlyByteBuffer()))
                 ).build();
@@ -358,7 +359,7 @@ public class FileReadHandler implements StreamObserver<ReadRequest> {
                 } else {
                   mResponse.onNext(response);
                 }
-                incrementMetrics(finalChunk.getLength());
+                incrementMetrics(length);
               } catch (Exception e) {
                 LogUtils.warnWithException(LOG,
                     "Exception occurred while sending data for read request {}.",
