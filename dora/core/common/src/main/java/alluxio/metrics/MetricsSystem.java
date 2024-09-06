@@ -791,6 +791,10 @@ public final class MetricsSystem {
         // This metric does not registered in the metric registry
         continue;
       }
+      if (!entry.getKey().startsWith(instanceType.toString())) {
+        // The metric type reported to the master should be consistent with the instanceType
+        continue;
+      }
       // Currently all metrics that should be reported are all counters,
       // the logic here is to support reporting metrics of all types for future convenience
       if (metric instanceof Counter) {
