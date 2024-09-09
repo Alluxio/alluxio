@@ -136,7 +136,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
     }
 
     mPrimaryIndex = indices.get(primaryIndexDefinition);
-    mIndices = Collections.unmodifiableMap(indices);
+    mIndices = indices;
   }
 
   /**
