@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -400,7 +401,7 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
    * @param ufsUrl the prefix of UfsUrl
    * @return a list of PageInfos with the same prefix
    */
-  default List<PageInfo> getPageInfoByPrefix(UfsUrl ufsUrl) {
+  default Set<PageInfo> getPageInfoByPrefix(UfsUrl ufsUrl) {
     throw new UnsupportedOperationException("Unsupported method: getPageInfoByPrefix");
   }
 }

@@ -1302,7 +1302,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @param ufsUrl the start UfsUrl
    * @return the PageInfo set
    */
-  public List<PageInfo> getPageInfoByPrefix(UfsUrl ufsUrl) {
+  public Set<PageInfo> getPageInfoByPrefix(UfsUrl ufsUrl) {
     return mCacheManager.getPageInfoByPrefix(ufsUrl);
   }
 }

@@ -65,7 +65,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -78,7 +77,6 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -1015,7 +1013,6 @@ public class PagedDoraWorkerTest {
     }
   }
 
-  @Ignore("Remove this annotation once OS worker supports the prefix search.")
   @Test
   public void searchPagesByPrefix() throws Exception {
     String prefix1 = "prefix1";
@@ -1039,15 +1036,11 @@ public class PagedDoraWorkerTest {
   }
 
   private void checkPrefixSearch(UfsUrl rootUrl, UfsUrl prefixUrl) {
-    List<PageInfo> rootResult = mWorker.getPageInfoByPrefix(rootUrl);
-    Set<PageInfo> rootResultSet = new HashSet<>(rootResult);
-    Assert.assertEquals(rootResult.size(), rootResultSet.size());
+    Set<PageInfo> rootResultSet = mWorker.getPageInfoByPrefix(rootUrl);
 
-    List<PageInfo> prefixSearchResult = mWorker.getPageInfoByPrefix(prefixUrl);
-    Set<PageInfo> prefixSearchSet = new HashSet<>(prefixSearchResult);
-    Assert.assertEquals(prefixSearchResult.size(), prefixSearchSet.size());
+    Set<PageInfo> prefixSearchSet = mWorker.getPageInfoByPrefix(prefixUrl);
 
-    for (PageInfo p : prefixSearchResult) {
+    for (PageInfo p : prefixSearchSet) {
       Assert.assertTrue(p.getUfsUrl().toString().startsWith(prefixUrl.toString()));
     }
     for (PageInfo p : rootResultSet) {

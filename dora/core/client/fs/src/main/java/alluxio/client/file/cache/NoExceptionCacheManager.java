@@ -17,14 +17,17 @@ import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataFileChannel;
+import alluxio.uri.UfsUrl;
 
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -222,6 +225,17 @@ public class NoExceptionCacheManager implements CacheManager {
     } catch (Exception e) {
       LOG.error("Failed to deleteFile for {}", fileId, e);
     }
+  }
+
+  @Override
+  public Set<PageInfo> getPageInfoByPrefix(UfsUrl ufsUrl) {
+    Set<PageInfo> set = Collections.emptySet();
+    try {
+      set = mCacheManager.getPageInfoByPrefix(ufsUrl);
+    } catch (Exception e) {
+      LOG.error("Failed to getPageInfoByPrefix for {}", ufsUrl, e);
+    }
+    return set;
   }
 
   @Override
