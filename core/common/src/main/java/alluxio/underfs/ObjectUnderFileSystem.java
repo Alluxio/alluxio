@@ -744,7 +744,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         buffer.add(new Pair<>(childSrcPath, childDstPath));
       }
     }
-    // The files are arranged in the order of the parent directories to avoid the failure of deleting the directories first.
+    // The files are arranged in the order of the parent directories
+    // to avoid the failure of deleting the directories first.
     deleteBuffer.add(srcKey);
     // Get result of parallel file renames
     int filesRenamed = buffer.getResult().size();

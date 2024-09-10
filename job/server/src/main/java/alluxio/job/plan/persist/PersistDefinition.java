@@ -195,13 +195,13 @@ public final class PersistDefinition
         LOG.warn("Failed run persiste task of {}, case {}", ufsPath, e.getMessage());
         throw e;
       } finally {
-        if(!isTaskSuccess) {
+        if (!isTaskSuccess) {
           LOG.warn("The created directory needs to be rolled back and deleted, directory size {}.",
               successMkdirsList.size());
           ufs.deleteExistingFile(ufsPath);
           Collections.reverse(successMkdirsList);
           for (String path : successMkdirsList) {
-            if(!ufs.deleteDirectory(path)) {
+            if (!ufs.deleteDirectory(path)) {
               LOG.warn("Failed delete ufs path {}", path);
             }
           }
