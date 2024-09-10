@@ -3159,7 +3159,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
     // After rename succeeds, avoid this asynchronous persistence task
     if (srcInode.isDirectory() && !context.getPersist()) {
-      LOG.debug("The source directory {} has been renamed. Cancel the child persistence task.", srcInodePath);
+      LOG.debug("The source directory {} has been renamed, "
+          + "cancel the child persistence task.", srcInodePath);
       try (LockedInodePathList descendants = mInodeTree.getDescendants(srcInodePath)) {
         for (LockedInodePath childPath : descendants) {
           Inode childInode = childPath.getInode();
