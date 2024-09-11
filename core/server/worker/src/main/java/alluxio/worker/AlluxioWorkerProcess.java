@@ -20,6 +20,7 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
+import alluxio.util.OSUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -33,6 +34,7 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.grpc.GrpcDataServer;
 
+import com.google.common.base.Preconditions;
 import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,6 +146,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
           domainSocketPath =
               PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
         }
+        Preconditions.checkState(domainSocketPath.length() < OSUtils.getDomainSocketMaxPathLength(),
+            "The longest domain socket path possible on this host is %d bytes.",
+            OSUtils.getDomainSocketMaxPathLength());
         LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
         mDomainSocketDataServer = new GrpcDataServer(mRpcConnectAddress.getHostName(),
             new DomainSocketAddress(domainSocketPath), this);
