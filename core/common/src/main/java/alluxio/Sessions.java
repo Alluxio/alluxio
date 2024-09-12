@@ -36,9 +36,10 @@ public class Sessions {
   public static final int CACHE_UFS_SESSION_ID = -8;
 
   public static final int LOAD_SESSION_ID = -9;
+  public static final int WORKER_CHECKSUM_CHECK_SESSION_ID = -10;
 
   // internal session id base should be smaller than all predefined session ids
-  public static final long INTERNAL_SESSION_ID_BASE = -8;
+  public static final long INTERNAL_SESSION_ID_BASE = -11;
 
   /** Map from SessionId to {@link alluxio.SessionInfo} object. */
   private final Map<Long, SessionInfo> mSessions;

@@ -627,10 +627,10 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     for (long blockId : blockIds) {
       Future<?> future = mChecksumCalculationThreadPool.submit(() -> {
         ByteBuffer bf = null;
-        try {
+        try (BlockReader br = mBlockStore.createBlockReader(
+            Sessions.WORKER_CHECKSUM_CHECK_SESSION_ID,
+            blockId, 0, false, Protocol.OpenUfsBlockOptions.getDefaultInstance())) {
           CRC64 crc64 = new CRC64();
-          BlockReader br = mBlockStore.createBlockReader(
-              -1, blockId, 0, false, Protocol.OpenUfsBlockOptions.getDefaultInstance());
           if (mChecksumCalculationUsingBufferPool) {
             bf = NioHeapBufferPool.acquire(chunkSize);
           } else {
