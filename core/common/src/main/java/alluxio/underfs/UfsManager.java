@@ -60,6 +60,17 @@ public interface UfsManager extends Closeable {
     public CloseableResource<UnderFileSystem> acquireUfsResource() {
       if (mUfs.get() == null) {
         UnderFileSystem ufs = mUfsSupplier.get();
+        try {
+          ufs.exists(mUfsMountPointUri.getPath());
+        } catch (IOException e) {
+          mCounter.inc();
+          return new CloseableResource<UnderFileSystem>(ufs) {
+            @Override
+            public void closeResource() {
+              mCounter.dec();
+            }
+          };
+        }
         if (!mUfs.compareAndSet(null, ufs)) {
           // Another thread already added this ufs, close this one.
           try {

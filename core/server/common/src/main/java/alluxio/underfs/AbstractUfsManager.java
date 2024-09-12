@@ -112,18 +112,6 @@ public abstract class AbstractUfsManager implements UfsManager {
 
   /**
    * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
-   * return it.
-   *
-   * @param ufsUri the UFS path
-   * @param ufsConf the UFS configuration
-   * @return the UFS instance
-   */
-  private UnderFileSystem getOrAdd(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
-    return getOrAddWithRecorder(ufsUri, ufsConf, Recorder.noopRecorder());
-  }
-
-  /**
-   * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
    * return it and record the execution process.
    *
    * @param ufsUri the UFS path
@@ -169,7 +157,7 @@ public abstract class AbstractUfsManager implements UfsManager {
             "Failed to perform initial connect to UFS %s: %s", ufsUri, e);
         recorder.record(message);
         LOG.warn(message);
-        throw new RuntimeException(e);
+        return fs;
       }
       if (mUnderFileSystemMap.putIfAbsent(key, fs) != null) {
         // This shouldn't occur unless our synchronization is incorrect
