@@ -11,9 +11,16 @@
 
 package alluxio.network.protocol.databuffer;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.retry.RetryPolicy;
+import alluxio.util.CleanerUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.Map;
@@ -23,7 +30,10 @@ import java.util.TreeMap;
  * Direct buffer pool.
  */
 public class NioDirectBufferPool {
+  private static final Logger LOG = LoggerFactory.getLogger(NioDirectBufferPool.class);
   private static final TreeMap<Integer, LinkedList<ByteBuffer>> BUF_POOL = new TreeMap();
+  private static final boolean POOLED_BUFFER_ENABLED =
+      Configuration.getBoolean(PropertyKey.WORKER_POOLED_DIRECT_BUFFER_ENABLED);
 
   /**
    * @param length
@@ -64,11 +74,32 @@ public class NioDirectBufferPool {
    * @param buffer
    */
   public static synchronized void release(ByteBuffer buffer) {
-    LinkedList<ByteBuffer> bufList = BUF_POOL.get(buffer.capacity());
-    if (bufList == null) {
-      bufList = new LinkedList<>();
-      BUF_POOL.put(buffer.capacity(), bufList);
+    if (!POOLED_BUFFER_ENABLED && buffer.isDirect()) {
+      free(buffer);
+    } else {
+      LinkedList<ByteBuffer> bufList = BUF_POOL.get(buffer.capacity());
+      if (bufList == null) {
+        bufList = new LinkedList<>();
+        BUF_POOL.put(buffer.capacity(), bufList);
+      }
+      bufList.push(buffer);
     }
-    bufList.push(buffer);
+  }
+
+  /**
+   * Forcibly free the direct buffer.
+   *
+   * @param buffer buffer
+   */
+  private static void free(ByteBuffer buffer) {
+    if (CleanerUtils.UNMAP_SUPPORTED) {
+      try {
+        CleanerUtils.getCleaner().freeBuffer(buffer);
+      } catch (IOException e) {
+        LOG.info("Failed to free the buffer", e);
+      }
+    } else {
+      LOG.trace(CleanerUtils.UNMAP_NOT_SUPPORTED_REASON);
+    }
   }
 }

@@ -5444,6 +5444,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_POOLED_DIRECT_BUFFER_ENABLED =
+      booleanBuilder(Name.WORKER_POOLED_DIRECT_BUFFER_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether to pooled allocated direct memory.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
 
   //
   // Proxy related properties
@@ -8952,6 +8959,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
         "alluxio.worker.ufs.instream.cache.max.size";
     public static final String WORKER_WHITELIST = "alluxio.worker.whitelist";
+    public static final String WORKER_POOLED_DIRECT_BUFFER_ENABLED =
+        "alluxio.worker.pooled.direct.buffer.enabled";
 
     //
     // Proxy related properties
