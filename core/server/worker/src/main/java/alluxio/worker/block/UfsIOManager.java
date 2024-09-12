@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.DeadlineExceededRuntimeException;
 import alluxio.exception.runtime.OutOfRangeRuntimeException;
 import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.grpc.UfsReadOptions;
@@ -37,6 +38,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -44,12 +46,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Control UFS IO.
  */
 public class UfsIOManager implements Closeable {
   private static final int READ_CAPACITY = 1024;
+  private static final long READ_TIMEOUT =
+      Configuration.getMs(PropertyKey.USER_NETWORK_RPC_KEEPALIVE_TIMEOUT);
   private final UfsManager.UfsClient mUfsClient;
   private final ConcurrentMap<String, Long> mThroughputQuota = new ConcurrentHashMap<>();
   private final UfsInputStreamCache mUfsInstreamCache = new UfsInputStreamCache();
@@ -61,6 +69,8 @@ public class UfsIOManager implements Closeable {
           ThreadFactoryUtils.build("UfsIOManager-IO-%d", false));
   private final ExecutorService mScheduleExecutor = Executors
       .newSingleThreadExecutor(ThreadFactoryUtils.build("UfsIOManager-Scheduler-%d", true));
+  private final ScheduledExecutorService mDelayer = new ScheduledThreadPoolExecutor(1,
+      ThreadFactoryUtils.build("UfsIOManager-Read-TimeOut", true));
 
   /**
    * @param ufsClient ufs client
@@ -83,6 +93,7 @@ public class UfsIOManager implements Closeable {
   public void close() {
     mScheduleExecutor.shutdownNow();
     mUfsIoExecutor.shutdownNow();
+    mDelayer.shutdownNow();
   }
 
   /**
@@ -99,6 +110,9 @@ public class UfsIOManager implements Closeable {
     while (!Thread.currentThread().isInterrupted()) {
       try {
         ReadTask task = mReadQueue.take();
+        if (task.isCancelled()) {
+          continue;
+        }
         if (mThroughputQuota.containsKey(task.mOptions.getTag())
             && mThroughputQuota.get(task.mOptions.getTag()) < getUsedThroughput(task.mMeter)) {
           // resubmit to queue
@@ -164,8 +178,16 @@ public class UfsIOManager implements Closeable {
             MetricsSystem.escape(mUfsClient.getUfsMountPointUri()), MetricInfo.TAG_USER,
             options.getTag()));
 
-    mReadQueue.add(new ReadTask(buf, ufsPath, IdUtils.fileIdFromBlockId(blockId), offset,
-        len, options, future, meter));
+    ReadTask task = new ReadTask(buf, ufsPath, IdUtils.fileIdFromBlockId(blockId), offset,
+        len, options, future, meter);
+    mReadQueue.add(task);
+
+    ScheduledFuture<?> timeoutFuture = mDelayer.schedule(() -> {
+      task.cancel();
+      future.completeExceptionally(new DeadlineExceededRuntimeException(
+          String.format("time out after waiting for %s %s", READ_TIMEOUT, TimeUnit.MILLISECONDS)));
+    }, READ_TIMEOUT, TimeUnit.MILLISECONDS);
+    future.whenComplete((result, ex) -> timeoutFuture.cancel(false));
     return future;
   }
 
@@ -177,7 +199,8 @@ public class UfsIOManager implements Closeable {
     private final UfsReadOptions mOptions;
     private final Meter mMeter;
     private final long mFileId;
-    private final ByteBuffer mBuffuer;
+    private final ByteBuffer mBuffer;
+    private volatile boolean mCancelled = false;
 
     private ReadTask(ByteBuffer buf, String ufsPath, long fileId, long offset, long length,
         UfsReadOptions options, CompletableFuture<Integer> future, Meter meter) {
@@ -188,18 +211,23 @@ public class UfsIOManager implements Closeable {
       mLength = length;
       mFuture = future;
       mMeter = meter;
-      mBuffuer = buf;
+      mBuffer = buf;
     }
 
     public void run() {
       try {
-        mFuture.complete(readInternal());
+        if (!mCancelled) {
+          mFuture.complete(readInternal());
+        }
       } catch (RuntimeException e) {
         mFuture.completeExceptionally(e);
       }
     }
 
     private int readInternal() {
+      if (mCancelled) {
+        throw new CancellationException("Read task was cancelled");
+      }
       int bytesRead = 0;
       InputStream inStream = null;
       try (CloseableResource<UnderFileSystem> ufsResource = mUfsClient.acquireUfsResource()) {
@@ -211,8 +239,13 @@ public class UfsIOManager implements Closeable {
             OpenOptions.defaults().setOffset(mOffset)
                 .setPositionShort(mOptions.getPositionShort()));
         while (bytesRead < mLength) {
+          if (mCancelled) {
+            throw new CancellationException("Read task was cancelled");
+          }
           int read;
-          read = Channels.newChannel(inStream).read(mBuffuer);
+          synchronized (mBuffer) {
+            read = Channels.newChannel(inStream).read(mBuffer);
+          }
           if (read == -1) {
             break;
           }
@@ -227,6 +260,16 @@ public class UfsIOManager implements Closeable {
       }
       mMeter.mark(bytesRead);
       return bytesRead;
+    }
+
+    public boolean isCancelled() {
+      return mCancelled;
+    }
+
+    public void cancel() {
+      synchronized (mBuffer) {
+        mCancelled = true;
+      }
     }
   }
 }
