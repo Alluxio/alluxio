@@ -13,7 +13,9 @@ package alluxio.security.authentication;
 
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.Reconfigurable;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Splitter;
@@ -36,13 +38,15 @@ import javax.security.sasl.AuthenticationException;
  * users and groups the connection user is allowed to impersonate.
  */
 @ThreadSafe
-public final class ImpersonationAuthenticator {
+public final class ImpersonationAuthenticator implements Reconfigurable {
   public static final String WILDCARD = "*";
   private static final Splitter SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
   // Maps users configured for impersonation to the set of groups which they can impersonate.
-  private final Map<String, Set<String>> mImpersonationGroups;
+  // Because volatile visibility piggy-backs, there is no need to add volatile on the
+  // mImpersonationGroups property.
+  private Map<String, Set<String>> mImpersonationGroups;
   // Maps users configured for impersonation to the set of users which they can impersonate.
-  private final Map<String, Set<String>> mImpersonationUsers;
+  private volatile Map<String, Set<String>> mImpersonationUsers;
 
   private AlluxioConfiguration mConfiguration;
 
@@ -51,36 +55,9 @@ public final class ImpersonationAuthenticator {
    *
    * Note the constructor for this object is expensive. Take care with how many of these are
    * instantiated.
-   *
-   * @param conf conf Alluxio configuration
    */
-  public ImpersonationAuthenticator(AlluxioConfiguration conf) {
-    mImpersonationGroups = new HashMap<>();
-    mImpersonationUsers = new HashMap<>();
-    mConfiguration = conf;
-
-    for (PropertyKey key : conf.keySet()) {
-      // Process impersonation groups
-      Matcher matcher =
-          PropertyKey.Template.MASTER_IMPERSONATION_GROUPS_OPTION.match(key.getName());
-      if (matcher.matches()) {
-        String connectionUser = matcher.group(1);
-        String value = conf.getOrDefault(key, null);
-        if (connectionUser != null) {
-          mImpersonationGroups.put(connectionUser, Sets.newHashSet(SPLITTER.split(value)));
-        }
-      }
-
-      // Process impersonation users
-      matcher = PropertyKey.Template.MASTER_IMPERSONATION_USERS_OPTION.match(key.getName());
-      if (matcher.matches()) {
-        String connectionUser = matcher.group(1);
-        String value = conf.getOrDefault(key, null);
-        if (connectionUser != null) {
-          mImpersonationUsers.put(connectionUser, Sets.newHashSet(SPLITTER.split(value)));
-        }
-      }
-    }
+  public ImpersonationAuthenticator() {
+    loadImpersonationUser(Configuration.global());
   }
 
   /**
@@ -145,5 +122,40 @@ public final class ImpersonationAuthenticator {
             + "Please read the guide to configure impersonation at %s",
         connectionUser, impersonationUser, connectionUser, impersonationUser,
         RuntimeConstants.ALLUXIO_SECURITY_DOCS_URL));
+  }
+
+  @Override
+  public void update() {
+    loadImpersonationUser(Configuration.global());
+  }
+
+  private void loadImpersonationUser(AlluxioConfiguration conf) {
+    Map<String, Set<String>> impersonationGroups = new HashMap<>();
+    Map<String, Set<String>> impersonationUsers = new HashMap<>();
+    for (PropertyKey key : conf.userKeySet()) {
+      // Process impersonation groups
+      Matcher matcher =
+          PropertyKey.Template.MASTER_IMPERSONATION_GROUPS_OPTION.match(key.getName());
+      if (matcher.matches()) {
+        String connectionUser = matcher.group(1);
+        String value = conf.getOrDefault(key, null);
+        if (connectionUser != null) {
+          impersonationGroups.put(connectionUser, Sets.newHashSet(SPLITTER.split(value)));
+        }
+      }
+
+      // Process impersonation users
+      matcher = PropertyKey.Template.MASTER_IMPERSONATION_USERS_OPTION.match(key.getName());
+      if (matcher.matches()) {
+        String connectionUser = matcher.group(1);
+        String value = conf.getOrDefault(key, null);
+        if (connectionUser != null) {
+          impersonationUsers.put(connectionUser, Sets.newHashSet(SPLITTER.split(value)));
+        }
+      }
+    }
+    mConfiguration = conf;
+    mImpersonationGroups = impersonationGroups;
+    mImpersonationUsers = impersonationUsers;
   }
 }
