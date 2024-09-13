@@ -236,8 +236,7 @@ public final class CachingInodeStore implements InodeStore, Closeable {
     if (cached.isPresent()) {
       return !cached.get().isEmpty();
     }
-    return !mListingCache.getDataFromBackingStore(inode.getId(), option).isEmpty()
-        || mBackingStore.hasChildren(inode);
+    return !mListingCache.getDataFromBackingStore(inode.getId(), option).isEmpty();
   }
 
   @VisibleForTesting
@@ -852,6 +851,11 @@ public final class CachingInodeStore implements InodeStore, Closeable {
       }
       LOG.debug("Evicted weight={} from listing cache down to weight={} in {}ms", evicted.get(),
           mWeight.get(), System.currentTimeMillis() - startTime);
+    }
+
+    @VisibleForTesting
+    void evictForTesting() {
+      evict();
     }
 
     private int weight(ListingCacheEntry entry) {

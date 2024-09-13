@@ -70,7 +70,8 @@ public class CachingInodeStoreMockedBackingStoreTest {
       ImmutableMap.of(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE, CACHE_SIZE,
           PropertyKey.MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE, 5,
           PropertyKey.LEAK_DETECTOR_LEVEL, ResourceLeakDetector.Level.PARANOID,
-          PropertyKey.LEAK_DETECTOR_EXIT_ON_LEAK, true),
+          PropertyKey.LEAK_DETECTOR_EXIT_ON_LEAK, true,
+          PropertyKey.MASTER_METASTORE_INODE_CACHE_LOW_WATER_MARK_RATIO, 0),
       Configuration.modifiableGlobal());
 
   @Before
@@ -333,6 +334,27 @@ public class CachingInodeStoreMockedBackingStoreTest {
     assertEquals(Inode.wrap(TEST_INODE_DIR),
         mStore.get(TEST_INODE_ID, ReadOption.newBuilder().setSkipCache(true).build()).get());
     assertEquals(0, mStore.mInodeCache.getCacheMap().size());
+  }
+
+  @Test
+  public void evictInodeForTestHasChildren() throws Exception {
+    MutableInodeDirectory myTestdir =
+        MutableInodeDirectory.create(500, 0, "evicttest", CreateDirectoryContext.defaults());
+    mStore.writeNewInode(myTestdir);
+    mStore.mListingCache.evictForTesting();
+    mStore.mEdgeCache.flush();
+    mStore.mInodeCache.flush();
+
+    long id = 6000;
+    MutableInodeFile child =
+        MutableInodeFile.create(id, 500, "child" + id, 0, CreateFileContext.defaults());
+    mStore.writeNewInode(child);
+    mStore.addChild(500, child);
+
+    mStore.mEdgeCache.flush();
+
+    mStore.removeInodeAndParentEdge(child);
+    assertEquals(false, mStore.hasChildren(myTestdir));
   }
 
   private void verifyNoBackingStoreReads() {
