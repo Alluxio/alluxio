@@ -35,6 +35,8 @@ import com.volcengine.tos.TosClientException;
 import com.volcengine.tos.TosException;
 import com.volcengine.tos.TosServerException;
 import com.volcengine.tos.auth.StaticCredentials;
+import com.volcengine.tos.model.bucket.HeadBucketV2Input;
+import com.volcengine.tos.model.bucket.HeadBucketV2Output;
 import com.volcengine.tos.model.object.AbortMultipartUploadInput;
 import com.volcengine.tos.model.object.CopyObjectV2Input;
 import com.volcengine.tos.model.object.CopyObjectV2Output;
@@ -55,6 +57,8 @@ import com.volcengine.tos.model.object.ListedUpload;
 import com.volcengine.tos.model.object.ObjectMetaRequestOptions;
 import com.volcengine.tos.model.object.ObjectTobeDeleted;
 import com.volcengine.tos.model.object.PutObjectInput;
+import com.volcengine.tos.model.object.RenameObjectInput;
+import com.volcengine.tos.model.object.RenameObjectOutput;
 import com.volcengine.tos.transport.TransportConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +68,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -93,6 +98,8 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
    * Bucket name of user's configured Alluxio bucket.
    */
   private final String mBucketName;
+
+  private final String mBucketType;
 
   private final Supplier<ListeningExecutorService> mStreamingUploadExecutor;
 
@@ -141,6 +148,14 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
     super(uri, conf);
     mClient = tosClient;
     mBucketName = bucketName;
+    HeadBucketV2Input input = new HeadBucketV2Input().setBucket(mBucketName);
+    try {
+      HeadBucketV2Output output = mClient.headBucket(input);
+      mBucketType = output.getRequestInfo().getHeader().getOrDefault("x-tos-bucket-type", "fns");
+    } catch (TosException e) {
+      LOG.error("Failed to get bucket type for bucket {}", mBucketName, e);
+      throw AlluxioTosException.from(e);
+    }
     mStreamingUploadExecutor = Suppliers.memoize(() -> {
       int numTransferThreads =
           conf.getInt(PropertyKey.UNDERFS_TOS_STREAMING_UPLOAD_THREADS);
@@ -285,7 +300,53 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
         new ListObjectsType2Input().setBucket(mBucketName).setDelimiter(delimiter).setPrefix(key);
     ListObjectsType2Output output = getObjectListingChunk(input);
     if (output != null) {
-      return new TOSObjectListingChunk(input, output);
+      if (!isEnvironmentHNS()) {
+        return new TOSObjectListingChunk(input, output);
+      }
+      else {
+        List<ListedCommonPrefix> prefixes = output.getCommonPrefixes();
+        List<ObjectStatus> allStatuses = new ArrayList<>();
+        List<String> allCommonPrefixes = new ArrayList<>();
+
+        while (output != null) {
+          allStatuses.addAll(
+              Arrays.asList(new TOSObjectListingChunk(input, output).getObjectStatuses()));
+          allCommonPrefixes.addAll(
+              Arrays.asList(new TOSObjectListingChunk(input, output).getCommonPrefixes()));
+          output = getObjectListingChunk(
+              input.setContinuationToken(output.getNextContinuationToken()));
+        }
+
+        for (String prefix : allCommonPrefixes) {
+          ObjectListingChunk subChunk = getObjectListingChunk(prefix, recursive);
+          if (subChunk != null) {
+            allStatuses.addAll(Arrays.asList(subChunk.getObjectStatuses()));
+            allCommonPrefixes.addAll(Arrays.asList(subChunk.getCommonPrefixes()));
+          }
+        }
+
+        return new ObjectListingChunk() {
+          @Override
+          public ObjectStatus[] getObjectStatuses() {
+            return allStatuses.toArray(new ObjectStatus[0]);
+          }
+
+          @Override
+          public String[] getCommonPrefixes() {
+            return allCommonPrefixes.toArray(new String[0]);
+          }
+
+          @Override
+          public ObjectListingChunk getNextChunk() {
+            return null;
+          }
+
+          @Override
+          public Boolean hasNextChunk() {
+            return false;
+          }
+        };
+      }
     }
     return null;
   }
@@ -300,6 +361,36 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
       result = null;
     }
     return result;
+  }
+
+  @Override
+  public boolean deleteDirectory(String key) throws IOException {
+    if (!isEnvironmentHNS()) {
+      return super.deleteDirectory(key);
+    }
+
+    List<String> keysToDelete = new ArrayList<>();
+    ObjectListingChunk listingChunk = getObjectListingChunk(key, true);
+
+    while (listingChunk != null) {
+      for (ObjectStatus status : listingChunk.getObjectStatuses()) {
+        keysToDelete.add(status.getName());
+      }
+
+      String[] prefixes = listingChunk.getCommonPrefixes();
+      for (String prefix : prefixes) {
+        if (!deleteDirectory(prefix)) {
+          return false;
+        }
+      }
+      listingChunk = listingChunk.getNextChunk();
+    }
+
+    if (!keysToDelete.isEmpty()) {
+      deleteObjects(keysToDelete);
+    }
+
+    return deleteObject(key);
   }
 
   /**
@@ -435,5 +526,25 @@ public class TOSUnderFileSystem extends ObjectUnderFileSystem {
   public void close() throws IOException {
     super.close();
     mClient.close();
+  }
+
+  private boolean isEnvironmentHNS() {
+    return "hns".equals(mBucketType);
+  }
+
+  @Override
+  public boolean renameDirectory(String src, String dst) throws IOException {
+    if (!isEnvironmentHNS()) {
+      return super.renameDirectory(src, dst);
+    }
+    try {
+      RenameObjectInput input = new RenameObjectInput().setBucket(mBucketName).setKey(src)
+          .setNewKey(dst);
+      RenameObjectOutput output = mClient.renameObject(input);
+      return true;
+    } catch (TosException e) {
+      LOG.error("Failed to rename directory {} to {}", src, dst, e);
+      return false;
+    }
   }
 }
