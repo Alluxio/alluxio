@@ -18,6 +18,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
+import alluxio.exception.status.CancelledException;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.job.RunTaskContext;
@@ -43,6 +44,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -126,7 +129,9 @@ public final class PersistDefinition
       if (!uriStatus.isCompleted()) {
         throw new IOException("Cannot persist an incomplete Alluxio file: " + uri);
       }
-      long bytesWritten;
+      long bytesWritten = 0;
+      List<String> successMkdirsList = new ArrayList<>();
+      boolean isTaskSuccess = true;
       try (Closer closer = Closer.create()) {
         OpenFilePOptions options = OpenFilePOptions.newBuilder()
             .setReadType(ReadPType.NO_CACHE)
@@ -149,6 +154,10 @@ public final class PersistDefinition
           curUfsPath = curUfsPath.getParent();
         }
         while (!ancestorUfsAndAlluxioPaths.empty()) {
+          if (Thread.currentThread().isInterrupted()) {
+            LOG.warn("Task received interrupt signal, may be cancelled.");
+            throw new CancelledException("Interrupted before create directory and copy file");
+          }
           Pair<String, String> ancestorUfsAndAlluxioPath = ancestorUfsAndAlluxioPaths.pop();
           String ancestorUfsPath = ancestorUfsAndAlluxioPath.getFirst();
           String ancestorAlluxioPath = ancestorUfsAndAlluxioPath.getSecond();
@@ -164,6 +173,7 @@ public final class PersistDefinition
             List<AclEntry> allAcls = Stream.concat(status.getDefaultAcl().getEntries().stream(),
                 status.getAcl().getEntries().stream()).collect(Collectors.toList());
             ufs.setAclEntries(ancestorUfsPath, allAcls);
+            successMkdirsList.add(ancestorUfsPath);
           } else if (!ufs.isDirectory(ancestorUfsPath)) {
             throw new IOException(
                 "Failed to create " + ufsPath + " with permission " + options
@@ -180,6 +190,22 @@ public final class PersistDefinition
         ufs.setAclEntries(dstPath.toString(), allAcls);
         bytesWritten = IOUtils.copyLarge(in, out, new byte[8 * Constants.MB]);
         incrementPersistedMetric(ufsClient.getUfsMountPointUri(), bytesWritten);
+      } catch (Exception e) {
+        isTaskSuccess = false;
+        LOG.warn("Failed run persiste task of {}, case {}", ufsPath, e.getMessage());
+        throw e;
+      } finally {
+        if (!isTaskSuccess) {
+          LOG.warn("The created directory needs to be rolled back and deleted, directory size {}.",
+              successMkdirsList.size());
+          ufs.deleteExistingFile(ufsPath);
+          Collections.reverse(successMkdirsList);
+          for (String path : successMkdirsList) {
+            if (!ufs.deleteDirectory(path)) {
+              LOG.warn("Failed delete ufs path {}", path);
+            }
+          }
+        }
       }
       LOG.info("Persisted file {} with size {}", ufsPath, bytesWritten);
     }

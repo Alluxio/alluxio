@@ -3157,6 +3157,27 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
       }
     }
+    // After rename succeeds, avoid this asynchronous persistence task
+    if (srcInode.isDirectory() && !context.getPersist()) {
+      LOG.debug("The source directory {} has been renamed, "
+          + "cancel the child persistence task.", srcInodePath);
+      try (LockedInodePathList descendants = mInodeTree.getDescendants(srcInodePath)) {
+        for (LockedInodePath childPath : descendants) {
+          Inode childInode = childPath.getInode();
+          if (childInode.isFile() && !childInode.isPersisted()) {
+            long fileId = childInode.getId();
+            LOG.debug("Cancel the child {} persistence task, file id {}", childPath, fileId);
+            // Remove the file from the set of files to persist.
+            mPersistRequests.remove(fileId);
+            // Cancel any ongoing jobs.
+            PersistJob job = mPersistJobs.get(fileId);
+            if (job != null) {
+              job.setCancelState(PersistJob.CancelState.TO_BE_CANCELED);
+            }
+          }
+        }
+      }
+    }
   }
 
   /**
