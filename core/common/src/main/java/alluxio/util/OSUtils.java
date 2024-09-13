@@ -28,6 +28,10 @@ public final class OSUtils {
   public static final String JAVA_VENDOR_NAME = System.getProperty("java.vendor");
   /** Indicates the current java vendor is IBM java or not. */
   public static final boolean IBM_JAVA = JAVA_VENDOR_NAME.contains("IBM");
+  /** The maximum path length supported by a domain socket on unix varies depending on the
+   * operating system. The conservative limit is returned here.
+   * */
+  public static final int UNIX_SOCKET_MAX_PATH_LENGTH = 100;
 
   /**
    * @return true if current processor is 64 bit
@@ -62,6 +66,13 @@ public final class OSUtils {
    */
   public static boolean isAIX() {
     return OSUtils.OS_NAME.equals("AIX");
+  }
+
+  /***
+   * @return the maximum path length supported by a domain socket on unix
+   */
+  public static int getDomainSocketMaxPathLength() {
+    return OSUtils.UNIX_SOCKET_MAX_PATH_LENGTH;
   }
 
   private OSUtils() {} // prevent instantiation
