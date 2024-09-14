@@ -50,6 +50,8 @@ int unlink_wrapper(const char *path);
 int utimens_wrapper(const char *path, const struct timespec ts[2], struct fuse_file_info *fi);
 int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
                   struct fuse_file_info *fi);
+int ioctl_wrapper(const char *path, int cmd, void *arg,
+                  struct fuse_file_info *fi, unsigned int flags, void *data);
 
 #else
 
@@ -86,6 +88,8 @@ int unlink_wrapper(const char *path);
 int utimens_wrapper(const char *path, const struct timespec ts[2]);
 int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
                   struct fuse_file_info *fi);
+int ioctl_wrapper(const char *path, int cmd, void *arg,
+                  struct fuse_file_info *fi, unsigned int flags, void *data);
 
 #endif  // FUSE_USE_VERSION >= 30
 #endif  // FUSE_NATIVE_LIBJNIFUSE_IMPLS_H_

@@ -618,6 +618,14 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     return -ErrorCodes.ENOTSUP();
   }
 
+  @Override
+  public int ioctl(String path, int cmd, ByteBuffer buf, FuseFileInfo fi) {
+    String reaPath = AlluxioFuseIoctlUtils.ignoreSuffix(path);
+    final AlluxioURI uri = mPathResolverCache.getUnchecked(reaPath);
+    return AlluxioFuseIoctlUtils.runCommand(mFileSystem, uri, buf, fi, mConf,
+        AlluxioFuseIoctlUtils.IoctlCommands.fromValue(cmd));
+  }
+
   /**
    * Gets the filesystem statistics.
    *

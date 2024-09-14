@@ -162,7 +162,11 @@ int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
   return jnifuse::JniFuseFileSystem::getInstance()->writeOper->call(
       path, buf, size, off, fi);
 }
-
+int ioctl_wrapper(const char *path, int cmd, void *arg,
+                  struct fuse_file_info *fi, unsigned int flags, void *data) {
+  return jnifuse::JniFuseFileSystem::getInstance()->ioctlOper->call(
+      path, cmd, arg, fi, flags, data);
+}
 #else
 
 void* init_wrapper(struct fuse_conn_info* conn) {
@@ -298,6 +302,13 @@ int write_wrapper(const char *path, const char *buf, size_t size, off_t off,
                   struct fuse_file_info *fi) {
   return jnifuse::JniFuseFileSystem::getInstance()->writeOper->call(
       path, buf, size, off, fi);
+}
+
+int ioctl_wrapper(const char *path, int cmd, void *arg,
+                  struct fuse_file_info *fi, unsigned int flags, void *data) {
+  return jnifuse::JniFuseFileSystem::getInstance()->ioctlOper->call(
+      path, cmd, arg, fi, flags, data);
+
 }
 
 #endif  // FUSE_USE_VERSION >= 30
