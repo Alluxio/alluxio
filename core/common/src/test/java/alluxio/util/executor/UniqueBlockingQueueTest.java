@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tests the {@link UniqueBlockingQueue}.
@@ -51,6 +52,14 @@ public class UniqueBlockingQueueTest {
       });
     }
     executor.shutdown();
+    try {
+      if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+        executor.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      executor.shutdownNow();
+      Thread.currentThread().interrupt();
+    }
     assertEquals(20, test.size());
   }
 }
