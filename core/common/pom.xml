@@ -147,6 +147,14 @@
       <groupId>org.rocksdb</groupId>
       <artifactId>rocksdbjni</artifactId>
     </dependency>
+    <dependency>
+      <artifactId>log4j</artifactId>
+      <groupId>log4j</groupId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+    </dependency>
     <!-- Determine version with the table here: https://github.com/grpc/grpc-java/blob/master/SECURITY.md-->
     <dependency>
       <groupId>io.netty</groupId>
