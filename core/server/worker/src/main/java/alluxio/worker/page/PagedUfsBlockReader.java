@@ -53,7 +53,7 @@ public class PagedUfsBlockReader extends BlockReader {
   private final BlockMeta mBlockMeta;
   private final UfsBlockReadOptions mUfsBlockOptions;
   private final long mInitialOffset;
-  private final ByteBuffer mLastPage;
+  private ByteBuffer mLastPage;
   private long mLastPageIndex = -1;
   private boolean mClosed = false;
   private long mPosition;
@@ -81,7 +81,6 @@ public class PagedUfsBlockReader extends BlockReader {
     mUfsBlockOptions = ufsBlockReadOptions;
     mPageSize = pageSize;
     mInitialOffset = offset;
-    mLastPage = ByteBuffer.allocateDirect((int) mPageSize);
     mPosition = offset;
     try {
       UfsManager.UfsClient ufsClient = mUfsManager.get(mUfsBlockOptions.getMountId());
@@ -99,6 +98,15 @@ public class PagedUfsBlockReader extends BlockReader {
                       MetricInfo.TAG_USER, key.mUser));
     } catch (UnavailableException | NotFoundException e) {
       throw AlluxioRuntimeException.from(e);
+    }
+  }
+
+  /**
+   * Lazy create mLastPage.
+   * */
+  public void initializeLastPageIfNull() {
+    if (mLastPage == null) {
+      mLastPage = ByteBuffer.allocateDirect((int) mPageSize);
     }
   }
 
