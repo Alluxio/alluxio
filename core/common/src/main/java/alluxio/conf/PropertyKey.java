@@ -4772,6 +4772,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_NIO_DIRECT_BUFFER_POOL_ENABLED =
+      booleanBuilder(Name.WORKER_NIO_DIRECT_BUFFER_POOL_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether it is using pooled direct buffer or unpooled wrapped buffer"
+              + " when creating a buffer for remote read")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .setIsHidden(true)
+          .build();
   public static final PropertyKey WORKER_REGISTER_STREAM_ENABLED =
       booleanBuilder(Name.WORKER_REGISTER_STREAM_ENABLED)
           .setDefaultValue(true)
@@ -8848,6 +8857,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.shutdown.timeout";
     public static final String WORKER_NETWORK_ZEROCOPY_ENABLED =
         "alluxio.worker.network.zerocopy.enabled";
+    public static final String WORKER_NIO_DIRECT_BUFFER_POOL_ENABLED =
+        "alluxio.worker.nio.direct.buffer.pool.enabled";
     public static final String WORKER_REGISTER_STREAM_ENABLED =
         "alluxio.worker.register.stream.enabled";
     public static final String WORKER_REGISTER_STREAM_BATCH_SIZE =
