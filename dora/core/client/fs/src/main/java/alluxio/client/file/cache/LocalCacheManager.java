@@ -225,6 +225,9 @@ public class LocalCacheManager implements CacheManager {
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesToRead);
         cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
             bytesToRead);
+        cacheContext.incrementCounter(
+            MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
+            System.nanoTime() - startTime);
         LOG.debug("getDataChannel({},pageOffset={}) exits", pageId, pageOffset);
         return Optional.of(dataFileChannel);
       } catch (PageNotFoundException e) {
@@ -242,10 +245,6 @@ public class LocalCacheManager implements CacheManager {
           return Optional.empty();
         }
       }
-    } finally {
-      cacheContext.incrementCounter(
-          MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
-          System.nanoTime() - startTime);
     }
   }
 
@@ -642,12 +641,10 @@ public class LocalCacheManager implements CacheManager {
       MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
       cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
           bytesRead);
+      cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(),
+          NANO, System.nanoTime() - startTime);
       LOG.debug("get({},pageOffset={}) exits", pageId, pageOffset);
       return bytesRead;
-    } finally {
-      cacheContext.incrementCounter(
-          MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
-          System.nanoTime() - startTime);
     }
   }
 
