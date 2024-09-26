@@ -3528,12 +3528,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =
       stringBuilder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS)
-          .setDefaultValue(Constants.MEDIUM_SSD)
+          .setDefaultValue(Constants.MEDIUM_PMEM)
           .setDescription("The name of the second highest storage tier in the entire system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS =
+      stringBuilder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS)
+          .setDefaultValue(Constants.MEDIUM_SSD)
+          .setDescription("The name of the second highest storage tier in the entire system.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL3_ALIAS =
       stringBuilder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS)
           .setDefaultValue(Constants.MEDIUM_HDD)
           .setDescription("The name of the third highest storage tier in the entire system.")
@@ -3542,14 +3549,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVELS =
       intBuilder(Name.MASTER_TIERED_STORE_GLOBAL_LEVELS)
-          .setDefaultValue(3)
+          .setDefaultValue(4)
           .setDescription("The total number of storage tiers in the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE =
       listBuilder(Name.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE)
-          .setDefaultValue("MEM,SSD,HDD")
+          .setDefaultValue("MEM,PMEM,SSD,HDD")
           .setDescription("The list of medium types we support in the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
@@ -5243,6 +5250,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_TIERED_STORE_LEVEL3_ALIAS =
+          new Builder(PropertyType.STRING, Template.WORKER_TIERED_STORE_LEVEL_ALIAS, 3)
+                  .setDescription("The alias of the four storage tier on this worker.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+                  .setScope(Scope.WORKER)
+                  .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_DIRS_PATH =
       new Builder(PropertyType.LIST, Optional.of(","),
           Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 2)
@@ -7908,6 +7921,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey MASTER_METASTORE_INODE_TIKV_CONNECTION =
+      stringBuilder(Name.MASTER_METASTORE_INODE_TIKV_CONNECTION)
+          .setDefaultValue("127.0.0.1:2379")
+          .setDescription("The connection of tikv for backing store.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -8594,6 +8614,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.tieredstore.global.level1.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS =
         "alluxio.master.tieredstore.global.level2.alias";
+    public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL3_ALIAS =
+        "alluxio.master.tieredstore.global.level3.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVELS =
         "alluxio.master.tieredstore.global.levels";
     public static final String MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE =
@@ -9514,6 +9536,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.hadoop.kerberos.keytab.login.autorenewal";
     public static final String HADOOP_CHECKSUM_COMBINE_MODE =
         "alluxio.hadoop.checksum.combine.mode";
+    public static final String MASTER_METASTORE_INODE_TIKV_CONNECTION =
+        "alluxio.master.metastore.inode.tikv.connection";
 
     private Name() {} // prevent instantiation
   }
