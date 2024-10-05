@@ -82,6 +82,28 @@ spec:
       {{- if .Values.imagePullSecrets }}
 {{ include "alluxio.imagePullSecrets" . | indent 6 }}
       {{- end}}
+    initContainers:
+    - name: fuse-umount
+      image: {{ .Values.image }}:{{ .Values.imageTag }}
+      imagePullPolicy: {{ .Values.imagePullPolicy }}
+      command: [ "/bin/bash", "-c"]
+      args:
+        - |
+          umount -l ${ALLUXIO_FUSE_MOUNT_POINT} ||:
+      env:
+        - name: ALLUXIO_FUSE_MOUNT_POINT
+          value: {{ .Values.fuse.mountPoint }}
+      securityContext:
+        privileged: true
+        capabilities:
+          add:
+            - SYS_ADMIN
+      volumeMounts:
+        - name: alluxio-fuse-device
+          mountPath: /dev/fuse
+        - name: alluxio-fuse-mount
+          mountPath: {{ .Values.fuse.mountPoint | dir }}
+          mountPropagation: Bidirectional
       containers:
         - name: alluxio-fuse
           image: {{ .Values.image }}:{{ .Values.imageTag }}
