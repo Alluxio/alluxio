@@ -720,6 +720,45 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     super.umount(force);
   }
 
+  @Override
+  public int getxattr(String path, String name, ByteBuffer value) {
+    return AlluxioFuseUtils.call(
+        LOG, () -> getxattrInternal(path, name, value),
+        FuseConstants.FUSE_GETXATTR, "path=%s", path);
+  }
+
+  private int getxattrInternal(String path, String name, ByteBuffer value) {
+    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    int res = AlluxioFuseUtils.checkNameLength(uri);
+    if (res != 0) {
+      return res;
+    }
+    try {
+      Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(mFileSystem, uri);
+      if (status.isPresent()) {
+        byte[] xattrValue = status.get().getXAttr().get(name);
+        if (xattrValue != null) {
+          if (value.remaining() == 0) {
+            return xattrValue.length;
+          } else if (value.remaining() > 0 && xattrValue.length <= value.remaining()) {
+            value.put(xattrValue);
+            return xattrValue.length;
+          } else {
+            return -ErrorCodes.ERANGE();
+          }
+        } else {
+          return -ErrorCodes.ENODATA();
+        }
+      } else {
+        LOG.debug("Failed to getxattr {}: path does not exist or is invalid", path);
+        return -ErrorCodes.ENOENT();
+      }
+    } catch (Throwable t) {
+      LOG.error("Failed to getxattr {}", path, t);
+      return -ErrorCodes.EIO();
+    }
+  }
+
   @VisibleForTesting
   LoadingCache<String, AlluxioURI> getPathResolverCache() {
     return mPathResolverCache;
