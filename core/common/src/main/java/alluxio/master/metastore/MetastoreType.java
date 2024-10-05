@@ -16,5 +16,6 @@ package alluxio.master.metastore;
  */
 public enum MetastoreType {
   HEAP,
-  ROCKS
+  ROCKS,
+  ROCKS_BLOCK_META_ONLY,
 }
