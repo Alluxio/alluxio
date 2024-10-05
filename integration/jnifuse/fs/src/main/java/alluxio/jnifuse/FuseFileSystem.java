@@ -105,6 +105,10 @@ public interface FuseFileSystem {
     throw new UnsupportedOperationException("utimens");
   }
 
+  default int setxattr(String path, String name, ByteBuffer value, long size, int flags) {
+    throw new UnsupportedOperationException("setxattr");
+  }
+
   default FuseContext getContext() {
     // TODO: get real context
     return FuseContext.of(ByteBuffer.allocate(32));
