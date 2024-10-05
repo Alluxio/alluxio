@@ -17,6 +17,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -55,13 +57,25 @@ public final class SshValidationTask extends AbstractValidationTask {
     }
 
     ValidationUtils.State state = ValidationUtils.State.OK;
+    int sshPort = getHostSSHPort();
     for (String nodeName : nodes) {
-      if (!CommonUtils.isAddressReachable(nodeName, 22, 30 * Constants.SECOND_MS)) {
-        msg.append(String.format("Unable to reach ssh port 22 on node %s.%n", nodeName));
+      if (!CommonUtils.isAddressReachable(nodeName, sshPort,
+          30 * Constants.SECOND_MS)) {
+        msg.append(String.format("Unable to reach ssh port %d on node %s.%n", sshPort, nodeName));
         advice.append(String.format("Please configure password-less ssh to node %s.%n", nodeName));
         state = ValidationUtils.State.FAILED;
       }
     }
     return new ValidationTaskResult(state, getName(), msg.toString(), advice.toString());
+  }
+
+  /**
+   * get ssh port from conf and this method is used for test.
+   *
+   * @return return host ssh port
+   */
+  @VisibleForTesting
+  protected int getHostSSHPort() {
+    return mConf.getInt(PropertyKey.HOST_SSH_PORT);
   }
 }
