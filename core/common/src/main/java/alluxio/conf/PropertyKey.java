@@ -7384,6 +7384,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey SECURITY_DYNAMIC_IMPERSONATION_ENABLED =
+      booleanBuilder(Name.SECURITY_DYNAMIC_IMPERSONATION_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to dynamically update the proxy user. "
+              + "If true, the proxy user will be automatically updated when the "
+              + "configuration file changes.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey SECURITY_DYNAMIC_IMPERSONATION_REFRESH_INTERVAL =
+      durationBuilder(Name.SECURITY_DYNAMIC_IMPERSONATION_REFRESH_INTERVAL)
+          .setDefaultValue("1min")
+          .setDescription("interval for refreshing impersonation users")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey SECURITY_LOGIN_IMPERSONATION_USERNAME =
       stringBuilder(Name.SECURITY_LOGIN_IMPERSONATION_USERNAME)
           .setDescription(format("When %s is set to SIMPLE or CUSTOM, user application uses this "
@@ -9388,6 +9404,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.security.group.mapping.cache.timeout";
     public static final String SECURITY_GROUP_MAPPING_CLASS =
         "alluxio.security.group.mapping.class";
+    public static final String SECURITY_DYNAMIC_IMPERSONATION_ENABLED =
+        "alluxio.security.dynamic.impersonation.enabled";
+    public static final String SECURITY_DYNAMIC_IMPERSONATION_REFRESH_INTERVAL =
+        "alluxio.security.dynamic.impersonation.refresh.interval";
     public static final String SECURITY_LOGIN_IMPERSONATION_USERNAME =
         "alluxio.security.login.impersonation.username";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";

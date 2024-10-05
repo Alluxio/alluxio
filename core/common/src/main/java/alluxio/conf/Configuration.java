@@ -13,6 +13,7 @@ package alluxio.conf;
 
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
+import alluxio.collections.Pair;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
@@ -78,6 +79,7 @@ public final class Configuration
 {
   private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
 
+  private static final AtomicReference<String> SERVER_CONFIG_PATH = new AtomicReference<>();
   private static final AtomicReference<InstancedConfiguration> SERVER_CONFIG_REFERENCE =
       new AtomicReference<>();
 
@@ -92,6 +94,14 @@ public final class Configuration
    */
   public static AlluxioProperties copyProperties() {
     return SERVER_CONFIG_REFERENCE.get().copyProperties();
+  }
+
+  /**
+   * Get server config path.
+   * @return server config path
+   */
+  public static String serverConfigPath() {
+    return SERVER_CONFIG_PATH.get();
   }
 
   /**
@@ -578,6 +588,16 @@ public final class Configuration
    * Reloads site properties from disk.
    */
   public static void reloadProperties() {
+    Pair<String, InstancedConfiguration> conf = loadProperties();
+    SERVER_CONFIG_PATH.set(conf.getFirst());
+    SERVER_CONFIG_REFERENCE.set(conf.getSecond());
+  }
+
+  /**
+   * Reloads site properties from disk.
+   * @return properties location and config instance
+   */
+  public static Pair<String, InstancedConfiguration> loadProperties() {
     // Bootstrap the configuration. This is necessary because we need to resolve alluxio.home
     // (likely to be in system properties) to locate the conf dir to search for the site
     // property file.
@@ -601,9 +621,8 @@ public final class Configuration
             alluxioProperties.merge(properties.get(), Source.siteProperty(file));
             conf = new InstancedConfiguration(alluxioProperties);
             conf.validate();
-            SERVER_CONFIG_REFERENCE.set(conf);
             // If a site conf is successfully loaded, stop trying different paths.
-            return;
+            return new Pair<>(file, conf);
           }
         } catch (FileNotFoundException e) {
           // skip
@@ -622,7 +641,7 @@ public final class Configuration
             alluxioProperties.merge(properties.get(), Source.siteProperty(resource.getPath()));
             conf = new InstancedConfiguration(alluxioProperties);
             conf.validate();
-            SERVER_CONFIG_REFERENCE.set(conf);
+            return new Pair<>(resource.getPath(), conf);
           }
         } catch (IOException e) {
           LOG.warn("Failed to read properties from {}: {}", resource, e.toString());
@@ -630,7 +649,7 @@ public final class Configuration
       }
     }
     conf.validate();
-    SERVER_CONFIG_REFERENCE.set(conf);
+    return new Pair<>(null, conf);
   }
 
   /**
