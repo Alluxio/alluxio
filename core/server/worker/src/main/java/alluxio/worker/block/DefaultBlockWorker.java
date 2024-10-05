@@ -44,6 +44,7 @@ import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.heartbeat.HeartbeatThreadManager;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -255,8 +256,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     // Setup PinListSyncer
     PinListSync pinListSync = mResourceCloser.register(
         new PinListSync(this, mFileSystemMasterClient));
-    getExecutorService()
-        .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, pinListSync,
+    HeartbeatThreadManager.submit(getExecutorService(),
+        new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, pinListSync,
             () -> new FixedIntervalSupplier(
                 Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
             Configuration.global(), ServerUserState.global()));
@@ -269,8 +270,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     // Setup storage checker
     if (Configuration.getBoolean(PropertyKey.WORKER_STORAGE_CHECKER_ENABLED)) {
       StorageChecker storageChecker = mResourceCloser.register(new StorageChecker());
-      getExecutorService()
-          .submit(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH, storageChecker,
+      HeartbeatThreadManager.submit(getExecutorService(),
+          new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH, storageChecker,
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
                   Configuration.global(), ServerUserState.global()));
@@ -285,8 +286,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   protected void setupBlockMasterSync() throws IOException {
     BlockMasterSync blockMasterSync = mResourceCloser
         .register(new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
-    getExecutorService()
-        .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, blockMasterSync,
+    HeartbeatThreadManager.submit(getExecutorService(),
+        new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, blockMasterSync,
             () -> new FixedIntervalSupplier(
                 Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
             Configuration.global(), ServerUserState.global()));

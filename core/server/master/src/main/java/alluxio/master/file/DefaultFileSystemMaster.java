@@ -68,6 +68,7 @@ import alluxio.grpc.TtlAction;
 import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.heartbeat.HeartbeatThreadManager;
 import alluxio.job.plan.persist.PersistConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.master.CoreMaster;
@@ -735,20 +736,20 @@ public class DefaultFileSystemMaster extends CoreMaster
           .getMs(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL);
 
       if (blockIntegrityCheckInterval > 0) { // negative or zero interval implies disabled
-        getExecutorService().submit(
+        HeartbeatThreadManager.submit(getExecutorService(),
             new HeartbeatThread(HeartbeatContext.MASTER_BLOCK_INTEGRITY_CHECK,
                 new BlockIntegrityChecker(this), () ->
                 new FixedIntervalSupplier(Configuration.getMs(
                     PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL)),
                 Configuration.global(), mMasterContext.getUserState()));
       }
-      getExecutorService().submit(
+      HeartbeatThreadManager.submit(getExecutorService(),
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
               new InodeTtlChecker(this, mInodeTree),
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS)),
               Configuration.global(), mMasterContext.getUserState()));
-      getExecutorService().submit(
+      HeartbeatThreadManager.submit(getExecutorService(),
           new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
               new LostFileDetector(this, mBlockMaster, mInodeTree),
               () -> new FixedIntervalSupplier(
@@ -761,8 +762,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           () -> new FixedIntervalSupplier(
               Configuration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS)),
           Configuration.global(), mMasterContext.getUserState());
-      getExecutorService().submit(mReplicationCheckHeartbeatThread);
-      getExecutorService().submit(
+      HeartbeatThreadManager.submit(getExecutorService(),
+          mReplicationCheckHeartbeatThread);
+      HeartbeatThreadManager.submit(getExecutorService(),
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER,
               new PersistenceScheduler(),
               () -> new FixedIntervalSupplier(
@@ -774,20 +776,20 @@ public class DefaultFileSystemMaster extends CoreMaster
               new LinkedBlockingQueue<>(),
               alluxio.util.ThreadFactoryUtils.build("Persist-Checker-%d", true));
       mPersistCheckerPool.allowCoreThreadTimeOut(true);
-      getExecutorService().submit(
+      HeartbeatThreadManager.submit(getExecutorService(),
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_CHECKER,
               new PersistenceChecker(),
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS)),
               Configuration.global(), mMasterContext.getUserState()));
-      getExecutorService().submit(
+      HeartbeatThreadManager.submit(getExecutorService(),
           new HeartbeatThread(HeartbeatContext.MASTER_METRICS_TIME_SERIES,
               new TimeSeriesRecorder(),
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.MASTER_METRICS_TIME_SERIES_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
       if (Configuration.getBoolean(PropertyKey.UNDERFS_CLEANUP_ENABLED)) {
-        getExecutorService().submit(
+        HeartbeatThreadManager.submit(getExecutorService(),
             new HeartbeatThread(HeartbeatContext.MASTER_UFS_CLEANUP, new UfsCleaner(this),
                 () -> new FixedIntervalSupplier(
                     Configuration.getMs(PropertyKey.UNDERFS_CLEANUP_INTERVAL)),

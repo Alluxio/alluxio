@@ -44,6 +44,7 @@ import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.heartbeat.HeartbeatThreadManager;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterClientContext;
@@ -319,19 +320,19 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           Configuration.getConfiguration(Scope.MASTER));
 
       // The service that detects lost standby master nodes
-      getExecutorService().submit(new HeartbeatThread(
+      HeartbeatThreadManager.submit(getExecutorService(), new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
           new LostMasterDetectionHeartbeatExecutor(),
           () -> new FixedIntervalSupplier(
               Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL)),
           Configuration.global(), mMasterContext.getUserState()));
-      getExecutorService().submit(
+      HeartbeatThreadManager.submit(getExecutorService(),
           new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
               new LogConfigReportHeartbeatExecutor(),
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
-      getExecutorService().submit(new HeartbeatThread(
+      HeartbeatThreadManager.submit(getExecutorService(), new HeartbeatThread(
               HeartbeatContext.MASTER_LOST_PROXY_DETECTION,
               new LostProxyDetectionHeartbeatExecutor(),
               () -> new FixedIntervalSupplier(
@@ -344,7 +345,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         mDailyBackup.start();
       }
       if (mJournalSpaceMonitor != null) {
-        getExecutorService().submit(new HeartbeatThread(
+        HeartbeatThreadManager.submit(getExecutorService(), new HeartbeatThread(
             HeartbeatContext.MASTER_JOURNAL_SPACE_MONITOR, mJournalSpaceMonitor,
             () -> new FixedIntervalSupplier(
                 Configuration.getMs(PropertyKey.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL)),
@@ -358,11 +359,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         }
         if (Configuration.getBoolean(PropertyKey.MASTER_UPDATE_CHECK_ENABLED)
             && !Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-          getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_UPDATE_CHECK,
-              new UpdateChecker(this),
-              () -> new FixedIntervalSupplier(
-                  Configuration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL)),
-              Configuration.global(), mMasterContext.getUserState()));
+          HeartbeatThreadManager.submit(getExecutorService(),
+              new HeartbeatThread(HeartbeatContext.MASTER_UPDATE_CHECK,
+                  new UpdateChecker(this),
+                  () -> new FixedIntervalSupplier(
+                      Configuration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL)),
+                  Configuration.global(), mMasterContext.getUserState()));
         }
       } else {
         LOG.info("Detected existing cluster ID {}", mState.getClusterID());
@@ -374,11 +376,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         RetryHandlingMetaMasterMasterClient metaMasterClient =
             new RetryHandlingMetaMasterMasterClient(MasterClientContext
                 .newBuilder(ClientContext.create(Configuration.global())).build());
-        getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
-            new MetaMasterSync(mMasterAddress, metaMasterClient),
-            () -> new FixedIntervalSupplier(
-                Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL)),
-            Configuration.global(), mMasterContext.getUserState()));
+        HeartbeatThreadManager.submit(getExecutorService(),
+            new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
+                new MetaMasterSync(mMasterAddress, metaMasterClient),
+                () -> new FixedIntervalSupplier(
+                    Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL)),
+                Configuration.global(), mMasterContext.getUserState()));
         LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
             mMasterAddress);
       }

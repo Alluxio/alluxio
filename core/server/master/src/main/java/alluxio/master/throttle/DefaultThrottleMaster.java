@@ -23,6 +23,7 @@ import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.heartbeat.HeartbeatThreadManager;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterProcess;
@@ -108,7 +109,7 @@ public final class DefaultThrottleMaster extends AbstractMaster implements NoopJ
       return;
     }
     LOG.info("Starting {}", getName());
-    mThrottleService = getExecutorService().submit(
+    mThrottleService = HeartbeatThreadManager.submit(getExecutorService(),
         new HeartbeatThread(HeartbeatContext.MASTER_THROTTLE, mThrottleExecutor,
             () -> new FixedIntervalSupplier(
                 Configuration.getMs(PropertyKey.MASTER_THROTTLE_HEARTBEAT_INTERVAL)),

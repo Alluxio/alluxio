@@ -40,6 +40,7 @@ import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.heartbeat.HeartbeatThreadManager;
 import alluxio.job.CmdConfig;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
@@ -247,29 +248,20 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     }
     if (isLeader) {
       LOG.info("Starting job master as primary");
-      getExecutorService()
-          .submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_WORKER_DETECTION,
-              new LostWorkerDetectionHeartbeatExecutor(),
-              () -> new FixedIntervalSupplier(
-                  Configuration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL)),
-              Configuration.global(), mMasterContext.getUserState()));
-      getExecutorService()
-          .submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_MASTER_DETECTION,
-              new LostMasterDetectionHeartbeatExecutor(),
-              () -> new FixedIntervalSupplier(
-                  Configuration.getMs(PropertyKey.JOB_MASTER_LOST_MASTER_INTERVAL)),
-              Configuration.global(), mMasterContext.getUserState()));
-      /**
-       * The audit logger will be running all the time, and an operation checks whether
-       * to enable audit logs in {@link #createAuditContext}. So audit log can be turned on/off
-       * at runtime by updating the property key.
-       */
-      mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("JOB_MASTER_AUDIT_LOG");
-      mAsyncAuditLogWriter.start();
-      MetricsSystem.registerGaugeIfAbsent(
-          MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
-          () -> mAsyncAuditLogWriter != null
-              ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
+      HeartbeatThreadManager
+          .submit(getExecutorService(),
+              new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_WORKER_DETECTION,
+                  new LostWorkerDetectionHeartbeatExecutor(),
+                  () -> new FixedIntervalSupplier(
+                      Configuration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL)),
+                  Configuration.global(), mMasterContext.getUserState()));
+      HeartbeatThreadManager
+          .submit(getExecutorService(),
+              new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_MASTER_DETECTION,
+                  new LostMasterDetectionHeartbeatExecutor(),
+                  () -> new FixedIntervalSupplier(
+                      Configuration.getMs(PropertyKey.JOB_MASTER_LOST_MASTER_INTERVAL)),
+                  Configuration.global(), mMasterContext.getUserState()));
     } else {
       LOG.info("Starting job master as standby");
       if (ConfigurationUtils.isHaMode(Configuration.global())) {
@@ -277,15 +269,23 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
         RetryHandlingJobMasterMasterClient jobMasterClient =
                 new RetryHandlingJobMasterMasterClient(JobMasterClientContext
                         .newBuilder(ClientContext.create(Configuration.global())).build());
-        getExecutorService().submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_SYNC,
-            new JobMasterSync(mJobMasterAddress, jobMasterClient),
-            () -> new FixedIntervalSupplier(
-                Configuration.getMs(PropertyKey.JOB_MASTER_MASTER_HEARTBEAT_INTERVAL)),
-            Configuration.global(), mMasterContext.getUserState()));
+        HeartbeatThreadManager
+            .submit(getExecutorService(),
+                new HeartbeatThread(HeartbeatContext.JOB_MASTER_SYNC,
+                    new JobMasterSync(mJobMasterAddress, jobMasterClient),
+                    () -> new FixedIntervalSupplier(
+                        Configuration.getMs(PropertyKey.JOB_MASTER_MASTER_HEARTBEAT_INTERVAL)),
+                    Configuration.global(), mMasterContext.getUserState()));
         LOG.info("Standby job master with address {} starts sending heartbeat to the primary.",
             mJobMasterAddress);
       }
     }
+    mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("JOB_MASTER_AUDIT_LOG");
+    mAsyncAuditLogWriter.start();
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
+        () -> mAsyncAuditLogWriter != null
+            ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
   }
 
   @Override
