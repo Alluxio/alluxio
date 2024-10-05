@@ -7031,6 +7031,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_UFS_BLOCK_LOCATION_FALLBACK_RETURN_LIMIT =
+      intBuilder(Name.USER_UFS_BLOCK_LOCATION_FALLBACK_RETURN_LIMIT)
+          .setDefaultValue(Integer.MAX_VALUE)
+          .setDescription("The return count of workers as block location if ufs block locations "
+              + "are not co-located with any Alluxio workers or is empty. This item should be "
+              + "greater than or equal to 0 and " + Integer.MAX_VALUE + " means return all workers")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY =
       classBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
@@ -9312,6 +9321,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_RPC_RETRY_MAX_SLEEP_MS = "alluxio.user.rpc.retry.max.sleep";
     public static final String USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
         "alluxio.user.ufs.block.location.all.fallback.enabled";
+    public static final String USER_UFS_BLOCK_LOCATION_FALLBACK_RETURN_LIMIT =
+        "alluxio.user.block.location.fallback.return.limit";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY =
         "alluxio.user.ufs.block.read.location.policy";
     public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
