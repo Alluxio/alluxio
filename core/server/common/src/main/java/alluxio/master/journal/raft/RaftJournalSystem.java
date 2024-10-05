@@ -1148,7 +1148,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public void format() throws IOException {
     if (mPath.isDirectory()) {
-      if (alluxio.util.io.FileUtils.isStorageDirAccessible(mPath.getPath())) {
+      if (alluxio.util.io.FileUtils.isStorageDirAccessible(mPath.getPath()) &&
+          !alluxio.util.io.FileUtils.isPathContainsWorkDir(mPath.getPath(),
+              Configuration.getString(PropertyKey.WORK_DIR))) {
         FileUtils.cleanDirectory(mPath);
       } else {
         throw new AccessDeniedException(mPath.getPath());
