@@ -144,6 +144,12 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
     }
 
     List<T> factories = new ArrayList<>(mFactories);
+    List<T> eligibleFactories = select(path, conf, factories);
+    if (!eligibleFactories.isEmpty()) {
+      return eligibleFactories;
+    }
+
+    factories.clear();
     String libDir = PathUtils.concatPath(conf.getString(PropertyKey.HOME), "lib");
     String extensionDir = conf.getString(PropertyKey.EXTENSIONS_DIR);
     scanLibs(factories, libDir);
@@ -159,6 +165,7 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
       recorder.record("alluxio.underfs.version is not set by user");
     }
 
+    eligibleFactories = select(path, conf, factories);
     for (T factory : factories) {
       // if `getVersion` returns null set the version to "unknown"
       String version = UNKNOWN_VERSION;
@@ -178,6 +185,7 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
             + "isn't eligible for path {}", factory.getClass().getSimpleName(), version, path);
       }
     }
+
     if (eligibleFactories.isEmpty()) {
       String message = String.format("No factory implementation supports the path %s", path);
       recorder.record(message);
@@ -319,5 +327,26 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
 
     LOG.debug("Unregistered factory implementation {} - {}", factory.getClass(), factory);
     factories.remove(factory);
+  }
+
+  /**
+   * Selects all the factories that support the given path from the given list of factories.
+   *
+   * @param path path
+   * @param conf configuration of the extension
+   * @param factories list of factories
+   * @return list of factories that support the given path which may be an empty list
+   */
+  private List<T> select(String path, S conf, List<T> factories) {
+    Preconditions.checkNotNull(path, "path may not be null");
+
+    List<T> eligibleFactories = new ArrayList<>();
+    for (T factory : factories) {
+      if (factory.supportsPath(path, conf)) {
+        LOG.debug("Factory implementation {} is eligible for path {}", factory, path);
+        eligibleFactories.add(factory);
+      }
+    }
+    return eligibleFactories;
   }
 }
