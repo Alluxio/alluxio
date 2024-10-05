@@ -16,6 +16,8 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.concurrent.LockMode;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.runtime.AlluxioRuntimeException;
@@ -79,6 +81,9 @@ public class FuseFileInStream implements FuseFileStream {
 
       try {
         FileInStream is = fileSystem.openFile(uri);
+        if (Configuration.getBoolean(PropertyKey.FUSE_MEMORY_CACHE_ENABLE)) {
+          is = new MemoryCacheFileInStream(status.get(), is);
+        }
         return new FuseFileInStream(is, lockResource,
             new FileStatus(status.get().getLength()), uri);
       } catch (IOException | AlluxioException e) {
