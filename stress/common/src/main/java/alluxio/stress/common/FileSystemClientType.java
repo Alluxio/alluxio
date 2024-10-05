@@ -24,6 +24,8 @@ public enum FileSystemClientType {
 
   /** Alluxio POSIX API. */
   ALLUXIO_POSIX("AlluxioPOSIX"),
+
+  ALLUXIO_S3A("AlluxioS3A"),
   ;
 
   private final String mName;
