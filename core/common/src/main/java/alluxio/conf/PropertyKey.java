@@ -2317,6 +2317,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_DAILY_BACKUP_INTERVAL =
+      durationBuilder(Name.MASTER_DAILY_BACKUP_INTERVAL)
+          .setDefaultValue("1day")
+          .setDescription("The default interval between writes to daily "
+              + "primary metadata backups. The accepted time format is day, hr. "
+              + "(E.g., 1day, 6hr). ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_DAILY_BACKUP_TIME =
       stringBuilder(Name.MASTER_DAILY_BACKUP_TIME)
           .setDefaultValue("05:00")
@@ -8286,6 +8295,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.daily.backup.enabled";
     public static final String MASTER_DAILY_BACKUP_FILES_RETAINED =
         "alluxio.master.daily.backup.files.retained";
+    public static final String MASTER_DAILY_BACKUP_INTERVAL =
+        "alluxio.master.daily.backup.interval";
     public static final String MASTER_DAILY_BACKUP_TIME =
         "alluxio.master.daily.backup.time";
     public static final String MASTER_DAILY_BACKUP_STATE_LOCK_GRACE_MODE =
