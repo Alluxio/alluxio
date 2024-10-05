@@ -130,6 +130,11 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   public void suspend(Runnable interruptCallback) throws IOException {
     for (Map.Entry<String, UfsJournal> journalEntry : mJournals.entrySet()) {
       LOG.info("Suspending journal: {}", journalEntry.getKey());
+      UfsJournalCheckpointThread.CatchupState state = journalEntry.getValue().getCatchupState();
+      if (state != UfsJournalCheckpointThread.CatchupState.DONE) {
+        throw new IOException(String.format("%s is not caught up. State is %s but should be %s.",
+            journalEntry.getKey(), state, UfsJournalCheckpointThread.CatchupState.DONE));
+      }
       journalEntry.getValue().suspend();
     }
   }

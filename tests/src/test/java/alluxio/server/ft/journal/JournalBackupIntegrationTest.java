@@ -451,6 +451,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
 
     File backups = AlluxioTestDirectory.createTemporaryDirectory("backups");
     mCluster.start();
+    mCluster.waitForAllNodesRegistered(10_000);
 
     // Validate backup works with delegation.
     waitForBackup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
@@ -551,6 +552,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
 
     File backups = AlluxioTestDirectory.createTemporaryDirectory("backups");
     mCluster.start();
+    mCluster.waitForAllNodesRegistered(10_000);
 
     // Validate backup works with delegation.
     waitForBackup(BackupPRequest.newBuilder().setTargetDirectory(backups.getAbsolutePath())
