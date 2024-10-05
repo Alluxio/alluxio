@@ -98,4 +98,12 @@ public class UdbContext {
   public AlluxioURI getTableLocation(String tableName) {
     return CatalogPathUtils.getTablePathUdb(mDbName, tableName, mType);
   }
+
+  /**
+   * @param ufsUri ufs location of the fragment
+   * @return the AlluxioURI of the fragment in Alluxio filesystem
+   */
+  public AlluxioURI getFragmentLocation(AlluxioURI ufsUri) {
+    return CatalogPathUtils.getFragmentsPath(mDbName, ufsUri);
+  }
 }

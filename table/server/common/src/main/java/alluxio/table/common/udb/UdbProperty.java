@@ -23,6 +23,11 @@ import org.slf4j.LoggerFactory;
 public class UdbProperty extends BaseProperty {
   private static final Logger LOG = LoggerFactory.getLogger(UdbProperty.class);
 
+  public static final UdbProperty GROUP_MOUNT_POINTS =
+      new UdbProperty(
+          "mount.group_mount_points",
+          "Whether to group mount points",
+          "false");
   /**
    * Creates an instance.
    *
