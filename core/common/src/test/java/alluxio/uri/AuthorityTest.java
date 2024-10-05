@@ -11,13 +11,16 @@
 
 package alluxio.uri;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Unit tests for {@link Authority}.
@@ -66,10 +69,23 @@ public class AuthorityTest {
     assertEquals("localhost:19998", authority.toString());
     assertEquals("localhost", authority.getHost());
     assertEquals(19998, authority.getPort());
+
+    SingleMasterAuthority authoritySame =
+        (SingleMasterAuthority) Authority.fromString("localhost:19998");
+    assertTrue(authority.equals(authoritySame));
+    assertEquals(authority.compareTo(authoritySame), 0);
+    assertEquals(authority.hashCode(), authoritySame.hashCode());
+
+    SingleMasterAuthority authorityDiff =
+        (SingleMasterAuthority) Authority.fromString("localhost:19999");
+    assertFalse(authority.equals(authorityDiff));
+    assertNotEquals(authority.compareTo(authorityDiff), 0);
+    assertNotEquals(authority.hashCode(), authorityDiff.hashCode());
   }
 
   @Test
   public void multiMasterAuthorityTest() {
+    // the equal, hashcode and comparison test is done in MultiMasterAuthorityTest
     MultiMasterAuthority authority =
         (MultiMasterAuthority) Authority.fromString("host1:19998,host2:19998,host3:19998");
     assertEquals("host1:19998,host2:19998,host3:19998", authority.toString());
@@ -97,6 +113,7 @@ public class AuthorityTest {
 
   @Test
   public void zookeeperAuthorityTest() {
+    // the equal, hashcode and comparison test is done in ZookeeperAuthorityTest
     ZookeeperAuthority authority = (ZookeeperAuthority) Authority.fromString("zk@host:2181");
     assertEquals("zk@host:2181", authority.toString());
     assertEquals("host:2181", authority.getZookeeperAddress());
@@ -121,6 +138,18 @@ public class AuthorityTest {
         (ZookeeperLogicalAuthority) Authority.fromString("zk@logical");
     assertEquals("zk@logical", authority.toString());
     assertEquals("logical", authority.getLogicalName());
+
+    ZookeeperLogicalAuthority authoritySame =
+        (ZookeeperLogicalAuthority) Authority.fromString("zk@logical");
+    assertTrue(authority.equals(authoritySame));
+    assertEquals(authority.compareTo(authoritySame), 0);
+    assertEquals(authority.hashCode(), authoritySame.hashCode());
+
+    ZookeeperLogicalAuthority authorityDiff =
+        (ZookeeperLogicalAuthority) Authority.fromString("zk@logical1");
+    assertFalse(authority.equals(authorityDiff));
+    assertNotEquals(authority.compareTo(authorityDiff), 0);
+    assertNotEquals(authority.hashCode(), authorityDiff.hashCode());
   }
 
   @Test
@@ -129,6 +158,53 @@ public class AuthorityTest {
         (EmbeddedLogicalAuthority) Authority.fromString("ebj@logical");
     assertEquals("ebj@logical", authority.toString());
     assertEquals("logical", authority.getLogicalName());
+
+    EmbeddedLogicalAuthority authoritySame =
+        (EmbeddedLogicalAuthority) Authority.fromString("ebj@logical");
+    assertTrue(authority.equals(authoritySame));
+    assertEquals(authority.compareTo(authoritySame), 0);
+    assertEquals(authority.hashCode(), authoritySame.hashCode());
+
+    EmbeddedLogicalAuthority authorityDiff =
+        (EmbeddedLogicalAuthority) Authority.fromString("ebj@logical1");
+    assertFalse(authority.equals(authorityDiff));
+    assertNotEquals(authority.compareTo(authorityDiff), 0);
+    assertNotEquals(authority.hashCode(), authorityDiff.hashCode());
+  }
+
+  @Test
+  public void noAuthorityTest() {
+    assertTrue(Authority.fromString("").equals(Authority.fromString(null)));
+    assertEquals(Authority.fromString("").compareTo(Authority.fromString(null)), 0);
+    assertEquals(Authority.fromString("").hashCode(), Authority.fromString(null).hashCode());
+  }
+
+  @Test
+  public void differentAuthorityEqualTest() {
+    String authorityAddress = "host:1122";
+    List<Authority> authorities = new ArrayList<>();
+    authorities.add(Authority.fromString(""));
+    authorities.add(new ZookeeperAuthority(authorityAddress));
+    authorities.add(new MultiMasterAuthority(authorityAddress));
+    authorities.add(new EmbeddedLogicalAuthority(authorityAddress));
+    authorities.add(new ZookeeperLogicalAuthority(authorityAddress));
+    authorities.add(new UnknownAuthority(authorityAddress));
+    authorities.add(new SingleMasterAuthority("host", 1122));
+
+    for (int i = 0; i < authorities.size(); i++)
+    {
+      for (int j = 0; j < authorities.size(); j++)
+      {
+        if (i == j)
+        {
+          continue;
+        }
+        Authority a1 = authorities.get(i);
+        Authority a2 = authorities.get(j);
+
+        assertFalse(a1.equals(a2));
+      }
+    }
   }
 
   @Test

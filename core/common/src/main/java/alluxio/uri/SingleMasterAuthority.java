@@ -20,6 +20,7 @@ public class SingleMasterAuthority implements Authority {
   private static final long serialVersionUID = -8901940466477691715L;
   private final String mHost;
   private final int mPort;
+  private int mHashCode = 0;
 
   /**
    * @param host the host of this authority
@@ -59,7 +60,31 @@ public class SingleMasterAuthority implements Authority {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mHost, mPort);
+    // rationale:
+    // 1. calculate each comma-separated segment's hashcode in the same way
+    //    Java calculates the hashcode of a String object.
+    // 2. then XOR each segment's hashcode to produce the hashcode for this object.
+    //    since XOR is commutative, the order of the segments does not matter.
+    //    as long as the number of the segments and the hashcodes of the segments are equal,
+    //    the resulting hashcodes are equal.
+
+    // we might need to update the hashcode field,
+    // so copy to a local variable to avoid data race
+    int h = mHashCode;
+    String singleMasterAddress = toString();
+    if (h != 0) {
+      // if we have calculated and cached the hashcode, just return it
+      return h;
+    }
+    final int prime = 31;
+    int segmentHashCode = 0;
+    for (int i = 0; i < singleMasterAddress.length(); i++) {
+      segmentHashCode = prime * segmentHashCode + singleMasterAddress.charAt(i);
+    }
+    h ^= segmentHashCode;
+
+    mHashCode = h;
+    return h;
   }
 
   @Override

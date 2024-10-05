@@ -11,8 +11,6 @@
 
 package alluxio.uri;
 
-import com.google.common.base.Objects;
-
 /**
  * A Singleton of NoAuthority, it represents a URI without authority.
  */
@@ -33,7 +31,7 @@ public final class NoAuthority implements Authority {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode("");
+    return 0;
   }
 
   @Override
