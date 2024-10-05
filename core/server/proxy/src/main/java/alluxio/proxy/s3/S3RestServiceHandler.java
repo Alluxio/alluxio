@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -31,6 +32,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
@@ -372,7 +374,20 @@ public final class S3RestServiceHandler {
             .setContinuationToken(continuationTokenParam)
             .setStartAfter(startAfterParam);
 
+        String startAfter = (markerParam != null ? markerParam : (continuationTokenParam != null
+            ? ListBucketResult.decodeToken(continuationTokenParam) : ""));
+        if (StringUtils.isNotEmpty(startAfter)) {
+          startAfter = String.format("%s%s%s", path, AlluxioURI.SEPARATOR, startAfter);
+        }
+
         List<URIStatus> children;
+        List<URIStatus> allChildren = new ArrayList<>();
+        int batchSize = maxKeys + 1;
+        ListStatusPartialPOptions options = ListStatusPartialPOptions.newBuilder()
+            .setStartAfter(startAfter)
+            .setBatchSize(batchSize)
+            .setOptions(ListStatusPOptions.newBuilder().setRecursive(true))
+            .buildPartial();
         try {
           // TODO(czhu): allow non-"/" delimiters by parsing the prefix & delimiter pair to
           //             determine what directory to list the contents of
@@ -383,25 +398,39 @@ public final class S3RestServiceHandler {
             } else {
               path = parsePathWithDelimiter(path, prefixParam, delimiterParam);
             }
-            children = userFs.listStatus(new AlluxioURI(path));
+            options = options.toBuilder().clearOptions().build();
           } else {
             if (prefixParam != null) {
               path = parsePathWithDelimiter(path, prefixParam, AlluxioURI.SEPARATOR);
             }
-            ListStatusPOptions options = ListStatusPOptions.newBuilder().setRecursive(true).build();
-            children = userFs.listStatus(new AlluxioURI(path), options);
           }
+          ListStatusPartialResult partialResult =
+              userFs.listStatusPartial(new AlluxioURI(path), options);
+          children = partialResult.getListings();
+
+          allChildren.addAll(children);
+          ListBucketResult bucketResult =
+              new ListBucketResult(bucket, allChildren, listBucketOptions);
+          while (!bucketResult.isTruncated() && children.size() == batchSize) {
+            options = options.toBuilder()
+                .setStartAfter(children.get(children.size() - 1).getPath()).buildPartial();
+            partialResult = userFs.listStatusPartial(new AlluxioURI(path), options);
+            children = partialResult.getListings();
+            allChildren.addAll(children);
+            bucketResult = new ListBucketResult(bucket, allChildren, listBucketOptions);
+          }
+          return bucketResult;
         } catch (FileDoesNotExistException e) {
+          allChildren.clear();
           // Since we've called S3RestUtils.checkPathIsAlluxioDirectory() on the bucket path
           // already, this indicates that the prefix was unable to be found in the Alluxio FS
-          children = new ArrayList<>();
         } catch (IOException | AlluxioException e) {
           auditContext.setSucceeded(false);
           throw S3RestUtils.toBucketS3Exception(e, bucket);
         }
         return new ListBucketResult(
             bucket,
-            children,
+            allChildren,
             listBucketOptions);
       } // end try-with-resources block
     });
