@@ -20,6 +20,7 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -33,6 +34,9 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.grpc.GrpcDataServer;
 
+import alluxio.worker.shortcircuit.SecureShortcircuitReadServer;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.unix.DomainSocketAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +48,7 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -61,6 +66,10 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
   /** If started (i.e. not null), this server is used to serve local data transfer. */
   private DataServer mDomainSocketDataServer;
+  
+  /** Netty server eventloop used to serve secure local data transfer*/
+  private EventLoopGroup mBossGroup; 
+  private EventLoopGroup mWorkerGroup;
 
   /** The worker registry. */
   private final WorkerRegistry mRegistry;
@@ -150,6 +159,20 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         // Share domain socket so that clients can access it.
         FileUtils.changeLocalFileToFullPermission(domainSocketPath);
       }
+      
+      // Setup netty server for secure local shortcircuit read
+      if (isSecureLocalReadEnabled()) {
+        String ssrThreadPrefix = "data-server-ssrRead-domain-socket";
+        ThreadFactory bossThreadFactory = ThreadFactoryUtils.build(ssrThreadPrefix + "-boss-%d", true);
+        ThreadFactory workerThreadFactory = ThreadFactoryUtils.build(ssrThreadPrefix + "-worker-%d", true);
+        mBossGroup = new EpollEventLoopGroup(1, bossThreadFactory);
+        mWorkerGroup = new EpollEventLoopGroup(0, workerThreadFactory);
+        SecureShortcircuitReadServer nettyServer = new SecureShortcircuitReadServer(mBossGroup,
+                                                                                    mWorkerGroup, 
+                                                                                    this);
+        nettyServer.start();
+      }
+      
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -264,6 +287,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       }
     }
     stopWorkers();
+    stopSecureShortcircuitReadServer();
   }
 
   private boolean isServing() {
@@ -292,6 +316,18 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     }
     MetricsSystem.stopSinks();
   }
+  
+  private void stopSecureShortcircuitReadServer() {
+    if (mBossGroup != null) {
+      mBossGroup.shutdownGracefully();
+      mBossGroup = null;
+    }
+    if (mWorkerGroup != null) {
+      mWorkerGroup.shutdownGracefully();
+      mWorkerGroup = null;
+    }
+    LOG.info("Secure shortcircuit read server shutdowns successfully.");
+  }
 
   /**
    * @return true if domain socket is enabled
@@ -299,6 +335,11 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   private boolean isDomainSocketEnabled() {
     return NettyUtils.getWorkerChannel(Configuration.global()) == ChannelType.EPOLL
         && Configuration.isSet(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+  }
+  
+  private boolean isSecureLocalReadEnabled() {
+    return NettyUtils.getWorkerChannel(ServerConfiguration.global()) == ChannelType.EPOLL 
+        && ServerConfiguration.isSet(PropertyKey.USER_SECURE_SHORT_CIRCUIT_READ_ENABLED);
   }
 
   @Override
