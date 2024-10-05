@@ -44,6 +44,8 @@ import alluxio.grpc.GetFilePathPRequest;
 import alluxio.grpc.GetFilePathPResponse;
 import alluxio.grpc.GetJobProgressPRequest;
 import alluxio.grpc.GetJobProgressPResponse;
+import alluxio.grpc.GetLostFilesPRequest;
+import alluxio.grpc.GetLostFilesPResponse;
 import alluxio.grpc.GetMountTablePRequest;
 import alluxio.grpc.GetMountTablePResponse;
 import alluxio.grpc.GetNewBlockIdForFilePRequest;
@@ -63,6 +65,7 @@ import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.ListStatusPartialPRequest;
 import alluxio.grpc.ListStatusPartialPResponse;
+import alluxio.grpc.LostBlockList;
 import alluxio.grpc.MountPRequest;
 import alluxio.grpc.MountPResponse;
 import alluxio.grpc.NeedsSyncRequest;
@@ -583,6 +586,18 @@ public final class FileSystemMasterClientServiceHandler
               JobDescription.from(request.getJobDescription()), format, verbose))
           .build();
     }, "getJobProgress", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getLostFilesWithBlocks(GetLostFilesPRequest request,
+      StreamObserver<GetLostFilesPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      Map<Long, List<Long>> lostFilesWithBlocks = mFileSystemMaster.getLostFilesWithBlocks();
+      final Map<Long, LostBlockList> lostStorageMap = lostFilesWithBlocks.entrySet().stream()
+          .collect(Collectors.toMap(Map.Entry::getKey,
+              e -> LostBlockList.newBuilder().addAllBlockId(e.getValue()).build()));
+      return GetLostFilesPResponse.newBuilder().putAllLostFiles(lostStorageMap).build();
+    }, "GetLostFilesId", "request=%s", responseObserver, request);
   }
 
   /**

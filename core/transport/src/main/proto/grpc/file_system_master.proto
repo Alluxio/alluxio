@@ -732,6 +732,15 @@ message CancelSyncMetadataPResponse {
   optional bool success = 1;
 }
 
+message LostBlockList {
+  repeated int64 blockId = 1;
+}
+message GetLostFilesPRequest {
+}
+message GetLostFilesPResponse {
+  map<int64, LostBlockList> lostFiles = 1;
+}
+
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
  */
@@ -894,6 +903,8 @@ service FileSystemMasterClientService {
   rpc SyncMetadataAsync(SyncMetadataPRequest) returns (SyncMetadataAsyncPResponse);
   rpc GetSyncProgress(GetSyncProgressPRequest) returns (GetSyncProgressPResponse);
   rpc CancelSyncMetadata(CancelSyncMetadataPRequest) returns (CancelSyncMetadataPResponse);
+
+  rpc GetLostFilesWithBlocks(GetLostFilesPRequest) returns (GetLostFilesPResponse);
 }
 
 message FileSystemHeartbeatPResponse {

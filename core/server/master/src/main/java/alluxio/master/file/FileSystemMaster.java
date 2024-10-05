@@ -428,6 +428,11 @@ public interface FileSystemMaster extends Master {
   Set<Long> getLostFiles();
 
   /**
+   * @return the lost files with blocks
+   */
+  Map<Long, List<Long>> getLostFilesWithBlocks();
+
+  /**
    * Mounts a UFS path onto an Alluxio path.
    * <p>
    * This operation requires users to have WRITE permission on the parent

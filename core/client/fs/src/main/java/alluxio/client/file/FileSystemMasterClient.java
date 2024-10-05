@@ -30,6 +30,7 @@ import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.grpc.LostBlockList;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
@@ -412,4 +413,9 @@ public interface FileSystemMasterClient extends Client {
    * @return the cancellation result
    */
   CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId) throws AlluxioStatusException;
+
+  /**
+   * @return the ids of lost file
+   */
+  Map<Long, LostBlockList> getLostFiles() throws AlluxioStatusException;
 }
