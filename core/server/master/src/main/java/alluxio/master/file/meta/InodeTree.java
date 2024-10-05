@@ -64,6 +64,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -1441,12 +1442,15 @@ public class InodeTree implements DelegatingJournaled {
       MkdirsOptions mkdirsOptions =
           MkdirsOptions.defaults(Configuration.global()).setCreateParent(false)
           .setOwner(dir.getOwner()).setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
-      if (!ufs.mkdirs(ufsUri, mkdirsOptions)) {
+      if (isMetadataLoad || !ufs.mkdirs(ufsUri, mkdirsOptions)) {
         // Directory might already exist. Try loading the status from ufs.
         UfsStatus status;
         try {
           status = ufs.getStatus(ufsUri);
         } catch (Exception e) {
+          if (isMetadataLoad && e instanceof FileNotFoundException) {
+            return Optional.empty();
+          }
           throw new IOException(String.format("Cannot create or load UFS directory %s: %s.",
               ufsUri, e.toString()), e);
         }
