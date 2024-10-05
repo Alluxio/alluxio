@@ -29,6 +29,6 @@ public class HiveDatabaseFactory implements UnderDatabaseFactory {
 
   @Override
   public UnderDatabase create(UdbContext udbContext, UdbConfiguration configuration) {
-    return HiveDatabase.create(udbContext, configuration);
+    return HiveUnderDatabase.create(udbContext, configuration);
   }
 }
