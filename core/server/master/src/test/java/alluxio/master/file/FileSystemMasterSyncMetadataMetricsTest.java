@@ -17,8 +17,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -31,6 +33,7 @@ import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.security.user.UserState;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UfsStatusCache;
@@ -41,6 +44,7 @@ import com.codahale.metrics.Meter;
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -709,7 +713,20 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
   }
 
   @Test
+  public void mountPointOpsCountHasAcl() throws Exception {
+    mountPointOpsCountInternal(true);
+  }
+
+  @Test
   public void mountPointOpsCount() throws Exception {
+    mountPointOpsCountInternal(false);
+  }
+
+  public void mountPointOpsCountInternal(boolean hasAcl) throws Exception {
+    if (hasAcl) {
+      Mockito.when(mUfs.getAclPair(any())).thenReturn(new Pair<>(new AccessControlList(), null));
+    }
+
     int threadNum = 10; // level of concurrency
     int iterNum = 10; // number of forced sync iterations in each thread
     int fileCount = 10; // number of files to sync in each thread
@@ -785,7 +802,11 @@ public class FileSystemMasterSyncMetadataMetricsTest extends FileSystemMasterSyn
     // 1 getAcl call for each file in syncExistingInodeMetadata
     // TODO(jiacheng): reduce excessive getAcl calls
     //  https://github.com/Alluxio/alluxio/issues/16473
-    expectedOpCount = expectedOpCount + (fileCount + 2) * iterNum * threadNum;
+    if (hasAcl) {
+      expectedOpCount = expectedOpCount + (fileCount + 2) * iterNum * threadNum;
+    } else {
+      expectedOpCount += 80;
+    }
     assertEquals(expectedOpCount, mountPointCounter.getCount());
 
     threadpool.shutdownNow();

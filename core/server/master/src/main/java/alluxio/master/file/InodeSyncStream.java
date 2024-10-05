@@ -836,7 +836,9 @@ public class InodeSyncStream {
             Pair<AccessControlList, DefaultAccessControlList> aclPair =
                 (Pair<AccessControlList, DefaultAccessControlList>)
                     getFromUfs(() -> ufs.getAclPair(ufsUri.toString()), rpcContext);
-            mMountTable.getUfsSyncMetric(resolution.getMountId()).inc();
+            if (aclPair != null && (aclPair.getFirst() != null || aclPair.getSecond() != null)) {
+              mMountTable.getUfsSyncMetric(resolution.getMountId()).inc();
+            }
             if (aclPair == null || aclPair.getFirst() == null
                 || !aclPair.getFirst().hasExtended()) {
               ufsFpParsed = Fingerprint.create(ufs.getUnderFSType(), cachedStatus);
@@ -1193,8 +1195,10 @@ public class InodeSyncStream {
       if (fsMaster.isAclEnabled()) {
         Pair<AccessControlList, DefaultAccessControlList> aclPair
             = ufs.getAclPair(ufsUri.toString());
-        accessMetric.inc();
         if (aclPair != null) {
+          if (aclPair.getFirst() != null || aclPair.getSecond() != null) {
+            accessMetric.inc();
+          }
           acl = aclPair.getFirst();
           // DefaultACL should be null, because it is a file
           if (aclPair.getSecond() != null) {
@@ -1344,7 +1348,9 @@ public class InodeSyncStream {
       Pair<AccessControlList, DefaultAccessControlList> aclPair =
           ufs.getAclPair(ufsUri.toString());
       if (aclPair != null) {
-        accessMetric.inc();
+        if (aclPair.getFirst() != null || aclPair.getSecond() != null) {
+          accessMetric.inc();
+        }
         acl = aclPair.getFirst();
         defaultAcl = aclPair.getSecond();
       }
