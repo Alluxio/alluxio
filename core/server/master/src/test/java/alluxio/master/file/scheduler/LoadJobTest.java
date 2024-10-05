@@ -97,6 +97,7 @@ public class LoadJobTest {
     }
 
     FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
+    when(fileSystemMaster.getFileInfo(any(), any())).thenReturn(new FileInfo().setFolder(true));
     when(fileSystemMaster.listStatus(any(), any())).thenAnswer(invocation -> {
       ListStatusContext context = invocation.getArgument(1, ListStatusContext.class);
       int fileSize = fileInfos.size();
