@@ -222,7 +222,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
         getErrorCapturingResponseObserver(newErrorQueue));
 
     // Verify the worker is registered again
-    assertEquals(0, errorQueue.size());
+    assertEquals(0, newErrorQueue.size());
     MasterWorkerInfo updatedWorker = mBlockMaster.getWorker(workerId);
     assertEquals(TIER_BLOCK_TOTAL, updatedWorker.getBlockCount());
     assertEquals(0, updatedWorker.getToRemoveBlockCount());
