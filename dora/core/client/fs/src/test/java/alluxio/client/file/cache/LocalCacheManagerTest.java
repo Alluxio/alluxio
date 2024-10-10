@@ -68,6 +68,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -1241,10 +1242,10 @@ public final class LocalCacheManagerTest {
   }
 
   private void checkPrefixSearch(UfsUrl rootUrl, UfsUrl prefixUrl) {
-    Set<PageInfo> rootResult = mCacheManager.getPageInfoByPrefix(rootUrl);
+    Collection<PageInfo> rootResult = mCacheManager.getPageInfoByPrefix(rootUrl);
     Assert.assertFalse(rootResult.isEmpty());
 
-    Set<PageInfo> prefixSearchResult = mCacheManager.getPageInfoByPrefix(prefixUrl);
+    Collection<PageInfo> prefixSearchResult = mCacheManager.getPageInfoByPrefix(prefixUrl);
     Assert.assertFalse(prefixSearchResult.isEmpty());
 
     for (PageInfo p : prefixSearchResult) {
