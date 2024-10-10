@@ -1212,10 +1212,10 @@ public final class LocalCacheManagerTest {
     mCacheManager = createLocalCacheManager();
 
     String scheme = "file:///";
-    String prefix1 = scheme + "prefix1";
-    String prefix2 = scheme + "prefix2";
-    String prefix3 = scheme + "q";
-    String prefix4 = scheme + "~";
+    String prefix1 = "prefix1";
+    String prefix2 = "prefix2";
+    String prefix3 = "q";
+    String prefix4 = "~";
 
     int fileNum = 10;
     cachePrefixPages(prefix1, fileNum);
@@ -1232,29 +1232,26 @@ public final class LocalCacheManagerTest {
   }
 
   private void cachePrefixPages(String prefix, int fileNum) {
+    String scheme = "file:///";
     for (int i = 0; i < fileNum; i++) {
-      String fileId = prefix + "_" + i;
+      String fileId = scheme + prefix + "_" + i;
       PageId pageId = new PageId(fileId, 0);
       mCacheManager.put(pageId, PAGE1);
     }
   }
 
   private void checkPrefixSearch(UfsUrl rootUrl, UfsUrl prefixUrl) {
-    List<PageInfo> rootResult = mCacheManager.getPageInfoByPrefix(rootUrl);
-    Set<PageInfo> rootResultSet = new HashSet<>(rootResult);
-    Assert.assertEquals(rootResult.size(), rootResultSet.size());
-    Assert.assertFalse(rootResultSet.isEmpty());
+    Set<PageInfo> rootResult = mCacheManager.getPageInfoByPrefix(rootUrl);
+    Assert.assertFalse(rootResult.isEmpty());
 
-    List<PageInfo> prefixSearchResult = mCacheManager.getPageInfoByPrefix(prefixUrl);
-    Set<PageInfo> prefixSearchSet = new HashSet<>(prefixSearchResult);
-    Assert.assertEquals(prefixSearchResult.size(), prefixSearchSet.size());
-    Assert.assertFalse(prefixSearchSet.isEmpty());
+    Set<PageInfo> prefixSearchResult = mCacheManager.getPageInfoByPrefix(prefixUrl);
+    Assert.assertFalse(prefixSearchResult.isEmpty());
 
     for (PageInfo p : prefixSearchResult) {
       Assert.assertTrue(p.getUfsUrl().toString().startsWith(prefixUrl.toString()));
     }
-    for (PageInfo p : rootResultSet) {
-      if (prefixSearchSet.contains(p)) {
+    for (PageInfo p : rootResult) {
+      if (prefixSearchResult.contains(p)) {
         Assert.assertTrue(p.getUfsUrl().toString().startsWith(prefixUrl.toString()));
       } else {
         Assert.assertFalse(p.getUfsUrl().toString().startsWith(prefixUrl.toString()));
