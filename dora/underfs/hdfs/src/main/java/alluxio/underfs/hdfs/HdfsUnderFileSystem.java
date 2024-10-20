@@ -219,7 +219,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         }
       }
 
-      if (StringUtils.equals("hdfs", ufsUri.getScheme())) {
+      if (StringUtils.equals("hdfs", ufsUri.getScheme())
+          || StringUtils.equals("webhdfs", ufsUri.getScheme())
+          || StringUtils.equals("swebhdfs", ufsUri.getScheme())) {
         try {
           // If this class is not loaded here, it will be later loaded by the system classloader
           // from alluxio server jar, but will be called by a class loaded with extension
