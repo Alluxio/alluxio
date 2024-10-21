@@ -15,6 +15,7 @@ import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PageNotFoundException;
+import alluxio.uri.UfsUrl;
 
 import java.io.IOException;
 import java.util.List;
@@ -157,4 +158,13 @@ public interface PageMetaStore extends CacheStatus {
    * @return a page to evict
    */
   PageInfo evict(CacheScope cacheScope, PageStoreDir pageStoreDir);
+
+  /**
+   * Get pageInfo of a specific prefix.
+   * @param ufsUrl the prefix of UfsUrl
+   * @return a list of PageInfos with the same prefix
+   */
+  default Set<PageInfo> getPageInfoByPrefix(UfsUrl ufsUrl) {
+    throw new UnsupportedOperationException("Unsupported method: getPageInfoByPrefix");
+  }
 }

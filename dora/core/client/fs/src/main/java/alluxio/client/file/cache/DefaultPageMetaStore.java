@@ -19,11 +19,12 @@ import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
 import alluxio.collections.IndexDefinition;
-import alluxio.collections.IndexedSet;
+import alluxio.collections.IndexedSetTrie;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.uri.UfsUrl;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -49,7 +50,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class DefaultPageMetaStore implements PageMetaStore {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultPageMetaStore.class);
   /** A map from PageId to page info. */
-  private final IndexedSet<PageInfo> mPages = new IndexedSet<>(INDEX_PAGE_ID, INDEX_FILE_ID);
+  private final IndexedSetTrie<PageInfo> mPages =
+      new IndexedSetTrie<>(INDEX_PAGE_ID, INDEX_FILE_ID);
   private final ImmutableList<PageStoreDir> mDirs;
   /** The number of logical bytes used. */
   private final AtomicLong mBytes = new AtomicLong(0);
@@ -78,7 +80,6 @@ public class DefaultPageMetaStore implements PageMetaStore {
   public DefaultPageMetaStore(List<PageStoreDir> dirs, Allocator allocator) {
     mDirs = ImmutableList.copyOf(requireNonNull(dirs));
     mAllcator = requireNonNull(allocator);
-    //metrics for the num of pages stored in the cache
     MetricsSystem.registerGaugeIfAbsent(MetricKey.CLIENT_CACHE_PAGES.getName(),
         mPages::size);
   }
@@ -232,6 +233,12 @@ public class DefaultPageMetaStore implements PageMetaStore {
   public Set<PageInfo> getAllPagesByFileId(String fileId) {
     Set<PageInfo> pages = mPages.getByField(INDEX_FILE_ID, fileId);
     return pages;
+  }
+
+  @Override
+  public Set<PageInfo> getPageInfoByPrefix(UfsUrl ufsUrl) {
+    String fileIdPrefix = ufsUrl.toString();
+    return mPages.getByPrefix(INDEX_FILE_ID, fileIdPrefix);
   }
 
   @Override
