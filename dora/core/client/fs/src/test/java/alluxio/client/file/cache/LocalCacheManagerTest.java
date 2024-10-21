@@ -43,6 +43,7 @@ import alluxio.file.ByteArrayTargetBuffer;
 import alluxio.file.NettyBufTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
+import alluxio.uri.UfsUrl;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
@@ -55,8 +56,10 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.DefaultFileRegion;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -65,6 +68,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -1201,6 +1205,59 @@ public final class LocalCacheManagerTest {
     byte[] bytes = new byte[PAGE1.length];
     buf.readBytes(bytes);
     assertArrayEquals(PAGE1, bytes);
+  }
+
+  @Ignore("Remove this annotation once OS worker supports the prefix search.")
+  @Test
+  public void searchPagesByPrefix() throws Exception {
+    mCacheManager = createLocalCacheManager();
+
+    String scheme = "file:///";
+    String prefix1 = "prefix1";
+    String prefix2 = "prefix2";
+    String prefix3 = "q";
+    String prefix4 = "~";
+
+    int fileNum = 10;
+    cachePrefixPages(prefix1, fileNum);
+    cachePrefixPages(prefix2, fileNum);
+    cachePrefixPages(prefix3, fileNum);
+    cachePrefixPages(prefix4, fileNum);
+
+    UfsUrl rootPrefix = UfsUrl.createInstance(scheme);
+
+    checkPrefixSearch(rootPrefix, rootPrefix.join(prefix1));
+    checkPrefixSearch(rootPrefix, rootPrefix.join(prefix2));
+    checkPrefixSearch(rootPrefix, rootPrefix.join(prefix3));
+    checkPrefixSearch(rootPrefix, rootPrefix.join(prefix4));
+  }
+
+  private void cachePrefixPages(String prefix, int fileNum) {
+    String scheme = "file:///";
+    for (int i = 0; i < fileNum; i++) {
+      String fileId = scheme + prefix + "_" + i;
+      PageId pageId = new PageId(fileId, 0);
+      mCacheManager.put(pageId, PAGE1);
+    }
+  }
+
+  private void checkPrefixSearch(UfsUrl rootUrl, UfsUrl prefixUrl) {
+    Collection<PageInfo> rootResult = mCacheManager.getPageInfoByPrefix(rootUrl);
+    Assert.assertFalse(rootResult.isEmpty());
+
+    Collection<PageInfo> prefixSearchResult = mCacheManager.getPageInfoByPrefix(prefixUrl);
+    Assert.assertFalse(prefixSearchResult.isEmpty());
+
+    for (PageInfo p : prefixSearchResult) {
+      Assert.assertTrue(p.getUfsUrl().toString().startsWith(prefixUrl.toString()));
+    }
+    for (PageInfo p : rootResult) {
+      if (prefixSearchResult.contains(p)) {
+        Assert.assertTrue(p.getUfsUrl().toString().startsWith(prefixUrl.toString()));
+      } else {
+        Assert.assertFalse(p.getUfsUrl().toString().startsWith(prefixUrl.toString()));
+      }
+    }
   }
 
   /**

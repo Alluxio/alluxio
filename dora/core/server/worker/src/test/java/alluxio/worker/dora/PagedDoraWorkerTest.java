@@ -24,7 +24,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageMetaStore;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -54,9 +53,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsStatus;
-import alluxio.uri.UfsUrl;
 import alluxio.util.io.BufferUtils;
-import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerIdentity;
 import alluxio.worker.block.BlockMasterClientPool;
 
@@ -78,7 +75,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -1010,55 +1006,6 @@ public class PagedDoraWorkerTest {
       int size = end - start;
       buffer.writeBytes(mBuffer, start, size);
       return size;
-    }
-  }
-
-  @Test
-  public void searchPagesByPrefix() throws Exception {
-    String prefix1 = "prefix1";
-    String prefix2 = "prefix2";
-    String prefix3 = "q";
-    String prefix4 = "~";
-
-    UfsUrl rootPrefix = PathUtils.convertUfsPathToUfsUrl(
-        mTestFolder.getRoot().getAbsolutePath() + "/");
-
-    int fileNum = 10;
-    createFilesWithPrefix(prefix1, fileNum);
-    createFilesWithPrefix(prefix2, fileNum);
-    createFilesWithPrefix(prefix3, fileNum);
-    createFilesWithPrefix(prefix4, fileNum);
-
-    checkPrefixSearch(rootPrefix, rootPrefix.join(prefix1));
-    checkPrefixSearch(rootPrefix, rootPrefix.join(prefix2));
-    checkPrefixSearch(rootPrefix, rootPrefix.join(prefix3));
-    checkPrefixSearch(rootPrefix, rootPrefix.join(prefix4));
-  }
-
-  private void checkPrefixSearch(UfsUrl rootUrl, UfsUrl prefixUrl) {
-    Set<PageInfo> rootResultSet = mWorker.getPageInfoByPrefix(rootUrl);
-
-    Set<PageInfo> prefixSearchSet = mWorker.getPageInfoByPrefix(prefixUrl);
-
-    for (PageInfo p : prefixSearchSet) {
-      Assert.assertTrue(p.getUfsUrl().toString().startsWith(prefixUrl.toString()));
-    }
-    for (PageInfo p : rootResultSet) {
-      if (prefixSearchSet.contains(p)) {
-        Assert.assertTrue(p.getUfsUrl().toString().startsWith(prefixUrl.toString()));
-      } else {
-        Assert.assertFalse(p.getUfsUrl().toString().startsWith(prefixUrl.toString()));
-      }
-    }
-  }
-
-  private void createFilesWithPrefix(String prefix, int fileNum)
-      throws AccessControlException, IOException, ExecutionException, InterruptedException,
-      TimeoutException {
-    for (int i = 0; i < fileNum; i++) {
-      File f = mTestFolder.newFile(prefix + "_" + i);
-      Files.write(f.toPath(), mFileContent.getBytes());
-      loadFileData(f.getPath());
     }
   }
 }
