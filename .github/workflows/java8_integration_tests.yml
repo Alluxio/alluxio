@@ -68,7 +68,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: artifact
+          name: artifact-${{ matrix.runs-on }}
           path: |
             **/target/surefire-reports/*
             **/target/artifacts/*
