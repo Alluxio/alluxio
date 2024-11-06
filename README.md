@@ -7,6 +7,7 @@
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Alluxio/alluxio/badge)](https://api.securityscorecards.dev/projects/github.com/Alluxio/alluxio)
 [![Twitter Follow](https://img.shields.io/twitter/follow/alluxio.svg?label=Follow&style=social)](https://twitter.com/intent/follow?screen_name=alluxio)
 [![License](https://img.shields.io/github/license/alluxio/alluxio.svg)](https://github.com/Alluxio/alluxio/blob/master/LICENSE)
+[![Gurubase](https://img.shields.io/badge/Gurubase-Ask%20Alluxio%20Guru-006BFF)](https://gurubase.io/g/alluxio)
 
 ## What is Alluxio
 [Alluxio](https://www.alluxio.io) (formerly known as Tachyon)
