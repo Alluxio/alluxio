@@ -137,7 +137,7 @@
     <findbugs.skip>false</findbugs.skip>
     <grpc.version>1.54.1</grpc.version>
     <gson.version>2.8.9</gson.version>
-    <guava.version>31.0.1-jre</guava.version>
+    <guava.version>32.0.0-jre</guava.version>
     <guice.version>5.1.0</guice.version>
     <hadoop-cos.version>3.1.0-5.8.5</hadoop-cos.version>
     <hadoop.version>3.3.1</hadoop.version>
