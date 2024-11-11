@@ -70,7 +70,7 @@ Alluxio 将三个关键领域的创新结合在一起，提供了一套独特的
 
 ## 下载和有用资源
 
-你可以从 [Alluxio 下载页面](https://alluxio.io/download)获取已发布版本。
+你可以从 [Alluxio 下载页面](https://www.alluxio.com.cn/product/download/)获取已发布版本。
 每个Alluxio发布版本都提供了与不同 Hadoop 版本兼容的预编译好的二进制文件。
 [从 Master 分支构建 Alluxio页面]({{ '/cn/contributor/Building-Alluxio-From-Source.html' | relativize_url }})解释了如何从源代码编译生成Alluxio项目。
 如果你有任何疑问，请联系我们[用户邮件列表](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
@@ -81,7 +81,7 @@ Alluxio微信公众号二维码（下图）
 <img src="https://d39kqat1wpn1o5.cloudfront.net/app/uploads/2019/04/public_account_qrcode.png" width="120" alt="QRCode"/>
 </p>
 
-[下载](https://alluxio.io/download/) |
+[下载](https://www.alluxio.com.cn/product/download/) |
 [用户文档]({{ '/cn/overview/Getting-Started.html' | relativize_url }}) |
 [开发者文档]({{ '/cn/contributor/Contributor-Getting-Started.html' | relativize_url }}) |
 [Meetup](https://www.meetup.com/Alluxio/) |
