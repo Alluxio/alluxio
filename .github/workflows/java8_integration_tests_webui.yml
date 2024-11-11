@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -28,7 +28,7 @@ jobs:
           node-version: '10.11.0'
 
       - name: Cache local Maven repository
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-java8-${{ hashFiles('**/pom.xml') }}
@@ -43,13 +43,13 @@ jobs:
           ALLUXIO_DOCKER_MVN_PROJECT_LIST=!shaded/client,!integration/tools/hms,!integration/yarn,!assembly/client,!assembly/server \
           dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl tests
         timeout-minutes: 60
-      
+
       - name: Archive artifacts
         continue-on-error: true
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: artifact
+          name: artifact-${{ matrix.runs-on }}
           path: |
             **/target/surefire-reports/*
             **/target/artifacts/*
