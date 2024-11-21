@@ -169,8 +169,8 @@ RUN mkdir -p /home/jenkins && \
 RUN gem install public_suffix:4.0.7 jekyll:4.2.2 bundler:2.3.18
 # golang for tooling
 RUN ARCH=$(dpkg --print-architecture) && \
-    wget https://go.dev/dl/go1.18.1.linux-${ARCH}.tar.gz && \
-    tar -xvf go1.18.1.linux-${ARCH}.tar.gz && \
+    wget https://go.dev/dl/go1.22.9.linux-${ARCH}.tar.gz && \
+    tar -xvf go1.22.9.linux-${ARCH}.tar.gz && \
     mv go /usr/local
 ENV GOROOT=/usr/local/go
 ENV PATH=$GOROOT/bin:$PATH
