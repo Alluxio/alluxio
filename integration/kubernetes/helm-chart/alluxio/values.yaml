@@ -16,8 +16,8 @@ fullnameOverride: alluxio
 ## Common ##
 
 # Docker Image
-image: alluxio/alluxio
-imageTag: 2.10.0-SNAPSHOT
+image: harbor.telecom-ai.com.cn/teleinfra/alluxio
+imageTag: latest_unknown_arch
 imagePullPolicy: IfNotPresent
 
 # Security Context
@@ -228,7 +228,7 @@ journal:
   ## - required when using a local UFS journal (journal.type="UFS" and journal.ufsType="local")
   ##
   ## volumeType controls the type of journal volume.
-  volumeType: persistentVolumeClaim # One of "persistentVolumeClaim" or "emptyDir"
+  volumeType: emptyDir # One of "persistentVolumeClaim" or "emptyDir"
   ## size sets the requested storage capacity for a persistentVolumeClaim,
   ## or the sizeLimit on an emptyDir PV.
   size: 1Gi
@@ -241,7 +241,7 @@ journal:
   #
   # [ Optional values ]
   format: # Configuration for journal formatting job
-    runFormat: false # Change to true to format journal
+    runFormat: true # Change to true to format journal
 
 
 # You can enable metastore to use ROCKS DB instead of Heap
@@ -322,7 +322,7 @@ worker:
   # launch the Alluxio workers using privileged containers with `SYS_ADMIN` capability.
   # Be sure to give root access to the pod by setting the global user/group/fsGroup
   # values to `0` to turn on Fuse in worker.
-  fuseEnabled: false
+  fuseEnabled: true
 
 jobWorker:
   args:
@@ -343,13 +343,13 @@ jobWorker:
   # JVM options specific to the jobWorker container
   jvmOptions:
   readinessProbe:
-    initialDelaySeconds: 10
+    initialDelaySeconds: 200
     periodSeconds: 10
     timeoutSeconds: 1
     failureThreshold: 3
     successThreshold: 1
   livenessProbe:
-    initialDelaySeconds: 15
+    initialDelaySeconds: 300
     periodSeconds: 30
     timeoutSeconds: 5
     failureThreshold: 2
@@ -396,6 +396,7 @@ jobWorker:
 #    name: alluxio-ssd,alluxio-hdd
 #    path: /dev/ssd,/dev/hdd
 #    quota: 10Gi,10Gi
+
 tieredstore:
   levels:
   - level: 0
@@ -403,7 +404,7 @@ tieredstore:
     mediumtype: MEM
     path: /dev/shm
     type: emptyDir
-    quota: 1Gi
+    quota: 400Gi
     high: 0.95
     low: 0.7
 
@@ -443,17 +444,17 @@ proxy:
 
 # Short circuit related properties
 shortCircuit:
-  enabled: true
+  enabled: false
   # The policy for short circuit can be "local" or "uuid",
   # local means the cache directory is in the same mount namespace,
   # uuid means interact with domain socket
   policy: uuid
   # volumeType controls the type of shortCircuit volume.
   # It can be "persistentVolumeClaim" or "hostPath"
-  volumeType: persistentVolumeClaim
+  volumeType: hostPath
   size: 1Mi
   # Attributes to use if the domain socket volume is PVC
-  pvcName: alluxio-worker-domain-socket
+  # pvcName: alluxio-worker-domain-socket
   accessModes:
     - ReadWriteOnce
   storageClass: standard
@@ -468,7 +469,7 @@ fuse:
     # Extra environment variables for the fuse pod
     # Example:
     # JAVA_HOME: /opt/java
-  enabled: false
+  enabled: true
   # Properties for the fuse component
   properties:
   # Customize the MaxDirectMemorySize
@@ -693,7 +694,7 @@ csi:
     dnsPolicy: ClusterFirstWithHostNet
     provisioner:
       # for kubernetes 1.17 or above
-      image: registry.k8s.io/sig-storage/csi-provisioner:v2.0.5
+      image: harbor.telecom-ai.com.cn/teleinfra/csi-provisioner:v2.0.5_unknown_arch
       resources:
         limits:
           cpu: 100m
@@ -725,7 +726,7 @@ csi:
           cpu: "1"
           memory: "1Gi"
     driverRegistrar:
-      image: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.0.0
+      image: harbor.telecom-ai.com.cn/teleinfra/csi-node-driver-registrar:v2.0.0
       resources:
         limits:
           cpu: 100m
