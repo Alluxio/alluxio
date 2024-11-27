@@ -2,8 +2,6 @@ name: Java 8 Unit Tests
 
 on:
   pull_request:
-  schedule:
-    - cron: 0 0 * * *
 
 jobs:
   build:
@@ -24,7 +22,7 @@ jobs:
 
     steps:
       - name: checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -32,7 +30,7 @@ jobs:
           node-version: '10.11.0'
 
       - name: Cache local Maven repository
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-java8-${{ hashFiles('**/pom.xml') }}
@@ -50,7 +48,7 @@ jobs:
 
       - name: Archive artifacts
         continue-on-error: true
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: artifact
