@@ -772,7 +772,7 @@ public class FileSystemContext implements Closeable {
         .getRpcPortSocketAddress(workerNetAddress, context.getClusterConf());
     GrpcServerAddress serverAddress = GrpcServerAddress.create(workerNetAddress.getHost(), address);
     final ClientPoolKey key = new ClientPoolKey(address, AuthenticationUtils
-            .getImpersonationUser(userState.getSubject(), context.getClusterConf()));
+            .getImpersonationUser(userState.getSubject(), context.getClusterConf()), workerNetAddress.getHost());
     final ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> poolMap =
         mBlockWorkerClientPoolMap;
     BlockWorkerClientPool pool = poolMap.computeIfAbsent(
@@ -1035,10 +1035,14 @@ public class FileSystemContext implements Closeable {
   protected static class ClientPoolKey {
     private final SocketAddress mSocketAddress;
     private final String mUsername;
+    private final String mHostname;
 
-    public ClientPoolKey(SocketAddress socketAddress, String username) {
+
+    public ClientPoolKey(SocketAddress socketAddress, String username, String hostname) {
       mSocketAddress = socketAddress;
       mUsername = username;
+      mHostname = hostname;
+
     }
 
     @Override
@@ -1056,7 +1060,8 @@ public class FileSystemContext implements Closeable {
       }
       ClientPoolKey that = (ClientPoolKey) o;
       return Objects.equal(mSocketAddress, that.mSocketAddress)
-          && Objects.equal(mUsername, that.mUsername);
+              && Objects.equal(mUsername, that.mUsername)
+              && Objects.equal(mHostname, that.mHostname);
     }
 
     @Override
