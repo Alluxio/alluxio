@@ -24,6 +24,7 @@ import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
 import com.codahale.metrics.Counter;
@@ -346,11 +347,12 @@ public final class UnderFileSystemBlockReader extends BlockReader {
     if (mBlockWriter != null && offset > mBlockWriter.getPosition()) {
       cancelBlockWriter();
     }
+    TempBlockMeta tempBlockMeta = null;
     try {
       if (mBlockWriter == null && offset == 0 && !mBlockMeta.isNoCache()) {
         BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(
             WORKER_STORAGE_TIER_ASSOC.getAlias(0));
-        mLocalBlockStore.createBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(),
+        tempBlockMeta = mLocalBlockStore.createBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(),
             AllocateOptions.forCreate(mInitialBlockSize, loc));
         mBlockWriter = mLocalBlockStore.createBlockWriter(
             mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
@@ -360,6 +362,9 @@ public final class UnderFileSystemBlockReader extends BlockReader {
           "Failed to update block writer for UFS block [blockId: {}, ufsPath: {}, offset: {}]: {}",
           mBlockMeta.getBlockId(), mBlockMeta.getUnderFileSystemPath(), offset, e.toString());
       mBlockWriter = null;
+      if (tempBlockMeta != null) {
+        mLocalBlockStore.abortBlock(tempBlockMeta.getSessionId(), tempBlockMeta.getBlockId());
+      }
     } catch (IllegalStateException e) {
       // This can happen when there are concurrent UFS readers who are all trying to cache to block.
       LOG.debug(
@@ -367,6 +372,9 @@ public final class UnderFileSystemBlockReader extends BlockReader {
               + "Concurrent UFS readers may be caching the same block.",
           mBlockMeta.getBlockId(), mBlockMeta.getUnderFileSystemPath(), offset, e);
       mBlockWriter = null;
+      if (tempBlockMeta != null) {
+        mLocalBlockStore.abortBlock(tempBlockMeta.getSessionId(), tempBlockMeta.getBlockId());
+      }
     }
   }
 }

@@ -299,6 +299,26 @@ public final class BlockMetadataManager {
     return Optional.empty();
   }
 
+
+  /**
+   * Gets the metadata of a temp block.
+   *
+   * @param sessionId the sessionId of the temp block
+   * @param blockId the id of the temp block
+   * @return metadata of the block
+   */
+  public Optional<TempBlockMeta> getTempBlockMeta(long sessionId, long blockId) {
+    for (StorageTier tier : mTiers) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        Optional<TempBlockMeta> tempBlockMeta = dir.getTempBlockMeta(blockId);
+        if (tempBlockMeta.isPresent() && tempBlockMeta.get().getSessionId() == sessionId) {
+          return tempBlockMeta;
+        }
+      }
+    }
+    return Optional.empty();
+  }
+
   /**
    * Gets the {@link StorageTier} given its tierAlias. Throws an {@link IllegalArgumentException} if
    * the tierAlias is not found.
