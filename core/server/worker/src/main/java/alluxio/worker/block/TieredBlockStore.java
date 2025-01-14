@@ -538,13 +538,10 @@ public class TieredBlockStore implements LocalBlockStore {
   private TempBlockMeta checkAndGetTempBlockMeta(long sessionId, long blockId) {
     Optional<TempBlockMeta> tempBlockMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
-      tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
+      tempBlockMeta = mMetaManager.getTempBlockMeta(sessionId, blockId);
     }
     checkState(tempBlockMeta.isPresent(),
         ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(blockId));
-    checkState(tempBlockMeta.get().getSessionId() == sessionId,
-        ExceptionMessage.BLOCK_ID_FOR_DIFFERENT_SESSION.getMessage(blockId,
-            tempBlockMeta.get().getSessionId(), sessionId));
     return tempBlockMeta.get();
   }
 
