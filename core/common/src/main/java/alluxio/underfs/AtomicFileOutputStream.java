@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Optional;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -28,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * that writing to the stream is atomic, i.e., all writes become readable only after a close.
  */
 @NotThreadSafe
-public class AtomicFileOutputStream extends OutputStream {
+public class AtomicFileOutputStream extends OutputStream implements ContentHashable {
   private static final Logger LOG = LoggerFactory.getLogger(AtomicFileOutputStream.class);
 
   private AtomicFileOutputStreamCallback mUfs;
@@ -94,6 +95,16 @@ public class AtomicFileOutputStream extends OutputStream {
     }
     // TODO(chaomin): consider setMode of the ufs file.
     mClosed = true;
+  }
+
+  @Override
+  public Optional<String> getContentHash() throws IOException {
+    // get the content hash immediately after the file has completed writing
+    // which will be used for generating the fingerprint of the file in Alluxio
+    // ideally this value would be received as a result from the close call
+    // so that we would be sure to have the hash relating to the file uploaded
+    // (but such an API is not available for the UFSs that use this stream type)
+    return Optional.of(mUfs.getFileStatus(mPermanentPath).getContentHash());
   }
 }
 

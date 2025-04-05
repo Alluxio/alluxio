@@ -82,6 +82,7 @@ message CompleteFilePOptions {
   optional int64 ufsLength = 1;
   optional ScheduleAsyncPersistencePOptions asyncPersistOptions = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
+  optional string contentHash = 4;
 }
 message CompleteFilePRequest {
   /** the path of the file */
