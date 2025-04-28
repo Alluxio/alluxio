@@ -8,41 +8,43 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/alluxio.svg?label=Follow&style=social)](https://twitter.com/intent/follow?screen_name=alluxio)
 [![License](https://img.shields.io/github/license/alluxio/alluxio.svg)](https://github.com/Alluxio/alluxio/blob/master/LICENSE)
 
-## What is Alluxio
-[Alluxio](https://www.alluxio.io) (formerly known as Tachyon)
-is a virtual distributed storage system. It bridges the gap between
-computation frameworks and storage systems, enabling computation applications to connect to
-numerous storage systems through a common interface. Read more about
-[Alluxio Overview](https://docs.alluxio.io/os/user/stable/en/Overview.html).
+## What is Alluxio Open Source
+
+Alluxio Open Source (formerly known as Tachyon) is a Distributed Caching Platform for large-scale data.
+It bridges the gap between computation frameworks and storage systems, enabling computation applications to connect to numerous storage systems through a common interface.
+
+This GitHub repository is the open-source edition of Alluxio, which is purpose-built for analytics workloads.
+It provides caching and acceleration for structured data analytics and is widely adopted with data-intensive computation engines such as Presto, Spark, and Trino.
 
 The Alluxio project originated from a research project called Tachyon at AMPLab, UC Berkeley,
 which was the data layer of the Berkeley Data Analytics Stack ([BDAS](https://amplab.cs.berkeley.edu/bdas/)).
 For more details, please refer to Haoyuan Li's PhD dissertation
 [Alluxio: A Virtual Distributed File System](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2018/EECS-2018-29.html).
 
-## Who Uses Alluxio
+## Alluxio Open Source versus Enterprise Editions
 
-Alluxio is used in production to manage Petabytes of data in many leading companies, with
-the largest deployment exceeding 3,000 nodes. You can find more use cases at
-[Powered by Alluxio](https://www.alluxio.io/powered-by-alluxio) or visit our first community conference ([Data Orchestration Summit](https://www.alluxio.io/data-orchestration-summit-2019/)) to learn from other community members!
+The open-source edition of Alluxio is purpose-built for analytics workloads.
+It accelerates structured data analytics and scales to manage up to 100 million files.
+This Alluxio Open Source Edition is available for free without support and is recommended for testing, development, and small-scale production environments.
 
-## Who Owns and Manages Alluxio Project
+For AI and machine learning workloads, including model training, distribution and inference at scale, Alluxio Enterprise Edition provides a fundamentally different architecture with a decentralized metadata service.
+As a result, it scales horizontally to support tens of billions of files and delivers higher performance along with FUSE-based POSIX integration for compatibility with popular AI frameworks, including PyTorch, TensorFlow, and Ray. 
+
+To learn more about Alluxio Enterprise Edition, visit: [https://www.alluxio.io/enterprise-ai](https://www.alluxio.io/enterprise-ai). 
+For more details about the differences between editions, visit [https://www.alluxio.io/editions](https://www.alluxio.io/editions).
+
+## Who Owns and Manages Alluxio Open Source Project
 
 Alluxio Open Source Foundation is the owner of Alluxio project.
 Project operation is done by Alluxio Project Management Committee (PMC).
-You can checkout more details in its structure and how to join Alluxio PMC 
-[here](https://github.com/Alluxio/alluxio/wiki/Alluxio-Project-Management-Committee-(PMC)).
+You can check out more details on its structure and how to join Alluxio PMC [here](https://github.com/Alluxio/alluxio/wiki/Alluxio-Project-Management-Committee-(PMC)).
 
 ## Community and Events
-Please use the following to reach members of the community:
 
-* [Alluxio Community Slack Channel](https://www.alluxio.io/slack): post your questions here if you seek for help for general questions or issues using Alluxio.
-* [Special Interest Groups (SIG) for Alluxio users and developers](#contributing)
-* Community Events: [upcoming online office hours, meetups and webinars](https://www.alluxio.io/events)
-* Meetup Groups: [Global Online Meetup](https://www.meetup.com/Alluxio-Global-Online-Meetup/), [Bay Area Meetup](http://www.meetup.com/Alluxio),
-[New York Meetup](https://www.meetup.com/Alluxio-Open-Source-New-York-Meetup),
-[Beijing Alluxio Meetup](https://www.meetup.com/meetup-group-iLMBZGhS/), [Austin Meetup](https://www.meetup.com/Cloud-Data-Orchestration-Austin/)
-* [Alluxio Twitter](https://twitter.com/alluxio); [Alluxio Youtube Channel](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA); [Alluxio Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)
+Please use the following to reach members of the community:
+- [Alluxio Community Slack Channel](https://www.alluxio.io/slack): post your questions here if you seek help for general questions or issues using Alluxio.
+- [Community Events](https://www.alluxio.io/events): upcoming online tech talks, meetups and webinars.
+- [Alluxio Twitter](https://twitter.com/alluxio); [Alluxio Youtube Channel](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA); [Alluxio Linkedin](https://www.linkedin.com/company/alluxio-inc-/).
 
 ## Download Alluxio
 
@@ -128,17 +130,10 @@ For a more detailed step-by-step guide, please read
 [how to contribute to Alluxio](https://docs.alluxio.io/os/user/stable/en/contributor/Contributor-Getting-Started.html).
 For new contributor, please take two [new contributor tasks](https://github.com/Alluxio/new-contributor-tasks).
 
-For advanced feature requests and contributions, 
-Alluxio core team is hosting regular online meetings with community users and developers to iterate the project in two special interest groups:
-
-* Alluxio and AI workloads: e.g., running Tensorflow, Pytorch on Alluxio through the POSIX API. Checkout the [meeting notes](https://docs.google.com/spreadsheets/d/1OlprIiUkGjMuZJ_6cLTJYVJpTGpnTWkFhHzX16tYNDQ/)
-* Alluxio and Presto workloads: e.g., running Presto on Alluxio. Checkout the [meeting notes](https://docs.google.com/spreadsheets/d/1V-fxqfG_oj3B1ZWSgbRWVuTHFvjL3pq6uXgAL-xvFQA/)
-
-Subscribe our [public calendar](https://calendar.google.com/calendar/embed?src=alluxio.com_g9ec8agk27baqu2nu692ft1m3s%40group.calendar.google.com&ctz=America%2FLos_Angeles) to join us.
 
 ## Useful Links
 
+- [Documentation](https://documentation.alluxio.io/os-en)
+- [Getting Started](https://documentation.alluxio.io/os-en/overview-1/getting-started)
+- [Contribution Guide](https://documentation.alluxio.io/os-en/contributor/contributor-getting-started)
 - [Alluxio Website](https://www.alluxio.io/)
-- [Downloads](https://www.alluxio.io/download)
-- [Releases and Notes](https://www.alluxio.io/download/releases/)
-- [Documentation](https://www.alluxio.io/docs/)
