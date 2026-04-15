@@ -50,7 +50,16 @@ public class ReadableDataBuffer implements DataBuffer {
 
   @Override
   public void readBytes(ByteBuffer outputBuf) {
-    mBuffer.readBytes(outputBuf);
+    int length = Math.min(mBuffer.readableBytes(), outputBuf.remaining());
+    if (outputBuf.hasArray()) {
+      mBuffer.readBytes(outputBuf.array(),
+          outputBuf.arrayOffset() + outputBuf.position(), length);
+      outputBuf.position(outputBuf.position() + length);
+    } else {
+      byte[] tmp = new byte[length];
+      mBuffer.readBytes(tmp, 0, length);
+      outputBuf.put(tmp);
+    }
   }
 
   @Override
