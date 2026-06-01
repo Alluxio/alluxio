@@ -77,11 +77,19 @@ public class LocalPageStore implements PageStore {
             "parent of cache file should not be null");
         Files.createDirectories(parent);
       }
-      // extra try to ensure output stream is closed
-      try (FileOutputStream fos = new FileOutputStream(pagePath.toFile(), false)) {
+      // Write to a temporary file first, then atomically rename to the target path.
+      // This prevents concurrent readers from observing a partially-written (truncated) file,
+      // which would otherwise cause PageCorruptedException.
+      Path tempPath = pagePath.resolveSibling(pagePath.getFileName() + ".tmp");
+      try (FileOutputStream fos = new FileOutputStream(tempPath.toFile(), false)) {
         fos.getChannel().write(page);
+        fos.getFD().sync();
       }
+      Files.move(tempPath, pagePath, StandardCopyOption.ATOMIC_MOVE,
+          StandardCopyOption.REPLACE_EXISTING);
     } catch (Throwable t) {
+      Path tempPath = pagePath.resolveSibling(pagePath.getFileName() + ".tmp");
+      Files.deleteIfExists(tempPath);
       Files.deleteIfExists(pagePath);
       if (t.getMessage() != null && t.getMessage().contains(ERROR_NO_SPACE_LEFT)) {
         throw new ResourceExhaustedException(
