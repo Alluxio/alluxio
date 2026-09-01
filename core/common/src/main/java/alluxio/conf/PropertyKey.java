@@ -7271,15 +7271,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey S3_REST_AUTHENTICATION_ENABLED =
       booleanBuilder(Name.S3_REST_AUTHENTICATION_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Whether to enable check s3 rest request header.")
+          .setDefaultValue(true)
+          .setDescription("Whether to verify the AWS signature of incoming S3 REST requests. "
+              + "When disabled, the proxy trusts the user name declared in the Authorization "
+              + "header without checking the signature, allowing any client to impersonate any "
+              + "user. Keep this enabled unless the proxy runs on a trusted, isolated network.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey S3_REST_AUTHENTICATOR_CLASSNAME =
        classBuilder(Name.S3_REST_AUTHENTICATOR_CLASSNAME)
-           .setDescription("The class's name is instantiated as an S3 authenticator.")
-           .setDefaultValue("alluxio.proxy.s3.auth.PassAllAuthenticator")
+           .setDescription("The class's name is instantiated as an S3 authenticator. "
+               + "The default fail-closed authenticator rejects every request; configure a "
+               + "signature-verifying implementation to serve authenticated S3 traffic.")
+           .setDefaultValue("alluxio.proxy.s3.auth.DenyAllAuthenticator")
            .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
            .setScope(Scope.ALL)
            .build();
