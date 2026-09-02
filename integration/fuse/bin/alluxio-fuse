@@ -107,10 +107,11 @@ mount_fuse() {
   if [[ ${NO_DAEMON} = true ]]; then
     exec ${cmd}
   else
-    (nohup ${cmd} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
-    # sleep: workaround to let the bg java process exit on errors, if any
-    sleep ${mount_sleep_seconds}
-    if kill -0 $! > /dev/null 2>&1 ; then
+    nohup ${cmd} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1 &
+    # Capture the real AlluxioFuse process pid (not a wrapping subshell) so the
+    # mount check below inspects the actual daemon.
+    local fuse_pid=$!
+    if wait_for_fuse_mount "${fuse_pid}" "${mount_sleep_seconds}"; then
       echo "Successfully mounted Alluxio to ${mount_point}."
       echo "See ${ALLUXIO_LOGS_DIR}/fuse.log for logging messages"
       return 0
@@ -235,6 +236,33 @@ fuse_mounted() {
   fi
   # 1 = false
   return 1
+}
+
+# Waits for the launched AlluxioFuse process to establish the mount.
+# $1: pid of the AlluxioFuse process, $2: timeout in seconds.
+# Returns 0 only once the mount point actually appears in the mount table.
+# Returns 1 if the process exits before mounting, or the mount does not show up
+# within the timeout. Verifying the mount (rather than only checking that the
+# process is still alive) avoids reporting a successful mount when the mount
+# never happened, e.g. an invalid mount point (issue #15220).
+wait_for_fuse_mount() {
+  local fuse_pid="$1"
+  local timeout_seconds="$2"
+  local waited=0
+  while true; do
+    if ! kill -0 "${fuse_pid}" > /dev/null 2>&1; then
+      # AlluxioFuse process exited before the mount came up -> mount failed
+      return 1
+    fi
+    if fuse_mounted; then
+      return 0
+    fi
+    if [[ ${waited} -ge ${timeout_seconds} ]]; then
+      return 1
+    fi
+    sleep 1
+    (( waited += 1 ))
+  done
 }
 
 err() {
