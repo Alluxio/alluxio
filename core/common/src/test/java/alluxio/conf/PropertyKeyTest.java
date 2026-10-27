@@ -334,4 +334,16 @@ public final class PropertyKeyTest {
         .setValueValidationFunction(booleanValidationFunction)
         .build());
   }
+
+  @Test
+  public void testMasterEmbeddedJournalEntrySizeMaxValidation() {
+    assertTrue(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX.validateValue("10MB"));
+    assertTrue(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX.validateValue("1B"));
+    assertTrue(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX.validateValue(1024L));
+    assertFalse(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX.validateValue("0MB"));
+    assertFalse(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX.validateValue("0B"));
+    assertFalse(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX.validateValue("-1MB"));
+    assertFalse(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX.validateValue(0L));
+    assertFalse(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX.validateValue(-5L));
+  }
 }
