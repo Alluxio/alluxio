@@ -219,6 +219,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     return file.exists();
   };
 
+  public static final Function<Object, Boolean> CHECK_POSITIVE = (val) -> {
+    if (val instanceof Number) {
+      return ((Number) val).doubleValue() > 0;
+    }
+    if (val instanceof String) {
+      try {
+        return FormatUtils.parseSpaceSize((String) val) > 0;
+      } catch (Exception e) {
+        return false;
+      }
+    }
+    return false;
+  };
+
   /**
    * Builder to create {@link PropertyKey} instances. Note that, <code>Builder.build()</code> will
    * throw exception if there is an existing property built with the same name.
@@ -2470,6 +2484,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX =
       dataSizeBuilder(Name.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX)
           .setDefaultValue("10MB")
+          .setValueValidationFunction(CHECK_POSITIVE)
           .setDescription("The maximum single journal entry size allowed to be flushed. "
               + "This value should be smaller than 30MB. Set to a larger value to allow larger "
               + "journal entries when using the Alluxio Catalog service.")
