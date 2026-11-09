@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -229,10 +230,9 @@ public class S3Handler {
             servletOut.write(bytesArray, 0, read);
           } while (true);
         } else {
-          String contentStr = entity.toString();
-          int contentLen = contentStr.length();
-          servletResponse.setContentLength(contentLen);
-          servletOut.write(contentStr.getBytes());
+          byte[] content = entity.toString().getBytes(StandardCharsets.UTF_8);
+          servletResponse.setContentLength(content.length);
+          servletOut.write(content);
         }
       }
     } finally {
