@@ -476,6 +476,41 @@ public class UfsFileInStreamTest {
     }
   }
 
+  /**
+   * A zero-length read is a legal request and must return 0 even when the stream
+   * is already positioned at EOF. {@code InputStream#read(byte[], int, int)}
+   * specifies this explicitly, and treating it as EOF makes callers that probe
+   * with an empty buffer stop reading early.
+   */
+  @Test
+  public void zeroLengthReadAtEofReturnsZero() throws IOException {
+    String ufsPath = getUfsPath();
+    createFile(ufsPath, 3);
+    try (UfsFileInStream inStream = getStream(ufsPath)) {
+      inStream.seek(3);
+      assertEquals(0, inStream.read(new byte[0], 0, 0));
+      assertEquals(0, inStream.read(ByteBuffer.allocate(0), 0, 0));
+      // A non-zero read at EOF still reports EOF.
+      assertEquals(-1, inStream.read(new byte[1], 0, 1));
+    }
+  }
+
+  /**
+   * The zero-length contract also holds before EOF and must not move the cursor
+   * or open the underlying UFS stream.
+   */
+  @Test
+  public void zeroLengthReadBeforeEofReturnsZero() throws IOException {
+    String ufsPath = getUfsPath();
+    createFile(ufsPath, CHUNK_SIZE);
+    try (UfsFileInStream inStream = getStream(ufsPath)) {
+      assertEquals(0, inStream.read(new byte[0], 0, 0));
+      assertEquals(0, inStream.read(ByteBuffer.allocate(0), 0, 0));
+      assertEquals(0, inStream.getPos());
+      assertEquals(0, inStream.read());
+    }
+  }
+
   private String getUfsPath() {
     return Paths.get(mRootUfs, String.valueOf(UUID.randomUUID())).toString();
   }
