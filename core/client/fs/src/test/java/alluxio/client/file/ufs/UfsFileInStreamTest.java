@@ -476,6 +476,51 @@ public class UfsFileInStreamTest {
     }
   }
 
+  /**
+   * {@code PositionedReadable#positionedRead} must not change the sequential
+   * read position. The current implementation delegates to {@code seek} +
+   * {@code read}, so the following sequential read resumes from the positioned
+   * offset instead of the original cursor.
+   */
+  @Test
+  public void positionedReadMustNotMoveSequentialPosition() throws IOException {
+    String ufsPath = getUfsPath();
+    createFile(ufsPath, CHUNK_SIZE);
+    try (UfsFileInStream inStream = getStream(ufsPath)) {
+      byte[] first = new byte[4];
+      assertEquals(4, inStream.read(first));
+      assertEquals(4, inStream.getPos());
+
+      byte[] positioned = new byte[3];
+      assertEquals(3, inStream.positionedRead(10, positioned, 0, 3));
+      assertTrue(BufferUtils.equalIncreasingByteArray(10, 3, positioned));
+
+      assertEquals("positionedRead must not move the sequential cursor",
+          4, inStream.getPos());
+      assertEquals("the next sequential byte is the one after the last read",
+          4, inStream.read());
+    }
+  }
+
+  /**
+   * A positioned read past the end reports EOF and still leaves the sequential
+   * cursor untouched.
+   */
+  @Test
+  public void positionedReadPastEofKeepsSequentialPosition() throws IOException {
+    String ufsPath = getUfsPath();
+    createFile(ufsPath, CHUNK_SIZE);
+    try (UfsFileInStream inStream = getStream(ufsPath)) {
+      assertEquals(0, inStream.read());
+      assertEquals(1, inStream.getPos());
+
+      assertEquals(-1, inStream.positionedRead(CHUNK_SIZE, new byte[4], 0, 4));
+
+      assertEquals(1, inStream.getPos());
+      assertEquals(1, inStream.read());
+    }
+  }
+
   private String getUfsPath() {
     return Paths.get(mRootUfs, String.valueOf(UUID.randomUUID())).toString();
   }
