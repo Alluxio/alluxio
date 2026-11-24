@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -71,6 +72,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Tests for the {@link AlluxioFileInStream} class.
@@ -716,6 +723,67 @@ public final class AlluxioFileInStreamTest {
     mTestStream.positionedRead(BLOCK_LENGTH / 2, b, 0, b.length);
     assertArrayEquals(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH / 2, (int)
         BLOCK_LENGTH * 2), b);
+  }
+
+  /**
+   * {@code PositionedReadable} requires positioned reads to be thread safe.
+   * Concurrent positioned reads that target the same block must not share one
+   * {@code BlockInStream}, otherwise two offsets are served by the same
+   * underlying stream at the same time.
+   */
+  @Test
+  public void concurrentPositionedReadsDoNotShareBlockInStream() throws Exception {
+    final int readLength = 32;
+    final AtomicInteger active = new AtomicInteger();
+    final AtomicBoolean overlapped = new AtomicBoolean(false);
+
+    when(mBlockStore.getInStream(any(BlockInfo.class), any(InStreamOptions.class), any()))
+        .thenAnswer(invocation -> {
+          BlockInStream stream = mock(BlockInStream.class);
+          when(stream.getId()).thenReturn(0L);
+          when(stream.getSource()).thenReturn(mBlockSource);
+          when(stream.positionedRead(anyLong(), any(byte[].class), anyInt(), anyInt()))
+              .thenAnswer(call -> {
+                long pos = call.getArgument(0);
+                byte[] buffer = call.getArgument(1);
+                int off = call.getArgument(2);
+                int len = call.getArgument(3);
+                if (active.incrementAndGet() > 1) {
+                  // Two positioned reads are inside the same BlockInStream.
+                  overlapped.set(true);
+                }
+                try {
+                  // Hold the stream long enough for a concurrent caller to overlap.
+                  Thread.sleep(100);
+                } finally {
+                  active.decrementAndGet();
+                }
+                byte[] data = BufferUtils.getIncreasingByteArray((int) pos, len);
+                System.arraycopy(data, 0, buffer, off, len);
+                return len;
+              });
+          return stream;
+        });
+
+    ExecutorService executor = Executors.newFixedThreadPool(2);
+    try {
+      List<Future<?>> futures = new ArrayList<>();
+      for (long pos : new long[] {0L, 50L}) {
+        futures.add(executor.submit(() -> {
+          byte[] buffer = new byte[readLength];
+          assertEquals(readLength, mTestStream.positionedRead(pos, buffer, 0, readLength));
+          assertArrayEquals(BufferUtils.getIncreasingByteArray((int) pos, readLength), buffer);
+          return null;
+        }));
+      }
+      for (Future<?> future : futures) {
+        future.get(10, TimeUnit.SECONDS);
+      }
+    } finally {
+      executor.shutdownNow();
+    }
+
+    assertFalse("concurrent positioned reads shared one BlockInStream", overlapped.get());
   }
 
   @Test
