@@ -12,6 +12,8 @@
 package alluxio.client.file;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -46,6 +48,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 @RunWith(PowerMockRunner.class)
@@ -274,6 +281,67 @@ public class MetadataCachingFileSystemTest {
     assertEquals(1, mFileSystemMasterClient.getStatusRpcCount(FILE));
     mFs.listStatus(DIR);
     assertEquals(2, mFileSystemMasterClient.listStatusRpcCount(DIR));
+  }
+
+  /**
+   * A write operation invalidates the metadata cache before it changes the
+   * delegate. A concurrent lookup can therefore re-populate the cache with the
+   * pre-write state (here a negative entry) while the write is still in flight.
+   * Unless the entry is invalidated again after the write completes, the stale
+   * value survives until the cache entry expires.
+   */
+  @Test
+  public void createDirectoryInvalidatesNegativeCacheFilledDuringCreate() throws Exception {
+    CountDownLatch createEntered = new CountDownLatch(1);
+    CountDownLatch allowCreate = new CountDownLatch(1);
+
+    RpcCountingFileSystemMasterClient blockingClient = new RpcCountingFileSystemMasterClient() {
+      @Override
+      public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
+          throws AlluxioStatusException {
+        createEntered.countDown();
+        try {
+          if (!allowCreate.await(10, TimeUnit.SECONDS)) {
+            throw new IllegalStateException("createDirectory was not released");
+          }
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          throw new IllegalStateException(e);
+        }
+        mFileStatusMap.put(path,
+            new URIStatus(new FileInfo().setPath(path.getPath()).setCompleted(true)));
+      }
+    };
+    when(mFileContext.acquireMasterClientResource())
+        .thenReturn(new CloseableResource<FileSystemMasterClient>(blockingClient) {
+          @Override
+          public void closeResource() {
+          }
+        });
+    mFs = new MetadataCachingFileSystem(new BaseFileSystem(mFileContext), mFileContext);
+
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    try {
+      Future<?> create = executor.submit(() -> {
+        mFs.createDirectory(DIR, CreateDirectoryPOptions.getDefaultInstance());
+        return null;
+      });
+      assertTrue("createDirectory did not reach the delegate",
+          createEntered.await(10, TimeUnit.SECONDS));
+
+      // The write invalidated the cache already; this lookup reads the pre-write
+      // state and caches the negative result.
+      assertThrows(FileDoesNotExistException.class, () -> mFs.getStatus(DIR));
+
+      allowCreate.countDown();
+      create.get(10, TimeUnit.SECONDS);
+
+      // The negative entry cached inside the write window must not survive it.
+      assertEquals(DIR.getPath(), mFs.getStatus(DIR).getPath());
+    } finally {
+      allowCreate.countDown();
+      executor.shutdownNow();
+    }
   }
 
   class RpcCountingFileSystemMasterClient extends MockFileSystemMasterClient {
