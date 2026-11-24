@@ -33,11 +33,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Add unit tests for {@link UfsFileInStream}.
@@ -473,6 +475,44 @@ public class UfsFileInStreamTest {
       len = CHUNK_SIZE / 4;
       inStream.read(ByteBuffer.allocate(len), 0, len);
       assertEquals(CHUNK_SIZE / 4 - 1, inStream.remaining());
+    }
+  }
+
+  /**
+   * {@link InputStream#skip(long)} may legally skip zero bytes. On a
+   * non-seekable UFS stream the forward-seek loop must still make progress by
+   * reading and discarding; otherwise the calling thread spins forever.
+   *
+   * The fake stream fails the test instead of hanging the JVM: after a few
+   * no-progress skip calls it throws, which only the spinning loop can trigger.
+   */
+  @Test
+  public void seekProgressesWhenUfsSkipReturnsZero() throws IOException {
+    byte[] data = BufferUtils.getIncreasingByteArray(32);
+    AtomicInteger skipCalls = new AtomicInteger();
+    InputStream fake = new InputStream() {
+      private int mReadPosition;
+
+      @Override
+      public int read() {
+        return mReadPosition < data.length ? data[mReadPosition++] & 0xff : -1;
+      }
+
+      @Override
+      public long skip(long n) {
+        if (skipCalls.incrementAndGet() > 5) {
+          throw new IllegalStateException(
+              "skip() never made progress; the seek loop is spinning");
+        }
+        return 0;
+      }
+    };
+
+    try (UfsFileInStream inStream = new UfsFileInStream(offset -> fake, data.length)) {
+      assertEquals(0, inStream.read()); // opens the underlying stream at 0
+      inStream.seek(8);
+      assertEquals(8, inStream.getPos());
+      assertEquals(8, inStream.read());
     }
   }
 
