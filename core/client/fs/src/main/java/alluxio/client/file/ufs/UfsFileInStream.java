@@ -117,8 +117,42 @@ public class UfsFileInStream extends FileInStream {
   @Override
   public int positionedRead(long position, byte[] buffer, int offset, int length)
       throws IOException {
-    seek(position);
-    return read(buffer, offset, length);
+    Preconditions.checkArgument(offset >= 0 && length >= 0 && offset + length <= buffer.length,
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), buffer.length, offset, length);
+    Preconditions.checkArgument(position >= 0, "Position is negative: %s", position);
+    if (length == 0) {
+      return 0;
+    }
+    if (position >= mLength) {
+      return -1;
+    }
+
+    // Read through an independent stream opened at the requested offset: reusing
+    // the sequential stream would move (and corrupt) the caller's read cursor,
+    // which PositionedReadable explicitly forbids.
+    int toRead = (int) Math.min(length, mLength - position);
+    try (InputStream positioned = mFileOpener.apply(position)) {
+      int totalRead = 0;
+      while (totalRead < toRead) {
+        int currentRead = positioned.read(buffer, offset + totalRead, toRead - totalRead);
+        if (currentRead < 0) {
+          break;
+        }
+        if (currentRead == 0) {
+          // A non-compliant stream may return 0 for a positive-length read;
+          // fall back to a single-byte read so the loop still makes progress.
+          int singleByte = positioned.read();
+          if (singleByte < 0) {
+            break;
+          }
+          buffer[offset + totalRead] = (byte) singleByte;
+          totalRead++;
+        } else {
+          totalRead += currentRead;
+        }
+      }
+      return totalRead == 0 ? -1 : totalRead;
+    }
   }
 
   @Override
