@@ -94,36 +94,63 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
   @Override
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-    mMetadataCache.invalidate(path.getParent());
-    mMetadataCache.invalidate(path);
-    mDelegatedFileSystem.createDirectory(path, options);
+    invalidatePathAndParent(path);
+    try {
+      mDelegatedFileSystem.createDirectory(path, options);
+    } finally {
+      // A concurrent lookup can re-populate the cache with the pre-write state
+      // while this call is in flight, so drop the entries again afterwards.
+      invalidatePathAndParent(path);
+    }
   }
 
   @Override
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws IOException, AlluxioException {
-    mMetadataCache.invalidate(path.getParent());
-    mMetadataCache.invalidate(path);
-    return mDelegatedFileSystem.createFile(path, options);
+    invalidatePathAndParent(path);
+    try {
+      return mDelegatedFileSystem.createFile(path, options);
+    } finally {
+      invalidatePathAndParent(path);
+    }
   }
 
   @Override
   public void delete(AlluxioURI path, DeletePOptions options)
       throws IOException,
       AlluxioException {
-    mMetadataCache.invalidate(path.getParent());
-    mMetadataCache.invalidate(path);
-    mDelegatedFileSystem.delete(path, options);
+    invalidatePathAndParent(path);
+    try {
+      mDelegatedFileSystem.delete(path, options);
+    } finally {
+      invalidatePathAndParent(path);
+    }
   }
 
   @Override
   public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options)
       throws IOException, AlluxioException {
-    mMetadataCache.invalidate(src.getParent());
-    mMetadataCache.invalidate(src);
-    mMetadataCache.invalidate(dst.getParent());
-    mMetadataCache.invalidate(dst);
-    mDelegatedFileSystem.rename(src, dst, options);
+    invalidatePathAndParent(src);
+    invalidatePathAndParent(dst);
+    try {
+      mDelegatedFileSystem.rename(src, dst, options);
+    } finally {
+      invalidatePathAndParent(src);
+      invalidatePathAndParent(dst);
+    }
+  }
+
+  /**
+   * Drops the cached entry of {@code path} and of its parent directory.
+   *
+   * @param path the path whose cached metadata may be stale
+   */
+  private void invalidatePathAndParent(AlluxioURI path) {
+    mMetadataCache.invalidate(path);
+    AlluxioURI parent = path.getParent();
+    if (parent != null) {
+      mMetadataCache.invalidate(parent);
+    }
   }
 
   @Override
