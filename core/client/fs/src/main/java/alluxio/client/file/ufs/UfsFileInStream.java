@@ -61,6 +61,10 @@ public class UfsFileInStream extends FileInStream {
 
   @Override
   public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
+    if (len == 0) {
+      // Match the byte[] contract and skip the temporary array entirely.
+      return 0;
+    }
     byte[] byteArray = new byte[len];
     int totalBytesRead = read(byteArray, 0, len);
     if (totalBytesRead <= 0) {
@@ -75,6 +79,11 @@ public class UfsFileInStream extends FileInStream {
   public int read(byte[] b, int off, int len) throws IOException {
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
         PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
+    if (len == 0) {
+      // A zero-length request is legal and returns 0 even at EOF; only a
+      // non-zero read may report EOF.
+      return 0;
+    }
     if (mPosition == mLength) { // at end of file
       return -1;
     }
