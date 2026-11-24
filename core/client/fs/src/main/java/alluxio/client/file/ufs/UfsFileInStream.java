@@ -17,6 +17,7 @@ import alluxio.exception.PreconditionMessage;
 
 import com.google.common.base.Preconditions;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -141,13 +142,47 @@ public class UfsFileInStream extends FileInStream {
     if (mUfsInStream.get() instanceof Seekable) {
       ((Seekable) mUfsInStream.get()).seek(pos);
     } else if (mPosition < pos) {
-      while (mPosition < pos) {
-        mPosition += mUfsInStream.get().skip(pos - mPosition);
-      }
+      skipForwardWithoutSeek(pos);
     } else {
       close();
     }
     mPosition = pos;
+  }
+
+  /**
+   * Advances a non-seekable stream to {@code target} with reads.
+   *
+   * {@link InputStream#skip(long)} may skip fewer bytes than requested, including
+   * zero, so the loop must fall back to reading and discarding. If the stream
+   * ends before the target, fail with {@link EOFException} instead of spinning.
+   */
+  private void skipForwardWithoutSeek(long target) throws IOException {
+    byte[] discard = new byte[8192];
+    while (mPosition < target) {
+      long skipped = mUfsInStream.get().skip(target - mPosition);
+      if (skipped > 0) {
+        mPosition += skipped;
+        continue;
+      }
+      int toRead = (int) Math.min(discard.length, target - mPosition);
+      int currentRead = mUfsInStream.get().read(discard, 0, toRead);
+      if (currentRead < 0) {
+        throw new EOFException(
+            String.format("Reached EOF before seek position %s", target));
+      }
+      if (currentRead == 0) {
+        // A non-compliant stream may return 0 for a positive-length read; use a
+        // single-byte read so this loop still makes progress.
+        int singleByte = mUfsInStream.get().read();
+        if (singleByte < 0) {
+          throw new EOFException(
+              String.format("Reached EOF before seek position %s", target));
+        }
+        mPosition++;
+      } else {
+        mPosition += currentRead;
+      }
+    }
   }
 
   @Override
