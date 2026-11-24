@@ -105,6 +105,16 @@ public class AlluxioFileInStream extends FileInStream {
   /** A map of worker addresses to the most recent epoch time when client fails to read from it. */
   private Map<WorkerNetAddress, Long> mFailedWorkers = new HashMap<>();
 
+  /**
+   * Serializes positioned reads on this stream and the closing of the cached
+   * positioned-read stream. {@code PositionedReadable} requires positioned reads
+   * to be thread safe, but the cached stream and its retry state are not.
+   */
+  private final Object mPositionedReadLock = new Object();
+
+  /** Failed workers observed by positioned reads; kept apart from sequential retries. */
+  private final Map<WorkerNetAddress, Long> mPositionedReadFailedWorkers = new HashMap<>();
+
   private Closer mCloser;
 
   protected AlluxioFileInStream(URIStatus status, InStreamOptions options,
@@ -269,7 +279,10 @@ public class AlluxioFileInStream extends FileInStream {
   @Override
   public void close() throws IOException {
     closeBlockInStream(mBlockInStream);
-    closeBlockInStream(mCachedPositionedReadStream);
+    synchronized (mPositionedReadLock) {
+      closeBlockInStream(mCachedPositionedReadStream);
+      mCachedPositionedReadStream = null;
+    }
     mCloser.close();
   }
 
@@ -282,10 +295,13 @@ public class AlluxioFileInStream extends FileInStream {
   /* Positioned Readable methods */
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
-    return positionedReadInternal(pos, b, off, len);
+    synchronized (mPositionedReadLock) {
+      return positionedReadInternal(pos, b, off, len, mPositionedReadFailedWorkers);
+    }
   }
 
-  private int positionedReadInternal(long pos, byte[] b, int off, int len) throws IOException {
+  private int positionedReadInternal(long pos, byte[] b, int off, int len,
+      Map<WorkerNetAddress, Long> failedWorkers) throws IOException {
     if (pos < 0 || pos >= mLength) {
       return -1;
     }
@@ -309,11 +325,11 @@ public class AlluxioFileInStream extends FileInStream {
             ? mBlockStore.getInfo(blockId) : mStatus.getBlockInfo(blockId);
         if (mCachedPositionedReadStream == null) {
           mCachedPositionedReadStream = mBlockStore.getInStream(
-              blockInfo, mOptions, mFailedWorkers);
+              blockInfo, mOptions, failedWorkers);
         } else if (mCachedPositionedReadStream.getId() != blockId) {
           closeBlockInStream(mCachedPositionedReadStream);
           mCachedPositionedReadStream = mBlockStore.getInStream(
-              blockInfo, mOptions, mFailedWorkers);
+              blockInfo, mOptions, failedWorkers);
         }
         long offset = pos % mBlockSize;
         int bytesRead = mCachedPositionedReadStream.positionedRead(offset, b, off,
