@@ -92,12 +92,33 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
       long blockId, long blockSize, java.util.List<WorkerNetAddress> workerNetAddresses,
       OutStreamOptions options) throws IOException {
     List<DataWriter> dataWriters = new ArrayList<>();
-    for (WorkerNetAddress address: workerNetAddresses) {
-      DataWriter dataWriter =
-            DataWriter.Factory.create(context, blockId, blockSize, address, options);
-      dataWriters.add(dataWriter);
+    try {
+      for (WorkerNetAddress address: workerNetAddresses) {
+        DataWriter dataWriter =
+              DataWriter.Factory.create(context, blockId, blockSize, address, options);
+        dataWriters.add(dataWriter);
+      }
+      return new BlockOutStream(dataWriters, blockSize, workerNetAddresses);
+    } catch (IOException | RuntimeException | Error failure) {
+      // The BlockOutStream is never constructed, so nothing else would release the
+      // writers that did open. Cancel and close them in reverse creation order,
+      // keep the original failure as the thrown exception, and attach cleanup
+      // failures to it as suppressed exceptions.
+      for (int i = dataWriters.size() - 1; i >= 0; i--) {
+        DataWriter dataWriter = dataWriters.get(i);
+        try {
+          dataWriter.cancel();
+        } catch (Throwable cleanupFailure) {
+          failure.addSuppressed(cleanupFailure);
+        }
+        try {
+          dataWriter.close();
+        } catch (Throwable cleanupFailure) {
+          failure.addSuppressed(cleanupFailure);
+        }
+      }
+      throw failure;
     }
-    return new BlockOutStream(dataWriters, blockSize, workerNetAddresses);
   }
 
   /**
